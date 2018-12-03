@@ -866,7 +866,7 @@
                                 <properties>
                                   <selected value="true"/>
                                   <text value="Yes"/>
-                                  <toolTipText value="Generate Legacy icon (API &lt;= 24)"/>
+                                  <toolTipText value="Generate legacy icon (API ≤ 25)"/>
                                 </properties>
                               </component>
                               <component id="dc910" class="javax.swing.JRadioButton" default-binding="true">
@@ -974,7 +974,7 @@
                                 <properties>
                                   <selected value="true"/>
                                   <text value="Yes"/>
-                                  <toolTipText value="Generate Round icon (API 25)"/>
+                                  <toolTipText value="Generate round icon (API 25)"/>
                                 </properties>
                               </component>
                               <component id="bdc910" class="javax.swing.JRadioButton" default-binding="true">
@@ -1039,7 +1039,7 @@
                                 <properties>
                                   <selected value="true"/>
                                   <text value="Yes"/>
-                                  <toolTipText value="Generate Web Image (512x512)"/>
+                                  <toolTipText value="Generate icon for Google Play Store (512x512)"/>
                                 </properties>
                               </component>
                               <component id="dcd52" class="javax.swing.JRadioButton" default-binding="true">
