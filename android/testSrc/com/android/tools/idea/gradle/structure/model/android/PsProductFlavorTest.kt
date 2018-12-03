@@ -218,7 +218,6 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     val project = PsProjectImpl(resolvedProject)
 
     run {
-
       val appModule = project.findModuleByName("app") as PsAndroidModule
       assertThat(appModule, notNullValue())
 
@@ -229,7 +228,6 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(productFlavor.effectiveDimension, nullValue())
     }
     run {
-
       val nested2Module = project.findModuleByName("nested2") as PsAndroidModule
       assertThat(nested2Module, notNullValue())
 
@@ -237,6 +235,15 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(productFlavor, notNullValue()); productFlavor!!
       assertThat(productFlavor.configuredDimension, equalTo<ParsedValue<String>>(ParsedValue.NotSet))
       assertThat(productFlavor.effectiveDimension, equalTo("foo"))
+    }
+    run {
+      val nested1Module = project.findModuleByName("nested1") as PsAndroidModule
+      assertThat(nested1Module, notNullValue())
+
+      val productFlavor = nested1Module.addNewProductFlavor("new_bad", "new_with_bad")
+      assertThat(productFlavor, notNullValue())
+      assertThat(productFlavor.configuredDimension, equalTo<ParsedValue<String>>("new_bad".asParsed()))
+      assertThat(productFlavor.effectiveDimension, nullValue())
     }
   }
 

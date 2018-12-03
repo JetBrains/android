@@ -22,8 +22,8 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMas
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.validateAndShow
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
-import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -31,6 +31,7 @@ import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.util.IconUtil
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.tree.TreePath
 
 const val PRODUCT_FLAVORS_DISPLAY_NAME: String = "Flavors"
@@ -48,7 +49,7 @@ class ProductFlavorsPanel(
     return object : DumbAwareAction(removeTextFor(null), removeDescriptionFor(null), IconUtil.getRemoveIcon()) {
       override fun update(e: AnActionEvent) {
         e.presentation.apply {
-          isEnabled = selectedConfigurable != null
+          isEnabled = selectedConfigurable != null && selectedConfigurable?.editableObject?.safeAs<PsFlavorDimension>()?.isInvalid != true
           text = removeTextFor(selectedConfigurable)
           description = removeDescriptionFor(selectedConfigurable)
         }
