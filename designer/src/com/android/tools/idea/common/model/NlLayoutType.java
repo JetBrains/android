@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.android.SdkConstants.CLASS_SUPPORT_PREFERENCE_SCREEN;
+
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.naveditor.editor.NavToolbarActionGroups;
@@ -24,6 +26,7 @@ import com.android.tools.idea.common.editor.SetZoomActionGroups;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.google.common.collect.ImmutableList;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.FileDescriptionUtils;
 import org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription;
@@ -100,7 +103,9 @@ public enum NlLayoutType {
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
       return FileDescriptionUtils.isResourceOfTypeWithRootTag(file,
                                                               ResourceFolderType.XML,
-                                                              Collections.singleton(SdkConstants.TAG_PREFERENCE_SCREEN));
+                                                              ImmutableList.of(SdkConstants.TAG_PREFERENCE_SCREEN,
+                                                                               CLASS_SUPPORT_PREFERENCE_SCREEN.oldName(),
+                                                                               CLASS_SUPPORT_PREFERENCE_SCREEN.newName()));
     }
   },
 

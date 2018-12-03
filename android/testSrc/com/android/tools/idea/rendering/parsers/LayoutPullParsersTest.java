@@ -163,7 +163,32 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     assertEquals(expectedLayout, actualLayout);
   }
 
+  @NotNull
+  private VirtualFile createPreferencesFile(@NotNull String name, @NotNull String rootTag) {
+    final String content = String.format("<%1$s%n" +
+                                      " xmlns:android=\"http://schemas.android.com/apk/res/android\">%n\"" +
+                                      "</%1$s>", rootTag);
+    return myFixture.addFileToProject("res/xml/" + name + ".xml", content).getVirtualFile();
+  }
 
+  public void testPreferenceScreenTagParsing() {
+    VirtualFile preferencesFile = createPreferencesFile("framework", "PreferenceScreen");
+    VirtualFile supportPreferencesFiles = createPreferencesFile("support", "android.support.v7.preference.PreferenceScreen");
+    VirtualFile androidxPreferencesFiles = createPreferencesFile("androidx", "androidx.preference.PreferenceScreen");
+    VirtualFile invalidPreferencesFiles = createPreferencesFile("invalid", "android.test.PreferenceScreen");
+
+    for (VirtualFile supportedFile : new VirtualFile[] {preferencesFile, supportPreferencesFiles, androidxPreferencesFiles}) {
+      RenderTask task = createRenderTask(supportedFile);
+      assertNotNull(task);
+      ILayoutPullParser parser = LayoutPullParsers.create(task);
+      assertNotNull(parser);
+    }
+
+    RenderTask task = createRenderTask(invalidPreferencesFiles);
+    ILayoutPullParser parser = LayoutPullParsers.create(task);
+    // Parser not supported
+    assertNull(parser);
+  }
 
   public void testRenderMenuWithShowInNavigationViewAttribute() {
     RenderTask task = createRenderTask(myFixture.copyFileToProject("menus/activity_main_drawer.xml",
