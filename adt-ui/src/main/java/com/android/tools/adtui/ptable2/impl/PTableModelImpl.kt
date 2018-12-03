@@ -140,16 +140,32 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
 
   private fun expand(item: PTableGroupItem, index: Int) {
     if (expandedItems.add(item)) {
-      items.addAll(index + 1, item.children)
+      val list = mutableListOf<PTableItem>()
+      computeExpanded(item, expandedItems, list)
+      items.addAll(index + 1, list)
       fireTableDataChanged()
     }
   }
 
+  private fun computeExpanded(item: PTableGroupItem, expanded: Set<PTableGroupItem>, list: MutableList<PTableItem>) {
+    item.children.forEach {
+      list.add(it)
+      if (it is PTableGroupItem && expanded.contains(it)) {
+        computeExpanded(it, expanded, list)
+      }
+    }
+  }
+
   private fun collapse(item: PTableGroupItem, row: Int) {
+    val rowsToRemove = expandedRowCount(item)
     if (expandedItems.remove(item)) {
-      items.subList(row + 1, row + 1 + item.children.size).clear()
+      items.subList(row + 1, row + 1 + rowsToRemove).clear()
       fireTableDataChanged()
     }
+  }
+
+  private fun expandedRowCount(group: PTableGroupItem): Int {
+    return group.children.sumBy { if (it is PTableGroupItem && expandedItems.contains(it)) 1 + expandedRowCount(it) else 1 }
   }
 
   private fun recomputeParents() {

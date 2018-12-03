@@ -56,4 +56,53 @@ class PTableModelImplTest {
     // Verify that the new expanded group is now in the expandedItems:
     assertThat(impl.expandedItems.first()).isSameAs(groupAfter)
   }
+
+  @Test
+  fun testCloseGroupWithNestedGroups() {
+    val model = createModel(Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))), Item("item2"))
+    val impl = PTableModelImpl(model)
+    impl.expand(0)
+    impl.expand(2)
+    impl.collapse(0)
+
+    assertThat(impl.rowCount).isEqualTo(2)
+    assertThat(impl.getValueAt(0, 0).name).isEqualTo("group")
+    assertThat(impl.getValueAt(1, 0).name).isEqualTo("item2")
+  }
+
+  @Test
+  fun testReopenClosedGroupWithNestedGroups() {
+    val model = createModel(Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))), Item("item2"))
+    val impl = PTableModelImpl(model)
+    impl.expand(0)
+    impl.expand(2)
+    impl.collapse(0)
+    impl.expand(0)
+
+    assertThat(impl.rowCount).isEqualTo(6)
+    assertThat(impl.getValueAt(0, 0).name).isEqualTo("group")
+    assertThat(impl.getValueAt(1, 0).name).isEqualTo("item1")
+    assertThat(impl.getValueAt(2, 0).name).isEqualTo("visibility")
+    assertThat(impl.getValueAt(3, 0).name).isEqualTo("show")
+    assertThat(impl.getValueAt(4, 0).name).isEqualTo("hide")
+    assertThat(impl.getValueAt(5, 0).name).isEqualTo("item2")
+  }
+
+  @Test
+  fun testRestoreExpandedGroupsWithNestedGroups() {
+    val model = createModel(Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))), Item("item2"))
+    val impl = PTableModelImpl(model)
+    impl.expand(0)
+    impl.expand(2)
+    model.updateTo(true, Item("extra"), Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))), Item("item2"))
+
+    assertThat(impl.rowCount).isEqualTo(7)
+    assertThat(impl.getValueAt(0, 0).name).isEqualTo("extra")
+    assertThat(impl.getValueAt(1, 0).name).isEqualTo("group")
+    assertThat(impl.getValueAt(2, 0).name).isEqualTo("item1")
+    assertThat(impl.getValueAt(3, 0).name).isEqualTo("visibility")
+    assertThat(impl.getValueAt(4, 0).name).isEqualTo("show")
+    assertThat(impl.getValueAt(5, 0).name).isEqualTo("hide")
+    assertThat(impl.getValueAt(6, 0).name).isEqualTo("item2")
+  }
 }
