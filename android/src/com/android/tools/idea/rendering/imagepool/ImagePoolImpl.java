@@ -21,6 +21,7 @@ import com.google.common.base.FinalizableReferenceQueue;
 import com.google.common.collect.EvictingQueue;
 import com.google.common.collect.ForwardingQueue;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.jetbrains.annotations.NotNull;
@@ -318,8 +319,15 @@ class ImagePoolImpl implements ImagePool {
   }
 
   public static class ImageImpl implements ImagePool.Image {
+    // Track dispose call when assertions are enabled
+    private static boolean ourTrackDisposeCall = ImageImpl.class.desiredAssertionStatus();
+
     private FinalizablePhantomReference<ImagePool.Image> myOwnReference = null;
     private ReadWriteLock myLock = new ReentrantReadWriteLock();
+    /**
+     * If we are tracking the dispose calls, this will contain the stack trace of the first caller to dispose
+     */
+    private StackTraceElement[] myDisposeStackTrace = null;
 
     @VisibleForTesting
     @Nullable
@@ -336,21 +344,44 @@ class ImagePoolImpl implements ImagePool {
       myBuffer = image;
     }
 
+    @NotNull
+    private static String stackTraceToAssertionString(@Nullable StackTraceElement[] trace) {
+      if (trace == null) {
+        return "Image was already disposed";
+      }
+
+      StringBuilder builder = new StringBuilder("Image was already disposed at: \n");
+      int i = 0;
+      for (StackTraceElement element : trace) {
+        if (i++ == 0) {
+          // Skip the first line since it will always show as Thread.getStackTrace()
+          continue;
+        }
+        builder.append("\t\t").append(element.toString()).append('\n');
+      }
+
+      return builder.toString();
+    }
+
+    private void assertIfDisposed() {
+      assert myBuffer != null : stackTraceToAssertionString(myDisposeStackTrace);
+    }
+
     @Override
     public int getWidth() {
-      assert myBuffer != null : "Image was already disposed";
+      assertIfDisposed();
       return myWidth;
     }
 
     @Override
     public int getHeight() {
-      assert myBuffer != null : "Image was already disposed";
+      assertIfDisposed();
       return myHeight;
     }
 
     @Override
     public void drawImageTo(@NotNull Graphics g, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2, int sy2) {
-      assert myBuffer != null : "Image was already disposed";
+      assertIfDisposed();
       myLock.readLock().lock();
       try {
         g.drawImage(myBuffer, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
@@ -362,7 +393,7 @@ class ImagePoolImpl implements ImagePool {
 
     @Override
     public void paint(@NotNull Consumer<Graphics2D> command) {
-      assert myBuffer != null : "Image was already disposed";
+      assertIfDisposed();
       myLock.readLock().lock();
       try {
         Graphics2D g = myBuffer.createGraphics();
@@ -381,7 +412,7 @@ class ImagePoolImpl implements ImagePool {
     @Override
     @NotNull
     public BufferedImage getCopy(@Nullable GraphicsConfiguration gc, int x, int y, int w, int h) {
-      assert myBuffer != null : "Image was already disposed";
+      assertIfDisposed();
       myLock.readLock().lock();
       try {
 
@@ -419,7 +450,7 @@ class ImagePoolImpl implements ImagePool {
     @Override
     @NotNull
     public BufferedImage getCopy() {
-      assert myBuffer != null : "Image was already disposed";
+      assertIfDisposed();
       myLock.readLock().lock();
       try {
         WritableRaster raster = myBuffer.copyData(myBuffer.getRaster().createCompatibleWritableRaster(0, 0, myWidth, myHeight));
@@ -433,8 +464,11 @@ class ImagePoolImpl implements ImagePool {
 
     @Override
     public void dispose() {
-      assert myBuffer != null : "Image was already disposed";
+      assertIfDisposed();
       myLock.writeLock().lock();
+      if (ourTrackDisposeCall) {
+        myDisposeStackTrace = Thread.currentThread().getStackTrace();
+      }
       try {
         myBuffer = null;
         if (myOwnReference != null) {
@@ -450,7 +484,7 @@ class ImagePoolImpl implements ImagePool {
      * Copies the content from the origin {@link BufferedImage} into the pooled image.
      */
     void drawFrom(@NotNull BufferedImage origin) {
-      assert myBuffer != null : "Image was already disposed";
+      assertIfDisposed();
       myLock.readLock().lock();
       try {
         Graphics g = myBuffer.getGraphics();
