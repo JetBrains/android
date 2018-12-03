@@ -494,6 +494,7 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
 
   fun testRowId() {
     myFixture.addRoomEntity("com.example.User","name" ofType "String")
+    myFixture.addRoomEntity("com.example.Mail","body" ofType "String")
 
     myFixture.configureByText("SomeDao.java", """
         package com.example;
@@ -504,7 +505,7 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
 
         @Dao
         public interface SomeDao {
-          @Query("SELECT `rowid` FROM user WHERE `rowid` = 1")
+          @Query("SELECT rowid FROM user WHERE rowid = 1")
           String quoted();
 
           @Query("SELECT _rowid_ FROM user WHERE _rowid_ = 1")
@@ -512,6 +513,9 @@ class RoomUnresolvedReferenceInspectionTest : RoomLightTestCase() {
 
           @Query("SELECT oid FROM user WHERE oid = 1")
           String oid();
+
+          @Query("SELECT docid FROM mail WHERE body MATCH :query")
+          List<Integer> search(String query);
         }
     """.trimIndent())
 
