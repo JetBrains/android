@@ -95,6 +95,7 @@ iml_module(
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/adt/idea/naveditor:intellij.android.naveditor[module, test]",
     ],
 )
 

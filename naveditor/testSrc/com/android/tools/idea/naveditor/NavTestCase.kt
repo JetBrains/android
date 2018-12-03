@@ -98,12 +98,12 @@ abstract class NavTestCase : AndroidTestCase() {
     const val TAG_NAVIGATION = "navigation"
 
     val testDataPath: String
-      get() = "$designerPluginHome/testData"
+      get() = "$navEditorPluginHome/testData"
 
     // Now that the Android plugin is kept in a separate place, we need to look in a relative position instead
-    private val designerPluginHome: String
+    private val navEditorPluginHome: String
       get() {
-        val adtPath = PathManager.getHomePath() + "/../adt/idea/designer"
+        val adtPath = PathManager.getHomePath() + "/../adt/idea/naveditor"
         return if (File(adtPath).exists()) {
           adtPath
         }

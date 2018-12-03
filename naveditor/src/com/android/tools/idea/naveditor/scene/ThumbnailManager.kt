@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.annotations.VisibleForTesting
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderResult
@@ -37,7 +38,6 @@ import java.awt.image.BufferedImage
 import java.util.HashMap
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import javax.annotation.concurrent.GuardedBy
 
 private val KEY = Key.create<ThumbnailManager>(ThumbnailManager::class.java.name)
 

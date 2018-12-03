@@ -28,7 +28,6 @@ import org.eclipse.elk.core.util.BasicProgressMonitor
 import org.eclipse.elk.graph.ElkNode
 import org.eclipse.elk.graph.util.ElkGraphUtil
 
-
 class ElkLayeredLayoutAlgorithm : NavSceneLayoutAlgorithm {
   override fun layout(destinations: List<SceneComponent>): List<SceneComponent> {
     val graph = ElkGraphUtil.createGraph()
