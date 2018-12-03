@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.android.moduleWithoutSyncedModel
 import com.android.tools.idea.gradle.structure.model.android.testResolve
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.parents
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.equalTo
@@ -251,5 +252,57 @@ class PsAndroidModuleVariantsAnalyzerTest : DependencyTestCase() {
 
     val result = analyzeModuleDependencies(appModule, pathRenderer).map { it.toString() }.toList()
     assertThat(result, equalTo(emptyList()))
+  }
+
+  fun testNoFlavorDimensionWithOneDimension() {
+    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assumeThat(appModule, notNullValue())
+
+    assumeThat(appModule.flavorDimensions.size, equalTo(1))
+    appModule.addNewProductFlavor("foo", "newProductFlavor").configuredDimension = ParsedValue.NotSet
+
+    val result = analyzeProductFlavors(appModule, pathRenderer).map { it.toString() }.toList()
+    assertThat(result, equalTo(emptyList()))
+  }
+
+  fun testNoFlavorDimensionWithMultipleDimensions() {
+    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assumeThat(appModule, notNullValue())
+
+    assumeThat(appModule.flavorDimensions.size, equalTo(1))
+    appModule.addNewFlavorDimension("dim2")
+    appModule.addNewProductFlavor("foo", "newProductFlavor").configuredDimension = ParsedValue.NotSet
+
+    val result = analyzeProductFlavors(appModule, pathRenderer).map { it.toString() }.toList()
+    assertThat(result, equalTo(listOf(
+      "ERROR: Flavor '<app/Build Variants/Product Flavors/newProductFlavor> [.]' has no flavor dimension."
+    )))
+  }
+
+  fun testUnknownFlavorDimension() {
+    loadProject(TestProjectPaths.PSD_DEPENDENCY)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assumeThat(appModule, notNullValue())
+
+    appModule.addNewProductFlavor("foo", "newProductFlavor")
+
+    val result = analyzeProductFlavors(appModule, pathRenderer).map { it.toString() }.toList()
+    assertThat(result, equalTo(listOf(
+      "ERROR: Flavor '<app/Build Variants/Product Flavors/newProductFlavor> [.]' has unknown dimension 'foo'."
+    )))
   }
 }

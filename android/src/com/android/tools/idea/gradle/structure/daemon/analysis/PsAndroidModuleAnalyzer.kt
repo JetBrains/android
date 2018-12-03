@@ -20,7 +20,6 @@ import com.android.builder.model.SyncIssue
 import com.android.builder.model.SyncIssue.SEVERITY_ERROR
 import com.android.builder.model.SyncIssue.SEVERITY_WARNING
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
@@ -46,7 +45,8 @@ class PsAndroidModuleAnalyzer(val parentDisposable: Disposable, val pathRenderer
   }
 
   private fun analyzeModuleVariants(model: PsAndroidModule) : Sequence<PsIssue> =
-    analyzeModuleDependencies(model, pathRenderer)
+    analyzeModuleDependencies(model, pathRenderer) +
+    analyzeProductFlavors(model, pathRenderer)
 
   private fun analyzeDeclaredDependencies(model: PsAndroidModule): Sequence<PsIssue> {
     val issuesByData = transferSyncIssues(model.resolvedModel)
