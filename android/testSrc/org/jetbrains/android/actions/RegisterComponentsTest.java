@@ -15,10 +15,10 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.AndroidTestUtils;
 
 public class RegisterComponentsTest extends AndroidTestCase {
   /**

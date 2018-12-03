@@ -15,7 +15,7 @@
  */
 @file:JvmName("AndroidTestUtils")
 
-package org.jetbrains.android
+package com.android.tools.idea.testing
 
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
