@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture
@@ -36,7 +35,7 @@ class SuggestionsViewTest {
 
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest = PsdGuiTestRule()
 
   @Before
   fun setUp() {
