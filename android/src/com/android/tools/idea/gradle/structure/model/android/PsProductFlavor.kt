@@ -76,7 +76,9 @@ open class PsProductFlavor(
   /**
    * The dimension the product flavor belongs to, i.e. either the configured dimension or the default dimension.
    */
-  val effectiveDimension: String? get() = configuredDimension.maybeValue ?: parent.flavorDimensions.singleOrNull()?.name
+  val effectiveDimension: String? get() =
+    (configuredDimension.maybeValue ?: parent.flavorDimensions.singleOrNull()?.name)
+      ?.takeIf { parent.findFlavorDimension(it) != null }
 
   var applicationId by ProductFlavorDescriptors.applicationId
   var applicationIdSuffix by ProductFlavorDescriptors.applicationIdSuffix
