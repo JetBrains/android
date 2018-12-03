@@ -55,15 +55,12 @@ import java.io.File
 data class PsProductFlavorKey(val dimension: String, val name: String)
 
 open class PsProductFlavor(
-  final override val parent: PsAndroidModule
+  final override val parent: PsAndroidModule,
+  private val renamed: (PsProductFlavorKey, PsProductFlavorKey) -> Unit
 ) : PsChildModel() {
   override val descriptor by ProductFlavorDescriptors
   var resolvedModel: ProductFlavor? = null
   private var parsedModel: ProductFlavorModel? = null
-
-  constructor(parent: PsAndroidModule, resolvedModel: ProductFlavor?, parsedModel: ProductFlavorModel?) : this(parent) {
-    init(resolvedModel, parsedModel)
-  }
 
   fun init(resolvedModel: ProductFlavor?, parsedModel: ProductFlavorModel?) {
     this.resolvedModel = resolvedModel
@@ -107,6 +104,12 @@ open class PsProductFlavor(
   var testInstrumentationRunnerArguments by ProductFlavorDescriptors.testInstrumentationRunnerArguments
 
   override val isDeclared: Boolean get() = parsedModel != null
+
+  fun rename(newName: String) {
+    val oldName = name
+    parsedModel!!.rename(newName)
+    renamed(PsProductFlavorKey(effectiveDimension.orEmpty(), oldName), PsProductFlavorKey(effectiveDimension.orEmpty(), newName))
+  }
 
   object ProductFlavorDescriptors : ModelDescriptor<PsProductFlavor, ProductFlavor, ProductFlavorModel> {
     override fun getResolved(model: PsProductFlavor): ProductFlavor? = model.resolvedModel

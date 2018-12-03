@@ -28,7 +28,8 @@ class PsBuildTypeCollection internal constructor(parent: PsAndroidModule)
     return result
   }
 
-  override fun create(key: String): PsBuildType = PsBuildType(parent)
+  override fun create(key: String): PsBuildType =
+    PsBuildType(parent, renamed = { oldKey, newKey -> renamed(entries[oldKey] ?: error("Old key not found: $oldKey"), newKey) })
 
   override fun update(key: String, model: PsBuildType) {
     model.init(
