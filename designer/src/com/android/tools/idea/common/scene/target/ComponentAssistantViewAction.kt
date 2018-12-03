@@ -45,7 +45,7 @@ private const val ACTION_HIDE = "actionHide"
 class ComponentAssistantViewAction @JvmOverloads constructor(
   assistantLabel: String = "Set Sample Data",
   private val panelFactoryFactory: (NlComponent) -> ComponentAssistantFactory?
-) : DirectViewAction(StudioIcons.Shell.ToolWindows.BUILD, assistantLabel) {
+) : DirectViewAction(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE, assistantLabel) {
 
   private var onClose: (cancelled: Boolean) -> Unit = {}
   private var popup: LightCalloutPopup = LightCalloutPopup(closedCallback = this::fireCloseEvent, cancelCallBack = this::fireCancelEvent)
