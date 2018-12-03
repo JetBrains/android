@@ -77,6 +77,7 @@ public class DataBindingCompletionSupportImpl implements DataBindingCompletionSu
 
   /**
    * Adds completion suggestions for classes included via {@code <import>}s.
+   *
    * @param resultSet the set to add the suggestions to.
    */
   private static void fillAliases(@NotNull CompletionResultSet resultSet,
@@ -169,7 +170,7 @@ public class DataBindingCompletionSupportImpl implements DataBindingCompletionSu
             continue;  // skip adding this package.
           }
           LookupElement element = new TailTypeDecorator<LookupElement>(LookupElementBuilder.createWithIcon(pkg)) {
-            @Nullable
+            @NotNull
             @Override
             protected TailType computeTailType(InsertionContext context) {
               return TailType.DOT;
@@ -219,7 +220,8 @@ public class DataBindingCompletionSupportImpl implements DataBindingCompletionSu
   }
 
   /**
-   * Copied from {@link AllClassesGetter}#getPackagePrefix(PsiElement, int), since that method is private.
+   * Original copied from {@link AllClassesGetter} because it was private.
+   * Now the method has been moved to {@link LimitedAccessibleClassPreprocessor#getPackagePrefix(PsiElement context, int offset)}.
    */
   private static String getPackagePrefix(@NotNull final PsiElement context, final int offset) {
     final CharSequence fileText = context.getContainingFile().getViewProvider().getContents();

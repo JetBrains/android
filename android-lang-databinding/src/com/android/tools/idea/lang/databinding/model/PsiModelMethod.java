@@ -21,11 +21,13 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTypesUtil;
 
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class PsiModelMethod extends ModelMethod {
-  PsiMethod myPsiMethod;
+  @NotNull
+  private final PsiMethod myPsiMethod;
 
-  public PsiModelMethod(PsiMethod psiMethod) {
+  public PsiModelMethod(@NotNull PsiMethod psiMethod) {
     myPsiMethod = psiMethod;
   }
 

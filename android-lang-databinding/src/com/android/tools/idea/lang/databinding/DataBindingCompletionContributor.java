@@ -82,12 +82,13 @@ public class DataBindingCompletionContributor extends CompletionContributor {
               return;
             }
             parent = ownerExpr;
-          } else if (grandParent instanceof DbFile) {
-            autoCompleteVariablesAndUnqualifiedFunctions((DbFile)grandParent, result);
-            // TODO: add completions for packages and java.lang classes.
-            return;
           } else {
-            // grandparent not recognized. don't know how to provide completions.
+            if (grandParent instanceof DbFile) {
+              autoCompleteVariablesAndUnqualifiedFunctions((DbFile)grandParent, result);
+              // TODO: add completions for packages and java.lang classes.
+            } else {
+              // grandparent not recognized. don't know how to provide completions.
+            }
             return;
           }
           references = parent.getReferences();
@@ -147,7 +148,7 @@ public class DataBindingCompletionContributor extends CompletionContributor {
   }
 
   @NotNull
-  private DbFile getFile(@NonNull PsiElement element) {
+  private static DbFile getFile(@NonNull PsiElement element) {
     while (!(element instanceof DbFile)) {
       PsiElement parent = element.getParent();
       if (parent == null) {
