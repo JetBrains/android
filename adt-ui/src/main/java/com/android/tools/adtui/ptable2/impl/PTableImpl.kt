@@ -191,17 +191,21 @@ class PTableImpl(override val tableModel: PTableModel,
   override fun tableChanged(event: TableModelEvent) {
     when (event) {
       is PTableModelRepaintEvent -> repaint()
-      is PTableModelEvent -> tableChanged(event, event.nextEditedRow)
-      else -> tableChanged(event, -1)
+      is PTableModelEvent -> tableChangedWithNextEditedRow(event, event.nextEditedRow)
+      else -> tableChangedWithoutNextEditedRow(event)
     }
   }
 
-  private fun tableChanged(event: TableModelEvent, nextEditedRow: Int) {
+  private fun tableChangedWithoutNextEditedRow(event: TableModelEvent) {
+    if (isEditing) {
+      removeEditor()
+    }
+    super.tableChanged(event)
+  }
+
+  private fun tableChangedWithNextEditedRow(event: TableModelEvent, nextEditedRow: Int) {
     val wasEditing = isEditing
-    val lastEditingColumn = editingColumn
-    var editedRow: Any? = null
     if (wasEditing) {
-      editedRow = getValueAt(editingRow, editingColumn)
       removeEditor()
     }
     super.tableChanged(event)
@@ -209,13 +213,13 @@ class PTableImpl(override val tableModel: PTableModel,
     if (wasEditing) {
       val newEditingRow: Int
       val newEditingColumn: Int
-      if (nextEditedRow < 0) {
-        newEditingRow = model.tableModel.items.indexOf(editedRow)
-        newEditingColumn = lastEditingColumn
-      }
-      else {
+      if (nextEditedRow >= 0 && model.rowCount > nextEditedRow) {
         newEditingRow = convertRowIndexToView(nextEditedRow)
         newEditingColumn = 0
+      }
+      else {
+        newEditingRow = -1
+        newEditingColumn = -1
       }
       if (newEditingRow >= 0) {
         startEditing(newEditingRow, newEditingColumn)

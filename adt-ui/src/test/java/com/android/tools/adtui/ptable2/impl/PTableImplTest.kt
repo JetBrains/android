@@ -22,9 +22,9 @@ import com.android.tools.adtui.ptable2.PTableCellEditorProvider
 import com.android.tools.adtui.ptable2.PTableColumn
 import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.adtui.ptable2.PTableItem
-import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.ptable2.item.Group
 import com.android.tools.adtui.ptable2.item.Item
+import com.android.tools.adtui.ptable2.item.PTableTestModel
 import com.android.tools.adtui.ptable2.item.createModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
@@ -38,7 +38,7 @@ import javax.swing.event.ChangeEvent
 import javax.swing.event.TableModelEvent
 
 class PTableTest {
-  private var model: PTableModel? = null
+  private var model: PTableTestModel? = null
   private var table: PTableImpl? = null
   private var editorProvider: SimplePTableCellEditorProvider? = null
 
@@ -341,8 +341,7 @@ class PTableTest {
     assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
 
     table!!.tableChanged(TableModelEvent(table!!.model))
-    assertThat(table!!.editingRow).isEqualTo(0)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
+    assertThat(table!!.editingRow).isEqualTo(-1)
   }
 
   @Test
@@ -363,6 +362,17 @@ class PTableTest {
 
     table!!.tableChanged(PTableModelRepaintEvent(table!!.model))
     assertThat(table!!.selectedRow).isEqualTo(2)
+  }
+
+  @Test
+  fun testDeleteLastLineWhenEditing() {
+    table!!.setRowSelectionInterval(5, 5)
+    dispatchAction("smartEnter")
+
+    model!!.updateTo(true, Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")))
+
+    assertThat(table!!.selectedRow).isEqualTo(-1)
+    assertThat(table!!.isEditing).isFalse()
   }
 
   private fun dispatchAction(action: String) {
