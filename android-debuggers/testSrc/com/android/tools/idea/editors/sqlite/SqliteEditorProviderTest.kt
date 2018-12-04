@@ -28,12 +28,14 @@ class SqliteEditorProviderTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
     sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil.setUp()
     previouslyEnabled = SqliteViewer.enableFeature(true)
   }
 
   @Throws(Exception::class)
   override fun tearDown() {
     try {
+      sqliteUtil.tearDown()
       SqliteViewer.enableFeature(previouslyEnabled)
     }
     finally {

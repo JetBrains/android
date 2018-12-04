@@ -26,7 +26,13 @@ import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
 
-class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
+class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
+  fun setUp() {
+    tempDirTestFixture.setUp()
+  }
+  fun tearDown() {
+    tempDirTestFixture.tearDown()
+  }
 
   @Throws(IOException::class)
   fun createByteSequence(file: VirtualFile, size: Int): ByteSequence {
