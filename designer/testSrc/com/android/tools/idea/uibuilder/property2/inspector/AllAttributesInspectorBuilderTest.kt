@@ -73,10 +73,10 @@ class AllAttributesInspectorBuilderTest {
     // Check all 6 attributes:
     Truth.assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
       .containsExactly(
-        ATTR_LAYOUT_WIDTH,
+        ATTR_CONTENT_DESCRIPTION,
         ATTR_LAYOUT_HEIGHT,
         ATTR_LAYOUT_MARGIN,
-        ATTR_CONTENT_DESCRIPTION,
+        ATTR_LAYOUT_WIDTH,
         ATTR_TEXT,
         ATTR_TEXT_COLOR,
         ATTR_TEXT_SIZE,

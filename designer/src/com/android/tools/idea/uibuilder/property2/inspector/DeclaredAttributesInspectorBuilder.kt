@@ -19,6 +19,7 @@ import com.android.tools.idea.common.property2.api.ControlType
 import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.common.property2.api.EnumSupportProvider
 import com.android.tools.idea.common.property2.api.FilteredPTableModel
+import com.android.tools.idea.common.property2.api.FilteredPTableModel.PTableModelFactory.androidSortOrder
 import com.android.tools.idea.common.property2.api.InspectorBuilder
 import com.android.tools.idea.common.property2.api.InspectorPanel
 import com.android.tools.idea.common.property2.api.PropertiesTable
