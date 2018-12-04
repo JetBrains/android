@@ -360,6 +360,10 @@ open class NelePropertyItem(
       return Pair(EditingErrorCategory.ERROR, error)
     }
     val parsedType = parsed.type!!
+    if (parsedType == ResourceType.SAMPLE_DATA) {
+      // TODO: Check the syntax and type of the sample data
+      return EDITOR_NO_ERROR
+    }
     if (!type.resourceTypes.contains(parsedType)) {
       val expected = type.resourceTypes.joinToString { it.getName() }
       val message = when {
