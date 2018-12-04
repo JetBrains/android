@@ -46,6 +46,8 @@ import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 
+private const val MODULE_PREFIX = "Module: "
+
 /**
  * View model for the [com.android.tools.idea.resourceExplorer.view.ResourceExplorerToolbar].
  * @param facetUpdaterCallback callback to call when a new facet is selected.
@@ -150,19 +152,19 @@ class ResourceExplorerToolbarViewModel(
    * Return the [AnAction]s to switch to another module.
    * This method only returns Android modules.
    */
-  fun getSelectModuleActions(): List<AnAction> {
-    return ModuleManager.getInstance(facet.module.project)
-      .modules
-      .mapNotNull { it.androidFacet }
-      .filterNot { it == facet }
-      .map { androidFacet ->
-        object : DumbAwareAction(androidFacet.module.name) {
-          override fun actionPerformed(e: AnActionEvent) {
-            facetUpdaterCallback(androidFacet)
-          }
+  fun getSelectModuleActions(): List<AnAction> = ModuleManager.getInstance(facet.module.project)
+    .modules
+    .mapNotNull { it.androidFacet }
+    .sortedBy { it.name }
+    .map { androidFacet ->
+      object : DumbAwareAction("$MODULE_PREFIX${androidFacet.module.name}") {
+        override fun actionPerformed(e: AnActionEvent) {
+          facetUpdaterCallback(androidFacet)
         }
       }
-  }
+    }
+
+  fun getSelectedModuleText() = "$MODULE_PREFIX${currentModuleName}"
 
   inner class ImportResourceAction : AnAction("Import...", "Import files from disk", AllIcons.Actions.Upload), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
