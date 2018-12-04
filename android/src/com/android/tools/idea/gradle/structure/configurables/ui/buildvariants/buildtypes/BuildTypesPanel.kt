@@ -17,14 +17,13 @@ import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeMo
 import com.android.tools.idea.gradle.structure.configurables.findChildFor
 import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
+import com.android.tools.idea.gradle.structure.configurables.ui.NameValidator
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
-import com.android.tools.idea.gradle.structure.configurables.ui.validateAndShow
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.Messages
 import com.intellij.util.IconUtil
 import javax.swing.tree.TreePath
@@ -37,6 +36,9 @@ class BuildTypesPanel(
   uiSettings: PsUISettings
 ) :
   ConfigurablesMasterDetailsPanel<PsBuildType>(BUILD_TYPES_DISPLAY_NAME, BUILD_TYPES_PLACE_NAME, treeModel, uiSettings) {
+
+  private val nameValidator = NameValidator { module.validateBuildTypeName(it.orEmpty()) }
+
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Build Type", "Removes a Build Type", IconUtil.getRemoveIcon()) {
       override fun update(e: AnActionEvent) {
@@ -68,11 +70,8 @@ class BuildTypesPanel(
                   "Enter a new build type name:",
                   "Create New Build Type",
                   null,
-                  "", object : InputValidator {
-                  override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
-                  override fun canClose(inputString: String?): Boolean =
-                    validateAndShow { module.validateBuildTypeName(inputString.orEmpty()) }
-                })
+                  "",
+                  nameValidator)
             if (newName != null) {
               val buildType = module.addNewBuildType(newName)
               val node = treeModel.rootNode.findChildFor(buildType)

@@ -19,14 +19,13 @@ import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeMo
 import com.android.tools.idea.gradle.structure.configurables.findChildFor
 import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
+import com.android.tools.idea.gradle.structure.configurables.ui.NameValidator
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
-import com.android.tools.idea.gradle.structure.configurables.ui.validateAndShow
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.Messages.YES
 import com.intellij.util.IconUtil
@@ -43,6 +42,8 @@ class SigningConfigsPanel(
       treeModel,
       psUiSettings
     ) {
+  private val nameValidator = NameValidator { module.validateSigningConfigName(it.orEmpty()) }
+
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Signing Config", "Removes a Signing Config", IconUtil.getRemoveIcon()) {
       override fun update(e: AnActionEvent) {
@@ -74,11 +75,8 @@ class SigningConfigsPanel(
                   "Enter a new signing config name:",
                   "Create New Signing Config",
                   null,
-                  "", object : InputValidator {
-                  override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
-                  override fun canClose(inputString: String?): Boolean =
-                    validateAndShow { module.validateSigningConfigName(inputString.orEmpty()) }
-                })
+                  "",
+                  nameValidator)
             if (newName != null) {
               val signingConfig = module.addNewSigningConfig(newName)
               val node = treeModel.rootNode.findChildFor(signingConfig)

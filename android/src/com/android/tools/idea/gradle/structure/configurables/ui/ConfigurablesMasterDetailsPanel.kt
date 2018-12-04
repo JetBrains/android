@@ -21,6 +21,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.MasterDetailsComponent
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.NamedConfigurable
@@ -198,3 +199,9 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
 
 fun validateAndShow(title: String = "Error", validateAction: () -> String?): Boolean =
   validateAction()?.also { Messages.showErrorDialog(it, title) } == null
+
+class NameValidator(val validator: (String?) -> String?) : InputValidator {
+  override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
+  override fun canClose(inputString: String?): Boolean =
+    validateAndShow { validator(inputString) }
+}

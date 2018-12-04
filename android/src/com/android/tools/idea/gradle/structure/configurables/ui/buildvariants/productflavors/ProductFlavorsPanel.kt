@@ -19,15 +19,14 @@ import com.android.tools.idea.gradle.structure.configurables.android.buildvarian
 import com.android.tools.idea.gradle.structure.configurables.findChildFor
 import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
+import com.android.tools.idea.gradle.structure.configurables.ui.NameValidator
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
-import com.android.tools.idea.gradle.structure.configurables.ui.validateAndShow
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.util.IconUtil
@@ -45,6 +44,9 @@ class ProductFlavorsPanel(
   PRODUCT_FLAVORS_PLACE_NAME,
   treeModel, uiSettings
 ) {
+  private val flavorDimensionNameValidator = NameValidator { module.validateFlavorDimensionName(it.orEmpty()) }
+  private val productFlavorNameValidator = NameValidator { module.validateProductFlavorName(it.orEmpty()) }
+
   override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction(removeTextFor(null), removeDescriptionFor(null), IconUtil.getRemoveIcon()) {
       override fun update(e: AnActionEvent) {
@@ -96,11 +98,8 @@ class ProductFlavorsPanel(
                   "Enter a new flavor dimension name:",
                   "Create New Flavor Dimension",
                   null,
-                  "", object : InputValidator {
-                  override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
-                  override fun canClose(inputString: String?): Boolean
-                    = validateAndShow { module.validateFlavorDimensionName(inputString.orEmpty()) }
-                })
+                  "",
+                  flavorDimensionNameValidator)
             if (newName != null) {
               val flavorDimension = module.addNewFlavorDimension(newName)
               val node = treeModel.rootNode.findChildFor(flavorDimension)
@@ -127,11 +126,9 @@ class ProductFlavorsPanel(
                 "Enter a new product flavor name:",
                 "Create New Product Flavor",
                 null,
-                "", object : InputValidator {
-                override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
-                override fun canClose(inputString: String?): Boolean =
-                  validateAndShow { module.validateProductFlavorName(inputString.orEmpty()) }
-              })
+                "",
+                NameValidator { module.validateProductFlavorName(it.orEmpty()) }
+              )
             if (newName != null) {
               val productFlavor = module.addNewProductFlavor(currentDimension.orEmpty(), newName)
               val dimension = module.findFlavorDimension(currentDimension.orEmpty())
