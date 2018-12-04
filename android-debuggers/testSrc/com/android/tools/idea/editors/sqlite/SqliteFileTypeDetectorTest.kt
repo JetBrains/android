@@ -27,12 +27,14 @@ class SqliteFileTypeDetectorTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
     mySqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    mySqliteUtil!!.setUp()
     myPreviousEnabled = SqliteViewer.enableFeature(true)
   }
 
   @Throws(Exception::class)
   override fun tearDown() {
     try {
+      mySqliteUtil!!.tearDown()
       SqliteViewer.enableFeature(myPreviousEnabled)
     }
     finally {
