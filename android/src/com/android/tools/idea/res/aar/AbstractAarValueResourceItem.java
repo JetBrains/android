@@ -20,10 +20,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.res.ResolvableResourceItem;
 import com.android.utils.HashCodes;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.ResolveResult;
 import com.intellij.util.containers.ObjectIntHashMap;
 import java.io.IOException;
 import java.util.List;
@@ -34,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Base class for AAR value resource items.
  */
-abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem implements ResolvableResourceItem {
+abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem {
   @NotNull private final AarSourceFile mySourceFile;
   @NotNull private ResourceNamespace.Resolver myNamespaceResolver = ResourceNamespace.Resolver.EMPTY_RESOLVER;
 
@@ -92,24 +89,6 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem impl
   public final PathString getSource() {
     String sourcePath = mySourceFile.getRelativePath();
     return sourcePath == null ? null : getRepository().getPathString(sourcePath);
-  }
-
-  @Override
-  @NotNull
-  public final ResolveResult createResolveResult() {
-    return new ResolveResult() {
-      @Override
-      @Nullable
-      public PsiElement getElement() {
-        // TODO(sprigogin): Parse the attached source and return the corresponding element.
-        return null;
-      }
-
-      @Override
-      public boolean isValidResult() {
-        return false;
-      }
-    };
   }
 
   @NotNull
