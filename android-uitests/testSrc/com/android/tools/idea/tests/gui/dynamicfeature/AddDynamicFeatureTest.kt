@@ -46,6 +46,7 @@ class AddDynamicFeatureTest {
     StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.clearOverride()
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.clearOverride()
   }
+
   /**
    * Verifies that user is able to add a Dynamic Feature Module through the
    * new module wizard.
@@ -67,6 +68,8 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addDefaultDynamicModule() {
+    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
+
     val ideFrame = guiTest.importSimpleLocalApplication()
 
     createDefaultDynamicModule(ideFrame)
@@ -116,7 +119,11 @@ class AddDynamicFeatureTest {
     ideFrame.editor
       .open("dynamic_feature/src/main/AndroidManifest.xml")
       .currentFileContents.run {
-      assertThat(this).contains("""dist:onDemand="false"""")
+      if (StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get()) {
+        assertThat(this).contains("""<dist:install-time />""")
+      } else {
+        assertThat(this).contains("""dist:onDemand="false"""")
+      }
       assertThat(this).contains("""xmlns:dist="http://schemas.android.com/apk/distribution""")
       assertThat(this).contains("""<dist:fusing dist:include="false" />""")
       assertThat(this).contains("""dist:instant="true"""")
@@ -215,6 +222,8 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addDynamicModuleWithModifiedDelivery() {
+    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(false)
+
     val ideFrame = guiTest.importSimpleLocalApplication()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
@@ -245,6 +254,47 @@ class AddDynamicFeatureTest {
       .open("app/src/main/res/values/strings.xml")
       .currentFileContents.run {
       assertThat(this).contains("""<string name="title_mydynamicfeature">My Dynamic Feature Title</string>""")
+    }
+  }
+
+  /**
+   * Verifies that user is able to add a Dynamic Feature Module through the
+   * new module wizard.
+   *
+   * <pre>
+   * Test steps:
+   * 1. Import simple application project
+   * 2. Go to File -> New module to open the new module dialog wizard.
+   * 3. Follow through the wizard to add a new Dynamic Feature Module, accepting defaults.
+   * 4. Complete the wizard and wait for the build to complete.
+   * Verify:
+   * 1. The new Dynamic Feature Module is shown in the project explorer pane.
+   * 2. Open the Dynamic Feature Module manifest and check that "dist:onDemand" and
+   * "dist:fusing include" are set to true.
+   * 3. Open the app Module strings.xml (not the *dynamic* Module strings.xml) and check that a
+   * new string was added for the dynamic feature title
+   * </pre>
+   */
+  @Test
+  @Throws(Exception::class)
+  fun addDynamicModuleWithConditionalDelivery_default() {
+    StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
+
+    val ideFrame = guiTest.importSimpleLocalApplication()
+
+    createDefaultDynamicModule(ideFrame)
+
+    ideFrame.editor
+      .open("dynamic_feature/src/main/AndroidManifest.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""<dist:on-demand />""")
+      assertThat(this).contains("""<dist:fusing dist:include="true" />""")
+    }
+
+    ideFrame.editor
+      .open("app/src/main/res/values/strings.xml")
+      .currentFileContents.run {
+      assertThat(this).contains("""<string name="title_dynamic_feature">Module Title</string>""")
     }
   }
 
@@ -630,15 +680,28 @@ class AddDynamicFeatureTest {
 
   private fun createDefaultDynamicModule(ideFrame: IdeFrameFixture): IdeFrameFixture {
     ideFrame.invokeMenuPath("File", "New", "New Module...")
-    NewModuleWizardFixture.find(ideFrame)
-      .clickNextToDynamicFeature()
-      .clickNextToConfigureDynamicDelivery()
-      .wizard()
-      .clickFinish()
-      .waitForGradleProjectSyncToFinish()
-      .projectView
-      .selectAndroidPane()
-      .clickPath("dynamic_feature")
+
+    if (StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get()) {
+      NewModuleWizardFixture.find(ideFrame)
+        .clickNextToDynamicFeature()
+        .clickNextToConfigureConditionalDelivery()
+        .wizard()
+        .clickFinish()
+        .waitForGradleProjectSyncToFinish()
+        .projectView
+        .selectAndroidPane()
+        .clickPath("dynamic_feature")
+    } else {
+      NewModuleWizardFixture.find(ideFrame)
+        .clickNextToDynamicFeature()
+        .clickNextToConfigureDynamicDelivery()
+        .wizard()
+        .clickFinish()
+        .waitForGradleProjectSyncToFinish()
+        .projectView
+        .selectAndroidPane()
+        .clickPath("dynamic_feature")
+    }
 
     return ideFrame
   }
