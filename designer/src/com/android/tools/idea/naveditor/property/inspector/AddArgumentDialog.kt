@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.naveditor.property.inspector
 
-import com.android.SdkConstants.ATTR_NULLABLE
-import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.CLASS_PARCELABLE
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceValue
@@ -27,9 +25,14 @@ import com.android.tools.idea.naveditor.model.argumentName
 import com.android.tools.idea.naveditor.model.defaultValue
 import com.android.tools.idea.naveditor.model.isArgument
 import com.android.tools.idea.naveditor.model.nullable
+import com.android.tools.idea.naveditor.model.setArgumentNameAndLog
+import com.android.tools.idea.naveditor.model.setDefaultValueAndLog
+import com.android.tools.idea.naveditor.model.setNullableAndLog
+import com.android.tools.idea.naveditor.model.setTypeAndLog
 import com.android.tools.idea.naveditor.model.typeAttr
 import com.android.tools.idea.res.resolve
 import com.google.common.collect.Lists
+import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -43,7 +46,6 @@ import com.intellij.psi.util.ClassUtil
 import com.intellij.ui.ListCellRendererWrapper
 import com.intellij.ui.MutableCollectionComboBoxModel
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import java.awt.CardLayout
 import javax.swing.Action
@@ -299,24 +301,15 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
           return@runWriteCommandAction
         }
       }
-      realComponent.argumentName = name
-      realComponent.typeAttr = type
-      if (isNullable) {
-        realComponent.nullable = true
-      }
-      else {
-        realComponent.removeAttribute(AUTO_URI, ATTR_NULLABLE)
-      }
+      realComponent.setArgumentNameAndLog(name, NavEditorEvent.Source.PROPERTY_INSPECTOR)
+      realComponent.setTypeAndLog(type, NavEditorEvent.Source.PROPERTY_INSPECTOR)
+      realComponent.setNullableAndLog(isNullable, NavEditorEvent.Source.PROPERTY_INSPECTOR)
       var newDefaultValue = defaultValue
-      if (newDefaultValue != null && !newDefaultValue.isEmpty()) {
-        if (dialogUI.myTypeComboBox.selectedItem === Type.LONG && !newDefaultValue.endsWith("L")) {
-          newDefaultValue += "L"
-        }
-        realComponent.defaultValue = newDefaultValue
+      if (newDefaultValue != null && !newDefaultValue.isEmpty()
+          && dialogUI.myTypeComboBox.selectedItem === Type.LONG && !newDefaultValue.endsWith("L")) {
+        newDefaultValue += "L"
       }
-      else {
-        realComponent.removeAndroidAttribute(ATTR_DEFAULT_VALUE)
-      }
+      realComponent.setDefaultValueAndLog(newDefaultValue, NavEditorEvent.Source.PROPERTY_INSPECTOR)
     }
   }
 }

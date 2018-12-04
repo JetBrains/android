@@ -167,22 +167,26 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
     }
     val fragment = model.find("f1")!!
     val dialog = spy(AddArgumentDialog(null, fragment))
-    `when`(dialog.name).thenReturn("a")
-    doReturn(true).`when`(dialog).showAndGet()
+    try {
+      `when`(dialog.name).thenReturn("a")
+      doReturn(true).`when`(dialog).showAndGet()
 
-    val navDestinationArgumentsInspectorProvider = NavDestinationArgumentsInspectorProvider { _, _ -> dialog }
-    navDestinationArgumentsInspectorProvider.addItem(null, listOf(fragment), null)
-    `when`(dialog.name).thenReturn("b")
-    doReturn("integer").`when`(dialog).type
-    navDestinationArgumentsInspectorProvider.addItem(null, listOf(fragment), null)
-    FileDocumentManager.getInstance().saveAllDocuments()
-    val result = String(model.virtualFile.contentsToByteArray())
-    // Don't care about other contents or indent, but argument tags and attributes should be on their own lines.
-    Truth.assertThat(result.replace("\n *".toRegex(), "\n")).contains("<argument android:name=\"a\" />\n" +
-                                                                      "<argument\n" +
-                                                                      "android:name=\"b\"\n" +
-                                                                      "app:argType=\"integer\" />\n")
-    dialog.close(0)
+      val navDestinationArgumentsInspectorProvider = NavDestinationArgumentsInspectorProvider { _, _ -> dialog }
+      navDestinationArgumentsInspectorProvider.addItem(null, listOf(fragment), null)
+      `when`(dialog.name).thenReturn("b")
+      doReturn("integer").`when`(dialog).type
+      navDestinationArgumentsInspectorProvider.addItem(null, listOf(fragment), null)
+      FileDocumentManager.getInstance().saveAllDocuments()
+      val result = String(model.virtualFile.contentsToByteArray())
+      // Don't care about other contents or indent, but argument tags and attributes should be on their own lines.
+      Truth.assertThat(result.replace("\n *".toRegex(), "\n")).contains("<argument android:name=\"a\" />\n" +
+                                                                        "<argument\n" +
+                                                                        "android:name=\"b\"\n" +
+                                                                        "app:argType=\"integer\" />\n")
+    }
+    finally {
+      dialog.close(0)
+    }
   }
 }
 

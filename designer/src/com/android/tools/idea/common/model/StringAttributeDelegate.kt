@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.model
 
 import com.android.SdkConstants
+import com.intellij.util.text.nullize
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -26,7 +27,7 @@ open class StringAttributeDelegate(private val namespace: String?, private val p
   }
 
   override operator fun setValue(thisRef: NlComponent, property: KProperty<*>, value: String?) {
-    thisRef.setAttribute(namespace, propertyName, value)
+    thisRef.setAttribute(namespace, propertyName, value.nullize())
   }
 }
 

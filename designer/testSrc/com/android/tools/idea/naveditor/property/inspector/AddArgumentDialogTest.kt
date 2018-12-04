@@ -19,7 +19,10 @@ import com.android.SdkConstants.CLASS_PARCELABLE
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.testing.IdeComponents
+import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.google.wireless.android.sdk.stats.NavPropertyInfo
 import com.intellij.ide.util.TreeClassChooser
 import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.psi.PsiClass
@@ -189,7 +192,46 @@ class AddArgumentDialogTest : NavTestCase() {
     assertEquals("integer", dialog.type)
     dialog.close(0)
   }
-}
+
+  fun testPropertyChangeMetrics() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+      }
+    }
+
+    val f1 = model.find("f1")!!
+    val dialog = AddArgumentDialog(null, f1)
+    dialog.name = "myArgument"
+    dialog.type = "long"
+    dialog.defaultValue = "1234"
+    dialog.close(0)
+
+    TestNavUsageTracker.create(model).use { tracker ->
+      dialog.save()
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
+                                 .setPropertyInfo(NavPropertyInfo.newBuilder()
+                                                    .setWasEmpty(true)
+                                                    .setProperty(NavPropertyInfo.Property.NAME)
+                                                    .setContainingTag(NavPropertyInfo.TagType.ARGUMENT_TAG))
+                                 .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
+                                 .setPropertyInfo(NavPropertyInfo.newBuilder()
+                                                    .setWasEmpty(true)
+                                                    .setProperty(NavPropertyInfo.Property.ARG_TYPE)
+                                                    .setContainingTag(NavPropertyInfo.TagType.ARGUMENT_TAG))
+                                 .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+      verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                 .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
+                                 .setPropertyInfo(NavPropertyInfo.newBuilder()
+                                                    .setWasEmpty(true)
+                                                    .setProperty(NavPropertyInfo.Property.DEFAULT_VALUE)
+                                                    .setContainingTag(NavPropertyInfo.TagType.ARGUMENT_TAG))
+                                 .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+    }
+  }}
 
 private fun <T> any(): T = ArgumentMatchers.any() as T
 private fun <T> eq(arg: T): T = ArgumentMatchers.eq(arg) as T
