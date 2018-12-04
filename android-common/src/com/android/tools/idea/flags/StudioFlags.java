@@ -375,7 +375,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> RESOURCE_MANAGER_ENABLED = Flag.create(
     RESOURCES_MANAGEMENT, "enabled", "Enable the new resources management tools",
     "If enabled, the new resource management tools are enabled. Subflags will also need to be enabled to enable all available new tools",
-    false);
+    true);
 
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
