@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.scene.target
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.*
@@ -27,6 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawTop
 import com.android.tools.idea.uibuilder.model.viewHandler
+import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
 import java.awt.Color
 import java.awt.Cursor
@@ -67,10 +69,14 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
    * Needs to be lazy because [myComponent] doesn't exist when constructing the [Target].
    * But it will be set immediately after [Target] is created.
    */
-  private val placeholders: List<Placeholder>
-  private val dominatePlaceholders: List<Placeholder>
-  private val recessivePlaceholders: List<Placeholder>
-  private val placeholderHosts: Set<SceneComponent>
+  private lateinit var placeholders: List<Placeholder>
+  private lateinit var dominatePlaceholders: List<Placeholder>
+  private lateinit var recessivePlaceholders: List<Placeholder>
+
+  /**
+   * Host of placeholders. This is used for rendering.
+   */
+  private var placeholderHosts: Set<SceneComponent> = emptySet()
 
   private var currentSnappedPlaceholder: Placeholder? = null
 
@@ -78,11 +84,6 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
   init {
     myComponent = sceneComponent
-
-    placeholders = component.scene.getPlaceholders(component).filter { it.host != component }
-    dominatePlaceholders = placeholders.filter { it.dominate }
-    recessivePlaceholders = placeholders.filterNot { it.dominate }
-    placeholderHosts = placeholders.asSequence().map { it.host }.toSet()
   }
 
   override fun setComponent(component: SceneComponent) {
@@ -171,6 +172,16 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
     firstMouse.x = x
     firstMouse.y = y
+
+    placeholders = component.scene.getPlaceholders(component).filter { it.host != component }
+
+    val dominateBuilder = ImmutableList.builder<Placeholder>()
+    val recessiveBuilder = ImmutableList.builder<Placeholder>()
+    placeholders.forEach { (if (it.dominate) dominateBuilder else recessiveBuilder).add(it) }
+    dominatePlaceholders = dominateBuilder.build()
+    recessivePlaceholders = recessiveBuilder.build()
+
+    placeholderHosts = placeholders.asSequence().map { it.host }.toSet()
 
     val scene = component.scene
     val selection = scene.selection
@@ -299,20 +310,24 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     val ph = snap(x, y)
     if (ph != null) {
       applyPlaceholder(ph)
-      myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
     }
     else {
       draggedComponents.forEachIndexed { index, sceneComponent ->
         sceneComponent.setPosition(firstMouse.x - offsets[index].x, firstMouse.y - offsets[index].y)
       }
     }
+
+    currentSnappedPlaceholder = null
+    placeholderHosts = emptySet()
+    myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
   }
 
   /**
    * Apply the given [Placeholder]. Returns true if succeed, false otherwise. If [commit] is true, the applied attributes will be
    * write to file directly.
    */
-  private fun applyPlaceholder(placeholder: Placeholder, commit: Boolean = true): Boolean {
+  @VisibleForTesting
+  fun applyPlaceholder(placeholder: Placeholder, commit: Boolean = true): Boolean {
     val parent = placeholder.host.authoritativeNlComponent
     val primaryNlComponent = myComponent.authoritativeNlComponent
     val model = primaryNlComponent.model
@@ -347,6 +362,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
    * Reset the status when the dragging is canceled.
    */
   override fun mouseCancel() {
+    draggedComponents.forEach { it.isDragging = false }
+    placeholderHosts = emptySet()
     currentSnappedPlaceholder = null
     val liveRendered = myComponent.scene.isLiveRenderingEnabled
     draggedComponents.forEachIndexed { index, component ->
