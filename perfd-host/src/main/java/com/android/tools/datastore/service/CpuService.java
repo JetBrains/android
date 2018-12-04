@@ -17,6 +17,7 @@ package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DeviceId;
+import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.datastore.poller.CpuDataPoller;
@@ -46,6 +47,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   private final CpuTable myCpuTable;
   @NotNull
   private final DataStoreService myService;
+  @NotNull
+  private final LogService myLogService;
 
   @SuppressWarnings("unchecked")
   private ResponseData<CpuDataResponse> myLastCpuResponse = ResponseData.createEmpty();
@@ -55,9 +58,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   private ResponseData<GetTraceInfoResponse> myLastTraceInfoResponse = ResponseData.createEmpty();
 
   public CpuService(@NotNull DataStoreService dataStoreService,
-                    Consumer<Runnable> fetchExecutor) {
+                    Consumer<Runnable> fetchExecutor,
+                    LogService logService) {
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
+    myLogService = logService;
     myCpuTable = new CpuTable();
   }
 
@@ -128,7 +133,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       long sessionId = request.getSession().getSessionId();
       myRunners
         .put(sessionId,
-             new CpuDataPoller(request.getSession(), myCpuTable, myService.getCpuClient(DeviceId.fromSession(request.getSession()))));
+             new CpuDataPoller(request.getSession(), myCpuTable, myService.getCpuClient(DeviceId.fromSession(request.getSession())), myLogService));
       myFetchExecutor.accept(myRunners.get(sessionId));
     }
     else {

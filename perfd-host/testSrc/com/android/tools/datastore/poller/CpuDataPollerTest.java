@@ -17,6 +17,7 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.CpuService;
 import com.android.tools.profiler.proto.Cpu;
@@ -26,6 +27,9 @@ import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -84,7 +88,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
-  private CpuService myCpuService = new CpuService(myDataStoreService, getPollTicker()::run);
+  private CpuService myCpuService = new CpuService(myDataStoreService, getPollTicker()::run, new FakeLogService());
 
   public TestName myTestName = new TestName();
   private FakeCpuService myFakeCpuService = new FakeCpuService();
@@ -243,6 +247,29 @@ public class CpuDataPollerTest extends DataStorePollerTest {
       .newBuilder().setStatus(GetTraceResponse.Status.SUCCESS).setData(TRACE_DATA).build();
     StreamObserver<GetTraceResponse> observer = mock(StreamObserver.class);
     myCpuService.getTrace(request, observer);
+    validateResponse(observer, expectedResponse);
+  }
+
+  @Test
+  public void testApiInitiatedTestHasFile() {
+    myFakeCpuService.addTraceInfo(TraceInfo.newBuilder()
+                                    .setFromTimestamp(BASE_TIME_NS)
+                                    .setToTimestamp(BASE_TIME_NS)
+                                    .setInitiationType(TraceInitiationType.INITIATED_BY_API)
+                                    .setTraceId(TRACE_ID)
+                                    .build());
+    // Poll once more to make sure our service is going to know we're profiling.
+    getPollTicker().run();
+    GetTraceInfoRequest request = GetTraceInfoRequest
+      .newBuilder().setSession(SESSION).setFromTimestamp(BASE_TIME_NS).setToTimestamp(Long.MAX_VALUE).build();
+    GetTraceInfoResponse expectedResponse = GetTraceInfoResponse
+      .newBuilder().addTraceInfo(
+        TraceInfo.newBuilder().setInitiationType(TraceInitiationType.INITIATED_BY_API).setFromTimestamp(BASE_TIME_NS)
+          .setToTimestamp(BASE_TIME_NS).setTraceId(TRACE_ID)
+          .setTraceFilePath(String.format("%s/cpu_automated_trace_%d.trace", System.getProperty("java.io.tmpdir"), TRACE_ID)))
+      .build();
+    StreamObserver<GetTraceInfoResponse> observer = mock(StreamObserver.class);
+    myCpuService.getTraceInfo(request, observer);
     validateResponse(observer, expectedResponse);
   }
 
@@ -473,6 +500,12 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
     private int myLastCheckBeingProfiledTimestamp = 1;
 
+    private List<TraceInfo> myTraceInfoResponses = new ArrayList<>();
+
+    public void addTraceInfo(TraceInfo info) {
+      myTraceInfoResponses.add(info);
+    }
+
     @Override
     public void checkAppProfilingState(ProfilingStateRequest request,
                                        StreamObserver<ProfilingStateResponse> responseObserver) {
@@ -501,7 +534,10 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     @Override
     public void getTraceInfo(GetTraceInfoRequest request, StreamObserver<GetTraceInfoResponse> responseObserver) {
       GetTraceInfoResponse.Builder response = GetTraceInfoResponse.newBuilder();
-
+      if (!myTraceInfoResponses.isEmpty()) {
+        response.addAllTraceInfo(myTraceInfoResponses);
+        myTraceInfoResponses.clear();
+      }
       responseObserver.onNext(response.build());
       responseObserver.onCompleted();
     }

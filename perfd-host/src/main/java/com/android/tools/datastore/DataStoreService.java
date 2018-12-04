@@ -169,7 +169,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     myProfilerService = new ProfilerService(this, myFetchExecutor, myLogService);
     registerService(myProfilerService);
     registerService(new EventService(this, myFetchExecutor));
-    registerService(new CpuService(this, myFetchExecutor));
+    registerService(new CpuService(this, myFetchExecutor, myLogService));
     registerService(new MemoryService(this, myFetchExecutor, myLogService));
     registerService(new NetworkService(this, myFetchExecutor));
     registerService(new EnergyService(this, myFetchExecutor, myLogService));
