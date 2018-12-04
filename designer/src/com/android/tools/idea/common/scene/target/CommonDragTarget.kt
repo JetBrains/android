@@ -327,30 +327,26 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
    * write to file directly.
    */
   @VisibleForTesting
-  fun applyPlaceholder(placeholder: Placeholder, commit: Boolean = true): Boolean {
+  fun applyPlaceholder(placeholder: Placeholder, commit: Boolean = true) {
     val parent = placeholder.host.authoritativeNlComponent
     val primaryNlComponent = myComponent.authoritativeNlComponent
     val model = primaryNlComponent.model
     val componentsToAdd = draggedComponents.map { it.authoritativeNlComponent }
     val anchor = placeholder.findNextSibling(myComponent, placeholder.host)?.nlComponent
 
-    if (model.canAddComponents(componentsToAdd, parent, anchor)) {
-      val attributesTransactions = draggedComponents.map {
-        val transaction = it.authoritativeNlComponent.startAttributeTransaction()
-        placeholder.updateAttribute(it, transaction)
-        transaction
-      }
-      if (commit) {
-        model.addComponents(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface) {
-          attributesTransactions.forEach { it.commit() }
-        }
-      }
-      else {
-        attributesTransactions.forEach { it.apply() }
-      }
-      return true
+    val attributesTransactions = draggedComponents.map {
+      val transaction = it.authoritativeNlComponent.startAttributeTransaction()
+      placeholder.updateAttribute(it, transaction)
+      transaction
     }
-    return false
+    if (commit) {
+      model.addComponents(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface) {
+        attributesTransactions.forEach { it.commit() }
+      }
+    }
+    else {
+      attributesTransactions.forEach { it.apply() }
+    }
   }
 
   /**

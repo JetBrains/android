@@ -82,8 +82,7 @@ class ViewGroupPlaceholderTest : SceneTest() {
 
     val placeholder = ViewGroupPlaceholder(viewGroup)
 
-    val appliedResult = applyPlaceholderToSceneComponent(textView, placeholder)
-    assertTrue(appliedResult)
+    applyPlaceholderToSceneComponent(textView, placeholder)
 
     mySceneManager.update()
     assertTrue(viewGroup.children.contains(textView))

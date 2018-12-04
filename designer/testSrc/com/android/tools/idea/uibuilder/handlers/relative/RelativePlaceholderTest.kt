@@ -69,8 +69,7 @@ class RelativePlaceholderTest : SceneTest() {
     val textView = myScene.getSceneComponent("textView")!!
 
     val placeholder = RelativePlaceholder(relativeLayout)
-    val appliedResult = applyPlaceholderToSceneComponent(textView, placeholder)
-    assertTrue(appliedResult)
+    applyPlaceholderToSceneComponent(textView, placeholder)
 
     mySceneManager.update()
 
