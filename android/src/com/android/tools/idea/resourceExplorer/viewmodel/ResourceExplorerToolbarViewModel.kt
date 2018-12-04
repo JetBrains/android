@@ -166,7 +166,7 @@ class ResourceExplorerToolbarViewModel(
 
   fun getSelectedModuleText() = "$MODULE_PREFIX${currentModuleName}"
 
-  inner class ImportResourceAction : AnAction("Import...", "Import files from disk", AllIcons.Actions.Upload), DumbAware {
+  inner class ImportResourceAction : AnAction("Import Drawables", "Import drawable files from disk", AllIcons.Actions.Upload), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
       chooseDesignAssets(importersProvider) {
         ResourceImportDialog(ResourceImportDialogViewModel(facet, it, importersProvider = importersProvider)).show()
