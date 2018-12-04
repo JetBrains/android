@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.NameValidator
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.android.tools.idea.gradle.structure.configurables.ui.renameWithDialog
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 import com.intellij.openapi.actionSystem.AnAction
@@ -55,6 +56,26 @@ class BuildTypesPanel(
           val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
           module.removeBuildType(selectedNode.getModel() ?: return)
           selectNode(nodeToSelectAfter)
+        }
+      }
+    }
+  }
+
+  override fun getRenameAction(): AnAction? {
+    return object : DumbAwareAction("Rename Build Type", "Renames a Build Type", IconUtil.getEditIcon()) {
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = selectedConfigurable != null
+      }
+
+      override fun actionPerformed(e: AnActionEvent) {
+        renameWithDialog(
+          "Enter a new name for build type '${selectedConfigurable?.displayName}':",
+          "Rename Build Type",
+          "Also rename related build types",
+          selectedConfigurable?.displayName,
+          nameValidator
+        ) { newName, alsoRenameReferences ->
+          (selectedNode.getModel<PsBuildType>() ?: return@renameWithDialog).rename(newName)
         }
       }
     }

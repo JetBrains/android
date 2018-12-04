@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.NameValidator
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.android.tools.idea.gradle.structure.configurables.ui.renameWithDialog
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 import com.intellij.openapi.actionSystem.AnAction
@@ -60,6 +61,28 @@ class SigningConfigsPanel(
           val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
           module.removeSigningConfig(selectedNode.getModel() ?: return)
           selectNode(nodeToSelectAfter)
+        }
+      }
+    }
+  }
+
+  override fun getRenameAction(): AnAction? {
+    return object : DumbAwareAction("Rename Signing Config", "Renames a Signing Config", IconUtil.getEditIcon()) {
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = selectedConfigurable != null
+      }
+
+      override fun actionPerformed(e: AnActionEvent) {
+        renameWithDialog(
+          "Enter a new name for signing config '${selectedConfigurable?.displayName}':",
+          "Rename Signing Type",
+          "Also update references",
+          selectedConfigurable?.displayName,
+          nameValidator
+        )
+        { newName, alsoRenameReferences ->
+          if (alsoRenameReferences) TODO("Renaming references")
+          (selectedNode.getModel<PsSigningConfig>() ?: return@renameWithDialog).rename(newName)
         }
       }
     }
