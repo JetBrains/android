@@ -376,11 +376,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   });
 
   private final ProjectStateCustomizer withAndroidx = ((templateMap, projectMap) -> {
-    Integer targetApi = (Integer) templateMap.get(ATTR_TARGET_API);
-    if (targetApi != null && targetApi >= 22) {
-      projectMap.put(ATTR_ANDROIDX_SUPPORT, true);
-      templateMap.put(ATTR_ANDROIDX_SUPPORT, true);
-    }
+    projectMap.put(ATTR_ANDROIDX_SUPPORT, true);
+    templateMap.put(ATTR_ANDROIDX_SUPPORT, true);
   });
 
   //--- Activity templates ---
