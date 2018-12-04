@@ -15,24 +15,17 @@
  */
 package com.android.tools.idea.uibuilder
 
-import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.SceneComponent
-import com.intellij.openapi.command.WriteCommandAction
+import com.android.tools.idea.common.scene.target.CommonDragTarget
 
 fun applyPlaceholderToSceneComponent(component: SceneComponent, placeholder: Placeholder): Boolean {
-  val parent = placeholder.host.authoritativeNlComponent
-  val nlComponent = component.authoritativeNlComponent
-  val model = nlComponent.model
-  val componentsToAdd = listOf(nlComponent)
-  val anchor = placeholder.nextComponent?.nlComponent
 
-  if (model.canAddComponents(componentsToAdd, parent, anchor)) {
-    val attributes = nlComponent.startAttributeTransaction()
-    placeholder.updateAttribute(component, attributes)
-    WriteCommandAction.runWriteCommandAction(nlComponent.model.project) { attributes.commit() }
-    model.addComponents(componentsToAdd, parent, anchor, InsertType.MOVE_WITHIN, component.scene.designSurface)
-    return true
-  }
-  return false
+  val dragTarget = CommonDragTarget(component)
+
+  val downX = component.centerX
+  val downY = component.centerY
+  dragTarget.mouseDown(downX, downY)
+
+  return dragTarget.applyPlaceholder(placeholder, commit = true)
 }
