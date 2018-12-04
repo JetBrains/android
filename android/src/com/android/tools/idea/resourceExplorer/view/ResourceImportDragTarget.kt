@@ -16,8 +16,9 @@
 package com.android.tools.idea.resourceExplorer.view
 
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
+import com.android.tools.idea.resourceExplorer.importer.findAllDesignAssets
 import com.android.tools.idea.resourceExplorer.importer.getAllLeafFiles
-import com.android.tools.idea.resourceExplorer.importer.toDesignAssetSets
+import com.android.tools.idea.util.toVirtualFile
 import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDNativeTarget
 import com.intellij.ide.dnd.FileCopyPasteUtil
@@ -57,21 +58,24 @@ class ResourceImportDragTarget(
    * Returns a flat list of all the actual files (and not directory) within the hierarchy of the dropped
    * files.
    */
-  private fun getFiles(event: DnDEvent?) =
-    (FileCopyPasteUtil.getFileListFromAttachedObject(event?.attachedObject) as List<File>)
-      .flatMap(File::getAllLeafFiles)
+  private fun getFiles(event: DnDEvent?) = FileCopyPasteUtil
+    .getFileListFromAttachedObject(event?.attachedObject)
+    .asSequence()
+    .flatMap(File::getAllLeafFiles)
+
 
   /**
    * Checks if at least one of the file can be imported.
    */
-  private fun anyFileCanBeImported(files: List<File>) =
+  private fun anyFileCanBeImported(files: Sequence<File>) =
     files.any { file -> hasImporterForFile(file) }
 
   private fun hasImporterForFile(file: File): Boolean =
     importersProvider.getImportersForExtension(file.extension).isNotEmpty()
 
   override fun drop(event: DnDEvent) {
-    val assetSets = toDesignAssetSets(getFiles(event), importersProvider)
+    val assetSets = getFiles(event)
+      .findAllDesignAssets(importersProvider)
     ResourceImportDialog(facet, assetSets).show()
   }
 

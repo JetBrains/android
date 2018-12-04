@@ -53,15 +53,17 @@ class DesignAssetRendererManager private constructor() {
   }
 
   fun getViewer(file: VirtualFile): DesignAssetRenderer {
-    return EP_NAME.extensions.firstOrNull { it.isFileSupported(file) } ?: NullDesignAssetRenderer()
+    return EP_NAME.extensions.firstOrNull { it.isFileSupported(file) } ?: NullDesignAssetRenderer
   }
+
+  fun hasViewer(file: VirtualFile): Boolean = getViewer(file) != NullDesignAssetRenderer
 
   fun <T : DesignAssetRenderer> getViewer(clazz: Class<T>): T? {
     return EP_NAME.findExtension(clazz)
   }
 }
 
-private class NullDesignAssetRenderer : DesignAssetRenderer {
+private object NullDesignAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile) = false
   override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out Image?> =
     CompletableFuture.completedFuture(null)

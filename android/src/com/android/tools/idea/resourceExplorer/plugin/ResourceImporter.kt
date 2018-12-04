@@ -78,10 +78,14 @@ interface ResourceImporter {
    * The default implementation wrap each file if found on disk into a [DesignAsset] of with [ResourceType.RAW] and no qualifiers
    * Implementing methods can do some processing on the files like converting, or resizing...
    */
-  fun processFiles(files: List<File>): List<DesignAsset> =
-    files.mapNotNull {
-      val file = VfsUtil.findFileByIoFile(it, true) ?: return@mapNotNull null
-      DesignAsset(file, listOf(), ResourceType.RAW)
+  fun processFile(file: File): DesignAsset? {
+    val virtualFile = VfsUtil.findFileByIoFile(file, true) ?: return null
+    return if (DesignAssetRendererManager.getInstance().hasViewer(virtualFile)) {
+      DesignAsset(virtualFile, listOf(), ResourceType.RAW)
     }
+    else {
+      null
+    }
+  }
 }
 

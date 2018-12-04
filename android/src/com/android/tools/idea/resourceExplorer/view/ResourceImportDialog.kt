@@ -61,7 +61,7 @@ class ResourceImportDialog(
   private val dialogViewModel: ResourceImportDialogViewModel
 ) : DialogWrapper(dialogViewModel.facet.module.project, true, DialogWrapper.IdeModalityType.MODELESS) {
 
-  constructor(facet: AndroidFacet, assetSets: List<DesignAssetSet>) :
+  constructor(facet: AndroidFacet, assetSets: Sequence<DesignAsset>) :
     this(ResourceImportDialogViewModel(facet, assetSets))
 
   private val assetSetToView = mutableMapOf<String, DesignAssetSetView>()

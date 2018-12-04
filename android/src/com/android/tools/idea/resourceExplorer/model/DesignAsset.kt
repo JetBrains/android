@@ -94,20 +94,17 @@ fun getAssetSets(
   qualifierMatcher: QualifierMatcher
 ): List<DesignAssetSet> {
   return getDesignAssets(directory, supportedTypes, directory, qualifierMatcher)
-    .groupBy(
-      { (drawableName, _) -> drawableName },
-      { (_, designAsset) -> designAsset }
-    )
+    .groupBy { designAsset -> designAsset.name }
     .map { (drawableName, designAssets) -> DesignAssetSet(drawableName, designAssets) }
     .toList()
 }
 
-private fun getDesignAssets(
+fun getDesignAssets(
   directory: VirtualFile,
   supportedTypes: Set<String>,
   root: VirtualFile,
   qualifierMatcher: QualifierMatcher
-): List<Pair<String, DesignAsset>> {
+): List<DesignAsset> {
   return directory.children
     .filter { it.isDirectory || supportedTypes.contains(it.extension) }
     .flatMap {
@@ -116,14 +113,10 @@ private fun getDesignAssets(
     }
 }
 
-private fun createAsset(child: VirtualFile, root: VirtualFile, matcher: QualifierMatcher): Pair<String, DesignAsset> {
+private fun createAsset(child: VirtualFile, root: VirtualFile, matcher: QualifierMatcher): DesignAsset {
   val relativePath = VfsUtil.getRelativePath(child, root) ?: child.path
   val (resourceName, qualifiers1) = matcher.parsePath(relativePath)
-  return resourceName to DesignAsset(
-    child,
-    qualifiers1.toList(),
-    ResourceType.DRAWABLE
-  )
+  return DesignAsset(child, qualifiers1.toList(), ResourceType.DRAWABLE, resourceName)
 }
 
 fun ResourceResolver.resolveValue(designAsset: DesignAsset): ResourceValue? {

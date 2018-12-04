@@ -46,11 +46,10 @@ class RasterResourceImporter : ResourceImporter {
 
   val matcher = QualifierMatcher(androidMapper, iOsMapper)
 
-  override fun processFiles(files: List<File>): List<DesignAsset> {
-    return files
-      .mapNotNull { VfsUtil.findFileByIoFile(it, true) }
-      .associate { it to matcher.parsePath(it.path) }
-      .map { (file, result) -> DesignAsset(file, result.qualifiers.toList(), ResourceType.DRAWABLE, result.resourceName) }
+  override fun processFile(file: File): DesignAsset? {
+    val virtualFile = VfsUtil.findFileByIoFile(file, true) ?: return null
+    val qualifierMatcherResult = matcher.parsePath(file.path)
+    return DesignAsset(virtualFile, qualifierMatcherResult.qualifiers.toList(), ResourceType.DRAWABLE, qualifierMatcherResult.resourceName)
   }
 
   companion object {

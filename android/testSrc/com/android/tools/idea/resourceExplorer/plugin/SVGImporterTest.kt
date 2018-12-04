@@ -49,7 +49,9 @@ class SVGImporterTest {
     }
 
 
-    val (vd1, vd2) = SVGImporter().processFiles(listOf(file1, file2))
+    val svgImporter = SVGImporter()
+    val vd1 = svgImporter.processFile(file1)!!
+    val vd2 = svgImporter.processFile(file2)!!
     val content1 = vd1.file.contentsToByteArray()
     val content2 = vd2.file.contentsToByteArray()
 

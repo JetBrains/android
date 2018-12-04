@@ -38,24 +38,20 @@ class SVGImporter : ResourceImporter {
   override fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer? =
     DesignAssetRendererManager.getInstance().getViewer(SVGAssetRenderer::class.java)
 
-  override fun processFiles(files: List<File>): List<DesignAsset> {
-    val errorBuilder = StringBuilder()
-    val designAssets = files
-      .map { convertSVGToVectorDrawable(it, errorBuilder) }
-      .map { DesignAsset(it, emptyList(), ResourceType.DRAWABLE) }
-    if (errorBuilder.isNotBlank()) {
-      Logger.getInstance(SVGImporter::class.java).warn("Error converting SVGs to Vector Drawable\n $errorBuilder")
+  override fun processFile(file: File): DesignAsset? {
+    return convertSVGToVectorDrawable(file)?.let {
+      DesignAsset(it, emptyList(), ResourceType.DRAWABLE)
     }
-    return designAssets
   }
 
-  private fun convertSVGToVectorDrawable(it: File, errorBuilder: StringBuilder): LightVirtualFile {
+  private fun convertSVGToVectorDrawable(it: File): LightVirtualFile? {
     val byteArrayOutputStream = ByteArrayOutputStream()
     val errorLog = Svg2Vector.parseSvgToXml(it, byteArrayOutputStream)
     if (errorLog.isNotBlank()) {
-      errorBuilder
-        .append(errorLog)
-        .append('\n')
+      Logger.getInstance(SVGImporter::class.java).warn("Error converting SVGs to Vector Drawable\n $errorLog")
+    }
+    if (byteArrayOutputStream.size() == 0) {
+      return null
     }
     return LightVirtualFile("${it.nameWithoutExtension}.xml", String(byteArrayOutputStream.toByteArray()))
   }
