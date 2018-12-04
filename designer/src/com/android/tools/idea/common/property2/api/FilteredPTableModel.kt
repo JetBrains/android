@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.impl.model.FilteredPTableModelImpl
+import org.jetbrains.android.formatter.AttributeComparator
 
 /**
  * A [PTableModel] for variable length property tables.
@@ -57,7 +59,18 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
     deleteItem(item) { it.value = null }
   }
 
-  companion object {
+  companion object PTableModelFactory {
+
+    /**
+     * Comparator that is sorting [PTableItem] in Android sorting order.
+     * This implies layout attributes first and layout_width before layout_height.
+     */
+    val androidSortOrder: Comparator<PTableItem> = AttributeComparator<PTableItem> { it.name }
+
+    /**
+     * Comparator that is sorting [PTableItem] in alphabetical sorting order.
+     */
+    val alphabeticalSortOrder: Comparator<PTableItem> = Comparator.comparing(PTableItem::name)
 
     /**
      * Create an implementation of this interface.
@@ -74,13 +87,16 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
      * name to null i.e. the new item line will be ready for the user
      * to add another item to the table.
      * The [groups] specifies which item are grouped under a specified
-     * group name.
+     * group name. The items are sorted using [itemComparator] and the
+     * group items are sorted using the [groupComparator].
      */
     fun <P : PropertyItem> create(model: PropertiesModel<P>,
                                   itemFilter: (P) -> Boolean,
+                                  itemComparator: Comparator<PTableItem> = androidSortOrder,
                                   groups: List<GroupSpec<P>> = emptyList(),
+                                  groupComparator: Comparator<PTableItem> = androidSortOrder,
                                   keepNewAfterFlyAway: Boolean = true): FilteredPTableModel<P> {
-      return FilteredPTableModelImpl(model, itemFilter, groups, keepNewAfterFlyAway)
+      return FilteredPTableModelImpl(model, itemFilter, itemComparator, groups, groupComparator, keepNewAfterFlyAway)
     }
   }
 }

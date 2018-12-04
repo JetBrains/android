@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
+import static com.android.tools.idea.common.property2.api.FilteredPTableModel.PTableModelFactory;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
@@ -182,8 +183,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       }
 
       Function1<NelePropertyItem, Boolean> filter = (item) -> item.getNamespace().isEmpty();
-      FilteredPTableModel<NelePropertyItem> tableModel =
-        FilteredPTableModel.Companion.create(myModel, filter, Collections.emptyList(), false);
+      FilteredPTableModel<NelePropertyItem> tableModel = PTableModelFactory.create(
+        myModel, filter, PTableModelFactory.getAlphabeticalSortOrder(),
+        Collections.emptyList(), PTableModelFactory.getAlphabeticalSortOrder(), false);
       AddCustomFieldAction addFieldAction = new AddCustomFieldAction(tableModel, property);
       DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction(tableModel);
       InspectorLineModel title = inspector.addExpandableTitle("CustomAttributes", true, addFieldAction, deleteFieldAction);
@@ -198,7 +200,9 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       Function1<NelePropertyItem, Boolean> filter =
         (item) -> !item.getNamespace().isEmpty() && ArrayUtil.find(excluded, item) < 0 && item.getRawValue() != null;
       FilteredPTableModel<NelePropertyItem> tableModel =
-        FilteredPTableModel.Companion.create(myModel, filter, Collections.emptyList(), true);
+        PTableModelFactory.create(
+          myModel, filter, PTableModelFactory.getAlphabeticalSortOrder(),
+          Collections.emptyList(), PTableModelFactory.getAlphabeticalSortOrder(), true);
       AddMotionFieldAction addFieldAction = new AddMotionFieldAction(myModel, tableModel, properties);
       DeleteMotionFieldAction deleteFieldAction = new DeleteMotionFieldAction(tableModel);
       InspectorLineModel title = inspector.addExpandableTitle(titleName, true, addFieldAction, deleteFieldAction);

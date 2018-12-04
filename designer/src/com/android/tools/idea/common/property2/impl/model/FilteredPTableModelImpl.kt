@@ -25,7 +25,6 @@ import com.android.tools.idea.common.property2.api.GroupSpec
 import com.android.tools.idea.common.property2.api.NewPropertyItem
 import com.android.tools.idea.common.property2.api.PropertiesModel
 import com.android.tools.idea.common.property2.api.PropertyItem
-import org.jetbrains.android.formatter.AttributeComparator
 
 /**
  * Implementation of [FilteredPTableModel].
@@ -41,10 +40,11 @@ import org.jetbrains.android.formatter.AttributeComparator
 class FilteredPTableModelImpl<P : PropertyItem>(
   private val model: PropertiesModel<P>,
   private val itemFilter: (P) -> Boolean,
+  private val itemComparator: Comparator<PTableItem>,
   private val groups: List<GroupSpec<P>>,
+  private val groupComparator: Comparator<PTableItem>,
   private val keepNewAfterFlyAway: Boolean) : FilteredPTableModel<P>, PTableModel {
   private val listeners = mutableListOf<PTableModelUpdateListener>()
-  private val comparator = AttributeComparator<PTableItem> { it.name }
 
   /** The items in this table model */
   override val items = mutableListOf<PTableItem>()
@@ -234,7 +234,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
         }
       }
       if (groupItem.children.isNotEmpty()) {
-        groupItem.children.sortWith(comparator)
+        groupItem.children.sortWith(groupComparator)
         output.add(groupItem)
         input = temp
         temp = if (input == temp1) temp2 else temp1
@@ -245,7 +245,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
   }
 
   private fun sort(list: MutableList<PTableItem>) {
-    list.sortWith(comparator)
+    list.sortWith(itemComparator)
   }
 
   private fun groupAndSort(list: List<P>, output: MutableList<PTableItem>) {
