@@ -193,7 +193,7 @@ public class NlPaletteModel implements Disposable {
       URLConnection connection = url.openConnection();
 
       try (Reader reader = new InputStreamReader(connection.getInputStream(), Charsets.UTF_8)) {
-        return loadPalette(reader, type);
+        return Palette.parse(reader, ViewHandlerManager.get(myModule.getProject()));
       }
     }
     catch (IOException | JAXBException e) {
@@ -242,14 +242,6 @@ public class NlPaletteModel implements Disposable {
     );
 
     saveInPaletteMap(type, palette);
-  }
-
-  @VisibleForTesting
-  @NotNull
-  public Palette loadPalette(@NotNull Reader reader, @NotNull NlLayoutType type) throws JAXBException {
-    Palette palette = Palette.parse(reader, ViewHandlerManager.get(myModule.getProject()));
-    myTypeToPalette.put(type, palette);
-    return palette;
   }
 
   /**
