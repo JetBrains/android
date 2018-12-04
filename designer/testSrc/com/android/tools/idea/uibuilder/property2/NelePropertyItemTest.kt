@@ -23,6 +23,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA
 import com.android.SdkConstants.ATTR_PARENT_TAG
+import com.android.SdkConstants.ATTR_SRC
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.ATTR_TEXT_COLOR
@@ -30,6 +31,7 @@ import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.FRAME_LAYOUT
+import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.NEW_ID_PREFIX
 import com.android.SdkConstants.RELATIVE_LAYOUT
@@ -374,6 +376,13 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(color.editingSupport.validation("blue")).isEqualTo(Pair(ERROR, "Invalid value: 'blue'"))
   }
 
+  fun testSampleDataValidation() {
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val components = createImageView()
+    val src = createPropertyItem(ANDROID_URI, ATTR_SRC, NelePropertyType.DRAWABLE, components, model)
+    assertThat(src.editingSupport.validation("@tools:sample/avatars[1]")).isEqualTo(EDITOR_NO_ERROR)
+  }
+
   private fun createTextView(): List<NlComponent> {
     return createComponents(
         component(TEXT_VIEW)
@@ -381,6 +390,15 @@ class NelePropertyItemTest : PropertyTestCase() {
           .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
           .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
           .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design")
+    )
+  }
+
+  private fun createImageView(): List<NlComponent> {
+    return createComponents(
+      component(IMAGE_VIEW)
+        .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
+        .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
+        .withAttribute(ANDROID_URI, ATTR_SRC, "@tools:sample/avatars[1]")
     )
   }
 
