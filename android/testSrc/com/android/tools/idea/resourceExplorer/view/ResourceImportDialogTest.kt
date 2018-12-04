@@ -21,9 +21,9 @@ import com.android.resources.Density
 import com.android.resources.NightMode
 import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
-import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.StaticStringMapper
-import com.android.tools.idea.resourceExplorer.model.getAssetSets
+import com.android.tools.idea.resourceExplorer.model.getDesignAssets
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceImportDialogViewModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
@@ -61,7 +61,7 @@ class ResourceImportDialogTest {
   @Before
   fun setUp() {
     rule.fixture.testDataPath = getTestDataDirectory() + "/designAssets"
-    dialogViewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, getAssets(rule.fixture.testDataPath))
+    dialogViewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, getAssets(rule.fixture.testDataPath).asSequence())
     resourceImportDialog = runInEdtAndGet {
       ResourceImportDialog(dialogViewModel)
     }
@@ -134,7 +134,7 @@ class ResourceImportDialogTest {
 }
 
 
-fun getAssets(path: String): List<DesignAssetSet> {
+fun getAssets(path: String): List<DesignAsset> {
   val mappers = setOf(
     StaticStringMapper(mapOf(
       "@2x" to DensityQualifier(Density.XHIGH),
@@ -144,7 +144,8 @@ fun getAssets(path: String): List<DesignAssetSet> {
       "_dark" to NightModeQualifier(NightMode.NIGHT)
     )))
   val qualifierMatcher = QualifierMatcher(mappers)
-  return getAssetSets(VfsUtil.findFileByIoFile(File(path), true)!!, setOf("png"), qualifierMatcher)
+  val directory = VfsUtil.findFileByIoFile(File(path), true)!!
+  return getDesignAssets(directory, setOf("png"), directory, qualifierMatcher)
 }
 
 private val staticRule = AndroidProjectRule.onDisk()
@@ -156,7 +157,7 @@ fun main(vararg args: String) {
     UIManager.setLookAndFeel(DarculaLaf())
     JFrame().apply {
       contentPane = ResourceImportDialog(
-        ResourceImportDialogViewModel(staticRule.module.androidFacet!!, getAssets(staticRule.fixture.testDataPath))).root
+        ResourceImportDialogViewModel(staticRule.module.androidFacet!!, getAssets(staticRule.fixture.testDataPath).asSequence())).root
       pack()
       isVisible = true
     }

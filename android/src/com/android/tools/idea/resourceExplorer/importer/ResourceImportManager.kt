@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.importer
 
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.util.toIoFile
 import com.intellij.ide.util.PropertiesComponent
@@ -26,29 +27,50 @@ import java.io.File
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.InvalidPathException
-import kotlin.streams.toList
+import kotlin.streams.asSequence
 
 private const val PREFERENCE_LAST_SELECTED_DIRECTORY = "resourceExplorer.lastChosenDirectory"
+
+/**
+ * Maximum depth to walk to when recursively walking a file hierarchy
+ */
+private const val MAX_FILE_DEPTH = 10
+
 /**
  * Returns a flat list of all the actual files (and not directory) within the hierarchy of this file.
  */
-fun File.getAllLeafFiles(): List<File> {
-  return Files.walk(toPath(), 10, FileVisitOption.FOLLOW_LINKS)
-    .filter { file -> Files.isRegularFile(file) }
-    .map { it.toFile() }
-    .toList()
-}
+fun File.getAllLeafFiles(): Sequence<File> = Files.walk(toPath(), MAX_FILE_DEPTH, FileVisitOption.FOLLOW_LINKS)
+  .asSequence()
+  .filter { file -> Files.isRegularFile(file) }
+  .map { it.toFile() }
 
 /**
- * Creates [DesignAssetSet] from the list of [files] using the available
- * [DesignAssetImporter] provided by [importersProvider].
+ * Transforms this [File] [Sequence] into a [DesignAsset] [Sequence] using the available.
+ * [File]s that couldn't be converted into a [DesignAsset] are silently ignored.
+ *
+ * @see ImportersProvider
+ * @see ImportersProvider.getImportersForExtension
+ * @see com.android.tools.idea.resourceExplorer.plugin.ResourceImporter.processFile
  */
-fun toDesignAssetSets(files: List<File>, importersProvider: ImportersProvider) =
-  files
-    .groupBy({ importersProvider.getImportersForExtension(it.extension) }, { it })
-    .filter { (importers, _) -> importers.isNotEmpty() }
-    .flatMap { (importers, files) -> importers[0].processFiles(files) }
-    .groupBy { it.name }
+fun Sequence<File>.toDesignAsset(importersProvider: ImportersProvider): Sequence<DesignAsset> =
+  mapNotNull { importersProvider.getImportersForExtension(it.extension).firstOrNull()?.processFile(it) }
+
+/**
+ * Recursively find all files that can be converted to [DesignAsset] in hierarchies
+ * of this [Sequence]'s files.
+ *
+ * The conversion is done by the first [com.android.tools.idea.resourceExplorer.plugin.ResourceImporter]
+ * provided by [importersProvider] and compatible with a given file.
+ */
+fun Sequence<File>.findAllDesignAssets(importersProvider: ImportersProvider): Sequence<DesignAsset> =
+  flatMap(File::getAllLeafFiles)
+    .toDesignAsset(importersProvider)
+
+/**
+ * Group [DesignAsset]s by their name into [DesignAssetSet].
+ */
+fun Sequence<DesignAsset>.groupIntoDesignAssetSet(): List<DesignAssetSet> =
+  groupBy { it.name }
     .map { (name, assets) -> DesignAssetSet(name, assets) }
 
 /**
@@ -56,7 +78,7 @@ fun toDesignAssetSets(files: List<File>, importersProvider: ImportersProvider) =
  * provided by the [importersProvider]. When files have been chosen, the [fileChosenCallback] is invoked with
  * the files converted into DesignAssetSet.
  */
-fun chooseDesignAssets(importersProvider: ImportersProvider, fileChosenCallback: (List<DesignAssetSet>) -> Unit) {
+fun chooseDesignAssets(importersProvider: ImportersProvider, fileChosenCallback: (Sequence<DesignAsset>) -> Unit) {
   val lastChosenDirFile: VirtualFile? = PropertiesComponent.getInstance().getValue(PREFERENCE_LAST_SELECTED_DIRECTORY)?.let {
     try {
       VfsUtil.findFile(File(it).toPath(), true)
@@ -67,19 +89,10 @@ fun chooseDesignAssets(importersProvider: ImportersProvider, fileChosenCallback:
   }
   val fileChooserDescriptor = createFileDescriptor(importersProvider)
   FileChooserFactory.getInstance().createPathChooser(fileChooserDescriptor, null, null).choose(lastChosenDirFile) { selectedFiles ->
-    fileChosenCallback(recursivelyFindAllDesignAssets(importersProvider, selectedFiles))
+    val allDesignAssets = selectedFiles.asSequence().map { it.toIoFile() }.findAllDesignAssets(importersProvider)
+    fileChosenCallback(allDesignAssets)
     PropertiesComponent.getInstance().setValue(PREFERENCE_LAST_SELECTED_DIRECTORY, selectedFiles.firstOrNull()?.path)
   }
-}
-
-/**
- * Recursively parse the hierarchy of the given [virtualFiles] and convert leaf files of the hierarchy into [DesignAssetSet].
- */
-private fun recursivelyFindAllDesignAssets(importersProvider: ImportersProvider, virtualFiles: List<VirtualFile>): List<DesignAssetSet> {
-  val files = virtualFiles
-    .map(VirtualFile::toIoFile)
-    .flatMap(File::getAllLeafFiles)
-  return toDesignAssetSets(files, importersProvider)
 }
 
 /**

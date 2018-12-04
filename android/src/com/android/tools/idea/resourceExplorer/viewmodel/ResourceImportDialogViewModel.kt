@@ -18,6 +18,7 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 import com.android.tools.idea.resourceExplorer.importer.DesignAssetImporter
 import com.android.tools.idea.resourceExplorer.importer.ImportersProvider
 import com.android.tools.idea.resourceExplorer.importer.chooseDesignAssets
+import com.android.tools.idea.resourceExplorer.importer.groupIntoDesignAssetSet
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager
@@ -28,15 +29,24 @@ import java.awt.Image
 import java.util.concurrent.CompletableFuture
 
 /**
+ * Maximum number of files to import at a time.
+ */
+const val MAX_IMPORT_FILES = 400
+
+/**
  * ViewModel for [ResourceImportDialogViewModel]
  */
 class ResourceImportDialogViewModel(val facet: AndroidFacet,
-                                    assetSets: List<DesignAssetSet>,
+                                    assets: Sequence<DesignAsset>,
                                     private val designAssetImporter: DesignAssetImporter = DesignAssetImporter(),
                                     private val importersProvider: ImportersProvider = ImportersProvider()
 ) {
 
-  private val assetSetsToImport = assetSets.associate { it.name to it }.toMutableMap()
+  private val assetSetsToImport = assets
+    .take(MAX_IMPORT_FILES)
+    .groupIntoDesignAssetSet()
+    .associate { it.name to it }
+    .toMutableMap()
 
   val assetSets get() = assetSetsToImport.values
 
@@ -83,9 +93,12 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
    */
   fun importMoreAssets(assetAddedCallback: (DesignAssetSet, List<DesignAsset>) -> Unit) {
     chooseDesignAssets(importersProvider) { newAssetSets ->
-      newAssetSets.forEach {
-        addAssetSet(it, assetAddedCallback)
-      }
+      newAssetSets
+        .take(MAX_IMPORT_FILES)
+        .groupIntoDesignAssetSet()
+        .forEach {
+          addAssetSet(it, assetAddedCallback)
+        }
     }
   }
 
@@ -98,11 +111,13 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
       if (onlyNewFiles.isNotEmpty()) {
         existingAssetSet.designAssets += onlyNewFiles
         assetAddedCallback(existingAssetSet, onlyNewFiles)
+        updateCallback()
       }
     }
     else {
       assetSetsToImport[it.name] = it
       assetAddedCallback(it, it.designAssets)
+      updateCallback()
     }
   }
 }

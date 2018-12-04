@@ -39,7 +39,7 @@ class ResourceImportDialogViewModelTest {
 
   @Test
   fun importMoreAssets() {
-    val viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, emptyList())
+    val viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, emptySequence())
     val fileChooser = createStubFileChooser()
     fileChooser.files = getTestFiles("entertainment/icon_category_entertainment.png")
     viewModel.importMoreAssets { designAssetSet, _ ->
