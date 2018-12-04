@@ -59,6 +59,8 @@ public final class GridLayoutTest {
                       "        android:id=\"@+id/textView\"\n" +
                       "        android:layout_width=\"wrap_content\"\n" +
                       "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:layout_row=\"0\"\n" +
+                      "        android:layout_column=\"0\"\n" +
                       "        android:text=\"TextView\" />\n" +
                       "</GridLayout>";
 
