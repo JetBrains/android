@@ -46,6 +46,7 @@ import com.intellij.util.ui.update.Update
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Future
+import javax.swing.event.ChangeListener
 
 private const val UPDATE_QUEUE_NAME = "android.layout.propertysheet"
 private const val UPDATE_IDENTITY = "updateProperies"
@@ -69,6 +70,8 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private var activeSceneView: SceneView? = null
   private var activePanel: AccessoryPanelInterface? = null
   private var defaultValueProvider: NeleDefaultPropertyProvider? = null
+  private val liveComponents = mutableListOf<NlComponent>()
+  private val liveChangeListener: ChangeListener = ChangeListener { firePropertyValueChange() }
 
   constructor(parentDisposable: Disposable, facet: AndroidFacet) :
     this(parentDisposable, NelePropertiesProvider(facet), facet, true)
@@ -194,7 +197,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     useCurrentPanel(new)
   }
 
-  protected fun useCurrentPanel(surface: DesignSurface?) {
+  private fun useCurrentPanel(surface: DesignSurface?) {
     usePanel((surface as? NlDesignSurface)?.accessoryPanel?.currentPanel)
   }
 
@@ -225,6 +228,8 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   }
 
   private fun handleSelectionUpdate(surface: DesignSurface?, components: List<NlComponent>) {
+    updateLiveListeners(components)
+
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
     val application = ApplicationManager.getApplication()
@@ -235,6 +240,13 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     if (application.isUnitTestMode) {
       lastSelectionUpdate = future
     }
+  }
+
+  private fun updateLiveListeners(components: List<NlComponent>) {
+    liveComponents.forEach { it.removeLiveChangeListener(liveChangeListener) }
+    liveComponents.clear()
+    liveComponents.addAll(components)
+    liveComponents.forEach { it.addLiveChangeListener(liveChangeListener) }
   }
 
   protected open fun wantPanelSelectionUpdate(panel: AccessoryPanelInterface, activePanel: AccessoryPanelInterface?): Boolean {

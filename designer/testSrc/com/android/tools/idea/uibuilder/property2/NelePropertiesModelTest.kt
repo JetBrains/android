@@ -116,6 +116,23 @@ class NelePropertiesModelTest: LayoutTestCase() {
     verify(listener).propertyValuesChanged(model)
   }
 
+  fun testPropertyValuesChangedEventAfterLiveComponentChange() {
+    // setup
+    @Suppress("UNCHECKED_CAST")
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
+    val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW)
+    val textView = nlModel.find(TEXT_VIEW)!!
+    model.surface = nlModel.surface
+    nlModel.surface.selectionModel.setSelection(listOf(textView))
+    waitUntilEventsProcessed(model)
+    model.addListener(listener)
+
+    textView.fireLiveChangeEvent()
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener).propertyValuesChanged(model)
+  }
+
   fun testAccessToDefaultPropertiesViaModel() {
     // setup
     val model = createModel()
