@@ -87,7 +87,7 @@ public class DrawNlComponentFrame extends DrawRegion {
     }
     else {
       Shape clipping = g.getClip();
-      if (!clipping.contains(x, y, x + width, x + height)) {
+      if (clipping != null && !clipping.contains(x, y, x + width, x + height)) {
         // Draw dot line
         g.setClip(sceneContext.getBounds());
         g.setStroke(ColorSet.sDashedStroke);
