@@ -66,9 +66,4 @@ public class SearchField extends SearchTextField {
   private void updateBackground() {
     getTextEditor().setBackground(isEnabled() ? UIUtil.getTextFieldBackground() : UIUtil.getPanelBackground());
   }
-
-  @Override
-  protected boolean isSearchControlUISupported() {
-    return true;
-  }
 }
