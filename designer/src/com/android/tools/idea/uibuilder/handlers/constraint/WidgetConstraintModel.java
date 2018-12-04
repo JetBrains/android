@@ -48,6 +48,7 @@ import static com.android.SdkConstants.VALUE_ZERO_DP;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchor;
@@ -182,8 +183,20 @@ public class WidgetConstraintModel {
   private boolean myIsInCallback = false;
   private Runnable myUpdateCallback;
   @Nullable private NlComponent myComponent;
+  @Nullable private NlModel myModel;
 
   @NotNull private final ChangeListener myChangeLiveListener = e -> fireUIUpdate();
+  @NotNull private final ModelListener myModelListener = new ModelListener() {
+    @Override
+    public void modelChanged(@NotNull NlModel model) {
+      fireUIUpdate();
+    }
+
+    @Override
+    public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
+      fireUIUpdate();
+    }
+  };
 
   private void fireUIUpdate() {
     if (myUpdateCallback != null) {
@@ -254,10 +267,19 @@ public class WidgetConstraintModel {
   }
 
   public void setComponent(@Nullable NlComponent component) {
+    if (myModel != null) {
+      myModel.removeListener(myModelListener);
+    }
     if (myComponent != null) {
       myComponent.removeLiveChangeListener(myChangeLiveListener);
     }
+
     myComponent = isApplicable(component) ? component : null;
+    myModel = myComponent != null ? myComponent.getModel() : null;
+
+    if (myModel != null) {
+      myModel.addListener(myModelListener);
+    }
     if (myComponent != null) {
       myComponent.addLiveChangeListener(myChangeLiveListener);
       fireUIUpdate();
