@@ -87,8 +87,7 @@ class ConstraintPlaceholderTest : SceneTest() {
 
     mySceneManager.update()
 
-    val appliedResult = applyPlaceholderToSceneComponent(textView, placeholder)
-    assertTrue(appliedResult)
+    applyPlaceholderToSceneComponent(textView, placeholder)
 
     assertEquals("50dp", textView.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
     assertEquals("60dp", textView.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))

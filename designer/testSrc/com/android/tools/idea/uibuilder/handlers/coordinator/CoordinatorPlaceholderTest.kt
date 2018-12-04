@@ -79,8 +79,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     assertEquals(0, textView.drawY)
 
     val placeholder = CoordinatorPlaceholder(coordinatorLayout, frameLayout, CoordinatorPlaceholder.Type.LEFT_TOP)
-    val appliedResult = applyPlaceholderToSceneComponent(textView, placeholder)
-    assertTrue(appliedResult)
+    applyPlaceholderToSceneComponent(textView, placeholder)
 
     mySceneManager.update()
     assertTrue(coordinatorLayout.children.contains(textView))
@@ -100,8 +99,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
     assertEquals(0, textView.drawY)
 
     val placeholder = CoordinatorPlaceholder(coordinatorLayout, frameLayout, CoordinatorPlaceholder.Type.RIGHT_BOTTOM)
-    val appliedResult = applyPlaceholderToSceneComponent(textView, placeholder)
-    assertTrue(appliedResult)
+    applyPlaceholderToSceneComponent(textView, placeholder)
 
     mySceneManager.update()
     assertTrue(coordinatorLayout.children.contains(textView))

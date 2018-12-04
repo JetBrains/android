@@ -83,8 +83,7 @@ class LinearPlaceholderTest : SceneTest() {
                                                            linearLayout.drawY + linearLayout.drawHeight)
 
     textView2.setPosition(linearLayout.drawX, linearLayout.drawY)
-    val appliedResult = applyPlaceholderToSceneComponent(textView2, placeholder)
-    assertTrue(appliedResult)
+    applyPlaceholderToSceneComponent(textView2, placeholder)
 
     // The SceneComponent is used even the NlModel is changed. We check the position of applied component here.
     assertEquals(0, textView2.drawX)
@@ -108,8 +107,7 @@ class LinearPlaceholderTest : SceneTest() {
                                                            linearLayout.drawY + linearLayout.drawHeight)
 
     textView2.setPosition(button.drawX, button.drawY)
-    val appliedResult = applyPlaceholderToSceneComponent(textView2, placeholder)
-    assertTrue(appliedResult)
+    applyPlaceholderToSceneComponent(textView2, placeholder)
 
     // The SceneComponent is used even the NlModel is changed. We check the position of applied component here.
     assertEquals(0, textView1.drawX)
@@ -133,8 +131,7 @@ class LinearPlaceholderTest : SceneTest() {
                                                            linearLayout.drawY + linearLayout.drawHeight)
 
     textView1.setPosition(textView2.drawX, textView2.drawY)
-    val appliedResult = applyPlaceholderToSceneComponent(textView1, placeholder)
-    assertTrue(appliedResult)
+    applyPlaceholderToSceneComponent(textView1, placeholder)
 
     // The SceneComponent is used even the NlModel is changed. We check the position of applied component here.
     assertEquals(0, button.drawX)
@@ -158,8 +155,7 @@ class LinearPlaceholderTest : SceneTest() {
                                                            linearLayout.drawY + linearLayout.drawHeight)
 
     textView1.setPosition(textView2.drawX + textView2.drawWidth, textView2.drawY)
-    val appliedResult = applyPlaceholderToSceneComponent(textView1, placeholder)
-    assertTrue(appliedResult)
+    applyPlaceholderToSceneComponent(textView1, placeholder)
 
     assertEquals(0, button.drawX)
     assertEquals(100, textView2.drawX)

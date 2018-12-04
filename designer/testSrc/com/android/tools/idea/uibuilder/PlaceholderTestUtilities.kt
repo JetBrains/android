@@ -19,13 +19,10 @@ import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.target.CommonDragTarget
 
-fun applyPlaceholderToSceneComponent(component: SceneComponent, placeholder: Placeholder): Boolean {
-
+fun applyPlaceholderToSceneComponent(component: SceneComponent, placeholder: Placeholder) {
   val dragTarget = CommonDragTarget(component)
-
   val downX = component.centerX
   val downY = component.centerY
   dragTarget.mouseDown(downX, downY)
-
-  return dragTarget.applyPlaceholder(placeholder, commit = true)
+  dragTarget.applyPlaceholder(placeholder, commit = true)
 }
