@@ -22,6 +22,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
@@ -117,6 +118,8 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     ViewEditor editor = Mockito.mock(ViewEditor.class);
     NlModel model = screenView.getModel();
     when(editor.getModel()).thenReturn(model);
+    Scene scene = screenView.getScene();
+    when(editor.getScene()).thenReturn(scene);
     when(editor.dpToPx(ArgumentMatchers.anyInt())).thenAnswer(i -> Coordinates.dpToPx(screenView, (Integer)i.getArguments()[0]));
     when(editor.pxToDp(ArgumentMatchers.anyInt())).thenAnswer(i -> Coordinates.pxToDp(screenView, (Integer)i.getArguments()[0]));
 
