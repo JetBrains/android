@@ -93,6 +93,8 @@ private fun <T> ConfigurablesTreeModel.updateChildrenOf(
           if (getIndexOfChild(parentNode, existingNode) != index) {
             removeNodeFromParent(existingNode)
             insertNodeInto(existingNode, parentNode, index)
+          } else {
+            this.nodeChanged(existingNode)
           }
         else -> {
           // Create any new nodes and insert them at their positions.

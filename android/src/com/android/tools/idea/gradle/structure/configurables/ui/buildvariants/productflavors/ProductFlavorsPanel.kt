@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.NameValidator
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.android.tools.idea.gradle.structure.configurables.ui.renameWithDialog
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
@@ -142,6 +143,42 @@ class ProductFlavorsPanel(
     )
   }
 
+  override fun getRenameAction(): AnAction? {
+    return object : DumbAwareAction("Rename", "Renames", IconUtil.getEditIcon()) {
+      override fun update(e: AnActionEvent) {
+        e.presentation.apply {
+          isEnabled = selectedConfigurable?.editableObject as? PsProductFlavor != null // TODO("Renaming dimensions")
+          text = renameTextFor(selectedConfigurable)
+          description = renameDescriptionFor(selectedConfigurable)
+        }
+      }
+
+      override fun actionPerformed(e: AnActionEvent) {
+        when (selectedConfigurable) {
+          is FlavorDimensionConfigurable -> renameWithDialog(
+            "Enter a new name for flavor dimension '${selectedConfigurable?.displayName}':",
+            "Rename Flavor Dimension",
+            "Also rename related flavor dimensions",
+            selectedConfigurable?.displayName,
+            flavorDimensionNameValidator
+          ) { newName, renameReferences ->
+            TODO("Renaming dimensions")
+          }
+          is ProductFlavorConfigurable -> renameWithDialog(
+            "Enter a new name for product flavor '${selectedConfigurable?.displayName}':",
+            "Rename Product Flavor",
+            "Also rename related product flavors and configurations",
+            selectedConfigurable?.displayName,
+            productFlavorNameValidator
+          ) { newName, alsoRenameReferences ->
+            if (alsoRenameReferences) TODO("Renaming references")
+            (selectedNode.getModel<PsProductFlavor>() ?: return@renameWithDialog).rename(newName)
+          }
+        }
+      }
+    }
+  }
+
   override fun PsUISettings.getLastEditedItem(): String? = LAST_EDITED_FLAVOR_OR_DIMENSION
 
   override fun PsUISettings.setLastEditedItem(value: String?) {
@@ -159,5 +196,23 @@ private fun removeDescriptionFor(configurable: NamedConfigurable<*>?) = when (co
   is FlavorDimensionConfigurable -> "Removes a flavor dimension"
   is ProductFlavorConfigurable -> "Removes a product flavor"
   else -> "Removes a product flavor or flavor dimension"
+}
+
+private fun renameTextFor(configurable: NamedConfigurable<*>?) = when (configurable) {
+  is FlavorDimensionConfigurable -> "Rename Flavor Dimension"
+  is ProductFlavorConfigurable -> "Rename Product Flavor"
+  else -> "Rename"
+}
+
+private fun renameDescriptionFor(configurable: NamedConfigurable<*>?) = when (configurable) {
+  is FlavorDimensionConfigurable -> "Renames a flavor dimension"
+  is ProductFlavorConfigurable -> "Renames a product flavor"
+  else -> "Renames a product flavor or flavor dimension"
+}
+
+private fun enitityNameFor(configurable: NamedConfigurable<*>?) = when (configurable) {
+  is FlavorDimensionConfigurable -> "flavor dimension"
+  is ProductFlavorConfigurable -> "product flavor"
+  else -> error("Unknown configurable: ${configurable?.javaClass}")
 }
 
