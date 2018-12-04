@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
@@ -27,6 +28,8 @@ import com.google.common.collect.Multimap;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.intellij.lang.annotations.Language;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +51,17 @@ public class ConstraintLayoutTest {
     FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "activity_main.xml");
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+
+  @Before
+  public void setUp() {
+    // Temporary: until this test can run with new properties panel
+    StudioFlags.NELE_NEW_PROPERTY_PANEL.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NELE_NEW_PROPERTY_PANEL.clearOverride();
+  }
 
   /**
    * To verify that items from the tool kit can be added to a layout.

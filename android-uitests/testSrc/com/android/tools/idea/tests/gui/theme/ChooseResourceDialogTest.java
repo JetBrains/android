@@ -64,11 +64,15 @@ public class ChooseResourceDialogTest {
   @Before
   public void setup() {
     StudioFlags.THEME_EDITOR_ENABLED.override(true);
+
+    // Temporary: until this test can run with new properties panel
+    StudioFlags.NELE_NEW_PROPERTY_PANEL.override(false);
   }
 
   @After
   public void tearDown() {
     StudioFlags.THEME_EDITOR_ENABLED.clearOverride();
+    StudioFlags.NELE_NEW_PROPERTY_PANEL.clearOverride();
   }
 
   @Test
