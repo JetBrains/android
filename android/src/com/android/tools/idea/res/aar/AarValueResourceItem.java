@@ -18,7 +18,6 @@ package com.android.tools.idea.res.aar;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.res.ResolvableResourceItem;
 import com.android.utils.HashCodes;
 import com.intellij.util.containers.ObjectIntHashMap;
 import java.io.IOException;
@@ -29,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Resource item representing a value resource, e.g. a string or a color.
  */
-class AarValueResourceItem extends AbstractAarValueResourceItem implements ResolvableResourceItem {
+class AarValueResourceItem extends AbstractAarValueResourceItem {
   @Nullable private final String myValue;
 
   /**
