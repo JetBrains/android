@@ -66,7 +66,7 @@ class ProjectResourcesBrowserViewModelTest {
     val latch = CountDownLatch(1)
     val pngDrawable = projectRule.getPNGResourceItem()
     val viewModel = createViewModel(projectRule.module)
-    val asset = DesignAsset(pngDrawable)
+    val asset = DesignAsset.fromResourceItem(pngDrawable)!!
     val iconSize = 32 // To compensate the 10% margin around the icon
     viewModel.assetPreviewManager
       .getPreviewProvider(ResourceType.DRAWABLE)

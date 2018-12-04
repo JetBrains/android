@@ -57,14 +57,6 @@ data class DesignAsset(
         resourceItem = resourceItem)
     }
   }
-
-  constructor(resourceItem: ResourceItem) : this(
-    file = resourceItem.getSourceAsVirtualFile()!!, // TODO handle assertion
-    qualifiers = resourceItem.configuration.qualifiers.toList(),
-    type = resourceItem.type,
-    name = resourceItem.name,
-    resourceItem = resourceItem
-  )
 }
 
 /**
