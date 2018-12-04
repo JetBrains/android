@@ -30,8 +30,8 @@ data class NewJavaSourceSet(
   override val name: String,
   override val sourceDirectories: Collection<File>,
   override val resourcesDirectories: Collection<File>,
-  override val classesOutputDirectory: File,
-  override val resourcesOutputDirectory: File,
+  override val classesOutputDirectories: Collection<File>,
+  override val resourcesOutputDirectory: File?,
   override val libraryDependencies: Collection<JavaLibrary>,
   override val moduleDependencies: Collection<ModuleDependency>) : JavaSourceSet {
 
@@ -39,7 +39,7 @@ data class NewJavaSourceSet(
     oldJavaSourceSet.name,
     oldJavaSourceSet.sourceDirectories,
     oldJavaSourceSet.resourcesDirectories,
-    oldJavaSourceSet.classesOutputDirectory,
+    oldJavaSourceSet.classesOutputDirectories,
     oldJavaSourceSet.resourcesOutputDirectory,
     buildLibraryDependencies(oldJavaSourceSet.compileClasspathDependencies),
     buildModuleDependencies(oldJavaSourceSet.compileClasspathDependencies)
@@ -49,7 +49,7 @@ data class NewJavaSourceSet(
     proto.name,
     proto.sourceDirectoriesList.map { converter.fileFromProto(it) },
     proto.resourcesDirectoriesList.map { converter.fileFromProto(it) },
-    converter.fileFromProto(proto.classesOutputDirectory),
+    proto.classesOutputDirectoriesList.map { converter.fileFromProto(it)},
     converter.fileFromProto(proto.resourcesOutputDirectory),
     proto.libraryDependenciesList.map { NewJavaLibrary(it, converter) },
     proto.moduleDependenciesList.map { NewModuleDependency(it) }
