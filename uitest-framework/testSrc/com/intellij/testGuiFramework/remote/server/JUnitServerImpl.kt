@@ -127,7 +127,7 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
   }
 
   override fun receive(): MessageFromClient {
-    val message = if (GuiTestOptions.isDebug()) {
+    val message = if (GuiTestOptions.isDebug() || System.getProperty("enable.bleak") == "true") {
       receivingMessages.take()
     } else {
       receivingMessages.poll(MESSAGE_INTERVAL_TIMEOUT.seconds, TimeUnit.SECONDS)

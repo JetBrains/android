@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakKt;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testFramework.LeakHunter;
@@ -29,6 +30,7 @@ import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.*;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -143,6 +145,13 @@ public class LayoutEditorMemoryUseTest {
     }
   }
 
+  @Test
+  @Ignore // run manually for now, until infrastructure is set up. Set -Dneable.bleak=true
+  public void navigateAndEditWithBLeak() throws Exception {
+    IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    BleakKt.runWithBleak(() -> runScenario(fixture));
+  }
+
   public void createHprofDump(String path) throws Exception {
     Files.deleteIfExists(Paths.get(path));
     MemoryDumpHelper.captureMemoryDump(path);
@@ -178,6 +187,9 @@ public class LayoutEditorMemoryUseTest {
     // Third file on editor tab
     fixture.getEditor().open(layoutFilePaths[2], EditorFixture.Tab.EDITOR).
       getLayoutPreview(true).waitForRenderToFinish();
+
+    fixture.getEditor().closeFile(layoutFilePaths[0]);
+    fixture.getEditor().closeFile(layoutFilePaths[1]);
   }
 
   private static class LeakedInstancesTracker {
