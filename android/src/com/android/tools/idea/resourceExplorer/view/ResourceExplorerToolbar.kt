@@ -69,11 +69,11 @@ class ResourceExplorerToolbar(
 private class ModuleSelectionAction(val viewModel: ResourceExplorerToolbarViewModel) : ComboBoxAction(), DumbAware {
 
   init {
-    this.templatePresentation.text = viewModel.currentModuleName
+    this.templatePresentation.text = viewModel.getSelectedModuleText()
   }
 
   override fun update(e: AnActionEvent) {
-    e.presentation.text = viewModel.currentModuleName
+    e.presentation.text = viewModel.getSelectedModuleText()
   }
 
   override fun createPopupActionGroup(button: JComponent?) = DefaultActionGroup(viewModel.getSelectModuleActions())
