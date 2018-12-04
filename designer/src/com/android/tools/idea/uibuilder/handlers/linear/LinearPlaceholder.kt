@@ -41,9 +41,9 @@ object LinearPlaceholderFactory {
                                   bottom: Int
   ): Placeholder = HorizontalPlaceholder(host, anchor, snappedX, top, bottom)
 
-  private abstract class LinearPlaceholder(host: SceneComponent, anchor: SceneComponent?) : Placeholder(host) {
+  private abstract class LinearPlaceholder(host: SceneComponent, private val anchor: SceneComponent?) : Placeholder(host) {
 
-    override val nextComponent: SceneComponent? = anchor
+    override fun findNextSibling(appliedComponent: SceneComponent, newParent: SceneComponent): SceneComponent? = anchor
 
     override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) = Unit
   }

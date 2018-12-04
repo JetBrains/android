@@ -27,12 +27,6 @@ import java.awt.Point
 abstract class Placeholder(val host: SceneComponent) {
 
   /**
-   * The anchor component of this Placeholder. When [apply] is called, the inserted component will be added before this component.
-   * If this is null, the inserted component is appended as last component.
-   */
-  open val nextComponent: SceneComponent? = null
-
-  /**
    * The dominating [Placeholder] is rendered when the mouse hovers over the [associatedComponent].
    * @see dominate
    */
@@ -52,6 +46,19 @@ abstract class Placeholder(val host: SceneComponent) {
    * Provide the interactive [Region] of this Placeholder.
    */
   abstract val region: Region
+
+  /**
+   * Used to find the anchor component that will become the next sibling of the inserted component.
+   * If this is null, the inserted component is appended as last component.
+   */
+  open fun findNextSibling(appliedComponent: SceneComponent, newParent: SceneComponent): SceneComponent? {
+    if (appliedComponent.parent != newParent) {
+      return null
+    }
+    val siblings = newParent.children
+    val index = siblings.indexOf(appliedComponent)
+    return if (index == -1) null else siblings.getOrNull(index + 1)
+  }
 
   /**
    * Called for snapping to Placeholder. ([left], [top], [right], [bottom]) is the bound of the interacting [SceneComponent].<br>
