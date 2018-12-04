@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.uibuilder;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -35,6 +36,8 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +46,17 @@ import org.junit.runner.RunWith;
 public class IssuePanelTest {
 
   @Rule public final GuiTestRule myGuiTest = new GuiTestRule();
+
+  @Before
+  public void setUp() {
+    // Temporary: until this test can run with new properties panel
+    StudioFlags.NELE_NEW_PROPERTY_PANEL.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NELE_NEW_PROPERTY_PANEL.clearOverride();
+  }
 
   /**
    * Scenario:

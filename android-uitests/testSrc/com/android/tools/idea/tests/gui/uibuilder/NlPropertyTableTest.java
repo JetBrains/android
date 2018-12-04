@@ -24,6 +24,7 @@ import static java.awt.event.KeyEvent.VK_HOME;
 import static java.awt.event.KeyEvent.VK_PAGE_DOWN;
 import static java.awt.event.KeyEvent.VK_PAGE_UP;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.CompletionFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -61,6 +62,9 @@ public class NlPropertyTableTest {
 
   @Before
   public void setUp() throws Exception {
+    // Temporary: until this test can run with new properties panel
+    StudioFlags.NELE_NEW_PROPERTY_PANEL.override(false);
+
     myFrame = guiTest.importSimpleLocalApplication();
     myOriginalFrameSize = myFrame.getIdeFrameSize();
   }
@@ -68,6 +72,8 @@ public class NlPropertyTableTest {
   @After
   public void tearDown() {
     myFrame.setIdeFrameSize(myOriginalFrameSize);
+
+    StudioFlags.NELE_NEW_PROPERTY_PANEL.clearOverride();
   }
 
   @Test
