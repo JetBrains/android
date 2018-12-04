@@ -89,7 +89,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
             "        android:layout_width=\"20dp\"\n" +
             "        android:layout_height=\"20dp\"\n" +
             "        app:layout_anchor=\"@+id/button\"\n" +
-            "        app:layout_anchorGravity=\"left|top\" />")
+            "        app:layout_anchorGravity=\"start|top\" />")
   }
 
   fun testDragComponentToRightBottomSide() {
@@ -102,7 +102,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
             "        android:layout_width=\"20dp\"\n" +
             "        android:layout_height=\"20dp\"\n" +
             "        app:layout_anchor=\"@+id/button\"\n" +
-            "        app:layout_anchorGravity=\"right|bottom\" />")
+            "        app:layout_anchorGravity=\"end|bottom\" />")
   }
 
   fun testAddBottomAppBar() {
