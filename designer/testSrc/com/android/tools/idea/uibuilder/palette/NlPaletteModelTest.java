@@ -65,10 +65,6 @@ public class NlPaletteModelTest {
     fixture = projectRule.getFixture(JavaCodeInsightTestFixture.class);
     facet = AndroidFacet.getInstance(projectRule.getModule());
     model = NlPaletteModel.get(facet);
-
-    try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
-      model.loadPalette(reader, NlLayoutType.LAYOUT);
-    }
   }
 
   @After
@@ -89,10 +85,10 @@ public class NlPaletteModelTest {
   }
 
   @Test
-  public void addThirdPartyComponent() {
+  public void addThirdPartyComponent() throws InterruptedException {
     registerJavaClasses();
     registerFakeBaseViewHandler();
-    Palette palette = model.getPalette(NlLayoutType.LAYOUT);
+    Palette palette = getPaletteWhenAdditionalComponentsReady(model, NlLayoutType.LAYOUT);
     String tag = "com.example.FakeCustomView";
     boolean added = model
       .addAdditionalComponent(NlLayoutType.LAYOUT, NlPaletteModel.THIRD_PARTY_GROUP, palette, AndroidIcons.Android, tag, tag,
@@ -178,6 +174,17 @@ public class NlPaletteModelTest {
       .filter(g -> name.equals(g.getName()))
       .findFirst()
       .orElse(null);
+  }
+
+  private static Palette getPaletteWhenAdditionalComponentsReady(NlPaletteModel model, NlLayoutType type) throws InterruptedException {
+    CountDownLatch latch = new CountDownLatch(2);
+    // We should receive two updates: one for the initial palette that doesn't include
+    // any third-party components, and then another once the additional components are registered.
+    model.setUpdateListener((m, t) -> latch.countDown());
+    model.getPalette(type);
+    latch.await();
+    model.setUpdateListener(null);
+    return model.getPalette(type);
   }
 
   private void registerFakeBaseViewHandler() {
