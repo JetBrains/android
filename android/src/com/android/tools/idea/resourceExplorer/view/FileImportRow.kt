@@ -65,8 +65,10 @@ class FileImportRow(val viewModel: FileImportRowViewModel) : JPanel(BorderLayout
       add(folderConfiguration)
       add(separator())
       add(fileSize)
-      add(separator())
-      add(fileDimension)
+      if (fileDimension.text.isNotBlank()) {
+        add(separator())
+        add(fileDimension)
+      }
     }, BorderLayout.WEST)
     add(doNotImportButton, BorderLayout.EAST)
 
