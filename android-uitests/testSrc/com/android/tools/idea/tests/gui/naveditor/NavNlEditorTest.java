@@ -261,7 +261,7 @@ public class NavNlEditorTest {
     assertFalse(guiTest
                   .ideFrame()
                   .getEditor()
-                  .getLayoutEditor(false)
+                  .getLayoutEditor(false, false)
                   .canInteractWithSurface());
 
     frame
