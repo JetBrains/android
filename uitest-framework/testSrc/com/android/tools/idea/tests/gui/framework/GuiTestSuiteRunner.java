@@ -139,15 +139,6 @@ public class GuiTestSuiteRunner extends Suite {
     if (runWithClassName.equals(GuiTestRemoteRunner.class.getSimpleName())) {
       return true;
     }
-
-    // True if running with Parameterized and using BuildSpecificGuiTestRunner.Factory
-    if (runWithClassName.equals(Parameterized.class.getSimpleName())) {
-      UseParametersRunnerFactory factory = testClass.getAnnotation(UseParametersRunnerFactory.class);
-      if (factory != null && factory.value().getSimpleName().equals(BuildSpecificGuiTestRunner.Factory.class.getSimpleName())) {
-        return true;
-      }
-    }
-
     return false;
   }
 
