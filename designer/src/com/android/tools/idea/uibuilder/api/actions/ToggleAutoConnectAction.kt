@@ -51,8 +51,6 @@ class ToggleAutoConnectAction : ToggleViewAction(StudioIcons.LayoutEditor.Toolba
     PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected, DEFAULT_AUTO_CONNECT_VALUE)
   }
 
-  override fun affectsUndo() = false
-
   companion object {
     @JvmStatic
     fun isAutoconnectOn(): Boolean {
