@@ -18,7 +18,11 @@ import com.android.tools.idea.gradle.structure.configurables.issues.IssueRendere
 import com.android.tools.idea.gradle.structure.configurables.issues.NavigationHyperlinkListener
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
+import com.android.tools.idea.gradle.structure.model.PsQuickFix
 import java.awt.Component
+import java.awt.event.ActionEvent
+import javax.swing.AbstractAction
+import javax.swing.Action
 
 class SuggestionViewer(
     private val context: PsContext,
@@ -29,6 +33,7 @@ class SuggestionViewer(
 ) : SuggestionViewerUi(isLast) {
 
   val component: Component get() = myPanel
+  val hyperlinkListener = NavigationHyperlinkListener(context)
 
   init {
     renderIssue(issue, scope)
@@ -36,17 +41,22 @@ class SuggestionViewer(
 
   // Private. Viewers cannot be reused.
   private fun renderIssue(issue: PsIssue, scope: PsPath?) {
-    val hyperlinkListener = NavigationHyperlinkListener(context)
     myText.text = renderer.renderIssue(issue, scope)
     myIconLabel.icon = issue.severity.icon
     myText.addHyperlinkListener(hyperlinkListener)
 
-    val hyperlinkDestination = issue.quickFix?.getHyperlinkDestination(context)
-    if (hyperlinkDestination != null) {
-      myUpdateButton.addActionListener { _ -> hyperlinkListener.navigate(hyperlinkDestination) }
-    }
-    else {
-      myUpdateButton.isVisible = false
-    }
+    myUpdateButton.isVisible = issue.quickFixes.isNotEmpty()
+
+    myUpdateButton.action = issue.quickFixes.firstOrNull()?.toAction()
+    myUpdateButton.options = issue.quickFixes.drop(1).mapNotNull { it.toAction() }.toTypedArray()
   }
+
+  private fun PsQuickFix.toAction(): Action? =
+    getHyperlinkDestination(context)?.let { target -> action(text) { hyperlinkListener.navigate(target) } }
 }
+
+private fun action(text: String, handler: () -> Unit): Action =
+  object : AbstractAction(text) {
+    override fun actionPerformed(e: ActionEvent?) = handler()
+  }
+

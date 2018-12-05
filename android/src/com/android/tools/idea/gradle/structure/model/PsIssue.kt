@@ -29,7 +29,7 @@ interface PsIssue {
   val severity: Severity
 
   val description: String?
-  val quickFix: PsQuickFix?
+  val quickFixes: List<PsQuickFix>
 
   enum class Severity constructor(val text: String, val pluralText: String, val icon: Icon, val color: Color, val priority: Int) {
     ERROR("Error", "Errors", BalloonError, RED, 0),
@@ -40,8 +40,8 @@ interface PsIssue {
 }
 
 interface PsQuickFix {
+  val text: String
   fun getHyperlinkDestination(context: PsContext): String?
-  fun getHtml(context: PsContext): String
 }
 
 data class PsGeneralIssue(
@@ -50,10 +50,10 @@ data class PsGeneralIssue(
   override val path: PsPath,
   override val type: PsIssueType,
   override val severity: PsIssue.Severity,
-  override val quickFix: PsQuickFix? = null
+  override val quickFixes: List<PsQuickFix> = listOf()
 ) : PsIssue {
   constructor (text: String, path: PsPath, type: PsIssueType, severity: PsIssue.Severity, quickFix: PsQuickFix? = null) :
-    this(text, null, path, type, severity, quickFix)
+    this(text, null, path, type, severity, listOfNotNull(quickFix))
 
   override fun toString(): String = "${severity.name}: $text"
 }

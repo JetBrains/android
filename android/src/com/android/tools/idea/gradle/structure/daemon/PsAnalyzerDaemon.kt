@@ -110,7 +110,7 @@ class PsAnalyzerDaemon(
 
       val mainPath = PsLibraryDependencyNavigationPath(dependency)
       val issue = PsGeneralIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE,
-                                 PsLibraryDependencyVersionQuickFixPath(dependency, update.version, "[Update]"))
+                                 PsLibraryDependencyVersionQuickFixPath(dependency, update.version, "Update"))
 
       issues.add(issue)
       return true

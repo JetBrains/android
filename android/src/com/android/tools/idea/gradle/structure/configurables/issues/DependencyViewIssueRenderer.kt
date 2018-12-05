@@ -35,9 +35,8 @@ class DependencyViewIssueRenderer(
       }
     }
     buffer.append(issue.text)
-    val quickFixPath = issue.quickFix
-    if (quickFixPath != null) {
-      buffer.append(" ").append(quickFixPath.getHtml(context))
+    issue.quickFixes.forEach { quickFix ->
+      buffer.append(" <a href='${quickFix.getHyperlinkDestination(context)}'>[${quickFix.text}]</a>")
     }
     if (renderDescription) {
       val description = issue.description

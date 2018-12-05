@@ -28,7 +28,7 @@ data class PsLibraryDependencyVersionQuickFixPath(
   val dependency: String,
   val configurationName: String,
   val version: String,
-  val text: String
+  override val text: String
 ) : PsQuickFix {
 
   constructor(
@@ -42,8 +42,6 @@ data class PsLibraryDependencyVersionQuickFixPath(
     QUICK_FIX_PATH_TYPE +
     (listOfNotNull(SET_LIBRARY_DEPENDENCY_QUICK_FIX, moduleName, dependency, configurationName, version)
       .joinToString(QUICK_FIX_PATH_SEPARATOR.toString()))
-
-  override fun getHtml(context: PsContext): String = "<a href=\"${getHyperlinkDestination(context)}\">$text</a>"
 
   override fun toString(): String = "$dependency ($configurationName)"
 }
