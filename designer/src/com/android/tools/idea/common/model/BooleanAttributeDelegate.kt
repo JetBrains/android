@@ -27,6 +27,10 @@ import kotlin.reflect.KProperty
 open class BooleanAttributeDelegate(private val namespace: String?, private val propertyName: String,
                                     private val defaultForSet: Boolean? = false)
   : ReadWriteProperty<NlComponent, Boolean?> {
+
+  // This has to be separate rather than just using default arguments due to KT-8834
+  constructor(namespace: String?, propertyName: String) : this(namespace, propertyName, false)
+
   override operator fun getValue(thisRef: NlComponent, property: KProperty<*>): Boolean? {
     return thisRef.resolveAttribute(namespace, propertyName)?.toBoolean()
   }

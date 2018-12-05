@@ -18,8 +18,12 @@ package com.android.tools.idea.naveditor.property.inspector;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
+import com.google.wireless.android.sdk.stats.NavEditorEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +38,8 @@ import static com.android.SdkConstants.*;
 public class AddDeeplinkDialog extends DialogWrapper {
   @VisibleForTesting
   JTextField myUriField;
-  private JCheckBox myAutoVerify;
+  @VisibleForTesting
+  JCheckBox myAutoVerify;
   private JPanel myContentPanel;
   @Nullable private final NlComponent myExistingComponent;
   @NotNull private final NlComponent myParent;
@@ -108,17 +113,17 @@ public class AddDeeplinkDialog extends DialogWrapper {
       if (realComponent == null) {
         XmlTag tag = myParent.getTag().createChildTag(TAG_DEEP_LINK, null, null, false);
         realComponent = myParent.getModel().createComponent(null, tag, myParent, null, InsertType.CREATE);
+        if (realComponent == null) {
+          ApplicationManager.getApplication().invokeLater(() ->
+            Messages.showErrorDialog(myParent.getModel().getProject(), "Failed to create Argument!", "Error")
+          );
+          return;
+        }
         realComponent.ensureId();
       }
 
-      realComponent.setAttribute(AUTO_URI, ATTR_URI, getUri());
-      if (getAutoVerify()) {
-        realComponent.setAndroidAttribute(ATTR_AUTO_VERIFY, "true");
-      }
-      else {
-        // false is the default, so no need to specify the attribute in that case.
-        realComponent.removeAttribute(ANDROID_URI, ATTR_AUTO_VERIFY);
-      }
+      NavComponentHelperKt.setUriAndLog(realComponent, getUri(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
+      NavComponentHelperKt.setAutoVerifyAndLog(realComponent, getAutoVerify(), NavEditorEvent.Source.PROPERTY_INSPECTOR);
     });
   }
 }
