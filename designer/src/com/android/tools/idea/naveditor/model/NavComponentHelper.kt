@@ -18,17 +18,20 @@ package com.android.tools.idea.naveditor.model
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ARG_TYPE
+import com.android.SdkConstants.ATTR_AUTO_VERIFY
 import com.android.SdkConstants.ATTR_GRAPH
 import com.android.SdkConstants.ATTR_LAYOUT
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_NULLABLE
 import com.android.SdkConstants.ATTR_START_DESTINATION
+import com.android.SdkConstants.ATTR_URI
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.NAVIGATION_PREFIX
 import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.SdkConstants.TOOLS_URI
 import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.model.BooleanAttributeDelegate
 import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.StringAttributeDelegate
@@ -305,6 +308,15 @@ private val startDestinationIdDelegate =
 var NlComponent.startDestinationId: String? by startDestinationIdDelegate
 fun NlComponent.setStartDestinationIdAndLog(value: String?, site: NavEditorEvent.Source) =
   startDestinationIdDelegate.set(this, value, site)
+
+private val autoVerifyDelegate =
+  MetricsLoggingAttributeDelegate(::BooleanAttributeDelegate, ANDROID_URI, ATTR_AUTO_VERIFY, NlComponent::autoVerify)
+var NlComponent.autoVerify: Boolean? by autoVerifyDelegate
+fun NlComponent.setAutoVerifyAndLog(value: Boolean?, site: NavEditorEvent.Source) = autoVerifyDelegate.set(this, value, site)
+
+private val uriDelegate = MetricsLoggingAttributeDelegate(::StringAutoAttributeDelegate, ATTR_URI, NlComponent::uri)
+var NlComponent.uri: String? by uriDelegate
+fun NlComponent.setUriAndLog(value: String?, site: NavEditorEvent.Source) = uriDelegate.set(this, value, site)
 
 val NlComponent.actionDestination: NlComponent?
   get() {

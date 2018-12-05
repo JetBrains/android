@@ -18,6 +18,10 @@ package com.android.tools.idea.naveditor.property.inspector
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
+import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.google.wireless.android.sdk.stats.NavPropertyInfo
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 
 class AddDeeplinkDialogTest : NavTestCase() {
@@ -62,6 +66,39 @@ class AddDeeplinkDialogTest : NavTestCase() {
     val dialog = AddDeeplinkDialog(null, mock(NlComponent::class.java))
     assertEquals("", dialog.uri)
     assertFalse(dialog.autoVerify)
-    dialog.close(0);
+    dialog.close(0)
   }
+
+  fun testPropertyChangeMetrics() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+      }
+    }
+
+    val f1 = model.find("f1")!!
+    val dialog = AddDeeplinkDialog(null, f1)
+    dialog.myUriField.text = "http://example.com"
+    dialog.myAutoVerify.isSelected = true
+    dialog.close(0)
+
+    TestNavUsageTracker.create(model).use { tracker ->
+      dialog.save()
+      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                         .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
+                                         .setPropertyInfo(NavPropertyInfo.newBuilder()
+                                                            .setWasEmpty(true)
+                                                            .setProperty(NavPropertyInfo.Property.URI)
+                                                            .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG))
+                                         .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                         .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
+                                         .setPropertyInfo(NavPropertyInfo.newBuilder()
+                                                            .setWasEmpty(true)
+                                                            .setProperty(NavPropertyInfo.Property.AUTO_VERIFY)
+                                                            .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG))
+                                         .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+    }
+  }
+
 }

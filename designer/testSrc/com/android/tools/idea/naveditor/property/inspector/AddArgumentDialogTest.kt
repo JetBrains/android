@@ -231,7 +231,8 @@ class AddArgumentDialogTest : NavTestCase() {
                                                     .setContainingTag(NavPropertyInfo.TagType.ARGUMENT_TAG))
                                  .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
     }
-  }}
+  }
+}
 
 private fun <T> any(): T = ArgumentMatchers.any() as T
 private fun <T> eq(arg: T): T = ArgumentMatchers.eq(arg) as T

@@ -154,23 +154,27 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
     }
     val fragment = model.find("f1")!!
     val dialog = spy(AddDeeplinkDialog(null, fragment))
-    `when`(dialog.uri).thenReturn("a")
-    doReturn(true).`when`(dialog).showAndGet()
+    try {
+      `when`(dialog.uri).thenReturn("a")
+      doReturn(true).`when`(dialog).showAndGet()
 
-    val navDeeplinkInspectorProvider = NavDeeplinkInspectorProvider { _, _ -> dialog }
-    navDeeplinkInspectorProvider.addItem(null, listOf(fragment), null)
-    `when`(dialog.uri).thenReturn("b")
-    navDeeplinkInspectorProvider.addItem(null, listOf(fragment), null)
-    FileDocumentManager.getInstance().saveAllDocuments()
-    val result = String(model.virtualFile.contentsToByteArray())
-    // Don't care about other contents or indent, but deeplink tags and attributes should be on their own lines.
-    assertThat(result.replace("\n *".toRegex(), "\n")).contains("<deepLink\n" +
-                                                                "android:id=\"@+id/deepLink\"\n" +
-                                                                "app:uri=\"a\" />\n" +
-                                                                "<deepLink\n" +
-                                                                "android:id=\"@+id/deepLink2\"\n" +
-                                                                "app:uri=\"b\" />\n")
-    dialog.close(0)
+      val navDeeplinkInspectorProvider = NavDeeplinkInspectorProvider { _, _ -> dialog }
+      navDeeplinkInspectorProvider.addItem(null, listOf(fragment), null)
+      `when`(dialog.uri).thenReturn("b")
+      navDeeplinkInspectorProvider.addItem(null, listOf(fragment), null)
+      FileDocumentManager.getInstance().saveAllDocuments()
+      val result = String(model.virtualFile.contentsToByteArray())
+      // Don't care about other contents or indent, but deeplink tags and attributes should be on their own lines.
+      assertThat(result.replace("\n *".toRegex(), "\n")).contains("<deepLink\n" +
+                                                                  "android:id=\"@+id/deepLink\"\n" +
+                                                                  "app:uri=\"a\" />\n" +
+                                                                  "<deepLink\n" +
+                                                                  "android:id=\"@+id/deepLink2\"\n" +
+                                                                  "app:uri=\"b\" />\n")
+    }
+    finally {
+      dialog.close(0)
+    }
   }
 
   fun testActivateUpdates() {
