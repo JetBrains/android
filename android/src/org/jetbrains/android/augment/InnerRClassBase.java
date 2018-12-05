@@ -1,9 +1,12 @@
 package org.jetbrains.android.augment;
 
+import static com.android.ide.common.resources.ResourceNameKeyedMap.flattenResourceName;
+
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceNameKeyedMap;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.diagnostic.Logger;
@@ -74,7 +77,13 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
                 fieldNames.put(item.getName() + '_' + attr.getName(), PsiType.INT);
               }
               else {
-                fieldNames.put(item.getName() + '_' + packageName.replace('.', '_') + '_' + attr.getName(), PsiType.INT);
+                String fieldName =
+                  flattenResourceName(item.getName()) +
+                  '_' +
+                  flattenResourceName(packageName) +
+                  '_' +
+                  flattenResourceName(attr.getName());
+                fieldNames.put(fieldName, PsiType.INT);
               }
             }
           }
