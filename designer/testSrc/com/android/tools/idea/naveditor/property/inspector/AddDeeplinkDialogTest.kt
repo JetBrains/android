@@ -32,19 +32,19 @@ class AddDeeplinkDialogTest : NavTestCase() {
         fragment("fragment1")
       }
     }
-    val dialog = AddDeeplinkDialog(null, model.find("fragment1")!!)
-    dialog.myUriField.text = "http://example.com/foo"
-    assertNull(dialog.doValidate())
+    AddDeeplinkDialog(null, model.find("fragment1")!!).runAndClose { dialog ->
+      dialog.myUriField.text = "http://example.com/foo"
+      assertNull(dialog.doValidate())
 
-    dialog.myUriField.text = "http://!@#$"
-    assertNull(dialog.doValidate())
+      dialog.myUriField.text = "http://!@#$"
+      assertNull(dialog.doValidate())
 
-    dialog.myUriField.text = "http://example.com/{blah}"
-    assertNull(dialog.doValidate())
+      dialog.myUriField.text = "http://example.com/{blah}"
+      assertNull(dialog.doValidate())
 
-    dialog.myUriField.text = "http://example.com/{blah"
-    assertNotNull(dialog.doValidate())
-    dialog.close(0)
+      dialog.myUriField.text = "http://example.com/{blah"
+      assertNotNull(dialog.doValidate())
+    }
   }
 
   fun testInitWithExisting() {
@@ -56,17 +56,17 @@ class AddDeeplinkDialogTest : NavTestCase() {
       }
     }
     val fragment1 = model.find("fragment1")!!
-    val dialog = AddDeeplinkDialog(fragment1.getChild(0), fragment1)
-    assertEquals("http://example.com", dialog.uri)
-    assertTrue(dialog.autoVerify)
-    dialog.close(0)
+    AddDeeplinkDialog(fragment1.getChild(0), fragment1).runAndClose { dialog ->
+      assertEquals("http://example.com", dialog.uri)
+      assertTrue(dialog.autoVerify)
+    }
   }
 
   fun testInitWithDefaults() {
-    val dialog = AddDeeplinkDialog(null, mock(NlComponent::class.java))
-    assertEquals("", dialog.uri)
-    assertFalse(dialog.autoVerify)
-    dialog.close(0)
+    AddDeeplinkDialog(null, mock(NlComponent::class.java)).runAndClose { dialog ->
+      assertEquals("", dialog.uri)
+      assertFalse(dialog.autoVerify)
+    }
   }
 
   fun testPropertyChangeMetrics() {
@@ -77,27 +77,27 @@ class AddDeeplinkDialogTest : NavTestCase() {
     }
 
     val f1 = model.find("f1")!!
-    val dialog = AddDeeplinkDialog(null, f1)
-    dialog.myUriField.text = "http://example.com"
-    dialog.myAutoVerify.isSelected = true
-    dialog.close(0)
+    AddDeeplinkDialog(null, f1).runAndClose { dialog ->
+      dialog.myUriField.text = "http://example.com"
+      dialog.myAutoVerify.isSelected = true
 
-    TestNavUsageTracker.create(model).use { tracker ->
-      dialog.save()
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                         .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
-                                         .setPropertyInfo(NavPropertyInfo.newBuilder()
-                                                            .setWasEmpty(true)
-                                                            .setProperty(NavPropertyInfo.Property.URI)
-                                                            .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG))
-                                         .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
-      Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                         .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
-                                         .setPropertyInfo(NavPropertyInfo.newBuilder()
-                                                            .setWasEmpty(true)
-                                                            .setProperty(NavPropertyInfo.Property.AUTO_VERIFY)
-                                                            .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG))
-                                         .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+      TestNavUsageTracker.create(model).use { tracker ->
+        dialog.save()
+        Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                           .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
+                                           .setPropertyInfo(NavPropertyInfo.newBuilder()
+                                                              .setWasEmpty(true)
+                                                              .setProperty(NavPropertyInfo.Property.URI)
+                                                              .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG))
+                                           .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+        Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                           .setType(NavEditorEvent.NavEditorEventType.CHANGE_PROPERTY)
+                                           .setPropertyInfo(NavPropertyInfo.newBuilder()
+                                                              .setWasEmpty(true)
+                                                              .setProperty(NavPropertyInfo.Property.AUTO_VERIFY)
+                                                              .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG))
+                                           .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR).build())
+      }
     }
   }
 

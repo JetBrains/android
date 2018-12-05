@@ -98,23 +98,23 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
       }
     }
     val fragment = model.find("f1")!!
-    val dialog = spy(AddDeeplinkDialog(null, fragment))
-    `when`(dialog.uri).thenReturn("http://example.com")
-    `when`(dialog.autoVerify).thenReturn(true)
-    doReturn(true).`when`(dialog).showAndGet()
+    spy(AddDeeplinkDialog(null, fragment)).runAndClose { dialog ->
+      `when`(dialog.uri).thenReturn("http://example.com")
+      `when`(dialog.autoVerify).thenReturn(true)
+      doReturn(true).`when`(dialog).showAndGet()
 
-    TestNavUsageTracker.create(model).use { tracker ->
-      NavDeeplinkInspectorProvider { _, _ -> dialog }.addItem(null, listOf(fragment), model.surface)
-      assertEquals(1, fragment.childCount)
-      val deeplink = fragment.getChild(0)!!
-      assertEquals(TAG_DEEP_LINK, deeplink.tagName)
-      assertEquals("http://example.com", deeplink.getAttribute(AUTO_URI, ATTR_URI))
-      assertEquals("true", deeplink.getAndroidAttribute(ATTR_AUTO_VERIFY))
-      dialog.close(0)
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(NavEditorEvent.NavEditorEventType.CREATE_DEEP_LINK)
-                                 .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
-                                 .build())
+      TestNavUsageTracker.create(model).use { tracker ->
+        NavDeeplinkInspectorProvider { _, _ -> dialog }.addItem(null, listOf(fragment), model.surface)
+        assertEquals(1, fragment.childCount)
+        val deeplink = fragment.getChild(0)!!
+        assertEquals(TAG_DEEP_LINK, deeplink.tagName)
+        assertEquals("http://example.com", deeplink.getAttribute(AUTO_URI, ATTR_URI))
+        assertEquals("true", deeplink.getAndroidAttribute(ATTR_AUTO_VERIFY))
+        verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                   .setType(NavEditorEvent.NavEditorEventType.CREATE_DEEP_LINK)
+                                   .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
+                                   .build())
+      }
     }
   }
 
@@ -127,22 +127,22 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
       }
     }
     val fragment = model.find("f1")!!
-    val dialog = spy(AddDeeplinkDialog(model.find("f1")!!.children[0], fragment))
-    `when`(dialog.autoVerify).thenReturn(true)
-    doReturn(true).`when`(dialog).showAndGet()
+    spy(AddDeeplinkDialog(model.find("f1")!!.children[0], fragment)).runAndClose { dialog ->
+      `when`(dialog.autoVerify).thenReturn(true)
+      doReturn(true).`when`(dialog).showAndGet()
 
-    TestNavUsageTracker.create(model).use { tracker ->
-      NavDeeplinkInspectorProvider { _, _ -> dialog }.addItem(fragment.children[0], listOf(fragment), model.surface)
-      assertEquals(1, fragment.childCount)
-      val deeplink = fragment.getChild(0)!!
-      assertEquals(TAG_DEEP_LINK, deeplink.tagName)
-      assertEquals("http://example.com", deeplink.getAttribute(AUTO_URI, ATTR_URI))
-      assertEquals("true", deeplink.getAndroidAttribute(ATTR_AUTO_VERIFY))
-      dialog.close(0)
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(NavEditorEvent.NavEditorEventType.EDIT_DEEP_LINK)
-                                 .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
-                                 .build())
+      TestNavUsageTracker.create(model).use { tracker ->
+        NavDeeplinkInspectorProvider { _, _ -> dialog }.addItem(fragment.children[0], listOf(fragment), model.surface)
+        assertEquals(1, fragment.childCount)
+        val deeplink = fragment.getChild(0)!!
+        assertEquals(TAG_DEEP_LINK, deeplink.tagName)
+        assertEquals("http://example.com", deeplink.getAttribute(AUTO_URI, ATTR_URI))
+        assertEquals("true", deeplink.getAndroidAttribute(ATTR_AUTO_VERIFY))
+        verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                   .setType(NavEditorEvent.NavEditorEventType.EDIT_DEEP_LINK)
+                                   .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
+                                   .build())
+      }
     }
   }
 
@@ -153,8 +153,7 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
       }
     }
     val fragment = model.find("f1")!!
-    val dialog = spy(AddDeeplinkDialog(null, fragment))
-    try {
+    spy(AddDeeplinkDialog(null, fragment)).runAndClose { dialog ->
       `when`(dialog.uri).thenReturn("a")
       doReturn(true).`when`(dialog).showAndGet()
 
@@ -171,9 +170,6 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
                                                                   "<deepLink\n" +
                                                                   "android:id=\"@+id/deepLink2\"\n" +
                                                                   "app:uri=\"b\" />\n")
-    }
-    finally {
-      dialog.close(0)
     }
   }
 

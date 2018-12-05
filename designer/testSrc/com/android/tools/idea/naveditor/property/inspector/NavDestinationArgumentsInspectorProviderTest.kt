@@ -108,25 +108,25 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
       }
     }
     val fragment = model.find("f1")!!
-    val dialog = spy(AddArgumentDialog(null, fragment))
-    `when`(dialog.name).thenReturn("myArgument")
-    doReturn("integer").`when`(dialog).type
-    `when`(dialog.defaultValue).thenReturn("1234")
-    doReturn(true).`when`(dialog).showAndGet()
+    spy(AddArgumentDialog(null, fragment)).runAndClose { dialog ->
+      `when`(dialog.name).thenReturn("myArgument")
+      doReturn("integer").`when`(dialog).type
+      `when`(dialog.defaultValue).thenReturn("1234")
+      doReturn(true).`when`(dialog).showAndGet()
 
-    TestNavUsageTracker.create(model).use { tracker ->
-      NavDestinationArgumentsInspectorProvider { _, _ -> dialog }.addItem(null, listOf(fragment), model.surface)
-      assertEquals(1, fragment.childCount)
-      val argument = fragment.getChild(0)!!
-      assertEquals(TAG_ARGUMENT, argument.tagName)
-      assertEquals("myArgument", argument.argumentName)
-      assertEquals("integer", argument.typeAttr)
-      assertEquals("1234", argument.defaultValue)
-      dialog.close(0)
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(NavEditorEvent.NavEditorEventType.CREATE_ARGUMENT)
-                                 .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
-                                 .build())
+      TestNavUsageTracker.create(model).use { tracker ->
+        NavDestinationArgumentsInspectorProvider { _, _ -> dialog }.addItem(null, listOf(fragment), model.surface)
+        assertEquals(1, fragment.childCount)
+        val argument = fragment.getChild(0)!!
+        assertEquals(TAG_ARGUMENT, argument.tagName)
+        assertEquals("myArgument", argument.argumentName)
+        assertEquals("integer", argument.typeAttr)
+        assertEquals("1234", argument.defaultValue)
+        verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                   .setType(NavEditorEvent.NavEditorEventType.CREATE_ARGUMENT)
+                                   .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
+                                   .build())
+      }
     }
   }
 
@@ -139,23 +139,23 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
       }
     }
     val fragment = model.find("f1")!!
-    val dialog = spy(AddArgumentDialog(model.find("f1")!!.children[0], fragment))
-    `when`(dialog.defaultValue).thenReturn("4321")
-    doReturn(true).`when`(dialog).showAndGet()
+    spy(AddArgumentDialog(model.find("f1")!!.children[0], fragment)).runAndClose { dialog ->
+      `when`(dialog.defaultValue).thenReturn("4321")
+      doReturn(true).`when`(dialog).showAndGet()
 
-    TestNavUsageTracker.create(model).use { tracker ->
-      NavDestinationArgumentsInspectorProvider { _, _ -> dialog }.addItem(fragment.children[0], listOf(fragment), model.surface)
-      assertEquals(1, fragment.childCount)
-      val argument = fragment.getChild(0)!!
-      assertEquals(TAG_ARGUMENT, argument.tagName)
-      assertEquals("myArgument", argument.argumentName)
-      assertEquals("integer", argument.typeAttr)
-      assertEquals("4321", argument.defaultValue)
-      dialog.close(0)
-      verify(tracker).logEvent(NavEditorEvent.newBuilder()
-                                 .setType(NavEditorEvent.NavEditorEventType.EDIT_ARGUMENT)
-                                 .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
-                                 .build())
+      TestNavUsageTracker.create(model).use { tracker ->
+        NavDestinationArgumentsInspectorProvider { _, _ -> dialog }.addItem(fragment.children[0], listOf(fragment), model.surface)
+        assertEquals(1, fragment.childCount)
+        val argument = fragment.getChild(0)!!
+        assertEquals(TAG_ARGUMENT, argument.tagName)
+        assertEquals("myArgument", argument.argumentName)
+        assertEquals("integer", argument.typeAttr)
+        assertEquals("4321", argument.defaultValue)
+        verify(tracker).logEvent(NavEditorEvent.newBuilder()
+                                   .setType(NavEditorEvent.NavEditorEventType.EDIT_ARGUMENT)
+                                   .setSource(NavEditorEvent.Source.PROPERTY_INSPECTOR)
+                                   .build())
+      }
     }
   }
 
@@ -166,8 +166,7 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
       }
     }
     val fragment = model.find("f1")!!
-    val dialog = spy(AddArgumentDialog(null, fragment))
-    try {
+    spy(AddArgumentDialog(null, fragment)).runAndClose { dialog ->
       `when`(dialog.name).thenReturn("a")
       doReturn(true).`when`(dialog).showAndGet()
 
@@ -183,9 +182,6 @@ class NavDestinationArgumentsInspectorProviderTest : NavTestCase() {
                                                                         "<argument\n" +
                                                                         "android:name=\"b\"\n" +
                                                                         "app:argType=\"integer\" />\n")
-    }
-    finally {
-      dialog.close(0)
     }
   }
 }
