@@ -33,8 +33,9 @@ class SuggestionsViewIssueRendererTest {
   @Mock private lateinit var context: PsContext
   private var viewUsagePath = TestPath("/WITH_USAGE", null, "href-dest")
   private var quickFix = object: PsQuickFix {
+    override fun execute(context: PsContext): Unit = TODO("not implemented")
+
     override val text = "text"
-    override fun getHyperlinkDestination(context: PsContext): String? = "link"
   }
   private val testIssuePath = TestPath("/PATH")
   private val testIssueParentPath = TestPath("/PATH", null, "url:parentpath")

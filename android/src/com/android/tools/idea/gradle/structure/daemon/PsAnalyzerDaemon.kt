@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.daemon.analysis.PsAndroidModuleAn
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsJavaModuleAnalyzer
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer
+import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.UPDATE
@@ -101,7 +102,7 @@ class PsAnalyzerDaemon(
     })
   }
 
-  private fun checkForUpdates(dependency: PsLibraryDependency): Boolean {
+  private fun checkForUpdates(dependency: PsDeclaredLibraryDependency): Boolean {
     val results = libraryUpdateCheckerDaemon.getAvailableUpdates()
     val spec = dependency.spec
     val update = results.findUpdateFor(spec)

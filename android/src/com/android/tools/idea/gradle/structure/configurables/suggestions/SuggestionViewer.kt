@@ -51,8 +51,7 @@ class SuggestionViewer(
     myUpdateButton.options = issue.quickFixes.drop(1).mapNotNull { it.toAction() }.toTypedArray()
   }
 
-  private fun PsQuickFix.toAction(): Action? =
-    getHyperlinkDestination(context)?.let { target -> action(text) { hyperlinkListener.navigate(target) } }
+  private fun PsQuickFix.toAction(): Action = action(text) { execute(context) }
 }
 
 private fun action(text: String, handler: () -> Unit): Action =
