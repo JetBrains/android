@@ -61,7 +61,7 @@ abstract class SyncWithSourceGenerationListener : GradleSyncListener, GradleBuil
   private fun syncFinished(project: Project, syncResult: ProjectSystemSyncManager.SyncResult) {
     val sourceGenerationRequested = sourceGenerationFuture != null
     if (!sourceGenerationRequested || !syncResult.isSuccessful) {
-      syncFinished(sourceGenerationRequested, syncResult)
+      if (!project.isDisposed) syncFinished(sourceGenerationRequested, syncResult)
     }
     else {
       sourceGenerationFuture?.whenComplete { result, _ -> if (!project.isDisposed) syncFinished(sourceGenerationRequested, result) }
