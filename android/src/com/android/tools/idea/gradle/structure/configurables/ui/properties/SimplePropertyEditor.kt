@@ -15,18 +15,40 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
-import com.android.tools.idea.gradle.structure.configurables.ui.*
+import com.android.annotations.VisibleForTesting
+import com.android.tools.idea.gradle.structure.configurables.ui.RenderedComboBox
+import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
+import com.android.tools.idea.gradle.structure.configurables.ui.continueOnEdt
+import com.android.tools.idea.gradle.structure.configurables.ui.invokeLater
+import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
+import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.PropertyValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueAnnotation
+import com.android.tools.idea.gradle.structure.model.meta.annotated
+import com.android.tools.idea.gradle.structure.model.meta.getText
+import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.android.tools.idea.gradle.structure.model.meta.parseEditorText
+import com.android.tools.idea.gradle.structure.model.meta.valueFormatter
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
+import icons.StudioIcons
+import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.DefaultComboBoxModel
-import javax.swing.Icon
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 /**
  * A property editor [ModelPropertyEditor] for properties of simple (not complex) types.
@@ -71,13 +93,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       (value ?: ParsedValue.NotSet.annotated()).renderTo(this, formatter, knownValueRenderers)
     }
 
-    override fun createEditorExtensions(): List<Extension> = extensions.map {action ->
-      object : Extension {
-        override fun getIcon(hovered: Boolean): Icon = action.icon
-        override fun getTooltip(): String = action.tooltip
-        override fun getActionOnClick(): Runnable = Runnable { action.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor) }
-      }
-    }
+    override fun createEditorExtensions(): List<Extension> = emptyList()
 
     fun loadKnownValues() {
       val availableVariables: List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? = getAvailableVariables()
@@ -177,7 +193,41 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     }
   }
 
-  override val component: RenderedComboBox<Annotated<ParsedValue<PropertyT>>> = renderedComboBox
+  @VisibleForTesting
+  val testRenderedComboBox: RenderedComboBox<Annotated<ParsedValue<PropertyT>>> = renderedComboBox
+
+  override val component: JComponent = EditorWrapper(property)
+
+  inner class EditorWrapper(private val property: ModelPropertyT) : JPanel(BorderLayout()) {
+    init {
+      add(renderedComboBox)
+      if (extensions.isNotEmpty()) {
+        add(createMiniButton(), BorderLayout.EAST)
+      }
+    }
+
+    private fun createMiniButton(): JComponent =
+      JLabel().apply {
+        val extensionAction = extensions.first()
+        icon = StudioIcons.Common.PROPERTY_UNBOUND
+        toolTipText = extensionAction.tooltip
+        if (extensions.size == 1) {
+          addMouseListener(object : MouseAdapter() {
+            override fun mousePressed(event: MouseEvent) {
+              extensionAction.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor)
+            }
+          })
+        }
+        else {
+          TODO("Multiple extension actions are not yet supported")
+        }
+      }
+
+    override fun requestFocus() {
+      renderedComboBox.requestFocus()
+    }
+  }
+
   override val statusComponent: SimpleColoredComponent = SimpleColoredComponent()
   private val statusComponentRenderer = statusComponent.toRenderer()
 
