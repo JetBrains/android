@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.daemon
 
-import com.android.tools.idea.gradle.structure.daemon.analysis.PsAndroidModuleAnalyzer
-import com.android.tools.idea.gradle.structure.daemon.analysis.PsJavaModuleAnalyzer
-import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.daemon.analysis.PsModelAnalyzer
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
@@ -27,14 +24,14 @@ import com.android.tools.idea.gradle.structure.model.PsIssueCollection
 import com.android.tools.idea.gradle.structure.model.PsIssueType
 import com.android.tools.idea.gradle.structure.model.PsIssueType.LIBRARY_UPDATES_AVAILABLE
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
-import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsPath
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
-import com.android.tools.idea.gradle.structure.navigation.PsLibraryDependencyNavigationPath
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -109,10 +106,21 @@ class PsAnalyzerDaemon(
     if (update != null) {
       val text = String.format("Newer version available: <b>%1\$s</b> (%2\$s)", update.version, update.repository)
 
-      val mainPath = PsLibraryDependencyNavigationPath(dependency)
-      val issue = PsGeneralIssue(text, mainPath, LIBRARY_UPDATES_AVAILABLE, UPDATE,
-                                 PsLibraryDependencyVersionQuickFixPath(dependency, update.version, "Update"))
-
+      val mainPath = dependency.path
+      val versionValue = dependency.versionProperty.bind(Unit).getParsedValue().value
+      val valueIsReference = versionValue is ParsedValue.Set.Parsed && versionValue.dslText is DslText.Reference
+      val issue = PsGeneralIssue(
+        text,
+        "",
+        mainPath,
+        LIBRARY_UPDATES_AVAILABLE, UPDATE,
+        if (!valueIsReference)
+          listOf(PsLibraryDependencyVersionQuickFixPath(dependency, update.version))
+        else
+          listOf(
+            PsLibraryDependencyVersionQuickFixPath(dependency, update.version, updateVariable = true),
+            PsLibraryDependencyVersionQuickFixPath(dependency, update.version, updateVariable = false)
+          ))
       issues.add(issue)
       return true
     }

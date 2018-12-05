@@ -155,7 +155,8 @@ abstract class PsModule protected constructor(
   fun setLibraryDependencyVersion(
     spec: PsArtifactDependencySpec,
     configurationName: String,
-    newVersion: String
+    newVersion: String,
+    updateVariable: Boolean
   ) {
     var modified = false
     val matchingDependencies = findLibraryDependencies(spec.group, spec.name)
@@ -169,7 +170,8 @@ abstract class PsModule protected constructor(
       val parsedDependency = dependency.parsedModel
       assert(parsedDependency is ArtifactDependencyModel)
       val artifactDependencyModel = parsedDependency as ArtifactDependencyModel
-      artifactDependencyModel.version().setValue(newVersion)
+      if (updateVariable) artifactDependencyModel.version().resultModel.setValue(newVersion)
+      else artifactDependencyModel.version().setValue(newVersion)
       modified = true
     }
     if (modified) {
