@@ -16,6 +16,7 @@
   -->
 <tutorialBundle
     name="What's New"
+    logo="core/whats_new_logo.png"
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true">
@@ -25,7 +26,7 @@
         key="whats-new"
         label=" What's New in 3.3"
         icon="core/whats_new_icon.png"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/studio-release-notes.html"
+        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/canary-release-notes.html"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -45,7 +46,7 @@
           <img src="https://d.android.com/studio/releases/assistant/3.2.0/jetpack-overview.gif"
           width="428"
           height="241"
-          alt="A visual editor in Android Studio helps you manage your apps runtime navigation actions.">
+          alt="">
 
            <br><br>
            A visual editor for the XML resource that the new Navigation Architecture Component uses to
@@ -100,7 +101,7 @@
             <img src="https://d.android.com/studio/releases/assistant/3.3.0/sampling_rate_dropdown.png"
                  width="428"
                  height="120"
-                 alt="A new dropdown menu in the memory profiler lets you select the rate of data collection .">
+                 alt="">
 
             <br><br>
             <b>Inspect frames:</b>
@@ -112,7 +113,7 @@
             <img src="https://d.android.com/studio/releases/assistant/3.3.0/cpu_frames.png"
                  width="428"
                  height="240"
-                 alt="A new frames region in the CPU profiler timeline helps you identify frames that are slow to render.">
+                 alt="">
             <br><br>
            ]]>
           </section>
@@ -227,10 +228,6 @@
            that allows the Android Studio team to better understand your sentiment.
            <a href="https://d.android.com/r/studio-wna/3.3.0/feedback-buttons">
            Learn more</a>
-
-          <br><br><hr><br>
-          <em>Last updated 11/15/2018</em>
-          <br><br>
            ]]>
           </section>
         </stepElement>
