@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.model.Insets
 
@@ -60,6 +61,10 @@ fun getGridBarriers(gridComponent: SceneComponent): GridBarriers {
   var previousColumn = -1
 
   for (child in children) {
+    if (child is TemporarySceneComponent) {
+      // The TemporarySceneComponent is added to root but it is not a real children in GridLayout.
+      continue
+    }
     val cellData = retrieveCellData(child.authoritativeNlComponent, isSupportLibrary)
     if (cellData.column == UNDEFINED_COLUMN) {
       cellData.column = previousColumn + 1
