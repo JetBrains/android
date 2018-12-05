@@ -387,7 +387,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     // to test updateProperty() method.
     assumeThat(parsedModel.value, equalTo("value".asAnnotatedParsed()))
 
-    assertThat(editor.component.toEditorText(editor.getValue()), equalTo("abc"))
+    assertThat(editor.testRenderedComboBox.toEditorText(editor.getValue()), equalTo("abc"))
     assertThat(editor.getValue(), equalTo("abc".asAnnotatedParsed()))
   }
 
@@ -449,17 +449,17 @@ private fun <T : Any> Pair<String, T>.asAnnotatedParsed() = ParsedValue.Set.Pars
 
 @Suppress("UNCHECKED_CAST")
 private val SimplePropertyEditor<*, *>.selectedItem
-  get() = component.selectedItem as Annotated<ParsedValue<String>>
+  get() = testRenderedComboBox.selectedItem as Annotated<ParsedValue<String>>
 
-private fun <T : Any> SimplePropertyEditor<T, *>.getModel() = component.model
+private fun <T : Any> SimplePropertyEditor<T, *>.getModel() = testRenderedComboBox.model
 private fun SimplePropertyEditor<*, *>.setTestText(text: String) {
-  (component.editor.editorComponent as JTextComponent).text = text
+  (testRenderedComboBox.editor.editorComponent as JTextComponent).text = text
 }
 
 private fun SimplePropertyEditor<*, *>.commitTestText(text: String) {
   setTestText(text)
-  component.actionPerformed(ActionEvent(component.editor, 0, null))
+  testRenderedComboBox.actionPerformed(ActionEvent(testRenderedComboBox.editor, 0, null))
 }
 
 private fun SimplePropertyEditor<*, *>.testWatermark(): String? =
-  (component.editor?.editorComponent as? JBTextField)?.emptyText?.text
+  (testRenderedComboBox.editor?.editorComponent as? JBTextField)?.emptyText?.text
