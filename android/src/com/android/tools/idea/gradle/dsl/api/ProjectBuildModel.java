@@ -32,6 +32,10 @@ import org.jetbrains.annotations.Nullable;
 public interface ProjectBuildModel {
 
   /**
+   * This method should never be called on the UI thread, it will cause a parsing of Gradle build files which can take a long time.
+   * The returned {@link ProjectBuildModel} is not thread safe. If you need to use the {@link ProjectBuildModel} from a multithreaded
+   * environment {@link ProjectBuildModelHandler} provides some basic synchronization.
+   *
    * @param project the project to create a model for.
    * @return the model for the project
    */
@@ -43,6 +47,10 @@ public interface ProjectBuildModel {
   /**
    * Attempts to get the {@link ProjectBuildModel} for the given project, null if ANY (including unchecked) exceptions occurred.
    * Exceptions will be logged via intellijs logger and Android Studios crash reporter.
+   *
+   * This method should never be called on the UI thread, it will cause a parsing of Gradle build files which can take a long time.
+   * If you need to use the {@link ProjectBuildModel} from a multithreaded environment {@link ProjectBuildModelHandler} provides some
+   * basic synchronization.
    *
    * @param project the project to create a model for
    * @return the model for the project or null if something went wrong.
@@ -59,19 +67,29 @@ public interface ProjectBuildModel {
   GradleBuildModel getProjectBuildModel();
 
   /**
+   * This method should never be called on the UI thread, it can cause the parsing of Gradle build files which can take a long time.
+   *
    * @param module the module to get the {@link GradleBuildModel} for.
    * @return the resulting model, or null if the modules build.gradle file couldn't be found.
    */
   @Nullable
   GradleBuildModel getModuleBuildModel(@NotNull Module module);
 
+  /**
+   * This method should never be called on the UI thread, it can cause the parsing of Gradle build files which can take a long time.
+   */
   @Nullable
   GradleBuildModel getModuleBuildModel(@NotNull File modulePath);
 
+  /**
+   * This method should never be called on the UI thread, it can cause the parsing of Gradle build files which can take a long time.
+   */
   @NotNull
   GradleBuildModel getModuleBuildModel(@NotNull VirtualFile file);
 
   /**
+   * This method should never be called on the UI thread, it can cause the parsing of Gradle build files which can take a long time.
+   *
    * @return the settings model for this project, or null if no settings file could be found.
    */
   @Nullable
@@ -88,7 +106,9 @@ public interface ProjectBuildModel {
   void resetState();
 
   /**
-   * Reparses all {@link GradleBuildModel}s and the {@link GradleSettingsModel}  that have been created by this model.
+   * Reparses all {@link GradleBuildModel}s and the {@link GradleSettingsModel} that have been created by this model.
+   *
+   * This method should never be called on the UI thread, it will cause the parsing of Gradle build files which can take a long time.
    */
   void reparse();
 }

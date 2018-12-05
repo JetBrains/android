@@ -458,6 +458,13 @@ public class GradleSyncState {
     return myGradleFiles.areGradleFilesModified() ? ThreeState.YES : ThreeState.NO;
   }
 
+  /**
+   * @return the timestamp (obtained via {@code System.currentTimeMillis()}) of when the last sync finished.
+   */
+  public long getLastSyncEndTimeStamp() {
+    return mySyncEndedTimeStamp;
+  }
+
   @NotNull
   public GradleSyncSummary getSummary() {
     return mySummary;
