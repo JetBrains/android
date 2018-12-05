@@ -25,8 +25,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.GuiTestProjectSystem;
-import com.android.tools.idea.tests.gui.framework.guitestsystem.CurrentGuiTestProjectSystem;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.GeneralSettings;
@@ -86,7 +84,6 @@ public class GuiTestRule implements TestRule {
 
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
-  private final CurrentGuiTestProjectSystem myCurrentProjectSystem = new CurrentGuiTestProjectSystem();
 
   /* By nesting a pair of timeouts (one around just the test, one around the entire rule chain), we ensure that Rule code executing
    * before/after the test gets a chance to run, while preventing the whole rule chain from running forever.
@@ -123,7 +120,6 @@ public class GuiTestRule implements TestRule {
       .around(new IdeControl(myRobotTestRule::getRobot))
       .around(new BlockReloading())
       .around(new BazelUndeclaredOutputs())
-      .around(myCurrentProjectSystem)
       .around(myLeakCheck)
       .around(new IdeHandling())
       .around(new NpwControl())
@@ -454,7 +450,6 @@ public class GuiTestRule implements TestRule {
       // and registers it with GradleSyncState. This keeps adding more and more listeners, and the new recent listeners are only updated
       // with gradle State when that State changes. This means the listeners may have outdated info.
       myIdeFrameFixture = IdeFrameFixture.find(robot());
-      myIdeFrameFixture.setTestProjectSystem(myCurrentProjectSystem.getTestProjectSystem());
       myIdeFrameFixture.requestFocusIfLost();
     }
     return myIdeFrameFixture;

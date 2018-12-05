@@ -15,7 +15,6 @@
  */
 package com.intellij.testGuiFramework.launcher
 
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import java.io.File
 
 enum class RestartPolicy {
@@ -31,8 +30,6 @@ object GuiTestOptions {
   const val IS_RUNNING_ON_RELEASE = "idea.gui.test.running.on.release"
   const val RESTART_POLICY = "idea.gui.test.restart.policy"
   const val STANDALONE_MODE = "idea.gui.test.from.standalone.runner"
-
-  var buildSystem = TargetBuildSystem.BuildSystem.GRADLE
 
   fun getPluginPath(): String = getSystemProperty("plugin.path", "")
   fun isDebug(): Boolean = getSystemProperty("idea.debug.mode", false)

@@ -96,7 +96,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
   @NotNull private final Modules myModules;
 
-  private GuiTestProjectSystem myTestProjectSystem;
   private EditorFixture myEditor;
   private boolean myIsClosed;
 
@@ -364,14 +363,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     //noinspection Contract
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
 
-    VirtualFile projectRootDir;
-    if (myTestProjectSystem != null) {
-      projectRootDir = myTestProjectSystem.getProjectRootDirectory(getProject());
-    }
-    else {
-      projectRootDir = getProject().getBaseDir();
-    }
-
+    VirtualFile projectRootDir = getProject().getBaseDir();
     projectRootDir.refresh(false, true);
     VirtualFile file = projectRootDir.findFileByRelativePath(relativePath);
     if (requireExists) {
@@ -379,10 +371,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       assertNotNull("Unable to find file with relative path '" + relativePath + "'", file);
     }
     return file;
-  }
-
-  public void setTestProjectSystem(GuiTestProjectSystem testProjectSystem) {
-    myTestProjectSystem = testProjectSystem;
   }
 
   @NotNull

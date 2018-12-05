@@ -15,7 +15,6 @@
  */
 package com.intellij.testGuiFramework.framework
 
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Ref
 import com.intellij.testGuiFramework.impl.GuiTestStarter
@@ -30,7 +29,6 @@ import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
 import org.junit.runners.BlockJUnit4ClassRunner
 import org.junit.runners.model.FrameworkMethod
-import org.junit.runners.model.InitializationError
 import java.lang.reflect.InvocationTargetException
 import java.net.SocketException
 
@@ -47,10 +45,7 @@ import java.net.SocketException
  *   - notifies the [RunNotifier] ([JUnitClientListener] in particular) when a test finishes, fails, or is ignored
  *   - sends a RESTART_IDE message back to the server if the IDE has fatal errors
  */
-open class GuiTestRemoteRunner @Throws(InitializationError::class)
-  constructor(testClass: Class<*>, val myBuildSystem: TargetBuildSystem.BuildSystem = TargetBuildSystem.BuildSystem.GRADLE) : BlockJUnit4ClassRunner(testClass) {
-
-  constructor(testClass: Class<*>) : this(testClass, TargetBuildSystem.BuildSystem.GRADLE)
+open class GuiTestRemoteRunner(testClass: Class<*>): BlockJUnit4ClassRunner(testClass) {
 
   val criticalError = Ref<Boolean>(false)
 
@@ -72,7 +67,7 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
       if (!server.isRunning()) {
         server.launchIdeAndStart()
       }
-      val jUnitTestContainer = JUnitTestContainer(method.declaringClass, method.name, buildSystem = myBuildSystem)
+      val jUnitTestContainer = JUnitTestContainer(method.declaringClass, method.name)
       server.send(RunTestMessage(jUnitTestContainer))
     }
     catch (e: Exception) {
@@ -112,7 +107,7 @@ open class GuiTestRemoteRunner @Throws(InitializationError::class)
             eachNotifier.fireTestFinished()
             return
           }
-          server.send(RunTestMessage(JUnitTestContainer(method.declaringClass, method.name, message.index, myBuildSystem)))
+          server.send(RunTestMessage(JUnitTestContainer(method.declaringClass, method.name, message.index)))
         }
 
       }
