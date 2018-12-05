@@ -18,11 +18,11 @@ package com.android.tools.idea.uibuilder.api.actions;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.common.model.NlComponent;
+import javax.swing.Icon;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.util.List;
 
 /**
@@ -86,20 +86,17 @@ public abstract class ToggleViewAction extends AbstractViewAction {
     setSelected(editor, handler, parent, selectedChildren, !selected);
   }
 
+  @Override
+  public boolean affectsUndo() {
+    return false;
+  }
+
   /**
    * Returns the unselected icon
    */
   @Nullable
   public final Icon getUnselectedIcon() {
     return getIcon();
-  }
-
-  /**
-   * Returns the selected icon
-   */
-  @NotNull
-  public final Icon getSelectedIcon() {
-    return mySelectedIcon;
   }
 
   @Override
