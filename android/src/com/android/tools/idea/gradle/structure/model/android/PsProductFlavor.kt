@@ -68,7 +68,7 @@ open class PsProductFlavor(
   }
 
   override val name: String get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
-  override val path: PsPath get() = PsProductFlavorNavigationPath(parent.path.productFlavorsPath, name)
+  override val path: PsProductFlavorNavigationPath get() = PsProductFlavorNavigationPath(parent.path.productFlavorsPath, name)
 
   /**
    * The dimension the product flavor belongs to, i.e. either the configured dimension or the default dimension.

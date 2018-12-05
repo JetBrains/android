@@ -42,7 +42,7 @@ open class PsBuildType(
   }
 
   override val name get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
-  override val path: PsPath get() = PsBuildTypeNavigationPath(parent.path.buildTypesPath, name)
+  override val path: PsBuildTypeNavigationPath get() = PsBuildTypeNavigationPath(parent.path.buildTypesPath, name)
 
   var applicationIdSuffix by BuildTypeDescriptors.applicationIdSuffix
   var embedMicroApp by BuildTypeDescriptors.embedMicroApp

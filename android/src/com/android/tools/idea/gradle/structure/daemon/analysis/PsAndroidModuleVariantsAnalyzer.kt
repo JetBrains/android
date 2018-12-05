@@ -15,13 +15,20 @@
  */
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsIssueType
+import com.android.tools.idea.gradle.structure.model.PsQuickFix
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 import com.android.tools.idea.gradle.structure.model.android.PsDeclaredModuleAndroidDependency
+import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
+import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
+import com.intellij.openapi.application.ApplicationManager
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 
 fun analyzeModuleDependencies(androidModule: PsAndroidModule, pathRenderer: PsPathRenderer): Sequence<PsIssue> =
   androidModule.dependencies.modules.asSequence().flatMap { analyzeModuleDependency(it, pathRenderer) }
@@ -46,7 +53,7 @@ fun analyzeModuleDependency(dependency: PsDeclaredModuleAndroidDependency, pathR
           dependency.path,
           PsIssueType.PROJECT_ANALYSIS,
           PsIssue.Severity.ERROR,
-          null
+          PsMissingBuildTypeQuickFix(targetModule, sourceBuildType)
         )
       }
     }
@@ -70,7 +77,7 @@ fun analyzeModuleDependency(dependency: PsDeclaredModuleAndroidDependency, pathR
               dependency.path,
               PsIssueType.PROJECT_ANALYSIS,
               PsIssue.Severity.ERROR,
-              null
+              PsMissingProductFlavorQuickFix(targetModule, sourceProductFlavor)
             )
           }
       }
@@ -93,7 +100,8 @@ fun analyzeModuleDependency(dependency: PsDeclaredModuleAndroidDependency, pathR
             dependency.path,
             PsIssueType.PROJECT_ANALYSIS,
             PsIssue.Severity.ERROR,
-            null
+            // TODO(b/120551319): Uncomment as a secondary fix when "add missing dimension strategy" is implemented.
+            null // PsMissingFlavorDimensionQuickFix(sourceModule, targetDimension)
           )
         }
     }
@@ -117,3 +125,54 @@ fun analyzeProductFlavors(model: PsAndroidModule, pathRenderer: PsPathRenderer):
       )
     }
   }
+
+
+data class PsMissingBuildTypeQuickFix(val moduleGradlePath: String, val buildTypeName: String) : PsQuickFix {
+  constructor (module: PsAndroidModule, buildType: PsBuildType) : this(module.gradlePath, buildType.name)
+
+  override val text: String get() = "Add Build Type"
+
+  override fun execute(context: PsContext) {
+    val targetModule = context.project.findModuleByGradlePath(moduleGradlePath).cast<PsAndroidModule>()
+    val newBuildType = targetModule.addNewBuildType(buildTypeName)
+    ApplicationManager.getApplication().invokeLater {
+      context
+        .mainConfigurable
+        .navigateTo(newBuildType.path.getPlaceDestination(context), true)
+    }
+  }
+}
+
+data class PsMissingFlavorDimensionQuickFix(val moduleGradlePath: String, val newDimensionName: String) : PsQuickFix {
+  constructor (module: PsAndroidModule, dimension: PsFlavorDimension) : this(module.gradlePath, dimension.name)
+
+  override val text: String get() = "Add Flavor Dimension"
+
+  override fun execute(context: PsContext) {
+    val targetModule = context.project.findModuleByGradlePath(moduleGradlePath).cast<PsAndroidModule>()
+    val newFlavorDimension = targetModule.addNewFlavorDimension(newDimensionName)
+    ApplicationManager.getApplication().invokeLater {
+      context
+        .mainConfigurable
+        .navigateTo(newFlavorDimension.path.getPlaceDestination(context), true)
+    }
+  }
+}
+
+data class PsMissingProductFlavorQuickFix(val moduleGradlePath: String, val dimension: String, val productFlavorName: String) : PsQuickFix {
+  constructor (module: PsAndroidModule, productFlavor: PsProductFlavor) :
+    this(module.gradlePath, productFlavor.effectiveDimension.orEmpty(), productFlavor.name)
+
+  override val text: String get() = "Add Product Flavor"
+
+  override fun execute(context: PsContext) {
+    val targetModule = context.project.findModuleByGradlePath(moduleGradlePath).cast<PsAndroidModule>()
+    val newProductFlavor = targetModule.addNewProductFlavor(dimension, productFlavorName)
+    ApplicationManager.getApplication().invokeLater {
+      context
+        .mainConfigurable
+        .navigateTo(newProductFlavor.path.getPlaceDestination(context), true)
+    }
+  }
+}
+

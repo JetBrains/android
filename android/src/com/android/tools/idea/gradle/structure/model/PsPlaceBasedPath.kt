@@ -29,9 +29,14 @@ abstract class PsPlaceBasedPath : PsPath {
    */
   abstract fun queryPlace(place: Place, context: PsContext)
 
-  override fun getHyperlinkDestination(context: PsContext): String? {
+  fun getPlaceDestination(context: PsContext): Place {
     val place = Place()
     queryPlace(place, context)
+    return place
+  }
+
+  override fun getHyperlinkDestination(context: PsContext): String? {
+    val place = getPlaceDestination(context)
     return GoToPathLinkHandler.GO_TO_PATH_TYPE + Places.serialize(place)
   }
 }
