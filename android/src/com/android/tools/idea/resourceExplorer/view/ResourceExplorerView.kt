@@ -75,7 +75,7 @@ private val SECTION_HEADER_BORDER = BorderFactory.createCompoundBorder(
   JBUI.Borders.customLine(SECTION_HEADER_SECONDARY_COLOR, 0, 0, 1, 0)
 )
 
-private val SECTION_LIST_BORDER = JBUI.Borders.empty(0, 4)
+private val SECTION_LIST_BORDER = JBUI.Borders.empty()
 
 private val SECTION_HEADER_LABEL_FONT = JBUI.Fonts.label().deriveFont(mapOf(
   TextAttribute.WEIGHT to TextAttribute.WEIGHT_SEMIBOLD,
