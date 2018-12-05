@@ -37,7 +37,7 @@ final class AarDensityBasedFileResourceItem extends AarFileResourceItem implemen
    * @param name the name of the resource
    * @param configuration the configuration the resource belongs to
    * @param visibility the visibility of the resource
-   * @param relativePath the path of the resource relative to the res folder, or path of a zip entry inside res.apk
+   * @param relativePath defines location of the resource. Exact semantics of the path may vary depending on the resource repository
    * @param density the screen density this resource is associated with
    */
   public AarDensityBasedFileResourceItem(@NotNull ResourceType type,

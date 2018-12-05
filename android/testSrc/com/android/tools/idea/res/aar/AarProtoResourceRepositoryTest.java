@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.res.aar;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.AttrResourceValue;
@@ -41,6 +43,8 @@ import com.google.common.base.Splitter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -66,6 +70,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
 
   private static final String LIBRARY_NAME = "design-27.1.1";
   private static final String LIBRARY_PACKAGE = "android.support.design";
+  private static final String PACKAGE_PREFIX = LIBRARY_PACKAGE.replace('.', '/') + '/';
   private static final ResourceNamespace LIBRARY_NAMESPACE = ResourceNamespace.fromPackageName(LIBRARY_PACKAGE);
 
   private static final String TAG_ATTR = "attr";
@@ -107,7 +112,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     return source1.compareTo(source2);
   };
 
-  private File myAarFolder;
+  private Path myAarFolder;
   /**
    * Values of flags and enumerators are stored in res.apk in numerical form. In order to be able to compare
    * contents of a resource repository loaded from res.apk to contents of a repository loaded from the original
@@ -119,7 +124,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myAarFolder = new File(myFixture.getTestDataPath(), "design_aar");
+    myAarFolder = Paths.get(myFixture.getTestDataPath(), "design_aar");
   }
 
   private void compareContents(@NotNull ResourceRepository expected, @NotNull ResourceRepository actual) {
@@ -195,11 +200,16 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     if (item1.getType() != ResourceType.ID && !Objects.equals(item1.getConfiguration(), item2.getConfiguration())) {
       return false;
     }
-    // TODO: AbstractAarValueResourceItem.getSource() method hasn't been fully implemented yet.
-    if (item1 instanceof AbstractAarValueResourceItem || item2 instanceof AbstractAarValueResourceItem) {
-      return true;
+    if (item1.isFileBased() != item2.isFileBased()) {
+      return false;
     }
-    return areEquivalentSources(item1.getSource(), item2.getSource());
+    if (item1.isFileBased() && !areEquivalentSources(item1.getSource(), item2.getSource())) {
+      return false;
+    }
+    if (!areEquivalentSources(item1.getOriginalSource(), item2.getOriginalSource())) {
+      return false;
+    }
+    return true;
   }
 
   private static boolean areEquivalentSources(@Nullable PathString path1, @Nullable PathString path2) {
@@ -209,19 +219,20 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     if (path1 != null && path2 != null) {
       URI filesystemUri1 = path1.getFilesystemUri();
       URI filesystemUri2 = path2.getFilesystemUri();
-      if (filesystemUri1.equals(filesystemUri2)) {
-        return path1.getPortablePath().replace("/res/res/", "/res/").equals(path2.getPortablePath().replace("/res/res/", "/res/"));
-      } else {
-        URI nonFileUri = filesystemUri2;
-        if (filesystemUri2.getScheme().equals("file") && !filesystemUri1.getScheme().equals("file")) {
-          PathString temp = path1;
-          path1 = path2;
-          path2 = temp;
-          nonFileUri = path1.getFilesystemUri();
-        }
-        if (nonFileUri.getScheme().equals("apk")) {
-          return path1.getPortablePath().equals(path2.getPortablePath().replace("/res.apk!/", "/"));
-        }
+      URI nonFileUri = filesystemUri2;
+      if (filesystemUri2.getScheme().equals("file") && !filesystemUri1.getScheme().equals("file")) {
+        PathString temp = path1;
+        path1 = path2;
+        path2 = temp;
+        nonFileUri = path1.getFilesystemUri();
+      }
+      String portablePath1 = path1.getPortablePath();
+      String portablePath2 = path2.getPortablePath();
+      if (nonFileUri.getScheme().equals("apk")) {
+        return portablePath1.equals(portablePath2.replace("/res.apk!/", "/"));
+      }
+      if (nonFileUri.getScheme().equals("jar")) {
+        return portablePath1.equals(portablePath2.replace("/res-src.jar!/" + PACKAGE_PREFIX + "0/", "/"));
       }
     }
     return false;
@@ -601,6 +612,22 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     }
   }
 
+  private static void checkSourceAttachments(@NotNull AarProtoResourceRepository repository, @NotNull Path aarFolder) {
+    List<ResourceItem> resources = repository.getAllResources();
+    String xmlFilePrefix = "jar://" + aarFolder.resolve("res-src.jar").toString() + "!/" + PACKAGE_PREFIX + "0/res/";
+    String nonXmlFilePrefix = "apk://" + aarFolder.resolve("res.apk").toString() + "!/res/";
+    for (ResourceItem resource : resources) {
+      PathString originalSource = resource.getOriginalSource();
+      assertThat(originalSource).isNotNull();
+      if (originalSource.getFileName().endsWith(".xml")) {
+        assertThat(originalSource.toString()).startsWith(xmlFilePrefix);
+      }
+      else {
+        assertThat(originalSource.toString()).startsWith(nonXmlFilePrefix);
+      }
+    }
+  }
+
   public void testLoading() throws Exception {
     myEnumMap = loadEnumMap();
 
@@ -611,11 +638,11 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       ResourceNamespace namespace = ResourceNamespace.fromPackageName(LIBRARY_PACKAGE);
       long start = System.currentTimeMillis();
       AarSourceResourceRepository fromSources =
-          AarSourceResourceRepository.createForTest(new File(myAarFolder, SdkConstants.FD_RES), namespace, LIBRARY_NAME);
+          AarSourceResourceRepository.createForTest(myAarFolder.resolve(SdkConstants.FD_RES).toFile(), namespace, LIBRARY_NAME);
       loadTimeFromSources += System.currentTimeMillis() - start;
       start = System.currentTimeMillis();
       AarProtoResourceRepository fromResApk =
-          AarProtoResourceRepository.create(new File(myAarFolder, SdkConstants.FN_RESOURCE_STATIC_LIBRARY), LIBRARY_NAME);
+          AarProtoResourceRepository.create(myAarFolder.resolve(SdkConstants.FN_RESOURCE_STATIC_LIBRARY), LIBRARY_NAME);
       loadTimeFromResApk += System.currentTimeMillis() - start;
       assertEquals(LIBRARY_NAME, fromResApk.getLibraryName());
       assertEquals(namespace, fromResApk.getNamespace());
@@ -623,6 +650,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
         updateEnumMap(fromSources);
         compareContents(fromSources, fromResApk);
         checkVisibility(fromResApk);
+        checkSourceAttachments(fromResApk, myAarFolder);
       }
     }
     if (PRINT_STATS) {

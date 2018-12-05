@@ -139,13 +139,26 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
   abstract String getResourceUrl(@NotNull String relativeResourcePath);
 
   /**
-   * Produces a {@link PathString} to be returned by the {@link AarFileResourceItem#getSource()} method.
+   * Produces a {@link PathString} to be returned by the {@link AarResourceItem#getSource()} method.
    *
-   * @param relativeResourcePath the relative path of a file resource
-   * @return the PathString pointing to the file resource
+   * @param relativeResourcePath the relative path of the file the resource was created from
+   * @param forFileResource true is the resource is a file resource, false if it is a value resource
+   * @return the PathString to be returned by the {@link AarResourceItem#getSource()} method
    */
   @NotNull
-  abstract PathString getPathString(@NotNull String relativeResourcePath);
+  abstract PathString getSourceFile(@NotNull String relativeResourcePath, boolean forFileResource);
+
+  /**
+   * Produces a {@link PathString} to be returned by the {@link AarResourceItem#getOriginalSource()} method.
+   *
+   * @param relativeResourcePath the relative path of the file the resource was created from
+   * @param forFileResource true is the resource is a file resource, false if it is a value resource
+   * @return the PathString to be returned by the {@link AarResourceItem#getOriginalSource()} method
+   */
+  @Nullable
+  PathString getOriginalSourceFile(@NotNull String relativeResourcePath, boolean forFileResource) {
+    return getSourceFile(relativeResourcePath, forFileResource);
+  }
 
   /**
    * Returns the file or directory this resource repository was loaded from. Resource repositories loaded from
