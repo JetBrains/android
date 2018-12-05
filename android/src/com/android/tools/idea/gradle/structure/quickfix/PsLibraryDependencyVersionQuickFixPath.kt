@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.quickfix
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.issues.QUICK_FIX_PATH_TYPE
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsQuickFix
@@ -29,21 +28,28 @@ data class PsLibraryDependencyVersionQuickFixPath(
   val dependency: String,
   val configurationName: String,
   val version: String,
-  override val text: String
+  val updateVariable: Boolean?
 ) : PsQuickFix, Serializable {
+  override val text: String
+    get() = when (updateVariable) {
+      null -> "Update"
+      true -> "Update Variable"
+      false -> "Update Dependency"
+    }
 
   constructor(
     dependency: PsLibraryDependency,
     version: String,
-    quickFixText: String = DEFAULT_QUICK_FIX_TEXT
+    updateVariable: Boolean? = null
   ) : this(
-    dependency.parent.name, dependency.spec.compactNotation(), dependency.joinedConfigurationNames, version, quickFixText)
+    dependency.parent.name, dependency.spec.compactNotation(), dependency.joinedConfigurationNames, version, updateVariable
+  )
 
   override fun execute(context: PsContext) {
     val module = context.project.findModuleByName(moduleName)
     val spec = PsArtifactDependencySpec.create(dependency)
     if (module != null && spec != null) {
-      module.setLibraryDependencyVersion(spec, configurationName, version)
+      module.setLibraryDependencyVersion(spec, configurationName, version, updateVariable ?: false)
     }
   }
 

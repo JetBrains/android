@@ -30,7 +30,7 @@ fun analyzeDeclaredDependency(dependency: PsDeclaredLibraryDependency): Sequence
   if (declaredVersion != null && declaredVersion.endsWith("+")) {
     val message = "Avoid using '+' in version numbers; can lead to unpredictable and unrepeatable builds."
     // TODO(b/111058962): Replace "+" with the most recent version of the library.
-    val issue = PsGeneralIssue(message, path, PROJECT_ANALYSIS, WARNING, PsLibraryDependencyVersionQuickFixPath(dependency, "+"))
+    val issue = PsGeneralIssue(message, path, PROJECT_ANALYSIS, WARNING, PsLibraryDependencyVersionQuickFixPath(dependency, "+", false))
 
     return sequenceOf(issue)
   }

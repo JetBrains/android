@@ -53,6 +53,7 @@ public abstract class SuggestionViewerUi {
 
   private void createUIComponents() {
     myUpdateButton = new JBOptionButton(null, new Action[0]);
+    myUpdateButton.setBackground(UIUtil.getTextFieldBackground());
     myText = new HtmlLabel();
     ((DefaultCaret)myText.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
   }

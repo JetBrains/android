@@ -33,7 +33,6 @@ import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.junit.Assert.assertThat
-import org.junit.Ignore
 
 class DependencyManagementTest : DependencyTestCase() {
   private lateinit var resolvedProject: Project
@@ -574,6 +573,11 @@ class DependencyManagementTest : DependencyTestCase() {
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), notNullValue())
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "implementation"), nullValue())
 
+    assertThat(module.dependencies.findLibraryDependency("com.example.jlib:lib3:0.6", "freeImplementation"), notNullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1", "freeImplementation"), nullValue())
+    assertThat(module.variables.getVariable("var06"), nullValue())
+    assertThat(module.parent.variables.getVariable("var06")?.value, equalTo<ParsedValue<Any>?>("0.6".asParsed()))
+
     assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1"), notNullValue())
     assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib3:1.0"), nullValue())
 
@@ -591,8 +595,12 @@ class DependencyManagementTest : DependencyTestCase() {
       assertThat(lib3?.first()?.spec?.version, equalTo("0.9.1"))
     }
 
-    module.setLibraryDependencyVersion(PsArtifactDependencySpec.create("com.example.libs:lib1:1.0")!!, "implementation", "0.9.1")
-    jModule.setLibraryDependencyVersion(PsArtifactDependencySpec.create("com.example.jlib:lib3:0.9.1")!!, "implementation", "1.0")
+    module.setLibraryDependencyVersion(
+      PsArtifactDependencySpec.create("com.example.libs:lib1:1.0")!!, "implementation", "0.9.1", updateVariable = false)
+    module.setLibraryDependencyVersion(
+      PsArtifactDependencySpec.create("com.example.jlib:lib3:0.6")!!, "freeImplementation", "0.9.1", updateVariable = true)
+    jModule.setLibraryDependencyVersion(
+      PsArtifactDependencySpec.create("com.example.jlib:lib3:0.9.1")!!, "implementation", "1.0", updateVariable = false)
 
     assertThat(module.isModified, equalTo(true))
     assertThat(jModule.isModified, equalTo(true))
@@ -600,6 +608,11 @@ class DependencyManagementTest : DependencyTestCase() {
 
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), nullValue())
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "implementation"), notNullValue())
+
+    assertThat(module.dependencies.findLibraryDependency("com.example.jlib:lib3:0.6", "freeImplementation"), nullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1", "freeImplementation"), notNullValue())
+    assertThat(module.variables.getVariable("var06"), nullValue())
+    assertThat(module.parent.variables.getVariable("var06")?.value, equalTo<ParsedValue<Any>?>("0.9.1".asParsed()))
 
     assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1"), nullValue())
     assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib3:1.0"), notNullValue())
@@ -627,6 +640,11 @@ class DependencyManagementTest : DependencyTestCase() {
 
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0", "implementation"), nullValue())
     assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:0.9.1", "implementation"), notNullValue())
+
+    assertThat(module.dependencies.findLibraryDependency("com.example.jlib:lib3:0.6", "freeImplementation"), nullValue())
+    assertThat(module.dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1", "freeImplementation"), notNullValue())
+    assertThat(module.variables.getVariable("var06"), nullValue())
+    assertThat(module.parent.variables.getVariable("var06")?.value, equalTo<ParsedValue<Any>?>("0.9.1".asParsed()))
 
     assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib3:0.9.1"), nullValue())
     assertThat(jModule.dependencies.findLibraryDependency("com.example.jlib:lib3:1.0"), notNullValue())
