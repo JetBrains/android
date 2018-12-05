@@ -33,6 +33,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
+import java.util.concurrent.CompletableFuture
 import kotlin.properties.Delegates
 
 private val SUPPORTED_RESOURCES = arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.LAYOUT)
@@ -119,7 +120,7 @@ class ProjectResourcesBrowserViewModel(
     val sortedResources = moduleRepository.namespaces
       .flatMap { namespace -> moduleRepository.getResources(namespace, type).values() }
       .sortedBy { it.name }
-    return createResourceSection(type, facet.module.name, sortedResources)
+    return createResourceSection(facet.module.name, sortedResources)
   }
 
   /**
@@ -133,18 +134,18 @@ class ProjectResourcesBrowserViewModel(
         lib.namespaces.asSequence()
           .map { namespace -> lib.getResources(namespace, type).values() }
           .filter { it.isNotEmpty() }
-          .map { createResourceSection(type, userReadableLibraryName(lib), it.sortedBy(ResourceItem::getName)) }
+          .map { createResourceSection(userReadableLibraryName(lib), it.sortedBy(ResourceItem::getName)) }
       }
       .toList()
   }
 
-  override fun getResourcesLists(): List<ResourceSection> {
+  override fun getResourcesLists(): CompletableFuture<List<ResourceSection>> = CompletableFuture.supplyAsync {
     val resourceType = resourceTypes[resourceTypeIndex]
     var resources = listOf(getModuleResources(resourceType))
     if (filterOptions.isShowLibraries) {
       resources += getLibraryResources(resourceType)
     }
-    return resources
+    resources
   }
 
   override fun dispose() {
@@ -172,18 +173,17 @@ class ProjectResourcesBrowserViewModel(
   }
 }
 
-private fun createResourceSection(type: ResourceType,
-                                  libraryName: String,
+private fun createResourceSection(libraryName: String,
                                   resourceItems: List<ResourceItem>): ResourceSection {
   val designAssets = resourceItems
     .mapNotNull { DesignAsset.fromResourceItem(it) }
     .groupBy(DesignAsset::name)
     .map { (name, assets) -> DesignAssetSet(name, assets) }
-  return ResourceSection(type, libraryName, designAssets)
+  return ResourceSection(libraryName, designAssets)
 }
 
-data class ResourceSection(val type: ResourceType,
-                           val libraryName: String = "",
+data class ResourceSection(
+  val libraryName: String = "",
                            val assets: List<DesignAssetSet>)
 
 private fun userReadableLibraryName(lib: AarResourceRepository) =

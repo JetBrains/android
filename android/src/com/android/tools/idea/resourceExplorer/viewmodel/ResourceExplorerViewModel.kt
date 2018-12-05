@@ -17,6 +17,7 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManager
+import java.util.concurrent.CompletableFuture
 
 /**
  * Interface for the view model of [com.android.tools.idea.resourceExplorer.view.ResourceExplorerView]
@@ -46,5 +47,5 @@ interface ResourceExplorerViewModel {
    * Returns a list of [ResourceSection] with one section per namespace, the first section being the
    * one containing the resource of the current module.
    */
-  fun getResourcesLists(): List<ResourceSection>
+  fun getResourcesLists(): CompletableFuture<List<ResourceSection>>?
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
+import com.android.tools.idea.concurrent.EdtExecutor
 import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
@@ -51,6 +52,7 @@ import java.awt.event.InputEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
+import java.util.function.BiConsumer
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JList
@@ -242,33 +244,39 @@ class ResourceExplorerView(
     val selectedIndices = sectionList.selectedIndices
 
     sectionListModel.clear()
-    val sections = resourcesBrowserViewModel.getResourcesLists()
-      .filterNot { it.assets.isEmpty() }
-      .map { (_, libName, assets): ResourceSection ->
-        AssetSection(libName, AssetListView(assets).apply {
-          cellRenderer = DesignAssetCellRenderer(resourcesBrowserViewModel.assetPreviewManager)
-          dragHandler.registerSource(this)
-          addMouseListener(popupHandler)
-          addMouseListener(doubleClickListener)
-          thumbnailWidth = this@ResourceExplorerView.previewSize
-          isGridMode = this@ResourceExplorerView.gridMode
-        })
-      }.toList()
-    sectionListModel.addSections(sections)
+    sectionListModel.addSection(AssetSection<DesignAssetSet>("Loading...", JList()))
+    resourcesBrowserViewModel.getResourcesLists()
+      .whenCompleteAsync(BiConsumer { resourceLists, _ ->
+        sectionListModel.clear()
+        val sections = resourceLists
+          .filterNot { it.assets.isEmpty() }
+          .map(this::createSection)
+          .toList()
+        sectionListModel.addSections(sections)
 
+        // Attempt to reselect the previously selected element
+        if (selectedValue != null) {
+          // If the value still exist in the list, just reselect it
+          sectionList.selectedValue = selectedValue
 
-    // Attempt to reselect the previously selected element
-    if (selectedValue != null) {
-      // If the value still exist in the list, just reselect it
-      sectionList.selectedValue = selectedValue
-
-      // Otherwise, like if the selected resource was renamed, we reselect the element
-      // based on the indexes
-      if (sectionList.selectedIndex == null) {
-        sectionList.selectedIndices = selectedIndices
-      }
-    }
+          // Otherwise, like if the selected resource was renamed, we reselect the element
+          // based on the indexes
+          if (sectionList.selectedIndex == null) {
+            sectionList.selectedIndices = selectedIndices
+          }
+        }
+      }, EdtExecutor.INSTANCE)
   }
+
+  private fun createSection(section: ResourceSection) =
+    AssetSection(section.libraryName, AssetListView(section.assets).apply {
+      cellRenderer = DesignAssetCellRenderer(resourcesBrowserViewModel.assetPreviewManager)
+      dragHandler.registerSource(this)
+      addMouseListener(popupHandler)
+      addMouseListener(doubleClickListener)
+      thumbnailWidth = this@ResourceExplorerView.previewSize
+      isGridMode = this@ResourceExplorerView.gridMode
+    })
 
   fun addSelectionListener(listener: SelectionListener) {
     listeners += listener
