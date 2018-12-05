@@ -107,8 +107,7 @@ class NavActionsInspectorProviderTest : NavTestCase() {
     panel.setComponent(listOf(f2), HashBasedTable.create<String, String, NlProperty>(), manager)
     assertEquals(0, actionsList.itemsCount)
 
-    val dialog = spy(AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f2, PROPERTY_INSPECTOR))
-    try {
+    spy(AddActionDialog(AddActionDialog.Defaults.NORMAL, null, f2, PROPERTY_INSPECTOR)).runAndClose { dialog ->
       `when`(dialog.destination).thenReturn(f1)
       doReturn(true).`when`(dialog).showAndGet()
 
@@ -118,9 +117,6 @@ class NavActionsInspectorProviderTest : NavTestCase() {
       assertEquals(1, actionsList.itemsCount)
       val newAction = model.find("action_f2_to_f1")!!
       assertTrue(model.surface.selectionModel.selection.contains(newAction))
-    }
-    finally {
-      dialog.close(0)
     }
   }
 
