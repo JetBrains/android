@@ -44,7 +44,7 @@ class AarFileResourceItem extends AbstractAarResourceItem {
    * @param name the name of the resource
    * @param configuration the configuration the resource belongs to
    * @param visibility the visibility of the resource
-   * @param relativePath the path of the resource relative to the res folder, or path of a zip entry inside res.apk
+   * @param relativePath defines location of the resource. Exact semantics of the path may vary depending on the resource repository
    */
   public AarFileResourceItem(@NotNull ResourceType type,
                              @NotNull String name,
@@ -59,12 +59,6 @@ class AarFileResourceItem extends AbstractAarResourceItem {
   @Override
   public final boolean isFileBased() {
     return true;
-  }
-
-  @Override
-  @Nullable
-  public String getValue() {
-    return getRepository().getResourceUrl(myRelativePath);
   }
 
   @Override
@@ -91,6 +85,12 @@ class AarFileResourceItem extends AbstractAarResourceItem {
     return ResourceNamespace.Resolver.EMPTY_RESOLVER;
   }
 
+  @Override
+  @Nullable
+  public String getValue() {
+    return getRepository().getResourceUrl(myRelativePath);
+  }
+
   /**
    * {@inheritDoc}
    *
@@ -101,7 +101,13 @@ class AarFileResourceItem extends AbstractAarResourceItem {
   @Override
   @NotNull
   public final PathString getSource() {
-    return getRepository().getPathString(myRelativePath);
+    return getRepository().getSourceFile(myRelativePath, true);
+  }
+
+  @Override
+  @Nullable
+  public final PathString getOriginalSource() {
+    return getRepository().getOriginalSourceFile(myRelativePath, true);
   }
 
   @Override

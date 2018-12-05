@@ -24,6 +24,7 @@ import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  * Cache of AAR resource repositories. This class is thread-safe.
  */
 public final class AarResourceRepositoryCache {
-  private final Cache<File, AarProtoResourceRepository> myProtoRepositories = CacheBuilder.newBuilder().softValues().build();
+  private final Cache<Path, AarProtoResourceRepository> myProtoRepositories = CacheBuilder.newBuilder().softValues().build();
   private final Cache<ResourceFolder, AarSourceResourceRepository> mySourceRepositories = CacheBuilder.newBuilder().softValues().build();
 
   /**
@@ -81,7 +82,7 @@ public final class AarResourceRepositoryCache {
       throw new IllegalArgumentException("No res.apk for " + libraryName);
     }
 
-    File resApkFile = resApkPath.toFile();
+    Path resApkFile = resApkPath.toPath();
     if (resApkFile == null) {
       throw new IllegalArgumentException("Cannot find " + resApkPath + " for " + libraryName);
     }
@@ -105,7 +106,7 @@ public final class AarResourceRepositoryCache {
     return aarRepository;
   }
 
-  public void removeProtoRepository(@NotNull File resApkFile) {
+  public void removeProtoRepository(@NotNull Path resApkFile) {
     myProtoRepositories.invalidate(resApkFile);
   }
 

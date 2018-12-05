@@ -87,8 +87,14 @@ abstract class AbstractAarValueResourceItem extends AbstractAarResourceItem {
   @Override
   @Nullable
   public final PathString getSource() {
+    return getOriginalSource();
+  }
+
+  @Override
+  @Nullable
+  public final PathString getOriginalSource() {
     String sourcePath = mySourceFile.getRelativePath();
-    return sourcePath == null ? null : getRepository().getPathString(sourcePath);
+    return sourcePath == null ? null : getRepository().getOriginalSourceFile(sourcePath, false);
   }
 
   @NotNull

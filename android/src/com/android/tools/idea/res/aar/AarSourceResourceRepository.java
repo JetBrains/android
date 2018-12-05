@@ -303,7 +303,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
 
   @Override
   @NotNull
-  final PathString getPathString(@NotNull String relativeResourcePath) {
+  final PathString getSourceFile(@NotNull String relativeResourcePath, boolean forFileResource) {
     return new PathString(myResourcePathPrefix + relativeResourcePath);
   }
 

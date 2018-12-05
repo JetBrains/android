@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.res.aar;
 
-import com.android.SdkConstants;
+import static com.android.SdkConstants.DOT_XML;
+
 import com.android.aapt.ConfigurationOuterClass.Configuration;
 import com.android.aapt.Resources;
 import com.android.ide.common.rendering.api.AttrResourceValue;
@@ -30,18 +31,21 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
+import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.CharMatcher;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Table;
+import com.google.protobuf.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.BitUtil;
 import com.intellij.util.io.URLUtil;
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,6 +68,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   private static final Logger LOG = Logger.getInstance(AarProtoResourceRepository.class);
+  /** Protocol for accessing contents of .apk files. */
+  @NotNull private static final String APK_PROTOCOL = "apk";
   /** The name of the res.apk ZIP entry containing value resources. */
   private static final String RESOURCE_TABLE_ENTRY = "resources.pb";
 
@@ -79,33 +85,48 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   // The signed mantissa is stored in the higher 24 bits of the value.
   private static final int COMPLEX_MANTISSA_SHIFT = 8;
 
-  @NotNull private final Path myResApkFileOrFolder;
+  @NotNull private final Path myResApkFile;
   /**
-   * Either "apk" or "file"" depending on whether the repository was loaded from res.apk
-   * or its unzipped contents.
-   */
-  private String myFilesystemProtocol;
-  /**
-   * Common prefix of paths of all file resources.  Used to compose resource paths returned by
+   * Common prefix of paths of all file resources. Used to compose resource paths returned by
    * the {@link AarFileResourceItem#getSource()} method.
    */
-  private String myResourcePathPrefix;
+  @NotNull private final String myResourcePathPrefix;
   /**
    * Common prefix of URLs of all file resources. Used to compose resource URLs returned by
    * the {@link AarFileResourceItem#getValue()} method.
    */
-  private String myResourceUrlPrefix;
+  @NotNull private final String myResourceUrlPrefix;
+  /**
+   * Common prefix of source attachments. Used to compose file paths returned by
+   * the {@link AarResourceItem#getOriginalSource()} method.
+   */
+  @Nullable private final String mySourceAttachmentPrefix;
+
   private ResourceUrlParser myUrlParser;
 
-  private AarProtoResourceRepository(@NotNull Path apkFileOrFolder, @NotNull ResourceNamespace namespace, @NotNull String libraryName) {
-    super(namespace, libraryName);
-    myResApkFileOrFolder = apkFileOrFolder;
+  private AarProtoResourceRepository(@NotNull DataLoader loader,
+                                     @NotNull String libraryName,
+                                     @Nullable Path sourceJar) {
+    super(loader.getNamespace(), libraryName);
+    myResApkFile = loader.resApkFile;
+
+    myResourcePathPrefix = myResApkFile.toString() + URLUtil.JAR_SEPARATOR;
+    myResourceUrlPrefix = APK_PROTOCOL + "://" + myResourcePathPrefix.replace(File.separatorChar, '/');
+
+    mySourceAttachmentPrefix = sourceJar != null && loader.packageName != null ?
+        sourceJar.toString() + URLUtil.JAR_SEPARATOR + getPackageNamePrefix(loader.packageName) : null;
+
+    if (loader.resourceTableMsg != null) {
+      loadResourceTable(loader.resourceTableMsg);
+
+      populatePublicResourcesMap();
+    }
   }
 
   @Override
   @NotNull
   Path getOrigin() {
-    return myResApkFileOrFolder;
+    return myResApkFile;
   }
 
   @Override
@@ -117,43 +138,51 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   /**
    * Creates a resource repository for an AAR file.
    *
-   * @param apkFileOrFolder the res.apk file or a folder with its unzipped contents
+   * @param resApkFile the res.apk file
    * @param libraryName the name of the library
    * @return the created resource repository
    */
   @NotNull
-  public static AarProtoResourceRepository create(@NotNull File apkFileOrFolder, @NotNull String libraryName) {
-    DataLoader loader = new DataLoader(apkFileOrFolder);
+  public static AarProtoResourceRepository create(@NotNull Path resApkFile, @NotNull String libraryName) {
+    DataLoader loader = new DataLoader(resApkFile);
     try {
       loader.load();
     } catch (IOException e) {
       LOG.error(e);
-      return new AarProtoResourceRepository(apkFileOrFolder.toPath(), loader.getNamespace(), libraryName); // Return an empty repository.
+      return new AarProtoResourceRepository(loader, libraryName, null); // Return an empty repository.
     }
 
-    AarProtoResourceRepository repository = new AarProtoResourceRepository(apkFileOrFolder.toPath(), loader.getNamespace(), libraryName);
-    repository.load(loader);
-    return repository;
+    // TODO: Make the source jar a parameter of this method and stop relying on a name convention here.
+    Path sourceJar = getSourceJarPath(resApkFile);
+    if (!Files.exists(sourceJar)) {
+      sourceJar = null;
+    }
+
+    return new AarProtoResourceRepository(loader, libraryName, sourceJar);
   }
 
-  private void load(@NotNull DataLoader loader) {
-    loadResourceTable(loader.resourceTableMsg);
-    if (loader.loadedFromResApk) {
-      myFilesystemProtocol = "apk";
-      myResourcePathPrefix = myResApkFileOrFolder.toString() + URLUtil.JAR_SEPARATOR;
-    } else {
-      myFilesystemProtocol = "file";
-      myResourcePathPrefix = myResApkFileOrFolder.toString() + File.separatorChar;
+  /**
+   * Returns the path of the source JAR file given the path of res.apk. The name of the source jar is obtained
+   * by replacing the ".apk" file name suffix with "-src.jar".
+   */
+  private static Path getSourceJarPath(@NotNull Path resApkFile) {
+    String filename = resApkFile.getFileName().toString();
+    int extensionPos = filename.lastIndexOf('.');
+    if (extensionPos >= 0) {
+      filename = filename.substring(0, extensionPos);
     }
-    myResourceUrlPrefix = myFilesystemProtocol + "://" + myResourcePathPrefix.replace(File.separatorChar, '/');
-
-    populatePublicResourcesMap();
+    filename += "-src.jar";
+    return resApkFile.resolveSibling(filename);
   }
 
   private void loadResourceTable(@NotNull Resources.ResourceTable resourceTableMsg) {
-    Map<Configuration, AarSourceFile> sourceFileCache = new HashMap<>();
+    Table<String, Configuration, AarSourceFile> sourceFileCache = HashBasedTable.create();
     myUrlParser = new ResourceUrlParser();
     try  {
+      // String pool is only needed if there is a source attachment.
+      StringPool stringPool = mySourceAttachmentPrefix == null ?
+          null : new StringPool(resourceTableMsg.getSourcePool(), myNamespace.getPackageName());
+
       for (Resources.Package packageMsg : resourceTableMsg.getPackageList()) {
         for (Resources.Type typeMsg : packageMsg.getTypeList()) {
           ResourceType resourceType = ResourceType.fromClassName(typeMsg.getName());
@@ -166,9 +195,14 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
             Resources.Visibility visibilityMsg = entryMsg.getVisibility();
             ResourceVisibility visibility = computeVisibility(visibilityMsg);
             for (Resources.ConfigValue configValueMsg : entryMsg.getConfigValueList()) {
-              AarSourceFile configuration = getSourceFile(configValueMsg.getConfig(), sourceFileCache);
               Resources.Value valueMsg = configValueMsg.getValue();
-              ResourceItem item = createResourceItem(valueMsg, resourceType, resourceName, configuration, visibility);
+              Resources.Source sourceMsg = valueMsg.getSource();
+              String sourcePath = stringPool == null ? null : stringPool.getString(sourceMsg.getPathIdx());
+              if (sourcePath != null && sourcePath.isEmpty()) {
+                sourcePath = null;
+              }
+              AarSourceFile sourceFile = getSourceFile(sourcePath, configValueMsg.getConfig(), sourceFileCache);
+              ResourceItem item = createResourceItem(valueMsg, resourceType, resourceName, sourceFile, visibility);
               if (item != null) {
                 addResourceItem(item);
               }
@@ -183,14 +217,72 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
 
   @Override
   @NotNull
-  final PathString getPathString(@NotNull String relativeResourcePath) {
-    return new PathString(myFilesystemProtocol, myResourcePathPrefix + relativeResourcePath);
+  final String getResourceUrl(@NotNull String relativeResourcePath) {
+    return expandRelativeResourcePath(myResourceUrlPrefix, relativeResourcePath, true);
   }
 
   @Override
   @NotNull
-  final String getResourceUrl(@NotNull String relativeResourcePath) {
-    return myResourceUrlPrefix + relativeResourcePath;
+  final PathString getSourceFile(@NotNull String relativeResourcePath, boolean forFileResource) {
+    return new PathString(APK_PROTOCOL, expandRelativeResourcePath(myResourcePathPrefix, relativeResourcePath, forFileResource));
+  }
+
+  /**
+   * Converts a relative resource path to an absolute path or URL pointing inside res.apk by prepending a given
+   * {@code prefix} to the path. If {@code relativeResourcePath} is a path inside res.apk, the prefix is simply
+   * prepended to it. If {@code relativeResourcePath} is a path inside a source attachment JAR without a package
+   * prefix, it is first converted to a path inside res.apk by removing the first, overlay number, segment. Then
+   * the prefix is prepended to the converted path. Whether the path points inside res.apk or the source
+   * attachment JAR is determined by result returned by the {@link #hasOverlaySegment(String, boolean)}.
+   *
+   * @param prefix the prefix to prepend
+   * @param relativeResourcePath the relative path of a resource that may or may not start with an overlay number segment
+   * @param forFileResource true is the resource is a file resource, false if it is a value resource
+   * @return the converted path
+   */
+  private String expandRelativeResourcePath(@NotNull String prefix, @NotNull String relativeResourcePath, boolean forFileResource) {
+    int offset = 0;
+    if (hasOverlaySegment(relativeResourcePath, forFileResource)) {
+      assert Character.isDigit(relativeResourcePath.charAt(0));
+      // relativeResourcePath is the path of the original source that includes an overlay number as the first segment.
+      // Skip the first segment to convert the source path to the path of proto XML.
+      offset = relativeResourcePath.indexOf('/') + 1;
+    }
+    int prefixLength = prefix.length();
+    int pathLength = relativeResourcePath.length();
+    char[] result = new char[prefixLength + pathLength - offset];
+    prefix.getChars(0, prefixLength, result, 0);
+    relativeResourcePath.getChars(offset, pathLength, result, prefixLength);
+    return new String(result);
+  }
+
+  /**
+   * Checks if the given relative resource path is expected to contain an overlay segment or not.
+   * The check is based on how resource items are created by the {@link #createResourceItem} methods.
+   *
+   * @param relativeResourcePath the relative path of a resource that may or may not start with an overlay number segment
+   * @param forFileResource true is the resource is a file resource, false if it is a value resource
+   * @return true if the resource path is expected to contain an overlay segment
+   */
+  private boolean hasOverlaySegment(@NotNull String relativeResourcePath, boolean forFileResource) {
+    return forFileResource && mySourceAttachmentPrefix != null && isXml(relativeResourcePath);
+  }
+
+  @Override
+  @Nullable
+  final PathString getOriginalSourceFile(@NotNull String relativeResourcePath, boolean forFileResource) {
+    if (isXml(relativeResourcePath)) {
+      if (mySourceAttachmentPrefix == null) {
+        return null;
+      }
+      return new PathString("jar", mySourceAttachmentPrefix + relativeResourcePath);
+    }
+
+    return getSourceFile(relativeResourcePath, forFileResource);
+  }
+
+  private static boolean isXml(@NotNull String filePath) {
+    return SdkUtils.endsWithIgnoreCase(filePath, DOT_XML);
   }
 
   @Nullable
@@ -222,7 +314,12 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
                                              @NotNull ResourceVisibility visibility) {
     switch (itemMsg.getValueCase()) {
       case FILE: {
-        String path = itemMsg.getFile().getPath();
+        // For XML files, which contain proto XML that is not human-readable, use the source attachment path when available.
+        // For other resources use the path inside res.apk.
+        String path = sourceFile.getRelativePath();
+        if (path == null || !isXml(path)) {
+          path = itemMsg.getFile().getPath();
+        }
         AarConfiguration configuration = sourceFile.getConfiguration();
         FolderConfiguration folderConfiguration = configuration.getFolderConfiguration();
         DensityQualifier densityQualifier = folderConfiguration.getDensityQualifier();
@@ -595,65 +692,52 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   }
 
   @NotNull
-  private AarSourceFile getSourceFile(@NotNull Configuration configMsg, @NotNull Map<Configuration, AarSourceFile> cache) {
-    AarSourceFile sourceFile = cache.get(configMsg);
+  private AarSourceFile getSourceFile(@Nullable String sourcePath,
+                                      @NotNull Configuration configMsg,
+                                      @NotNull Table<String, Configuration, AarSourceFile> cache) {
+    String sourcePathKey = sourcePath == null ? "" : sourcePath;
+    AarSourceFile sourceFile = cache.get(sourcePathKey, configMsg);
     if (sourceFile != null) {
       return sourceFile;
     }
 
     FolderConfiguration configuration = ProtoConfigurationDecoder.getConfiguration(configMsg);
 
-    sourceFile = new AarSourceFile(null, new AarConfiguration(this, configuration));
-    cache.put(configMsg, sourceFile);
+    sourceFile = new AarSourceFile(sourcePath, new AarConfiguration(this, configuration));
+    cache.put(sourcePathKey, configMsg, sourceFile);
     return sourceFile;
+  }
+
+  @NotNull
+  private static String getPackageNamePrefix(@NotNull String packageName) {
+    return packageName.replace('.', '/') + '/';
   }
 
   // For debugging only.
   @Override
   public String toString() {
-    return getClass().getSimpleName() + '@' + Integer.toHexString(System.identityHashCode(this)) + " for " + myResApkFileOrFolder;
+    return getClass().getSimpleName() + '@' + Integer.toHexString(System.identityHashCode(this)) + " for " + myResApkFile;
   }
 
   private static class DataLoader {
-    private final File resApkFileOrFolder;
-    Resources.ResourceTable resourceTableMsg;
-    String packageName;
-    boolean loadedFromResApk;
+    @NotNull final Path resApkFile;
+    @Nullable Resources.ResourceTable resourceTableMsg;
+    @Nullable String packageName;
 
-    DataLoader(@NotNull File resApkFileOrFolder) {
-      this.resApkFileOrFolder = resApkFileOrFolder;
+    DataLoader(@NotNull Path resApkFile) {
+      this.resApkFile = resApkFile;
     }
 
     void load() throws IOException {
-      try {
-        resourceTableMsg = readResourceTableFromResourcesPbFile();
-        PathString manifestPath = new PathString(new File(resApkFileOrFolder, SdkConstants.FN_ANDROID_MANIFEST_XML));
-        packageName = AndroidManifestUtils.getPackageNameFromManifestFile(manifestPath);
-      } catch (FileNotFoundException e) {
-        try (ZipFile zipFile = new ZipFile(resApkFileOrFolder)) {
-          resourceTableMsg = readResourceTableFromResApk(zipFile);
-          packageName = AndroidManifestUtils.getPackageNameFromResApk(zipFile);
-        }
-        loadedFromResApk = true;
+      try (ZipFile zipFile = new ZipFile(resApkFile.toFile())) {
+        resourceTableMsg = readResourceTableFromResApk(zipFile);
+        packageName = AndroidManifestUtils.getPackageNameFromResApk(zipFile);
       }
     }
 
     @NotNull
     ResourceNamespace getNamespace() {
       return packageName == null ? ResourceNamespace.RES_AUTO : ResourceNamespace.fromPackageName(packageName);
-    }
-
-    /**
-     * Loads resource table from resources.pb file under the AAR directory.
-     *
-     * @return the resource table proto message, or null if the resources.pb file does not exist
-     */
-    @Nullable
-    private Resources.ResourceTable readResourceTableFromResourcesPbFile() throws IOException {
-      File file = new File(resApkFileOrFolder, RESOURCE_TABLE_ENTRY);
-      try (InputStream stream = new BufferedInputStream(new FileInputStream(file))) {
-        return Resources.ResourceTable.parseFrom(stream);
-      }
     }
 
     /**
@@ -671,6 +755,114 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       try (InputStream stream = new BufferedInputStream(resApk.getInputStream(zipEntry))) {
         return Resources.ResourceTable.parseFrom(stream);
       }
+    }
+  }
+
+  /**
+   * Extracts strings encoded inside a {@link Resources.StringPool} proto message.
+   */
+  private static class StringPool {
+    // See definition of the ResStringPool_header structure at
+    // https://android.googlesource.com/platform/frameworks/base/+/tools_r22.2/include/androidfw/ResourceTypes.h
+    private static final int STRING_COUNT_OFFSET = 8;
+    private static final int FLAGS_OFFSET = 16;
+    private static final int STRINGS_START_INDEX_OFFSET = 20;
+    private static final int UTF8_FLAG = 1 << 8;
+    private static final String REPLACEMENT_PREFIX = "0/res/";
+
+    @NotNull final String[] strings;
+    private int currentOffset;
+
+    StringPool(@NotNull Resources.StringPool stringPoolMsg, @Nullable String packageName) {
+      ByteString bytes = stringPoolMsg.getData();
+      if ((getInt32(bytes, FLAGS_OFFSET) & UTF8_FLAG) == 0) {
+        throw new IllegalArgumentException("UTF-16 encoded string pool is not supported");
+      }
+      int stringCount = getInt32(bytes, STRING_COUNT_OFFSET);
+      strings = new String[stringCount];
+      currentOffset = getInt32(bytes, STRINGS_START_INDEX_OFFSET);
+      for (int i = 0; i < stringCount; i++) {
+        getByteEncodedLength(bytes); // Skip the number of characters.
+        int byteCount = getByteEncodedLength(bytes);
+        int endOffset = currentOffset + byteCount;
+        strings[i] = bytes.substring(currentOffset, endOffset).toStringUtf8();
+        currentOffset = endOffset + 1; // Skip the bytes of the string including the 0x00 terminator.
+      }
+      normalizePaths(packageName);
+    }
+
+    private static int getByte(@NotNull ByteString bytes, int offset) {
+      return bytes.byteAt(offset) & 0xFF;
+    }
+
+    private static int getInt32(@NotNull ByteString bytes, int offset) {
+      return getByte(bytes, offset) |
+             (getByte(bytes, offset + 1) << 8) |
+             (getByte(bytes, offset + 2) << 16) |
+             (getByte(bytes, offset + 3) << 24);
+    }
+
+    /**
+     * Decodes a length value encoded using the EncodeLength(char*, size_t) function defined at
+     * https://android.googlesource.com/platform/frameworks/base/+/master/tools/aapt2/StringPool.cpp
+     */
+    private int getByteEncodedLength(@NotNull ByteString bytes) {
+      int b = getByte(bytes, currentOffset++);
+      if ((b & 0x80) == 0) {
+        return b;
+      }
+      return (b & 0x7F) << 8 | getByte(bytes, currentOffset++);
+    }
+
+    /**
+     * Source paths in AARv2 are supposed to be relative, but currently AAPT2 inserts absolute paths.
+     * This method works around this AAPT2 limitation by converting source paths to the form they are
+     * supposed to have.
+     */
+    private void normalizePaths(@Nullable String packageName) {
+      String packagePrefix = packageName == null ? null : getPackageNamePrefix(packageName);
+      String prefix = null;
+      for (int i = 0, n = strings.length; i < n; i++) {
+        String str = strings[i];
+        if (!str.isEmpty()) {
+          str = str.replace(File.separatorChar, '/');
+          if (str.charAt(0) == '/') {
+            // The string represents an absolute path. Convert it to a relative path.
+            if (prefix == null) {
+              String anchor = "/res/";
+              int pos = str.indexOf(anchor);
+              if (pos >= 0) {
+                prefix = str.substring(0, pos + anchor.length());
+              }
+            }
+            if (prefix == null) {
+              String anchor = "/namespaced_res/";
+              int pos = str.indexOf(anchor);
+              if (pos >= 0) {
+                // Skip the following directory segment that reflects the name of the library.
+                pos = str.indexOf('/', pos + anchor.length());
+                if (pos >= 0) {
+                  prefix = str.substring(0, pos + 1);
+                }
+              }
+            }
+            if (prefix != null && str.startsWith(prefix)) {
+              str = REPLACEMENT_PREFIX + str.substring(prefix.length());
+            }
+          }
+          else if (packagePrefix != null && str.startsWith(packagePrefix)) {
+            // The string represents a relative path. Remove the package prefix if present.
+            str = str.substring(packagePrefix.length());
+          }
+
+          strings[i] = str;
+        }
+      }
+    }
+
+    @NotNull
+    public String getString(int index) {
+      return strings[index];
     }
   }
 }
