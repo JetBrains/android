@@ -387,11 +387,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testNewBasicActivityWithAndroidx() throws Exception {
-    checkCreateTemplate("activities", "BasicActivity", false, withAndroidx);
-  }
-
-  @TemplateCheck
   public void testNewBasicActivityWithKotlin() throws Exception {
     checkCreateTemplate("activities", "BasicActivity", false, withKotlin);
   }
@@ -1423,6 +1418,13 @@ public class TemplateTest extends AndroidGradleTestCase {
                  !moduleState.getBoolean(ATTR_CREATE_ACTIVITY);
     }
 
+    if (!Boolean.TRUE.equals(moduleState.get(ATTR_ANDROIDX_SUPPORT))) {
+      // Make sure we test all templates against androidx
+      setAndroidSupport(true, moduleState, activityState);
+      checkProjectNow(projectName + "_x", projectState, activityState);
+      setAndroidSupport(false, moduleState, activityState);
+    }
+
     if (checkLib) {
       moduleState.put(ATTR_IS_LIBRARY_MODULE, false);
       activityState.put(ATTR_IS_LIBRARY_MODULE, false);
@@ -1444,9 +1446,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   private void checkProjectNow(@NotNull String projectName,
                                @NotNull TestNewProjectWizardState projectState,
                                @Nullable TestTemplateWizardState activityState) throws Exception {
-    //if (activityState != null && activityState.get(ATTR_ANDROIDX_SUPPORT) != Boolean.TRUE) {
-    //  return;
-    //}
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     // Do not add non-unicode characters on Windows
     String modifiedProjectName = getModifiedProjectName(projectName, activityState);
@@ -1575,6 +1574,15 @@ public class TemplateTest extends AndroidGradleTestCase {
         FileUtil.delete(projectDir);
         LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir);
       }
+    }
+  }
+
+  private static void setAndroidSupport(boolean setAndroidx,
+                                        @NotNull TestTemplateWizardState moduleState,
+                                        @Nullable TestTemplateWizardState activityState) {
+    moduleState.put(ATTR_ANDROIDX_SUPPORT, setAndroidx);
+    if (activityState != null) {
+      activityState.put(ATTR_ANDROIDX_SUPPORT, setAndroidx);
     }
   }
 
