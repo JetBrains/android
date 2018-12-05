@@ -32,21 +32,17 @@ import com.android.annotations.VisibleForTesting;
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.ui.GuiTestingService;
-import com.intellij.ide.TipOfTheDayManager;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.apache.http.concurrent.FutureCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Field;
 
 /**
  * Show the "What's New" assistant the first time the app starts up with a new major.minor version.
@@ -77,8 +73,6 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
 
     // If the Android Studio version is new, then always show on startup
     if (isNewStudioVersion(data, applicationRevision)) {
-      // We don't want to show two popups, so disable the normal tip of the day if we're showing what's new.
-      disableTipOfTheDay();
       openWhatsNewAssistant(project);
     }
     else {
@@ -106,20 +100,6 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
           return null;
         }
       }));
-  }
-
-  private static void disableTipOfTheDay() {
-    TipOfTheDayManager tips = Extensions.findExtension(StartupActivity.POST_STARTUP_ACTIVITY, TipOfTheDayManager.class);
-    try {
-      // This is obviously a horrible hack
-      Field flag = TipOfTheDayManager.class.getDeclaredField("myVeryFirstProjectOpening");
-      flag.setAccessible(true);
-      flag.setBoolean(tips, false);
-      flag.setAccessible(false);
-    }
-    catch (Exception e) {
-      // nothing, just give up
-    }
   }
 
   @VisibleForTesting
@@ -190,7 +170,6 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
     public void completed(Boolean result) {
       // Auto-show What's New Assistant
       if (result) {
-        disableTipOfTheDay();
         openWhatsNewAssistant(myProject);
       }
     }
