@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 
 import android.view.View;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.tests.gui.framework.BuildSpecificGuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -28,31 +27,23 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
-import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JPopupMenuFixture;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
-@Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NlEditorTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @Parameterized.Parameters(name="{0}")
-  public static TargetBuildSystem.BuildSystem[] data() {
-    return TargetBuildSystem.BuildSystem.values();
-  }
 
   @Test
   public void testSelectComponent() throws Exception {
@@ -71,58 +62,6 @@ public class NlEditorTest {
 
     // It should be selected now
     assertThat(layout.getSelection()).containsExactly(textView.getComponent());
-  }
-
-  @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
-  @Ignore("b/78228400")
-  @Test
-  public void designEditorUnavailableIfInProgressBazelSyncFailed() throws Exception {
-    // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
-    guiTest.importSimpleLocalApplication()
-      .getEditor()
-      .open("app/BUILD")
-      .moveBetween("deps = [", "")
-      .enterText("\n\":bogus_dependency\",");
-
-    guiTest.testSystem()
-           .requestProjectSync(guiTest.ideFrame())
-           .waitForProjectSyncToStart(guiTest.ideFrame());
-
-    // Open design editor while sync is in progress. We should see a loading panel
-    // while the sync is taking place. Then, once the sync fails, the loading
-    // animation should be replaced with an error message.
-    NlEditorFixture editorFixture = guiTest.ideFrame().getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(false)
-      .waitForSurfaceToLoad();
-
-    // The design editor should be unavailable because the in-progress sync failed.
-    assertThat(editorFixture.canInteractWithSurface()).isFalse();
-  }
-
-  @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
-  @Ignore("b/78228400")
-  @Test
-  public void designEditorUnavailableIfLastBazelSyncFailed() throws Exception {
-    // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
-    guiTest.importSimpleLocalApplication()
-      .getEditor()
-      .open("app/BUILD")
-      .moveBetween("deps = [", "")
-      .enterText("\n\":bogus_dependency\",");
-
-    guiTest.testSystem()
-      .requestProjectSync(guiTest.ideFrame())
-      .waitForProjectSyncToFinish(guiTest.ideFrame());
-
-    // After the failing sync, open the design editor.
-    NlEditorFixture editorFixture = guiTest.ideFrame().getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor(false)
-      .waitForSurfaceToLoad();
-
-    // The design editor should be unavailable because the last sync failed.
-    assertThat(editorFixture.canInteractWithSurface()).isFalse();
   }
 
   @Test
