@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions;
 import com.android.tools.adtui.HtmlLabel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
+import com.intellij.ui.components.JBOptionButton;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 
@@ -29,7 +30,7 @@ public abstract class SuggestionViewerUi {
 
   protected JPanel myPanel;
   protected HtmlLabel myText;
-  protected JButton myUpdateButton;
+  protected JBOptionButton myUpdateButton;
   protected JPanel myButtonPanel;
   protected JPanel myTextPanel;
   protected JLabel myIconLabel;
@@ -51,6 +52,7 @@ public abstract class SuggestionViewerUi {
   }
 
   private void createUIComponents() {
+    myUpdateButton = new JBOptionButton(null, new Action[0]);
     myText = new HtmlLabel();
     ((DefaultCaret)myText.getCaret()).setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
   }
