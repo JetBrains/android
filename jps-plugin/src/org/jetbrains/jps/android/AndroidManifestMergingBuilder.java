@@ -152,7 +152,7 @@ public class AndroidManifestMergingBuilder
 
     final ManifestMerger2.Invoker manifestMergerInvoker =
       ManifestMerger2.newMerger(manifestFile, NullLogger.getLogger(), ManifestMerger2.MergeType.APPLICATION).addLibraryManifests(
-        (File[])libManifests.stream().toArray());
+        libManifests.toArray(new File[0]));
 
     MergingReport mergingReport;
     try {
