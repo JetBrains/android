@@ -30,7 +30,7 @@ class PsFlavorDimension(
   }
 
   override val name get() = if (isInvalid) "(invalid)" else parsedName.orEmpty()
-  override val path: PsPath get() = PsFlavorDimensionNavigationPath(parent.path.productFlavorsPath, name)
+  override val path: PsFlavorDimensionNavigationPath get() = PsFlavorDimensionNavigationPath(parent.path.productFlavorsPath, name)
   override val isDeclared: Boolean get() = parsedName != null
 
 }
