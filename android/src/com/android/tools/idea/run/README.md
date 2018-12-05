@@ -156,7 +156,7 @@ This task is only present when using the debug executor, and in such a case, the
 this is always the last task executed as part of the launch flow. Launching the debugger itself is fairly straightforward: it first
 waits for the application to start, and then launches the appropriate debugger (Java or native). The reason why this task falls
 outside of the other `LaunchTask`s is that when using the debugger, the existing `ProcessHandler` that was connected to the console
-needs to be detached and and the `LaunchStatus` and `ConsolePrinter` switched to point to a new `DebugProcessHandler` which actually 
+needs to be detached and and the `LaunchStatus` and `ConsolePrinter` switched to point to a new `DebugProcessHandler` which actually
 monitors the debugger instead of the remote process. The existing output on the console also needs to be replayed to the new process handler
  so that the console still has all the output.
 
@@ -174,21 +174,30 @@ on whether we're testing and whether we're debugging (this is specific to the Ja
    adb listeners. Instead the test output printed by `am instrument` is parsed by `AndroidTestListener` and when the suite is finished (or
    fails), the listener calls `LaunchStatus#terminateLaunch` which in turn calls `AndroidProcessHandler#destroyProcess`. Clicking stop
    button is handled as before, through `am force-stop`.
- * not testing, debugging: as described in the section above, the original `ProcessHandler` is detached and an intance of 
+ * not testing, debugging: as described in the section above, the original `ProcessHandler` is detached and an instance of
    [AndroidRemoteDebugProcessHandler](AndroidRemoteDebugProcessHandler.java) is used instead. This handler does no adb monitoring, instead
-   relying on the IJ machinery to get notified when the JDWP connetion is closed. When this happens, handler notifies its listeners 
+   relying on the IJ machinery to get notified when the JDWP connection is closed. When this happens, handler notifies its listeners
    (including the UI) that the process has detached. When user clicks the stop button in UI, IJ java debugger kills the target VM (see
-   com.sun.jdi.VirtualMachine#exit). `AndroidRemoteDebugProcessHandler#destroyProcess` is also eventually called, but at this stage the 
+   com.sun.jdi.VirtualMachine#exit). `AndroidRemoteDebugProcessHandler#destroyProcess` is also eventually called, but at this stage the
    device process is usually dead anyway. This eventually calls the listener in ClientDebuggerLauncher.Java#launchDebugger, which runs
    `am force-stop`.
- * testing, debugging: combination of the above. `AndroidRemoteDebugProcessHandler#destroyProcess` gets called by `AndroidTestListener` 
+ * testing, debugging: combination of the above. `AndroidRemoteDebugProcessHandler#destroyProcess` gets called by `AndroidTestListener`
    after the tests have finished running. Stop button is handled through the debugger protocol.
 
 ## Running tests
- * Execute shell command: `am instrument ...` command. (See `RemoteAndroidTestRunner`)
- * Parse the output from the shell command (`InstrumentationResultParser`), construct appropriate events (`AndroidTestListener`) and pass it
-   on to IJ framework.
- * IJ parses the rewritten output from the console (`GeneralToSMTRunnerEventsConvertor`) and updates the test tree UX.
+
+IJ testing UI is based on a textual format, which test processes (regardless of language etc.) are supposed to produce. The UI is created in
+`SMTestRunnerConnectionUtil#createAndAttachConsole` and uses a `ProcessListener` attached to the `ProcessHandler` of the test process to
+read "messages". The format is defined by `ServiceMessage#parse` and can be emitted using `ServiceMessageBuilder`. So our job is create a
+`ProcessHandler` which will emit text in the right format. This is done by:
+
+ * Executing the right shell command on device, `am instrument ...`, see `RemoteAndroidTestRunner` or
+   `AndroidTestOrchestratorRemoteAndroidTestRunner` depending on the testing mode.
+ * Parsing the instrumentation output using `InstrumentationResultParser`, with `AndroidTestListener` as the `ITestRunListener`.
+   `AndroidTestListener` uses `ServiceMessageBuilder` to write the right service messages to the printer connected to the test UI.
+
+IJ test UI parses the textual format (`GeneralToSMTRunnerEventsConvertor`, `OutputToGeneralTestEventsConverter`) and updates the test tree
+UI.
 
 ## Instant Run
  * Hot swap: push the incremental changes (as a dex file) to the running app, restart activity alone
