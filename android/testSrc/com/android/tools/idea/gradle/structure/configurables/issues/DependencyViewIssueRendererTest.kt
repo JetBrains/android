@@ -52,7 +52,7 @@ class DependencyViewIssueRendererTest {
 
   private fun createFix(text: String): PsQuickFix = object : PsQuickFix {
     override val text = text
-    override fun getHyperlinkDestination(context: PsContext): String? = "go:$text"
+    override fun execute(context: PsContext): Unit = TODO("not implemented")
   }
 
   @Test
@@ -93,7 +93,11 @@ class DependencyViewIssueRendererTest {
   private fun renderIssue(renderer: IssueRenderer, scope: PsPath?): String {
     val sb = StringBuilder()
     renderer.renderIssue(sb, testIssue, scope)
-    return sb.toString()
+    val text = sb.toString()
+    val regex = Regex("psdFix://[0123456789abcdef]+")
+    return regex.replace(text) { match ->
+      match.value.substring("psdFix://".length).let { "go:${PsQuickFix.deserialize(it).text}" }
+    }
   }
 
   @Test

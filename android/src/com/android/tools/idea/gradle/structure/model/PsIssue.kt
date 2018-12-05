@@ -16,10 +16,22 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.issues.QUICK_FIX_PATH_TYPE
 import com.intellij.icons.AllIcons.Actions.Download
-import com.intellij.icons.AllIcons.General.*
-import com.intellij.ui.JBColor.*
+import com.intellij.icons.AllIcons.General.BalloonError
+import com.intellij.icons.AllIcons.General.BalloonInformation
+import com.intellij.icons.AllIcons.General.BalloonWarning
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.JBColor.GRAY
+import com.intellij.ui.JBColor.RED
+import com.intellij.ui.JBColor.YELLOW
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.awt.Color
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.io.Serializable
 import javax.swing.Icon
 
 interface PsIssue {
@@ -39,10 +51,25 @@ interface PsIssue {
   }
 }
 
-interface PsQuickFix {
+interface PsQuickFix : Serializable {
   val text: String
-  fun getHyperlinkDestination(context: PsContext): String?
+  fun execute(context: PsContext)
+
+  companion object {
+    fun deserialize(data: String): PsQuickFix =
+      ObjectInputStream(ByteArrayInputStream(StringUtil.parseHexString(data))).readObject().cast<PsQuickFix>()
+  }
 }
+
+fun PsQuickFix.serialize(): String {
+  val byteArrayOutputStream = ByteArrayOutputStream()
+  ObjectOutputStream(byteArrayOutputStream).use { objectOutputStream ->
+    objectOutputStream.writeObject(this)
+  }
+  return StringUtil.toHexString(byteArrayOutputStream.toByteArray())
+}
+
+fun PsQuickFix.getHyperlinkDestination(): String = "$QUICK_FIX_PATH_TYPE${serialize()}"
 
 data class PsGeneralIssue(
   override val text: String,

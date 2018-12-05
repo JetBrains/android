@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.issues
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsPath
+import com.android.tools.idea.gradle.structure.model.getHyperlinkDestination
 import com.android.tools.idea.gradle.structure.model.parents
 import com.intellij.openapi.util.text.StringUtil
 
@@ -36,7 +37,7 @@ class DependencyViewIssueRenderer(
     }
     buffer.append(issue.text)
     issue.quickFixes.forEach { quickFix ->
-      buffer.append(" <a href='${quickFix.getHyperlinkDestination(context)}'>[${quickFix.text}]</a>")
+      buffer.append(" <a href='${quickFix.getHyperlinkDestination()}'>[${quickFix.text}]</a>")
     }
     if (renderDescription) {
       val description = issue.description
