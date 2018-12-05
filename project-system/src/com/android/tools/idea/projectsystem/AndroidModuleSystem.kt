@@ -55,6 +55,8 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
    * errors if they are added to the project.
    * <p>
    * An empty warning value and an empty missing list of coordinates indicates a successful result.
+   * <p>
+   * **Note**: This function may cause the parsing of build files and as such should not be called from the UI thread.
    */
   fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
     : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>
@@ -71,7 +73,8 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
    * Query coordinate a:b:456 will return null if a:b:456 is not registered, even if a:b:123 is.
    * Use [AndroidModuleSystem.getResolvedDependency] if you want the resolved dependency.
    * <p>
-   * **Note**: This function may perform read actions.
+   * **Note**: This function may perform read actions and may cause the parsing of build files, as such should not be called from
+   * the UI thread.
    */
   @Throws(DependencyManagementException::class)
   fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate?

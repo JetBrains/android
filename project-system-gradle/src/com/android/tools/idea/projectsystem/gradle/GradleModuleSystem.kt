@@ -24,7 +24,7 @@ import com.android.ide.common.repository.GradleVersionRange
 import com.android.ide.common.repository.MavenRepositories
 import com.android.projectmodel.Library
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -46,7 +46,11 @@ import org.jetbrains.annotations.TestOnly
 import java.util.ArrayDeque
 import java.util.Collections
 
-class GradleModuleSystem(val module: Module, @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository) :
+class GradleModuleSystem(
+  val module: Module,
+  private val projectBuildModelHandler: ProjectBuildModelHandler,
+  @TestOnly private val mavenRepository: GoogleMavenRepository = IdeGoogleMavenRepository
+) :
   AndroidModuleSystem,
   ClassFileFinder by GradleClassFileFinder(module),
   SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
@@ -61,11 +65,13 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
   }
 
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-    val artifacts = ProjectBuildModel.get(module.project).getModuleBuildModel(module)?.dependencies()?.artifacts() ?: return null
-    return artifacts
-      .asSequence()
-      .mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
-      .find { it.matches(coordinate) }
+    return projectBuildModelHandler.read {
+      val artifacts = getModuleBuildModel(module)?.dependencies()?.artifacts() ?: return@read null
+      artifacts
+        .asSequence()
+        .mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
+        .find { it.matches(coordinate) }
+    }
   }
 
   override fun getResolvedDependentLibraries(): Collection<Library> {
@@ -141,11 +147,12 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
   private fun findModuleDependencies(module: Module,
                                      dependencies: Multimap<String, String>,
                                      reverseDependencies: Multimap<String, String>) {
-    val projectModel = ProjectBuildModel.get(module.project)
-    val dependentNames = projectModel.getModuleBuildModel(module)?.dependencies()?.modules()?.map { it.path().forceString() } ?: return
-    val moduleReference = moduleReference(module.name)
-    dependencies.putAll(moduleReference, dependentNames)
-    dependentNames.forEach { reverseDependencies.put(it, moduleReference) }
+    projectBuildModelHandler.read {
+      val dependentNames = getModuleBuildModel(module)?.dependencies()?.modules()?.map { it.path().forceString() } ?: return@read
+      val moduleReference = moduleReference(module.name)
+      dependencies.putAll(moduleReference, dependentNames)
+      dependentNames.forEach { reverseDependencies.put(it, moduleReference) }
+    }
   }
 
   private fun findTransitiveClosure(dependencies: Multimap<String, String>, reverseDependencies: Multimap<String, String>): Set<String> {
@@ -205,11 +212,12 @@ class GradleModuleSystem(val module: Module, @TestOnly private val mavenReposito
     val found = mutableListOf<GradleCoordinate>()
     val analyzer = AndroidDependencyAnalyzer()
     try {
-      val buildModel = ProjectBuildModel.get(module.project)
-      for (relatedModule in findRelatedModules()) {
-        buildModel.getModuleBuildModel(relatedModule)?.dependencies()?.artifacts()
-          ?.mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
-          ?.forEach { analyzer.addExplicitDependency(it, relatedModule) }
+      projectBuildModelHandler.read {
+        for (relatedModule in findRelatedModules()) {
+          getModuleBuildModel(relatedModule)?.dependencies()?.artifacts()
+            ?.mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
+            ?.forEach { analyzer.addExplicitDependency(it, relatedModule) }
+        }
       }
     }
     catch (ex: VersionIncompatibilityException) {

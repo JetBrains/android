@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.IdeComponents
@@ -63,7 +64,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     gradleDependencyManager = IdeComponents(project).mockProjectService(GradleDependencyManager::class.java)
-    gradleModuleSystem = GradleModuleSystem(myModule, mavenRepository)
+    gradleModuleSystem = GradleModuleSystem(myModule, ProjectBuildModelHandler(project) ,mavenRepository)
     assertThat(gradleModuleSystem.getResolvedDependentLibraries()).isEmpty()
   }
 
@@ -140,7 +141,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
     // Check that the version is picked up from the parent module:
     val module1 = getAdditionalModuleByName(library1ModuleName)!!
-    val gradleModuleSystem = GradleModuleSystem(module1, mavenRepository)
+    val gradleModuleSystem = GradleModuleSystem(module1, ProjectBuildModelHandler(project), mavenRepository)
 
     val (found, missing, warning) = gradleModuleSystem.analyzeDependencyCompatibility(
       listOf(toGradleCoordinate(GoogleMavenArtifactId.RECYCLERVIEW_V7)))
