@@ -222,7 +222,7 @@ public final class StudioFlags {
     true);
 
   public static final Flag<Boolean> NELE_CONVERT_VIEW = Flag.create(
-    NELE, "convert.view", "Enable the Convert View Action",
+    NELE, "convert.view", "Enable the Convert View action",
     "Enable the Convert View Action when right clicking on a component",
     true);
 
@@ -232,7 +232,7 @@ public final class StudioFlags {
     false);
 
   public static final Flag<Boolean> NELE_USE_ANDROIDX_DEFAULT = Flag.create(
-    NELE, "androidx.default", "Use androidx. support lib by default",
+    NELE, "androidx.default", "Use AndroidX support library by default",
     "Enable the use of androidx dependencies by default when the old support library is not present",
     true);
 
@@ -398,13 +398,13 @@ public final class StudioFlags {
 
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
   public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(
-    REFACTORINGS, "migrateto.appcompat.enabled", "Enable the Migrate to AppCompat refactoring feature",
+    REFACTORINGS, "migrateto.appcompat.enabled", "Enable the Migrate to AppCompat refactoring",
     "If enabled, show the action in the refactoring menu", true);
   public static final Flag<Boolean> MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED = Flag.create(
-    REFACTORINGS, "migrateto.androidx.enabled", "Enable the Migrate to AndroidX refactoring feature",
+    REFACTORINGS, "migrateto.androidx.enabled", "Enable the Migrate to AndroidX refactoring",
     "If enabled, show the action in the refactoring menu", true);
   public static final Flag<Boolean> MIGRATE_TO_RESOURCE_NAMESPACES_REFACTORING_ENABLED = Flag.create(
-    REFACTORINGS, "migrateto.resourcenamespaces.enabled", "Enable the Migrate to Resource Namespaces refactoring feature",
+    REFACTORINGS, "migrateto.resourcenamespaces.enabled", "Enable the Migrate to Resource Namespaces refactoring",
     "If enabled, show the action in the refactoring menu", false);
 
   private static final FlagGroup IOT = new FlagGroup(FLAGS, "iot", "IoT features");
