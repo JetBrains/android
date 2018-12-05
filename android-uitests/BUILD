@@ -155,7 +155,6 @@ java_test(
         "//prebuilts/studio/sdk:tools/support-annotations",
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.1.0:aar",
-        ":aswb_plugin",
     ] + glob([
         "testData/SimpleLocalApplication/**",
     ]) + glob(["testData/LayoutLocalTest/**"]),
@@ -482,7 +481,6 @@ java_test(
         "//prebuilts/studio/layoutlib:data/fonts",
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
-        ":aswb_plugin",
     ] + glob([
         "testData/SimpleLocalApplication/**",
     ]),
