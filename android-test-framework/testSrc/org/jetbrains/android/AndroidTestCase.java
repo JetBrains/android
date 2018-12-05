@@ -271,11 +271,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     newRoots.removeAll(myAllowedRoots);
 
     String[] newRootsArray = ArrayUtil.toStringArray(newRoots);
-    VfsRootAccess.allowRootAccess(newRootsArray);
+    VfsRootAccess.allowRootAccess(disposable, newRootsArray);
     myAllowedRoots.addAll(newRoots);
 
     Disposer.register(disposable, () -> {
-      VfsRootAccess.disallowRootAccess(newRootsArray);
       myAllowedRoots.removeAll(newRoots);
       myAllowedRoots = null;
     });
