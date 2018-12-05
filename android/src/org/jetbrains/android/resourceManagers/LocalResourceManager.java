@@ -190,7 +190,7 @@ public class LocalResourceManager extends ResourceManager {
       for (DeclareStyleable styleable : root.getDeclareStyleables()) {
         if (styleableName.equals(styleable.getName().getValue())) {
           for (Attr attr : styleable.getAttrs()) {
-            if (attrName.equals(attr.getName().getValue())) {
+            if (AndroidUtils.equal(attr.getName().getValue(), attrName, false)) {
               list.add(attr);
             }
           }

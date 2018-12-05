@@ -156,6 +156,30 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     )
   }
 
+  fun testGotoStyleableAttr_frameworkAttr() {
+    myFixture.copyFileToProject(basePath + "attrs.xml", "res/values/attrs.xml")
+    val psiFile = myFixture.configureByText(
+      "SomeClass.java",
+      //language=JAVA
+      """
+      package p1.p2;
+
+      import com.android.internal.R;public class SomeClass {
+          void f() {
+            int attrId = R.styleable.MyView_android_${caret}maxHeight;
+          }
+
+      }
+      """.trimIndent()
+    )
+    assertEquals(
+      "values/attrs.xml:8:\n" +
+      "  <attr name=\"android:maxHeight\" />\n" +
+      "             ~|~~~~~~~~~~~~~~~~~~  \n",
+      describeElements(getDeclarationsFrom(psiFile.virtualFile))
+    )
+  }
+
   fun testGotoActivityFromToolsContext() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "MyActivity.java", "src/p1/p2/MyActivity.java")
