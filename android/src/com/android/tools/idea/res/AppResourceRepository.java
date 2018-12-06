@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
@@ -31,8 +32,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -74,6 +77,14 @@ class AppResourceRepository extends MultiResourceRepository {
         myResourceDirMap = HashMultimap.create();
         for (LocalResourceRepository resourceRepository : getLocalResources()) {
           myResourceDirMap.putAll(resourceRepository.getLibraryName(), resourceRepository.getResourceDirs());
+        }
+        for (AarResourceRepository resourceRepository : getLibraryResources()) {
+          if (resourceRepository instanceof AarSourceResourceRepository) {
+            VirtualFile resDir = VfsUtil.findFileByIoFile(((AarSourceResourceRepository)resourceRepository).getOrigin().toFile(), true);
+            if (resDir != null) {
+              myResourceDirMap.put(resourceRepository.getLibraryName(), resDir);
+            }
+          }
         }
       }
       return myResourceDirMap;
