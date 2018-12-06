@@ -21,7 +21,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.whatsnew.assistant.WhatsNewStartupActivity$WhatsNewService"/>
     <postStartupActivity implementation="com.android.tools.idea.whatsnew.assistant.WhatsNewStartupActivity"
-                         order="before TipOfTheDayManager"/>
+                         order="before TipOfTheDayActivity"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
