@@ -34,6 +34,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -46,7 +48,6 @@ import java.nio.file.Paths;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
-
   protected JavaCodeInsightTestFixture myFixture;
 
   @Override
@@ -99,9 +100,9 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   public static String getModulePath(String moduleFolder) {
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
-    String adtPath = PathManager.getHomePath() + "/../adt/idea/" + moduleFolder;
-    if (new File(adtPath).exists()) {
-      return adtPath;
+    Path adtPath = Paths.get(PathManager.getHomePath(), "../adt/idea", moduleFolder).normalize();
+    if (Files.exists(adtPath)) {
+      return adtPath.toString();
     }
     return PathManagerEx.findFileUnderCommunityHome("android/" + moduleFolder).getPath();
   }
