@@ -41,6 +41,7 @@ import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 
+const val PROPERTY_PLACE_NAME: String = "android.psd.property"
 /**
  * A master-details panel for configurables representing type [ModelT].
  */
