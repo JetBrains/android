@@ -156,6 +156,11 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   public void valueChanged(ListSelectionEvent e) {
     if (e.getSource() == myDevicesList) {
       Set<String> selectedSerials = getSelectedSerials(myDevicesList.getSelectedValuesList());
+      // Setting myDevicesList's model deselects everything. Ignore such events
+      // so that we don't squash the meaningful selection that's already cached.
+      if (selectedSerials.isEmpty()) {
+        return;
+      }
       ourSelectionsPerConfig.put(myRunContextId, selectedSerials);
       saveSelectionForProject(myFacet.getModule().getProject(), selectedSerials);
     }
