@@ -246,7 +246,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
     return myTargetSnapper;
   }
 
-  public boolean hasChangedComponent() {
+  private boolean hasChangedComponent() {
     return myChangedComponent;
   }
 }
