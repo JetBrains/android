@@ -413,6 +413,7 @@
                         serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.ng.ExtraGradleSyncModelsManager"/>
+    <projectService serviceImplementation="org.jetbrains.android.uipreview.UserDeviceManager"/>
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription"/>
