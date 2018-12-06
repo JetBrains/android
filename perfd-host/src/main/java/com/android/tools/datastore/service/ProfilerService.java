@@ -94,7 +94,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   /**
    * A map of active channels to unified event streams. This map helps us clean up streams when a channel is closed.
    */
-  private final Map<Channel, Stream> myChannelToStream = Maps.newHashMap();
+  private final Map<Channel, Common.Stream> myChannelToStream = Maps.newHashMap();
 
   public ProfilerService(@NotNull DataStoreService service,
                          Consumer<Runnable> fetchExecutor,
@@ -264,7 +264,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
    */
   public void startPolling(Common.Stream stream, Channel channel) {
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(channel);
-    streamConnected(stream, stub);
+    streamConnected(stream);
     UnifiedEventsDataPoller poller = new UnifiedEventsDataPoller(stream.getStreamId(), myUnifiedEventsTable, stub);
     myUnifiedEventsDataPollers.put(channel, poller);
     myStreamIdToStub.put(stream.getStreamId(), stub);
@@ -287,22 +287,22 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     }
   }
 
-  private void streamConnected(Common.Stream stream, ProfilerServiceGrpc.ProfilerServiceBlockingStub stub) {
+  private void streamConnected(Common.Stream stream) {
     myUnifiedEventsTable.insertUnifiedEvent(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Event.newBuilder()
       .setKind(Event.Kind.STREAM)
       .setGroupId(stream.getStreamId())
-      .setType(Event.Type.STREAM_CONNECTED)
       .setTimestamp(System.nanoTime())
-      .setStream(stream)
+      .setStream(Common.StreamData.newBuilder()
+                   .setStreamConnected(Common.StreamData.StreamConnected.newBuilder()
+                                         .setStream(stream)))
       .build());
   }
 
   private void streamDisconnected(Common.Stream stream) {
     myUnifiedEventsTable.insertUnifiedEvent(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Event.newBuilder()
       .setKind(Event.Kind.STREAM)
-      .setType(Event.Type.STREAM_DISCONNECTED)
       .setGroupId(stream.getStreamId())
-      .setStream(stream)
+      .setIsEnded(true)
       .setTimestamp(System.nanoTime())
       .build());
   }

@@ -157,19 +157,21 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     assert device.getDeviceId() == process.getDeviceId();
     myProcesses.putValue(myDevices.get(device.getDeviceId()), process);
     // The event pipeline expects process started / ended events. As such depending on the process state when passed in we add such events.
-    if (process.getState() != Common.Process.State.UNSPECIFIED && process.getState() != Common.Process.State.UNRECOGNIZED) {
+    if (process.getState() == Common.Process.State.ALIVE) {
       addEventToEventGroup(device.getDeviceId(), process.getPid(), Common.Event.newBuilder()
         .setTimestamp(myCommandTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.PROCESS)
-        .setType(Common.Event.Type.PROCESS_STARTED)
-        .setProcess(process).build());
+        .setProcess(Common.ProcessData.newBuilder()
+                      .setProcessStarted(Common.ProcessData.ProcessStarted.newBuilder()
+                                           .setProcess(process)))
+        .build());
     }
-    if (process.getState() != Common.Process.State.DEAD) {
+    if (process.getState() == Common.Process.State.DEAD) {
       addEventToEventGroup(device.getDeviceId(), process.getPid(), Common.Event.newBuilder()
         .setTimestamp(myCommandTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.PROCESS)
-        .setType(Common.Event.Type.PROCESS_ENDED)
-        .setProcess(process).build());
+        .setIsEnded(true)
+        .build());
     }
   }
 
@@ -186,29 +188,24 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myDevices.put(device.getDeviceId(), device);
     // The event pipeline expects devices are connected via streams. So when a new devices is added we create a stream connected event.
     // likewise when a device is taken offline we create a stream disconnected event.
-    if (device.getState() != Common.Device.State.UNSPECIFIED && device.getState() != Common.Device.State.UNRECOGNIZED) {
+    if (device.getState() == Common.Device.State.ONLINE) {
       addEventToEventGroup(device.getDeviceId(), device.getDeviceId(), Common.Event.newBuilder()
         .setTimestamp(myCommandTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.STREAM)
-        .setType(Common.Event.Type.STREAM_CONNECTED)
-        .setStream(Common.Stream.newBuilder()
-                     .setType(
-                       Common.Stream.Type.DEVICE)
-                     .setStreamId(
-                       device.getDeviceId())
-                     .setDevice(device)).build());
+        .setStream(Common.StreamData.newBuilder()
+                     .setStreamConnected(Common.StreamData.StreamConnected.newBuilder()
+                                           .setStream(Common.Stream.newBuilder()
+                                                        .setType(Common.Stream.Type.DEVICE)
+                                                        .setStreamId(device.getDeviceId())
+                                                        .setDevice(device))))
+        .build());
     }
     if (device.getState() == Common.Device.State.OFFLINE || device.getState() == Common.Device.State.DISCONNECTED) {
       addEventToEventGroup(device.getDeviceId(), device.getDeviceId(), Common.Event.newBuilder()
         .setTimestamp(myCommandTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.STREAM)
-        .setType(Common.Event.Type.STREAM_DISCONNECTED)
-        .setStream(Common.Stream.newBuilder()
-                     .setType(
-                       Common.Stream.Type.DEVICE)
-                     .setStreamId(
-                       device.getDeviceId())
-                     .setDevice(device)).build());
+        .setIsEnded(true)
+        .build());
     }
   }
 
@@ -224,13 +221,8 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     addEventToEventGroup(oldDevice.getDeviceId(), oldDevice.getDeviceId(), Common.Event.newBuilder()
       .setTimestamp(myCommandTimer.getCurrentTimeNs())
       .setKind(Common.Event.Kind.STREAM)
-      .setType(Common.Event.Type.STREAM_DISCONNECTED)
-      .setStream(Common.Stream.newBuilder()
-                   .setType(
-                     Common.Stream.Type.DEVICE)
-                   .setStreamId(
-                     oldDevice.getDeviceId())
-                   .setDevice(oldDevice)).build());
+      .setIsEnded(true)
+      .build());
     addDevice(newDevice);
   }
 
@@ -246,31 +238,23 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
       .setGroupId(session.getSessionId())
       .setSessionId(session.getSessionId())
       .setKind(Common.Event.Kind.SESSION)
-      .setType(Common.Event.Type.SESSION_STARTED)
       .setTimestamp(session.getStartTimestamp())
-      .setSessionStarted(
-        Common.SessionStarted.newBuilder()
-          .setPid(session.getPid())
-          .setStartTimestampEpochMs(
-            metadata
-              .getStartTimestampEpochMs())
-          .setJvmtiEnabled(
-            metadata.getJvmtiEnabled())
-          .setSessionName(
-            metadata.getSessionName())
-          .setType(
-            Common.SessionStarted.SessionType.FULL))
-      .build()
-    );
+      .setSession(Common.SessionData.newBuilder()
+                    .setSessionStarted(Common.SessionData.SessionStarted.newBuilder()
+                                         .setPid(session.getPid())
+                                         .setStartTimestampEpochMs(metadata.getStartTimestampEpochMs())
+                                         .setJvmtiEnabled(metadata.getJvmtiEnabled())
+                                         .setSessionName(metadata.getSessionName())
+                                         .setType(Common.SessionData.SessionStarted.SessionType.FULL)))
+      .build());
     if (session.getEndTimestamp() != Long.MAX_VALUE) {
       addEventToEventGroup(session.getDeviceId(), session.getSessionId(), Common.Event.newBuilder()
         .setGroupId(session.getSessionId())
         .setSessionId(session.getSessionId())
         .setKind(Common.Event.Kind.SESSION)
-        .setType(Common.Event.Type.SESSION_ENDED)
+        .setIsEnded(true)
         .setTimestamp(session.getEndTimestamp())
-        .build()
-      );
+        .build());
     }
   }
 

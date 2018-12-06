@@ -25,6 +25,7 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.ProfilerService;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Profiler.Command;
@@ -109,10 +110,11 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
       .addEvents(Event.newBuilder()
                    .setGroupId(DEVICE_ID)
                    .setKind(Event.Kind.STREAM)
-                   .setType(Event.Type.STREAM_CONNECTED)
-                   .setStream(Stream.newBuilder()
-                                .setStreamId(DEVICE_ID)
-                                .setType(Stream.Type.DEVICE))).build();
+                   .setStream(Common.StreamData.newBuilder()
+                              .setStreamConnected(Common.StreamData.StreamConnected.newBuilder()
+                                                    .setStream(Common.Stream.newBuilder()
+                                                                 .setStreamId(DEVICE_ID).setType(Stream.Type.DEVICE)))))
+      .build();
 
     ArgumentCaptor<GetEventGroupsResponse> response = ArgumentCaptor.forClass(GetEventGroupsResponse.class);
     verify(observer, times(1)).onNext(response.capture());
@@ -130,11 +132,8 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
     expectedGroup = expectedGroup.toBuilder().addEvents(Event.newBuilder()
                                                           .setGroupId(DEVICE_ID)
                                                           .setKind(Event.Kind.STREAM)
-                                                          .setType(Event.Type.STREAM_DISCONNECTED)
-                                                          .setTimestamp(100)
-                                                          .setStream(Stream.newBuilder()
-                                                                       .setStreamId(DEVICE_ID)
-                                                                       .setType(Stream.Type.DEVICE))).build();
+                                                          .setIsEnded(true)
+                                                          .setTimestamp(100)).build();
     assertThat(response.getValue().getGroupsCount()).isEqualTo(1);
 
     actualGroup = response.getValue().getGroups(0);
