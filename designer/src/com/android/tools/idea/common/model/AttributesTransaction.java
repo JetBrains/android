@@ -223,7 +223,7 @@ public class AttributesTransaction implements NlAttributesHolder {
     try {
       assert isValid;
 
-      if (!myComponent.getTag().isValid()) {
+      if (!myComponent.getBackend().isValid()) {
         return finishTransaction();
       }
 

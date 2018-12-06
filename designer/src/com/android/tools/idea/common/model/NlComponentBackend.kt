@@ -48,4 +48,6 @@ open interface NlComponentBackend {
 
   // TODO: potentially remove later (by adding directly to transaction commit)
   fun reformatAndRearrange()
+
+  fun isValid(): Boolean
 }
