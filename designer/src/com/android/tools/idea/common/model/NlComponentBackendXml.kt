@@ -17,6 +17,7 @@ package com.android.tools.idea.common.model
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
@@ -99,5 +100,9 @@ open class NlComponentBackendXml private constructor(
 
   override fun getTagName(): String {
     return myTagName
+  }
+
+  override fun getAffectedFile(): VirtualFile? {
+    return getTag().containingFile?.virtualFile
   }
 }
