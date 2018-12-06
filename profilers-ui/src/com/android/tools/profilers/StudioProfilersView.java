@@ -400,7 +400,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     boolean isAlive = myProfiler.getSessionsManager().isSessionAlive();
     if (isAlive) {
       Profiler.AgentStatusResponse agentStatus = myProfiler.getAgentStatus();
-      boolean waitForAgent = agentStatus.getStatus() != Profiler.AgentStatusResponse.Status.ATTACHED && agentStatus.getIsAgentAttachable();
+      boolean waitForAgent = agentStatus.getStatus() == Profiler.AgentStatusResponse.Status.UNSPECIFIED;
       if (waitForAgent) {
         // Disable all controls if the agent is still initialization/attaching.
         myZoomOut.setEnabled(false);
@@ -485,7 +485,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     boolean loading = (myProfiler.getAutoProfilingEnabled() && myProfiler.getPreferredProcessName() != null) &&
                       !myProfiler.getSessionsManager().isSessionAlive();
     Profiler.AgentStatusResponse agentStatus = myProfiler.getAgentStatus();
-    loading |= agentStatus.getStatus() != Profiler.AgentStatusResponse.Status.ATTACHED && agentStatus.getIsAgentAttachable();
+    loading |= (agentStatus.getStatus() == Profiler.AgentStatusResponse.Status.UNSPECIFIED && myProfiler.getSessionsManager().isSessionAlive());
     if (loading) {
       myStageLoadingPanel.startLoading();
       myStageCenterCardLayout.show(myStageCenterComponent, LOADING_VIEW_CARD);

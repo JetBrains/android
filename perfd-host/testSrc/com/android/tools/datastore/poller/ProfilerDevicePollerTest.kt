@@ -22,7 +22,6 @@ import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.database.ProfilerTable
-import com.android.tools.datastore.poller.ProfilerDevicePoller.AGENT_WAIT_RETRY_THRESHOLD
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Profiler
 import com.android.tools.profiler.proto.ProfilerServiceGrpc
@@ -107,38 +106,6 @@ class ProfilerDevicePollerTest : DataStorePollerTest() {
     assertThat(processResponse.processList).containsAllIn(deadProcessSet)
   }
 
-  @Test
-  fun testAgentIncompatibleAfterRetryThreshold() {
-    myProfilerService.setProcessAgentMap(PROCESS_AGENT_MAP)
-    myPoller.poll()
-
-    val agentRequestBuilder = Profiler.AgentStatusRequest.newBuilder().setDeviceId(DataStorePollerTest.DEVICE.deviceId)
-    var statusResponse = myTable.getAgentStatus(agentRequestBuilder.setPid(PROCESS_1).build())
-    assertThat(statusResponse.status).isEqualTo(Profiler.AgentStatusResponse.Status.ATTACHED)
-    assertThat(statusResponse.isAgentAttachable).isEqualTo(true)
-    statusResponse = myTable.getAgentStatus(agentRequestBuilder.setPid(PROCESS_2).build())
-    assertThat(statusResponse.status).isEqualTo(Profiler.AgentStatusResponse.Status.DETACHED)
-    assertThat(statusResponse.isAgentAttachable).isEqualTo(true)
-    statusResponse = myTable.getAgentStatus(agentRequestBuilder.setPid(PROCESS_3).build())
-    assertThat(statusResponse.status).isEqualTo(Profiler.AgentStatusResponse.Status.DETACHED)
-    assertThat(statusResponse.isAgentAttachable).isEqualTo(false)
-
-    for (i in 0 until AGENT_WAIT_RETRY_THRESHOLD) {
-      myPoller.poll()
-    }
-
-    statusResponse = myTable.getAgentStatus(agentRequestBuilder.setPid(PROCESS_1).build())
-    assertThat(statusResponse.status).isEqualTo(Profiler.AgentStatusResponse.Status.ATTACHED)
-    assertThat(statusResponse.isAgentAttachable).isEqualTo(true)
-    statusResponse = myTable.getAgentStatus(agentRequestBuilder.setPid(PROCESS_2).build())
-    assertThat(statusResponse.status).isEqualTo(Profiler.AgentStatusResponse.Status.DETACHED)
-    // The poller should mark the detached but agent-compatible process as agent-incompatible after max retries.
-    assertThat(statusResponse.isAgentAttachable).isEqualTo(false)
-    statusResponse = myTable.getAgentStatus(agentRequestBuilder.setPid(PROCESS_3).build())
-    assertThat(statusResponse.status).isEqualTo(Profiler.AgentStatusResponse.Status.DETACHED)
-    assertThat(statusResponse.isAgentAttachable).isEqualTo(false)
-  }
-
   private class FakeProfilerService : ProfilerServiceGrpc.ProfilerServiceImplBase() {
 
     private var myProcessAgentMap: Map<Common.Process, Profiler.AgentStatusResponse>? = null
@@ -184,11 +151,11 @@ class ProfilerDevicePollerTest : DataStorePollerTest() {
     private val PROCESS_3 = 13
     private val PROCESS_AGENT_MAP = mapOf(
       Common.Process.newBuilder().setPid(PROCESS_1).setDeviceId(DEVICE.deviceId).setState(Common.Process.State.ALIVE).build() to
-      Profiler.AgentStatusResponse.newBuilder().setIsAgentAttachable(true).setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build(),
+      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build(),
       Common.Process.newBuilder().setPid(PROCESS_2).setDeviceId(DEVICE.deviceId).setState(Common.Process.State.ALIVE).build() to
-      Profiler.AgentStatusResponse.newBuilder().setIsAgentAttachable(true).setStatus(Profiler.AgentStatusResponse.Status.DETACHED).build(),
+      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.UNSPECIFIED).build(),
       Common.Process.newBuilder().setPid(PROCESS_3).setDeviceId(DEVICE.deviceId).setState(Common.Process.State.ALIVE).build() to
-      Profiler.AgentStatusResponse.newBuilder().setIsAgentAttachable(false).setStatus(Profiler.AgentStatusResponse.Status.DETACHED).build()
+      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.UNATTACHABLE).build()
     )
   }
 }

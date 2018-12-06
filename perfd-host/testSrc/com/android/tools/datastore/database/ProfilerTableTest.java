@@ -211,31 +211,6 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
   }
 
   @Test
-  public void testAgentStatusCannotDowngrade() {
-    Common.Process process = Common.Process.newBuilder().setPid(99).setName("FakeProcess").build();
-
-    // Setup initial process and status
-    AgentStatusResponse status =
-      AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.DETACHED).build();
-    getTable().insertOrUpdateProcess(FAKE_DEVICE_ID, process);
-    getTable().updateAgentStatus(FAKE_DEVICE_ID, process, status);
-
-    AgentStatusRequest request =
-      AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(FAKE_DEVICE_ID.get()).build();
-    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.DETACHED);
-
-    // Upgrading status to attach should work
-    status = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
-    getTable().updateAgentStatus(FAKE_DEVICE_ID, process, status);
-    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
-
-    // Attempt to downgrade status
-    status = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.DETACHED).build();
-    getTable().updateAgentStatus(FAKE_DEVICE_ID, process, status);
-    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
-  }
-
-  @Test
   public void testExistingProcessIsUpdated() {
     Common.Process process =
       Common.Process.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).setPid(99).setName("FakeProcess").setState(Common.Process.State.ALIVE)

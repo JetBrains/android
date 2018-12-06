@@ -332,17 +332,17 @@ public final class StudioProfilersTest {
     assertThat(profilers.getAgentStatus()).isEqualTo(attachedResponse);
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(2);
 
-    AgentStatusResponse detachResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.DETACHED).build();
-    myProfilerService.setAgentStatus(detachResponse);
+    AgentStatusResponse unattachableResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.UNATTACHABLE).build();
+    myProfilerService.setAgentStatus(unattachableResponse);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(profilers.getAgentStatus()).isEqualTo(detachResponse);
+    assertThat(profilers.getAgentStatus()).isEqualTo(unattachableResponse);
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(3);
 
     // Setting the same agent status should not trigger an aspect change.
-    detachResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.DETACHED).build();
-    myProfilerService.setAgentStatus(detachResponse);
+    unattachableResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.UNATTACHABLE).build();
+    myProfilerService.setAgentStatus(unattachableResponse);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(profilers.getAgentStatus()).isEqualTo(detachResponse);
+    assertThat(profilers.getAgentStatus()).isEqualTo(unattachableResponse);
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(3);
   }
 

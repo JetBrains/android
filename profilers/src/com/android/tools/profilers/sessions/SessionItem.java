@@ -182,8 +182,7 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
     boolean oldValue = myWaitingForAgent;
     if (SessionsManager.isSessionAlive(mySession) && mySession.equals(myProfilers.getSessionsManager().getSelectedSession())) {
       Profiler.AgentStatusResponse agentStatusResponse = myProfilers.getAgentStatus();
-      myWaitingForAgent = agentStatusResponse.getIsAgentAttachable() &&
-                          agentStatusResponse.getStatus() == Profiler.AgentStatusResponse.Status.DETACHED;
+      myWaitingForAgent = agentStatusResponse.getStatus() == Profiler.AgentStatusResponse.Status.UNSPECIFIED;
     }
     else {
       myWaitingForAgent = false;
