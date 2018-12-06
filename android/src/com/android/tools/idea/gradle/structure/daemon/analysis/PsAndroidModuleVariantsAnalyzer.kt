@@ -50,10 +50,11 @@ fun analyzeModuleDependency(dependency: PsDeclaredModuleAndroidDependency, pathR
         PsGeneralIssue(
           "No build type in module '${targetModule.path.renderNavigation { buildTypesPath }}' " +
           "matches build type '${sourceBuildType.path.renderNavigation()}'.",
+          "",
           dependency.path,
           PsIssueType.PROJECT_ANALYSIS,
           PsIssue.Severity.ERROR,
-          PsMissingBuildTypeQuickFix(targetModule, sourceBuildType)
+          listOf(PsMissingBuildTypeQuickFix(targetModule, sourceBuildType), PsMissingBuildTypeFallbackQuickFix(sourceBuildType))
         )
       }
     }
@@ -74,10 +75,12 @@ fun analyzeModuleDependency(dependency: PsDeclaredModuleAndroidDependency, pathR
               "No product flavor in module '${targetModule.path.renderNavigation { productFlavorsPath }}' " +
               "matches product flavor '${sourceProductFlavor.path.renderNavigation()}' " +
               "in dimension '${sourceDimension.path.renderNavigation()}'.",
+              "",
               dependency.path,
               PsIssueType.PROJECT_ANALYSIS,
               PsIssue.Severity.ERROR,
-              PsMissingProductFlavorQuickFix(targetModule, sourceProductFlavor)
+              listOf(PsMissingProductFlavorQuickFix(targetModule, sourceProductFlavor),
+                     PsMissingProductFlavorFallbackQuickFix(sourceProductFlavor))
             )
           }
       }
@@ -143,6 +146,23 @@ data class PsMissingBuildTypeQuickFix(val moduleGradlePath: String, val buildTyp
   }
 }
 
+data class PsMissingBuildTypeFallbackQuickFix(val moduleGradlePath: String, val buildTypeName: String) : PsQuickFix {
+  constructor (buildType: PsBuildType) : this(buildType.parent.gradlePath, buildType.name)
+
+  override val text: String get() = "Add Fallback"
+
+  override fun execute(context: PsContext) {
+    val sourceModule = context.project.findModuleByGradlePath(moduleGradlePath).cast<PsAndroidModule>()
+    val buildType = sourceModule.findBuildType(buildTypeName) ?: return
+    ApplicationManager.getApplication().invokeLater {
+      context
+        .mainConfigurable
+        .navigateTo(
+          buildType.path.property(PsBuildType.BuildTypeDescriptors.matchingFallbacks).getPlaceDestination(context), true)
+    }
+  }
+}
+
 data class PsMissingFlavorDimensionQuickFix(val moduleGradlePath: String, val newDimensionName: String) : PsQuickFix {
   constructor (module: PsAndroidModule, dimension: PsFlavorDimension) : this(module.gradlePath, dimension.name)
 
@@ -172,6 +192,28 @@ data class PsMissingProductFlavorQuickFix(val moduleGradlePath: String, val dime
       context
         .mainConfigurable
         .navigateTo(newProductFlavor.path.getPlaceDestination(context), true)
+    }
+  }
+}
+
+data class PsMissingProductFlavorFallbackQuickFix(
+  val moduleGradlePath: String,
+  val dimension: String,
+  val productFlavorName: String
+) : PsQuickFix {
+  constructor (productFlavor: PsProductFlavor) : this(productFlavor.parent.gradlePath, productFlavor.effectiveDimension.orEmpty(),
+                                                      productFlavor.name)
+
+  override val text: String get() = "Add Fallback"
+
+  override fun execute(context: PsContext) {
+    val sourceModule = context.project.findModuleByGradlePath(moduleGradlePath).cast<PsAndroidModule>()
+    val productFlavor = sourceModule.findProductFlavor(dimension, productFlavorName) ?: return
+    ApplicationManager.getApplication().invokeLater {
+      context
+        .mainConfigurable
+        .navigateTo(
+          productFlavor.path.property(PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks).getPlaceDestination(context), true)
     }
   }
 }

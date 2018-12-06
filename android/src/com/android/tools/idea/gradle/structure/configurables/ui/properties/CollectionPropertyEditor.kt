@@ -86,7 +86,7 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
 
   protected abstract fun createTableModel(): DefaultTableModel
   protected abstract fun createColumnModel(): TableColumnModel
-  protected abstract fun addItem()
+  abstract fun addItem()
   protected abstract fun removeItem()
   protected abstract fun getPropertyAt(row: Int): ModelPropertyCore<ValueT>
 

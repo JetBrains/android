@@ -18,11 +18,15 @@ package com.android.tools.idea.gradle.structure.configurables.ui.properties
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.ComponentProvider
+import com.android.tools.idea.gradle.structure.configurables.ui.PROPERTY_PLACE_NAME
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiModel
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.navigation.Place
 import javax.swing.JComponent
 
 /**
@@ -36,8 +40,7 @@ open class ConfigPanel<in ModelT>(
   private val module: PsModule,
   private val model: ModelT,
   private val propertiesModel: PropertiesUiModel<ModelT>
-) : ConfigPanelUi(), ComponentProvider, Disposable {
-
+) : ConfigPanelUi(), ComponentProvider, Place.Navigator, Disposable {
   private var editors = mutableListOf<ModelPropertyEditor<Any>>()
   private var editorsInitialized = false
   private var initialized = false
@@ -71,6 +74,24 @@ open class ConfigPanel<in ModelT>(
       override fun syncFailed(project: Project, errorMessage: String) = refresh()
       override fun syncSkipped(project: Project) = refresh()
     }, this)
+  }
+
+  override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback {
+    val propertyDescription = place?.getPath(PROPERTY_PLACE_NAME) ?: ActionCallback.REJECTED
+    if (requestFocus) {
+      val editor = editors.firstOrNull { it.property.description == propertyDescription }
+      when (editor) {
+        is CollectionPropertyEditor<*, *> -> {
+          editor.component.scrollRectToVisible(editor.component.bounds)
+          editor.component.requestFocus()
+          ApplicationManager.getApplication().invokeLater {
+            editor.addItem()
+          }
+        }
+        else -> editor?.component?.requestFocus()
+      }
+    }
+    return ActionCallback.DONE
   }
 
   override fun dispose() {

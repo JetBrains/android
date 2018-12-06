@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.navigation
 
 import com.android.tools.idea.gradle.structure.configurables.BuildVariantsPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.ui.PROPERTY_PLACE_NAME
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.BUILD_VARIANTS_PLACE_NAME
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BUILD_TYPES_DISPLAY_NAME
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BUILD_TYPES_PLACE_NAME
@@ -24,6 +25,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.pr
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.PRODUCT_FLAVORS_PLACE_NAME
 import com.android.tools.idea.gradle.structure.model.PsModulePath
 import com.android.tools.idea.gradle.structure.model.PsPlaceBasedPath
+import com.android.tools.idea.gradle.structure.model.android.PsBuildType
+import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.Companion.putPath
 import com.intellij.ui.navigation.Place
 
@@ -67,6 +71,7 @@ data class PsBuildTypeNavigationPath(override val parent: PsBuildTypesNavigation
   }
 
   override fun toString(): String = buildTypeName
+  fun property(property: ModelProperty<PsBuildType, *, *, *>): PsPlaceBasedPath = PsBuildTypePropertyNavigationPath(this, property)
 }
 
 data class PsProductFlavorNavigationPath(override val parent: PsProductFlavorsNavigationPath, val productFlavorName: String)
@@ -77,6 +82,7 @@ data class PsProductFlavorNavigationPath(override val parent: PsProductFlavorsNa
   }
 
   override fun toString(): String = productFlavorName
+  fun property(property: ModelProperty<PsProductFlavor, *, *, *>): PsPlaceBasedPath = PsProductFlavorPropertyNavigationPath(this, property)
 }
 
 data class PsFlavorDimensionNavigationPath(override val parent: PsProductFlavorsNavigationPath, val flavorDimensionName: String)
@@ -87,4 +93,28 @@ data class PsFlavorDimensionNavigationPath(override val parent: PsProductFlavors
   }
 
   override fun toString(): String = flavorDimensionName
+}
+
+data class PsBuildTypePropertyNavigationPath(override val parent: PsBuildTypeNavigationPath, val property: String)
+  : PsPlaceBasedPath() {
+  constructor(parent: PsBuildTypeNavigationPath, property: ModelProperty<PsBuildType, *, *, *>) : this(parent, property.description)
+
+  override fun queryPlace(place: Place, context: PsContext) {
+    parent.queryPlace(place, context)
+    place.putPath(PROPERTY_PLACE_NAME, property)
+  }
+
+  override fun toString(): String = property
+}
+
+data class PsProductFlavorPropertyNavigationPath(override val parent: PsProductFlavorNavigationPath, val property: String)
+  : PsPlaceBasedPath() {
+  constructor(parent: PsProductFlavorNavigationPath, property: ModelProperty<PsProductFlavor, *, *, *>) : this(parent, property.description)
+
+  override fun queryPlace(place: Place, context: PsContext) {
+    parent.queryPlace(place, context)
+    place.putPath(PROPERTY_PLACE_NAME, property)
+  }
+
+  override fun toString(): String = property
 }
