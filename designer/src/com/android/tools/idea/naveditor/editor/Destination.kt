@@ -29,6 +29,7 @@ import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BORDER_COLOR
 import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_TEXT_COLOR
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
+import com.android.tools.idea.uibuilder.model.createChild
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
@@ -81,10 +82,7 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
   }
 
   protected fun createComponent(tagName: String): NlComponent? {
-    val model = parent.model
-
-    val tag = parent.tag.createChildTag(tagName, null, null, true)
-    val newComponent = model.createComponent(null, tag, parent, null, InsertType.CREATE)
+    val newComponent = parent.createChild(tagName, true)
     if (newComponent == null) {
       ApplicationManager.getApplication().invokeLater {
         Messages.showErrorDialog(parent.model.project, "Failed to create Destination!", "Error")

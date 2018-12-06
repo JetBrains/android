@@ -397,6 +397,22 @@ fun NlComponent.createChild(editor: ViewEditor,
   return model.createComponent(editor.scene.designSurface, tag, this, before, insertType)
 }
 
+/**
+ * Create a new child component based on tag name, namespace and body text.
+ * Temporary API to help remove XmlTag dependencies.
+ */
+fun NlComponent.createChild(tagName: String,
+                            enforceNamespacesDeep: Boolean = false,
+                            namespace: String? = null,
+                            bodyText: String? = null,
+                            surface: DesignSurface? = null,
+                            before: NlComponent? = null,
+                            insertType: InsertType = InsertType.CREATE
+): NlComponent? {
+  val childTag = tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
+  return model.createComponent(surface, childTag, this, before, insertType)
+}
+
 fun NlComponent.clearAttributes() {
   viewGroupHandler?.clearAttributes(this)
 }

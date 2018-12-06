@@ -3,10 +3,10 @@ package com.android.tools.idea.naveditor.property
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceResolver
-import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
+import com.android.tools.idea.uibuilder.model.createChild
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.Computable
@@ -41,9 +41,8 @@ open class NewElementProperty(private val parent: NlComponent, private val tagNa
     if (value is String? && value.isNullOrEmpty()) {
       return
     }
-    val newComponent = WriteCommandAction.runWriteCommandAction(parent.model.project, Computable {
-      val tag = parent.tag.createChildTag(tagName, null, null, false)
-      val result = parent.model.createComponent(null, tag, parent, null, InsertType.CREATE) ?: error("Failed to create <$tagName>!")
+    val newComponent = WriteCommandAction.runWriteCommandAction(parent.model.project, Computable<NlComponent> {
+      val result = parent.createChild(tagName, false) ?: error ("Failed to create <$tagName>!")
       result.setAttribute(namespace, attrName, value as String)
       result
     })

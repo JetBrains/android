@@ -647,7 +647,7 @@ public class NlComponent implements NlAttributesHolder {
    * @return The new id.
    */
   @NotNull
-  public String assignId(@NotNull Set<String> ids) {
+  private String assignId(@NotNull Set<String> ids) {
     return assignId(getTagName(), ids);
   }
 
@@ -659,7 +659,7 @@ public class NlComponent implements NlAttributesHolder {
    * @return The new id.
    */
   @NotNull
-  public String assignId(@NotNull String baseName, @NotNull Set<String> ids) {
+  private String assignId(@NotNull String baseName, @NotNull Set<String> ids) {
     String newId = generateId(baseName, ids, ResourceFolderType.LAYOUT, getModel().getModule());
     // If the component has an open transaction, assign the id in that transaction
     NlAttributesHolder attributes = myCurrentTransaction == null ? this : myCurrentTransaction;
