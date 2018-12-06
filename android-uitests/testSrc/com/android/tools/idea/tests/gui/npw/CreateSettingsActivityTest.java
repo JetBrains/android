@@ -70,9 +70,7 @@ public class CreateSettingsActivityTest {
              .clickNext()
              .clickFinish();
 
-      guiTest.testSystem().waitForProjectSyncToFinish(guiTest.ideFrame());
-
-      guiTest.ideFrame()
+      guiTest.ideFrame().waitForGradleProjectSyncToFinish()
              .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Settings Activity")
              .clickFinish();
     } else {
@@ -90,7 +88,7 @@ public class CreateSettingsActivityTest {
              .clickFinish();
     }
 
-    guiTest.testSystem().waitForProjectSyncToFinish(guiTest.ideFrame());
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     // Verification.
     EditorFixture editorFixture = guiTest.ideFrame().getEditor();

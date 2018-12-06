@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -29,15 +30,20 @@ import com.android.tools.idea.tests.gui.framework.guitestsystem.CurrentGuiTestPr
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.GeneralSettings;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
+import org.fest.swing.timing.Wait;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -297,22 +303,19 @@ public class GuiTestRule implements TestRule {
   }
 
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null);
-  }
-
-  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @Nullable String buildFilePath) throws IOException {
-    importProject(projectDirName, buildFilePath);
-    testSystem().waitForProjectSyncToFinish(ideFrame());
-    return ideFrame();
+    importProject(projectDirName);
+    return ideFrame().waitForGradleProjectSyncToFinish();
   }
 
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    return importProject(projectDirName, null);
-  }
+    VirtualFile toSelect = VfsUtil.findFileByIoFile(setUpProject(projectDirName), true);
+    ApplicationManager.getApplication().invokeAndWait(() -> GradleProjectImporter.getInstance().importProject(toSelect));
 
-  public IdeFrameFixture importProject(@NotNull String projectDirName, @Nullable String buildFilePath) throws IOException {
-    File testProjectDir = setUpProject(projectDirName);
-    testSystem().importProject(testProjectDir, robot(), buildFilePath);
+    Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
+
+    // After the project is opened there will be an Index and a Gradle Sync phase, and these can happen in any order.
+    // Waiting for indexing to finish, makes sure Sync will start next or all Sync was done already.
+    GuiTests.waitForProjectIndexingToFinish(ProjectManager.getInstance().getOpenProjects()[0]);
     return ideFrame();
   }
 
@@ -336,7 +339,6 @@ public class GuiTestRule implements TestRule {
   private File setUpProject(@NotNull String projectDirName) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
-    testSystem().prepareTestForImport(projectPath);
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
     updateGradleVersions(projectPath);
     updateLocalProperties(projectPath);
@@ -428,10 +430,6 @@ public class GuiTestRule implements TestRule {
 
   public Robot robot() {
     return myRobotTestRule.getRobot();
-  }
-
-  public GuiTestProjectSystem testSystem() {
-    return myCurrentProjectSystem.getTestProjectSystem();
   }
 
   @NotNull

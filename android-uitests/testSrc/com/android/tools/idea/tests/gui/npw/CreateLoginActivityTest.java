@@ -87,7 +87,7 @@ public class CreateLoginActivityTest {
              .clickFinish();
     }
 
-    guiTest.testSystem().waitForProjectSyncToFinish(guiTest.ideFrame());
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     // Verification.
     EditorFixture editorFixture = guiTest.ideFrame().getEditor();
