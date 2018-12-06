@@ -246,7 +246,6 @@ public class NavNlEditorTest {
       .assertCanInteractWithSurface();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/110939241
   @Test
   public void testCancelAddDependency() throws Exception {
     IdeFrameFixture frame = guiTest.importSimpleLocalApplication();
