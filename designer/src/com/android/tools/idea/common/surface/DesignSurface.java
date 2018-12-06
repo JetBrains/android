@@ -79,6 +79,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -946,6 +947,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
     return getCurrentSceneView();
   }
+
+  /**
+   * Return the bounds which SceneView can draw on.
+   * @param rectangle The rectangle to receive the dimension. If this is null, a new instance will be created.
+   * @see JComponent#getBounds(Rectangle)
+   */
+  @NotNull
+  public abstract Rectangle getRenderableBoundsOfSceneView(@NotNull SceneView sceneView, @Nullable Rectangle rectangle);
 
   /**
    * Return the SceneView under the given position

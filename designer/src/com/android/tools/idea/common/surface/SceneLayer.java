@@ -32,6 +32,7 @@ public class SceneLayer extends Layer {
   private final SceneView mySceneView;
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle mySizeRectangle = new Rectangle();
+  private final Rectangle mySurfaceRectangle = new Rectangle();
   private final Display myDisplay = new Display();
   private boolean myShowOnHover = false;
   private boolean myShowAlways = true;
@@ -74,7 +75,8 @@ public class SceneLayer extends Layer {
       if (mySizeRectangle.isEmpty()) {
         return;
       }
-      sceneContext.setBounds(mySizeRectangle);
+
+      sceneContext.setRenderableBounds(myDesignSurface.getRenderableBoundsOfSceneView(mySceneView, mySurfaceRectangle));
 
       if (myShowAlways) {
         paintBackground(g, sceneContext);

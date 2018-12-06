@@ -28,6 +28,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import java.awt.Dimension
+import java.awt.Rectangle
 import java.util.function.Consumer
 import javax.swing.JComponent
 
@@ -87,6 +88,7 @@ class DesignSurfaceTest: LayoutTestCase() {
 }
 
 private class TestDesignSurface(project: Project, disposible: Disposable): DesignSurface(project, SelectionModel(), disposible) {
+
   override fun getComponentRegistrar() = Consumer<NlComponent> {}
 
   override fun createActionHandler(): DesignSurfaceActionHandler {
@@ -104,6 +106,8 @@ private class TestDesignSurface(project: Project, disposible: Disposable): Desig
   }
 
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
+
+  override fun getRenderableBoundsOfSceneView(sceneView: SceneView, rectangle: Rectangle?): Rectangle = getBounds(rectangle)
 
   override fun layoutContent() = Unit
 

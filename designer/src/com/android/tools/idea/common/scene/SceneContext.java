@@ -42,7 +42,7 @@ public class SceneContext {
   private boolean myShowOnlySelection = false;
   @NotNull
   @SwingCoordinate
-  private Rectangle myBounds = new Rectangle();
+  private Rectangle myRenderableBounds = new Rectangle();
 
   private SceneContext() {
     myTime = System.currentTimeMillis();
@@ -128,14 +128,14 @@ public class SceneContext {
 
   public double getScale() { return 1; }
 
-  public void setBounds(@NotNull @SwingCoordinate Rectangle bounds) {
-    myBounds.setBounds(bounds);
+  public void setRenderableBounds(@NotNull @SwingCoordinate Rectangle bounds) {
+    myRenderableBounds.setBounds(bounds);
   }
 
   @NotNull
   @SwingCoordinate
-  public Rectangle getBounds() {
-    return myBounds;
+  public Rectangle getRenderableBounds() {
+    return myRenderableBounds;
   }
 
   private static SceneContext lazySingleton;
