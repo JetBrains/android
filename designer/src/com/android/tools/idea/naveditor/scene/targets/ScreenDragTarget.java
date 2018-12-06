@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
+import com.android.tools.idea.common.scene.target.LegacyDragTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
@@ -32,7 +33,7 @@ import java.util.List;
 /**
  * Implements a target allowing dragging a nav editor screen
  */
-public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTarget {
+public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTarget, LegacyDragTarget {
 
   private final Point[] myChildOffsets;
 
