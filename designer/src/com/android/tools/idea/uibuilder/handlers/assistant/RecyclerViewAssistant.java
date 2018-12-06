@@ -292,7 +292,10 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
       component.setAttribute(TOOLS_URI, ATTR_LISTITEM, LAYOUT_RESOURCE_PREFIX + resourceName);
       component.setAttribute(TOOLS_URI, ATTR_SPAN_COUNT, template.hasTag(TemplateTag.GRID) ? "5" : null);
       component.setAttribute(TOOLS_URI, "layoutManager", template.hasTag(TemplateTag.GRID) ? "GridLayoutManager" : null);
-      CommandProcessor.getInstance().addAffectedFiles(project, component.getTag().getContainingFile().getVirtualFile());
+      VirtualFile virtualFile = component.getBackend().getAffectedFile();
+      if (virtualFile != null) {
+        CommandProcessor.getInstance().addAffectedFiles(project, virtualFile);
+      }
 
       return PsiManager.getInstance(project).findFile(file);
     });

@@ -32,6 +32,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import java.awt.Component
 import java.awt.GridLayout
 import javax.swing.JComponent
@@ -125,7 +126,11 @@ class TextViewAssistant(private val context: Context) : AssistantPopupPanel() {
     ApplicationManager.getApplication().invokeLater {
       WriteCommandAction.runWriteCommandAction(project) {
         myComponent.setAttribute(TOOLS_URI, ATTR_TEXT, myOriginalTextValue)
-        CommandProcessor.getInstance().addAffectedFiles(project, myComponent.tag.containingFile.virtualFile)
+
+        val affectedFile: VirtualFile? = myComponent.backend.getAffectedFile()
+        if (affectedFile != null) {
+          CommandProcessor.getInstance().addAffectedFiles(project, affectedFile!!)
+        }
       }
     }
     return

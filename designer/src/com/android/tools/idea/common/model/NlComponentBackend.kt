@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.model
 
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
 
@@ -41,4 +42,7 @@ open interface NlComponentBackend {
 
   // TODO: remove
   fun getTagName(): String
+
+  // TODO: return list later.
+  fun getAffectedFile(): VirtualFile?
 }
