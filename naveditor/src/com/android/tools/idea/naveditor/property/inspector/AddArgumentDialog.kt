@@ -31,6 +31,7 @@ import com.android.tools.idea.naveditor.model.setNullableAndLog
 import com.android.tools.idea.naveditor.model.setTypeAndLog
 import com.android.tools.idea.naveditor.model.typeAttr
 import com.android.tools.idea.res.resolve
+import com.android.tools.idea.uibuilder.model.createChild
 import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ide.util.TreeClassChooserFactory
@@ -290,17 +291,14 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
 
   fun save() {
     WriteCommandAction.runWriteCommandAction(parent.model.project) {
-      var realComponent = existingComponent
+      var realComponent = existingComponent ?: parent.createChild(TAG_ARGUMENT)
       if (realComponent == null) {
-        val tag = parent.tag.createChildTag(TAG_ARGUMENT, null, null, false)
-        realComponent = parent.model.createComponent(null, tag, parent, null, InsertType.CREATE)
-        if (realComponent == null) {
-          ApplicationManager.getApplication().invokeLater {
-            Messages.showErrorDialog(parent.model.project, "Failed to create Argument!", "Error")
-          }
-          return@runWriteCommandAction
+        ApplicationManager.getApplication().invokeLater {
+          Messages.showErrorDialog(parent.model.project, "Failed to create Argument!", "Error")
         }
+        return@runWriteCommandAction
       }
+
       realComponent.setArgumentNameAndLog(name, NavEditorEvent.Source.PROPERTY_INSPECTOR)
       realComponent.setTypeAndLog(type, NavEditorEvent.Source.PROPERTY_INSPECTOR)
       realComponent.setNullableAndLog(isNullable, NavEditorEvent.Source.PROPERTY_INSPECTOR)

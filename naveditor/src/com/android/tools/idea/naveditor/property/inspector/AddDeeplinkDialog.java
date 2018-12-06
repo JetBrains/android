@@ -25,9 +25,9 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 
 import javax.swing.*;
 import java.net.URI;
@@ -111,8 +111,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
     WriteCommandAction.runWriteCommandAction(myParent.getModel().getProject(), () -> {
       NlComponent realComponent = myExistingComponent;
       if (realComponent == null) {
-        XmlTag tag = myParent.getTag().createChildTag(TAG_DEEP_LINK, null, null, false);
-        realComponent = myParent.getModel().createComponent(null, tag, myParent, null, InsertType.CREATE);
+        realComponent = NlComponentHelperKt.createChild(myParent, TAG_DEEP_LINK, false, null, null, null, null, InsertType.CREATE);
         if (realComponent == null) {
           ApplicationManager.getApplication().invokeLater(() ->
             Messages.showErrorDialog(myParent.getModel().getProject(), "Failed to create Argument!", "Error")
