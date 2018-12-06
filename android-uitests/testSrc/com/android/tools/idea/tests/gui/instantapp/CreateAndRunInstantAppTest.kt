@@ -131,7 +131,7 @@ class CreateAndRunInstantAppTest {
 
     val ideFrame = guiTest.ideFrame()
     // TODO remove the following workaround wait for http://b/72666461
-    guiTest.testSystem().waitForProjectSyncToFinish(ideFrame)
+    ideFrame.waitForGradleProjectSyncToFinish()
 
     ideFrame.runApp(runConfigName)
       .selectDevice(StringTextMatcher("Google Nexus 5X"))

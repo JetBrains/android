@@ -177,8 +177,7 @@ public class AddKotlinTest {
     }
     // TODO End hack
 
-    ideFrameFixture.requestProjectSync();
-    guiTest.testSystem().waitForProjectSyncToFinish(ideFrameFixture);
+    ideFrameFixture.requestProjectSync().waitForGradleProjectSyncToFinish();
 
     assertThat(ideFrameFixture.invokeProjectMake().isBuildSuccessful()).isTrue();
   }
