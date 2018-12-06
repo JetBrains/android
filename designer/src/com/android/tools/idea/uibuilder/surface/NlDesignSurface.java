@@ -204,6 +204,39 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     return primarySceneView;
   }
 
+  @NotNull
+  @Override
+  public Rectangle getRenderableBoundsOfSceneView(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
+    if (mySceneMode != SceneMode.BOTH) {
+      return getBounds(rectangle);
+    }
+
+    // When displaying both Design and Blueprint, we need to make sure they didn't overlap each other.
+    int x;
+    int y;
+    int width;
+    int height;
+
+    // TODO: find better way to determine the position of SceneView.
+    if (isStackVertically()) {
+      x = getX();
+      width = getWidth();
+      height = getHeight() / 2;
+      y = sceneView instanceof BlueprintView ? getY() + height : getY();
+    }
+    else {
+      y = getY();
+      height = getHeight();
+      width = getWidth() / 2;
+      x = sceneView instanceof BlueprintView ? getX() + width : getX();
+    }
+    if (rectangle == null) {
+      rectangle = new Rectangle();
+    }
+    rectangle.setBounds(x, y, width, height);
+    return rectangle;
+  }
+
   /**
    * Return the ScreenView under the given position
    *

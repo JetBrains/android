@@ -421,7 +421,7 @@ private abstract class BasePlaceholderDrawRegion(@AndroidDpCoordinate private va
     val defStroke = g.stroke
     val defClip = g.clip
 
-    g.clip = sceneContext.bounds
+    g.clip = sceneContext.renderableBounds
 
     setBounds(sceneContext.getSwingXDip(x1.toFloat()),
               sceneContext.getSwingYDip(y1.toFloat()),

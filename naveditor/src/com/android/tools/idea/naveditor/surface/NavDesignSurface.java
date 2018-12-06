@@ -201,6 +201,12 @@ public class NavDesignSurface extends DesignSurface {
 
   @NotNull
   @Override
+  public Rectangle getRenderableBoundsOfSceneView(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
+    return getBounds(rectangle);
+  }
+
+  @NotNull
+  @Override
   protected SceneManager createSceneManager(@NotNull NlModel model) {
     return new NavSceneManager(model, this);
   }
