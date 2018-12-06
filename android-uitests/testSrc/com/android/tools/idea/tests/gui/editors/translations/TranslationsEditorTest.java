@@ -151,7 +151,7 @@ public final class TranslationsEditorTest {
     dialog.getKeyTextField().enterText("action_settings");
     dialog.getOkButton().click();
 
-    dialog.waitUntilErrorLabelFound(toResourceName("action_settings already exists in app/src/main/res"));
+    dialog.waitUntilErrorLabelFound(".*" + toResourceName("action_settings already exists in app/src/main/res") + ".*");
     dialog.getCancelButton().click();
   }
 
