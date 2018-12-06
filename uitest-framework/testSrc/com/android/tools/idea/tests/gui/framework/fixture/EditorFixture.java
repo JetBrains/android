@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.common.editor.DesignerEditor;
-import com.android.tools.idea.common.editor.NlEditor;
+import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
