@@ -904,8 +904,7 @@ public class Scene implements SelectionListener, Disposable {
   private Dimension measure(@NotNull SceneComponent component, @Nullable RenderTask.AttributeFilter filter) {
     // TODO: Reuse snapshot!
     NlComponent neleComponent = component.getNlComponent();
-    XmlTag tag = neleComponent.getTag();
-    if (!tag.isValid()) {
+    if (!neleComponent.getBackend().isValid()) {
       return null;
     }
     NlModel model = neleComponent.getModel();
@@ -922,6 +921,7 @@ public class Scene implements SelectionListener, Disposable {
       return null;
     }
 
+    XmlTag tag = neleComponent.getTag();
     ViewInfo viewInfo = task.measureChild(tag, filter);
     if (viewInfo == null) {
       return null;

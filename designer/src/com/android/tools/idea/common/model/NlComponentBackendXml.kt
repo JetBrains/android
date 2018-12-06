@@ -117,4 +117,8 @@ open class NlComponentBackendXml private constructor(
 
     TemplateUtils.reformatAndRearrange(myModel.project, getTag())
   }
+
+  override fun isValid(): Boolean {
+    return getTag().isValid
+  }
 }
