@@ -31,6 +31,7 @@ import com.intellij.ui.TableUtil
 import com.intellij.ui.table.JBTable
 import com.intellij.util.IJSwingUtilities
 import com.intellij.util.ui.JBUI
+import sun.awt.CausedFocusEvent
 import java.awt.Color
 import java.awt.Component
 import java.awt.Container
@@ -39,6 +40,8 @@ import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -89,6 +92,7 @@ class PTableImpl(override val tableModel: PTableModel,
     get() = super.getFont()
   override val gridLineColor: Color
     get() = gridColor
+  override var wrap = false
 
   init {
     // The row heights should be identical, save time by only looking at the first rows
@@ -115,6 +119,19 @@ class PTableImpl(override val tableModel: PTableModel,
 
     super.addComponentListener(object : ComponentAdapter() {
       override fun componentResized(event: ComponentEvent) = updateColumnWidths()
+    })
+
+    super.addFocusListener(object : FocusAdapter() {
+      override fun focusGained(event: FocusEvent) {
+        // If this table gains focus from focus traversal,
+        // and there are editable cells: delegate to the next focus candidate.
+        when {
+          event !is CausedFocusEvent -> return
+          !model.isEditable -> return
+          event.cause == CausedFocusEvent.Cause.TRAVERSAL_FORWARD -> transferFocus()
+          event.cause == CausedFocusEvent.Cause.TRAVERSAL_BACKWARD -> transferFocusBackward()
+        }
+      }
     })
 
     // We want expansion for the property names but not of the editors. This disables expansion for both columns.
@@ -148,17 +165,18 @@ class PTableImpl(override val tableModel: PTableModel,
   }
 
   override fun startNextEditor(): Boolean {
-    val pos = TablePosition(0, 0, itemCount)
+    val pos = TablePosition(0, 0, itemCount, wrap)
+    var exists = true
     if (isEditing) {
       pos.row = editingRow
       pos.column = editingColumn
       removeEditor()
-      pos.next(true)
+      exists = pos.next(true)
     }
-    while (pos.wrapped == 0 && !tableModel.isCellEditable(item(pos.row), pos.tableColumn)) {
-      pos.next(true)
+    while (exists && pos.wrapped == 0 && !tableModel.isCellEditable(item(pos.row), pos.tableColumn)) {
+      exists = pos.next(true)
     }
-    if (pos.wrapped > 0) {
+    if (!exists || pos.wrapped > 0) {
       // User navigated to the next editor after the last row of this table:
       return false
     }
@@ -608,7 +626,7 @@ class PTableImpl(override val tableModel: PTableModel,
       if (after != null && after != this@PTableImpl) {
         return after
       }
-      return if (this@PTableImpl.isEditing) editNextEditableCell(true) else null
+      return editNextEditableCell(true)
     }
 
     override fun getComponentBefore(aContainer: Container, aComponent: Component): Component? {
@@ -616,21 +634,28 @@ class PTableImpl(override val tableModel: PTableModel,
       if (before != null && before != this@PTableImpl) {
         return before
       }
-      return if (this@PTableImpl.isEditing) editNextEditableCell(false) else null
+      return editNextEditableCell(false)
     }
 
     private fun editNextEditableCell(forwards: Boolean): Component? {
       val table = this@PTableImpl
       val rows = table.rowCount
-      val pos = TablePosition(table.editingRow, table.editingColumn, rows)
+      val pos = when {
+        table.isEditing -> TablePosition(table.editingRow, table.editingColumn, rows, wrap)
+        forwards -> TablePosition(-1, 1, rows, wrap)
+        else -> TablePosition(rows, 0, rows, wrap)
+      }
 
       // Make sure we don't loop forever
       while (pos.rowIterations < rows) {
-        pos.next(forwards)
+        if (!pos.next(forwards)) {
+          break
+        }
         if (table.isCellEditable(pos.row, pos.column)) {
           table.setRowSelectionInterval(pos.row, pos.row)
-          table.startEditing(pos.row, pos.column) {}
-          return table.editorComponent
+          if (table.editCellAt(pos.row, pos.column)) {
+            return getFocusCandidateFromNewlyCreatedEditor(forwards)
+          }
         }
       }
       // We can't find an editable cell.
@@ -638,16 +663,36 @@ class PTableImpl(override val tableModel: PTableModel,
       return null
     }
 
-    override fun getFirstComponent(aContainer: Container): Component {
-      return this@PTableImpl
+    // Note: When an editor was just created, the label and the new editor are the only children of the table.
+    // The editor created may be composed of multiple focusable components.
+    // Use LayoutFocusTraversalPolicy to identify the next focus candidate.
+    private fun getFocusCandidateFromNewlyCreatedEditor(forwards: Boolean): Component? {
+      val table = this@PTableImpl
+      if (forwards) {
+        return super.getFirstComponent(table)
+      }
+      else {
+        return super.getLastComponent(table)
+      }
     }
 
-    override fun getLastComponent(aContainer: Container): Component {
-      return this@PTableImpl
+    override fun getFirstComponent(aContainer: Container): Component? {
+      return editNextEditableCell(true)
+    }
+
+    override fun getLastComponent(aContainer: Container): Component? {
+      return editNextEditableCell(false)
     }
 
     override fun getDefaultComponent(aContainer: Container): Component? {
-      return null
+      return getFirstComponent(aContainer)
+    }
+
+    override fun accept(aComponent: Component?): Boolean {
+      if (aComponent == this@PTableImpl) {
+        return false
+      }
+      return super.accept(aComponent)
     }
   }
 
@@ -681,7 +726,7 @@ private class NameRowFilter : RowFilter<TableModel, Int>() {
   }
 }
 
-private class TablePosition(var row: Int, var column: Int, val rows: Int) {
+private class TablePosition(var row: Int, var column: Int, val rows: Int, val withWrapping: Boolean) {
 
   val tableColumn: PTableColumn
     get() = PTableColumn.fromColumn(column)
@@ -693,46 +738,56 @@ private class TablePosition(var row: Int, var column: Int, val rows: Int) {
   var wrapped: Int = 0
     private set
 
-  fun next(forward: Boolean) {
+  fun next(forward: Boolean): Boolean {
     if (forward) {
-      forwards()
+      return forwards()
     }
     else {
-      backwards()
+      return backwards()
     }
   }
 
-  private fun forwards() {
+  private fun forwards(): Boolean {
     when (column) {
       0 -> { column = 1 }
-      1 -> { column = 0; nextRow() }
+      1 -> { column = 0; return nextRow() }
     }
+    return true
   }
 
-  private fun backwards() {
+  private fun backwards(): Boolean {
     when (column) {
-      0 -> { column = 1; previousRow() }
+      0 -> { column = 1; return previousRow() }
       1 -> { column = 0 }
     }
+    return true
   }
 
-  private fun nextRow() {
+  private fun nextRow(): Boolean {
     row++
     rowIterations++
     column = 0
     if (row >= rows) {
+      if (!withWrapping) {
+        return false
+      }
       row = 0
       wrapped++
     }
+    return true
   }
 
-  private fun previousRow() {
+  private fun previousRow(): Boolean {
     row--
     rowIterations++
     column = 1
     if (row < 0) {
+      if (!withWrapping) {
+        return false
+      }
       wrapped++
       row = rows - 1
     }
+    return true
   }
 }

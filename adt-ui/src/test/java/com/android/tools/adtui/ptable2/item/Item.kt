@@ -54,7 +54,7 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean =
     when (column) {
       PTableColumn.NAME -> item.name == "new"
-      PTableColumn.VALUE -> item.name != "readonly"
+      PTableColumn.VALUE -> item.name != "readonly" && item.name != "new"
     }
 
   fun updateTo(modelChanged: Boolean, vararg newItems: PTableItem) {
