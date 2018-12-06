@@ -17,16 +17,21 @@ package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.LegacyDragTarget;
+import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction;
+import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawHorizontalGuideline;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawVerticalGuideline;
+import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,19 +42,126 @@ import java.util.List;
 /**
  * Implements the drag behaviour for ConstraintLayout Guideline
  */
-public class GuidelineTarget extends ConstraintDragTarget implements LegacyDragTarget {
-  boolean myIsHorizontal = true;
-  int myBegin = 20;
-  int myEnd = -1;
-  float myPercent = -1;
+public class GuidelineTarget extends BaseTarget {
+
+  @AndroidDpCoordinate protected int myOffsetX;
+  @AndroidDpCoordinate protected int myOffsetY;
+  @AndroidDpCoordinate protected int myFirstMouseX;
+  @AndroidDpCoordinate protected int myFirstMouseY;
+  protected boolean myChangedComponent;
+  @NotNull private final TargetSnapper myTargetSnapper = new TargetSnapper();
+
+  protected final boolean myIsHorizontal;
+  private int myBegin = 20;
+  private int myEnd = -1;
+  private float myPercent = -1;
+
+  public GuidelineTarget(boolean isHorizontal) {
+    myIsHorizontal = isHorizontal;
+  }
+
+  @Override
+  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    if (myComponent.getParent() == null) {
+      return;
+    }
+    myFirstMouseX = x;
+    myFirstMouseY = y;
+    myOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
+    myOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
+    myChangedComponent = false;
+    myTargetSnapper.reset();
+    myTargetSnapper.gatherNotches(myComponent);
+  }
+
+  @Override
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
+    if (myComponent.getParent() == null) {
+      return;
+    }
+    myComponent.setDragging(true);
+    NlComponent component = myComponent.getAuthoritativeNlComponent();
+    x -= myOffsetX;
+    y -= myOffsetY;
+    int snappedX = myTargetSnapper.trySnapHorizontal(x).orElse(x);
+    int snappedY = myTargetSnapper.trySnapVertical(y).orElse(y);
+    ComponentModification modification = new ComponentModification(component, "Drag");
+    updateAttributes(modification, snappedX, snappedY);
+    modification.apply();
+    component.fireLiveChangeEvent();
+    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myChangedComponent = true;
+  }
+
+  @Override
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
+    if (!myComponent.isDragging()) {
+      return;
+    }
+    myComponent.setDragging(false);
+    if (myComponent.getParent() != null) {
+      boolean commitChanges = true;
+      if (Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1) {
+        commitChanges = false;
+      }
+      NlComponent component = myComponent.getAuthoritativeNlComponent();
+      ComponentModification modification = new ComponentModification(component, "Drag");
+      x -= myOffsetX;
+      y -= myOffsetY;
+      int snappedX = myTargetSnapper.trySnapHorizontal(x).orElse(x);
+      int snappedY = myTargetSnapper.trySnapVertical(y).orElse(y);
+      if (isAutoConnectionEnabled()) {
+        myTargetSnapper.applyNotches(modification);
+      }
+      updateAttributes(modification, snappedX, snappedY);
+      modification.apply();
+
+      if (commitChanges) {
+        modification.commit();
+      }
+    }
+    if (myChangedComponent) {
+      myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    }
+  }
+
+  /**
+   * Reset the status when the dragging is canceled.
+   */
+  @Override
+  public void mouseCancel() {
+    int originalX = myFirstMouseX - myOffsetX;
+    int originalY = myFirstMouseY - myOffsetY;
+    myComponent.setPosition(originalX, originalY);
+
+    // rollback the transaction. The value may be temporarily changed by live rendering.
+    NlComponent component = myComponent.getAuthoritativeNlComponent();
+    AttributesTransaction transaction = component.startAttributeTransaction();
+    transaction.rollback();
+    component.fireLiveChangeEvent();
+
+    myComponent.setDragging(false);
+    myTargetSnapper.reset();
+    myChangedComponent = false;
+    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+  }
+
+  private boolean isAutoConnectionEnabled() {
+    return !SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(myComponent.getNlComponent().getTagName()) &&
+           ToggleAutoConnectAction.isAutoconnectOn();
+  }
 
   @Override
   public int getPreferenceLevel() {
     return Target.GUIDELINE_LEVEL;
   }
 
-  public GuidelineTarget(boolean isHorizontal) {
-    myIsHorizontal = isHorizontal;
+  @Override
+  protected boolean isHittable() {
+    if (myComponent.isSelected()) {
+      return myComponent.canShowBaseline() || !myComponent.isDragging();
+    }
+    return true;
   }
 
   @Override
@@ -125,7 +237,6 @@ public class GuidelineTarget extends ConstraintDragTarget implements LegacyDragT
     return false;
   }
 
-  @Override
   protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
     String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);

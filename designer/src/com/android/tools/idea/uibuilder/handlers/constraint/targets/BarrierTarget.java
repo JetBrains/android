@@ -16,25 +16,24 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.LegacyDragTarget;
+import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawBarrier;
 import com.google.common.collect.ImmutableList;
+import java.awt.Cursor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 /**
- * Implements the drag behaviour for ConstraintLayout Guideline
+ * Implements the drag behaviour for ConstraintLayout Barrier
  */
-public class BarrierTarget extends ConstraintDragTarget implements LegacyDragTarget {
+public class BarrierTarget extends BaseTarget {
   int myDirection;
-  private static int GAP = 6;
   public static final int TOP = 1;
   public static final int BOTTOM = 2;
   public static final int LEFT = 3;
@@ -83,11 +82,11 @@ public class BarrierTarget extends ConstraintDragTarget implements LegacyDragTar
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    if (isHorizontal() ) {
-      DrawBarrier.add(list, sceneContext, myLeft, myTop ,   (myRight - myLeft) , myDirection, myComponent.isSelected());
-    } else {
-      DrawBarrier.add(list, sceneContext, myLeft , myTop,   (myBottom - myTop), myDirection, myComponent.isSelected());
-
+    if (isHorizontal()) {
+      DrawBarrier.add(list, sceneContext, myLeft, myTop, (myRight - myLeft), myDirection, myComponent.isSelected());
+    }
+    else {
+      DrawBarrier.add(list, sceneContext, myLeft, myTop, (myBottom - myTop), myDirection, myComponent.isSelected());
     }
   }
 
@@ -130,9 +129,15 @@ public class BarrierTarget extends ConstraintDragTarget implements LegacyDragTar
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myComponent.setSelected(true);
   }
-  @Override
-  protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
 
+  @Override
+  public Cursor getMouseCursor() {
+    return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+  }
+
+  @Override
+  protected boolean isHittable() {
+    return true;
   }
 
   @Override
