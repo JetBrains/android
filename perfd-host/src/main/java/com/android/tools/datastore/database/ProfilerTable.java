@@ -63,7 +63,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createTable("Profiler_Bytes", "Id STRING NOT NULL", "Session INTEGER", "Data BLOB");
       createTable("Profiler_Devices", "DeviceId INTEGER", "LastKnownTime INTEGER", "Data BLOB");
       createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "Name STRING NOT NULL", "State INTEGER",
-                  "StartTime INTEGER", "Arch STRING NOT NULL", "AgentStatus INTEGER", "IsAgentAttachable INTEGER");
+                  "StartTime INTEGER", "Arch STRING NOT NULL", "AgentStatus INTEGER");
       createTable("Profiler_Sessions", "SessionId INTEGER", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER",
                   "EndTime INTEGER", "StartTimeEpochMs INTEGER", "NAME TEXT", "JvmtiEnabled INTEGER", "LiveAllocationEnabled INTEGER",
                   "TypeId INTEGER");
@@ -110,9 +110,9 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createStatement(ProfilerStatements.DELETE_SESSION_BY_ID,
                       "DELETE from Profiler_Sessions WHERE SessionId = ?");
       createStatement(ProfilerStatements.FIND_AGENT_STATUS,
-                      "SELECT AgentStatus, IsAgentAttachable from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ?");
+                      "SELECT AgentStatus from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ?");
       createStatement(ProfilerStatements.UPDATE_AGENT_STATUS,
-                      "UPDATE Profiler_Processes SET AgentStatus = ?, IsAgentAttachable = ? WHERE DeviceId = ? AND ProcessId = ?");
+                      "UPDATE Profiler_Processes SET AgentStatus = ? WHERE DeviceId = ? AND ProcessId = ?");
       createStatement(ProfilerStatements.INSERT_BYTES, "INSERT OR REPLACE INTO Profiler_Bytes (Id, Session, Data) VALUES (?, ?, ?)");
       createStatement(ProfilerStatements.GET_BYTES, "SELECT Data FROM Profiler_Bytes WHERE Id = ? AND Session = ?");
     }
@@ -342,18 +342,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       try {
         ResultSet results = executeQuery(ProfilerStatements.FIND_AGENT_STATUS, devicdId.get(), process.getPid());
         if (results.next()) {
-          AgentStatusResponse.Status status = AgentStatusResponse.Status.forNumber(results.getInt(1));
-          switch (status) {
-            case DETACHED:
-            case UNSPECIFIED:
-            case UNRECOGNIZED:
-              status = agentStatus.getStatus();
-              break;
-            case ATTACHED:
-              break;
-          }
-
-          execute(ProfilerStatements.UPDATE_AGENT_STATUS, status.ordinal(), agentStatus.getIsAgentAttachable(),
+          execute(ProfilerStatements.UPDATE_AGENT_STATUS, agentStatus.getStatus().ordinal(),
                   devicdId.get(), process.getPid());
         }
       }
@@ -371,7 +360,6 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
         ResultSet results = executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getDeviceId(), request.getPid());
         if (results.next()) {
           responseBuilder.setStatusValue(results.getInt(1));
-          responseBuilder.setIsAgentAttachable(results.getBoolean(2));
         }
       }
       catch (SQLException ex) {

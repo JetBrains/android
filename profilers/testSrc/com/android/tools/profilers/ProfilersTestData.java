@@ -29,5 +29,5 @@ public class ProfilersTestData {
     Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build();
 
   public static final Profiler.AgentStatusResponse DEFAULT_AGENT_DETACHED_RESPONSE =
-    Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.DETACHED).build();
+    Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.UNATTACHABLE).build();
 }

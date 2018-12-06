@@ -73,6 +73,8 @@ public class StudioProfilersViewTest {
     myProfilerServices.enableEnergyProfiler(true);
     myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
+    // We setup and profile a process, we assume that process has an agent attached by default.
+    myService.setAgentStatus(Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build());
     // Make sure a process is selected
     myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     myView.bind(FakeStage.class, FakeView::new);
@@ -367,8 +369,7 @@ public class StudioProfilersViewTest {
     // Starting a session that is waiting for an agent to initialize should have all controls disabled.
     Common.Device onlineDevice = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build();
     Common.Process onlineProcess = Common.Process.newBuilder().setPid(2).setState(Common.Process.State.ALIVE).build();
-    myService.setAgentStatus(
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.DETACHED).setIsAgentAttachable(true).build());
+    myService.setAgentStatus(Profiler.AgentStatusResponse.getDefaultInstance());
     myProfilers.getSessionsManager().beginSession(onlineDevice, onlineProcess);
     assertThat(zoomInButton.isEnabled()).isFalse();
     assertThat(zoomOutButton.isEnabled()).isFalse();
@@ -378,7 +379,7 @@ public class StudioProfilersViewTest {
 
     // Controls should be enabled after agent is attached.
     myService.setAgentStatus(
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).setIsAgentAttachable(true).build());
+      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(zoomInButton.isEnabled()).isTrue();
     assertThat(zoomOutButton.isEnabled()).isTrue();
@@ -429,7 +430,7 @@ public class StudioProfilersViewTest {
     assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
 
     myService.setAgentStatus(
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.DETACHED).setIsAgentAttachable(true).build());
+      Profiler.AgentStatusResponse.getDefaultInstance());
     Common.Process process = Common.Process.newBuilder()
                                            .setPid(2)
                                            .setDeviceId(FAKE_DEVICE_ID)
@@ -445,7 +446,7 @@ public class StudioProfilersViewTest {
     assertThat(myView.getStageLoadingComponent().isVisible()).isTrue();
 
     myService.setAgentStatus(
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).setIsAgentAttachable(true).build());
+      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Attach status is detected, loading should stop.
