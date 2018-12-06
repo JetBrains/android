@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.target.LegacyDragTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawBarrier;
 import com.google.common.collect.ImmutableList;
@@ -31,7 +32,7 @@ import java.util.List;
 /**
  * Implements the drag behaviour for ConstraintLayout Guideline
  */
-public class BarrierTarget extends ConstraintDragTarget {
+public class BarrierTarget extends ConstraintDragTarget implements LegacyDragTarget {
   int myDirection;
   private static int GAP = 6;
   public static final int TOP = 1;
