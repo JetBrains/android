@@ -351,11 +351,12 @@ public class ProfilerServiceProxy extends PerfdProxyService
       // If we are using the new event pipeline we also want to create a process started entry
       // for each process.
       if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
-        myEventQueue.enqueue(Common.Event.newBuilder()
+        myEventQueue.enqueue(Event.newBuilder()
                                            .setGroupId(process.getPid())
                                            .setKind(Event.Kind.PROCESS)
-                                           .setType(Event.Type.PROCESS_STARTED)
-                                           .setProcess(process)
+                                           .setProcess(ProcessData.newBuilder()
+                                                         .setProcessStarted(ProcessData.ProcessStarted.newBuilder()
+                                                                              .setProcess(process)))
                                            .setTimestamp(times.getTimestampNs())
                                            .build());
       }
@@ -367,8 +368,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
         myEventQueue.enqueue(Common.Event.newBuilder()
                                            .setGroupId(process.getPid())
                                            .setKind(Event.Kind.PROCESS)
-                                           .setType(Event.Type.PROCESS_ENDED)
-                                           .setProcess(process.toBuilder().setState(Common.Process.State.DEAD))
+                                           .setIsEnded(true)
                                            .setTimestamp(times.getTimestampNs())
                                            .build());
       }

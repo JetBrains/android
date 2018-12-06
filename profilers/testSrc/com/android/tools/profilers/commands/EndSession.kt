@@ -29,7 +29,7 @@ class EndSession(timer: FakeTimer) : CommandHandler(timer) {
       groupId = command.endSession.sessionId
       sessionId = command.endSession.sessionId
       kind = Common.Event.Kind.SESSION
-      type = Common.Event.Type.SESSION_ENDED
+      isEnded = true
       timestamp = timer.currentTimeNs
     })
   }

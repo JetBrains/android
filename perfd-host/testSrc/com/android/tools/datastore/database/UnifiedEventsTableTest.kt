@@ -24,15 +24,15 @@ import java.util.function.Consumer
 class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
 
   // List of events to generate in the database. This list is broken up by event id to make things easier to validate.
-  val events = mutableListOf(mutableListOf(eventBuilder(Common.Event.Kind.SESSION, Common.Event.Type.SESSION_ENDED, 1, 1, 1),
-                                           eventBuilder(Common.Event.Kind.SESSION, Common.Event.Type.SESSION_ENDED, 1, 1, 2),
-                                           eventBuilder(Common.Event.Kind.SESSION, Common.Event.Type.SESSION_ENDED, 1, 1, 3),
-                                           eventBuilder(Common.Event.Kind.SESSION, Common.Event.Type.SESSION_ENDED, 1, 1, 4),
-                                           eventBuilder(Common.Event.Kind.SESSION, Common.Event.Type.SESSION_ENDED, 2, 1, 3),
-                                           eventBuilder(Common.Event.Kind.SESSION, Common.Event.Type.SESSION_ENDED, 2, 1, 4)),
-                             mutableListOf(eventBuilder(Common.Event.Kind.SESSION, Common.Event.Type.SESSION_ENDED, 1, 2, 3),
-                                           eventBuilder(Common.Event.Kind.SESSION, Common.Event.Type.SESSION_ENDED, 2, 2, 2),
-                                           eventBuilder(Common.Event.Kind.SESSION, Common.Event.Type.SESSION_ENDED, 2, 2, 3)))
+  val events = mutableListOf(mutableListOf(eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 1),
+                                           eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 2),
+                                           eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 3),
+                                           eventBuilder(Common.Event.Kind.SESSION, false, 1, 1, 4),
+                                           eventBuilder(Common.Event.Kind.SESSION, false, 2, 1, 3),
+                                           eventBuilder(Common.Event.Kind.SESSION, true, 2, 1, 4)),
+                             mutableListOf(eventBuilder(Common.Event.Kind.SESSION, false, 1, 2, 3),
+                                           eventBuilder(Common.Event.Kind.SESSION, false, 2, 2, 2),
+                                           eventBuilder(Common.Event.Kind.SESSION, true, 2, 2, 3)))
 
   override fun createTable(): UnifiedEventsTable {
     return UnifiedEventsTable()
@@ -53,7 +53,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     val events = mutableListOf<Common.Event>()
     for (i in 0 until count) {
       val event = eventBuilder(Common.Event.Kind.SESSION,
-                               Common.Event.Type.SESSION_STARTED,
+                               false,
                                if (!incrementSession) 1L else i + 1L,
                                if (!incrementGroupId) 1L else i + 1L,
                                i + 1L)
@@ -68,15 +68,15 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     // This validates that sql should not throw an exception
     val event = Common.Event.newBuilder().apply {
       kind = Common.Event.Kind.SESSION
-      type = Common.Event.Type.SESSION_STARTED
+      isEnded = false
       sessionId = 1
       groupId = 1
-      sessionStarted = Common.SessionStarted.newBuilder().setPid(1).build()
+      session = Common.SessionData.newBuilder().setSessionStarted(Common.SessionData.SessionStarted.newBuilder().setPid(1)).build()
     }.build()
     table.insertUnifiedEvent(1, event)
 
     val updatedEvent = event.toBuilder().apply {
-      sessionStarted = Common.SessionStarted.newBuilder().setPid(2).build()
+      session = Common.SessionData.newBuilder().setSessionStarted(Common.SessionData.SessionStarted.newBuilder().setPid(2)).build()
     }.build()
 
     table.insertUnifiedEvent(1, updatedEvent)
@@ -229,13 +229,13 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   }
 
   private fun eventBuilder(kind: Common.Event.Kind,
-                           type: Common.Event.Type,
+                           isEnded: Boolean,
                            sessionId: Long,
                            eventId: Long,
                            timestamp: Long): Common.Event{
     return Common.Event.newBuilder()
       .setKind(kind)
-      .setType(type)
+      .setIsEnded(isEnded)
       .setSessionId(sessionId)
       .setGroupId(eventId)
       .setTimestamp(timestamp)

@@ -254,10 +254,10 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * data.
    */
   private SessionItem processSessionStarted(Event event) {
-    SessionStarted started = event.getSessionStarted();
+    SessionData.SessionStarted sessionData = event.getSession().getSessionStarted();
     Common.Session session = Common.Session.newBuilder()
                                            .setSessionId(event.getSessionId())
-                                           .setPid(event.getSessionStarted().getPid())
+                                           .setPid(sessionData.getPid())
                                            .setStartTimestamp(event.getTimestamp())
                                            .setEndTimestamp(Long.MAX_VALUE)
                                            .setDeviceId(myProfilingSessionStreamId)
@@ -265,11 +265,11 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     Common.SessionMetaData metadata = Common.SessionMetaData.newBuilder()
                                                             .setSessionId(session.getSessionId())
                                                             .setType(Common.SessionMetaData.SessionType
-                                                                       .forNumber(started.getType().getNumber()))
-                                                            .setStartTimestampEpochMs(started.getStartTimestampEpochMs())
-                                                            .setJvmtiEnabled(started.getJvmtiEnabled())
-                                                            .setSessionName(started.getSessionName())
-                                                            .setLiveAllocationEnabled(started.getLiveAllocationEnabled())
+                                                                       .forNumber(sessionData.getType().getNumber()))
+                                                            .setStartTimestampEpochMs(sessionData.getStartTimestampEpochMs())
+                                                            .setJvmtiEnabled(sessionData.getJvmtiEnabled())
+                                                            .setSessionName(sessionData.getSessionName())
+                                                            .setLiveAllocationEnabled(sessionData.getLiveAllocationEnabled())
                                                             .build();
     SessionItem sessionItem = new SessionItem(myProfilers, session, metadata);
     mySessionItems.put(session.getSessionId(), sessionItem);

@@ -38,13 +38,14 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
                    groupId = nextSessionId
                    sessionId = nextSessionId
                    kind = Common.Event.Kind.SESSION
-                   type = Common.Event.Type.SESSION_STARTED
                    timestamp = timer.currentTimeNs
-                   sessionStarted = Common.SessionStarted.newBuilder().apply {
-                     pid = command.beginSession.pid
-                     startTimestampEpochMs = command.beginSession.requestTimeEpochMs
-                     sessionName = command.beginSession.sessionName
-                     type = Common.SessionStarted.SessionType.FULL
+                   session = Common.SessionData.newBuilder().apply {
+                     sessionStarted = Common.SessionData.SessionStarted.newBuilder().apply {
+                       pid = command.beginSession.pid
+                       startTimestampEpochMs = command.beginSession.requestTimeEpochMs
+                       sessionName = command.beginSession.sessionName
+                       type = Common.SessionData.SessionStarted.SessionType.FULL
+                     }.build()
                    }.build()
                  }))
   }

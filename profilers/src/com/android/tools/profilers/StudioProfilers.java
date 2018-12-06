@@ -310,27 +310,45 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                                                              .build();
         GetEventGroupsResponse response = myClient.getProfilerClient().getEventGroups(request);
         for (EventGroup group : response.getGroupsList()) {
-          // We only want about the last state of the stream.
-          Event event = group.getEvents(group.getEventsCount() - 1);
-          Stream stream = event.getStream();
+          boolean isStreamDead = group.getEvents(group.getEventsCount() - 1).getIsEnded();
+          Common.Event connectedEvent = getLastMatchingEvent(group, e -> e.hasStream());
+          if (connectedEvent == null) {
+            // Ignore stream event groups that do not have the connected event.
+            continue;
+          }
+          Common.Stream stream = connectedEvent.getStream().getStreamConnected().getStream();
           // We only want streams of type device to get process information.
           if (stream.getType() == Stream.Type.DEVICE) {
-            myStreamIds.computeIfAbsent(stream.getDevice(), (device) -> stream.getStreamId());
+            long streamId = stream.getStreamId();
+            if (isStreamDead) {
+              // TODO state changes are represented differently in the unified pipeline (with two separate events)
+              // remove this once we move complete away from the legacy pipeline.
+              stream = stream.toBuilder().setDevice(stream.getDevice().toBuilder().setState(Device.State.DISCONNECTED)).build();
+            }
+            myStreamIds.computeIfAbsent(stream.getDevice(), (device) -> streamId);
             // Get all processes in device streams.
             GetEventGroupsRequest processRequest = GetEventGroupsRequest.newBuilder()
-                                                                        .setStreamId(stream.getStreamId())
-                                                                        .setKind(Event.Kind.PROCESS)
-                                                                        .setEnd(Event.Type.PROCESS_ENDED)
-                                                                        .build();
+              .setStreamId(stream.getStreamId())
+              .setKind(Event.Kind.PROCESS)
+              .build();
             GetEventGroupsResponse processResponse = myClient.getProfilerClient().getEventGroups(processRequest);
             List<Common.Process> processList = new ArrayList<>();
             int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
             // A group is a collection of events that happened to a single process.
             for (EventGroup groupProcess : processResponse.getGroupsList()) {
-              // We only care about the latest state of the process.
-              Event eventProcess = groupProcess.getEvents(groupProcess.getEventsCount() - 1);
-              Common.Process process = eventProcess.getProcess();
-              if (process.getState() == Common.Process.State.ALIVE || process.getPid() == lastProcessId) {
+              boolean isProcessAlive = !groupProcess.getEvents(groupProcess.getEventsCount() - 1).getIsEnded();
+              Common.Event aliveEvent = getLastMatchingEvent(groupProcess, e -> e.hasProcess());
+              if (aliveEvent == null) {
+                // Ignore process event groups that do not have the started event.
+                continue;
+              }
+              Common.Process process = aliveEvent.getProcess().getProcessStarted().getProcess();
+              if (isProcessAlive || process.getPid() == lastProcessId) {
+                if (!isProcessAlive) {
+                  // TODO state changes are represented differently in the unified pipeline (with two separate events)
+                  // remove this once we move complete away from the legacy pipeline.
+                  process = process.toBuilder().setState(Common.Process.State.DEAD).build();
+                }
                 processList.add(process);
               }
               newProcesses.put(stream.getDevice(), processList);
@@ -806,5 +824,20 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     deviceNameBuilder.append(model);
 
     return deviceNameBuilder.toString();
+  }
+
+  /**
+   * Helper method to return the last even in an EventGroup that matches the input condition.
+   */
+  @Nullable
+  private Common.Event getLastMatchingEvent(@NotNull EventGroup group, @NotNull Predicate<Event> predicate) {
+    Common.Event matched = null;
+    for (Event event : group.getEventsList()) {
+      if (predicate.test(event)) {
+        matched = event;
+      }
+    }
+
+    return matched;
   }
 }

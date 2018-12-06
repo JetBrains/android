@@ -31,7 +31,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
   public enum Statements {
     // Since no data should be updated after it has been inserted we drop any duplicated request from the poller.
     INSERT(
-      "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, SessionId, GroupId, Kind, Type, Timestamp, Data) VALUES (?, ?, ?, ?, ?, ?, ?)"),
+      "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, SessionId, GroupId, Kind, Timestamp, Data) VALUES (?, ?, ?, ?, ?, ?)"),
     // Only used for test.
     QUERY_EVENTS("SELECT Data FROM [UnifiedEventsTable]");
 
@@ -68,11 +68,10 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
                   "SessionId INTEGER NOT NULL", // Optional filter, not required for data (eg device/process).
                   "GroupId INTEGER NOT NULL", // Optional filter, not required for data.
                   "Kind INTEGER NOT NULL", // Required filter, required for all data.
-                  "Type INTEGER NOT NULL", // Post process filter, not required for data.
                   "Timestamp INTEGER NOT NULL", // Optional filter, required for all data.
                   "Data BLOB");
 
-      createUniqueIndex("UnifiedEventsTable", "StreamId", "SessionId", "GroupId", "Kind", "Type", "Timestamp");
+      createUniqueIndex("UnifiedEventsTable", "StreamId", "SessionId", "GroupId", "Kind", "Timestamp");
     }
     catch (SQLException ex) {
       onError(ex);
@@ -84,7 +83,6 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
             event.getSessionId(),
             event.getGroupId(),
             event.getKind().getNumber(),
-            event.getType().getNumber(),
             event.getTimestamp(),
             event.toByteArray());
   }
