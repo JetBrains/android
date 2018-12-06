@@ -21,6 +21,7 @@ import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.adtui.ptable2.PTableModelUpdateListener
+import com.intellij.util.ThreeState
 import javax.swing.table.AbstractTableModel
 
 /**
@@ -29,6 +30,7 @@ import javax.swing.table.AbstractTableModel
 class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   private val items = mutableListOf<PTableItem>()
   private val parentItems = mutableMapOf<PTableItem, PTableGroupItem>()
+  private var hasEditableCells = ThreeState.UNSURE
 
   @VisibleForTesting
   val expandedItems = mutableSetOf<PTableGroupItem>()
@@ -43,6 +45,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
           fireTableChanged(PTableModelRepaintEvent(this@PTableModelImpl))
         }
         else {
+          hasEditableCells = ThreeState.UNSURE
           items.clear()
           items.addAll(tableModel.items)
           recomputeParents()
@@ -106,6 +109,17 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     }
     return depth
   }
+
+  val isEditable: Boolean
+    get() {
+      var editable = hasEditableCells
+      if (editable == ThreeState.UNSURE) {
+        editable = ThreeState.fromBoolean(items.any {
+          tableModel.isCellEditable(it, PTableColumn.VALUE) || tableModel.isCellEditable(it, PTableColumn.NAME) })
+        hasEditableCells = editable
+      }
+      return editable.toBoolean()
+    }
 
   private fun groupAt(index: Int): PTableGroupItem? {
     if (index < 0 || index >= items.size) {

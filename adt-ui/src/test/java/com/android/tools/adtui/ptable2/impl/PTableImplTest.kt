@@ -26,24 +26,56 @@ import com.android.tools.adtui.ptable2.item.Group
 import com.android.tools.adtui.ptable2.item.Item
 import com.android.tools.adtui.ptable2.item.PTableTestModel
 import com.android.tools.adtui.ptable2.item.createModel
+import com.android.tools.adtui.testing.EdtApplicationRule
+import com.android.tools.adtui.testing.RunWithTestFocusManager
+import com.android.tools.adtui.testing.SwingFocusRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.components.JBLabel
+import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
+import org.junit.ClassRule
+import org.junit.Rule
 import org.junit.Test
 import java.awt.AWTEvent
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
+import javax.swing.JTextField
+import javax.swing.LayoutFocusTraversalPolicy
+import javax.swing.UIManager
 import javax.swing.event.ChangeEvent
 import javax.swing.event.TableModelEvent
 
-class PTableTest {
+private const val TEXT_CELL_EDITOR = "TextCellEditor"
+private const val ICON_CELL_EDITOR = "IconCellEditor"
+private const val FIRST_FIELD_EDITOR = "First Editor"
+private const val LAST_FIELD_EDITOR = "Last Editor"
+private const val TABLE_NAME = "Table"
+
+class PTableImplTest {
   private var model: PTableTestModel? = null
   private var table: PTableImpl? = null
   private var editorProvider: SimplePTableCellEditorProvider? = null
 
+  @JvmField @Rule
+  val edtRule = EdtRule()
+
+  @JvmField @Rule
+  val focusRule = SwingFocusRule(appRule)
+
+  companion object {
+    @JvmField @ClassRule
+    val appRule = EdtApplicationRule()
+  }
+
   @Before
   fun setUp() {
+    // This test created some JTextField components. Do not start timers for the caret blink rate in tests:
+    UIManager.put("TextField.caretBlinkRate", 0)
+
     editorProvider = SimplePTableCellEditorProvider()
     model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")),
                         Item("new"))
@@ -224,10 +256,6 @@ class PTableTest {
     assertThat(table!!.editingRow).isEqualTo(7)
     assertThat(table!!.editingColumn).isEqualTo(0)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
-    assertThat(table!!.startNextEditor()).isTrue()
-    assertThat(table!!.editingRow).isEqualTo(7)
-    assertThat(table!!.editingColumn).isEqualTo(1)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
     assertThat(table!!.startNextEditor()).isFalse()
     assertThat(table!!.editingRow).isEqualTo(-1)
     assertThat(table!!.editingColumn).isEqualTo(-1)
@@ -244,19 +272,6 @@ class PTableTest {
     assertThat(table!!.startNextEditor()).isTrue()
     assertThat(table!!.editingRow).isEqualTo(7)
     assertThat(table!!.editingColumn).isEqualTo(0)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
-  }
-
-  @Test
-  fun startNextEditorWhenCurrentRowAllowsNameEditing() {
-    table!!.model.expand(4)
-    table!!.setRowSelectionInterval(7, 7)
-    dispatchAction("smartEnter")
-    assertThat(table!!.editingRow).isEqualTo(7)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
-    assertThat(table!!.startNextEditor()).isTrue()
-    assertThat(table!!.editingRow).isEqualTo(7)
-    assertThat(table!!.editingColumn).isEqualTo(1)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
   }
 
@@ -375,6 +390,104 @@ class PTableTest {
     assertThat(table!!.isEditing).isFalse()
   }
 
+  @RunsInEdt
+  @RunWithTestFocusManager
+  @Test
+  fun testNavigateForwardsIntoTable() {
+    val panel = createPanel()
+    panel.components[0].transferFocus()
+    assertThat(table!!.editingRow).isEqualTo(0)
+    assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(focusRule.focusOwner?.name).isEqualTo(TEXT_CELL_EDITOR)
+  }
+
+  @RunsInEdt
+  @RunWithTestFocusManager
+  @Test
+  fun testNavigateForwardsThroughTable() {
+    val panel = createPanel()
+    panel.components[0].requestFocusInWindow()
+    for (row in 0..5) {
+      var column = 1
+      if (row == 2) {
+        // Make sure readonly rows are skipped
+        continue
+      }
+      else if (row == 5) {
+        // A row with an editable name should edit column 0
+        column = 0
+      }
+      val name = "value in row $row"
+      focusRule.focusOwner?.transferFocus()
+      assertThat(table!!.editingRow).named(name).isEqualTo(row)
+      assertThat(table!!.editingColumn).named(name).isEqualTo(column)
+      assertThat(focusRule.focusOwner?.name).named(name).isEqualTo(TEXT_CELL_EDITOR)
+      focusRule.focusOwner?.transferFocus()
+      assertThat(table!!.editingRow).named(name).isEqualTo(row)
+      assertThat(table!!.editingColumn).named(name).isEqualTo(column)
+      assertThat(focusRule.focusOwner?.name).named(name).isEqualTo(ICON_CELL_EDITOR)
+    }
+    focusRule.focusOwner?.transferFocus()
+    assertThat(table!!.isEditing).isFalse()
+    assertThat(focusRule.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
+  }
+
+  @RunsInEdt
+  @RunWithTestFocusManager
+  @Test
+  fun testNavigateBackwardsThroughTable() {
+    val panel = createPanel()
+    panel.components[2].requestFocusInWindow()
+    for (row in 5 downTo 0) {
+      var column = 1
+      if (row == 2) {
+        // Make sure readonly rows are skipped
+        continue
+      }
+      else if (row == 5) {
+        // A row with an editable name should edit column 0
+        column = 0
+      }
+      val name = "value in row $row"
+      focusRule.focusOwner?.transferFocusBackward()
+      assertThat(table!!.editingRow).named(name).isEqualTo(row)
+      assertThat(table!!.editingColumn).named(name).isEqualTo(column)
+      assertThat(focusRule.focusOwner?.name).named(name).isEqualTo(ICON_CELL_EDITOR)
+      focusRule.focusOwner?.transferFocusBackward()
+      assertThat(table!!.editingRow).named(name).isEqualTo(row)
+      assertThat(table!!.editingColumn).named(name).isEqualTo(column)
+      assertThat(focusRule.focusOwner?.name).named(name).isEqualTo(TEXT_CELL_EDITOR)
+    }
+    focusRule.focusOwner?.transferFocusBackward()
+    assertThat(table!!.isEditing).isFalse()
+    assertThat(focusRule.focusOwner?.name).isEqualTo(FIRST_FIELD_EDITOR)
+  }
+
+  @RunsInEdt
+  @RunWithTestFocusManager
+  @Test
+  fun testNavigateBackwardsIntoTable() {
+    val panel = createPanel()
+    panel.components[2].transferFocusBackward()
+    assertThat(table!!.editingRow).isEqualTo(5)
+    assertThat(table!!.editingColumn).isEqualTo(0)
+    assertThat(focusRule.focusOwner?.name).isEqualTo(ICON_CELL_EDITOR)
+  }
+
+  private fun createPanel(): JPanel {
+    val panel = JPanel()
+    panel.isFocusCycleRoot = true
+    panel.focusTraversalPolicy = LayoutFocusTraversalPolicy()
+    panel.add(JTextField())
+    panel.add(table)
+    panel.add(JTextField())
+    panel.components[0].name = FIRST_FIELD_EDITOR
+    panel.components[1].name = TABLE_NAME
+    panel.components[2].name = LAST_FIELD_EDITOR
+    focusRule.setRootPeer(panel)
+    return panel
+  }
+
   private fun dispatchAction(action: String) {
     table!!.actionMap[action].actionPerformed(ActionEvent(table, 0, action))
   }
@@ -384,43 +497,54 @@ class PTableTest {
     field.isAccessible = true
     field.set(event, true)
   }
-}
 
-private class SimplePTableCellEditor : PTableCellEditor {
-  var property: PTableItem? = null
-  var column: PTableColumn? = null
-  var toggleCount = 0
-  var cancelCount = 0
+  private inner class SimplePTableCellEditor : PTableCellEditor {
+    var property: PTableItem? = null
+    var column: PTableColumn? = null
+    var toggleCount = 0
+    var cancelCount = 0
 
-  override val editorComponent = JPanel()
+    override val editorComponent = JPanel()
+    val textEditor = JTextField()
+    val icon = JBLabel()
 
-  override val value: String?
-    get() = null
+    override val value: String?
+      get() = null
 
-  override val isBooleanEditor: Boolean
-    get() = property?.name == "visible"
+    override val isBooleanEditor: Boolean
+      get() = property?.name == "visible"
 
-  override fun toggleValue() {
-    toggleCount++
+    init {
+      icon.icon = StudioIcons.LayoutEditor.Properties.TOGGLE_PROPERTIES
+      icon.isFocusable = true
+      icon.name = ICON_CELL_EDITOR
+      textEditor.name = TEXT_CELL_EDITOR
+      editorComponent.add(textEditor)
+      editorComponent.add(icon)
+      focusRule.setPeer(editorComponent)
+    }
+
+    override fun toggleValue() {
+      toggleCount++
+    }
+
+    override fun requestFocus() {}
+
+    override fun cancelEditing(): Boolean {
+      cancelCount++
+      return property?.name != "size"
+    }
+
+    override fun close(oldTable: PTable) {}
   }
 
-  override fun requestFocus() {}
+  private inner class SimplePTableCellEditorProvider : PTableCellEditorProvider {
+    val editor = SimplePTableCellEditor()
 
-  override fun cancelEditing(): Boolean {
-    cancelCount++
-    return property?.name != "size"
-  }
-
-  override fun close(oldTable: PTable) {}
-}
-
-private class SimplePTableCellEditorProvider : PTableCellEditorProvider {
-  val editor = SimplePTableCellEditor()
-
-  override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor {
-    editor.property = property
-    editor.column = column
-    return editor
+    override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellEditor {
+      editor.property = property
+      editor.column = column
+      return editor
+    }
   }
 }
-

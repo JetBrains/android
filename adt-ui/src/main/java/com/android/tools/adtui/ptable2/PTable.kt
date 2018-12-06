@@ -50,6 +50,9 @@ interface PTable {
   /** The font color used in the table */
   val foregroundColor: Color
 
+  /** Wrap when navigating past the end of the table */
+  var wrap: Boolean
+
   /**
    * The grid color used in the table.
    *
