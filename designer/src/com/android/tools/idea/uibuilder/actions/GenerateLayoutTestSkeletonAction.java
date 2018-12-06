@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.actions;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.common.editor.NlEditor;
+import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
