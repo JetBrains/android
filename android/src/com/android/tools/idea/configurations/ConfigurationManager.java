@@ -32,6 +32,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -48,7 +49,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.android.uipreview.UserDeviceManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -75,9 +75,8 @@ public class ConfigurationManager implements Disposable {
 
   @NotNull private final Module myModule;
 
-  private List<Device> myDevices;
-  private Map<String,Device> myDeviceMap;
-  private final UserDeviceManager myUserDeviceManager;
+  @NotNull private Collection<Device> mySdkDevices = Collections.emptyList();
+  @NotNull private Map<String,Device> mySdkDevicesById = Collections.emptyMap();
   private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
   private final Object myLocalesLock = new Object();
   @GuardedBy("myLocalesLock")
@@ -130,17 +129,6 @@ public class ConfigurationManager implements Disposable {
 
   public ConfigurationManager(@NotNull Module module) {
     myModule = module;
-
-    myUserDeviceManager = new UserDeviceManager() {
-      @Override
-      protected void userDevicesChanged() {
-        // Force refresh
-        myDevices = null;
-        myDeviceMap = null;
-        // TODO: How do I trigger changes in the UI?
-      }
-    };
-    Disposer.register(this, myUserDeviceManager);
     Disposer.register(myModule, this);
   }
 
@@ -224,42 +212,35 @@ public class ConfigurationManager implements Disposable {
     return ConfigurationStateManager.get(getModule().getProject());
   }
 
-  /** Returns the list of available devices for the current platform, if any */
+  /** Returns the list of available devices for the current platform and any custom user devices, if any */
   @NotNull
-  public List<Device> getDevices() {
-    if (myDevices == null || myDevices.isEmpty()) {
-      List<Device> devices = null;
-
-      AndroidPlatform platform = AndroidPlatform.getInstance(getModule());
-      if (platform != null) {
-        final AndroidSdkData sdkData = platform.getSdkData();
-        devices = new ArrayList<>();
-        DeviceManager deviceManager = sdkData.getDeviceManager();
-        devices.addAll(deviceManager.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR)));
-        devices.addAll(myUserDeviceManager.parseUserDevices(new MessageBuildingSdkLog()));
-      }
-
-      if (devices == null) {
-        myDevices = Collections.emptyList();
-      } else {
-        myDevices = devices;
-      }
-    }
-
-    return myDevices;
+  public ImmutableList<Device> getDevices() {
+    return new ImmutableList.Builder<Device>()
+      .addAll(updateAndGetPlatformDevices())
+      .addAll(UserDeviceManager.getInstance(getProject()).getUserDevices())
+      .build();
   }
 
   @NotNull
-  private Map<String,Device> getDeviceMap() {
-    if (myDeviceMap == null) {
-      List<Device> devices = getDevices();
-      myDeviceMap = Maps.newHashMapWithExpectedSize(devices.size());
-      for (Device device : devices) {
-        myDeviceMap.put(device.getId(), device);
+  public Collection<Device> updateAndGetPlatformDevices() {
+    if (mySdkDevices.isEmpty()) {
+      AndroidPlatform platform = AndroidPlatform.getInstance(getModule());
+      if (platform != null) {
+        final DeviceManager deviceManager = platform.getSdkData().getDeviceManager();
+        mySdkDevices = deviceManager.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR));
       }
     }
 
-    return myDeviceMap;
+    return mySdkDevices;
+  }
+
+  @NotNull
+  private ImmutableMap<String,Device> getDeviceMap() {
+    ImmutableMap.Builder<String, Device> deviceMapBuilder = new ImmutableMap.Builder<>();
+    for (Device device : getDevices()) {
+      deviceMapBuilder.put(device.getId(), device);
+    }
+    return deviceMapBuilder.build();
   }
 
   @Nullable
