@@ -22,12 +22,14 @@ import com.android.tools.idea.assistant.AssistantBundleCreator;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.util.FutureUtils;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.ide.GeneralSettings;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.concurrent.FutureCallback;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
@@ -56,6 +58,17 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
     File tmpDir = TestUtils.createTempDirDeletedOnExit();
     Path localPath = tmpDir.toPath().resolve("local-3.3.0.xml");
     Mockito.when(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath);
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.clearOverride();
+      StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.clearOverride();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   /**
@@ -97,25 +110,9 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
 
     // Future callback, should return true since current version would be -1
     SettableFuture<Boolean> completeFuture = SettableFuture.create();
-    FutureCallback<Boolean> callback = new FutureCallback<Boolean>() {
-      @Override
-      public void completed(Boolean result) {
-        completeFuture.set(result);
-      }
-
-      @Override
-      public void failed(Exception ex) {
-        completeFuture.set(false);
-      }
-
-      @Override
-      public void cancelled() {
-        completeFuture.set(false);
-      }
-    };
 
     // WhatsNewStartupActivity does this normally in production
-    new WhatsNewAssistantCheckVersionTask(getProject(), callback).queue();
+    new WhatsNewAssistantCheckVersionTask(getProject(), new BooleanCallback(completeFuture)).queue();
     try {
       FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertTrue(completeFuture.get());
@@ -123,6 +120,72 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
     catch (Exception e) {
       e.printStackTrace();
       fail("Failed while waiting for future");
+    }
+  }
+
+  /**
+   * Test that Tip of the Day settings is properly restored when WNA needs to auto-show
+   */
+  public void testStartupTips() {
+    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false);
+
+    // Tips of the Day should be enabled by default
+    assertTrue(GeneralSettings.getInstance().isShowTipsOnStartup());
+    SettableFuture<Boolean> completeFutureEnabled = SettableFuture.create();
+
+    // Temporarily disables tips and opens WNA
+    WhatsNewStartupActivity.hideTipsAndOpenWhatsNewAssistant(getProject(), new BooleanCallback(completeFutureEnabled));
+
+    // Check that Tips are enabled again
+    try {
+      FutureUtils.pumpEventsAndWaitForFuture(completeFutureEnabled, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+      assertTrue(completeFutureEnabled.get());
+      assertTrue(GeneralSettings.getInstance().isShowTipsOnStartup());
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail("Failed while waiting for future");
+    }
+
+    // Now disable Tips instead
+    GeneralSettings.getInstance().setShowTipsOnStartup(false);
+    SettableFuture<Boolean> completeFutureDisabled = SettableFuture.create();
+
+    // Temporarily disables tips and opens WNA
+    WhatsNewStartupActivity.hideTipsAndOpenWhatsNewAssistant(getProject(), new BooleanCallback(completeFutureDisabled));
+
+    // Check that Tips are still disabled
+    try {
+      FutureUtils.pumpEventsAndWaitForFuture(completeFutureDisabled, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+      assertTrue(completeFutureDisabled.get());
+      assertFalse(GeneralSettings.getInstance().isShowTipsOnStartup());
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      fail("Failed while waiting for future");
+    }
+  }
+
+  private static class BooleanCallback implements FutureCallback<Boolean> {
+    private SettableFuture<Boolean> completeFuture;
+
+    BooleanCallback(@NotNull SettableFuture<Boolean> future) {
+      completeFuture = future;
+    }
+
+    @Override
+    public void completed(Boolean result) {
+      completeFuture.set(result);
+    }
+
+    @Override
+    public void failed(Exception ex) {
+      completeFuture.set(false);
+    }
+
+    @Override
+    public void cancelled() {
+      completeFuture.set(false);
     }
   }
 }
