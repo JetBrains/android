@@ -15,86 +15,93 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.actions.SelectAllAction
 import com.android.tools.idea.naveditor.actions.SelectNextAction
 import com.android.tools.idea.naveditor.actions.SelectPreviousAction
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
 
 /**
  * Tests for actions used by the nav editor
  */
-class SelectNextActionTest : NavTestCase() {
-
+class SelectActionsTest : NavTestCase() {
   fun testSelectNextAction() {
     val model = model("nav.xml") {
-      navigation {
-        action("action1")
-        fragment("fragment1")
+      navigation("root") {
+        action("action1", destination = "fragment1")
+        fragment("fragment1") {
+          action("action2", destination = "fragment2")
+        }
         fragment("fragment2")
         fragment("fragment3")
+        navigation("nested") {
+          action("action3", destination = "fragment2")
+          fragment("fragment4") {
+            action("action4", destination = "fragment1")
+            action("action5", destination = "fragment4")
+          }
+        }
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
-    val fragment2 = model.find("fragment2")!!
-    val fragment3 = model.find("fragment3")!!
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
 
-    val surface = model.surface as NavDesignSurface
     val action = SelectNextAction(surface)
 
-    val event = mock(AnActionEvent::class.java)
-    action.actionPerformed(event)
-    assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
-
-    action.actionPerformed(event)
-    assertEquals(listOf(fragment2), model.surface.selectionModel.selection)
-
-    action.actionPerformed(event)
-    assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
-
-    action.actionPerformed(event)
-    assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
+    performAction(action, surface, "action1")
+    performAction(action, surface, "fragment1")
+    performAction(action, surface, "action2")
+    performAction(action, surface, "fragment2")
+    performAction(action, surface, "fragment3")
+    performAction(action, surface, "nested")
+    performAction(action, surface, "action3")
+    performAction(action, surface, "action4")
+    performAction(action, surface, "root")
+    performAction(action, surface, "action1")
   }
-}
 
-class SelectPreviousActionTest : NavTestCase() {
   fun testSelectPreviousAction() {
     val model = model("nav.xml") {
-      navigation {
-        action("action1")
-        fragment("fragment1")
+      navigation("root") {
+        action("action1", destination = "fragment1")
+        fragment("fragment1") {
+          action("action2", destination = "fragment2")
+        }
         fragment("fragment2")
         fragment("fragment3")
+        navigation("nested") {
+          action("action3", destination = "fragment2")
+          fragment("fragment4") {
+            action("action4", destination = "fragment1")
+            action("action5", destination = "fragment4")
+          }
+        }
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
-    val fragment2 = model.find("fragment2")!!
-    val fragment3 = model.find("fragment3")!!
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
 
-    val surface = model.surface as NavDesignSurface
     val action = SelectPreviousAction(surface)
 
-    val event = mock(AnActionEvent::class.java)
-    action.actionPerformed(event)
-    assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
-
-    action.actionPerformed(event)
-    assertEquals(listOf(fragment2), model.surface.selectionModel.selection)
-
-    action.actionPerformed(event)
-    assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
-
-    action.actionPerformed(event)
-    assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
+    performAction(action, surface, "action4")
+    performAction(action, surface, "action3")
+    performAction(action, surface, "nested")
+    performAction(action, surface, "fragment3")
+    performAction(action, surface, "fragment2")
+    performAction(action, surface, "action2")
+    performAction(action, surface, "fragment1")
+    performAction(action, surface, "action1")
+    performAction(action, surface, "root")
+    performAction(action, surface, "action4")
   }
-}
-
-class SelectAllActionTest : NavTestCase() {
 
   fun testSelectAllAction() {
     val model = model("nav.xml") {
@@ -117,4 +124,9 @@ class SelectAllActionTest : NavTestCase() {
     assertEquals(listOf(fragment1, fragment2, fragment3), model.surface.selectionModel.selection)
   }
 
+  private fun performAction(action: AnAction, surface: NavDesignSurface, id: String) {
+    action.actionPerformed(mock(AnActionEvent::class.java))
+    val component = surface.model?.find(id)!!
+    AndroidTestCase.assertEquals(listOf(component), surface.selectionModel.selection)
+  }
 }
