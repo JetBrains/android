@@ -21,7 +21,7 @@ import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
-import icons.StudioIcons;
+import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -97,7 +97,7 @@ class CpuProfilerContextMenuInstaller {
    */
   private void installExportTraceMenuItem() {
     // Call setEnableBooleanSupplier() on ProfilerAction.Builder to make it easier to test.
-    ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(StudioIcons.Common.EXPORT)
+    ProfilerAction exportTrace = new ProfilerAction.Builder("Export trace...").setIcon(AllIcons.ToolbarDecorator.Export)
                                                                               .setContainerComponent(myContainerComponent)
                                                                               .setEnableBooleanSupplier(() -> !myStage.isImportTraceMode())
                                                                               .build();
