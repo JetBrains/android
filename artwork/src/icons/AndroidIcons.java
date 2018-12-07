@@ -77,9 +77,7 @@ public class AndroidIcons {
   }
 
   public static class Ddms {
-    public static final Icon Emulator = load("/icons/ddms/emulator.png"); // 16x16
     public static final Icon Emulator2 = load("/icons/ddms/emulator_02.png"); // 16x16
-    public static final Icon Logcat = load("/icons/ddms/logcat.png"); // 16x16
     /**
      * The {@link #LogcatAutoFilterSelectedPid} icon is a copy of the AllIcons.Diff.diff icon to be replaced if we get a better icon.
      */
