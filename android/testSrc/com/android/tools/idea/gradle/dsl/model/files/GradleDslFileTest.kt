@@ -172,7 +172,7 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
 
     val property = buildModel.buildscript().dependencies().artifacts()[0].completeModel()
-    verifyPropertyModel(property, STRING_TYPE, "value", STRING, REGULAR, 1)
+    verifyPropertyModel(property, STRING_TYPE, "value:name:2", STRING, REGULAR, 1)
   }
 
   fun getFile(file: File, files: Set<GradleFileModel>) = files.first { toSystemIndependentPath(file.absolutePath) == it.virtualFile.path }

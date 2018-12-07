@@ -428,6 +428,7 @@ enum class TestFileName(val path: String) {
   ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_PARENS("artifactDependency/configureClosureParens"),
   ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE("artifactDependency/setVersionReference"),
   ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES("artifactDependency/setExcludesBlockToReferences"),
+  ARTIFACT_DEPENDENCY_ARTIFACT_NOTATION_EDGE_CASES("artifactDependency/artifactNotationEdgeCases"),
   DEPENDENCIES_ALL_DEPENDENCIES("dependencies/allDependencies"),
   DEPENDENCIES_REMOVE_JAR_DEPENDENCIES("dependencies/removeJarDependencies"),
   FILE_DEPENDENCY_PARSE_SINGLE_FILE_DEPENDENCY("fileDependency/parseSingleFileDependency"),

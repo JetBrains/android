@@ -35,6 +35,7 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
@@ -297,7 +298,9 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
       if (value == null || value.trim().isEmpty()) {
         return null;
       }
-      return new CompactNotation(configurationName, dslExpression, configurationElement);
+      CompactNotation notation = new CompactNotation(configurationName, dslExpression, configurationElement);
+      // Check if the create notation is valid i.e it has a name
+      return (notation.name().getValueType() != NONE) ? notation : null;
     }
 
     private CompactNotation(@NotNull String configurationName,
