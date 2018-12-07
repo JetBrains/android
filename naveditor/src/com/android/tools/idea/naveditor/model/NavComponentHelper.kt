@@ -36,9 +36,9 @@ import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.StringAttributeDelegate
 import com.android.tools.idea.common.model.StringAutoAttributeDelegate
+import com.android.tools.idea.naveditor.analytics.MetricsLoggingAttributeDelegate
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.naveditor.analytics.MetricsLoggingAttributeDelegate
 import com.android.tools.idea.uibuilder.model.createChild
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
@@ -57,8 +57,21 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.navigation.NavActionElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.dom.navigation.NavigationSchema.*
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_ENTER_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_EXIT_ANIM
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_SINGLE_TOP
+import org.jetbrains.android.dom.navigation.NavigationSchema.DestinationType
+import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ACTION
+import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
+import org.jetbrains.android.dom.navigation.NavigationSchema.get
 import java.io.File
+import java.util.ArrayList
 import kotlin.streams.toList
 
 /*

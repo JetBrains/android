@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
-import com.android.tools.idea.naveditor.actions.getNextDestination
 import com.android.tools.idea.naveditor.model.actionDestination
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
@@ -37,12 +36,9 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
 
   override fun deleteElement(dataContext: DataContext) {
     val superCall = { super.deleteElement(dataContext) }
-    val selection = surface.selectionModel.selection
 
-    var nextSelection: String? = null
-    if (selection.all { it.isDestination }) {
-      nextSelection = getNextDestination(surface)?.id
-    }
+    val nextSelection = nextSelection()
+    val selection = surface.selectionModel.selection
 
     val action = object : WriteCommandAction<Unit>(surface.project, "Delete Component", surface.model!!.file) {
       override fun run(result: Result<Unit>) {
@@ -61,15 +57,7 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
       }
     }
     action.execute()
-    val newComponent = if (nextSelection != null) {
-      surface.currentNavigation.children.find { it.id == nextSelection }
-    }
-    else {
-      surface.currentNavigation
-    }
-    if (newComponent != null) {
-      surface.selectionModel.setSelection(listOf(newComponent))
-    }
+    surface.selectionModel.setSelection(listOf(nextSelection))
   }
 
   override fun canDeleteElement(dataContext: DataContext): Boolean {
@@ -92,5 +80,30 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
     // that's selected (unless it's also the current nav).
     return (pasted.all { it.isAction } && component.supportsActions) ||
            component == surface.currentNavigation
+  }
+
+  // Determine the next component to be selected after the current selection is deleted
+  // Returns the root if multiple items are selected
+  private fun nextSelection(): NlComponent {
+    val selection = surface.selectionModel.selection
+    if (selection.size != 1) {
+      return surface.currentNavigation
+    }
+
+    val current = selection[0]
+    val selectable = surface.selectableComponents
+    if (selectable.size == 0) {
+      return surface.currentNavigation
+    }
+
+    var index = selectable.indexOf(current) + 1
+
+    if (current.isDestination) {
+      while (index < selectable.size && !selectable[index].isDestination) {
+        index++
+      }
+    }
+
+    return selectable[index % selectable.size]
   }
 }

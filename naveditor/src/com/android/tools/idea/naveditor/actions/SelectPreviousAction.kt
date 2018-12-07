@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.naveditor.actions
 
-import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 class SelectPreviousAction(private val surface: NavDesignSurface) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
-    val destinations = surface.currentNavigation.children.filter { it.isDestination }
-    if (destinations.isEmpty()) {
+    val selectable = surface.selectableComponents
+    if (selectable.isEmpty()) {
       return
     }
 
@@ -31,11 +30,11 @@ class SelectPreviousAction(private val surface: NavDesignSurface) : AnAction() {
     val selection = selectionModel.selection
 
     val previous = if (selection.size == 1) {
-      val index = Math.max(destinations.indexOf(selection[0]), 0)
-      destinations[(index - 1 + destinations.size) % destinations.size]
+      val index = Math.max(selectable.indexOf(selection[0]), 0)
+      selectable[(index - 1 + selectable.size) % selectable.size]
     }
     else {
-      destinations.last()
+      selectable.last()
     }
 
     selectionModel.setSelection(listOf(previous))
