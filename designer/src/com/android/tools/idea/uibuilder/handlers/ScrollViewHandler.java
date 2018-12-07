@@ -29,7 +29,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
-import icons.AndroidDesignerIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -154,7 +154,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
 
   static class ToggleRenderModeAction extends ToggleViewAction {
     public ToggleRenderModeAction() {
-      super(AndroidDesignerIcons.ViewportRender, AndroidDesignerIcons.NormalRender, "Toggle Viewport Render Mode", null);
+      super(StudioIcons.LayoutEditor.Toolbar.VIEWPORT_RENDER, StudioIcons.LayoutEditor.Toolbar.NORMAL_RENDER, "Toggle Viewport Render Mode", null);
     }
 
     @Override

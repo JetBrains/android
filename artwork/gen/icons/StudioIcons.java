@@ -280,6 +280,7 @@ public class StudioIcons {
       public static final Icon BARRIER_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/barrier-horizontal.svg"); // 16x16
       public static final Icon BARRIER_VERTICAL = load("/studio/icons/layout-editor/toolbar/barrier-vertical.svg"); // 16x16
       public static final Icon BASELINE_ALIGNED_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/baseline-aligned-constraint.svg"); // 16x16
+      public static final Icon BASELINE_ALIGNED_OFF = load("/studio/icons/layout-editor/toolbar/baseline-aligned-off.svg"); // 16x16
       public static final Icon BASELINE_ALIGNED_WHITE = load("/studio/icons/layout-editor/toolbar/baseline-aligned-white.svg"); // 16x16
       public static final Icon BASELINE_ALIGNED = load("/studio/icons/layout-editor/toolbar/baseline-aligned.svg"); // 16x16
       public static final Icon BOTTOM_ALIGNED_CONSTRAINT = load("/studio/icons/layout-editor/toolbar/bottom-aligned-constraint.svg"); // 16x16
