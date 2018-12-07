@@ -29,7 +29,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomElementVisitor;
 import com.intellij.util.xml.DomFileElement;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.android.dom.layout.Fragment;
 import org.jetbrains.android.dom.layout.Include;
@@ -79,7 +79,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
 
     @Override
     public Icon getIcon(boolean open) {
-      return AndroidIcons.Views.Fragment;
+      return StudioIcons.LayoutEditor.Palette.FRAGMENT;
     }
 
     @Nullable
@@ -124,7 +124,7 @@ public class LayoutStructureViewBuilder extends TreeBasedStructureViewBuilder {
 
     @Override
     public Icon getIcon(boolean open) {
-      return AndroidIcons.Views.Include;
+      return StudioIcons.LayoutEditor.Palette.INCLUDE;
     }
 
     @Override
