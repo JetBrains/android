@@ -31,8 +31,11 @@ class StyleItemConverter : WrappingConverter() {
   override fun getConverter(element: GenericDomValue<*>): Converter<*>? {
     val attributeName = (element as StyleItem).name
     val psiElement = attributeName.xmlAttribute ?: return null
-    val facet = psiElement.androidFacet ?: return null
-    val name = attributeName.value.nullize(nullizeSpaces = true) ?: return null
+
+    // Use the DOM for finding the module+facet, as for AAR sources this will be one of the consuming modules and not null.
+    val facet = element.androidFacet ?: return null
+
+    val name = attributeName.stringValue.nullize(nullizeSpaces = true) ?: return null
     val reference = ResourceUrl.parseAttrReference(name)?.resolve(psiElement) ?: return null
     val resourceManager = ModuleResourceManagers.getInstance(facet).getResourceManager(reference.namespace.packageName) ?: return null
     val attrDefinition = resourceManager.attributeDefinitions?.getAttrDefinition(reference) ?: return null
