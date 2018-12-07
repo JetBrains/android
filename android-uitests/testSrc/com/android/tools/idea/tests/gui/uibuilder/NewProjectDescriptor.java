@@ -93,6 +93,7 @@ class NewProjectDescriptor {
         .clickNext()
         .getConfigureNewAndroidProjectStep()
         .enterName(myName)
+        .setSourceLanguage("Java")
         .enterPackageName(myPkg)
         .selectMinimumSdkApi(myMinSdk)
         .wizard()
@@ -103,6 +104,7 @@ class NewProjectDescriptor {
           .welcomeFrame()
           .createNewProject()
           .getConfigureAndroidProjectStep()
+          .setKotlinSupport(false)
           .setCppSupport(false)  // The setting is saved and restored by NewProjectModel, so can't be presumed disabled.
           .enterApplicationName(myName)
           .enterCompanyDomain(myDomain)

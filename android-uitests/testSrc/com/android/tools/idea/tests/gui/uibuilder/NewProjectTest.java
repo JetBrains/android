@@ -172,6 +172,7 @@ public class NewProjectTest {
       .createNewProject()
       .getConfigureAndroidProjectStep()
       .enterApplicationName("My Test App")
+      .setKotlinSupport(false)
       .enterPackageName("com.test.project")
       .wizard()
       .clickNext()

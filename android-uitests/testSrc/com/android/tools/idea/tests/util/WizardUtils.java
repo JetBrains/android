@@ -42,6 +42,7 @@ public final class WizardUtils {
         .wizard()
         .clickNext()
         .getConfigureNewAndroidProjectStep()
+        .setSourceLanguage("Java")
         .enterPackageName("com.google.myapplication")
         .wizard()
         .clickFinish();
