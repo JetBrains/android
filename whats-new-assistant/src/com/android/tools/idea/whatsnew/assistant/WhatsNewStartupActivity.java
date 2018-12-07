@@ -19,6 +19,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WhatsNewAssistantEvent;
+import com.intellij.ide.GeneralSettings;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -73,7 +74,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
 
     // If the Android Studio version is new, then always show on startup
     if (isNewStudioVersion(data, applicationRevision)) {
-      openWhatsNewAssistant(project);
+      hideTipsAndOpenWhatsNewAssistant(project);
     }
     else {
       // But also show if the config version is newer than current, even if AS version is not higher
@@ -81,6 +82,36 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
       WhatsNewAssistantCheckVersionTask task =
         new WhatsNewAssistantCheckVersionTask(project, new VersionCheckCallback(project));
       task.queue();
+    }
+  }
+
+  private static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project) {
+    hideTipsAndOpenWhatsNewAssistant(project, null);
+  }
+
+  /**
+   * Hide the Tip of the Day if showing What's New Assistant on startup because
+   * we don't want to show two auto-opening panels/popups
+   * @param project
+   */
+  @VisibleForTesting
+  static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project, @Nullable FutureCallback<Boolean> callback) {
+    boolean showTipsOnStartup = GeneralSettings.getInstance().isShowTipsOnStartup();
+    if (showTipsOnStartup)
+      GeneralSettings.getInstance().setShowTipsOnStartup(false);
+
+    // Restore to the setting that user had before, if applicable
+    openWhatsNewAssistant(project);
+    if (showTipsOnStartup) {
+      ApplicationManager.getApplication().invokeLater(() -> {
+        GeneralSettings.getInstance().setShowTipsOnStartup(true);
+        if (callback != null)
+          callback.completed(true);
+      });
+    }
+    else {
+      if (callback != null)
+        callback.completed(true);
     }
   }
 
@@ -119,8 +150,6 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
       data.myRevision = applicationRevision.toString();
       return true;
     }
-
-    // TODO: show if the AS version is the same but WNA config is higher version - WhatsNewAssistantBundleCreator.isNewConfigVersion()
 
     return false;
   }
@@ -170,7 +199,7 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
     public void completed(Boolean result) {
       // Auto-show What's New Assistant
       if (result) {
-        openWhatsNewAssistant(myProject);
+        hideTipsAndOpenWhatsNewAssistant(myProject);
       }
     }
 
