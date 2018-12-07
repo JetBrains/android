@@ -23,26 +23,22 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 class SelectNextAction(private val surface: NavDesignSurface) : AnAction() {
   override fun actionPerformed(e: AnActionEvent?) {
-    getNextDestination(surface)?.let {
-      surface.selectionModel.setSelection(listOf(it))
+    val selectable = surface.selectableComponents
+    if (selectable.isEmpty()) {
+      return
     }
-  }
-}
 
-fun getNextDestination(surface: NavDesignSurface): NlComponent? {
-  val destinations = surface.currentNavigation.children.filter { it.isDestination }
-  if (destinations.isEmpty()) {
-    return null
-  }
+    val selectionModel = surface.selectionModel
+    val selection = selectionModel.selection
 
-  val selectionModel = surface.selectionModel
-  val selection = selectionModel.selection
+    val next = if (selection.size == 1) {
+      val index = selectable.indexOf(selection[0])
+      selectable[(index + 1) % selectable.size]
+    }
+    else {
+      selectable.first()
+    }
 
-  return if (selection.size == 1) {
-    val index = destinations.indexOf(selection[0])
-    destinations[(index + 1) % destinations.size]
-  }
-  else {
-    destinations.first()
+    selectionModel.setSelection(listOf(next))
   }
 }

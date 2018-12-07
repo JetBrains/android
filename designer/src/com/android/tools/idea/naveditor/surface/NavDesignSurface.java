@@ -45,6 +45,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
+import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
@@ -671,5 +672,29 @@ public class NavDesignSurface extends DesignSurface {
   protected boolean getSupportPinchAndZoom() {
     // TODO: Enable pinch and zoom for navigation editor
     return false;
+  }
+
+  /**
+   * Returns all the components under the current navigation
+   * that are selectable in the design surface
+   * Contains:
+   * Current root navigation
+   * Global actions under current root
+   * Destinations under current root
+   * Actions under the above destinations that point to a visible destination
+   *
+   * @return the list of destinations
+   */
+  @NotNull
+  public List<NlComponent> getSelectableComponents() {
+    NlComponent root = getCurrentNavigation();
+    return root.flatten().filter(component ->
+                                   component == root ||
+                                   (NavComponentHelperKt.isDestination(component) && component.getParent() == root) ||
+                                   (NavComponentHelperKt.isAction(component) &&
+                                    (component.getParent() == root ||
+                                     (component.getParent() != null && component.getParent().getParent() == root) ||
+                                     NavComponentHelperKt.getActionType(component, root) == ActionType.EXIT_DESTINATION))
+    ).collect(Collectors.toList());
   }
 }

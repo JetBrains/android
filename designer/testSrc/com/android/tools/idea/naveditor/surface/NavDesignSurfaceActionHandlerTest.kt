@@ -44,7 +44,8 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
       }
     }
 
-    val surface = model.surface as NavDesignSurface
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManagerImpl.MyDataContext(model.surface)
     assertFalse(handler.canDeleteElement(context))
@@ -73,7 +74,8 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
       }
     }
 
-    val surface = model.surface as NavDesignSurface
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
     val handler = NavDesignSurfaceActionHandler(surface)
     val context = DataManagerImpl.MyDataContext(model.surface)
     var nlComponent = model.find("fragment")
