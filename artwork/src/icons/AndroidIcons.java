@@ -103,13 +103,7 @@ public class AndroidIcons {
 
   public static class NeleIcons {
     // All 16x16 and 32x32 in Retina mode
-    public static final Icon Phone = load("/icons/nele/phone.png");
-    public static final Icon Tablet = load("/icons/nele/tablet.png");
-    public static final Icon Wear = load("/icons/nele/wear.png");
-    public static final Icon Tv = load("/icons/nele/tv.png");
     public static final Icon DeviceScreen = load("/icons/nele/DeviceScreen.png");
-
-    public static final Icon VirtualDevice = load("/icons/nele/virtualdevice.png"); // 16x16
   }
 
   public static class RunIcons {
