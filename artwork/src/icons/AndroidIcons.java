@@ -126,12 +126,6 @@ public class AndroidIcons {
     public static final Icon Layer = load("/icons/sherpa/switch_blueprint_off.png");
   }
 
-  public static class Views {
-
-    public static final Icon Fragment = load("/icons/palette/fragment.png"); // 16x16
-    public static final Icon Include = load("/icons/palette/include-advanced.png"); // 16x16
-  }
-
   public static class ToolWindows {
     public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.svg"); // 13x13
   }
