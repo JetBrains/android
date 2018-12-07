@@ -69,7 +69,7 @@ class CpuGenerator(connection: Connection) : DataGenerator(connection) {
       snapshots.add(CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot.newBuilder()
                       .setName(i.toString())
                       .setTid(i)
-                      .setState(CpuProfiler.GetThreadsResponse.State.RUNNING)
+                      .setState(Cpu.CpuThreadData.State.RUNNING)
                       .build()
       )
     }

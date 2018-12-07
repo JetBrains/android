@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
 import com.google.common.truth.Truth.assertThat
@@ -53,7 +54,7 @@ class CpuThreadsTooltipViewTest {
     stageView.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
     stageView.timeline.viewRange.set(0.0, TimeUnit.SECONDS.toMicros(10).toDouble())
     val capturedThread = CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
-      .setNewState(CpuProfiler.GetThreadsResponse.State.SLEEPING)
+      .setNewState(Cpu.CpuThreadData.State.SLEEPING)
       .setTimestamp(TimeUnit.SECONDS.toNanos(2))
       .build()
     cpuService.addAdditionalThreads(3, "newThread", arrayListOf(capturedThread))

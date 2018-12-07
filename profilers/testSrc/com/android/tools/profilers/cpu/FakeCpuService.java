@@ -380,20 +380,20 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     Range thread1Range = new Range(TimeUnit.SECONDS.toNanos(1), TimeUnit.SECONDS.toNanos(8));
     if (!thread1Range.getIntersection(requestRange).isEmpty()) {
       List<CpuProfiler.GetThreadsResponse.ThreadActivity> activitiesThread1 = new ArrayList<>();
-      activitiesThread1.add(newActivity(TimeUnit.SECONDS.toNanos(1), CpuProfiler.GetThreadsResponse.State.RUNNING));
-      activitiesThread1.add(newActivity(TimeUnit.SECONDS.toNanos(8), CpuProfiler.GetThreadsResponse.State.DEAD));
+      activitiesThread1.add(newActivity(TimeUnit.SECONDS.toNanos(1), Cpu.CpuThreadData.State.RUNNING));
+      activitiesThread1.add(newActivity(TimeUnit.SECONDS.toNanos(8), Cpu.CpuThreadData.State.DEAD));
       threads.add(newThread(1, "Thread 1", activitiesThread1));
     }
 
     Range thread2Range = new Range(TimeUnit.SECONDS.toNanos(6), TimeUnit.SECONDS.toNanos(15));
     if (!thread2Range.getIntersection(requestRange).isEmpty()) {
       List<CpuProfiler.GetThreadsResponse.ThreadActivity> activitiesThread2 = new ArrayList<>();
-      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(6), CpuProfiler.GetThreadsResponse.State.RUNNING));
+      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(6), Cpu.CpuThreadData.State.RUNNING));
       // Make sure we handle an unexpected state.
-      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(8), CpuProfiler.GetThreadsResponse.State.STOPPED));
-      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(10), CpuProfiler.GetThreadsResponse.State.SLEEPING));
-      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(12), CpuProfiler.GetThreadsResponse.State.WAITING));
-      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(15), CpuProfiler.GetThreadsResponse.State.DEAD));
+      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(8), Cpu.CpuThreadData.State.STOPPED));
+      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(10), Cpu.CpuThreadData.State.SLEEPING));
+      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(12), Cpu.CpuThreadData.State.WAITING));
+      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(15), Cpu.CpuThreadData.State.DEAD));
       threads.add(newThread(2, "Thread 2", activitiesThread2));
     }
 
@@ -413,13 +413,13 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
     List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities = new ArrayList<>();
     activities.add(newActivity(TimeUnit.MICROSECONDS.toNanos(
-      (long)range.getMin() + myTraceThreadActivityBuffer), CpuProfiler.GetThreadsResponse.State.RUNNING));
-    activities.add(newActivity(TimeUnit.MICROSECONDS.toNanos(rangeMid), CpuProfiler.GetThreadsResponse.State.SLEEPING));
+      (long)range.getMin() + myTraceThreadActivityBuffer), Cpu.CpuThreadData.State.RUNNING));
+    activities.add(newActivity(TimeUnit.MICROSECONDS.toNanos(rangeMid), Cpu.CpuThreadData.State.SLEEPING));
 
     return Collections.singletonList(newThread(TRACE_TID, "Trace tid", activities));
   }
 
-  private static CpuProfiler.GetThreadsResponse.ThreadActivity newActivity(long timestampNs, CpuProfiler.GetThreadsResponse.State state) {
+  private static CpuProfiler.GetThreadsResponse.ThreadActivity newActivity(long timestampNs, Cpu.CpuThreadData.State state) {
     CpuProfiler.GetThreadsResponse.ThreadActivity.Builder activity = CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder();
     activity.setNewState(state);
     activity.setTimestamp(timestampNs);
