@@ -41,13 +41,10 @@ import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.util.PsiNavigationSupport;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
-import com.intellij.pom.Navigatable;
-import com.intellij.psi.PsiElement;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -371,7 +368,7 @@ public class InteractionManager {
         if (component != null) {
           // TODO: find a way to move layout-specific logic elsewhere.
           if (mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
-            navigateEditor(component, true);
+            NlComponentHelperKt.tryNavigateTo(component, true);
           }
           else {
             SceneView view = mySurface.getSceneView(x, y);
@@ -393,26 +390,13 @@ public class InteractionManager {
       if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown()) {
         // TODO: find a way to move layout-specific logic elsewhere.
         if (component != null && mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
-          navigateEditor(component, false);
+          NlComponentHelperKt.tryNavigateTo(component, false);
         }
       }
 
       if (event.isPopupTrigger()) {
         selectComponentAt(x, y, false, true);
         mySurface.getActionManager().showPopup(event, component);
-      }
-    }
-
-    /**
-     * Warp to the text editor and show the corresponding XML for the clicked widget.
-     *
-     * @param component       the target we need to navigate to
-     * @param needFocusEditor true for focusing the editor after navigation. false otherwise.
-     */
-    private void navigateEditor(@NotNull NlComponent component, boolean needFocusEditor) {
-      PsiElement element = component.getTag().getNavigationElement();
-      if (PsiNavigationSupport.getInstance().canNavigate(element) && element instanceof Navigatable) {
-        ((Navigatable)element).navigate(needFocusEditor);
       }
     }
 
