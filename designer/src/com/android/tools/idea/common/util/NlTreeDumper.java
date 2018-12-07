@@ -96,7 +96,7 @@ public class NlTreeDumper {
   private String describe(@NotNull NlComponent root) {
 
     MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(root).omitNullValues()
-      .add("tag", describe(root.getTag()));
+      .add("tag", "<" + root.getTagName() + ">");
     if (myShowBoundaries && NlComponentHelperKt.getHasNlComponentInfo(root)) {
       helper.add("bounds", "[" +
                            NlComponentHelperKt.getX(root) +
@@ -111,16 +111,6 @@ public class NlTreeDumper {
       helper.add("instance", getInstanceId(root));
     }
     return helper.toString();
-  }
-
-  @NotNull
-  private static String describe(@Nullable XmlTag tag) {
-    if (tag == null) {
-      return "";
-    }
-    else {
-      return '<' + tag.getName() + '>';
-    }
   }
 
   private int getInstanceId(@NotNull NlComponent root) {
