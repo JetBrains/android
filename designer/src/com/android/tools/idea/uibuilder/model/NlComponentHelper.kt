@@ -61,6 +61,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Computable
+import com.intellij.util.PsiNavigateUtil
 
 /*
  * Layout editor-specific helper methods and data for NlComponent
@@ -411,6 +412,15 @@ fun NlComponent.createChild(tagName: String,
 ): NlComponent? {
   val childTag = tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
   return model.createComponent(surface, childTag, this, before, insertType)
+}
+
+fun NlComponent.navigateTo(): Boolean {
+  if (!tag.isValid) {
+    return false
+  }
+
+  PsiNavigateUtil.navigate(tag)
+  return true
 }
 
 fun NlComponent.clearAttributes() {
