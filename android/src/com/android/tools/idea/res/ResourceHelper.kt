@@ -287,7 +287,7 @@ fun getResourceVariations(file: VirtualFile?, includeSelf: Boolean): List<Virtua
  * if the source of the resource item is unknown or there is no VirtualFile for it.
  */
 fun ResourceItem.getSourceAsVirtualFile(): VirtualFile? =
-  runReadAction { if (this is PsiResourceItem) psiFile?.virtualFile else source?.toVirtualFile() }
+  runReadAction { if (this is PsiResourceItem) psiFile?.virtualFile else originalSource?.toVirtualFile() }
 
 /**
  * Returns true if views with the given fully qualified class name need to include
