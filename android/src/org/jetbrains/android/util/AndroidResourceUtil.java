@@ -67,6 +67,7 @@ import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.LightResourceClassService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -96,6 +97,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -739,13 +741,19 @@ public class AndroidResourceUtil {
       return true;
     }
 
-    // method can be invoked for system resource dir, so we should check it
     if (!FD_RES.equals(dir.getName())) return false;
     dir = dir.getParent();
     if (dir != null) {
+      String protocol = vf.getFileSystem().getProtocol();
+      // TODO: Figure out a better way to check if a directory belongs to proto AAR resources.
+      if (protocol.equals(JarFileSystem.PROTOCOL) || protocol.equals(ApkFileSystem.PROTOCOL)) {
+          return true; // The file belongs either to res.apk or a source attachment JAR of a library.
+      }
+
       if (dir.findFile(FN_ANDROID_MANIFEST_XML) != null) {
         return true;
       }
+      // The method can be invoked for a framework resource directory, so we should check it.
       dir = dir.getParent();
       if (dir != null) {
         if (containsAndroidJar(dir)) return true;

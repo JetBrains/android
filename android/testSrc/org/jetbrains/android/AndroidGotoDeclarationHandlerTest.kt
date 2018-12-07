@@ -21,6 +21,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
+import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.goToElementAtCaret
 import com.google.common.truth.Truth.assertThat
@@ -582,14 +583,30 @@ class AndroidGotoDeclarationHandlerTestNamespaced : AndroidGotoDeclarationHandle
   }
 
   override fun addAarDependencyToMyModule() {
-    TODO("not implemented") // TODO(b/110082720): implement support for source attachments.
-  }
-
-  fun testGotoAarResourceFromCode_ownRClass() {
-    // TODO(b/110082720): implement support for source attachments.
+    addBinaryAarDependency(myModule)
   }
 
   override fun testGotoAarResourceFromCode_libRClass() {
-    // TODO(b/110082720): implement support for source attachments.
+    addAarDependencyToMyModule()
+
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/AarString.java",
+      // language=java
+      """
+      package p1.p2;
+
+      public class AarString {
+          public void f() {
+              int id1 = com.example.mylibrary.R.string.my_aar_str${caret}ing;
+          }
+      }
+      """.trimIndent()
+    )
+
+    assertThat(describeElements(getDeclarationsFrom(file.virtualFile)).trimEnd()).isEqualTo("""
+        values/strings.xml:3:
+          <string name="my_aar_string">This string came from an AARv2</string>
+                       ~|~~~~~~~~~~~~~~
+        """.trimIndent())
   }
 }
