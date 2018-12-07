@@ -16,6 +16,9 @@
 
 package org.jetbrains.android.dom.converters;
 
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
+import static com.intellij.openapi.util.Pair.pair;
+
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -39,17 +42,17 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
-import static com.intellij.openapi.util.Pair.pair;
 
 public class StyleItemNameConverter extends ResolvingConverter<String> {
 
@@ -208,7 +211,14 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
       return null;
     }
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(xmlElement);
+    // Get module from the context, not XmlElement itself. When browsing AAR sources, XmlElement has no module but a module consuming the
+    // AAR may be in the context.
+    Module module = context.getModule();
+    if (module == null) {
+      return null;
+    }
+
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
     if (repositoryManager == null) {
       return null;
     }

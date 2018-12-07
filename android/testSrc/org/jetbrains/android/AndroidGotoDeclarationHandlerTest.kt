@@ -24,6 +24,7 @@ import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.goToElementAtCaret
+import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction
@@ -334,10 +335,15 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
   override fun addAarDependencyToMyModule() {
     addAarDependency(myModule, "aarLib", "com.example.aarLib") { resDir ->
       resDir.resolve("values/styles.xml").writeText(
+        // language=XML
         """
         <resources>
+          <dimen name="smallText">10dp</dimen>
+          <dimen name="libDimen">@dimen/smallText</dimen>
           <style name="ParentStyle"></style>
-          <style name="LibStyle" parent="ParentStyle"></style>
+          <style name="LibStyle" parent="ParentStyle">
+            <item name="android:textSize">@dimen/libDimen</item>
+          </style>
           <declare-styleable name="LibStyleable">
             <attr name="libAttr" format="string" />
           </declare-styleable>
@@ -346,6 +352,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
       )
       resDir.resolve("drawable").mkdirs()
       resDir.resolve("drawable/libLogo.xml").writeText(
+        // language=XML
         """
         <vector xmlns:android="http://schemas.android.com/apk/res/android">
           <group android:name="g">
@@ -413,9 +420,9 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
   fun testGotoAarResourceFromCode_ownRClass() {
     addAarDependencyToMyModule()
 
-    assertEquals("values/styles.xml:3:\n" +
-                 "  <style name=\"LibStyle\" parent=\"ParentStyle\"></style>\n" +
-                 "              ~|~~~~~~~~~                             \n",
+    assertEquals("values/styles.xml:5:\n" +
+                 "  <style name=\"LibStyle\" parent=\"ParentStyle\">\n" +
+                 "              ~|~~~~~~~~~                     \n",
                  describeElements(
                    getDeclarationsFrom(
                      myFixture.addFileToProject(
@@ -435,7 +442,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
                  )
     )
 
-    assertEquals("values/styles.xml:5:\n" +
+    assertEquals("values/styles.xml:9:\n" +
                  "  <attr name=\"libAttr\" format=\"string\" />\n" +
                  "             ~|~~~~~~~~                  \n",
                  describeElements(
@@ -504,12 +511,23 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
 
     navigateToElementAtCaretFromDifferentFile()
     assertThat(elementAtCurrentOffset.text).isEqualTo("LibStyle")
-    assertThat(elementAtCaret.parentOfType<XmlTag>()!!.text).isEqualTo("<style name=\"LibStyle\" parent=\"ParentStyle\"></style>")
-    editor.caretModel.moveToOffset(editor.caretModel.offset + 20)
-    assertThat(elementAtCurrentOffset.text).isEqualTo("ParentStyle")
+    assertThat(elementAtCaret.parentOfType<XmlAttribute>()!!.text).isEqualTo("""name="LibStyle"""")
+
+    // ParentStyleConverter:
+    moveCaret("""parent="Parent|Style""")
     goToElementAtCaret()
     assertThat(elementAtCurrentOffset.text).isEqualTo("ParentStyle")
-    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("<style name=\"ParentStyle\"></style>")
+    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<style name="ParentStyle"></style>""")
+
+    // StyleItemConverter:
+    moveCaret("""<item name="android:textSize">@dimen/|libDimen""")
+    goToElementAtCaret()
+    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<dimen name="libDimen">@dimen/smallText</dimen>""")
+
+    // ResourceReferenceConverter:
+    moveCaret("""@dimen/|smallText""")
+    goToElementAtCaret()
+    assertThat(elementAtCurrentOffset.parentOfType<XmlTag>()!!.text).isEqualTo("""<dimen name="smallText">10dp</dimen>""")
   }
 
   fun testGotoFrameworkResourceFromFrameworkXml() = with(myFixture) {
