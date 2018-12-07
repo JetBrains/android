@@ -19,7 +19,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.common.model.NlComponent;
-import icons.AndroidDesignerIcons;
+import icons.StudioIcons;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,7 @@ import java.util.List;
 
 public class DistributeWeightsAction extends LinearLayoutAction {
   public DistributeWeightsAction() {
-    super(AndroidDesignerIcons.DistributeWeights, "Distribute Weights Evenly");
+    super(StudioIcons.LayoutEditor.Toolbar.DISTRIBUTE_WEIGHT, "Distribute Weights Evenly");
   }
 
   @Override
