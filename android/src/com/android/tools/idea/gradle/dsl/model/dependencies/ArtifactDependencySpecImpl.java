@@ -70,7 +70,7 @@ public class ArtifactDependencySpecImpl implements ArtifactDependencySpec {
       String extension = null;
       int indexOfAt = lastSegment.indexOf('@');
       if (indexOfAt != -1) {
-        extension = lastSegment.substring(indexOfAt + 1, lastSegment.length());
+        extension = lastSegment.substring(indexOfAt + 1);
         lastSegment = lastSegment.substring(0, indexOfAt);
       }
       segments.add(lastSegment);
@@ -81,10 +81,7 @@ public class ArtifactDependencySpecImpl implements ArtifactDependencySpec {
       String version = null;
       String classifier = null;
 
-      if (segmentCount == 1) {
-        name = segments.get(0);
-      }
-      else if (segmentCount == 2) {
+      if (segmentCount == 2) {
         if (!lastSegment.isEmpty() && Character.isDigit(lastSegment.charAt(0))) {
           name = segments.get(0);
           version = lastSegment;
