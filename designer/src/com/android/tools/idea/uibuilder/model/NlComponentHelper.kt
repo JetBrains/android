@@ -316,7 +316,7 @@ fun NlComponent.isOrHasAndroidxSuperclass(): Boolean {
   val viewInfo = viewInfo
   if (viewInfo != null) {
     val viewObject = viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && tagName.startsWith(
-        ANDROIDX_PKG_PREFIX)
+      ANDROIDX_PKG_PREFIX)
     var viewClass: Class<*> = viewObject.javaClass
     while (viewClass != Any::class.java) {
       if (viewClass.name.startsWith(ANDROIDX_PKG_PREFIX)) {
@@ -466,13 +466,13 @@ private val NlComponent.nlComponentData: NlComponentData
   }
 
 internal data class NlComponentData(
-    var x: Int = 0,
-    var y: Int = 0,
-    var w: Int = 0,
-    var h: Int = 0,
-    var viewInfo: ViewInfo? = null,
-    var margins: Insets? = null,
-    var padding: Insets? = null)
+  var x: Int = 0,
+  var y: Int = 0,
+  var w: Int = 0,
+  var h: Int = 0,
+  var viewInfo: ViewInfo? = null,
+  var margins: Insets? = null,
+  var padding: Insets? = null)
 
 @VisibleForTesting
 class NlComponentMixin(component: NlComponent)
@@ -640,13 +640,13 @@ object NlComponentHelper {
 
   // TODO Add a needsId method to the handler classes
   val TAGS_THAT_DONT_NEED_DEFAULT_IDS: Collection<String> = ImmutableSet.Builder<String>()
-      .add(REQUEST_FOCUS)
-      .add(SPACE)
-      .add(TAG_ITEM)
-      .add(VIEW_INCLUDE)
-      .add(VIEW_MERGE)
-      .addAll(PreferenceUtils.VALUES)
-      .build()
+    .add(REQUEST_FOCUS)
+    .add(SPACE)
+    .add(TAG_ITEM)
+    .add(VIEW_INCLUDE)
+    .add(VIEW_MERGE)
+    .addAll(PreferenceUtils.VALUES)
+    .build()
 
   /**
    * Maps a custom view class to the corresponding layout tag;
@@ -677,8 +677,8 @@ object NlComponentHelper {
    */
   private fun viewNeedsPackage(fqcn: String): Boolean {
     return !(fqcn.startsWith(ANDROID_WIDGET_PREFIX)
-        || fqcn.startsWith(ANDROID_VIEW_PKG)
-        || fqcn.startsWith(ANDROID_WEBKIT_PKG))
+             || fqcn.startsWith(ANDROID_VIEW_PKG)
+             || fqcn.startsWith(ANDROID_WEBKIT_PKG))
   }
 
   fun hasNlComponentInfo(component: NlComponent): Boolean {

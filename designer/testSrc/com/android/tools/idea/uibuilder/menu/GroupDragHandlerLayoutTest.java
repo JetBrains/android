@@ -21,6 +21,8 @@ import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponentBackend;
+import com.android.tools.idea.common.model.NlComponentBackendXml;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -32,6 +34,7 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -53,9 +56,10 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     NlModel model = model("menu.xml", menuDescriptor).build();
     NlComponent menuComponent = model.getComponents().get(0);
     NlComponent item = LayoutTestUtilities.createMockComponent();
+    XmlTag tag = XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>");
+    NlComponentBackend backend = new NlComponentBackendXml(model, tag);
 
-
-    Mockito.when(item.getTag()).thenReturn(XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>"));
+    Mockito.when(item.getBackend()).thenReturn(backend);
     Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);
     Mockito.when(item.getModel()).thenReturn(model);
 
@@ -82,11 +86,12 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     NlModel model = model("menu.xml", menuDescriptor).build();
     NlComponent menuComponent = model.getComponents().get(0);
     NlComponent item = LayoutTestUtilities.createMockComponent();
+    XmlTag tag = XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>");
+    NlComponentBackend backend = new NlComponentBackendXml(model, tag);
 
-    Mockito.when(item.getTag()).thenReturn(XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>"));
+    Mockito.when(item.getBackend()).thenReturn(backend);
     Mockito.when(item.getTagName()).thenReturn(TAG_ITEM);
     Mockito.when(item.getModel()).thenReturn(model);
-
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
     handler.update(300, 50, 0);

@@ -18,17 +18,16 @@ package com.android.tools.idea.common.command;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
 
+// TODO: Refactor this into part of transaction for NlComponent
 public final class NlWriteCommandAction implements Runnable {
   private final List<NlComponent> myComponents;
   private final String myName;
@@ -88,7 +87,7 @@ public final class NlWriteCommandAction implements Runnable {
 
       myComponents.forEach(component -> {
         cleanUpAttributes(component);
-        reformatAndRearrange(component);
+        component.getBackend().reformatAndRearrange();
       });
     }
 
@@ -102,23 +101,6 @@ public final class NlWriteCommandAction implements Runnable {
       AttributesTransaction transaction = component.startAttributeTransaction();
       handler.cleanUpAttributes(component, transaction);
       transaction.commit();
-    }
-
-    private void reformatAndRearrange(@NotNull NlComponent component) {
-      PsiElement tag = component.getTag();
-
-      // noinspection ConstantConditions
-      if (tag == null) {
-        Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + component + " because its tag is null");
-        return;
-      }
-
-      if (tag.getContainingFile().getVirtualFile() == null) {
-        Logger.getInstance(NlWriteCommandAction.class).warn("Not reformatting " + component + " because its virtual file is null");
-        return;
-      }
-
-      TemplateUtils.reformatAndRearrange(myModel.getProject(), tag);
     }
   }
 }

@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.common.model
 
+import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.templates.TemplateUtils
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.SmartPointerManager
@@ -104,5 +107,14 @@ open class NlComponentBackendXml private constructor(
 
   override fun getAffectedFile(): VirtualFile? {
     return getTag().containingFile?.virtualFile
+  }
+
+  override fun reformatAndRearrange() {
+    if (getAffectedFile() == null) {
+      Logger.getInstance(NlWriteCommandAction::class.java).warn("Not reformatting ${getTagName()} because its virtual file is null")
+      return
+    }
+
+    TemplateUtils.reformatAndRearrange(myModel.project, getTag())
   }
 }
