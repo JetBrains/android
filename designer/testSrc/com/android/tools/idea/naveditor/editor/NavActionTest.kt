@@ -19,8 +19,6 @@ import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.actions.AddGlobalAction
-import com.android.tools.idea.naveditor.actions.AddToExistingGraphAction
-import com.android.tools.idea.naveditor.actions.AddToNewGraphAction
 import com.android.tools.idea.naveditor.actions.NestedGraphToolbarAction
 import com.android.tools.idea.naveditor.actions.ReturnToSourceAction
 import com.android.tools.idea.naveditor.actions.SelectAllAction
@@ -37,7 +35,11 @@ import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.model.startDestinationId
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.truth.Truth
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import org.jetbrains.android.AndroidTestCase
+import org.mockito.Mockito.mock
 
 /**
  * Tests for actions used by the nav editor
@@ -168,63 +170,74 @@ class NavActionTest : NavTestCase() {
 
   fun testSelectNextAction() {
     val model = model("nav.xml") {
-      navigation {
-        action("action1")
-        fragment("fragment1")
+      navigation("root") {
+        action("action1", destination = "fragment1")
+        fragment("fragment1") {
+          action("action2", destination = "fragment2")
+        }
         fragment("fragment2")
         fragment("fragment3")
+        navigation("nested") {
+          action("action3", destination = "fragment2")
+          fragment("fragment4") {
+            action("action4", destination = "fragment1")
+            action("action5", destination = "fragment4")
+          }
+        }
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
-    val fragment2 = model.find("fragment2")!!
-    val fragment3 = model.find("fragment3")!!
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
 
-    val surface = model.surface as NavDesignSurface
     val action = SelectNextAction(surface)
 
-    action.actionPerformed(null)
-    assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
-
-    action.actionPerformed(null)
-    assertEquals(listOf(fragment2), model.surface.selectionModel.selection)
-
-    action.actionPerformed(null)
-    assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
-
-    action.actionPerformed(null)
-    assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
+    performAction(action, surface, "action1")
+    performAction(action, surface, "fragment1")
+    performAction(action, surface, "action2")
+    performAction(action, surface, "fragment2")
+    performAction(action, surface, "fragment3")
+    performAction(action, surface, "nested")
+    performAction(action, surface, "action3")
+    performAction(action, surface, "action4")
+    performAction(action, surface, "root")
+    performAction(action, surface, "action1")
   }
-
 
   fun testSelectPreviousAction() {
     val model = model("nav.xml") {
-      navigation {
-        action("action1")
-        fragment("fragment1")
+      navigation("root") {
+        action("action1", destination = "fragment1")
+        fragment("fragment1") {
+          action("action2", destination = "fragment2")
+        }
         fragment("fragment2")
         fragment("fragment3")
+        navigation("nested") {
+          action("action3", destination = "fragment2")
+          fragment("fragment4") {
+            action("action4", destination = "fragment1")
+            action("action5", destination = "fragment4")
+          }
+        }
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
-    val fragment2 = model.find("fragment2")!!
-    val fragment3 = model.find("fragment3")!!
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
 
-    val surface = model.surface as NavDesignSurface
     val action = SelectPreviousAction(surface)
 
-    action.actionPerformed(null)
-    assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
-
-    action.actionPerformed(null)
-    assertEquals(listOf(fragment2), model.surface.selectionModel.selection)
-
-    action.actionPerformed(null)
-    assertEquals(listOf(fragment1), model.surface.selectionModel.selection)
-
-    action.actionPerformed(null)
-    assertEquals(listOf(fragment3), model.surface.selectionModel.selection)
+    performAction(action, surface, "action4")
+    performAction(action, surface, "action3")
+    performAction(action, surface, "nested")
+    performAction(action, surface, "fragment3")
+    performAction(action, surface, "fragment2")
+    performAction(action, surface, "action2")
+    performAction(action, surface, "fragment1")
+    performAction(action, surface, "action1")
+    performAction(action, surface, "root")
+    performAction(action, surface, "action4")
   }
 
   fun testSelectAllAction() {
@@ -369,5 +382,11 @@ class NavActionTest : NavTestCase() {
     val action3 = model.find("action3")!!
     assertEquals(action3.parent, fragment4)
     assertEquals(action3.actionDestinationId, "navigation")
+  }
+
+  private fun performAction(action: AnAction, surface: NavDesignSurface, id: String) {
+    action.actionPerformed(mock(AnActionEvent::class.java))
+    val component = surface.model?.find(id)!!
+    AndroidTestCase.assertEquals(listOf(component), surface.selectionModel.selection)
   }
 }
