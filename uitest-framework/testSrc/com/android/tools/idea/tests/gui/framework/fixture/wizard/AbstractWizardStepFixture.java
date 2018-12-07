@@ -81,7 +81,7 @@ public abstract class AbstractWizardStepFixture<S, W extends AbstractWizardFixtu
   }
 
   protected void replaceText(@NotNull JTextComponent textField, @NotNull String text) {
-    new JTextComponentFixture(robot(), textField).selectAll().enterText(text);
+    new JTextComponentFixture(robot(), textField).setText(text);
   }
 
   public String getValidationText() {
