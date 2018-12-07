@@ -18,6 +18,7 @@ package com.android.tools.adtui.stdui
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.*
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton
+import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.ui.VerticalFlowLayout
@@ -25,7 +26,6 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import icons.StudioIcons
 import java.awt.*
 import javax.swing.*
 
@@ -76,10 +76,10 @@ object CommonControlPortfolio {
     val menuPanel = JPanel(VerticalFlowLayout())
     val label = JLabel()
     val toolBarPanel = JPanel(FlowLayout(FlowLayout.LEFT))
-    toolBarPanel.add(makeDropDownMenu("MenuWithIconArrow", StudioIcons.Common.ADD, true, 100, 2, label))
+    toolBarPanel.add(makeDropDownMenu("MenuWithIconArrow", AllIcons.General.Add, true, 100, 2, label))
     toolBarPanel.add(makeDropDownMenu("MenuNoIcon", null, false, 100, 2, label))
-    toolBarPanel.add(makeDropDownMenu("", StudioIcons.Common.EXPORT, true, 2, 2, label))
-    toolBarPanel.add(makeDropDownMenu("", StudioIcons.Common.FILTER, false, 2, 2, label))
+    toolBarPanel.add(makeDropDownMenu("", AllIcons.ToolbarDecorator.Export, true, 2, 2, label))
+    toolBarPanel.add(makeDropDownMenu("", AllIcons.General.Filter, false, 2, 2, label))
     menuPanel.add(toolBarPanel, BorderLayout.PAGE_START)
     menuPanel.add(label, BorderLayout.CENTER)
     topPanel.add(menuPanel, "Menus")

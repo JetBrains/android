@@ -643,7 +643,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     IdeProfilerComponents ideProfilerComponents = getIdeComponents();
     ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
 
-    ProfilerAction exportHeapDumpAction = new ProfilerAction.Builder("Export...").setIcon(StudioIcons.Common.EXPORT).build();
+    ProfilerAction exportHeapDumpAction = new ProfilerAction.Builder("Export...").setIcon(AllIcons.ToolbarDecorator.Export).build();
     contextMenuInstaller.installGenericContextMenu(
       mySelectionComponent, exportHeapDumpAction,
       x -> getCaptureIntersectingWithMouseX(x) != null &&
