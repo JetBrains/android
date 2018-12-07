@@ -92,7 +92,7 @@
       <reference id="Android.SyncProject" />
       <reference id="Android.RunAndroidAvdManager" />
       <separator/>
-      <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />
+      <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="SearchEverywhere" />
     </group>
 
     <action id="WelcomeScreen.AndroidStudio.apkProfilingAndDebugging"
