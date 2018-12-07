@@ -75,6 +75,7 @@ public class NewInstantAppTest {
         .wizard()
         .clickNext()
         .getConfigureNewAndroidProjectStep()
+        .setSourceLanguage("Java")
         .enterName(projectName)
         .selectMinimumSdkApi("23")
         .setIncludeInstantApp(true)
