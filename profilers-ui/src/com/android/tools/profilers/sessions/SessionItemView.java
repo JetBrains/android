@@ -19,6 +19,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.StandardColors;
+import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.ProfilerAction;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableList;
@@ -73,6 +74,9 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
       liveDotWrapper.setOpaque(false);
       LiveSessionDot liveDot = new LiveSessionDot();
       liveDot.setToolTipText("Currently Profiling");
+      // Install context menu on the live dot - because setting the tooltip text consumes the mouse event which prevents Swing from
+      // invoking the context menu from the container underneath.
+      installContextMenus(liveDot);
       addMouseListeningComponents(liveDot);
       liveDotWrapper.add(liveDot, BorderLayout.CENTER);
       panel.add(liveDotWrapper, new TabularLayout.Constraint(0, 1));
@@ -84,6 +88,9 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     sessionName.setForeground(StandardColors.TEXT_COLOR);
     // Display a tooltip in case there isn't enough space to show the full name in the session's panel.
     sessionName.setToolTipText(getArtifact().getName());
+    // Install context menu on the session name - because setting the tooltip text consumes the mouse event which prevents Swing from
+    // invoking the context menu from the container underneath.
+    installContextMenus(sessionName);
     addMouseListeningComponents(sessionName);
     panel.add(sessionName, new TabularLayout.Constraint(1, 0, 1, 3));
 

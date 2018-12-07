@@ -324,7 +324,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
     });
     ProfilerAction zoomOutAction =
-      new ProfilerAction.Builder(ZOOM_OUT).setContainerComponent(myStageComponent).setActionRunnable(() -> myZoomOut.doClick(0))
+      new ProfilerAction.Builder(ZOOM_OUT).setContainerComponent(mySplitter).setActionRunnable(() -> myZoomOut.doClick(0))
                                             .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                                                            KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER))
                                             .build();
@@ -339,7 +339,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
     });
     ProfilerAction zoomInAction =
-      new ProfilerAction.Builder(ZOOM_IN).setContainerComponent(myStageComponent)
+      new ProfilerAction.Builder(ZOOM_IN).setContainerComponent(mySplitter)
                                            .setActionRunnable(() -> myZoomIn.doClick(0))
                                            .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
                                                           KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
@@ -354,7 +354,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
     });
     ProfilerAction resetZoomAction =
-      new ProfilerAction.Builder("Reset zoom").setContainerComponent(myStageComponent)
+      new ProfilerAction.Builder("Reset zoom").setContainerComponent(mySplitter)
                                               .setActionRunnable(() -> myResetZoom.doClick(0))
                                               .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
                                                              KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build();
@@ -367,7 +367,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       timeline.frameViewToRange(timeline.getSelectionRange());
     });
     myFrameSelectionAction = new ProfilerAction.Builder("Zoom to Selection")
-      .setContainerComponent(myStageComponent)
+      .setContainerComponent(mySplitter)
       .setActionRunnable(() -> myFrameSelection.doClick(0))
       .setEnableBooleanSupplier(() -> !timeline.getSelectionRange().isEmpty())
       .build();
@@ -387,7 +387,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myGoLive.setBorder(new JBEmptyBorder(3, 7, 3, 7));
     // Configure shortcuts for GoLive.
     ProfilerAction attachAction =
-      new ProfilerAction.Builder(ATTACH_LIVE).setContainerComponent(myStageComponent)
+      new ProfilerAction.Builder(ATTACH_LIVE).setContainerComponent(mySplitter)
                                                   .setActionRunnable(() -> myGoLive.doClick(0))
                                                   .setEnableBooleanSupplier(
                                                     () -> myGoLive.isEnabled() &&
@@ -396,7 +396,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
                                                   .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
                                                   .build();
     ProfilerAction detachAction =
-      new ProfilerAction.Builder(DETACH_LIVE).setContainerComponent(myStageComponent)
+      new ProfilerAction.Builder(DETACH_LIVE).setContainerComponent(mySplitter)
                                                     .setActionRunnable(() -> myGoLive.doClick(0))
                                                     .setEnableBooleanSupplier(
                                                       () -> myGoLive.isEnabled() &&
@@ -495,7 +495,12 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     }
 
     myStageView = myBinder.build(this, stage);
-    SwingUtilities.invokeLater(() -> myStageView.getComponent().requestFocusInWindow());
+    SwingUtilities.invokeLater(() -> {
+      Component focussed = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+      if (focussed == null || !SwingUtilities.isDescendingFrom(focussed, mySplitter)) {
+        mySplitter.requestFocusInWindow();
+      }
+    });
 
     myStageCenterComponent.removeAll();
     myStageCenterComponent.add(myStageView.getComponent(), STAGE_VIEW_CARD);

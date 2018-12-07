@@ -100,10 +100,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     setLayout(new BorderLayout());
     add(myArtifactView, BorderLayout.CENTER);
 
-    // Context menus set up
-    ContextMenuInstaller contextMenuInstaller = artifactDrawInfo.mySessionsView.getIdeProfilerComponents().createContextMenuInstaller();
-    getContextMenus().forEach(menu -> contextMenuInstaller.installGenericContextMenu(this, menu));
-
+    installContextMenus(this);
     addMouseListeningComponents(this);
     initializeMouseListeners();
 
@@ -162,6 +159,14 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   }
 
   /**
+   * Helper method for installing the context menus on the input component.
+   */
+  protected void installContextMenus(@NotNull JComponent component) {
+    ContextMenuInstaller contextMenuInstaller = getSessionsView().getIdeProfilerComponents().createContextMenuInstaller();
+    getContextMenus().forEach(menu -> contextMenuInstaller.installGenericContextMenu(component, menu));
+  }
+
+  /**
    * Adding other mouse listeners (e.g. setting tooltips) in children components within the SessionArtifactView will prevent mouse events
    * to propagate to the view itself for handling common logic such as selection and hover. Here we can add those children components to
    * also handle the common logic on their own.
@@ -179,6 +184,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
           if (SwingUtilities.isLeftMouseButton(e) && !e.isConsumed()) {
             myArtifact.onSelect();
           }
+          requestFocusInWindow();
         }
 
         @Override
