@@ -14,22 +14,13 @@ public class AndroidIcons {
   }
 
   public static final Icon Android = load("/icons/android.svg"); // 16x16
-  public static final Icon Android24 = load("/icons/android24.png"); // 24x24
-  public static final Icon AndroidLarge = load("/icons/androidLarge.png"); // 64x64
   public static final Icon AndroidPreview = load("/icons/androidPreview.png"); // 13x13
-  public static final Icon AndroidToolWindow = load("/icons/androidToolWindow.svg"); // 13x13
   public static final Icon AndroidModule = load("/icons/androidModule.png"); // 16x16
 
   public static final Icon AvdManager = load("/icons/avd_manager.png"); // 16x16
   public static final Icon SdkManager = load("/icons/sdk_manager.png"); // 16x16
 
-  public static final Icon ZoomActual = load("/icons/zoomActual.png"); // 16x16
-  public static final Icon ZoomFit = load("/icons/zoomFit.png"); // 16x16
-  public static final Icon ZoomIn = load("/icons/zoomIn.png"); // 16x16
-  public static final Icon ZoomOut = load("/icons/zoomOut.png"); // 16x16
-  public static final Icon ZoomReal = load("/icons/zoomReal.png"); // 16x16
   public static final Icon Renderscript = load("/icons/render-script.png"); // 16x16
-  public static final Icon ArrowDown = load("/icons/comboArrow.png"); // 16x16
   public static final Icon GreyArrowDown = load("/icons/dropArrow.png"); // 20x20
   public static final Icon NotMatch = load("/icons/notMatch.png");
 
@@ -49,48 +40,13 @@ public class AndroidIcons {
 
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
 
-  public static final Icon GradleSync = load("/icons/gradlesync.png"); // 16x16
-  public static final Icon GradleConsole = load("/icons/gradle_console.png"); // 16x16
-  public static final Icon GradleConsoleToolWindow = load("/icons/gradle_console_tool_window.png"); // 13x13
-  public static final Icon MavenLogo = load("/icons/maven.png"); // 16x16
 
   public static final Icon Variant = load("/icons/variant.png");
 
-  public static final Icon AppModule = load("/icons/appModule.png");
-  public static final Icon LibraryModule = load("/icons/libraryModule.png");
   public static final Icon AndroidTestRoot = load("/icons/androidTestRoot.png");
   public static final Icon AndroidTestsScope = load("/icons/androidTestsScope.svg");
 
   public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
-
-  public static class ProjectStructure {
-    public static final Icon UnknownLibrary = load("/icons/psd/unknownLibrary.png");
-    public static final Icon LibraryWarning = load("/icons/psd/libraryWarning.png");
-  }
-
-  // Form factors
-  public static class FormFactors {
-    public static final Icon Wear_32 = load("/icons/formfactors/wear_32.png");           // 32x32
-    public static final Icon Car_32 = load("/icons/formfactors/car_32.png");             // 32x32
-    public static final Icon Glass_32 = load("/icons/formfactors/glass_32.png");         // 32x32
-    public static final Icon Mobile_32 = load("/icons/formfactors/phone_tablet_32.png"); // 32x32
-    public static final Icon Tv_32 = load("/icons/formfactors/tv_32.png");               // 32x32
-    public static final Icon Things_32 = load("/icons/formfactors/things_32.png");       // 32x32
-
-    public static final Icon Wear_64 = load("/icons/formfactors/64/wear.png");           // 64x64
-    public static final Icon Car_64 = load("/icons/formfactors/64/car.png");             // 64x64
-    public static final Icon Glass_64 = load("/icons/formfactors/64/glass.png");         // 64x64
-    public static final Icon Mobile_64 = load("/icons/formfactors/64/phone_tablet.png"); // 64x64
-    public static final Icon Tv_64 = load("/icons/formfactors/64/tv.png");               // 64x64
-    public static final Icon Things_64 = load("/icons/formfactors/64/things.png");       // 64x64
-
-    public static final Icon Wear_128 = load("/icons/formfactors/128/wear.png");         // 128x128
-    public static final Icon Car_128 = load("/icons/formfactors/128/car.png");           // 128x128
-    public static final Icon Glass_128 = load("/icons/formfactors/128/glass.png");       // 128x128
-    public static final Icon Mobile_128 = load("/icons/formfactors/128/mobile.png");     // 128x128
-    public static final Icon Tv_128 = load("/icons/formfactors/128/tv.png");             // 128x128
-    public static final Icon Things_128 = load("/icons/formfactors/128/things.png");     // 128x128
-  }
 
   public static class Configs {
     public static final Icon Dock = load("/icons/dockmode.png");
@@ -121,15 +77,12 @@ public class AndroidIcons {
   }
 
   public static class Ddms {
-    public static final Icon AttachDebugger = load("/icons/ddms/attachDebugger.png"); // 16x16
     public static final Icon Emulator = load("/icons/ddms/emulator.png"); // 16x16
     public static final Icon Emulator2 = load("/icons/ddms/emulator_02.png"); // 16x16
-    public static final Icon FileExplorer = load("/icons/ddms/file_explorer.png"); // 16x16
     public static final Icon Logcat = load("/icons/ddms/logcat.png"); // 16x16
     /**
      * The {@link #LogcatAutoFilterSelectedPid} icon is a copy of the AllIcons.Diff.diff icon to be replaced if we get a better icon.
      */
-    public static final Icon LogcatAutoFilterSelectedPid = load("/icons/ddms/logcat_filter_pid.png"); // 16x16
     public static final Icon RealDevice = load("/icons/ddms/real_device.png"); // 16x16
     public static final Icon EmulatorDevice = load("/icons/ddms/emulator_device.png"); // 16x16
     public static final Icon ScreenCapture = load("/icons/ddms/screen_capture.png"); // 16x16
@@ -139,10 +92,6 @@ public class AndroidIcons {
   public static class Wizards {
     public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.png"); // 60x60
     public static final Icon NewModuleSidePanel = load("/icons/wizards/newModule.png"); // 143x627
-    public static final Icon NewProjectSidePanel = load("/icons/wizards/newProject.png"); // 143x627
-    public static final Icon DefaultTemplate = load("/icons/wizards/defaultTemplate.png"); //512x512
-    public static final Icon DefaultTemplate256 = load("/icons/wizards/defaultTemplate256.png"); // 256x256
-    public static final Icon GithubIcon = load("/icons/wizards/github_icon.png"); // 256x256
     public static final Icon NavigationDrawer = load("/icons/wizards/navigation/navigation_drawer.png"); // 256x256
     public static final Icon BottomNavigation = load("/icons/wizards/navigation/bottom_navigation.png"); // 256x256
     public static final Icon NavigationTabs = load("/icons/wizards/navigation/navigation_tabs.png"); // 256x256
@@ -167,18 +116,14 @@ public class AndroidIcons {
 
   public static class RunIcons {
     public static final Icon Debug = load("/icons/run/debug.png");
-    public static final Icon DebugReattach = load("/icons/run/debug2.png");
 
     public static final Icon Play = load("/icons/run/play.png");
     public static final Icon Replay = load("/icons/run/play2.png"); // TODO: update blaze and remove this
     public static final Icon Restart = load("/icons/run/restart.png");
-    public static final Icon HotReload = load("/icons/run/hot-reload.png");
   }
 
   public static class SherpaIcons {
     public static final Icon Layer = load("/icons/sherpa/switch_blueprint_off.png");
-
-    public static final Icon ChainBlue = load("/icons/sherpa/chain-blue.png");
   }
 
   public static class Views {
@@ -188,7 +133,6 @@ public class AndroidIcons {
   }
 
   public static class ToolWindows {
-    public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.svg"); // 13x13
     public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.svg"); // 13x13
   }
 
