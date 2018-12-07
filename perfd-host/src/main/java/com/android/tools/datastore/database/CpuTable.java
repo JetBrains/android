@@ -16,6 +16,7 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuUsageData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
@@ -256,7 +257,7 @@ public class CpuTable extends DataStoreTable<CpuTable.CpuStatements> {
             threads.put(tid, builder);
           }
 
-          GetThreadsResponse.State state = GetThreadsResponse.State.valueOf(activities.getString(2));
+          Cpu.CpuThreadData.State state = Cpu.CpuThreadData.State.valueOf(activities.getString(2));
           GetThreadsResponse.ThreadActivity.Builder activity =
             GetThreadsResponse.ThreadActivity.newBuilder().setNewState(state).setTimestamp(activities.getLong(3));
           builder.addActivities(activity.build());

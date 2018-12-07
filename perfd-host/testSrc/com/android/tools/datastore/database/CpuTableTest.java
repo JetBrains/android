@@ -15,9 +15,9 @@
  */
 package com.android.tools.datastore.database;
 
-import static com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse.State.RUNNING;
-import static com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse.State.SLEEPING;
-import static com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse.State.WAITING;
+import static com.android.tools.profiler.proto.Cpu.CpuThreadData.State.RUNNING;
+import static com.android.tools.profiler.proto.Cpu.CpuThreadData.State.SLEEPING;
+import static com.android.tools.profiler.proto.Cpu.CpuThreadData.State.WAITING;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.profiler.proto.Common;
@@ -189,7 +189,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     assertThat(activityCount).isEqualTo(TEST_DATA_COUNT - 1);
     int tid = response.get(0).getTid();
     assertThat(tid).isAnyOf(SESSION_ONE_TID_100, SESSION_ONE_TID_101);
-    CpuProfiler.GetThreadsResponse.State expectedState = tid == SESSION_ONE_TID_100 ? SLEEPING : WAITING;
+    Cpu.CpuThreadData.State expectedState = tid == SESSION_ONE_TID_100 ? SLEEPING : WAITING;
     for (int i = 0; i < activityCount; i++) {
       CpuProfiler.GetThreadsResponse.ThreadActivity activity = response.get(0).getActivities(i);
       assertThat(activity.getTimestamp()).isEqualTo(SESSION_ONE_OFFSET + i + 1);
@@ -240,7 +240,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
     assertThat(activityCount).isEqualTo(TEST_DATA_COUNT);
     int tid = response.get(0).getTid();
     assertThat(tid).isAnyOf(SESSION_ONE_TID_100, SESSION_ONE_TID_101);
-    CpuProfiler.GetThreadsResponse.State expectedState = tid == SESSION_ONE_TID_100 ? SLEEPING : WAITING;
+    Cpu.CpuThreadData.State expectedState = tid == SESSION_ONE_TID_100 ? SLEEPING : WAITING;
     for (int i = 0; i < activityCount; i++) {
       CpuProfiler.GetThreadsResponse.ThreadActivity activity = response.get(0).getActivities(i);
       assertThat(activity.getTimestamp()).isEqualTo(SESSION_ONE_OFFSET + i);

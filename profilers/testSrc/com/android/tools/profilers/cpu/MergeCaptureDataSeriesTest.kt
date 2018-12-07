@@ -17,6 +17,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.CpuServiceGrpc
 import com.android.tools.profilers.FakeGrpcChannel
@@ -190,7 +191,7 @@ class MergeCaptureDataSeriesTest {
     for (i in 0 until count) {
       val time = startTime + (((endTime - startTime) / count) * i)
       val activity = CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder()
-        .setNewState(CpuProfiler.GetThreadsResponse.State.RUNNING)
+        .setNewState(Cpu.CpuThreadData.State.RUNNING)
         .setTimestamp(TimeUnit.MILLISECONDS.toMicros(time))
         .build()
       activities.add(activity)

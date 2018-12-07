@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +61,7 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
         CpuProfiler.GetThreadsResponse.ThreadActivity last = thread.getActivities(thread.getActivitiesCount() - 1);
         Long current = count.get(first.getTimestamp());
         count.put(first.getTimestamp(), current == null ? 1 : current + 1);
-        if (last.getNewState() == CpuProfiler.GetThreadsResponse.State.DEAD) {
+        if (last.getNewState() == Cpu.CpuThreadData.State.DEAD) {
           current = count.get(last.getTimestamp());
           count.put(last.getTimestamp(), current == null ? -1 : current - 1);
         }

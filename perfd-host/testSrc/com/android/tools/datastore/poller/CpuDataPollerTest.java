@@ -27,7 +27,6 @@ import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.After;
@@ -62,21 +61,21 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     .setName(THREAD_NAME)
     .addActivities(
       GetThreadsResponse.ThreadActivity
-        .newBuilder().setNewState(GetThreadsResponse.State.WAITING).setTimestamp(delayFromBase(0)).build())
+        .newBuilder().setNewState(Cpu.CpuThreadData.State.WAITING).setTimestamp(delayFromBase(0)).build())
     .addActivities(
       GetThreadsResponse.ThreadActivity
-        .newBuilder().setNewState(GetThreadsResponse.State.RUNNING).setTimestamp(delayFromBase(4)).build())
+        .newBuilder().setNewState(Cpu.CpuThreadData.State.RUNNING).setTimestamp(delayFromBase(4)).build())
     .addActivities(
       GetThreadsResponse.ThreadActivity
-        .newBuilder().setNewState(GetThreadsResponse.State.STOPPED).setTimestamp(delayFromBase(5)).build())
+        .newBuilder().setNewState(Cpu.CpuThreadData.State.STOPPED).setTimestamp(delayFromBase(5)).build())
     .addActivities(
       GetThreadsResponse.ThreadActivity
-        .newBuilder().setNewState(GetThreadsResponse.State.DEAD).setTimestamp(delayFromBase(15)).build())
+        .newBuilder().setNewState(Cpu.CpuThreadData.State.DEAD).setTimestamp(delayFromBase(15)).build())
     .build();
   private static final GetThreadsResponse.Thread THREAD2 = GetThreadsResponse.Thread
     .newBuilder().setTid(THREAD_ID_2).setName(THREAD_NAME_2).addActivities(
       GetThreadsResponse.ThreadActivity
-        .newBuilder().setNewState(GetThreadsResponse.State.RUNNING).setTimestamp(delayFromBase(3)).build())
+        .newBuilder().setNewState(Cpu.CpuThreadData.State.RUNNING).setTimestamp(delayFromBase(3)).build())
     .build();
 
   private static final Cpu.CpuUsageData CPU_USAGE_DATA = Cpu.CpuUsageData
@@ -286,23 +285,23 @@ public class CpuDataPollerTest extends DataStorePollerTest {
           // Actual activity
           .addActivities(
             GetThreadsResponse.ThreadActivity
-              .newBuilder().setNewState(GetThreadsResponse.State.RUNNING).setTimestamp(delayFromBase(3)).build())
+              .newBuilder().setNewState(Cpu.CpuThreadData.State.RUNNING).setTimestamp(delayFromBase(3)).build())
           .build())
       .addThreads(
         GetThreadsResponse.Thread
           .newBuilder().setTid(THREAD_ID).setName(THREAD_NAME)
           .addActivities(
             GetThreadsResponse.ThreadActivity
-              .newBuilder().setNewState(GetThreadsResponse.State.WAITING).setTimestamp(delayFromBase(0)).build())
+              .newBuilder().setNewState(Cpu.CpuThreadData.State.WAITING).setTimestamp(delayFromBase(0)).build())
           .addActivities(
             GetThreadsResponse.ThreadActivity
-              .newBuilder().setNewState(GetThreadsResponse.State.RUNNING).setTimestamp(delayFromBase(4)).build())
+              .newBuilder().setNewState(Cpu.CpuThreadData.State.RUNNING).setTimestamp(delayFromBase(4)).build())
           .addActivities(
             GetThreadsResponse.ThreadActivity
-              .newBuilder().setNewState(GetThreadsResponse.State.STOPPED).setTimestamp(delayFromBase(5)).build())
+              .newBuilder().setNewState(Cpu.CpuThreadData.State.STOPPED).setTimestamp(delayFromBase(5)).build())
           .addActivities(
             GetThreadsResponse.ThreadActivity
-              .newBuilder().setNewState(GetThreadsResponse.State.DEAD).setTimestamp(delayFromBase(15)).build())
+              .newBuilder().setNewState(Cpu.CpuThreadData.State.DEAD).setTimestamp(delayFromBase(15)).build())
           .build())
       .build();
     StreamObserver<GetThreadsResponse> observer = mock(StreamObserver.class);
@@ -371,7 +370,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
           .newBuilder().setTid(THREAD_ID_2).setName(THREAD_NAME_2).addActivities(
           GetThreadsResponse.ThreadActivity
             .newBuilder()
-            .setNewState(GetThreadsResponse.State.RUNNING)
+            .setNewState(Cpu.CpuThreadData.State.RUNNING)
             // As there was no activity during the request range, the state of the thread
             // in the last initial states snapshot is set to the start timestamp of the
             // request.

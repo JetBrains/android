@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.intellij.openapi.diagnostic.Logger;
@@ -76,7 +77,7 @@ public class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thread
         int i = 0;
         int j = 0;
         boolean inCapture = false;
-        GetThreadsResponse.State state = GetThreadsResponse.State.UNSPECIFIED;
+        Cpu.CpuThreadData.State state = Cpu.CpuThreadData.State.UNSPECIFIED;
         while (i < list.size()) {
           GetThreadsResponse.ThreadActivity activity = list.get(i);
 
@@ -95,7 +96,7 @@ public class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thread
             i++;
           }
           // We shouldn't add an activity if capture has started before the first activity for the current thread.
-          if (state != GetThreadsResponse.State.UNSPECIFIED) {
+          if (state != Cpu.CpuThreadData.State.UNSPECIFIED) {
             data.add(new SeriesData<>(time, getState(state, inCapture)));
           }
         }
@@ -109,7 +110,7 @@ public class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thread
     return data;
   }
 
-  private static CpuProfilerStage.ThreadState getState(GetThreadsResponse.State state, boolean captured) {
+  private static CpuProfilerStage.ThreadState getState(Cpu.CpuThreadData.State state, boolean captured) {
     switch (state) {
       case RUNNING:
         return captured ? CpuProfilerStage.ThreadState.RUNNING_CAPTURED : CpuProfilerStage.ThreadState.RUNNING;

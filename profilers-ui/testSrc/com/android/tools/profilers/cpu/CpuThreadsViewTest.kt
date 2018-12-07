@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.*
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel
@@ -102,7 +103,7 @@ class CpuThreadsViewTest {
     // Add a thread
     cpuService.addAdditionalThreads(1, "Test", mutableListOf(
       CpuProfiler.GetThreadsResponse.ThreadActivity.newBuilder().setTimestamp(0).setNewState(
-        CpuProfiler.GetThreadsResponse.State.SLEEPING).build()))
+        Cpu.CpuThreadData.State.SLEEPING).build()))
     // Update the view range triggering an aspect change in CpuThreadsModel.
     stage.studioProfilers.timeline.viewRange.set(stage.studioProfilers.timeline.dataRange)
     // Tick to trigger
