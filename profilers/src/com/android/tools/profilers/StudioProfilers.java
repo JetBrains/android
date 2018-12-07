@@ -255,7 +255,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    *                      or process that starts after a certain time.
    */
   public void setPreferredProcess(@Nullable String deviceName,
-                                  @NotNull String processName,
+                                  @Nullable String processName,
                                   @Nullable Predicate<Common.Process> processFilter) {
     myPreferredDeviceName = deviceName;
     setPreferredProcessName(processName);

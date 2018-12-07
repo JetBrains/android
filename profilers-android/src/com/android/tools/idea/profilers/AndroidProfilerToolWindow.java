@@ -428,10 +428,10 @@ public class AndroidProfilerToolWindow implements Disposable {
 
   static class PreferredProcessInfo {
     @NotNull private final String deviceName;
-    @NotNull private final String processName;
+    @Nullable private final String processName;
     @NotNull private final Predicate<Common.Process> processFilter;
 
-    PreferredProcessInfo(@NotNull String deviceName, @NotNull String processName, @NotNull Predicate<Common.Process> processFilter) {
+    PreferredProcessInfo(@NotNull String deviceName, @Nullable String processName, @NotNull Predicate<Common.Process> processFilter) {
       this.deviceName = deviceName;
       this.processName = processName;
       this.processFilter = processFilter;

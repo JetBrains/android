@@ -201,6 +201,32 @@ public final class StudioProfilersTest {
   }
 
   @Test
+  public void testSetNullPreferredProcessDoesNotStartAutoProfiling() {
+    final String PREFERRED_PROCESS = "Preferred";
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), myIdeProfilerServices, myTimer);
+    profilers.setPreferredProcess(null, null, p -> p.getStartTimestampNs() > 5);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getDevice()).isNull();
+    assertThat(profilers.getProcess()).isNull();
+
+    Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
+    Common.Process process = Common.Process.newBuilder()
+      .setDeviceId(device.getDeviceId())
+      .setPid(21)
+      .setName(PREFERRED_PROCESS)
+      .setState(Common.Process.State.ALIVE)
+      .setStartTimestampNs(10)
+      .build();
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    profilers.setDevice(device);
+    assertThat(profilers.getDevice()).isEqualTo(device);
+    assertThat(profilers.getProcess()).isNull();
+    assertThat(profilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
+  }
+
+  @Test
   public void testConnectionError() {
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), myIdeProfilerServices, myTimer);
 
