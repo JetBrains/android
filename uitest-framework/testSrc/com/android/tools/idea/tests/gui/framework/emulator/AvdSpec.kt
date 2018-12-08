@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.emulator
+package com.android.tools.idea.tests.gui.framework.emulator
 
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture
 
@@ -46,7 +46,6 @@ class AvdSpec(
     fun setAvdName(avdName: String) = apply {
       this.avdName = avdName
     }
-
 
     fun build(): AvdSpec {
       val theAvdName = avdName?: "${systemImageSpec.releaseName}-${systemImageSpec.apiLevel}-${systemImageSpec.abiType}-${systemImageSpec.targetName}"
