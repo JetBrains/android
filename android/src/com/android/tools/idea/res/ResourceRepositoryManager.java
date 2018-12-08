@@ -37,11 +37,12 @@ import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
@@ -67,7 +68,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class ResourceRepositoryManager implements Disposable {
   private static final Key<ResourceRepositoryManager> KEY = Key.create(ResourceRepositoryManager.class.getName());
-  private static final Logger LOG = Logger.getInstance(ResourceRepositoryManager.class);
 
   private static final Object APP_RESOURCES_LOCK = new Object();
   private static final Object PROJECT_RESOURCES_LOCK = new Object();
@@ -76,6 +76,8 @@ public class ResourceRepositoryManager implements Disposable {
 
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final AaptOptions.Namespacing myNamespacing;
+  @NotNull private final LibraryTable.Listener myLibraryListener;
+  @GuardedBy("myLibraryLock")
   @Nullable private ResourceVisibilityLookup.Provider myResourceVisibilityProvider;
 
   /**
@@ -210,6 +212,25 @@ public class ResourceRepositoryManager implements Disposable {
   private ResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull AaptOptions.Namespacing namespacing) {
     myFacet = facet;
     myNamespacing = namespacing;
+
+    myLibraryListener = new LibraryTable.Listener() {
+      @Override
+      public void afterLibraryAdded(@NotNull com.intellij.openapi.roots.libraries.Library library) {
+        onLibrariesChanged();
+      }
+
+      @Override
+      public void afterLibraryRenamed(@NotNull com.intellij.openapi.roots.libraries.Library library) {
+        onLibrariesChanged();
+      }
+
+      @Override
+      public void afterLibraryRemoved(@NotNull com.intellij.openapi.roots.libraries.Library library) {
+        onLibrariesChanged();
+      }
+    };
+    LibraryTablesRegistrar.getInstance().getLibraryTable(facet.getModule().getProject()).addListener(myLibraryListener);
+
     Disposer.register(facet, this);
   }
 
@@ -388,8 +409,7 @@ public class ResourceRepositoryManager implements Disposable {
   }
 
   public void resetResources() {
-    resetVisibility();
-    resetLibraries();
+    onLibrariesChanged();
 
     synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources != null) {
@@ -404,6 +424,14 @@ public class ResourceRepositoryManager implements Disposable {
         myProjectResources = null;
       }
     }
+  }
+
+  private void onLibrariesChanged() {
+    resetVisibility();
+
+    synchronized (myLibraryLock) {
+      myLibraryResourceMap = null;
+    }
 
     synchronized (APP_RESOURCES_LOCK) {
       if (myAppResources != null) {
@@ -415,8 +443,7 @@ public class ResourceRepositoryManager implements Disposable {
 
   @Override
   public void dispose() {
-    // There's nothing to dispose in this object, but the actual resource repositories may need to do clean-up and they are children
-    // of this object in the Disposer hierarchy.
+    LibraryTablesRegistrar.getInstance().getLibraryTable(myFacet.getModule().getProject()).removeListener(myLibraryListener);
   }
 
   public void resetAllCaches() {
@@ -427,12 +454,8 @@ public class ResourceRepositoryManager implements Disposable {
   }
 
   private void resetVisibility() {
-    myResourceVisibilityProvider = null;
-  }
-
-  private void resetLibraries() {
     synchronized (myLibraryLock) {
-      myLibraryResourceMap = null;
+      myResourceVisibilityProvider = null;
     }
   }
 
@@ -502,14 +525,16 @@ public class ResourceRepositoryManager implements Disposable {
 
   @Nullable
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
-    if (myResourceVisibilityProvider == null) {
-      if (!myFacet.requiresAndroidModel() || myFacet.getConfiguration().getModel() == null) {
-        return null;
+    synchronized (myLibraryLock) {
+      if (myResourceVisibilityProvider == null) {
+        if (!myFacet.requiresAndroidModel() || myFacet.getConfiguration().getModel() == null) {
+          return null;
+        }
+        myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
       }
-      myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
-    }
 
-    return myResourceVisibilityProvider;
+      return myResourceVisibilityProvider;
+    }
   }
 
   @NotNull
