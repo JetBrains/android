@@ -778,6 +778,42 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+config_setting(
+    name = "has_emulator",
+    define_values = {
+        "external_emulator": "true",
+    },
+)
+
+# sanity test
+java_test(
+    name = "DebugOnEmulatorTest",
+    data = COMMON_DATA + glob([
+        "testData/SimpleLocalApplication/**",
+    ]) + [
+        "//prebuilts/studio/sdk:platforms/android-23",
+    ] + select({
+        ":has_emulator": [
+            "@externsdk//:system-images",
+            "@externsdk//:emulator",
+        ],
+        "//conditions:default": [],
+    }),
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.DebugOnEmulatorTest",
+    ],
+    tags = COMMON_TAGS + [
+        "no-remote",
+        "no_psq",
+        "qa_sanity",
+        "qa_unreliable",
+        "requires_emulator",
+        "exclusive",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # fast test
 java_test(
     name = "LintTest",
