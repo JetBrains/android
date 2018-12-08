@@ -66,8 +66,8 @@ public class CreateNewProjectWithCpp2Test {
       "test_device",
       "Google",
       "Nexus 5X",
-      "8.1",
-      "27",
+      "9.0",
+      "28",
       DeviceState.HostConnectionType.LOCAL
     ).get();
     fakeDevice.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
