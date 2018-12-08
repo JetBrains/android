@@ -16,16 +16,18 @@
 package com.android.tools.idea.tests.gui.espresso;
 
 import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
+import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.*;
-import com.android.tools.idea.tests.gui.framework.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.intellij.openapi.util.Ref;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
