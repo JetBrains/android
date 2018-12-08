@@ -777,31 +777,6 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
-# sanity test
-java_test(
-    name = "DebugOnEmulatorTest",
-    data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
-    ]) + [
-        "@externsdk//:system-images",
-        "@externsdk//:emulator",
-        "//prebuilts/studio/sdk:platforms/android-23",
-    ],
-    jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.DebugOnEmulatorTest",
-    ],
-    tags = COMMON_TAGS + [
-        "no-remote",
-        "no_psq",
-        "qa_sanity",
-        "qa_unreliable",
-        "requires_emulator",
-        "exclusive",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
 # fast test
 java_test(
     name = "LintTest",
