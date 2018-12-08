@@ -25,6 +25,7 @@ import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,8 +90,8 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
       if (device == null || !device.isOnline()) {
         return false;
       }
-      Client client = Deployable.searchClientsForPackage(device, myPackageName);
-      return client != null && client.isValid();
+      List<Client> clients = Deployable.searchClientsForPackage(device, myPackageName);
+      return !clients.isEmpty();
     }
   }
 
@@ -118,8 +119,8 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
       if (!device.isOnline()) {
         return false;
       }
-      Client client = Deployable.searchClientsForPackage(device, myPackageName);
-      return client != null && client.isValid();
+      List<Client> clients = Deployable.searchClientsForPackage(device, myPackageName);
+      return !clients.isEmpty();
     }
   }
 }

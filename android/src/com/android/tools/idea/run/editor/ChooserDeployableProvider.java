@@ -126,9 +126,9 @@ public final class ChooserDeployableProvider implements DeployableProvider {
         if (device == null || !device.isOnline()) {
           return false;
         }
-        Client client = Deployable.searchClientsForPackage(device, myPackageName);
         // If the app doesn't have a Client associated with it, it's not running and should return false.
-        return client != null && client.isValid();
+        List<Client> clients = Deployable.searchClientsForPackage(device, myPackageName);
+        return !clients.isEmpty();
       }
       catch (InterruptedException | ExecutionException | TimeoutException e) {
         return false;

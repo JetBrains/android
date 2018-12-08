@@ -117,8 +117,8 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
       if (iDevice == null || !iDevice.isOnline()) {
         return false;
       }
-      Client client = Deployable.searchClientsForPackage(iDevice, myPackageName);
-      return client != null && client.isValid();
+      List<Client> clients = Deployable.searchClientsForPackage(iDevice, myPackageName);
+      return !clients.isEmpty();
     }
 
     @Nullable

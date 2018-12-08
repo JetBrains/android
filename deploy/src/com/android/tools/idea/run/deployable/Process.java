@@ -16,26 +16,38 @@
 package com.android.tools.idea.run.deployable;
 
 import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.run.DeploymentApplicationService;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface Deployable {
-  /**
-   * Returns the API level of the device.
-   */
+class Process {
+  private final int myPid;
+  @Nullable private volatile String myApplicationId;
+  @NotNull private Client myClient;
+
+  Process(@NotNull Client client) {
+    myPid = client.getClientData().getPid();
+    myClient = client;
+  }
+
+  int getPid() {
+    return myPid;
+  }
+
   @NotNull
-  AndroidVersion getVersion();
+  Client getClient() {
+    return myClient;
+  }
 
-  /**
-   * Returns whether the current project's application is already running on this {@link Deployable}.
-   */
-  boolean isApplicationRunningOnDeployable();
+  void setClient(@NotNull Client client) {
+    myClient = client;
+  }
 
-  @NotNull
-  static List<Client> searchClientsForPackage(@NotNull IDevice device, @NotNull String packageName) {
-    return DeploymentApplicationService.getInstance().findClient(device, packageName);
+  void setApplicationId(@NotNull String applicationId) {
+    myApplicationId = applicationId;
+  }
+
+  @Nullable
+  String getApplicationId() {
+    return myApplicationId;
   }
 }
