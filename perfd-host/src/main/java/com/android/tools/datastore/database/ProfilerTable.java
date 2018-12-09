@@ -339,12 +339,12 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
    */
   public void updateAgentStatus(@NotNull DeviceId devicdId,
                                 @NotNull Common.Process process,
-                                @NotNull AgentData agentStatus) {
+                                @NotNull AgentData agentData) {
     synchronized (myLock) {
       try {
         ResultSet results = executeQuery(ProfilerStatements.FIND_AGENT_STATUS, devicdId.get(), process.getPid());
         if (results.next()) {
-          execute(ProfilerStatements.UPDATE_AGENT_STATUS, agentStatus.getStatus().ordinal(),
+          execute(ProfilerStatements.UPDATE_AGENT_STATUS, agentData.getStatus().ordinal(),
                   devicdId.get(), process.getPid());
         }
       }
