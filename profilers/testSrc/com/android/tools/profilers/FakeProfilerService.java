@@ -20,8 +20,8 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler.AgentStatusRequest;
-import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
+import com.android.tools.profiler.proto.Common.AgentStatusRequest;
+import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Profiler.BeginSessionRequest;
 import com.android.tools.profiler.proto.Profiler.BeginSessionResponse;
 import com.android.tools.profiler.proto.Profiler.BytesRequest;
@@ -98,7 +98,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   private long myTimestampNs;
   private boolean myThrowErrorOnGetDevices;
   private boolean myAttachAgentCalled;
-  private AgentStatusResponse myAgentStatus;
+  private AgentData myAgentStatus;
 
   private Common.SessionMetaData.SessionType myLastImportedSessionType;
 
@@ -414,12 +414,12 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   }
 
   @Override
-  public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
-    responseObserver.onNext(myAgentStatus != null ? myAgentStatus : AgentStatusResponse.getDefaultInstance());
+  public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentData> responseObserver) {
+    responseObserver.onNext(myAgentStatus != null ? myAgentStatus : AgentData.getDefaultInstance());
     responseObserver.onCompleted();
   }
 
-  public void setAgentStatus(@NotNull AgentStatusResponse status) {
+  public void setAgentStatus(@NotNull AgentData status) {
     myAgentStatus = status;
   }
 

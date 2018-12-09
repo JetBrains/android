@@ -24,8 +24,8 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.*;
-import com.android.tools.profiler.proto.Profiler.AgentStatusRequest;
-import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
+import com.android.tools.profiler.proto.Common.AgentStatusRequest;
+import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Profiler.EventGroup;
 import com.android.tools.profiler.proto.Profiler.GetDevicesRequest;
 import com.android.tools.profiler.proto.Profiler.GetDevicesResponse;
@@ -104,7 +104,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private Common.Process myProcess;
 
   @NotNull
-  private AgentStatusResponse myAgentStatus;
+  private AgentData myAgentStatus;
 
   @Nullable
   private String myPreferredDeviceName;
@@ -178,7 +178,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // TODO: StudioProfilers initalizes with a default session, which a lot of tests now relies on to avoid a NPE.
     // We should clean all the tests up to either have StudioProfilers create a proper session first or handle the null cases better.
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
-    myAgentStatus = AgentStatusResponse.getDefaultInstance();
+    myAgentStatus = AgentData.getDefaultInstance();
 
     myTimeline.getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
       if (!myTimeline.getSelectionRange().isEmpty()) {
@@ -387,10 +387,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // A heartbeat event may not have been sent by perfa when we first profile an app, here we keep pinging the status and
       // fire the corresponding change and tracking events.
       if (SessionsManager.isSessionAlive(mySelectedSession)) {
-        AgentStatusResponse agentStatus = getAgentStatus(mySelectedSession);
+        AgentData agentStatus = getAgentStatus(mySelectedSession);
         if (!myAgentStatus.equals(agentStatus)) {
-          if (myAgentStatus.getStatus() != AgentStatusResponse.Status.ATTACHED &&
-              agentStatus.getStatus() == AgentStatusResponse.Status.ATTACHED) {
+          if (myAgentStatus.getStatus() != AgentData.Status.ATTACHED &&
+              agentStatus.getStatus() == AgentData.Status.ATTACHED) {
             getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
           }
           myAgentStatus = agentStatus;
@@ -552,7 +552,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       assert SessionsManager.isSessionAlive(myProfilingSession);
       myProfilers.forEach(profiler -> profiler.startProfiling(myProfilingSession));
       myIdeServices.getFeatureTracker().trackProfilingStarted();
-      if (getAgentStatus(myProfilingSession).getStatus() == AgentStatusResponse.Status.ATTACHED) {
+      if (getAgentStatus(myProfilingSession).getStatus() == AgentData.Status.ATTACHED) {
         getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
       }
     }
@@ -613,9 +613,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   @NotNull
-  private AgentStatusResponse getAgentStatus(@NotNull Common.Session session) {
+  private AgentData getAgentStatus(@NotNull Common.Session session) {
     if (Common.Session.getDefaultInstance().equals(session)) {
-      return AgentStatusResponse.getDefaultInstance();
+      return AgentData.getDefaultInstance();
     }
 
     AgentStatusRequest statusRequest = AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getDeviceId()).build();
@@ -707,11 +707,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public boolean isAgentAttached() {
-    return myAgentStatus.getStatus() == AgentStatusResponse.Status.ATTACHED;
+    return myAgentStatus.getStatus() == AgentData.Status.ATTACHED;
   }
 
   @NotNull
-  public AgentStatusResponse getAgentStatus() {
+  public AgentData getAgentStatus() {
     return myAgentStatus;
   }
 

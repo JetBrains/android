@@ -25,11 +25,15 @@ import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Common.AgentData;
+import com.android.tools.profiler.proto.Common.AgentStatusRequest;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.google.common.collect.ImmutableMap;
 import io.grpc.stub.StreamObserver;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
@@ -287,10 +291,10 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   @Test
   public void agentStatus() {
     getPollTicker().run();
-    StreamObserver<AgentStatusResponse> observer = mock(StreamObserver.class);
+    StreamObserver<AgentData> observer = mock(StreamObserver.class);
     myProfilerService
       .getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(DEVICE_ID).setPid(INITIAL_PROCESS.getPid()).build(), observer);
-    AgentStatusResponse response = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
+    AgentData response = AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build();
     validateResponse(observer, response);
   }
 
@@ -376,8 +380,8 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     }
 
     @Override
-    public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
-      responseObserver.onNext(AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build());
+    public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentData> responseObserver) {
+      responseObserver.onNext(AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build());
       responseObserver.onCompleted();
     }
 

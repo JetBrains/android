@@ -427,7 +427,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     // Set up the correct agent and session state so that the MemoryProfilerStageView can be initialized properly.
     myProfilerService.setAgentStatus(
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build());
+      Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
     myProfilers.getSessionsManager().endCurrentSession();
     myProfilers.getSessionsManager().beginSession(
       Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build(),
@@ -484,7 +484,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     // Set up the correct agent and session state so that the MemoryProfilerStageView can be initialized properly.
     myProfilerService.setAgentStatus(
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build());
+      Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
     myProfilers.getSessionsManager().endCurrentSession();
     myProfilers.getSessionsManager().beginSession(
       Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build(),

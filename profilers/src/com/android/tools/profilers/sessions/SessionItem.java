@@ -181,8 +181,8 @@ public class SessionItem extends AspectModel<SessionItem.Aspect> implements Sess
   private void agentStatusChanged() {
     boolean oldValue = myWaitingForAgent;
     if (SessionsManager.isSessionAlive(mySession) && mySession.equals(myProfilers.getSessionsManager().getSelectedSession())) {
-      Profiler.AgentStatusResponse agentStatusResponse = myProfilers.getAgentStatus();
-      myWaitingForAgent = agentStatusResponse.getStatus() == Profiler.AgentStatusResponse.Status.UNSPECIFIED;
+      Common.AgentData agentStatusResponse = myProfilers.getAgentStatus();
+      myWaitingForAgent = agentStatusResponse.getStatus() == Common.AgentData.Status.UNSPECIFIED;
     }
     else {
       myWaitingForAgent = false;

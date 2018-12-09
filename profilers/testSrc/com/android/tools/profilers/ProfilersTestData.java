@@ -25,9 +25,9 @@ public class ProfilersTestData {
     .setPid(5678)
     .build();
 
-  public static final Profiler.AgentStatusResponse DEFAULT_AGENT_ATTACHED_RESPONSE =
-    Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build();
+  public static final Common.AgentData DEFAULT_AGENT_ATTACHED_RESPONSE =
+    Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build();
 
-  public static final Profiler.AgentStatusResponse DEFAULT_AGENT_DETACHED_RESPONSE =
-    Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.UNATTACHABLE).build();
+  public static final Common.AgentData DEFAULT_AGENT_DETACHED_RESPONSE =
+    Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNATTACHABLE).build();
 }

@@ -27,8 +27,8 @@ import com.android.tools.datastore.poller.UnifiedEventsDataPoller;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
-import com.android.tools.profiler.proto.Profiler.AgentStatusRequest;
-import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
+import com.android.tools.profiler.proto.Common.AgentStatusRequest;
+import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Profiler.BeginSessionRequest;
 import com.android.tools.profiler.proto.Profiler.BeginSessionResponse;
 import com.android.tools.profiler.proto.Profiler.BytesRequest;
@@ -155,7 +155,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
-  public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> observer) {
+  public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentData> observer) {
     observer.onNext(myTable.getAgentStatus(request));
     observer.onCompleted();
   }
