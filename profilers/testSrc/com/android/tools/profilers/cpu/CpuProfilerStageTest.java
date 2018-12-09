@@ -1910,7 +1910,7 @@ public class CpuProfilerStageTest extends AspectObserver {
                                                                      CpuProfiler.CpuProfilerMode.INSTRUMENTED);
     config.setDisableLiveAllocation(false);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.getDefaultInstance());
+    myProfilerService.setAgentStatus(Common.AgentData.getDefaultInstance());
 
     // Live allocation sampling rate should remain the same.
     startCapturingSuccess();
@@ -1928,8 +1928,8 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Set agent status to ATTACHED.
     // Live allocation sampling rate should still remain the same.
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.newBuilder()
-                                       .setStatus(Profiler.AgentStatusResponse.Status.ATTACHED)
+    myProfilerService.setAgentStatus(Common.AgentData.newBuilder()
+                                       .setStatus(Common.AgentData.Status.ATTACHED)
                                        .build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     startCapturingSuccess();

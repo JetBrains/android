@@ -17,6 +17,8 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DeviceId;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Common.AgentData;
+import com.android.tools.profiler.proto.Common.AgentStatusRequest;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import org.jetbrains.annotations.NotNull;
@@ -337,7 +339,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
    */
   public void updateAgentStatus(@NotNull DeviceId devicdId,
                                 @NotNull Common.Process process,
-                                @NotNull AgentStatusResponse agentStatus) {
+                                @NotNull AgentData agentStatus) {
     synchronized (myLock) {
       try {
         ResultSet results = executeQuery(ProfilerStatements.FIND_AGENT_STATUS, devicdId.get(), process.getPid());
@@ -353,9 +355,9 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
   }
 
   @NotNull
-  public AgentStatusResponse getAgentStatus(@NotNull AgentStatusRequest request) {
+  public AgentData getAgentStatus(@NotNull AgentStatusRequest request) {
     synchronized (myLock) {
-      AgentStatusResponse.Builder responseBuilder = AgentStatusResponse.newBuilder();
+      AgentData.Builder responseBuilder = AgentData.newBuilder();
       try {
         ResultSet results = executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getDeviceId(), request.getPid());
         if (results.next()) {

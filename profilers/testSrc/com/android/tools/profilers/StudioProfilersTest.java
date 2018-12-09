@@ -19,7 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
+import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -292,15 +292,15 @@ public final class StudioProfilersTest {
     profilers.addDependency(observer).onChange(ProfilerAspect.AGENT, observer::AgentStatusChanged);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(profilers.getAgentStatus()).isEqualTo(AgentStatusResponse.getDefaultInstance());
+    assertThat(profilers.getAgentStatus()).isEqualTo(AgentData.getDefaultInstance());
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(0);
 
     // Test that status changes if no process is selected does nothing
-    AgentStatusResponse attachedResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
+    AgentData attachedResponse = AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build();
     myProfilerService.setAgentStatus(attachedResponse);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getProcess()).isNull();
-    assertThat(profilers.getAgentStatus()).isEqualTo(AgentStatusResponse.getDefaultInstance());
+    assertThat(profilers.getAgentStatus()).isEqualTo(AgentData.getDefaultInstance());
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(0);
 
     // Test that agent status change fires after a process is selected.
@@ -326,20 +326,20 @@ public final class StudioProfilersTest {
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(2);
 
     // Setting the same agent status should not trigger an aspect change.
-    attachedResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
+    attachedResponse = AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build();
     myProfilerService.setAgentStatus(attachedResponse);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getAgentStatus()).isEqualTo(attachedResponse);
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(2);
 
-    AgentStatusResponse unattachableResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.UNATTACHABLE).build();
+    AgentData unattachableResponse = AgentData.newBuilder().setStatus(AgentData.Status.UNATTACHABLE).build();
     myProfilerService.setAgentStatus(unattachableResponse);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getAgentStatus()).isEqualTo(unattachableResponse);
     assertThat(observer.getAgentStatusChangedCount()).isEqualTo(3);
 
     // Setting the same agent status should not trigger an aspect change.
-    unattachableResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.UNATTACHABLE).build();
+    unattachableResponse = AgentData.newBuilder().setStatus(AgentData.Status.UNATTACHABLE).build();
     myProfilerService.setAgentStatus(unattachableResponse);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getAgentStatus()).isEqualTo(unattachableResponse);
@@ -802,7 +802,7 @@ public final class StudioProfilersTest {
   public void testAttachAgentEvenIfAlreadyAttached() {
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), myIdeProfilerServices, myTimer);
 
-    AgentStatusResponse attachedResponse = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
+    AgentData attachedResponse = AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build();
     myProfilerService.setAgentStatus(attachedResponse);
     Common.Device device = createDevice(AndroidVersion.VersionCodes.O, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process1 = createProcess(device.getDeviceId(), 1, "FakeProcess1", Common.Process.State.ALIVE);

@@ -21,6 +21,8 @@ import com.android.tools.datastore.DeviceId;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Common.AgentData;
+import com.android.tools.profiler.proto.Common.AgentStatusRequest;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Sets;
@@ -95,9 +97,9 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
 
           AgentStatusRequest agentStatusRequest =
             AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(deviceId.get()).build();
-          AgentStatusResponse cachedStatus = myTable.getAgentStatus(agentStatusRequest);
-          if (cachedStatus.getStatus() == AgentStatusResponse.Status.UNSPECIFIED) {
-            AgentStatusResponse agentStatusResponse = myPollingService.getAgentStatus(agentStatusRequest);
+          AgentData cachedStatus = myTable.getAgentStatus(agentStatusRequest);
+          if (cachedStatus.getStatus() == AgentData.Status.UNSPECIFIED) {
+            AgentData agentStatusResponse = myPollingService.getAgentStatus(agentStatusRequest);
             myTable.updateAgentStatus(deviceId, process, agentStatusResponse);
           }
 
@@ -136,9 +138,9 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
       myTable.insertOrUpdateProcess(deviceId, updatedProcess);
 
       // The process is already dead, just mark it as agent non-attachable.
-      AgentStatusResponse agentStatus =
+      AgentData agentStatus =
         myTable.getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(deviceId.get()).setPid(process.getPid()).build());
-        myTable.updateAgentStatus(deviceId, process, agentStatus.toBuilder().setStatus(AgentStatusResponse.Status.UNATTACHABLE).build());
+        myTable.updateAgentStatus(deviceId, process, agentStatus.toBuilder().setStatus(AgentData.Status.UNATTACHABLE).build());
     }
   }
 }

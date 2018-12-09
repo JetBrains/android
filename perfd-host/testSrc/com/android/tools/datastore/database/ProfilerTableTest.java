@@ -18,8 +18,8 @@ package com.android.tools.datastore.database;
 import com.android.tools.datastore.DeviceId;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.Profiler.AgentStatusRequest;
-import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
+import com.android.tools.profiler.proto.Common.AgentStatusRequest;
+import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
       .add((table) -> assertThat(table.getSessionMetaData(-1)).isEqualTo(Profiler.GetSessionMetaDataResponse.getDefaultInstance()));
     methodCalls.add((table) -> assertThat(table.getSessions()).isEqualTo(GetSessionsResponse.getDefaultInstance()));
     methodCalls.add((table) -> assertThat(table.getAgentStatus(AgentStatusRequest.getDefaultInstance()))
-      .isEqualTo(AgentStatusResponse.getDefaultInstance()));
+      .isEqualTo(AgentData.getDefaultInstance()));
     methodCalls.add((table) -> assertThat(table.getBytes(Profiler.BytesRequest.getDefaultInstance())).isEqualTo(null));
     methodCalls.add((table) -> table.insertOrUpdateDevice(Common.Device.getDefaultInstance()));
     methodCalls
@@ -60,7 +60,7 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
     methodCalls.add((table) -> table
       .insertOrUpdateSession(Common.Session.getDefaultInstance(), "Name", 0, false, false, Common.SessionMetaData.SessionType.UNSPECIFIED));
     methodCalls.add(
-      (table) -> table.updateAgentStatus(DeviceId.of(-1), Common.Process.getDefaultInstance(), AgentStatusResponse.getDefaultInstance()));
+      (table) -> table.updateAgentStatus(DeviceId.of(-1), Common.Process.getDefaultInstance(), AgentData.getDefaultInstance()));
     methodCalls.add((table) -> table.updateDeviceLastKnownTime(Common.Device.getDefaultInstance(), 0));
     methodCalls.add((table) -> table.updateSessionEndTime(0, 0));
     methodCalls.add((table) -> table.deleteSession(-1));
@@ -217,8 +217,8 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
                     .setStartTimestampNs(10).build();
 
     // Setup initial process and status.
-    AgentStatusResponse status =
-      AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
+    AgentData status =
+      AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build();
     getTable().insertOrUpdateProcess(FAKE_DEVICE_ID, process);
     getTable().updateAgentStatus(FAKE_DEVICE_ID, process, status);
 
@@ -231,7 +231,7 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
     // Double-check status has been set.
     AgentStatusRequest request =
       AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(FAKE_DEVICE_ID.get()).build();
-    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
+    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentData.Status.ATTACHED);
 
     // Kill the process entry and verify that the process state is updated and the agent status remains the same.
     Common.Process deadProcess = process.toBuilder().setState(Common.Process.State.DEAD).build();
@@ -239,7 +239,7 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
     processes = getTable().getProcesses(Profiler.GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build());
     assertThat(processes.getProcessList()).hasSize(1);
     assertThat(processes.getProcess(0)).isEqualTo(deadProcess);
-    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
+    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentData.Status.ATTACHED);
 
     // Resurrects the process and verify that the start time does not change. This is a scenario for Emulator Snapshots.
     Common.Process resurrectedProcess = process.toBuilder().setStartTimestampNs(20).build();
@@ -247,6 +247,6 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
     processes = getTable().getProcesses(Profiler.GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build());
     assertThat(processes.getProcessList()).hasSize(1);
     assertThat(processes.getProcess(0)).isEqualTo(process);
-    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentStatusResponse.Status.ATTACHED);
+    assertThat(getTable().getAgentStatus(request).getStatus()).isEqualTo(AgentData.Status.ATTACHED);
   }
 }

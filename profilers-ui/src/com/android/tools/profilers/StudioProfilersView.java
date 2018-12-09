@@ -399,8 +399,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private void toggleTimelineButtons() {
     boolean isAlive = myProfiler.getSessionsManager().isSessionAlive();
     if (isAlive) {
-      Profiler.AgentStatusResponse agentStatus = myProfiler.getAgentStatus();
-      boolean waitForAgent = agentStatus.getStatus() == Profiler.AgentStatusResponse.Status.UNSPECIFIED;
+      Common.AgentData agentStatus = myProfiler.getAgentStatus();
+      boolean waitForAgent = agentStatus.getStatus() == Common.AgentData.Status.UNSPECIFIED;
       if (waitForAgent) {
         // Disable all controls if the agent is still initialization/attaching.
         myZoomOut.setEnabled(false);
@@ -484,8 +484,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     // Show the loading screen if StudioProfilers is waiting for a process to profile or if it is waiting for an agent to attach.
     boolean loading = (myProfiler.getAutoProfilingEnabled() && myProfiler.getPreferredProcessName() != null) &&
                       !myProfiler.getSessionsManager().isSessionAlive();
-    Profiler.AgentStatusResponse agentStatus = myProfiler.getAgentStatus();
-    loading |= (agentStatus.getStatus() == Profiler.AgentStatusResponse.Status.UNSPECIFIED && myProfiler.getSessionsManager().isSessionAlive());
+    Common.AgentData agentStatus = myProfiler.getAgentStatus();
+    loading |= (agentStatus.getStatus() == Common.AgentData.Status.UNSPECIFIED && myProfiler.getSessionsManager().isSessionAlive());
     if (loading) {
       myStageLoadingPanel.startLoading();
       myStageCenterCardLayout.show(myStageCenterComponent, LOADING_VIEW_CARD);

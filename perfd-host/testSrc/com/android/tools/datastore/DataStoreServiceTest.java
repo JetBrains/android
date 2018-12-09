@@ -19,6 +19,8 @@ import com.android.testutils.TestUtils;
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
 import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.datastore.service.*;
+import com.android.tools.profiler.proto.Common.AgentData;
+import com.android.tools.profiler.proto.Common.AgentStatusRequest;
 import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.Profiler.*;
 import io.grpc.ManagedChannel;
@@ -282,7 +284,7 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     }
 
     @Override
-    public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
+    public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentData> responseObserver) {
       responseObserver.onNext(myProfilerTable.getAgentStatus(request));
       responseObserver.onCompleted();
     }

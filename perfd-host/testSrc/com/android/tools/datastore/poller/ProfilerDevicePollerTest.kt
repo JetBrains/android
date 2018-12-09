@@ -108,7 +108,7 @@ class ProfilerDevicePollerTest : DataStorePollerTest() {
 
   private class FakeProfilerService : ProfilerServiceGrpc.ProfilerServiceImplBase() {
 
-    private var myProcessAgentMap: Map<Common.Process, Profiler.AgentStatusResponse>? = null
+    private var myProcessAgentMap: Map<Common.Process, Common.AgentData>? = null
 
     override fun getCurrentTime(request: Profiler.TimeRequest, responseObserver: StreamObserver<Profiler.TimeResponse>) {
       responseObserver.onNext(Profiler.TimeResponse.getDefaultInstance())
@@ -129,18 +129,18 @@ class ProfilerDevicePollerTest : DataStorePollerTest() {
       responseObserver.onCompleted()
     }
 
-    override fun getAgentStatus(request: Profiler.AgentStatusRequest, responseObserver: StreamObserver<Profiler.AgentStatusResponse>) {
+    override fun getAgentStatus(request: Common.AgentStatusRequest, responseObserver: StreamObserver<Common.AgentData>) {
 
       myProcessAgentMap?.let {
         val process = it.keys.find { p -> p.pid == request.pid }
         responseObserver.onNext(it[process])
       } ?: run {
-        responseObserver.onNext(Profiler.AgentStatusResponse.getDefaultInstance())
+        responseObserver.onNext(Common.AgentData.getDefaultInstance())
       }
       responseObserver.onCompleted()
     }
 
-    fun setProcessAgentMap(processAgentMap: Map<Common.Process, Profiler.AgentStatusResponse>?) {
+    fun setProcessAgentMap(processAgentMap: Map<Common.Process, Common.AgentData>?) {
       myProcessAgentMap = processAgentMap
     }
   }
@@ -151,11 +151,11 @@ class ProfilerDevicePollerTest : DataStorePollerTest() {
     private val PROCESS_3 = 13
     private val PROCESS_AGENT_MAP = mapOf(
       Common.Process.newBuilder().setPid(PROCESS_1).setDeviceId(DEVICE.deviceId).setState(Common.Process.State.ALIVE).build() to
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.ATTACHED).build(),
+      Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build(),
       Common.Process.newBuilder().setPid(PROCESS_2).setDeviceId(DEVICE.deviceId).setState(Common.Process.State.ALIVE).build() to
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.UNSPECIFIED).build(),
+      Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNSPECIFIED).build(),
       Common.Process.newBuilder().setPid(PROCESS_3).setDeviceId(DEVICE.deviceId).setState(Common.Process.State.ALIVE).build() to
-      Profiler.AgentStatusResponse.newBuilder().setStatus(Profiler.AgentStatusResponse.Status.UNATTACHABLE).build()
+      Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNATTACHABLE).build()
     )
   }
 }

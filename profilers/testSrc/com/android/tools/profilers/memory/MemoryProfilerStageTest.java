@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.android.tools.profiler.proto.Profiler.AgentStatusResponse;
+import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.FakeTraceParser;
@@ -496,7 +496,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(objectSeries.getDataSeries().getDataForXRange(new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(1))))
       .isEmpty();
 
-    myProfilerService.setAgentStatus(AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build());
+    myProfilerService.setAgentStatus(AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build());
     memoryData = MemoryData.newBuilder()
       .setEndTimestamp(2 * FakeTimer.ONE_SECOND_IN_NS)
       .addAllocStatsSamples(
@@ -548,7 +548,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testAllocatedLegendChangesBasedOnSamplingMode() {
     // Perfa needs to be running for "Allocated" series to show.
-    myProfilerService.setAgentStatus(AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build());
+    myProfilerService.setAgentStatus(AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     long time = TimeUnit.MICROSECONDS.toNanos(2);
