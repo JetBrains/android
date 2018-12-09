@@ -33,6 +33,18 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
   override fun handleCommand(command: Profiler.Command, events: MutableList<Profiler.EventGroup.Builder>) {
     nextSessionId++
     attachAgentCalled = command.beginSession.hasJvmtiConfig() && command.beginSession.jvmtiConfig.attachAgent
+    if (attachAgentCalled) {
+      events.add(Profiler.EventGroup.newBuilder().setGroupId(nextSessionId)
+                   .addEvents(Common.Event.newBuilder().apply {
+                     groupId = nextSessionId
+                     sessionId = nextSessionId
+                     kind = Common.Event.Kind.AGENT
+                     timestamp = timer.currentTimeNs
+                     agentData = Common.AgentData.newBuilder().apply {
+                       status = Common.AgentData.Status.ATTACHED
+                     }.build()
+                   }))
+    }
     events.add(Profiler.EventGroup.newBuilder().setGroupId(nextSessionId)
                  .addEvents(Common.Event.newBuilder().apply {
                    groupId = nextSessionId

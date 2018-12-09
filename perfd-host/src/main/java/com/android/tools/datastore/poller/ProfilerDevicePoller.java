@@ -97,10 +97,10 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
 
           AgentStatusRequest agentStatusRequest =
             AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(deviceId.get()).build();
-          AgentData cachedStatus = myTable.getAgentStatus(agentStatusRequest);
-          if (cachedStatus.getStatus() == AgentData.Status.UNSPECIFIED) {
-            AgentData agentStatusResponse = myPollingService.getAgentStatus(agentStatusRequest);
-            myTable.updateAgentStatus(deviceId, process, agentStatusResponse);
+          AgentData cachedData = myTable.getAgentStatus(agentStatusRequest);
+          if (cachedData.getStatus() == AgentData.Status.UNSPECIFIED) {
+            AgentData agentData = myPollingService.getAgentStatus(agentStatusRequest);
+            myTable.updateAgentStatus(deviceId, process, agentData);
           }
 
           deviceData.processes.add(process);
@@ -138,9 +138,9 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
       myTable.insertOrUpdateProcess(deviceId, updatedProcess);
 
       // The process is already dead, just mark it as agent non-attachable.
-      AgentData agentStatus =
+      AgentData agentData =
         myTable.getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(deviceId.get()).setPid(process.getPid()).build());
-        myTable.updateAgentStatus(deviceId, process, agentStatus.toBuilder().setStatus(AgentData.Status.UNATTACHABLE).build());
+        myTable.updateAgentStatus(deviceId, process, agentData.toBuilder().setStatus(AgentData.Status.UNATTACHABLE).build());
     }
   }
 }

@@ -104,7 +104,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private Common.Process myProcess;
 
   @NotNull
-  private AgentData myAgentStatus;
+  private AgentData myAgentData;
 
   @Nullable
   private String myPreferredDeviceName;
@@ -178,7 +178,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // TODO: StudioProfilers initalizes with a default session, which a lot of tests now relies on to avoid a NPE.
     // We should clean all the tests up to either have StudioProfilers create a proper session first or handle the null cases better.
     mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
-    myAgentStatus = AgentData.getDefaultInstance();
+    myAgentData = AgentData.getDefaultInstance();
 
     myTimeline.getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
       if (!myTimeline.getSelectionRange().isEmpty()) {
@@ -387,13 +387,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // A heartbeat event may not have been sent by perfa when we first profile an app, here we keep pinging the status and
       // fire the corresponding change and tracking events.
       if (SessionsManager.isSessionAlive(mySelectedSession)) {
-        AgentData agentStatus = getAgentStatus(mySelectedSession);
-        if (!myAgentStatus.equals(agentStatus)) {
-          if (myAgentStatus.getStatus() != AgentData.Status.ATTACHED &&
-              agentStatus.getStatus() == AgentData.Status.ATTACHED) {
+        AgentData agentData = getAgentData(mySelectedSession);
+        if (!myAgentData.equals(agentData)) {
+          if (myAgentData.getStatus() != AgentData.Status.ATTACHED &&
+              agentData.getStatus() == AgentData.Status.ATTACHED) {
             getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
           }
-          myAgentStatus = agentStatus;
+          myAgentData = agentData;
           changed(ProfilerAspect.AGENT);
         }
       }
@@ -520,7 +520,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     mySelectedSession = newSession;
-    myAgentStatus = getAgentStatus(mySelectedSession);
+    myAgentData = getAgentData(mySelectedSession);
     if (Common.Session.getDefaultInstance().equals(newSession)) {
       // No selected session - go to the null stage.
       myTimeline.setIsPaused(true);
@@ -552,7 +552,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       assert SessionsManager.isSessionAlive(myProfilingSession);
       myProfilers.forEach(profiler -> profiler.startProfiling(myProfilingSession));
       myIdeServices.getFeatureTracker().trackProfilingStarted();
-      if (getAgentStatus(myProfilingSession).getStatus() == AgentData.Status.ATTACHED) {
+      if (getAgentData(myProfilingSession).getStatus() == AgentData.Status.ATTACHED) {
         getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
       }
     }
@@ -613,13 +613,26 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   @NotNull
-  private AgentData getAgentStatus(@NotNull Common.Session session) {
+  private AgentData getAgentData(@NotNull Common.Session session) {
+    AgentData agentData = AgentData.getDefaultInstance();
     if (Common.Session.getDefaultInstance().equals(session)) {
-      return AgentData.getDefaultInstance();
+      return agentData;
     }
-
-    AgentStatusRequest statusRequest = AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getDeviceId()).build();
-    return myClient.getProfilerClient().getAgentStatus(statusRequest);
+    if (!myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
+      AgentStatusRequest statusRequest =
+        AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getDeviceId()).build();
+      return myClient.getProfilerClient().getAgentStatus(statusRequest);
+    }
+    // Get agent data for requested session.
+    GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
+      .setKind(Event.Kind.AGENT)
+      .setSessionId(session.getSessionId())
+      .build();
+    GetEventGroupsResponse response = myClient.getProfilerClient().getEventGroups(request);
+    for (EventGroup group : response.getGroupsList()) {
+      agentData = group.getEvents(group.getEventsCount() - 1).getAgentData();
+    }
+    return agentData;
   }
 
   /**
@@ -707,12 +720,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public boolean isAgentAttached() {
-    return myAgentStatus.getStatus() == AgentData.Status.ATTACHED;
+    return myAgentData.getStatus() == AgentData.Status.ATTACHED;
   }
 
   @NotNull
-  public AgentData getAgentStatus() {
-    return myAgentStatus;
+  public AgentData getAgentData() {
+    return myAgentData;
   }
 
   public List<StudioProfiler> getProfilers() {
