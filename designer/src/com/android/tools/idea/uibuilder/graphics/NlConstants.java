@@ -15,19 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.graphics;
 
-import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
-
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
 
 @SuppressWarnings("UseJBColor")
 public class NlConstants {
   public static final int RULER_SIZE_PX = 20;
-  public static final int RULER_MAJOR_TICK_PX = 19;
-  public static final int RULER_MINOR_TICK_PX = 6;
-  public static final int RULER_MINOR_TICK_MIN_DIST_PX = 2;
-  public static final int RULER_TICK_DISTANCE = JBUI.scale(20);
   public static final int BOUNDS_RECT_DELTA = 20;
 
   public static final int DEFAULT_SCREEN_OFFSET_X = 50;
@@ -44,23 +38,8 @@ public class NlConstants {
 
   public static final int RESIZING_CORNER_SIZE = 32;
   public static final int RESIZING_HOVERING_SIZE = 48;
-
-  public static final Color DARK_LIST_BACKGROUND = new Color(0x3c3f41);
   public static final Color DARK_LIST_FOREGROUND = new Color(0xbbbbbb);
 
-  public static final JBColor RULER_BG = new JBColor(Color.WHITE, ColorUtil.brighter(DARK_LIST_BACKGROUND, 1));
-  public static final JBColor BOUNDS_RECT_COLOR = new JBColor(0xbdbdbd, DARK_LIST_FOREGROUND.getRGB());
-  public static final JBColor RULER_TICK_COLOR = new JBColor(0xdbdbdb, DARK_LIST_FOREGROUND.darker().getRGB());
-  public static final JBColor RULER_TEXT_COLOR = new JBColor(0x959595, DARK_LIST_FOREGROUND.getRGB());
-  public static final Font RULER_TEXT_FONT = JBUI.Fonts.miniFont();
-
-  public static final Font BLUEPRINT_TEXT_FONT = RULER_TEXT_FONT;
-  public static final Color BLUEPRINT_BG_COLOR = new Color(0x234D6E);
-  public static final Color BLUEPRINT_GRID_COLOR = new Color(0x17397b);
-  public static final Color BLUEPRINT_FG_COLOR = new Color(0x6196c8);
-  public static final Color BLUEPRINT_COMPONENT_BG_COLOR = new Color(0, 0, 0, 0);
-  public static final Color BLUEPRINT_COMPONENT_FG_COLOR = new Color(81, 103, 163, 100);
-  public static final Stroke BLUEPRINT_COMPONENT_STROKE = NlDrawingStyle.THIN_SOLID_STROKE;
   public static final Color UNAVAILABLE_ZONE_COLOR = new Color(0, 0, 0, 13);
   public static final Color RESIZING_CONTOUR_COLOR = new Color(0x5082db);
   public static final Color RESIZING_CORNER_COLOR = new Color(0x03a9f4);
@@ -80,18 +59,9 @@ public class NlConstants {
   public static final Color[] RESIZING_OTHER_CONFIG_COLOR_ARRAY =
     {CYAN_100, CYAN_200, CYAN_300, CYAN_400, CYAN_500, CYAN_600, CYAN_700, CYAN_800, CYAN_900};
 
-
-  public static final JBColor DESIGN_SURFACE_BG = new JBColor(0xf2f2f2, DARK_LIST_BACKGROUND.getRGB());
-
   public static final BasicStroke SOLID_STROKE = new BasicStroke(1.0f);
   public static final BasicStroke THICK_SOLID_STROKE = new BasicStroke(2.0f);
-  public static final BasicStroke DOTTED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
-                                                                   new float[] { 2, 2 }, 0.0f);
   public static final BasicStroke DASHED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
                                                                    new float[] { 4, 4 }, 0.0f);
-  public static final BasicStroke PATTERN_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
-                                                                    new float[] { 8, 4 }, 0.0f);
-  public static final BasicStroke THICK_PATTERN_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
-                                                                          new float[] { 8, 4 }, 0.0f);
   
 }
