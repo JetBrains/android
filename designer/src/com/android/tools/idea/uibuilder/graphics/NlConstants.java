@@ -16,28 +16,29 @@
 package com.android.tools.idea.uibuilder.graphics;
 
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 import java.awt.BasicStroke;
 import java.awt.Color;
 
 @SuppressWarnings("UseJBColor")
 public class NlConstants {
-  public static final int RULER_SIZE_PX = 20;
-  public static final int BOUNDS_RECT_DELTA = 20;
+  public static final int RULER_SIZE_PX = JBUI.scale(20);
+  public static final int BOUNDS_RECT_DELTA = JBUI.scale(20);
 
-  public static final int DEFAULT_SCREEN_OFFSET_X = 50;
-  public static final int DEFAULT_SCREEN_OFFSET_Y = 50;
+  public static final int DEFAULT_SCREEN_OFFSET_X = JBUI.scale(20);
+  public static final int DEFAULT_SCREEN_OFFSET_Y = JBUI.scale(20);
   /** Distance between blueprint screen and regular screen */
-  public static final int SCREEN_DELTA = 10;
+  public static final int SCREEN_DELTA = JBUI.scale(10);
 
 
   /**
    * The maximum number of pixels will be considered a "match" when snapping
    * resize or move positions to edges or other constraints
    */
-  public static final int MAX_MATCH_DISTANCE = 20;
+  public static final int MAX_MATCH_DISTANCE = JBUI.scale(20);
 
-  public static final int RESIZING_CORNER_SIZE = 32;
-  public static final int RESIZING_HOVERING_SIZE = 48;
+  public static final int RESIZING_CORNER_SIZE = JBUI.scale(32);
+  public static final int RESIZING_HOVERING_SIZE = JBUI.scale(48);
   public static final Color DARK_LIST_FOREGROUND = new Color(0xbbbbbb);
 
   public static final Color UNAVAILABLE_ZONE_COLOR = new Color(0, 0, 0, 13);
