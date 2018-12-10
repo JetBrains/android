@@ -110,7 +110,6 @@ class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
       name.endsWith(TEXT_APPEARANCE_SUFFIX) -> TextAppearanceEnumSupport(property)
       name == ATTR_STYLE && property.namespace.isEmpty() -> return StyleEnumSupport(property)
       isIdType(property) -> IdEnumSupport(property)
-      property.namespace != ANDROID_URI -> null
       else -> when (name) {
         ATTR_FONT_FAMILY -> getFontEnumSupport(property)
         ATTR_TYPEFACE -> typefaceEnumSupport

@@ -24,7 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 
-class EnumSupportProviderImplTest: AndroidTestCase() {
+class NeleEnumSupportProviderTest: AndroidTestCase() {
 
   fun testAttributeWithNoEnumSupport() {
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = CONSTRAINT_LAYOUT.defaultName())
@@ -64,6 +64,15 @@ class EnumSupportProviderImplTest: AndroidTestCase() {
   fun testFontFamily() {
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.STYLE)
+    val provider = NeleEnumSupportProvider()
+    val enumSupport = provider(property) ?: error("No EnumSupport Found")
+    assertThat(enumSupport).isInstanceOf(FontEnumSupport::class.java)
+    assertThat(enumSupport.values.size).isAtLeast(9)
+  }
+
+  fun testFontFamilyFromAutoNamespace() {
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
+    val property = util.makeProperty(AUTO_URI, ATTR_FONT_FAMILY, NelePropertyType.STYLE)
     val provider = NeleEnumSupportProvider()
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
     assertThat(enumSupport).isInstanceOf(FontEnumSupport::class.java)
