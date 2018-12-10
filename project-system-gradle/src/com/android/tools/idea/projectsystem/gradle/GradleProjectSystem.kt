@@ -42,7 +42,7 @@ import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
-  private val myProjectBuildModelHandler: ProjectBuildModelHandler = ProjectBuildModelHandler(project)
+  private val myProjectBuildModelHandler: ProjectBuildModelHandler = ProjectBuildModelHandler.getInstance(project)
 
   private val myPsiElementFinders: List<PsiElementFinder> = run {
     if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
