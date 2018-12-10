@@ -81,7 +81,7 @@ public class LayoutLibraryLoader {
 
     final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
     final LayoutLog layoutLog = new LayoutLogWrapper(LOG);
-    if (library.init(buildPropMap, new File(fontFolder.getPath()), enumMap, layoutLog)) {
+    if (library.init(buildPropMap, new File(fontFolder.getPath()), null, enumMap, layoutLog)) {
       return library;
     } else {
       return null;
