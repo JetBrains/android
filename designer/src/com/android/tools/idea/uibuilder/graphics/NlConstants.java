@@ -24,8 +24,8 @@ public class NlConstants {
   public static final int RULER_SIZE_PX = 20;
   public static final int BOUNDS_RECT_DELTA = 20;
 
-  public static final int DEFAULT_SCREEN_OFFSET_X = 50;
-  public static final int DEFAULT_SCREEN_OFFSET_Y = 50;
+  public static final int DEFAULT_SCREEN_OFFSET_X = 20;
+  public static final int DEFAULT_SCREEN_OFFSET_Y = 20;
   /** Distance between blueprint screen and regular screen */
   public static final int SCREEN_DELTA = 10;
 
