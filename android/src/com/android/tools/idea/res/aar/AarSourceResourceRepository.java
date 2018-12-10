@@ -207,7 +207,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
 
   @Override
   @NotNull
-  public Path getOrigin() {
+  Path getOrigin() {
     return myResourceDirectory;
   }
 
