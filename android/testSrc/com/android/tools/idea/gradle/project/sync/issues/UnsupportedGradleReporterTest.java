@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.module.Module;
-
-import java.util.List;
-
 import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
+import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionErrorHandlerTest.verifyOpenGradleWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.android.builder.model.SyncIssue;
+import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.module.Module;
+import java.util.List;
 
 /**
  * Tests for {@link UnsupportedGradleReporter}.
@@ -75,14 +75,16 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
     // @formatter:on
 
     List<NotificationHyperlink> quickFixes = message.getQuickFixes();
-    assertThat(quickFixes).hasSize(2);
+    assertThat(quickFixes).hasSize(3);
 
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(FixGradleVersionInWrapperHyperlink.class);
     FixGradleVersionInWrapperHyperlink hyperlink = (FixGradleVersionInWrapperHyperlink)quickFix;
     assertEquals("2.14.1", hyperlink.getGradleVersion());
 
-    quickFix = quickFixes.get(1);
+    verifyOpenGradleWrapperPropertiesFile(getProject(), quickFixes.get(1));
+
+    quickFix = quickFixes.get(2);
     assertThat(quickFix).isInstanceOf(OpenGradleSettingsHyperlink.class);
   }
 }

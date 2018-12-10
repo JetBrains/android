@@ -15,12 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import static com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION;
+
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -28,16 +39,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION;
 
 public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
   private static final Pattern UNSUPPORTED_GRADLE_VERSION_PATTERN_1 =
@@ -127,6 +128,11 @@ public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
       NotificationHyperlink hyperlink = createIfProjectUsesGradleWrapper(project, gradleVersion);
       if (hyperlink != null) {
         hyperlinks.add(hyperlink);
+      }
+      File propertiesFile = gradleWrapper.getPropertiesFilePath();
+      if (propertiesFile.exists()) {
+        hyperlinks
+          .add(new OpenFileHyperlink(gradleWrapper.getPropertiesFilePath().getAbsolutePath(), "Open Gradle wrapper properties", -1, -1));
       }
     }
     else {
