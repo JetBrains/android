@@ -30,6 +30,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
@@ -318,6 +319,16 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
         </resources>
         """.trimIndent()
       )
+      resDir.resolve("drawable").mkdirs()
+      resDir.resolve("drawable/libLogo.xml").writeText(
+        """
+        <vector xmlns:android="http://schemas.android.com/apk/res/android">
+          <group android:name="g">
+            <vector android:pathData="xxx" />
+          </group>
+        </vector>
+        """.trimIndent()
+      )
     }
 
     // Sanity check.
@@ -338,6 +349,9 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
         }
         public static final class style {
           public static final int LibStyle = 0x7f020001;
+        }
+        public static final class drawable {
+          public static final int libLogo = 0x7f030001;
         }
       }
       """.trimIndent()
@@ -417,6 +431,30 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
                    )
                  )
     )
+  }
+
+  fun testGotoAarFileResourceFromCode_ownRClass() {
+    addAarDependencyToMyModule()
+
+    val javaFile = myFixture.addFileToProject(
+      "src/p1/p2/GotoAarStyle.java",
+      // language=java
+      """
+      package p1.p2;
+
+      public class GotoAarStyle {
+          public void f() {
+              int id1 = R.drawable.lib${caret}Logo;
+          }
+      }
+      """.trimIndent()
+    )
+
+    val targets = getDeclarationsFrom(javaFile.virtualFile)
+    assertThat(targets).hasLength(1)
+    val target = targets.single()
+    assertThat(target).isInstanceOf(PsiFile::class.java)
+    assertThat((target as PsiFile).virtualFile.name).isEqualTo("libLogo.xml")
   }
 
   override fun testGotoAarResourceFromCode_libRClass() {
