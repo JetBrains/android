@@ -339,4 +339,25 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     checkForInValidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.
     assertEmpty(android.sourceSets());
   }
+
+  @Test
+  public void testRenameSourceSet() throws Exception {
+    writeToBuildFile(SOURCE_SET_MODEL_SET_ROOT_OVERRIDE_STATEMENTS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<SourceSetModel> sourceSets = buildModel.android().sourceSets();
+    assertSize(4, sourceSets);
+
+    SourceSetModel sourceSet = sourceSets.get(0);
+
+    sourceSet.rename("awesomeNewSourceSet");
+
+    assertEquals("awesomeNewSourceSet", sourceSet.name());
+
+    applyChangesAndReparse(buildModel);
+
+    sourceSet = buildModel.android().sourceSets().get(0);
+    assertEquals("awesomeNewSourceSet", sourceSet.name());
+  }
 }
