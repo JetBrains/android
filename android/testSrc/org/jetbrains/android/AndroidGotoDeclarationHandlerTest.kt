@@ -469,12 +469,12 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
     addAarDependencyToMyModule()
 
     val javaFile = myFixture.addFileToProject(
-      "src/p1/p2/GotoAarStyle.java",
+      "src/p1/p2/GotoAarDrawable.java",
       // language=java
       """
       package p1.p2;
 
-      public class GotoAarStyle {
+      public class GotoAarDrawable {
           public void f() {
               int id1 = R.drawable.lib${caret}Logo;
           }
