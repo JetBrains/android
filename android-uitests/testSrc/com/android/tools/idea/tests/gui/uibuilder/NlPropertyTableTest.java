@@ -26,6 +26,8 @@ import static java.awt.event.KeyEvent.VK_PAGE_UP;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CompletionFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -137,6 +139,7 @@ public class NlPropertyTableTest {
       .assertPropertyShowing("visibility", null);
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/120745982
   @Test
   public void testEditing() throws Exception {
     // If this UI test should fail, this is the intention with the test.
@@ -173,6 +176,7 @@ public class NlPropertyTableTest {
     assertThat(table.cell(new TableCellInSelectedRow.TableCellBuilder().column(0)).value()).isEqualTo("@android:accessibilityLiveRegion");
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/120745982
   @Test
   public void testCompletionFinishesEditing() throws Exception {
     // If this UI test should fail, this is the intention with the test.
