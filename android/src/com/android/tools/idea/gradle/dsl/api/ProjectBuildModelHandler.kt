@@ -19,10 +19,12 @@ import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.read
-import kotlin.concurrent.write
+import kotlin.concurrent.withLock
 
 /**
  * Provides an api to use a [ProjectBuildModel] while refreshing the model if the Gradle build files change,
@@ -40,23 +42,37 @@ class ProjectBuildModelHandler(val project: Project) {
    */
   private var modelSyncTime : Long = -1L
   private var projectBuildModel: ProjectBuildModel? = null
-  val lock: ReentrantReadWriteLock = ReentrantReadWriteLock()
+  private val lock: Lock = ReentrantLock()
+
+  companion object {
+    fun getInstance(project: Project) : ProjectBuildModelHandler = ServiceManager.getService(project, ProjectBuildModelHandler::class.java)
+  }
+
 
   fun <T> read(block: ProjectBuildModel.() -> T): T {
     // TODO: assert is not dispatch thread once all callers are not using it
-    lock.read {
+    lock.withLock {
       return block.invoke(projectModel())
     }
   }
 
+  /**
+   * Executes a code [block] which modifies the project model. Obtaining the model can take a long time, so this method must not be called
+   * from the EDT. Once the block has been executed, this method will handle applying the model changes on the EDT, blocking the calling
+   * thread until the changes have been applied.
+   */
   fun <T> modify(block: ProjectBuildModel.() -> T): T {
     assert(ApplicationManager.getApplication().isUnitTestMode || !ApplicationManager.getApplication().isDispatchThread)
-    lock.write {
+    lock.withLock {
       val model = projectModel()
       try {
         return block.invoke(model)
       } finally {
-        model.applyChanges()
+        ApplicationManager.getApplication().invokeAndWait {
+          ApplicationManager.getApplication().runWriteAction {
+            model.applyChanges()
+          }
+        }
       }
     }
   }

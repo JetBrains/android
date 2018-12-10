@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Before
 import org.junit.Test
@@ -98,8 +99,10 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
     setupGradleSyncState(6L)
     setupGradleFiles(false)
     val handler = ProjectBuildModelHandler(project, projectBuildModel, 6L)
-    val buildModel = projectBuildModel
+    `when`(projectBuildModel.applyChanges()).then {
+      ApplicationManager.getApplication().assertWriteAccessAllowed()
+    }
     handler.modify { }
-    verify(buildModel).applyChanges()
+    verify(projectBuildModel).applyChanges()
   }
 }
