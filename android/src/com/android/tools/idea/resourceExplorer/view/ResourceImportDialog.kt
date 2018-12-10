@@ -21,6 +21,7 @@ import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.viewmodel.FileImportRowViewModel
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceImportDialogViewModel
 import com.intellij.icons.AllIcons
+import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.project.DumbAwareAction
@@ -36,7 +37,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.BorderFactory
-import javax.swing.BoxLayout
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -66,8 +66,7 @@ class ResourceImportDialog(
 
   private val assetSetToView = mutableMapOf<String, DesignAssetSetView>()
 
-  private val content = JPanel().apply {
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
+  private val content = JPanel(VerticalLayout(0)).apply {
     border = CONTENT_PANEL_BORDER
   }
 
