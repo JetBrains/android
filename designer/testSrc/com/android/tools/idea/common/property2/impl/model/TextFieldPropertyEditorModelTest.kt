@@ -17,6 +17,7 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_TEXT
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.common.property2.impl.model.util.TestAsyncPropertyItem
@@ -118,6 +119,19 @@ class TextFieldPropertyEditorModelTest {
     model.focusLost()
     assertThat(property.value).isEqualTo("imageView")
     assertThat(property.updateCount).isEqualTo(1)
+    verify(listener).valueChanged()
+  }
+
+  @Test
+  fun testUpdateAfterPropertyChange() {
+    // setup
+    val property = TestPropertyItem(ANDROID_URI, ATTR_TEXT, "Hello")
+    val (model, listener) = createModel(property)
+
+    // test
+    property.value = "World"
+    model.refresh()
+    assertThat(model.text).isEqualTo("World")
     verify(listener).valueChanged()
   }
 }
