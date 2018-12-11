@@ -19,6 +19,7 @@ import com.android.tools.idea.npw.assetstudio.wizard.WrappedFlowLayout
 import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
+import com.android.tools.idea.resourceExplorer.rendering.AssetIcon
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerViewModel
 import com.android.tools.idea.resourceExplorer.widget.AssetView
 import com.android.tools.idea.resourceExplorer.widget.Separator
@@ -185,11 +186,9 @@ class ResourceDetailView(
     title = asset.qualifiers.joinToString("-") { it.folderSegment }.takeIf { it.isNotBlank() } ?: "default"
     subtitle = asset.file.name
     metadata = asset.getDisplayableFileSize()
-
-    val icon = viewModel.assetPreviewManager
-      .getPreviewProvider(asset.type)
-      .getIcon(asset, thumbnailSize.width, thumbnailSize.height, this::repaint) { isShowing }
-    thumbnail = JBLabel(icon)
+    val assetIcon = AssetIcon(viewModel.assetPreviewManager, asset, thumbnailSize.width,
+                              thumbnailSize.height)
+    thumbnail = JBLabel(assetIcon).apply { verticalAlignment = SwingConstants.CENTER }
 
     // Mouse listener to open the file on double click
     addFocusListener(cardFocusListener)
