@@ -68,11 +68,11 @@ public class NlComponent implements NlAttributesHolder {
   @Nullable private List<NlComponent> cachedChildrenCopy = null;
   private NlComponent myParent;
   @NotNull private final NlModel myModel;
-  //TODO(b/70264883): remove this reference to XmlTag to avoid problems with invalid Psi elements
-  @NotNull private XmlTag myTag;
-  @NotNull private SmartPsiElementPointer<XmlTag> myTagPointer;
-  @NotNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot mySnapshot;
+
+  // Backend allows NlComponent to be independent of any specific library or file types.
+  @NotNull private NlComponentBackend myBackend;
+
   private final HashMap<Object, Object> myClientProperties = new HashMap<>();
   private final ListenerCollection<ChangeListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final ChangeEvent myChangeEvent = new ChangeEvent(this);
@@ -85,26 +85,13 @@ public class NlComponent implements NlAttributesHolder {
 
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     myModel = model;
-    myTag = tag;
-    Application application = ApplicationManager.getApplication();
-    if (application.isReadAccessAllowed()) {
-      myTagPointer = SmartPointerManager.getInstance(myModel.getProject()).createSmartPsiElementPointer(tag);
-      myTagName = tag.getName();
-    }
-    else {
-      application.runReadAction(() -> {
-        myTagPointer = SmartPointerManager.getInstance(myModel.getProject()).createSmartPsiElementPointer(tag);
-        myTagName = tag.getName();
-      });
-    }
+    myBackend = new NlComponentBackendXml(model, tag);
   }
 
   @TestOnly
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag, @NotNull SmartPsiElementPointer<XmlTag> tagPointer) {
     myModel = model;
-    myTag = tag;
-    myTagPointer = tagPointer;
-    myTagName = tag.getName();
+    myBackend = new NlComponentBackendXml(model, tag, tagPointer);
   }
 
   @Nullable
@@ -127,26 +114,15 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   @NotNull
+  @Deprecated
   public XmlTag getTag() {
-    // HACK: We want to use SmartPsiElementPointer as they make sure that the XmlTag we return here is not invalid.
-    // However, SmartPsiElementPointer.getElement can return null when the underlying Psi element has been deleted. Since this method is
-    // annotated @NotNull, we return the original tag if the pointer gives a null result.
-    // We do this because the large usage of getTag makes it very risky for the moment to take care everywhere of a possible null value.
-    //TODO(b/70264883): Fix this properly by using more generally SmartPsiElementPointer instead of XmlTag in the layout editor codebase.
-    XmlTag tag;
-    Application application = ApplicationManager.getApplication();
-    if (application.isReadAccessAllowed()) {
-      tag = myTagPointer.getElement();
-    }
-    else {
-      tag = application.runReadAction((Computable<XmlTag>)myTagPointer::getElement);
-    }
-    return tag != null ? tag : myTag;
+    return myBackend.getTag();
   }
 
   @NotNull
+  @Deprecated
   public SmartPsiElementPointer<XmlTag> getTagPointer() {
-    return myTagPointer;
+    return myBackend.getTagPointer();
   }
 
   @NotNull
@@ -155,28 +131,11 @@ public class NlComponent implements NlAttributesHolder {
   }
 
   public void setTag(@NotNull XmlTag tag) {
-    // HACK: see getTag
-    Application application = ApplicationManager.getApplication();
-    if (application.isReadAccessAllowed()) {
-      if (tag.isValid()) {
-        myTagPointer = SmartPointerManager.getInstance(myModel.getProject())
-          .createSmartPsiElementPointer(tag);
-      }
-      myTagName = tag.getName();
-    }
-    else {
-      application.runReadAction(() -> {
-        if (tag.isValid()) {
-          myTagPointer = SmartPointerManager.getInstance(myModel.getProject())
-            .createSmartPsiElementPointer(tag);
-        }
-        myTagName = tag.getName();
-      });
-    }
-    myTag = tag;
+    myBackend.setTag(tag);
   }
 
   @Nullable
+  @Deprecated
   public TagSnapshot getSnapshot() {
     return mySnapshot;
   }
@@ -364,7 +323,12 @@ public class NlComponent implements NlAttributesHolder {
 
   @NotNull
   public String getTagName() {
-    return myTagName;
+    return myBackend.getTagName();
+  }
+
+  @NotNull
+  public NlComponentBackend getBackend() {
+    return myBackend;
   }
 
   @Override
@@ -372,7 +336,7 @@ public class NlComponent implements NlAttributesHolder {
     if (this.getMixin() != null) {
       return getMixin().toString();
     }
-    return String.format("<%s>", myTagName);
+    return String.format("<%s>", myBackend.getTagName());
   }
 
   /**
