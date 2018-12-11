@@ -38,16 +38,56 @@ interface AssetIconProvider {
   /**
    * Returns an [Icon] representing the [assetToRender].
    * The icon should have the size defined by [width] and [height].
+   * This method is meant to be called on the UI thread and should be fast.
+   *
+   * If it takes some time to render the icon, the rendering should be done
+   * asynchronously and the resulting image should be cached.
+   * (see [com.android.tools.idea.resourceExplorer.ImageCache]).
    *
    * If the rendering of the icon is asynchronous, the implementing method can call
    * [refreshCallback] to notify the caller that the icon has been rendered and [getIcon]
    * method can be called again to retrieve an updated version of the icon.
+   *
+   * The same instance of [Icon] is reused for all renders to save memory the same way
+   * a [javax.swing.ListCellRenderer] reuse a view as a stamp. If an instance of [Icon] needs to
+   * be kept - for instance when rendering an icon not in a JList - [AssetIcon] can be used.
    *
    * In the case of an asynchronous computation, the caller can provide an optional [shouldBeRendered]
    * function that can be called to verify that the icon should still be rendered. This can be
    * useful when deferring the rendering call: by the time the request to render the icon is made,
    * the component showing this icon might not be visible anymore so we can check [shouldBeRendered] to
    * avoid unnecessary computation.
+   *
+   * Example code when the [Icon] instance needs to be kept:
+   * ```
+   * class MyPanel {
+   *     val thumbnail = JBLabel(
+   *     AssetIcon(assetPreviewManager, asset, width, height))
+   * }
+   * ```
+   *
+   *  Example code with a [javax.swing.ListCellRenderer]
+   * ```
+   * class DesignAssetCellRenderer : ListCellRenderer<DesignAsset> {
+   *
+   *   val label = JLabel()
+   *
+   *   override fun getListCellRendererComponent(
+   *   list: JList<out DesignAssetSet>,
+   *   value: DesignAsset,
+   *   index: Int,
+   *   isSelected: Boolean,
+   *   cellHasFocus: Boolean
+   *   ): Component {
+   *       label.icon = iconProvider.getIcon(value),
+   *       width, height,
+   *       { list.repaint(list.getCellBounds(index, index)) },
+   *       { ScrollingUtil.isIndexFullyVisible(list, index) })
+   *   }
+   *}
+   * ```
+   *
+   * @see AssetIcon
    */
   fun getIcon(
     assetToRender: DesignAsset,

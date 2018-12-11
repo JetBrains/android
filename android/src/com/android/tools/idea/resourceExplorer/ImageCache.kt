@@ -123,12 +123,9 @@ class ImageCache(cacheExpirationTime: Long = 5,
         }
         if (image != null) {
           objectToImage.put(key, image)
-        }
-        else {
-          objectToImage.invalidate(key)
+          executor.execute(onImageCached)
         }
       }
-      .thenRun { executor.execute(onImageCached) }
     synchronized(pendingFutures) {
       if (!future.isDone) {
         pendingFutures[key] = future
