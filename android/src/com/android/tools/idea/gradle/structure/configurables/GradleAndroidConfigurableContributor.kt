@@ -27,7 +27,7 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
 
   override fun getConfigurables(project: Project, parentDisposable: Disposable): List<ProjectStructureItemGroup> {
     val repositorySearchFactory = CachingRepositorySearchFactory()
-    val context = PsContextImpl(PsProjectImpl(project, repositorySearchFactory), parentDisposable, false, repositorySearchFactory)
+    val context = PsContextImpl(PsProjectImpl(project, repositorySearchFactory), parentDisposable, false, false, repositorySearchFactory)
 
     return listOf(
       ProjectStructureItemGroup("main", VariablesConfigurable(project, context)),

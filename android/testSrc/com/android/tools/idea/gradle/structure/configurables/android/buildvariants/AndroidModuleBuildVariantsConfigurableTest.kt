@@ -45,7 +45,8 @@ class AndroidModuleBuildVariantsConfigurableTest : DependencyTestCase() {
     resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
     this.project = project
-    context = PsContextImpl(project, testRootDisposable, disableAnalysis = true).also { Disposer.register(testRootDisposable, it) }
+    context = PsContextImpl(project, testRootDisposable, disableAnalysis = true, disableResolveModels = true)
+      .also { Disposer.register(testRootDisposable, it) }
   }
 
   fun testProductFlavorsTreeStructure() {
