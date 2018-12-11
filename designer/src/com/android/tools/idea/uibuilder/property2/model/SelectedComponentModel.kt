@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.property2.model
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.intellij.util.text.nullize
 import icons.StudioIcons
 import javax.swing.Icon
 
@@ -29,8 +31,10 @@ private const val MULTIPLE_COMPONENTS = "<multiple>"
  * For displaying which component is being edited.
  * Intended for being shown at the top of the properties panel.
  */
-class SelectedComponentModel(private val components: List<NlComponent>,
-                             val elementDescription: String) {
+class SelectedComponentModel(
+  private val property: NelePropertyItem?,
+  private val components: List<NlComponent>,
+  val elementDescription: String) {
 
   val componentIcon: Icon?
     get() = findComponentIcon()
@@ -38,7 +42,7 @@ class SelectedComponentModel(private val components: List<NlComponent>,
   val componentName: String
     get() {
       return when (components.size) {
-        1 -> components[0].id ?: UNNAMED_COMPONENT
+        1 -> property?.value.nullize() ?: UNNAMED_COMPONENT
         else -> MULTIPLE_COMPONENTS
       }
     }

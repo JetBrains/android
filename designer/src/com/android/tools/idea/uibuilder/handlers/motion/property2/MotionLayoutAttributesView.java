@@ -80,13 +80,15 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
       if (any == null || any.getComponents().isEmpty()) {
         return;
       }
+      NelePropertyItem id = properties.getOrNull(ANDROID_URI, ATTR_ID);
       NlComponent component = any.getComponents().get(0);
       XmlTag tag = MotionLayoutAttributesModel.getTag(any);
       if (tag == null) {
         return;
       }
       String label = tag.getLocalName();
-      inspector.addComponent(new SelectedComponentPanel(new SelectedComponentModel(Collections.singletonList(component), label)), null);
+      inspector.addComponent(new SelectedComponentPanel(
+        new SelectedComponentModel(id, Collections.singletonList(component), label)), null);
     }
 
     @Override

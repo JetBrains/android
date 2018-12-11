@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.intellij.util.text.Matcher
 
 private const val ERROR_NOT_SEARCHABLE = "Component is not searchable"
@@ -78,7 +79,7 @@ interface InspectorLineModel {
    */
   var filter: String
     get() = ""
-    set(value) = error(ERROR_NOT_SEARCHABLE)
+    set(_) = error(ERROR_NOT_SEARCHABLE)
 
 
   /**
@@ -106,4 +107,14 @@ interface InspectorLineModel {
    * unless we are restoring this state from earlier.
    */
   fun makeExpandable(initiallyExpanded: Boolean) { throw IllegalStateException() }
+
+  /**
+   * Register a [ValueChangedListener] to be notified whenever a related property may have changed.
+   */
+  fun addValueChangedListener(listener: ValueChangedListener) {}
+
+  /**
+   *  Remove a [ValueChangedListener] registered by [addValueChangedListener].
+   */
+  fun removeValueChangedListener(listener: ValueChangedListener) {}
 }
