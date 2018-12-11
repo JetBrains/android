@@ -924,8 +924,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   //--- Special cases ---
 
-  // Fails with > java.lang.NullPointerException (no error message)
-  public void ignore_testCppBasicActivityWithFragments() throws Exception {
+  public void testCppBasicActivityWithFragments() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=221824
     if (DISABLED) {
       return;
