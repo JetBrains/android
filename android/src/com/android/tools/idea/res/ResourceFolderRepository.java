@@ -37,6 +37,7 @@ import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.SdkConstants.TAG_VARIABLE;
 import static com.android.resources.ResourceFolderType.COLOR;
 import static com.android.resources.ResourceFolderType.DRAWABLE;
+import static com.android.resources.ResourceFolderType.FONT;
 import static com.android.resources.ResourceFolderType.LAYOUT;
 import static com.android.resources.ResourceFolderType.MIPMAP;
 import static com.android.resources.ResourceFolderType.RAW;
@@ -1363,6 +1364,24 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     }
   }
 
+  /**
+   * Called when a font file has been changed/deleted. This removes the corresponding file from the
+   * Typeface cache inside layoutlib.
+   */
+  private void clearFontCache(VirtualFile virtualFile) {
+    Module module = myFacet.getModule();
+    ConfigurationManager configurationManager = ConfigurationManager.findExistingInstance(module);
+    if (configurationManager != null) {
+      IAndroidTarget target = configurationManager.getConfiguration(virtualFile).getTarget();
+      if (target != null) {
+        AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
+        if (targetData != null) {
+          targetData.clearFontCache(virtualFile.getPath());
+        }
+      }
+    }
+  }
+
   @NotNull
   public PsiTreeChangeListener getPsiListener() {
     return myListener;
@@ -1728,6 +1747,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           }
         }
 
+        if (folderType == FONT) {
+          clearFontCache(psiFile.getVirtualFile());
+        }
+
         List<ResourceType> resourceTypes = FolderTypeRelationship.getRelatedResourceTypes(folderType);
         for (ResourceType type : resourceTypes) {
           if (type != ResourceType.ID) {
@@ -2062,6 +2085,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               setModificationCount(ourModificationCounter.incrementAndGet());
               return;
             }
+          } else if (folderType == FONT) {
+            clearFontCache(psiFile.getVirtualFile());
           } else if (folderType != null) {
             PsiElement parent = event.getParent();
 
