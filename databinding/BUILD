@@ -30,7 +30,10 @@ iml_module(
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/idea/xml/xml-psi-api:intellij.xml.psi[module]",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
+        "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module]",
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
+        "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
+        "//tools/idea/xml/impl:intellij.xml.impl[module]",
     ],
 )
 
