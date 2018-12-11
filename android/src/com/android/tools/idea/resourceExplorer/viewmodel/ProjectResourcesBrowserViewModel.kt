@@ -157,24 +157,13 @@ class ProjectResourcesBrowserViewModel(
     unsubscribeListener(facet)
   }
 
-  fun getData(dataId: String?, selectedAssets: List<DesignAsset>): Any? {
+  override fun getData(dataId: String?, selectedAssets: List<DesignAsset>): Any? {
     return dataManager.getData(dataId, selectedAssets)
   }
 
-  fun openFile(asset: DesignAsset) {
+  override fun openFile(asset: DesignAsset) {
     val psiElement = dataManager.findPsiElement(asset.resourceItem)
     psiElement?.let { NavigationUtil.openFileWithPsiElement(it, true, true) }
-  }
-
-  /**
-   * Returns the file size if the [asset] is a file (e.g layout, drawables)
-   * and not contained in a file (e.g colors).
-   */
-  fun getSize(asset: DesignAsset): String {
-    if (asset.resourceItem.isFileBased) {
-      return StringUtil.formatFileSize(asset.file.length)
-    }
-    return ""
   }
 }
 
