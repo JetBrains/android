@@ -104,7 +104,7 @@ private fun displayInToolWindow(facet: AndroidFacet, toolWindow: ToolWindow) {
   val resourceExplorer = ResourceExplorer.createForToolWindow(facet)
   val contentManager = toolWindow.contentManager
   contentManager.removeAllContents(true)
-  val content = contentManager.factory.createContent(resourceExplorer, facet.module.name, false)
+  val content = contentManager.factory.createContent(resourceExplorer, null, false)
   Disposer.register(content, resourceExplorer)
   contentManager.addContent(content)
   connectListeners(toolWindow, facet.module.project, resourceExplorer)
