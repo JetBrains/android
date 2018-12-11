@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvisionException;
-import com.android.tools.idea.run.deployable.Deployable;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetProvider;
@@ -113,12 +111,7 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
 
     @Override
     public boolean isApplicationRunning() {
-      IDevice iDevice = myDevice.getDdmlibDevice();
-      if (iDevice == null || !iDevice.isOnline()) {
-        return false;
-      }
-      List<Client> clients = Deployable.searchClientsForPackage(iDevice, myPackageName);
-      return !clients.isEmpty();
+      return myDevice.isRunning(myPackageName);
     }
 
     @Nullable
