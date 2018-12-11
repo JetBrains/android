@@ -16,6 +16,7 @@
 package com.android.tools.idea.resourceExplorer.viewmodel
 
 import com.android.resources.ResourceType
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManager
 import java.util.concurrent.CompletableFuture
 
@@ -48,4 +49,14 @@ interface ResourceExplorerViewModel {
    * one containing the resource of the current module.
    */
   fun getResourcesLists(): CompletableFuture<List<ResourceSection>>?
+
+  /**
+   * Delegate method to handle calls to [com.intellij.openapi.actionSystem.DataProvider.getData].
+   */
+  fun getData(dataId: String?, selectedAssets: List<DesignAsset>): Any?
+
+  /**
+   * Opens an editor to display the [asset].
+   */
+  fun openFile(asset: DesignAsset)
 }

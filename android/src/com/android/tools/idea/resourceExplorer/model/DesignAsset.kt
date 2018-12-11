@@ -26,6 +26,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.resourceExplorer.importer.QualifierMatcher
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -56,6 +57,17 @@ data class DesignAsset(
         name = resourceItem.name,
         resourceItem = resourceItem)
     }
+  }
+
+  /**
+   * Returns the human readable (KB, MB) file size if the [DesignAsset] is a file (e.g layout, drawables)
+   * and not contained in a file (e.g colors).
+   */
+  fun getDisplayableFileSize(): String {
+    if (resourceItem.isFileBased) {
+      return StringUtil.formatFileSize(file.length)
+    }
+    return ""
   }
 }
 
