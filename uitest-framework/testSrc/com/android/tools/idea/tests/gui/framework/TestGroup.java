@@ -16,10 +16,6 @@
 package com.android.tools.idea.tests.gui.framework;
 
 public enum TestGroup {
-  /** For measuring gradle sync performance **/
-  SYNC_PERFORMANCE,
-  /** For preparing the SYNC_PERFORMANCE test; {@see GradleSyncGuiPerfTestSetup} **/
-  SYNC_PERFORMANCE_SETUP,
   PROJECT_SUPPORT,
   PROJECT_WIZARD,
   THEME,
