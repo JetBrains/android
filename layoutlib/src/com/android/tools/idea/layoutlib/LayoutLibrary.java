@@ -242,6 +242,17 @@ public class LayoutLibrary {
     }
 
     /**
+     * Removes a font from the Typeface cache inside layoutlib.
+     *
+     * @param path the path of the font file to be removed from the cache.
+     */
+    public void clearFontCache(String path) {
+        if (mBridge != null) {
+            mBridge.clearFontCache(path);
+        }
+    }
+
+    /**
      * Utility method returning the parent of a given view object.
      *
      * @param viewObject the object for which to return the parent.

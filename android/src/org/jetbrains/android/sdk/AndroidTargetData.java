@@ -226,6 +226,12 @@ public class AndroidTargetData {
     }
   }
 
+  public void clearFontCache(String path) {
+    if (myLayoutLibrary != null) {
+      myLayoutLibrary.clearFontCache(path);
+    }
+  }
+
   @NotNull
   public IAndroidTarget getTarget() {
     return myTarget;
