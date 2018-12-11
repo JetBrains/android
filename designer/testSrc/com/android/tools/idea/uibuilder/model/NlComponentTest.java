@@ -263,6 +263,7 @@ public final class NlComponentTest extends AndroidTestCase {
   public void testIdFromMixin() {
     XmlTag tag = mock(XmlTag.class);
     when(tag.isValid()).thenReturn(true);
+    when(tag.getName()).thenReturn("");
     NlComponent component = new NlComponent(mock(NlModel.class), tag, mock(SmartPsiElementPointer.class));
 
     NlComponent.XmlModelComponentMixin mixin = mock(NlComponent.XmlModelComponentMixin.class);
