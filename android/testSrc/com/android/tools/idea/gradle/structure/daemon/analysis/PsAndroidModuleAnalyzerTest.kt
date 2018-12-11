@@ -40,7 +40,7 @@ class PsAndroidModuleAnalyzerTest : DependencyTestCase() {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
     val disposable = Disposer.newDisposable()
     try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true)
+      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
       val mainModule = project.findModuleByName("mainModule") as PsAndroidModule
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val messageCollection = PsIssueCollection()

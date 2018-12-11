@@ -48,6 +48,7 @@ class PsContextImpl constructor(
   override val project: PsProjectImpl,
   parentDisposable: Disposable,
   disableAnalysis: Boolean = false,
+  private val disableResolveModels: Boolean = false,
   private val cachingRepositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 ) : PsContext, Disposable {
   override val analyzerDaemon: PsAnalyzerDaemon
@@ -56,7 +57,7 @@ class PsContextImpl constructor(
 
   private val gradleSyncEventDispatcher = EventDispatcher.create(
     GradleSyncListener::class.java)
-  private var disableSync: Boolean = false
+  private var disableSync: Boolean = disableResolveModels
 
   override var selectedModule: String? = null; private set
 
@@ -145,7 +146,7 @@ class PsContextImpl constructor(
       project.applyRunAndReparse(runnable)
     }
     finally {
-      disableSync = false
+      disableSync = disableResolveModels
     }
     requestGradleModels()
   }
