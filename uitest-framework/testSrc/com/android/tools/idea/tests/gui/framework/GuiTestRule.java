@@ -81,6 +81,7 @@ public class GuiTestRule implements TestRule {
 
   private IdeFrameFixture myIdeFrameFixture;
   @Nullable private String myTestDirectory;
+  private boolean mySetNdkPath = false;
 
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
@@ -107,6 +108,11 @@ public class GuiTestRule implements TestRule {
 
   public GuiTestRule withLeakCheck() {
     myLeakCheck.setEnabled(true);
+    return this;
+  }
+
+  public GuiTestRule settingNdkPath() {
+    mySetNdkPath = true;
     return this;
   }
 
@@ -367,6 +373,9 @@ public class GuiTestRule implements TestRule {
   protected void updateLocalProperties(File projectPath) throws IOException {
     LocalProperties localProperties = new LocalProperties(projectPath);
     localProperties.setAndroidSdkPath(IdeSdks.getInstance().getAndroidSdkPath());
+    if (mySetNdkPath) {
+      localProperties.setAndroidNdkPath(TestUtils.getNdk());
+    }
     localProperties.save();
   }
 

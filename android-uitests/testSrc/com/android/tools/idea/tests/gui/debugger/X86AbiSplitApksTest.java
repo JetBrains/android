@@ -21,12 +21,14 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.GetPropCommandHandler;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.StringTextMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +46,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
 
   private static final int TIMEOUT_SECONDS = 120;
 
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
 
   private FakeAdbServer fakeAdbServer;
 
@@ -114,7 +116,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void x86AbiSplitApks() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProject("BasicCmakeAppForUI");
+    IdeFrameFixture ideFrame = guiTest.importProject("debugger/BasicCmakeAppForUI");
     ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(TIMEOUT_SECONDS));
 
     DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);

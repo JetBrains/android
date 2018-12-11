@@ -16,12 +16,14 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +31,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class WatchpointTest extends DebuggerTestBase {
 
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   /**
@@ -53,7 +55,7 @@ public class WatchpointTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void testWatchpoint() throws Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("WatchpointTestAppForUI");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/WatchpointTestAppForUI");
 
     final IdeFrameFixture ideFrame = guiTest.ideFrame();
 
