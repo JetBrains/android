@@ -16,7 +16,6 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.idea.naveditor.actions.ActivateComponentAction
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.actions.ZoomInAction
 import com.android.tools.idea.common.actions.ZoomOutAction
@@ -24,6 +23,8 @@ import com.android.tools.idea.common.actions.ZoomToFitAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.ZoomShortcut
+import com.android.tools.idea.naveditor.actions.ActivateComponentAction
+import com.android.tools.idea.naveditor.actions.ActivateSelectionAction
 import com.android.tools.idea.naveditor.actions.AddActionToolbarAction
 import com.android.tools.idea.naveditor.actions.AddGlobalAction
 import com.android.tools.idea.naveditor.actions.AddToExistingGraphAction
@@ -74,6 +75,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
   private val startDestinationToolbarAction: AnAction = StartDestinationToolbarAction(surface)
   private val deepLinkToolbarAction: AnAction = DeepLinkToolbarAction(surface)
   private val addActionToolbarAction: AnAction = AddActionToolbarAction(surface)
+  private val activateSelectionAction: AnAction = ActivateSelectionAction(surface)
 
   // Open for testing only
   open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
@@ -83,6 +85,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), mySurface, parentDisposable)
     registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK), mySurface, parentDisposable)
     registerAction(selectAllAction, IdeActions.ACTION_SELECT_ALL, component, parentDisposable)
+    registerAction(activateSelectionAction, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), component, parentDisposable)
 
     val keyEvent = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
     registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), mySurface, parentDisposable)
