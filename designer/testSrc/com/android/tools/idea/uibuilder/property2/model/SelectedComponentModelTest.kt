@@ -44,10 +44,11 @@ class SelectedComponentModelTest {
   @Test
   fun testModel() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
+    val property = util.makeIdProperty()
     NlWriteCommandAction.run(util.components[0], "") {
       util.components.first().setAttribute(ANDROID_URI, ATTR_ID, null)
     }
-    val model = SelectedComponentModel(util.components, "What?")
+    val model = SelectedComponentModel(property, util.components, "What?")
     assertThat(model.componentIcon).isEqualTo(StudioIcons.LayoutEditor.Palette.TEXT_VIEW)
     assertThat(model.componentName).isEqualTo("<unnamed>")
     assertThat(model.elementDescription).isEqualTo("What?")
@@ -56,7 +57,8 @@ class SelectedComponentModelTest {
   @Test
   fun testModelWithTextViewId() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val model = SelectedComponentModel(util.components, "What?")
+    val property = util.makeIdProperty()
+    val model = SelectedComponentModel(property, util.components, "What?")
     assertThat(model.componentIcon).isEqualTo(StudioIcons.LayoutEditor.Palette.TEXT_VIEW)
     assertThat(model.componentName).isEqualTo("textview")
     assertThat(model.elementDescription).isEqualTo("What?")
@@ -65,7 +67,8 @@ class SelectedComponentModelTest {
   @Test
   fun testModelWithMultipleComponents() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW, BUTTON, parentTag = LINEAR_LAYOUT)
-    val model = SelectedComponentModel(util.components, "What?")
+    val property = util.makeIdProperty()
+    val model = SelectedComponentModel(property, util.components, "What?")
     assertThat(model.componentIcon).isEqualTo(StudioIcons.LayoutEditor.Palette.VIEW_SWITCHER)
     assertThat(model.componentName).isEqualTo("<multiple>")
     assertThat(model.elementDescription).isEqualTo("What?")

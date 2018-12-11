@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
 import com.android.tools.idea.common.property2.api.InspectorBuilder
 import com.android.tools.idea.common.property2.api.InspectorPanel
 import com.android.tools.idea.common.property2.api.PropertiesTable
@@ -29,9 +31,11 @@ class SelectedComponentBuilder : InspectorBuilder<NelePropertyItem> {
     if (components.isEmpty()) {
       return
     }
+    val id = properties.getOrNull(ANDROID_URI, ATTR_ID)
     val qualifiedTagName = if (components.size == 1) components[0].tagName else ""
     val tagName = qualifiedTagName.substring(qualifiedTagName.lastIndexOf('.') + 1)
-    val panel = SelectedComponentPanel(SelectedComponentModel(components, tagName))
-    inspector.addComponent(panel, null)
+    val panel = SelectedComponentPanel(SelectedComponentModel(id, components, tagName))
+    val lineModel = inspector.addComponent(panel, null)
+    panel.lineModel = lineModel
   }
 }

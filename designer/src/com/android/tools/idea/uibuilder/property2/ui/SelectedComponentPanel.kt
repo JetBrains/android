@@ -16,11 +16,14 @@
 package com.android.tools.idea.uibuilder.property2.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.android.tools.idea.uibuilder.property2.model.SelectedComponentModel
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import kotlin.properties.Delegates
 
 /**
  * For displaying which component is being edited.
@@ -29,17 +32,29 @@ import java.awt.BorderLayout
  * Display the component icon (from the palette) the id and a
  * description label on the right.
  */
-class SelectedComponentPanel(model: SelectedComponentModel) : AdtSecondaryPanel(BorderLayout()) {
+class SelectedComponentPanel(private val model: SelectedComponentModel) : AdtSecondaryPanel(BorderLayout()) {
+  private val component: JBLabel = JBLabel()
+  private val description = JBLabel()
+  private val valueChangeListener = ValueChangedListener { updateFromModel() }
+
+  var lineModel: InspectorLineModel? by Delegates.observable<InspectorLineModel?>(null) { _, old, new -> lineModelChanged(old, new) }
 
   init {
-    val component = JBLabel()
-    component.icon = model.componentIcon
-    component.text = model.componentName
-    val description = JBLabel()
-    description.text = model.elementDescription
     description.foreground = JBColor.LIGHT_GRAY
     border = JBUI.Borders.empty(0, 6, 0, 6)
+    updateFromModel()
     add(component, BorderLayout.WEST)
     add(description, BorderLayout.EAST)
+  }
+
+  private fun updateFromModel() {
+    component.icon = model.componentIcon
+    component.text = model.componentName
+    description.text = model.elementDescription
+  }
+
+  private fun lineModelChanged(oldModel: InspectorLineModel?, newModel: InspectorLineModel?) {
+    oldModel?.removeValueChangedListener(valueChangeListener)
+    newModel?.addValueChangedListener(valueChangeListener)
   }
 }

@@ -52,11 +52,15 @@ open class GenericInspectorLineModel : InspectorLineModel {
     error(ERROR_NOT_FOCUSABLE)
   }
 
-  fun addValueChangedListener(listener: ValueChangedListener) {
+  override fun refresh() {
+    fireValueChanged()
+  }
+
+  override fun addValueChangedListener(listener: ValueChangedListener) {
     listeners.add(listener)
   }
 
-  fun removeValueChangedListener(listener: ValueChangedListener) {
+  override fun removeValueChangedListener(listener: ValueChangedListener) {
     listeners.add(listener)
   }
 
