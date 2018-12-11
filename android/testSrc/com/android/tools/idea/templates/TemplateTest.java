@@ -218,7 +218,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (SystemInfo.isWindows) {
       if ("AidlFile".equals(templateName)) return true;
     }
-    if ("SliceProvider".equals(templateName)) return true;  // b/78197770
     return false;
   }
 
@@ -374,6 +373,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   private final ProjectStateCustomizer withAndroidx = ((templateMap, projectMap) -> {
     projectMap.put(ATTR_ANDROIDX_SUPPORT, true);
     templateMap.put(ATTR_ANDROIDX_SUPPORT, true);
+  });
+
+  private final ProjectStateCustomizer withAndroidxAndKotlin = ((templateMap, projectMap) -> {
+    withAndroidx.customize(templateMap, projectMap);
+    withKotlin.customize(templateMap, projectMap);
   });
 
   //--- Activity templates ---
@@ -564,7 +568,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewSettingsActivity() throws Exception {
-    // Note: SettingsActivity are only enabled in the UI for androidx projects
+    // Note: SettingsActivity is only enabled in the UI for androidx projects
     checkCreateTemplate("activities", "SettingsActivity", false, withAndroidx);
   }
 
@@ -575,11 +579,6 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewProjectWithSettingsActivityWithKotlin() throws Exception {
-    ProjectStateCustomizer withAndroidxAndKotlin = ((templateMap, projectMap) -> {
-      withAndroidx.customize(templateMap, projectMap);
-      withKotlin.customize(templateMap, projectMap);
-    });
-
     checkCreateTemplate("activities", "SettingsActivity", true, withAndroidxAndKotlin);
   }
 
@@ -683,14 +682,15 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   @TemplateCheck
   public void testNewSliceProvider() throws Exception {
+    // Note: SliceProvider is only enabled in the UI for androidx projects
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "SliceProvider", false);
+    checkCreateTemplate("other", "SliceProvider", false, withAndroidx);
   }
 
   @TemplateCheck
   public void testNewSliceProviderWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "SliceProvider", false, withKotlin);
+    checkCreateTemplate("other", "SliceProvider", false, withAndroidxAndKotlin);
   }
 
   @TemplateCheck
