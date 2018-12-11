@@ -51,9 +51,12 @@ const val PREVIEW_EXIT_CODE = DialogWrapper.NEXT_USER_EXIT_CODE + 1
 class NeleIdPropertyItem(model: NelePropertiesModel, definition: AttributeDefinition?, optionalValue: Any?, components: List<NlComponent>) :
   NelePropertyItem(ANDROID_URI, ATTR_ID, NelePropertyType.ID, definition, "", model, optionalValue, listOf(components.first())) {
 
+  private var tempValue: String? = null
+
   override var value: String?
-    get() = stripIdPrefix(super.value)
+    get() = stripIdPrefix(tempValue ?: super.value)
     set(value) {
+      tempValue = null
       val oldId = stripIdPrefix(super.value)
       val newId = stripIdPrefix(value)
       val newValue = toValue(newId)
@@ -114,6 +117,16 @@ class NeleIdPropertyItem(model: NelePropertiesModel, definition: AttributeDefini
       else -> return false
     }
     processor.run()
+
+    // TODO: Setup a proper notification for when the rename processor's write transaction is done.
+    // See: b/120919869
+    // There doesn't seem to be such a notification currently. The following events:
+    // -  The return from processor.run()
+    // -  The renaming end event on the message bus
+    // -  The model updates from the psi updates
+    // All seem to happen before the psi is updated with the new value.
+    // For now use this workaround by trusting that this new id eventually will be the real id.
+    tempValue = newId
     return true
   }
 
