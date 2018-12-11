@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 final class DeviceComparator implements Comparator<Device> {
   private static final Comparator<Device> COMPARATOR = Comparator.comparing(Device::isConnected, Comparator.reverseOrder())
+    .thenComparing(Device::isValid, Comparator.reverseOrder())
     .thenComparing(DeviceComparator::getType)
     .thenComparing(Device::getName);
 

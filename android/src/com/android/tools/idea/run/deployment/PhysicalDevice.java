@@ -17,12 +17,15 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import java.util.Collections;
@@ -32,20 +35,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDevice extends Device {
-  private static final Icon ourIcon = ExecutionUtil.getLiveIndicator(AndroidIcons.Ddms.RealDevice);
+  private static final Icon ourValidIcon = ExecutionUtil.getLiveIndicator(AndroidIcons.Ddms.RealDevice);
+  private static final Icon ourInvalidIcon = ExecutionUtil.getLiveIndicator(AllIcons.General.Error);
 
   @NotNull
-  static PhysicalDevice newPhysicalDevice(@NotNull DeviceNameProperties properties,
-                                          @NotNull ConnectionTimeService service,
-                                          @NotNull IDevice ddmlibDevice) {
-    String key = ddmlibDevice.getSerialNumber();
-
+  static Builder newBuilder(@NotNull DeviceNameProperties properties, @NotNull IDevice ddmlibDevice) {
     return new Builder()
       .setName(getName(properties))
-      .setKey(key)
-      .setConnectionTime(service.get(key))
-      .setDdmlibDevice(ddmlibDevice)
-      .build();
+      .setKey(ddmlibDevice.getSerialNumber())
+      .setAndroidDevice(new ConnectedAndroidDevice(ddmlibDevice, null));
   }
 
   static final class Builder extends Device.Builder<Builder> {
@@ -57,13 +55,13 @@ final class PhysicalDevice extends Device {
 
     @NotNull
     @Override
-    PhysicalDevice build() {
-      return new PhysicalDevice(this);
+    PhysicalDevice build(@Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service) {
+      return new PhysicalDevice(this, checker, service);
     }
   }
 
-  private PhysicalDevice(@NotNull Builder builder) {
-    super(builder);
+  private PhysicalDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service) {
+    super(builder, checker, service);
   }
 
   @NotNull
@@ -90,7 +88,7 @@ final class PhysicalDevice extends Device {
   @NotNull
   @Override
   Icon getIcon() {
-    return ourIcon;
+    return isValid() ? ourValidIcon : ourInvalidIcon;
   }
 
   /**
@@ -110,11 +108,17 @@ final class PhysicalDevice extends Device {
 
   @NotNull
   @Override
-  DeviceFutures newDeviceFutures(@NotNull Project project, @Nullable String snapshot) {
+  AndroidVersion getAndroidVersion() {
     IDevice device = getDdmlibDevice();
     assert device != null;
 
-    return new DeviceFutures(Collections.singletonList(new ConnectedAndroidDevice(device, null)));
+    return device.getVersion();
+  }
+
+  @NotNull
+  @Override
+  DeviceFutures newDeviceFutures(@NotNull Project project, @Nullable String snapshot) {
+    return new DeviceFutures(Collections.singletonList(getAndroidDevice()));
   }
 
   @Override
@@ -126,19 +130,14 @@ final class PhysicalDevice extends Device {
     Device device = (Device)object;
 
     return getName().equals(device.getName()) &&
+           isValid() == device.isValid() &&
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
-           Objects.equals(getDdmlibDevice(), device.getDdmlibDevice());
+           getAndroidDevice().equals(device.getAndroidDevice());
   }
 
   @Override
   public int hashCode() {
-    int hashCode = getName().hashCode();
-
-    hashCode = 31 * hashCode + getKey().hashCode();
-    hashCode = 31 * hashCode + Objects.hashCode(getConnectionTime());
-    hashCode = 31 * hashCode + Objects.hashCode(getDdmlibDevice());
-
-    return hashCode;
+    return Objects.hash(getName(), isValid(), getKey(), getConnectionTime(), getAndroidDevice());
   }
 }

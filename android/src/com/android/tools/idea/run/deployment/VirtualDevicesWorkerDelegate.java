@@ -16,17 +16,30 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import javax.swing.SwingWorker;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class VirtualDevicesWorkerDelegate extends SwingWorker<Collection<VirtualDevice>, Void> {
+  @Nullable
+  private final LaunchCompatibilityChecker myChecker;
+
+  @NotNull
+  private final ConnectionTimeService myService;
+
+  VirtualDevicesWorkerDelegate(@Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service) {
+    myChecker = checker;
+    myService = service;
+  }
+
   @NotNull
   @Override
   protected Collection<VirtualDevice> doInBackground() {
     return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true).stream()
-      .map(VirtualDevice::newDisconnectedVirtualDevice)
+      .map(avdInfo -> VirtualDevice.newDisconnectedDeviceBuilder(avdInfo).build(myChecker, myService))
       .collect(Collectors.toList());
   }
 }
