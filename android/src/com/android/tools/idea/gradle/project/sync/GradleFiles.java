@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.SdkConstants.EXT_GRADLE;
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
@@ -29,24 +37,31 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiTreeChangeAdapter;
+import com.intellij.psi.PsiTreeChangeEvent;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.ui.EditorNotifications;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock;
 
 public class GradleFiles {
   @NotNull private final Project myProject;
@@ -303,14 +318,15 @@ public class GradleFiles {
 
     String[] fileNames = {FN_SETTINGS_GRADLE, FN_GRADLE_PROPERTIES};
     File rootFolderPath = getBaseDirPath(myProject);
-    for (String fileName : fileNames) {
-      File filePath = new File(rootFolderPath, fileName);
-      if (filePath.isFile()) {
-        VirtualFile rootFolder = myProject.getBaseDir();
-        assert rootFolder != null;
-        VirtualFile virtualFile = rootFolder.findChild(fileName);
-        if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
-          putHashForFile(fileHashes, virtualFile);
+    VirtualFile rootFolder = ProjectUtil.guessProjectDir(myProject);
+    if (rootFolder != null) {
+      for (String fileName : fileNames) {
+        File filePath = new File(rootFolderPath, fileName);
+        if (filePath.isFile()) {
+          VirtualFile virtualFile = rootFolder.findChild(fileName);
+          if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
+            putHashForFile(fileHashes, virtualFile);
+          }
         }
       }
     }
@@ -407,7 +423,7 @@ public class GradleFiles {
    *
    * Note: We need to use both sets of before (beforeChildAddition, etc) and after methods (childAdded, etc)
    * on the listener. This is because, for some reason, the events we care about on some files are sometimes
-   * only triggered with the chilren set in the after method and othertimes no after method is triggered
+   * only triggered with the children set in the after method and sometimes no after method is triggered
    * at all.
    */
   private static class GradleFileChangeListener extends PsiTreeChangeAdapter {
@@ -416,6 +432,31 @@ public class GradleFiles {
 
     private GradleFileChangeListener(@NotNull GradleFiles gradleFiles) {
       myGradleFiles = gradleFiles;
+    }
+
+    @Override
+    public void beforeChildAddition(@NotNull PsiTreeChangeEvent event) {
+      processEvent(event, event.getChild());
+    }
+
+    @Override
+    public void beforeChildRemoval(@NotNull PsiTreeChangeEvent event) {
+      processEvent(event, event.getChild());
+    }
+
+    @Override
+    public void beforeChildReplacement(@NotNull PsiTreeChangeEvent event) {
+      processEvent(event, event.getNewChild(), event.getOldChild());
+    }
+
+    @Override
+    public void beforeChildMovement(@NotNull PsiTreeChangeEvent event) {
+      processEvent(event, event.getChild());
+    }
+
+    @Override
+    public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
+      processEvent(event, event.getOldChild(), event.getNewChild());
     }
 
     @Override
@@ -471,7 +512,12 @@ public class GradleFiles {
         }
 
         if (element.getNode().getElementType().equals(GroovyTokenTypes.mNLS)) {
-          continue;
+          if (element.getParent() == null) {
+            continue;
+          }
+          if (element.getParent() instanceof GrCodeBlock || element.getParent() instanceof PsiFile) {
+            continue;
+          }
         }
 
         foundChange = true;

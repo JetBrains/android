@@ -15,28 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.impl.PsiManagerEx;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.function.BiConsumer;
-
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.google.common.truth.Truth.assertThat;
@@ -44,6 +25,31 @@ import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler;
+import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
+import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.PsiManagerEx;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.function.BiConsumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 /**
  * Tests for {@link GradleFiles}.
@@ -160,7 +166,7 @@ public class GradleFilesTest extends AndroidGradleTestCase {
       assertThat(file.getChildren().length).isAtLeast(3);
       PsiElement element = file.getChildren()[2];
       assertThat(element).isInstanceOf(GrMethodCallExpression.class);
-      element.addAfter(factory.createLineTerminator("\n   \t\t\n "), element.getLastChild());
+      file.addAfter(factory.createLineTerminator("\n   \t\t\n "), element);
     }), false);
   }
 
@@ -294,6 +300,20 @@ public class GradleFilesTest extends AndroidGradleTestCase {
     assertFalse(myGradleFiles.areGradleFilesModified());
   }
 
+  public void testAddingCommentTriggersModification() throws Exception {
+    loadSimpleApplication();
+    runFakeModificationTest(((factory, file) -> {
+      PsiElement element = ProjectBuildModelHandler.Companion.getInstance(getProject()).read((model) -> {
+        List<DependencyModel> dependencies = model.getModuleBuildModel(getModule("app")).dependencies().all();
+        assertThat(dependencies.size()).isGreaterThan(0);
+        return dependencies.get(0).getPsiElement();
+      }).getParent();
+      Document doc = PsiDocumentManager.getInstance(getProject()).getDocument(element.getContainingFile());
+      doc.insertString(element.getTextOffset(), "/");
+      PsiDocumentManager.getInstance(getProject()).commitDocument(doc);
+    }), true);
+  }
+
   @NotNull
   private VirtualFile getAppBuildFile() {
     Module appModule = myModules.getAppModule();
@@ -331,20 +351,20 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   }
 
   private void runFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
-                                       boolean expectedResult) throws Exception {
+                                       boolean expectedResult) {
     runFakeModificationTest(editFunction, expectedResult, true, getAppBuildFile());
   }
 
   private void runFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
                                        boolean expectedResult,
-                                       @NotNull VirtualFile file) throws Exception {
+                                       @NotNull VirtualFile file) {
     runFakeModificationTest(editFunction, expectedResult, true, file);
   }
 
   private void runFakeModificationTest(@NotNull BiConsumer<GroovyPsiElementFactory, PsiFile> editFunction,
                                        boolean expectedResult,
                                        boolean preCheckEnabled,
-                                       @NotNull VirtualFile file) throws Exception {
+                                       @NotNull VirtualFile file) {
     PsiFile psiFile = findPsiFile(file);
 
     FileEditorManager mockManager = mock(FileEditorManager.class);
