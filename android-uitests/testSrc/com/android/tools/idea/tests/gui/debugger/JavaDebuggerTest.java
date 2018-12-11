@@ -17,12 +17,14 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +38,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class JavaDebuggerTest extends DebuggerTestBase {
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String DEBUG_CONFIG_NAME = "app";
@@ -62,7 +64,7 @@ public class JavaDebuggerTest extends DebuggerTestBase {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void testJavaDebugger() throws Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 

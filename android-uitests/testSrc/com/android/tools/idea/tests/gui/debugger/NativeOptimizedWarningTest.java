@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -23,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
@@ -38,7 +40,7 @@ import java.io.IOException;
 @RunWith(GuiTestRemoteRunner.class)
 public class NativeOptimizedWarningTest extends DebuggerTestBase {
 
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String DEBUG_CONFIG_NAME = "app";
@@ -61,7 +63,7 @@ public class NativeOptimizedWarningTest extends DebuggerTestBase {
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void test() throws IOException, ClassNotFoundException, InterruptedException {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("NativeOptimizedWarningForUI");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/NativeOptimizedWarningForUI");
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 

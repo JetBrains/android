@@ -35,8 +35,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class DualDebuggerBreakpointsTest extends DebuggerTestBase {
 
-  @Rule public final GuiTestRule guiTest =
-    new NativeDebuggerGuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES).settingNdkPath();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String C_FILE_NAME = "app/src/main/jni/native-lib.c";
@@ -46,7 +45,7 @@ public class DualDebuggerBreakpointsTest extends DebuggerTestBase {
 
   @Before
   public void setUp() throws Exception {
-    guiTest.importProject("BasicCmakeAppForUI");
+    guiTest.importProject("debugger/BasicCmakeAppForUI");
     guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(60));
 
     emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());

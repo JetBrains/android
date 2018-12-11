@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
@@ -27,6 +28,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBList;
 import com.intellij.xdebugger.stepping.XSmartStepIntoVariant;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
@@ -45,7 +47,7 @@ import static org.fest.reflect.core.Reflection.field;
 @RunWith(GuiTestRemoteRunner.class)
 public class SmartStepIntoTest extends DebuggerTestBase {
 
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String JAVA_FILE_NAME = "MainActivity.java";
@@ -82,7 +84,7 @@ public class SmartStepIntoTest extends DebuggerTestBase {
   @Test
   public void testSmartStepIntoNativeMethodWithDualDebugger() throws Exception {
     IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("SmartStepIntoCmakeApp");
+      guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/SmartStepIntoCmakeApp");
 
     DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.DUAL);
 
