@@ -253,6 +253,7 @@ public class StudioIcons {
       public static final Icon FAVORITES_SELECTED = load("/studio/icons/layout-editor/properties/favorites-selected.svg"); // 16x16
       public static final Icon FAVORITES = load("/studio/icons/layout-editor/properties/favorites.svg"); // 16x16
       public static final Icon FLAG = load("/studio/icons/layout-editor/properties/flag.svg"); // 14x14
+      public static final Icon IMAGE_PICKER = load("/studio/icons/layout-editor/properties/image-picker.svg"); // 16x16
       public static final Icon MODIFY_NAV = load("/studio/icons/layout-editor/properties/modify-nav.svg"); // 16x16
       public static final Icon MODIFY_TEXT = load("/studio/icons/layout-editor/properties/modify-text.svg"); // 16x16
       public static final Icon MODIFY_THEME = load("/studio/icons/layout-editor/properties/modify-theme.svg"); // 16x16
