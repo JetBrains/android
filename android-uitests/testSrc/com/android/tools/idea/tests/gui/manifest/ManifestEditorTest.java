@@ -40,7 +40,7 @@ public class ManifestEditorTest {
 
   @Test
   public void testManifestGoToSource() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     IdeFrameFixture projectFrame = guiTest.ideFrame();
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/AndroidManifest.xml");

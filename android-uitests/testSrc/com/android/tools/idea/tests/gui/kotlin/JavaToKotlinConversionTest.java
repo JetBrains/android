@@ -45,7 +45,7 @@ public class JavaToKotlinConversionTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Import SimpleLocalApplication project and wait for project sync to finish.
+   *   1. Import SimpleApplication project and wait for project sync to finish.
    *   2. Open up MyActivity.java file.
    *   3. Invoke Code > Convert Java to Kotlin
    *   4. Build the app.
@@ -61,7 +61,7 @@ public class JavaToKotlinConversionTest {
   @Test
   public void testJavaToKotlinConversion() throws Exception {
     IdeFrameFixture ideFrameFixture =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleLocalApplication");
+      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
 
     EditorFixture editor = ideFrameFixture.getEditor();
 

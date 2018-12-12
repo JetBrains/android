@@ -82,7 +82,7 @@ public class ConstraintLayoutTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/117556696
   @Test
   public void addAllLayoutItemsFromToolbar() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
 
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", Tab.DESIGN)

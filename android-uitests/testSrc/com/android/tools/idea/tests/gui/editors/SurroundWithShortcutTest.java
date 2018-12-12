@@ -67,7 +67,7 @@ public class SurroundWithShortcutTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Import SimpleLocalApplication project.
+   *   1. Import SimpleApplication project.
    *   2. In java class file, add a line of code with a variable assignment. Eg. String hello = "hello".
    *   3. Click on Code > Surround With.
    *   4. Click on any of the available option, say try/catch (Verify 1).
@@ -83,7 +83,7 @@ public class SurroundWithShortcutTest {
   @Test
   @RunIn(TestGroup.FAT_BAZEL)
   public void surroundWithShortcut() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
 
     EditorFixture editorFixture = ideFrame.getEditor().open("/app/src/main/java/google/simpleapplication/MyActivity.java");
     editorFixture.moveBetween(STATEMENT_BEFORE, "")

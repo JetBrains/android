@@ -51,7 +51,7 @@ public class CreateNewLibraryModuleWithDefaultsTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createNewLibraryModuleWithDefaults() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
            .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
            .chooseModuleType("Android Library")
            .clickNextToStep("Android Library")

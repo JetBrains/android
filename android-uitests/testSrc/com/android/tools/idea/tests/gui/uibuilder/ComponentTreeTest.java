@@ -96,7 +96,7 @@ public final class ComponentTreeTest {
   public void multiSelectComponentDoNotJumpToXML() {
     EditorFixture editor = null;
     try {
-      editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
+      editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
         .getEditor()
         .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
     }
@@ -123,7 +123,7 @@ public final class ComponentTreeTest {
   public void dragDropFromTreeToSurfaceDoNotDelete() {
     EditorFixture editor = null;
     try {
-      editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest")
+      editor = myGuiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
                         .getEditor()
                         .open("app/src/main/res/layout/constraint.xml", Tab.DESIGN);
     }

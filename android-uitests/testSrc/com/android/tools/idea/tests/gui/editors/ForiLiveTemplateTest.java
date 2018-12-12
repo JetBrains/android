@@ -47,7 +47,7 @@ public class ForiLiveTemplateTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Import SimpleLocalApplication project.
+   *   1. Import SimpleApplication project.
    *   2. In java class file, place the cursor at the beginning of any line, e.g. "setContentView(R.layout.activity_my);".
    *   3. Click on Code > Insert Live Template...
    *   4. From the list, double tap on any of the options, say fori (Verify 1).
@@ -58,7 +58,7 @@ public class ForiLiveTemplateTest {
   @Test
   @RunIn(TestGroup.FAT_BAZEL)
   public void insertForI() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
     EditorFixture editorFixture = ideFrame.getEditor().open(LiveTemplatesTestUtil.JAVA_FILE);
 
     LiveTemplatesTestUtil.doubleTapToInsertLiveTemplate(ideFrame, editorFixture, "fori");

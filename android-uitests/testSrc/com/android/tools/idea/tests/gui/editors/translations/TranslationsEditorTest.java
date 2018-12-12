@@ -86,7 +86,7 @@ public final class TranslationsEditorTest {
   }
 
   private void importSimpleApplication() throws IOException {
-    myGuiTest.importSimpleLocalApplication();
+    myGuiTest.importSimpleApplication();
     openTranslationsEditor(myStringsXmlPath);
   }
 
@@ -405,7 +405,7 @@ public final class TranslationsEditorTest {
 
   @Test
   public void invalidDefaultValueXml() throws IOException {
-    myGuiTest.importSimpleLocalApplication();
+    myGuiTest.importSimpleApplication();
 
     CharSequence text =
       "<resources>\n" +
@@ -424,7 +424,7 @@ public final class TranslationsEditorTest {
 
   @Test
   public void invalidTranslationXml() throws IOException {
-    myGuiTest.importSimpleLocalApplication();
+    myGuiTest.importSimpleApplication();
     Path stringsXml = FileSystems.getDefault().getPath("app", "src", "main", "res", "values-en", "strings.xml");
 
     CharSequence text =

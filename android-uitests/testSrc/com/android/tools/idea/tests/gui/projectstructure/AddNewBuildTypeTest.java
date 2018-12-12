@@ -67,7 +67,7 @@ public class AddNewBuildTypeTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void addNewBuildType() throws Exception {
-    String gradleFileContents = guiTest.importSimpleLocalApplication()
+    String gradleFileContents = guiTest.importSimpleApplication()
                                        .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
                                        .selectConfigurable("app")
                                        .selectBuildTypesTab()

@@ -44,11 +44,11 @@ class RestartIdeTest {
   fun testRestart() {
     fun firstRun() {
       FileUtil.delete(File(FileUtil.getTempDirectory(), MARKER_FILE_NAME))
-      guiTest.importSimpleLocalApplication()
+      guiTest.importSimpleApplication()
     }
     fun secondRun() {
       assertThat(File(FileUtil.getTempDirectory(), MARKER_FILE_NAME).exists()).isTrue()
-      guiTest.importSimpleLocalApplication()
+      guiTest.importSimpleApplication()
     }
     restartIdeBetween(::firstRun, ::secondRun)
   }

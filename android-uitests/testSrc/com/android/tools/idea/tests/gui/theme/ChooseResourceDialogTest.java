@@ -162,7 +162,7 @@ public class ChooseResourceDialogTest {
 
   @Test
   public void testResourcePickerNameError() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
 
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
@@ -198,7 +198,7 @@ public class ChooseResourceDialogTest {
    */
   @Test
   public void testColorPickerAlpha() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 
@@ -234,7 +234,7 @@ public class ChooseResourceDialogTest {
    */
   @Test
   public void testEditString() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();
@@ -293,7 +293,7 @@ public class ChooseResourceDialogTest {
    */
   @Test
   public void testDrawable() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();
@@ -356,7 +356,7 @@ public class ChooseResourceDialogTest {
    */
   @Test
   public void testDrawableDoesNotAllowColorStateLists() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();
@@ -391,7 +391,7 @@ public class ChooseResourceDialogTest {
    */
   @Test
   public void testDefaultProperty() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();
@@ -420,7 +420,7 @@ public class ChooseResourceDialogTest {
 
   @Test
   public void testSearchExactMatch() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();
@@ -454,7 +454,7 @@ public class ChooseResourceDialogTest {
 
   @Test
   public void testArray() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = guiTest.ideFrame().getEditor();

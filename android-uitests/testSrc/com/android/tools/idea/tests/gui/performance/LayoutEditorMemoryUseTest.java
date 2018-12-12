@@ -100,7 +100,7 @@ public class LayoutEditorMemoryUseTest {
 
   @Test
   public void navigateAndEdit() throws Exception {
-    IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest");
+    IdeFrameFixture fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     warmUp(fixture);
 

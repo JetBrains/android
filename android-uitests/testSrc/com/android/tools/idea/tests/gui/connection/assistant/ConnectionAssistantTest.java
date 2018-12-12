@@ -33,7 +33,7 @@ public class ConnectionAssistantTest {
 
   @Before
   public void setUp() throws Exception {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
   }
 
   /**

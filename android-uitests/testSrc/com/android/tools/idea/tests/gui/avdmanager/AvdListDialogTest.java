@@ -37,7 +37,7 @@ public class AvdListDialogTest {
 
   @Before
   public void setUp() throws Exception {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
   }
 
   /**

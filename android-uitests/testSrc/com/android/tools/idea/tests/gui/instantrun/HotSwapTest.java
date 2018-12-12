@@ -77,7 +77,7 @@ public class HotSwapTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // http://b/77635374
   @Test
   public void hotSwap() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture

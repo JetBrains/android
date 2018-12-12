@@ -80,7 +80,7 @@ public class ModifyMinSdkAndSyncTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void modifyMinSdkAndSync() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
     // @formatter:off
     ideFrame.getEditor()
             .open("app/build.gradle")

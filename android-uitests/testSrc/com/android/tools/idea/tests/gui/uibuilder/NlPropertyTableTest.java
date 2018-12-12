@@ -67,7 +67,7 @@ public class NlPropertyTableTest {
     // Temporary: until this test can run with new properties panel
     StudioFlags.NELE_NEW_PROPERTY_PANEL.override(false);
 
-    myFrame = guiTest.importSimpleLocalApplication();
+    myFrame = guiTest.importSimpleApplication();
     myOriginalFrameSize = myFrame.getIdeFrameSize();
   }
 

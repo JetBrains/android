@@ -51,7 +51,7 @@ public class CreateNewAppModuleWithDefaultsTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createNewAppModuleWithDefaults() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
            .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
            .chooseModuleType("Phone & Tablet Module")
            .clickNextToStep("Phone & Tablet Module")

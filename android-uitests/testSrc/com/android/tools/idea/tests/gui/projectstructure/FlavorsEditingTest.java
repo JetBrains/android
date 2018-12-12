@@ -70,7 +70,7 @@ public class FlavorsEditingTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void editFlavors() throws  Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
 
     String flavor = "flavor";
 

@@ -50,7 +50,7 @@ public class BasicLayoutEditTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void basicLayoutEdit() throws Exception {
-    NlEditorFixture editorFixture = guiTest.importSimpleLocalApplication()
+    NlEditorFixture editorFixture = guiTest.importSimpleApplication()
                                            .getEditor()
                                            .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
                                            .getLayoutEditor(false)

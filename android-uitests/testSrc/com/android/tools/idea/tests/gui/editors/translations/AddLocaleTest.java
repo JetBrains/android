@@ -48,7 +48,7 @@ public class AddLocaleTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Import SimpleLocalApplication project.
+   *   1. Import SimpleApplication project.
    *   2. Open Translations Editor window.
    *   3. In the Translations Editor window, click on the globe icon and select a non-English language,
    *      say German or Spanish (Verify 1).
@@ -59,7 +59,7 @@ public class AddLocaleTest {
   @Test
   @RunIn(TestGroup.FAT_BAZEL)
   public void addNewLocale() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
 
     // Open Translations Editor window.
     EditorFixture editor = ideFrame.getEditor();

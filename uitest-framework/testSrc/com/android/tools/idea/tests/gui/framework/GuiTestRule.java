@@ -288,14 +288,6 @@ public class GuiTestRule implements TestRule {
     field("containerMap").ofType(Hashtable.class).in(manager).get().clear();
   }
 
-  public IdeFrameFixture importSimpleLocalApplication() throws IOException {
-    return importProjectAndWaitForProjectSyncToFinish("SimpleLocalApplication");
-  }
-
-  /**
-   * @deprecated use importSimpleLocalApplication that doesn't use remote repositories.
-   */
-  @Deprecated()
   public IdeFrameFixture importSimpleApplication() throws IOException {
     return importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
   }

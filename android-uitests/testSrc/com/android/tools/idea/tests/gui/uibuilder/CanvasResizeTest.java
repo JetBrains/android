@@ -33,7 +33,7 @@ public class CanvasResizeTest {
   @Test
   public void resizeAndSnap() throws Exception {
     guiTest
-      .importSimpleLocalApplication()
+      .importSimpleApplication()
       .closeProjectPanel()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)

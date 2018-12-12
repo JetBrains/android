@@ -55,7 +55,7 @@ public class GenerateApkWithReleaseVariantTest {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void generateApkWithReleaseVariant() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
 
     ideFrame.invokeMenuPath("File", "New", "New Module...");
 

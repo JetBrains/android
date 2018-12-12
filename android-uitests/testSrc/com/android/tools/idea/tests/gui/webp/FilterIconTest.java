@@ -60,7 +60,7 @@ public class FilterIconTest {
   @Test
   @RunIn(TestGroup.FAST_BAZEL)
   public void testFilterIcon() throws Exception {
-    String fileContents = guiTest.importSimpleLocalApplication()
+    String fileContents = guiTest.importSimpleApplication()
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app")

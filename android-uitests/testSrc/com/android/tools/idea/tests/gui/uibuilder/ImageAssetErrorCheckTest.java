@@ -43,7 +43,7 @@ public class ImageAssetErrorCheckTest {
    *   <pre>
    *   Test Steps:
    *   1. Open Android Studio
-   *   2. Import SimpleLocalApplication
+   *   2. Import SimpleApplication
    *   3. Right click the default app module (or any manually created module) and select New > Vector Asset (Verify)
    *   4. Select Local SVG file option
    *   5. Choose an image file from the local system
@@ -55,7 +55,7 @@ public class ImageAssetErrorCheckTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void imageAssetErrorCheck() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")

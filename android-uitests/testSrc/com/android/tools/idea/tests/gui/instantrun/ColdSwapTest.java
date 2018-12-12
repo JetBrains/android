@@ -78,7 +78,7 @@ public class ColdSwapTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/76023451
   @Test
   public void coldSwap() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
