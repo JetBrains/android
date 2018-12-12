@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.naveditor.structure
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.ATTR_NAV_GRAPH
+import com.android.SdkConstants.FQCN_NAV_HOST_FRAGMENT
+import com.android.SdkConstants.VIEW_FRAGMENT
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.adtui.common.AdtSecondaryPanel
@@ -24,6 +29,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.intellij.ide.GeneralSettings
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -47,6 +53,9 @@ import icons.StudioIcons
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription
 import java.awt.BorderLayout
 import java.awt.CardLayout
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.DefaultListModel
@@ -83,14 +92,16 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
     cardLayout.show(this, "LOADING")
 
     list.emptyText.text = "No NavHostFragments found"
-    list.selectionModel = object : DefaultListSelectionModel() {
-      override fun setAnchorSelectionIndex(anchorIndex: Int) {
-      }
+    if (!GeneralSettings.getInstance().isSupportScreenReaders) {
+      list.selectionModel = object : DefaultListSelectionModel() {
+        override fun setAnchorSelectionIndex(anchorIndex: Int) {
+        }
 
-      override fun setSelectionInterval(index0: Int, index1: Int) {
-      }
+        override fun setSelectionInterval(index0: Int, index1: Int) {
+        }
 
-      override fun setLeadSelectionIndex(leadIndex: Int) {
+        override fun setLeadSelectionIndex(leadIndex: Int) {
+        }
       }
     }
 
@@ -112,13 +123,14 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
     list.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
         if (e.clickCount == 2) {
-          val index = list.locationToIndex(e.point)
-          if (index != -1) {
-            val containingFile = list.model.getElementAt(index).containingFile
-            if (containingFile != null) {
-              FileEditorManager.getInstance(surface.project).openFile(containingFile.virtualFile, true)
-            }
-          }
+          activate(list.locationToIndex(e.point))
+        }
+      }
+    })
+    list.addKeyListener(object: KeyAdapter() {
+      override fun keyTyped(e: KeyEvent?) {
+        if (e?.keyCode == VK_ENTER || e?.keyChar == '\n') {
+          activate(list.selectedIndex)
         }
       }
     })
@@ -136,6 +148,15 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
     }
 
     startLoading()
+  }
+
+  private fun activate(index: Int) {
+    if (index != -1) {
+      val containingFile = list.model.getElementAt(index).containingFile
+      if (containingFile != null) {
+        FileEditorManager.getInstance(surface.project).openFile(containingFile.virtualFile, true)
+      }
+    }
   }
 
   private fun startLoading() {
