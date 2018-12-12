@@ -91,10 +91,11 @@ sealed class BaseActionEnumValue(val action: AnAction) : EnumValue {
         && separator == otherActionValue.separator
   }
 
-  override fun select(property: PropertyItem) {
+  override fun select(property: PropertyItem): Boolean {
     val propertyContext = DataContext { property }
     val event = AnActionEvent(null, propertyContext, "", action.templatePresentation.clone(), ActionManager.getInstance(), 0)
     action.actionPerformed(event)
+    return false
   }
 
   override fun withHeader(header: String): EnumValue {
