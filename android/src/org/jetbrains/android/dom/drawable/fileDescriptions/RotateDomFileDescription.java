@@ -20,9 +20,8 @@ import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.Rotate;
 
 public class RotateDomFileDescription extends AbstractSingleRootFileDescription<Rotate> {
-  public static final String TAG_NAME = "rotate";
 
   public RotateDomFileDescription() {
-    super(Rotate.class, TAG_NAME, ResourceFolderType.DRAWABLE);
+    super(Rotate.class, "rotate", ResourceFolderType.DRAWABLE);
   }
 }
