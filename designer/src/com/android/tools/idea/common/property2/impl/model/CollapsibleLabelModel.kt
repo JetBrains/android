@@ -42,6 +42,7 @@ const val KEY_PREFIX = "inspector.open."
 open class CollapsibleLabelModel(
   val name: String,
   val editorModel: PropertyEditorModel? = null,
+  override val isSearchable: Boolean = false,
   @TestOnly val properties: PropertiesComponent = PropertiesComponent.getInstance()
 ) : GenericInspectorLineModel() {
   @VisibleForTesting var children: MutableList<InspectorLineModel>? = null

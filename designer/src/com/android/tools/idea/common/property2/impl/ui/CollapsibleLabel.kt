@@ -23,6 +23,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 
 /**
  * A label to show text with or without trailing ellipsis and an optional expansion control.
@@ -46,6 +47,8 @@ class CollapsibleLabel(val model: CollapsibleLabelModel) : JBLabel(model.name) {
     }
   }
 
+  var actionPanel: JComponent? = null
+
   init {
     model.addValueChangedListener(ValueChangedListener { valueChanged() })
     font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
@@ -55,6 +58,7 @@ class CollapsibleLabel(val model: CollapsibleLabelModel) : JBLabel(model.name) {
   private fun valueChanged() {
     val revalidateParent = if (isVisible != model.visible) parent else null
     isVisible = model.visible
+    actionPanel?.isVisible = isVisible
     text = if (model.showEllipses) valueWithTrailingEllipsis else valueWithoutEllipsis
     icon = model.icon
     toolTipText = model.tooltip

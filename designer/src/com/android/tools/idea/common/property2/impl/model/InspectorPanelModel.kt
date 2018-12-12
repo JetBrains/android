@@ -18,6 +18,7 @@ package com.android.tools.idea.common.property2.impl.model
 import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.InspectorLineModel
+import com.android.tools.idea.common.property2.api.TableLineModel
 import com.intellij.psi.codeStyle.NameUtil
 
 /**
@@ -89,7 +90,8 @@ class InspectorPanelModel {
     if (filter.isEmpty()) {
       return false
     }
-    val visibleLabels = lines.filter{ it.visible }
+    // TODO: b/120919678 We should be able to jump to an editor in a table
+    val visibleLabels = lines.filter{ it.visible && it !is TableLineModel }
     if (visibleLabels.size != 1) {
       return false
     }
@@ -114,11 +116,17 @@ class InspectorPanelModel {
     val matcher = NameUtil.buildMatcher("*$filter").build()
     lines.forEach { line ->
       when {
+        !line.isSearchable -> line.visible = false
         line is CollapsibleLabelModel -> line.hideForSearch(line.isMatch(matcher))
-        line.isSearchable -> line.filter = filter
+        line is TableLineModel -> applyFilterToTable(line)
         else -> line.visible = line.isMatch(matcher)
       }
     }
+  }
+
+  private fun applyFilterToTable(line: TableLineModel) {
+    line.filter = filter
+    line.visible = filter.isNotEmpty()
   }
 
   private fun restoreGroups() {

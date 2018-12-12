@@ -111,6 +111,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
       component.add(label, BorderLayout.CENTER)
       component.add(buttons, BorderLayout.EAST)
       component.border = outerBorder
+      label.actionPanel = component
     }
     else {
       label.border = JBUI.Borders.merge(label.border, outerBorder, true)

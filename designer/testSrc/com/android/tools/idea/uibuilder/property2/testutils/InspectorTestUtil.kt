@@ -112,8 +112,11 @@ open class FakeInspectorLine(val type: LineType) : InspectorLineModel {
   }
 }
 
-class FakeTableLine(override val tableModel: PTableModel) : FakeInspectorLine(LineType.TABLE), TableLineModel {
+class FakeTableLine(override val tableModel: PTableModel,
+                    override val isSearchable: Boolean) : FakeInspectorLine(LineType.TABLE), TableLineModel {
   override var selectedItem: PTableItem? = null
+
+  override var filter: String = ""
 
   override fun requestFocus(item: PTableItem) {
     selectedItem = item
@@ -152,7 +155,7 @@ class FakeInspectorPanel : InspectorPanel {
                         searchable: Boolean,
                         tableUI: TableUIProvider,
                         parent: InspectorLineModel?): TableLineModel {
-    val line = FakeTableLine(tableModel)
+    val line = FakeTableLine(tableModel, searchable)
     lines.add(line)
     addAsChild(line, parent)
     return line
