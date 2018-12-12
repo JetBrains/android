@@ -15,19 +15,21 @@
  */
 package org.jetbrains.android.dom.resources;
 
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PREFIX_THEME_REF;
+
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.utils.HashCodes;
 import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.pom.java.LanguageLevel;
+import java.util.Objects;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.SdkConstants.PREFIX_THEME_REF;
 
 /**
  * @author yole
@@ -58,22 +60,18 @@ public class ResourceValue {
     ResourceValue that = (ResourceValue)o;
 
     if (myPrefix != that.myPrefix) return false;
-    if (myPackage != null ? !myPackage.equals(that.myPackage) : that.myPackage != null) return false;
-    if (myResourceName != null ? !myResourceName.equals(that.myResourceName) : that.myResourceName != null) return false;
-    if (myResourceType != null ? !myResourceType.equals(that.myResourceType) : that.myResourceType != null) return false;
-    if (myValue != null ? !myValue.equals(that.myValue) : that.myValue != null) return false;
+    if (!Objects.equals(myPackage, that.myPackage)) return false;
+    if (!Objects.equals(myResourceName, that.myResourceName)) return false;
+    if (!Objects.equals(myResourceType, that.myResourceType)) return false;
+    if (!Objects.equals(myValue, that.myValue)) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = myValue != null ? myValue.hashCode() : 0;
-    result = 31 * result + (int)myPrefix;
-    result = 31 * result + (myPackage != null ? myPackage.hashCode() : 0);
-    result = 31 * result + (myResourceType != null ? myResourceType.hashCode() : 0);
-    result = 31 * result + (myResourceName != null ? myResourceName.hashCode() : 0);
-    return result;
+    return HashCodes.mix(Objects.hashCode(myValue), Character.hashCode(myPrefix), Objects.hashCode(myPackage),
+                         Objects.hashCode(myResourceType), Objects.hashCode(myResourceName));
   }
 
   @Nullable
@@ -107,13 +105,12 @@ public class ResourceValue {
 
   @Nullable
   public static ResourceValue reference(String value, boolean withPrefix) {
-
     ResourceValue result = new ResourceValue();
     if (withPrefix) {
       assert !value.isEmpty();
       result.myPrefix = value.charAt(0);
     }
-    final int startIndex = withPrefix ? 1 : 0;
+    int startIndex = withPrefix ? 1 : 0;
     int pos = value.indexOf('/');
 
     if (pos > 0) {
@@ -322,7 +319,7 @@ public class ResourceValue {
     if (myValue != null) {
       return myValue;
     }
-    final StringBuilder builder = new StringBuilder();
+    StringBuilder builder = new StringBuilder();
     if (myPrefix != 0) {
       builder.append(myPrefix);
     }
@@ -336,7 +333,7 @@ public class ResourceValue {
     return builder.toString();
   }
 
-  public void setResourceType(String resourceType) {
+  public void setResourceType(@NotNull String resourceType) {
     myResourceType = resourceType;
   }
 }
