@@ -34,6 +34,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiReference
+import com.intellij.psi.impl.cache.impl.id.ScanningIdIndexer
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
@@ -52,6 +53,11 @@ import com.intellij.util.Processor
  */
 class RoomFindUsagesProvider : FindUsagesProvider by EmptyFindUsagesProvider() {
   override fun getWordsScanner(): WordsScanner = DefaultWordsScanner(RoomSqlLexer(), IDENTIFIERS, COMMENTS, STRING_LITERALS)
+}
+
+class RoomIdIndexer : ScanningIdIndexer() {
+  override fun createScanner(): WordsScanner = RoomFindUsagesProvider().wordsScanner
+  override fun getVersion(): Int = 0
 }
 
 /**
