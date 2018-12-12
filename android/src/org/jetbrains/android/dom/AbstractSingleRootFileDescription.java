@@ -34,11 +34,6 @@ public abstract class AbstractSingleRootFileDescription<T extends DomElement> ex
   }
 
   @Override
-  public boolean acceptsOtherRootTagNames() {
-    return true;
-  }
-
-  @Override
   public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
     if (!super.isMyFile(file, module)) {
       return false;
