@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.structure;
 
+import static com.intellij.ide.DataManager.CLIENT_PROPERTY_DATA_PROVIDER;
 import static icons.StudioIcons.NavEditor.Tree.ACTIVITY;
 import static icons.StudioIcons.NavEditor.Tree.FRAGMENT;
 import static icons.StudioIcons.NavEditor.Tree.INCLUDE_GRAPH;
@@ -41,6 +42,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Disposer;
@@ -76,6 +78,7 @@ import javax.swing.KeyStroke;
 import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Left panel for the nav editor, showing a list of available destinations.
@@ -232,6 +235,12 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     ColorSet colorSet = SceneContext.get(surface.getCurrentSceneView()).getColorSet();
     myList.setBackground(colorSet.getSubduedBackground());
     updateComponentList();
+    myList.putClientProperty(CLIENT_PROPERTY_DATA_PROVIDER, (DataProvider)dataId -> {
+      if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
+        return myList.indexToLocation(myList.getSelectedIndex());
+      }
+      return null;
+    });
   }
 
   @Override
@@ -325,6 +334,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
         if (index != -1) {
           NlComponent component = myList.getModel().getElementAt(index);
           myDesignSurface.getActionManager().showPopup(e, component);
+          e.consume();
         }
       }
     }
