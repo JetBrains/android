@@ -228,8 +228,7 @@ public class AndroidStudioInitializer implements Runnable {
   // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType
   private static void disableIdeaJUnitConfigurations() {
     // First we unregister the ConfigurationProducers, and after the ConfigurationType
-    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint =
-      Extensions.getRootArea().getExtensionPoint(RunConfigurationProducer.EP_NAME);
+    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint(null);
     for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
       if (runConfigurationProducer instanceof JUnitConfigurationProducer
           && !(runConfigurationProducer instanceof AndroidJUnitConfigurationProducer)) {
