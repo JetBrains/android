@@ -88,7 +88,7 @@ public class InstantRunTest {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE) // b/37506663
   public void activityRunningOnSeparateProcess() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
@@ -140,7 +140,7 @@ public class InstantRunTest {
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void unnecessaryCleanCheck() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
@@ -272,7 +272,7 @@ public class InstantRunTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   @Test
   public void installingPlatformWhileDeployingApp() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
 
     ChooseSystemImageStepFixture.SystemImage myAvdDesc =
       new ChooseSystemImageStepFixture.SystemImage("Lollipop", "22", "x86", "Android 5.1");

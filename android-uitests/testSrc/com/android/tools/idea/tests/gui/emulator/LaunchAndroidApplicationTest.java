@@ -182,7 +182,7 @@ public class LaunchAndroidApplicationTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   @Test
   public void turnOnOrOffBuildCache() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
 
     File homeDir = new File(SystemProperties.getUserHome());
     File androidHomeDir = new File(homeDir, ".android");

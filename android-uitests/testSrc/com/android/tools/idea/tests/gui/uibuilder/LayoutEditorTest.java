@@ -51,7 +51,7 @@ public class LayoutEditorTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Import SimpleLocalApplication
+   *   1. Import SimpleApplication
    *   2. Right click the app module
    *   3. Click “New” -> click “Image Asset”
    *   4. Make a selection for “Asset Type” and “Foreground”
@@ -66,7 +66,7 @@ public class LayoutEditorTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void imageAssetRegressionTest() throws Exception {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
 
     Path projectDir = guiTest.getProjectPath().toPath();
     FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);

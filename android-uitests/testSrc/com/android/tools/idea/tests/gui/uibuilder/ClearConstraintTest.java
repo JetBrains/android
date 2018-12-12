@@ -61,7 +61,7 @@ public class ClearConstraintTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void clearConstraint() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest");
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     EditorFixture editor = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);

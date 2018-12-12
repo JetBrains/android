@@ -56,7 +56,7 @@ public class ConstraintLayoutResizeHandleTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void constraintLayoutResizeHandle() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutLocalTest");
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     NlEditorFixture design = ideFrameFixture.getEditor()
       .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN)

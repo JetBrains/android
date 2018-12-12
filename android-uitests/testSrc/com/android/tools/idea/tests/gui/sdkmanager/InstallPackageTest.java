@@ -77,7 +77,7 @@ public class InstallPackageTest {
   @RunIn(TestGroup.QA_UNRELIABLE) // b/119505019
   @Test
   public void installPackage() throws Exception {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     IdeSettingsDialogFixture ideSettingsDialogFixture = ideFrameFixture.invokeSdkManager();

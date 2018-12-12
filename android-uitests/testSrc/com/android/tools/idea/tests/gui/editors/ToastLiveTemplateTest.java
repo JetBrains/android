@@ -47,7 +47,7 @@ public class ToastLiveTemplateTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Import SimpleLocalApplication project.
+   *   1. Import SimpleApplication project.
    *   2. In java class file, place the cursor at the beginning of any line, e.g. "setContentView(R.layout.activity_my);".
    *   3. Click on Code > Insert Live Template...
    *   4. Enter the keyboard shortcut for any of the available options, say Toast and press enter (Verify 3).
@@ -58,7 +58,7 @@ public class ToastLiveTemplateTest {
   @Test
   @RunIn(TestGroup.FAT_BAZEL)
   public void insertToastViaKeyboardShortcut() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProject("SimpleLocalApplication");
+    IdeFrameFixture ideFrame = guiTest.importProject("SimpleApplication");
     ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(120));
     EditorFixture editorFixture = ideFrame.getEditor().open(LiveTemplatesTestUtil.JAVA_FILE);
 

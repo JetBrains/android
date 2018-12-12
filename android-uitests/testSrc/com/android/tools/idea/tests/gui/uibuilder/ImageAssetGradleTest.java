@@ -47,7 +47,7 @@ public class ImageAssetGradleTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Import SimpleLocalApplication
+   *   1. Import SimpleApplication
    *   2. Create a vector drawable under directory /res/drawable and name it “local_library.xml”
    *   3. Modify the existing main content view, then add one button, set its background as the Vector Drawable
    *   <button android:background="@drawable/local_library" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
@@ -58,7 +58,7 @@ public class ImageAssetGradleTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void imageAssetGradleTest() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     ideFrameFixture
       .getProjectView()
       .selectAndroidPane()

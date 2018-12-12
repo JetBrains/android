@@ -57,7 +57,7 @@ public class ApkViewerTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testFileHandleRelease() throws Exception {
-    final String SIMPLE_APP = "SimpleLocalApplication";
+    final String SIMPLE_APP = "SimpleApplication";
     final String APP = "app";
     final String BUILD = "build";
     final String OUTPUTS = "outputs";
@@ -66,7 +66,7 @@ public class ApkViewerTest {
     final String APK_FILE_PATH = String.format("%s/%s/%s/%s/%s/%s",
                                                APP, BUILD, OUTPUTS, APK, DEBUG, APK_NAME);
 
-    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
 
     ProjectViewFixture projectView = ideFrame.invokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
       .waitForBuildToFinish(BuildMode.ASSEMBLE, Wait.seconds(180))

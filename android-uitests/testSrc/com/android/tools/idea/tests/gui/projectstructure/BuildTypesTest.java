@@ -65,7 +65,7 @@ public class BuildTypesTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void editBuildType() throws Exception {
-    String gradleFileContents = guiTest.importSimpleLocalApplication()
+    String gradleFileContents = guiTest.importSimpleApplication()
       .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
       .selectConfigurable("app")
       .selectBuildTypesTab()

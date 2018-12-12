@@ -107,7 +107,7 @@ public class LayoutInspectorTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   public void launchLayoutInspectorViaChooser() throws Exception {
     String appConfigName = "app";
-    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
 
     File layoutDumpDir = guiTest.copyProjectBeforeOpening("LayoutInspector");
 

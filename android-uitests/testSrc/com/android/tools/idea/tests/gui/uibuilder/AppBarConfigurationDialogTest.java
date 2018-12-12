@@ -38,7 +38,7 @@ public class AppBarConfigurationDialogTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/72124019
   @Test
   public void testDependencyDialog() throws Exception {
-    EditorFixture editor = guiTest.importSimpleLocalApplication()
+    EditorFixture editor = guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 
@@ -77,7 +77,7 @@ public class AppBarConfigurationDialogTest {
 
   @Test
   public void testAddComponent() throws Exception {
-    EditorFixture editor = guiTest.importSimpleLocalApplication()
+    EditorFixture editor = guiTest.importSimpleApplication()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
 

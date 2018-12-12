@@ -43,7 +43,7 @@ public class NewModuleTest {
 
   @Test
   public void testNewModuleOldGradle() throws Exception {
-    String gradleFileContents = guiTest.importSimpleLocalApplication()
+    String gradleFileContents = guiTest.importSimpleApplication()
       // the oldest combination we support:
       .updateAndroidGradlePluginVersion("1.0.0")
       .updateGradleWrapperVersion("2.2.1")
@@ -76,7 +76,7 @@ public class NewModuleTest {
   public void createNewModuleFromJar() throws Exception {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
 
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Import .JAR/.AAR Package")
       .clickNextToStep("Import Module from Library")
@@ -100,7 +100,7 @@ public class NewModuleTest {
 
   @Test
   public void createNewJavaLibraryWithDefaults() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Java Library")
       .clickNextToStep("Library name:")
@@ -117,7 +117,7 @@ public class NewModuleTest {
 
   @Test
   public void createNewJavaLibraryWithNoGitIgnore() throws Exception {
-    guiTest.importSimpleLocalApplication()
+    guiTest.importSimpleApplication()
       .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Java Library")
       .clickNextToStep("Library name:")

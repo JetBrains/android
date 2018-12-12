@@ -36,7 +36,7 @@ public final class GridLayoutTest {
 
   @Test
   public void dragViewIntoEmptyGridLayout() throws Exception {
-    IdeFrameFixture frame = myGuiTest.importSimpleLocalApplication();
+    IdeFrameFixture frame = myGuiTest.importSimpleApplication();
     frame.getProjectView().selectAndroidPane().clickPath("app");
     frame.openFromMenu(CreateResourceFileDialogFixture::find, "File", "New", "Android Resource File")
                                    .setFilename("gridlayout")

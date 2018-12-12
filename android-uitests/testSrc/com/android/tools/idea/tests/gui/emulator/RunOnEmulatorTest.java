@@ -119,7 +119,7 @@ public class RunOnEmulatorTest {
   @Test
   public void runOnEmulator() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 

@@ -111,7 +111,7 @@ public class ChangeManifestTest {
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture;
     try {
-      guiTest.importSimpleLocalApplication();
+      guiTest.importSimpleApplication();
     } catch (WaitTimedOutError indexSyncTimeout) {
       // We really do not care about timeouts during project indexing and sync.
       GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(300));

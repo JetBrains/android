@@ -67,7 +67,7 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addDefaultDynamicModule() {
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
 
     createDefaultDynamicModule(ideFrame)
 
@@ -110,7 +110,7 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addInstantDynamicModule_baseHasNoModule() {
     StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true)
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
     createInstantDynamicModule(ideFrame)
 
     ideFrame.editor
@@ -143,7 +143,7 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addInstantDynamicModuleWithFusing_baseHasNoModule() {
     StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true)
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
 
     createInstantDynamicModuleWithFusing(ideFrame)
 
@@ -171,7 +171,7 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addInstantDynamicModuleWithFusing_baseHasModule() {
     StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.override(true)
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
 
     writeDistModuleToBaseManifest(false)
     createInstantDynamicModuleWithFusing(ideFrame)
@@ -215,7 +215,7 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addDynamicModuleWithModifiedDelivery() {
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
@@ -257,7 +257,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_includeAtInstallTime() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
 
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
@@ -302,7 +302,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandOnly() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
 
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
@@ -347,7 +347,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandWithMinSdk() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
 
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
@@ -399,7 +399,7 @@ class AddDynamicFeatureTest {
   fun addDynamicModuleWithConditionalDelivery_installOnDemandDeviceFeatures() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
 
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
@@ -468,7 +468,7 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addLoginActivityToDynamicModule() {
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
 
     createDefaultDynamicModule(ideFrame)
     .invokeMenuPath("File", "New", "Activity", "Login Activity")
@@ -512,7 +512,7 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun addMapsActivityToDynamicModule() {
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
 
     ideFrame.editor
       .open("app/build.gradle")
@@ -559,7 +559,7 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun checkWarningLabelIsHiddenWhenBaseIsInstant() {
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(true)
     ideFrame.invokeMenuPath("File", "Sync Project with Gradle Files")
     ideFrame.waitForGradleProjectSyncToFinish()
@@ -588,7 +588,7 @@ class AddDynamicFeatureTest {
   @Test
   @Throws(Exception::class)
   fun checkWarningLabelIsVisibleWhenBaseIsNotInstant() {
-    val ideFrame = guiTest.importSimpleLocalApplication()
+    val ideFrame = guiTest.importSimpleApplication()
     writeDistModuleToBaseManifest(false)
     ideFrame.invokeMenuPath("File", "Sync Project with Gradle Files")
     ideFrame.waitForGradleProjectSyncToFinish()

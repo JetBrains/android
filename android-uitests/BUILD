@@ -102,7 +102,7 @@ iml_module(
 java_test(
     name = "GuiTestRuleTest",
     size = "large",
-    data = COMMON_DATA + glob(["testData/SimpleLocalApplication/**"]),
+    data = COMMON_DATA + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.framework.GuiTestRuleTest"],
     tags = COMMON_TAGS + ["manual"],  # b/110178024
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -138,7 +138,7 @@ java_test(
     name = "NewActivityTest",
     size = "large",
     data = COMMON_DATA + ["//prebuilts/studio/layoutlib:data/res"] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.NewActivityTest"],
     tags = COMMON_TAGS + ["manual"],  # b/74910563
@@ -155,8 +155,8 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.1.0:aar",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
-    ]) + glob(["testData/LayoutLocalTest/**"]),
+        "testData/SimpleApplication/**",
+    ]) + glob(["testData/LayoutTest/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NlEditorTest"],
     tags = COMMON_TAGS + ["manual"],  #BasicLayoutTest failed for UI reason
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -169,8 +169,8 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
-        "testData/LayoutLocalTest/**",
+        "testData/SimpleApplication/**",
+        "testData/LayoutTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ConstraintLayoutTest"],
     tags = COMMON_TAGS + ["manual"],  #Test failed for UI reason
@@ -184,7 +184,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.GradleSyncTest"],
     tags = COMMON_TAGS + ["manual"],  #Sanity tests passing, but other tests fail
@@ -198,7 +198,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
         "testData/LocalJarsAsModules/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.NewModuleTest"],
@@ -214,7 +214,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.BuildTypesTest"],
     tags = COMMON_TAGS + ["manual"],  #UI flaky issue, fail sometimes
@@ -229,7 +229,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
         "testData/LayoutInspector/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.layoutinspector.LayoutInspectorTest"],
@@ -260,7 +260,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.FilterIconTest"],
     tags = COMMON_TAGS + ["manual"],  # b/110178024
@@ -309,7 +309,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateDefaultActivityTest"],
     tags = COMMON_TAGS + [
@@ -324,7 +324,7 @@ java_test(
 java_test(
     name = "GenerateApkWithReleaseVariantTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.instantapp.GenerateApkWithReleaseVariantTest"],
     tags = COMMON_TAGS + [
@@ -339,7 +339,7 @@ java_test(
 java_test(
     name = "ModifyMinSdkAndSyncTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.ModifyMinSdkAndSyncTest"],
     tags = COMMON_TAGS + [
@@ -354,7 +354,7 @@ java_test(
 java_test(
     name = "CreateNewAppModuleWithDefaultsTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewAppModuleWithDefaultsTest"],
     tags = COMMON_TAGS + [
@@ -370,7 +370,7 @@ java_test(
 java_test(
     name = "CreateNewLibraryModuleWithDefaultsTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.CreateNewLibraryModuleWithDefaultsTest"],
     tags = COMMON_TAGS + [
@@ -386,7 +386,7 @@ java_test(
 java_test(
     name = "AddNewBuildTypeTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddNewBuildTypeTest"],
     tags = COMMON_TAGS + [
@@ -401,7 +401,7 @@ java_test(
 java_test(
     name = "RunOnEmulatorTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.RunOnEmulatorTest"],
     tags = COMMON_TAGS + [
@@ -440,7 +440,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/LayoutLocalTest/**",
+        "testData/LayoutTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.SideConstraintHandlingTest"],
     tags = COMMON_TAGS + [
@@ -461,7 +461,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/LayoutLocalTest/**",
+        "testData/LayoutTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BaselineConstraintHandlingTest"],
     tags = COMMON_TAGS + [
@@ -481,7 +481,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
     tags = COMMON_TAGS + [
@@ -552,7 +552,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/sdk:platforms/android-24",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.CreateNewFlavorsTest"],
     tags = COMMON_TAGS + [
@@ -568,7 +568,7 @@ java_test(
     name = "LaunchApkViewerTest",
     size = "large",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.LaunchApkViewerTest"],
     tags = COMMON_TAGS + [
@@ -666,7 +666,7 @@ java_test(
     name = "ChangeManifestTest",
     size = "large",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]) + [
         "//prebuilts/studio/layoutlib:data/res",
     ],
@@ -703,7 +703,7 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:data/res",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.integration.GoogleApiIntegrationTest"],
     tags = COMMON_TAGS + [
@@ -933,7 +933,7 @@ java_test(
 java_test(
     name = "IdePermissionTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.IdePermissionTest"],
     tags = COMMON_TAGS + [
@@ -1008,7 +1008,7 @@ java_test(
         "//prebuilts/studio/sdk:platforms/android-25",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/LayoutLocalTest/**",
+        "testData/LayoutTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.LayoutPreviewRenderTest"],
     tags = COMMON_TAGS + [
@@ -1030,7 +1030,7 @@ java_test(
         "//prebuilts/studio/sdk:platforms/android-25",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ThemeEditorTest"],
     tags = COMMON_TAGS + [
@@ -1051,7 +1051,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/LayoutLocalTest/**",
+        "testData/LayoutTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ConstraintLayoutResizeHandleTest"],
     tags = COMMON_TAGS + [
@@ -1072,7 +1072,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/LayoutLocalTest/**",
+        "testData/LayoutTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ConstraintLayoutAnchorExemptionTest"],
     tags = COMMON_TAGS + [
@@ -1093,7 +1093,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/LayoutLocalTest/**",
+        "testData/LayoutTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ClearConstraintTest"],
     tags = COMMON_TAGS + [
@@ -1114,7 +1114,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/LayoutLocalTest/**",
+        "testData/LayoutTest/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateBaselineConnectionTest"],
     tags = COMMON_TAGS + [
@@ -1134,7 +1134,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.LayoutEditorTest"],
     tags = COMMON_TAGS + [
@@ -1154,7 +1154,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.AndroidVectorDrawableToolTest"],
     tags = COMMON_TAGS + [
@@ -1175,7 +1175,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ImageAssetGradleTest"],
     tags = COMMON_TAGS + [
@@ -1196,7 +1196,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
         "testData/TestImages/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ImageAssetErrorCheckTest"],
@@ -1246,7 +1246,7 @@ java_test(
         "//prebuilts/studio/sdk:platforms/android-24",
         "//prebuilts/studio/sdk:platforms/android-25",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsEditingTest"],
     tags = COMMON_TAGS + [
@@ -1329,7 +1329,7 @@ java_test(
 java_test(
     name = "NoGradleSyncForProjectReimportTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.NoGradleSyncForProjectReimportTest"],
     tags = COMMON_TAGS + [
@@ -1344,7 +1344,7 @@ java_test(
 java_test(
     name = "ApkViewerTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ApkViewerTest"],
     tags = COMMON_TAGS + [
@@ -1419,7 +1419,7 @@ java_test(
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
     ] + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.translations.AddLocaleTest"],
     tags = COMMON_TAGS + [
@@ -1435,7 +1435,7 @@ java_test(
 java_test(
     name = "SurroundWithShortcutTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.SurroundWithShortcutTest"],
     tags = COMMON_TAGS + [
@@ -1450,7 +1450,7 @@ java_test(
 java_test(
     name = "ForeachLiveTemplateTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ForeachLiveTemplateTest"],
     tags = COMMON_TAGS + [
@@ -1465,7 +1465,7 @@ java_test(
 java_test(
     name = "ForiLiveTemplateTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ForiLiveTemplateTest"],
     tags = COMMON_TAGS + [
@@ -1480,7 +1480,7 @@ java_test(
 java_test(
     name = "ToastLiveTemplateTest",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.ToastLiveTemplateTest"],
     tags = COMMON_TAGS + [

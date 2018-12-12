@@ -46,7 +46,7 @@ class ComponentAssistantTest {
 
   @Test
   fun testRecyclerViewAssistantAvailable() {
-    val layout = guiTest.importSimpleLocalApplication()
+    val layout = guiTest.importSimpleApplication()
       .editor
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)
@@ -88,7 +88,7 @@ class ComponentAssistantTest {
 
   @Test
   fun testTextViewAssistantAvailable() {
-    val layout = guiTest.importSimpleLocalApplication()
+    val layout = guiTest.importSimpleApplication()
       .editor
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .getLayoutEditor(true)

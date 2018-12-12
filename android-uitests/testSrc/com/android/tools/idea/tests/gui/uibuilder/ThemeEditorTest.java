@@ -94,7 +94,7 @@ public class ThemeEditorTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void themeEditor() throws Exception {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     ThemeEditorTableFixture themeEditorTable = themeEditor.getPropertiesTable();
 

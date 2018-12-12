@@ -100,7 +100,7 @@ public class DebugOnEmulatorTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void debugOnEmulator() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 

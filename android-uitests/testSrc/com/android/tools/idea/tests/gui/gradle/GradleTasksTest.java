@@ -86,7 +86,7 @@ public class GradleTasksTest {
     //   2. Start 'build' task once again (assuming that it takes some time for it to finish)
     //   3. Stop the task
     //   4. Ensure that the task is really finished
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     guiTest.ideFrame().requestProjectSync();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
@@ -100,7 +100,7 @@ public class GradleTasksTest {
   }
 
   private void openProjectAndAddToGradleConfig(@NotNull final String textToAdd) throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importSimpleApplication();
     Module module = guiTest.ideFrame().getModule("app");
 
     // Add a long-running task and refresh the project.
