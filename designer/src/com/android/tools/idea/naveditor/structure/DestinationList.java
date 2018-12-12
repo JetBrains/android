@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Disposer;
@@ -47,6 +48,7 @@ import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 
+import static com.intellij.ide.DataManager.CLIENT_PROPERTY_DATA_PROVIDER;
 import static icons.StudioIcons.NavEditor.Tree.*;
 import static java.awt.event.KeyEvent.*;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
@@ -208,6 +210,12 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
     ColorSet colorSet = SceneContext.get(surface.getCurrentSceneView()).getColorSet();
     myList.setBackground(colorSet.getSubduedBackground());
     updateComponentList();
+    myList.putClientProperty(CLIENT_PROPERTY_DATA_PROVIDER, (DataProvider)dataId -> {
+      if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
+        return myList.indexToLocation(myList.getSelectedIndex());
+      }
+      return null;
+    });
   }
 
   @Override
@@ -305,6 +313,7 @@ public class DestinationList extends JPanel implements DataProvider, Disposable 
         if (index != -1) {
           NlComponent component = myList.getModel().getElementAt(index);
           myDesignSurface.getActionManager().showPopup(e, component);
+          e.consume();
         }
       }
     }
