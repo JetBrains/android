@@ -22,14 +22,9 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.annotations.NotNull;
 
-public class LayoutDomFileDescription<T extends LayoutElement> extends AndroidResourceDomFileDescription<T> {
+public abstract class LayoutDomFileDescription<T extends LayoutElement> extends AndroidResourceDomFileDescription<T> {
   public LayoutDomFileDescription(@NotNull Class<T> rootElementClass, @NotNull String rootTagName) {
     super(rootElementClass, rootTagName, ResourceFolderType.LAYOUT);
-  }
-
-  @Override
-  public boolean acceptsOtherRootTagNames() {
-    return true;
   }
 
   public static boolean isLayoutFile(@NotNull final XmlFile file) {

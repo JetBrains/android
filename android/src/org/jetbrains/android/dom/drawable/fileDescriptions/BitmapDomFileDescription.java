@@ -20,9 +20,8 @@ import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.BitmapElement;
 
 public class BitmapDomFileDescription extends AbstractSingleRootFileDescription<BitmapElement> {
-  public static final String TAG_NAME = "bitmap";
 
   public BitmapDomFileDescription() {
-    super(BitmapElement.class, TAG_NAME, ResourceFolderType.DRAWABLE);
+    super(BitmapElement.class, "bitmap", ResourceFolderType.DRAWABLE);
   }
 }
