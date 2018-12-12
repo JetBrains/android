@@ -223,6 +223,7 @@ abstract class NavListInspectorProvider<PropertyType : ListProperty>(
         if (clicked !in list.selectedValuesList) {
           list.setSelectedValue(clicked, false)
         }
+        e.consume()
         createPopupMenu(list.selectedValuesList.flatMap { it.components })
       }
       else {
