@@ -45,7 +45,6 @@ import com.intellij.util.NotNullProducer;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -476,14 +475,14 @@ public class MoreFontsDialog extends DialogWrapper {
 
       switch (fontFamily.getFontSource()) {
         case SYSTEM:
-          setIcon(AndroidIcons.Android);
+          setIcon(StudioIcons.Shell.Filetree.ANDROID_PROJECT);
           break;
         case DOWNLOADABLE:
           setIcon(StudioIcons.Common.LINK);
           break;
         case PROJECT:
           if (fontFamily.getMenu().startsWith(FILE_PROTOCOL_START)) {
-            setIcon(AndroidIcons.FontFile);
+            setIcon(StudioIcons.Shell.Filetree.FONT_FILE);
           }
           else if (fontFamily.getMenu().startsWith(HTTPS_PROTOCOL_START)) {
             setIcon(StudioIcons.Common.LINK);

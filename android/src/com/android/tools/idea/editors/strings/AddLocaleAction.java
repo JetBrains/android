@@ -30,7 +30,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.ScalableIcon;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +45,7 @@ final class AddLocaleAction extends AnAction {
   private final StringResourceViewPanel myPanel;
 
   AddLocaleAction(@NotNull StringResourceViewPanel panel) {
-    super("Add Locale", null, Icons.newLayeredIcon(AndroidIcons.Globe, (ScalableIcon)AllIcons.General.Add));
+    super("Add Locale", null, Icons.newLayeredIcon(StudioIcons.LayoutEditor.Toolbar.LANGUAGE, (ScalableIcon)AllIcons.General.Add));
     myPanel = panel;
   }
 

@@ -19,7 +19,7 @@ import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher;
 import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +59,7 @@ public class FontFileType implements FileType {
 
   @Override
   public Icon getIcon() {
-    return AndroidIcons.FontFile;
+    return StudioIcons.Shell.Filetree.FONT_FILE;
   }
 
   @Override

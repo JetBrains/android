@@ -34,7 +34,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -195,7 +194,7 @@ public class LocaleMenuAction extends DropDownAction {
       presentation.setText(brief);
     }
     else {
-      presentation.setIcon(AndroidIcons.Globe);
+      presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.LANGUAGE);
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
