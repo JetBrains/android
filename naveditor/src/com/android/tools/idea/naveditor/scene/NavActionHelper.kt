@@ -17,9 +17,14 @@ package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.NavCoordinate
+import com.android.tools.idea.naveditor.model.effectiveDestination
+import com.android.tools.idea.naveditor.model.getActionType
+import com.android.tools.idea.naveditor.model.getEffectiveSource
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.geom.Point2D
@@ -79,6 +84,7 @@ private const val STEP_THRESHOLD = 0.4
  * 3: previous point shifted 60 to the right
  * end: previous point shifted up 8
  */
+@SwingCoordinate
 fun selfActionPoints(@SwingCoordinate start: Point2D.Float, @SwingCoordinate end: Point2D.Float, context: SceneContext): Array<Point2D.Float> {
   val p1 = Point2D.Float(start.x + context.getSwingDimension(SELF_ACTION_LENGTHS[0]),
                          start.y)
@@ -95,8 +101,8 @@ fun selfActionPoints(@SwingCoordinate start: Point2D.Float, @SwingCoordinate end
  * Below the top-right to bottom-left diagonal of the destination, and lower than the center point of the destination: BOTTOM
  * Otherwise: LEFT
  */
-fun getDestinationDirection(source: Rectangle2D.Float,
-                            destination: Rectangle2D.Float): ConnectionDirection {
+fun getDestinationDirection(@SwingCoordinate source: Rectangle2D.Float,
+                            @SwingCoordinate destination: Rectangle2D.Float): ConnectionDirection {
   val start = getStartPoint(source)
   val end = getCenterPoint(destination)
 
@@ -115,12 +121,14 @@ fun getDestinationDirection(source: Rectangle2D.Float,
 
 }
 
-fun getStartPoint(rectangle: Rectangle2D.Float): Point2D.Float {
+@SwingCoordinate
+fun getStartPoint(@SwingCoordinate rectangle: Rectangle2D.Float): Point2D.Float {
   return getConnectionPoint(rectangle, START_DIRECTION)
 }
 
+@SwingCoordinate
 fun getArrowRectangle(view: SceneView,
-                      p: Point2D.Float,
+                      @SwingCoordinate p: Point2D.Float,
                       direction: ConnectionDirection): Rectangle2D.Float {
   val rectangle = Rectangle2D.Float()
   val parallel = Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PARALLEL)
@@ -161,10 +169,10 @@ data class CurvePoints(@SwingCoordinate @JvmField val p1: Point2D.Float,
 
 private fun getConnectionPoint(rectangle: Rectangle2D.Float,
                                direction: ConnectionDirection): Point2D.Float {
-  return shiftPoint(getCenterPoint(rectangle), direction,
-                                                           rectangle.width / 2, rectangle.height / 2)
+  return shiftPoint(getCenterPoint(rectangle), direction, rectangle.width / 2, rectangle.height / 2)
 }
 
+@SwingCoordinate
 fun getCurvePoints(@SwingCoordinate source: Rectangle2D.Float,
                    @SwingCoordinate dest: Rectangle2D.Float,
                    sceneContext: SceneContext): CurvePoints {
@@ -173,17 +181,18 @@ fun getCurvePoints(@SwingCoordinate source: Rectangle2D.Float,
   val endPoint = getEndPoint(sceneContext, dest, destDirection)
   return CurvePoints(startPoint,
                      getControlPoint(sceneContext, startPoint,
-                                                                                                                   endPoint,
-                                                                                                                   START_DIRECTION),
+                                     endPoint,
+                                     START_DIRECTION),
                      getControlPoint(sceneContext, endPoint,
-                                                                                                                   startPoint,
-                                                                                                                   destDirection), endPoint,
+                                     startPoint,
+                                     destDirection), endPoint,
                      destDirection)
 }
 
+@SwingCoordinate
 private fun getControlPoint(context: SceneContext,
-                            p1: Point2D.Float,
-                            p2: Point2D.Float,
+                            @SwingCoordinate p1: Point2D.Float,
+                            @SwingCoordinate p2: Point2D.Float,
                             direction: ConnectionDirection): Point2D.Float {
   val shift = Math.min(Math.hypot((p1.x - p2.x).toDouble(), (p1.y - p2.y).toDouble()) / 2,
                        context.getSwingDimension(CONTROL_POINT_THRESHOLD).toDouble()).toFloat()
@@ -197,8 +206,41 @@ fun getEndPoint(context: SceneContext, rectangle: Rectangle2D.Float, direction: 
     context.getSwingDimensionDip(NavSceneManager.ACTION_ARROW_PARALLEL) - 1f)
 }
 
+/**
+ * Gets a point somewhere on the given action, or null if there was a problem.
+ */
+@SwingCoordinate
+fun getAnyPoint(action: SceneComponent, context: SceneContext): Point2D.Float? {
+  val scene = action.scene
+  val rootNlComponent = scene.root?.nlComponent ?: return null
+  val actionNlComponent = action.nlComponent
+  val sourceNlComponent = actionNlComponent.getEffectiveSource(rootNlComponent) ?: return null
+  val sourceSceneComponent = scene.getSceneComponent(sourceNlComponent) ?: return null
+  val sourceRect = Coordinates.getSwingRectDip(context, sourceSceneComponent.fillDrawRect2D(0, null))
+
+  when (actionNlComponent.getActionType(rootNlComponent)) {
+    ActionType.SELF -> {
+      val points = selfActionPoints(getStartPoint(sourceRect),
+                                    getEndPoint(context, sourceRect, ConnectionDirection.BOTTOM),
+                                    context)
+      return Point2D.Float(points[1].x, (points[1].y + points[2].y)/2)
+    }
+    ActionType.REGULAR, ActionType.EXIT_DESTINATION -> {
+      val targetNlComponent = actionNlComponent.effectiveDestination ?: return null
+      val destinationSceneComponent = scene.getSceneComponent(targetNlComponent) ?: return null
+      val destRect = Coordinates.getSwingRectDip(context, destinationSceneComponent.fillDrawRect2D(0, null))
+      val curvePoints = getCurvePoints(sourceRect, destRect, context)
+      return Point2D.Float(getCurveX(curvePoints, 0.5).toFloat(), getCurveY(curvePoints, 0.5).toFloat())
+    }
+    ActionType.EXIT, ActionType.GLOBAL ->
+      return getCenterPoint(Coordinates.getSwingRectDip(context, action.fillDrawRect2D(0, null)))
+    else -> return null
+  }
+}
+
+@SwingCoordinate
 fun getArrowPoint(context: SceneContext,
-                  rectangle: Rectangle2D.Float,
+                  @SwingCoordinate rectangle: Rectangle2D.Float,
                   direction: ConnectionDirection): Point2D.Float {
   @NavCoordinate var shiftY = ACTION_PADDING
   if (direction === ConnectionDirection.TOP) {
@@ -211,9 +253,10 @@ fun getArrowPoint(context: SceneContext,
 /**
  * Returns the drawing rectangle for the pop icon for a regular action
  */
+@SwingCoordinate
 fun getRegularActionIconRect(@SwingCoordinate source: Rectangle2D.Float,
-                @SwingCoordinate dest: Rectangle2D.Float,
-                sceneContext: SceneContext): Rectangle2D.Float {
+                             @SwingCoordinate dest: Rectangle2D.Float,
+                             sceneContext: SceneContext): Rectangle2D.Float {
   val startPoint = getStartPoint(source)
   val points = getCurvePoints(source, dest, sceneContext)
 
@@ -263,6 +306,7 @@ fun getRegularActionIconRect(@SwingCoordinate source: Rectangle2D.Float,
 /**
  * Returns the drawing rectangle for the pop icon for a self action
  */
+@SwingCoordinate
 fun getSelfActionIconRect(@SwingCoordinate start: Point2D.Float, context: SceneContext): Rectangle2D.Float {
   val distance = context.getSwingDimension(POP_ICON_DISTANCE).toFloat()
   val offsetX = context.getSwingDimension(SELF_ACTION_LENGTHS[0]) + distance
@@ -279,6 +323,7 @@ fun getSelfActionIconRect(@SwingCoordinate start: Point2D.Float, context: SceneC
 /**
  * Returns the drawing rectangle for the pop icon for a horizontal action (i.e. global or exit)
  */
+@SwingCoordinate
 fun getHorizontalActionIconRect(@SwingCoordinate rectangle: Rectangle2D.Float): Rectangle2D.Float {
   val iconRect = Rectangle2D.Float()
   val scale = rectangle.height / NavSceneManager.ACTION_ARROW_PERPENDICULAR
@@ -295,17 +340,20 @@ private fun getCenterPoint(rectangle: Rectangle2D.Float): Point2D.Float {
   return Point2D.Float(rectangle.centerX.toFloat(), rectangle.centerY.toFloat())
 }
 
-private fun shiftPoint(p: Point2D.Float, direction: ConnectionDirection, shift: Float): Point2D.Float {
+private fun shiftPoint(@SwingCoordinate p: Point2D.Float, direction: ConnectionDirection,
+                       @SwingCoordinate shift: Float): Point2D.Float {
   return shiftPoint(p, direction, shift, shift)
 }
 
-private fun shiftPoint(p: Point2D.Float,
+@SwingCoordinate
+private fun shiftPoint(@SwingCoordinate p: Point2D.Float,
                        direction: ConnectionDirection,
-                       shiftX: Float,
-                       shiftY: Float): Point2D.Float {
+                       @SwingCoordinate shiftX: Float,
+                       @SwingCoordinate shiftY: Float): Point2D.Float {
   return Point2D.Float(p.x + shiftX * direction.deltaX, p.y + shiftY * direction.deltaY)
 }
 
+@SwingCoordinate
 private fun getCurveX(points: CurvePoints, t: Double): Double {
   return (Math.pow(1 - t, 3.0) * points.p1.x
           + 3 * Math.pow(1 - t, 2.0) * t * points.p2.x
@@ -313,6 +361,7 @@ private fun getCurveX(points: CurvePoints, t: Double): Double {
           + Math.pow(t, 3.0) * points.p4.x)
 }
 
+@SwingCoordinate
 private fun getCurveY(points: CurvePoints, t: Double): Double {
   return (Math.pow(1 - t, 3.0) * points.p1.y
           + 3 * Math.pow(1 - t, 2.0) * t * points.p2.y

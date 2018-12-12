@@ -816,7 +816,7 @@ public class SceneComponent {
 
   @AndroidDpCoordinate
   @NotNull
-  public Rectangle2D.Float fillDrawRect2D(long time, @AndroidDpCoordinate Rectangle2D.Float rec) {
+  public Rectangle2D.Float fillDrawRect2D(long time, @Nullable @AndroidDpCoordinate Rectangle2D.Float rec) {
     if (rec == null) {
       rec = new Rectangle2D.Float();
     }
