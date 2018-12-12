@@ -32,7 +32,6 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlChildRole;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.xml.DomFileDescription;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -40,7 +39,6 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.dom.AndroidAnyAttributeDescriptor;
 import org.jetbrains.android.dom.AndroidDomExtender;
-import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.AndroidXmlTagDescriptor;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
@@ -106,13 +104,10 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
     ResourceFolderType resourceType = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getFileResourceFolderType(file);
     if (resourceType != null) {
       if (ourSupportedResourceTypes == null) {
-        ourSupportedResourceTypes = EnumSet.noneOf(ResourceFolderType.class);
-        for (DomFileDescription description : DomFileDescription.EP_NAME.getExtensions()) {
-          if (description instanceof AndroidResourceDomFileDescription) {
-            //noinspection unchecked
-            ourSupportedResourceTypes.addAll(((AndroidResourceDomFileDescription)description).getResourceTypes());
-          }
-        }
+        EnumSet<ResourceFolderType> almostAll = EnumSet.allOf(ResourceFolderType.class);
+        almostAll.remove(ResourceFolderType.INTERPOLATOR);
+        almostAll.remove(ResourceFolderType.VALUES);
+        ourSupportedResourceTypes = almostAll;
       }
       // Raw resource files should accept any tag values
       if (!ourSupportedResourceTypes.contains(resourceType) || ResourceFolderType.RAW == resourceType) {
