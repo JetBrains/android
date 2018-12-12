@@ -52,7 +52,7 @@ public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
+    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance();
     AndroidRunConfigurationBase actualRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
     myRunConfiguration = spy(actualRunConfiguration);
     myIdeComponents = new IdeComponents(getProject());

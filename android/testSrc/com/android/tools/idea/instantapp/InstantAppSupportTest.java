@@ -68,7 +68,7 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
 
     // Create one run configuration
     List<RunConfiguration> configurations =
-      RunManager.getInstance(getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance().getFactory().getType());
+      RunManager.getInstance(getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance());
     assertEquals(1, configurations.size());
     RunConfiguration configuration = configurations.get(0);
     assertInstanceOf(configuration, AndroidRunConfiguration.class);
@@ -95,7 +95,7 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
 
     // Create one run configuration
     List<RunConfiguration> configurations =
-      RunManager.getInstance(getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance().getFactory().getType());
+      RunManager.getInstance(getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance());
     assertEquals(1, configurations.size());
     RunConfiguration configuration = configurations.get(0);
     assertInstanceOf(configuration, AndroidRunConfiguration.class);
@@ -116,7 +116,7 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     // No exception
   }
 
-  private void assertExceptionInCheckingConfig(@NotNull AndroidRunConfiguration runConfig, @NotNull String url) throws Throwable {
+  private void assertExceptionInCheckingConfig(@NotNull AndroidRunConfiguration runConfig, @NotNull String url) {
     assertException(new AbstractExceptionCase() {
       @Override
       public Class getExpectedExceptionClass() {

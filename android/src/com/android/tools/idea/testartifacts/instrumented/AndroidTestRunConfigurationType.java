@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.testartifacts.instrumented;
 
-import com.android.tools.idea.run.AndroidRunConfigurationType;
-import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.ConfigurationTypeUtil;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.SimpleConfigurationType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NotNullLazyValue;
@@ -31,63 +29,35 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public final class AndroidTestRunConfigurationType implements ConfigurationType {
-  private static final NotNullLazyValue<Icon> ANDROID_TEST_ICON = new NotNullLazyValue<Icon>() {
-    @NotNull
-    @Override
-    protected Icon compute() {
-      LayeredIcon icon = new LayeredIcon(2);
-      icon.setIcon(AndroidIcons.AndroidModule, 0);
-      icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
-      return icon;
-    }
-  };
+public final class AndroidTestRunConfigurationType extends SimpleConfigurationType {
+  public AndroidTestRunConfigurationType() {
+    super(AndroidCommonUtils.ANDROID_TEST_RUN_CONFIGURATION_TYPE,
+          AndroidBundle.message("android.test.run.configuration.type.name"),
+          AndroidBundle.message("android.test.run.configuration.type.description"), new NotNullLazyValue<Icon>() {
+        @NotNull
+        @Override
+        protected Icon compute() {
+          LayeredIcon icon = new LayeredIcon(2);
+          icon.setIcon(AndroidIcons.AndroidModule, 0);
+          icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
+          return icon;
+        }
+      });
+  }
 
-  private final ConfigurationFactory myFactory = new AndroidRunConfigurationType.AndroidRunConfigurationFactory(this) {
-    @NotNull
-    @Override
-    public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
-      return new AndroidTestRunConfiguration(project, this);
-    }
-  };
-
+  @NotNull
   public static AndroidTestRunConfigurationType getInstance() {
     return ConfigurationTypeUtil.findConfigurationType(AndroidTestRunConfigurationType.class);
   }
 
   @NotNull
   @Override
-  public String getDisplayName() {
-    return AndroidBundle.message("android.test.run.configuration.type.name");
-  }
-
-  @Override
-  public String getConfigurationTypeDescription() {
-    return AndroidBundle.message("android.test.run.configuration.type.description");
-  }
-
-  @Override
-  public Icon getIcon() {
-    return ANDROID_TEST_ICON.getValue();
-  }
-
-  @Override
-  @NotNull
-  public String getId() {
-    return AndroidCommonUtils.ANDROID_TEST_RUN_CONFIGURATION_TYPE;
-  }
-
-  @Override
-  public ConfigurationFactory[] getConfigurationFactories() {
-    return new ConfigurationFactory[]{myFactory};
+  public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
+    return new AndroidTestRunConfiguration(project, this);
   }
 
   @Override
   public String getHelpTopic() {
     return "reference.dialogs.rundebug.AndroidTestRunConfigurationType";
-  }
-
-  public ConfigurationFactory getFactory() {
-    return myFactory;
   }
 }

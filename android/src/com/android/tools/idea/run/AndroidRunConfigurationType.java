@@ -3,7 +3,10 @@ package com.android.tools.idea.run;
 
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTask;
-import com.intellij.execution.configurations.*;
+import com.intellij.execution.configurations.ConfigurationTypeUtil;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RunConfigurationSingletonPolicy;
+import com.intellij.execution.configurations.SimpleConfigurationType;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -13,12 +16,16 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
+public final class AndroidRunConfigurationType extends SimpleConfigurationType {
   public AndroidRunConfigurationType() {
-    super("AndroidRunConfigurationType", AndroidBundle.message("android.run.configuration.type.name"), AndroidBundle.message("android.run.configuration.type.description"),
+    super("AndroidRunConfigurationType", AndroidBundle.message("android.run.configuration.type.name"),
+          AndroidBundle.message("android.run.configuration.type.description"),
           NotNullLazyValue.createValue(() -> AndroidIcons.AndroidModule));
+  }
 
-    addFactory(new AndroidRunConfigurationFactory(this));
+  @NotNull
+  public static AndroidRunConfigurationType getInstance() {
+    return ConfigurationTypeUtil.findConfigurationType(AndroidRunConfigurationType.class);
   }
 
   @Override
@@ -26,42 +33,28 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
     return "reference.dialogs.rundebug.AndroidRunConfigurationType";
   }
 
-  public static class AndroidRunConfigurationFactory extends ConfigurationFactory {
-    protected AndroidRunConfigurationFactory(@NotNull ConfigurationType type) {
-      super(type);
-    }
-
-    @NotNull
-    @Override
-    public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
-      return new AndroidRunConfiguration(project, this);
-    }
-
-    @NotNull
-    @Override
-    public RunConfigurationSingletonPolicy getSingletonPolicy() {
-      return RunConfigurationSingletonPolicy.MULTIPLE_INSTANCE;
-    }
-
-    @Override
-    public boolean isApplicable(@NotNull Project project) {
-      return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
-    }
-
-    @Override
-    public void configureBeforeRunTaskDefaults(Key<? extends BeforeRunTask> providerID, BeforeRunTask task) {
-      // Disable the default Make compile step for this run configuration type
-      if (CompileStepBeforeRun.ID.equals(providerID)) {
-        task.setEnabled(false);
-      }
-    }
+  @NotNull
+  @Override
+  public RunConfiguration createTemplateConfiguration(@NotNull Project project) {
+    return new AndroidRunConfiguration(project, this);
   }
 
-  public static AndroidRunConfigurationType getInstance() {
-    return ConfigurationTypeUtil.findConfigurationType(AndroidRunConfigurationType.class);
+  @NotNull
+  @Override
+  public RunConfigurationSingletonPolicy getSingletonPolicy() {
+    return RunConfigurationSingletonPolicy.MULTIPLE_INSTANCE;
   }
 
-  public ConfigurationFactory getFactory() {
-    return getConfigurationFactories()[0];
+  @Override
+  public boolean isApplicable(@NotNull Project project) {
+    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
+  }
+
+  @Override
+  public void configureBeforeRunTaskDefaults(Key<? extends BeforeRunTask> providerID, BeforeRunTask task) {
+    // Disable the default Make compile step for this run configuration type
+    if (CompileStepBeforeRun.ID.equals(providerID)) {
+      task.setEnabled(false);
+    }
   }
 }
