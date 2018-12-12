@@ -788,7 +788,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public void setMemoryLiveAllocationEnabled(boolean enabled) {
     if (getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled() &&
-        getDevice() != null && getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
+        getDevice() != null && getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
+        isAgentAttached()) {
       int savedSamplingRate = getIdeServices().getPersistentProfilerPreferences().getInt(
         MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
       int samplingRateOff = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();

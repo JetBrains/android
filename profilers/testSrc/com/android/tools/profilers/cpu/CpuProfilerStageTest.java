@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.filter.FilterModel;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FilterMetadata;
@@ -1909,6 +1910,7 @@ public class CpuProfilerStageTest extends AspectObserver {
                                                                      CpuProfiler.CpuProfilerMode.INSTRUMENTED);
     config.setDisableLiveAllocation(false);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.getDefaultInstance());
 
     // Live allocation sampling rate should remain the same.
     startCapturingSuccess();
@@ -1919,6 +1921,17 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Enable feature flag.
     // Live allocation sampling rate should still remain the same.
     myServices.enableLiveAllocationsSampling(true);
+    startCapturingSuccess();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+    stopCapturing();
+    assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
+
+    // Set agent status to ATTACHED.
+    // Live allocation sampling rate should still remain the same.
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.newBuilder()
+                                       .setStatus(Profiler.AgentStatusResponse.Status.ATTACHED)
+                                       .build());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     startCapturingSuccess();
     assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
     stopCapturing();
