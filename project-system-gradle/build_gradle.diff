@@ -1,0 +1,55 @@
+diff --git a/build.gradle b/build.gradle
+--- a/build.gradle
++++ b/build.gradle
+@@ -1,9 +1,9 @@
+ import org.gradle.tooling.GradleConnector
++import org.gradle.util.GradleVersion
+ 
+ plugins {
+   id "base"
+   id "maven-publish"
+-  id "com.jfrog.bintray" version "1.7.3"
+ }
+ 
+ def intelliJDepsGroupId = 'org.jetbrains.intellij.deps'
+@@ -12,6 +12,7 @@ def gradleApiImplDepArtifactId = 'gradle-api-impldep'
+ def gradleWrapperArtifactId = 'gradle-wrapper'
+ def gradleLauncherArtifactId = 'gradle-launcher'
+ 
++def gradleApiVersion = GradleVersion.current().getVersion()
+ def gradleApiBaseVersion = GradleVersion.version(gradleApiVersion).getBaseVersion().getVersion()
+ def gradleWrapperFileName = "gradle-wrapper.jar"
+ def gradleLauncherFileName = "gradle-launcher-${gradleApiBaseVersion}.jar"
+@@ -60,6 +61,7 @@ task setupGradleApiDeps(dependsOn: configurations.gradleApiDeps, type: Sync) {
+ 
+     def connection = GradleConnector.newConnector()
+       .useGradleVersion(gradleApiVersion)
++      .useGradleUserHomeDir(gradle.getGradleUserHomeDir())
+       .forProjectDirectory(projectDir)
+       .connect()
+     try {
+@@ -161,23 +161,4 @@ publishing {
+ task publishGradleApiToMavenLocal
+ publishGradleApiToMavenLocal.dependsOn tasks.withType(PublishToMavenLocal).matching { it.name.startsWith('publishGradle') }
+ task publishGradleApiToMavenRepository
+-publishGradleApiToMavenRepository.dependsOn tasks.withType(PublishToMavenRepository).matching { it.name.startsWith('publishGradle') }
+-
+-bintray {
+-  user = System.getenv('BINTRAY_JETBRAINS_TEAMCITY_UPLOADER_USER')
+-  key = System.getenv('BINTRAY_JETBRAINS_TEAMCITY_UPLOADER_API_KEY')
+-
+-  publish = true
+-
+-  pkg {
+-    repo = 'intellij-third-party-dependencies'
+-    name = 'gradle-api'
+-    userOrg = 'jetbrains'
+-
+-    version {
+-      name = gradleApiVersion
+-    }
+-  }
+-
+-  publications = ['gradleApi', 'gradleApiImplDep', 'gradleWrapper', 'gradleLauncher']
+-}
++publishGradleApiToMavenRepository.dependsOn tasks.withType(PublishToMavenRepository).matching { it.name.startsWith('publishGradle') }
