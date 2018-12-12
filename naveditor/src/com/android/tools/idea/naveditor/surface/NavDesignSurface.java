@@ -41,6 +41,7 @@ import com.android.tools.idea.common.scene.LerpPoint;
 import com.android.tools.idea.common.scene.LerpValue;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -58,6 +59,7 @@ import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
+import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -71,6 +73,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -97,8 +100,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.geom.Point2D;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -113,6 +116,7 @@ import java.util.stream.Collectors;
 import javax.swing.JViewport;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -182,6 +186,27 @@ public class NavDesignSurface extends DesignSurface {
     }
     getScheduleRef().set(null);
     super.dispose();
+  }
+
+
+  @Override
+  public Object getData(@NotNull @NonNls String dataId) {
+    if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
+      NlComponent selection = getSelectionModel().getPrimary();
+      if (selection != null && NavComponentHelperKt.isAction(selection)) {
+        Scene scene = getScene();
+        if (scene != null) {
+          SceneComponent sceneComponent = scene.getSceneComponent(selection);
+          if (sceneComponent != null) {
+            Point2D.Float p2d = NavActionHelperKt.getAnyPoint(sceneComponent, SceneContext.get(getCurrentSceneView()));
+            if (p2d != null) {
+              return new Point((int)p2d.x, (int)p2d.y);
+            }
+          }
+        }
+      }
+    }
+    return super.getData(dataId);
   }
 
   @Override
