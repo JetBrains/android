@@ -61,6 +61,18 @@ class ComboBoxPropertyEditorModelTest {
   }
 
   @Test
+  fun testSelectItemIsKeptAfterFocusLoss() {
+    val model = createModel()
+    model.isPopupVisible = true
+    model.selectedItem = "gone"
+
+    model.popupMenuWillBecomeInvisible(false)
+    model.focusLost()
+
+    assertThat(model.property.value).isEqualTo("gone")
+  }
+
+  @Test
   fun testEnter() {
     val (model, listener) = createModelWithListener()
     val line = FakeInspectorLine(LineType.PROPERTY)

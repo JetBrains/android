@@ -79,9 +79,14 @@ interface EnumValue {
    * The default operation simply updates the value on the property.
    * This method could be overridden to do something different like as
    * opening a dialog.
+   *
+   * A return value of true means the value of the [EnumValue] was
+   * assigned. A return value of false means the property was updated
+   * with other means e.g. from a dialog or an action.
    */
-  fun select(property: PropertyItem) {
+  fun select(property: PropertyItem): Boolean {
     property.value = value
+    return true
   }
 
   /**
