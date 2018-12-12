@@ -15,15 +15,29 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.gradle.structure.configurables.DEPENDENCIES_VIEW
 import com.android.tools.idea.gradle.structure.configurables.MODULES_VIEW
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.android.tools.idea.tests.gui.framework.robot
+import org.fest.swing.fixture.JTabbedPaneFixture
 import java.awt.Container
+import javax.swing.JTabbedPane
 
 class ModulesPerspectiveConfigurableFixture(
   ideFrameFixture: IdeFrameFixture,
   container: Container
-) : BasePerspectiveConfigurableFixture(ideFrameFixture, container)
+) : BasePerspectiveConfigurableFixture(ideFrameFixture, container) {
+
+  fun selectPropertiesTab(): ModulePropertiesFixture =
+    selectTab("Properties") { ModulePropertiesFixture(ideFrameFixture, it) }
+
+  fun selectDefaultConfigTab(): ModuleDefaultConfigFixture =
+    selectTab("Default Config") { ModuleDefaultConfigFixture(ideFrameFixture, it) }
+
+  fun selectSigningConfigsTab(): SigningConfigsFixture =
+    selectTab("Signing Configs") { SigningConfigsFixture(ideFrameFixture, it) }
+}
 
 fun ProjectStructureDialogFixture.selectModulesConfigurable(): ModulesPerspectiveConfigurableFixture {
   selectConfigurable("Modules")

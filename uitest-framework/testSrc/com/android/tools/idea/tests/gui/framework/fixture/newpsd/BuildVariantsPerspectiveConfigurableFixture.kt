@@ -16,14 +16,20 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.configurables.BUILD_VARIANTS_VIEW
-import com.android.tools.idea.gradle.structure.configurables.DEPENDENCIES_VIEW
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import java.awt.Container
 
 class BuildVariantsPerspectiveConfigurableFixture(
   ideFrameFixture: IdeFrameFixture,
   container: Container
-) : BasePerspectiveConfigurableFixture(ideFrameFixture, container)
+) : BasePerspectiveConfigurableFixture(ideFrameFixture, container) {
+
+  fun selectBuildTypesTab(): BuildTypesFixture =
+    selectTab("Build Types") { BuildTypesFixture(ideFrameFixture, it) }
+
+  fun selectProductFlavorsTab(): ProductFlavorsFixture =
+    selectTab("Flavors") { ProductFlavorsFixture(ideFrameFixture, it) }
+}
 
 fun ProjectStructureDialogFixture.selectBuildVariantsConfigurable(): BuildVariantsPerspectiveConfigurableFixture {
   selectConfigurable("Build Variants")
