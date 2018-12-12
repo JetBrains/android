@@ -654,8 +654,8 @@ public class CanvasResizeInteraction extends Interaction {
       assert deviceState != null;
       boolean isDevicePortrait = deviceState.getOrientation() == ScreenOrientation.PORTRAIT;
 
-      int width = Coordinates.getAndroidXDip(myScreenView, myCurrentX);
-      int height = Coordinates.getAndroidYDip(myScreenView, myCurrentY);
+      int width = Coordinates.getAndroidX(myScreenView, myCurrentX);
+      int height = Coordinates.getAndroidY(myScreenView, myCurrentY);
       if ((width > height && isDevicePortrait) || (width < height && !isDevicePortrait)) {
         return;
       }
