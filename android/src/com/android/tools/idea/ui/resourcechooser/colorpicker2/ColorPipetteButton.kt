@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import java.awt.*
-import javax.swing.*
+import java.awt.Color
+import javax.swing.JButton
 
 class ColorPipetteButton(private val colorPickerModel: ColorPickerModel, private val pipette: ColorPipette) : JButton() {
 
@@ -27,17 +27,10 @@ class ColorPipetteButton(private val colorPickerModel: ColorPickerModel, private
     rolloverIcon = pipette.rolloverIcon
     pressedIcon = pipette.pressedIcon
 
-    addActionListener { pipette.pick(MyCallback(colorPickerModel)) }
+    addActionListener { pipette.pick(MyCallback()) }
   }
 
-  private inner class MyCallback(val model: ColorPickerModel): ColorPipette.Callback {
-
-    private val originalColor = model.color
-
-    override fun picked(pickedColor: Color) = model.setColor(pickedColor, this@ColorPipetteButton)
-
-    override fun update(updatedColor: Color) = model.setColor(updatedColor, this@ColorPipetteButton)
-
-    override fun cancel() = model.setColor(originalColor, this@ColorPipetteButton)
+  private inner class MyCallback : ColorPipette.Callback {
+    override fun picked(pickedColor: Color) = colorPickerModel.setColor(pickedColor, this@ColorPipetteButton)
   }
 }
