@@ -1,4 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:diff.bzl", "apply_diff")
+load("//tools/base/bazel:gradle.bzl", "gradle_build")
 
 # managed by go/iml_to_build
 iml_module(
@@ -86,4 +88,25 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
+)
+
+# Remove remote publishing from upstream jetbrains script
+apply_diff(
+    name = "fixup_build.gradle",
+    diff_file = "build_gradle.diff",
+    input_file = "//tools/idea/build/dependencies/gradle-api-deps:build.gradle",
+    output_file = "build.gradle",
+)
+
+# generate the maven repository
+gradle_build(
+    name = "idea_gradle_api",
+    build_file = ":build.gradle",
+    output_files = {
+        "gradle-api-impldep.jar": "m2/org/jetbrains/intellij/deps/gradle-api-impldep/*/gradle-api-impldep-*.jar",
+        "gradle-api.jar": "m2/org/jetbrains/intellij/deps/gradle-api/*/gradle-api-*.jar",
+        "gradle-launcher.jar": "m2/org/jetbrains/intellij/deps/gradle-launcher/*/gradle-launcher-*.jar",
+        "gradle-wrapper.jar": "m2/org/jetbrains/intellij/deps/gradle-wrapper/*/gradle-wrapper-*.jar",
+    },
+    tasks = [":publishGradleApiToMavenLocal"],
 )
