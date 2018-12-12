@@ -20,9 +20,8 @@ import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.Shape;
 
 public class ShapeDomFileDescription extends AbstractSingleRootFileDescription<Shape> {
-  public static final String TAG_NAME = "shape";
 
   public ShapeDomFileDescription() {
-    super(Shape.class, TAG_NAME, ResourceFolderType.DRAWABLE);
+    super(Shape.class, "shape", ResourceFolderType.DRAWABLE);
   }
 }

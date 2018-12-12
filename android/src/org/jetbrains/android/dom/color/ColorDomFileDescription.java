@@ -29,11 +29,6 @@ public class ColorDomFileDescription extends AndroidResourceDomFileDescription<C
     super(ColorSelector.class, "selector", ResourceFolderType.COLOR);
   }
 
-  @Override
-  public boolean acceptsOtherRootTagNames() {
-    return false;
-  }
-
   public static boolean isColorResourceFile(final XmlFile file) {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override

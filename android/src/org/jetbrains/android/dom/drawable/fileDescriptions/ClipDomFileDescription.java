@@ -20,9 +20,8 @@ import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.Clip;
 
 public class ClipDomFileDescription extends AbstractSingleRootFileDescription<Clip> {
-  public static final String TAG_NAME = "clip";
 
   public ClipDomFileDescription() {
-    super(Clip.class, TAG_NAME, ResourceFolderType.DRAWABLE);
+    super(Clip.class, "clip", ResourceFolderType.DRAWABLE);
   }
 }

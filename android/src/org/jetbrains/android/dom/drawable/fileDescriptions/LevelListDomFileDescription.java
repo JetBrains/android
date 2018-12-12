@@ -20,14 +20,9 @@ import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.LevelList;
 
 public class LevelListDomFileDescription extends AbstractSingleRootFileDescription<LevelList> {
-  public static final String TAG_NAME = "level-list";
 
   public LevelListDomFileDescription() {
-    super(LevelList.class, TAG_NAME, ResourceFolderType.DRAWABLE);
+    super(LevelList.class, "level-list", ResourceFolderType.DRAWABLE);
   }
 
-  @Override
-  public boolean acceptsOtherRootTagNames() {
-    return false;
-  }
 }
