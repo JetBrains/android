@@ -80,13 +80,13 @@ final class ConnectionsView {
     TIME(0.25 / 4, Long.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
-        return data.getEndTimeUs() - data.getStartTimeUs();
+        return data.getConnectionEndTimeUs() - data.getRequestStartTimeUs();
       }
     },
     TIMELINE(0.5, Long.class) {
       @Override
       Object getValueFrom(@NotNull HttpData data) {
-        return data.getStartTimeUs();
+        return data.getRequestStartTimeUs();
       }
     };
 

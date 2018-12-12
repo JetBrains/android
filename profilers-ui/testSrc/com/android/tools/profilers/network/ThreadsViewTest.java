@@ -148,16 +148,16 @@ public class ThreadsViewTest {
     selection.set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(200));
 
     table.getRowSorter().toggleSortOrder(table.getColumn("Timeline").getModelIndex());
-    assertThat(getFirstHttpDataAtRow(table, 0).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(1)));
-    assertThat(getFirstHttpDataAtRow(table, 1).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(5)));
-    assertThat(getFirstHttpDataAtRow(table, 2).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(100)));
-    assertThat(getFirstHttpDataAtRow(table, 3).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(115)));
+    assertThat(getFirstHttpDataAtRow(table, 0).getRequestStartTimeUs(), is(TimeUnit.SECONDS.toMicros(1)));
+    assertThat(getFirstHttpDataAtRow(table, 1).getRequestStartTimeUs(), is(TimeUnit.SECONDS.toMicros(5)));
+    assertThat(getFirstHttpDataAtRow(table, 2).getRequestStartTimeUs(), is(TimeUnit.SECONDS.toMicros(100)));
+    assertThat(getFirstHttpDataAtRow(table, 3).getRequestStartTimeUs(), is(TimeUnit.SECONDS.toMicros(115)));
 
     table.getRowSorter().toggleSortOrder(table.getColumn("Timeline").getModelIndex());
-    assertThat(getFirstHttpDataAtRow(table, 0).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(115)));
-    assertThat(getFirstHttpDataAtRow(table, 1).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(100)));
-    assertThat(getFirstHttpDataAtRow(table, 2).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(5)));
-    assertThat(getFirstHttpDataAtRow(table, 3).getStartTimeUs(), is(TimeUnit.SECONDS.toMicros(1)));
+    assertThat(getFirstHttpDataAtRow(table, 0).getRequestStartTimeUs(), is(TimeUnit.SECONDS.toMicros(115)));
+    assertThat(getFirstHttpDataAtRow(table, 1).getRequestStartTimeUs(), is(TimeUnit.SECONDS.toMicros(100)));
+    assertThat(getFirstHttpDataAtRow(table, 2).getRequestStartTimeUs(), is(TimeUnit.SECONDS.toMicros(5)));
+    assertThat(getFirstHttpDataAtRow(table, 3).getRequestStartTimeUs(), is(TimeUnit.SECONDS.toMicros(1)));
   }
 
   private static HttpData getFirstHttpDataAtRow(JTable table, int row) {

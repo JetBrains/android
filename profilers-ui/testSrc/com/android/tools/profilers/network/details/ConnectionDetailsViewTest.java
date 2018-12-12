@@ -15,13 +15,22 @@
  */
 package com.android.tools.profilers.network.details;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
@@ -30,27 +39,27 @@ import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
+import java.awt.Component;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
-
 public class ConnectionDetailsViewTest {
   private static final String fakeTraceId = "fakeTraceId";
   private static final String fakeTrace = "com.google.downloadUrlToStream(ImageFetcher.java:274)";
   private static final HttpData DEFAULT_DATA =
-    new HttpData.Builder(1, 10000, 25000, 50000, 100000, TestHttpData.FAKE_THREAD_LIST)
+    new HttpData.Builder(1, 10000, 25000, 50000, 100000, 100000, TestHttpData.FAKE_THREAD_LIST)
       .setUrl("dumbUrl").setTraceId(fakeTraceId).setMethod("GET")
-    .build();
+      .build();
 
   private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
   /**
@@ -130,8 +139,8 @@ public class ConnectionDetailsViewTest {
     myView = new ConnectionDetailsView(myStageView);
 
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields("Content-Type = application/x-www-form-urlencoded")
-                                                      .setResponseFields(RESPONSE_HEADERS).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID)
-                                                      .build();
+      .setResponseFields(RESPONSE_HEADERS).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID)
+      .build();
     myProfilerService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("a=1&b=2"));
     myView.setHttpData(data);
 
@@ -147,7 +156,7 @@ public class ConnectionDetailsViewTest {
 
     HttpData data =
       new HttpData.Builder(DEFAULT_DATA).setResponseFields("null =  HTTP/1.1 302 Found\n Content-Type = application/x-www-form-urlencoded")
-                                        .setResponsePayloadId(TEST_RESPONSE_PAYLOAD_ID).build();
+        .setResponsePayloadId(TEST_RESPONSE_PAYLOAD_ID).build();
     myProfilerService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("a=1&b=2"));
     myView.setHttpData(data);
 
@@ -348,7 +357,8 @@ public class ConnectionDetailsViewTest {
     // uploadedTime isn't used in legends (at the moment anyway) so just stub it for now
     long uploadedTimeUs = startTimeUs;
     HttpData data =
-      new HttpData.Builder(0, startTimeUs, uploadedTimeUs, downloadingTimeUs, endTimeUs, TestHttpData.FAKE_THREAD_LIST).setUrl("unusedUrl")
+      new HttpData.Builder(0, startTimeUs, uploadedTimeUs, downloadingTimeUs, endTimeUs, endTimeUs, TestHttpData.FAKE_THREAD_LIST)
+        .setUrl("unusedUrl")
         .build();
     myView.setHttpData(data);
 

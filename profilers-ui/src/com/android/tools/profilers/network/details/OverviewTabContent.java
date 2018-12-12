@@ -69,7 +69,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Tab which shows a bunch of useful, high level information for a network request.
- *
+ * <p>
  * This tab will be the first one shown to the user when they first select a request.
  */
 final class OverviewTabContent extends TabContent {
@@ -200,8 +200,10 @@ final class OverviewTabContent extends TabContent {
   private static JComponent createTimingBar(@NotNull HttpData httpData) {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    Range range = new Range(httpData.getStartTimeUs(),
-                            httpData.getEndTimeUs() > 0 ? httpData.getEndTimeUs() : httpData.getStartTimeUs() + 1);
+    Range range = new Range(httpData.getRequestStartTimeUs(),
+                            httpData.getConnectionEndTimeUs() > 0
+                            ? httpData.getConnectionEndTimeUs()
+                            : httpData.getRequestStartTimeUs() + 1);
     ConnectionsStateChart connectionsChart = new ConnectionsStateChart(httpData, range);
     connectionsChart.getComponent().setMinimumSize(new Dimension(0, JBUI.scale(28)));
     connectionsChart.setHeightGap(0);
@@ -209,12 +211,12 @@ final class OverviewTabContent extends TabContent {
 
     long sentTime = -1;
     long receivedTime = -1;
-    if (httpData.getDownloadingTimeUs() > 0) {
-      sentTime = httpData.getDownloadingTimeUs() - httpData.getStartTimeUs();
-      receivedTime = httpData.getEndTimeUs() - httpData.getDownloadingTimeUs();
+    if (httpData.getResponseStartTimeUs() > 0) {
+      sentTime = httpData.getResponseStartTimeUs() - httpData.getRequestStartTimeUs();
+      receivedTime = httpData.getResponseCompleteTimeUs() - httpData.getResponseStartTimeUs();
     }
-    else if (httpData.getEndTimeUs() > 0) {
-      sentTime = httpData.getEndTimeUs() - httpData.getStartTimeUs();
+    else if (httpData.getConnectionEndTimeUs() > 0) {
+      sentTime = httpData.getConnectionEndTimeUs() - httpData.getRequestStartTimeUs();
       receivedTime = 0;
     }
 

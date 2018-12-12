@@ -108,9 +108,11 @@ public class NetworkProfilerStageTest {
     HttpData data = dataList.get(0);
     HttpData expectedData = FAKE_HTTP_DATA.get(0);
 
-    assertThat(data.getStartTimeUs()).isEqualTo(expectedData.getStartTimeUs());
-    assertThat(data.getDownloadingTimeUs()).isEqualTo(expectedData.getDownloadingTimeUs());
-    assertThat(data.getEndTimeUs()).isEqualTo(expectedData.getEndTimeUs());
+    assertThat(data.getRequestStartTimeUs()).isEqualTo(expectedData.getRequestStartTimeUs());
+    assertThat(data.getRequestCompleteTimeUs()).isEqualTo(expectedData.getRequestCompleteTimeUs());
+    assertThat(data.getResponseStartTimeUs()).isEqualTo(expectedData.getResponseStartTimeUs());
+    assertThat(data.getResponseCompleteTimeUs()).isEqualTo(expectedData.getResponseCompleteTimeUs());
+    assertThat(data.getConnectionEndTimeUs()).isEqualTo(expectedData.getConnectionEndTimeUs());
     assertThat(data.getMethod()).isEqualTo(expectedData.getMethod());
     assertThat(data.getUrl()).isEqualTo(expectedData.getUrl());
     assertThat(data.getTraceId()).isEqualTo(expectedData.getTraceId());

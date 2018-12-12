@@ -61,9 +61,9 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   private AspectModel<NetworkProfilerAspect> myAspect = new AspectModel<>();
 
   private final NetworkConnectionsModel myConnectionsModel =
-    new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getProfilerClient(),
-                                   getStudioProfilers().getClient().getNetworkClient(),
-                                   getStudioProfilers().getSession());
+    new LegacyRpcNetworkConnectionsModel(getStudioProfilers().getClient().getProfilerClient(),
+                                         getStudioProfilers().getClient().getNetworkClient(),
+                                         getStudioProfilers().getSession());
 
   private final DetailedNetworkUsage myDetailedNetworkUsage;
   private final NetworkStageLegends myLegends;

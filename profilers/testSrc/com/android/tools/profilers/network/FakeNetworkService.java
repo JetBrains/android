@@ -105,18 +105,18 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
     long requestEndTime = request.getEndTimestamp();
 
     for (HttpData data : myHttpDataList) {
-      long startTime = TimeUnit.MICROSECONDS.toNanos(data.getStartTimeUs());
-      long uploadTime = TimeUnit.MICROSECONDS.toNanos(data.getUploadedTimeUs());
-      long downloadTime = TimeUnit.MICROSECONDS.toNanos(data.getDownloadingTimeUs());
-      long endTime = TimeUnit.MICROSECONDS.toNanos(data.getEndTimeUs());
+      long requestStartTimeNs = TimeUnit.MICROSECONDS.toNanos(data.getRequestStartTimeUs());
+      long requestCompleteTimeNs = TimeUnit.MICROSECONDS.toNanos(data.getRequestCompleteTimeUs());
+      long responseStarteTimeNs = TimeUnit.MICROSECONDS.toNanos(data.getResponseStartTimeUs());
+      long connectionEndTimeNs = TimeUnit.MICROSECONDS.toNanos(data.getConnectionEndTimeUs());
 
-      if (Math.max(requestStartTime, startTime) <= Math.min(requestEndTime, endTime == 0 ? Long.MAX_VALUE : endTime)) {
+      if (Math.max(requestStartTime, requestStartTimeNs) <= Math.min(requestEndTime, connectionEndTimeNs == 0 ? Long.MAX_VALUE : connectionEndTimeNs)) {
         HttpConnectionData.Builder dataBuilder = HttpConnectionData.newBuilder();
         dataBuilder.setConnId(data.getId())
-          .setStartTimestamp(startTime)
-          .setUploadedTimestamp(uploadTime)
-          .setDownloadingTimestamp(downloadTime)
-          .setEndTimestamp(endTime)
+          .setStartTimestamp(requestStartTimeNs)
+          .setUploadedTimestamp(requestCompleteTimeNs)
+          .setDownloadingTimestamp(responseStarteTimeNs)
+          .setEndTimestamp(connectionEndTimeNs)
           .build();
         builder.addData(dataBuilder.build());
       }

@@ -16,20 +16,19 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.profilers.network.httpdata.HttpData;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Helper class for creating {@link HttpData} and {@link HttpData.Builder}s that are test friendly.
  * For example, they work with seconds (rather than microseconds) and they make sure a bunch of
  * sensible values are included by default.
- *
+ * <p>
  * These values are exposed either via public constants for methods that start with the word
  * {@code fake}, in case a test needs to test against them.
- *
+ * <p>
  * Because a request's upload, download, and end timestamps have a special meaning if set to 0,
  * this class requires that the start timestamp at least be greater than 0, for clarity.
  */
@@ -58,10 +57,9 @@ public final class TestHttpData {
   }
 
   public static String fakeStackTrace(long id) {
-      return String.format(
-        "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)\n" +
-        "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:%d)", id);
-
+    return String.format(
+      "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)\n" +
+      "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:%d)", id);
   }
 
   @NotNull
@@ -94,28 +92,44 @@ public final class TestHttpData {
 
   @NotNull
   public static HttpData.Builder newBuilder(long id, long startS, long endS) {
-    return initHttpDataBuilder(newBuilder(id, startS, startS, endS, endS));
+    return initHttpDataBuilder(newBuilder(id, startS, startS, endS, endS, endS));
   }
 
   @NotNull
   public static HttpData.Builder newBuilder(long id, long startS, long endS, HttpData.JavaThread initialThread) {
-    return initHttpDataBuilder(newBuilder(id, startS, startS, endS, endS, initialThread));
+    return initHttpDataBuilder(newBuilder(id, startS, startS, endS, endS, endS, initialThread));
   }
 
   @NotNull
-  public static HttpData.Builder newBuilder(long id, long startS, long uploadS, long downloadS, long endS) {
-    return initHttpDataBuilder(newBuilder(id, startS, uploadS, downloadS, endS, FAKE_THREAD));
+  public static HttpData.Builder newBuilder(long id,
+                                            long requestStartSec,
+                                            long requestCompleteSec,
+                                            long responseStartSec,
+                                            long responseCompleteSec,
+                                            long connectionEndSec) {
+    return initHttpDataBuilder(
+      newBuilder(id, requestStartSec, requestCompleteSec, responseStartSec, responseCompleteSec, connectionEndSec, FAKE_THREAD));
   }
 
   @NotNull
-  public static HttpData.Builder newBuilder(long id, long startS, long uploadS, long downloadS, long endS, HttpData.JavaThread initialThread) {
-    if (startS <= 0) {
+  public static HttpData.Builder newBuilder(long id,
+                                            long requestStartSec,
+                                            long requestCompleteSec,
+                                            long responseStartSec,
+                                            long responseCompleteSec,
+                                            long connectionEndSec,
+                                            HttpData.JavaThread initialThread) {
+    if (requestStartSec <= 0) {
       throw new IllegalArgumentException("startS should be a positive (>= 0) value");
     }
 
-    return initHttpDataBuilder(new HttpData.Builder(
-      id, TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(uploadS), TimeUnit.SECONDS.toMicros(downloadS),
-      TimeUnit.SECONDS.toMicros(endS), Collections.singletonList(initialThread)));
+    return initHttpDataBuilder(new HttpData.Builder(id,
+                                                    TimeUnit.SECONDS.toMicros(requestStartSec),
+                                                    TimeUnit.SECONDS.toMicros(requestCompleteSec),
+                                                    TimeUnit.SECONDS.toMicros(responseStartSec),
+                                                    TimeUnit.SECONDS.toMicros(responseCompleteSec),
+                                                    TimeUnit.SECONDS.toMicros(connectionEndSec),
+                                                    Collections.singletonList(initialThread)));
   }
 
   @NotNull
@@ -127,15 +141,14 @@ public final class TestHttpData {
 
     builder.setTraceId(fakeStackTraceId(id));
     builder.setUrl(fakeUrl(id));
-    if (temp.getUploadedTimeUs() != 0) {
+    if (temp.getRequestCompleteTimeUs() != 0) {
       builder.setRequestPayloadId(fakeRequestPayloadId(id));
     }
-    if (temp.getEndTimeUs() != 0) {
+    if (temp.getResponseCompleteTimeUs() != 0) {
       builder.setResponsePayloadId(fakeResponsePayloadId(id));
       builder.setResponseFields(fakeResponseFields(id));
     }
 
     return builder;
   }
-
 }

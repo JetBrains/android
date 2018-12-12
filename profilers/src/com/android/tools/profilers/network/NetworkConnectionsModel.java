@@ -16,11 +16,10 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import org.jetbrains.annotations.NotNull;
-
+import com.android.tools.profilers.network.httpdata.HttpData;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A model class which allows querying captured network data requests.
@@ -28,10 +27,11 @@ import java.util.List;
 public interface NetworkConnectionsModel {
   /**
    * This method will be invoked in each animation cycle of {@link NetworkCaptureView}.
-   * @param timeCurrentRangeUs, the current visible range in {NetworkCaptureView}
-   * @return List of visible {@link HttpData} in the {@code timeCurrentRangeUs} range,
-   * in other words list of {@link HttpData}'s [getStartTimeUs()..getEndTimeUs()] (all inclusive) intersects with
-   * {@code timeCurrentRangeUs}'s [getMin()..getMax()] (all inclusive).
+   *
+   * @param timeCurrentRangeUs the current visible range in {NetworkCaptureView}
+   * @return List of visible {@link HttpData} in the {@code timeCurrentRangeUs} range, in other
+   * words list of {@link HttpData}'s [getRequestStartTimeUs()..getConnectionEndTimeUs()] (all
+   * inclusive) intersects with {@code timeCurrentRangeUs}'s [getMin()..getMax()] (all inclusive).
    */
   @NotNull
   List<HttpData> getData(@NotNull Range timeCurrentRangeUs);
@@ -39,7 +39,7 @@ public interface NetworkConnectionsModel {
   /**
    * Returns the byte string associated with the given {@code id}. For example, this is used for
    * network request/response payloads and stack traces.
-   *
+   * <p>
    * If there is no such content associated with the data, or if it can't be fetched for any
    * reason, {@link ByteString#EMPTY} will be returned.
    */
