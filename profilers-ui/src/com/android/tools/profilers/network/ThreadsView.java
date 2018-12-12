@@ -94,7 +94,7 @@ final class ThreadsView {
 
     TableRowSorter<ThreadsTableModel> sorter = new TableRowSorter<>(model);
     sorter.setComparator(Column.NAME.ordinal(), Comparator.comparing(String::toString));
-    sorter.setComparator(Column.TIMELINE.ordinal(), Comparator.comparing((List<HttpData> data) -> data.get(0).getStartTimeUs()));
+    sorter.setComparator(Column.TIMELINE.ordinal(), Comparator.comparing((List<HttpData> data) -> data.get(0).getRequestStartTimeUs()));
     myThreadsTable.setRowSorter(sorter);
 
     myThreadsTable.addMouseListener(new MouseAdapter() {
@@ -140,7 +140,7 @@ final class ThreadsView {
       List<HttpData> dataList = (List<HttpData>)table.getModel().getValueAt(modelIndex, 1);
       double at = positionToRange(p.x - cellBounds.x, cellBounds.getWidth(), range);
       for (HttpData data : dataList) {
-        if (data.getStartTimeUs() <= at && at <= data.getEndTimeUs()) {
+        if (data.getRequestStartTimeUs() <= at && at <= data.getConnectionEndTimeUs()) {
           return data;
         }
       }
@@ -282,7 +282,7 @@ final class ThreadsView {
 
       for (int i = 0; i < myDataList.size(); ++i) {
         HttpData data = myDataList.get(i);
-        double endLimit = (i + 1 < myDataList.size()) ? rangeToPosition(myDataList.get(i + 1).getStartTimeUs()) : getWidth();
+        double endLimit = (i + 1 < myDataList.size()) ? rangeToPosition(myDataList.get(i + 1).getRequestStartTimeUs()) : getWidth();
 
         drawState(g2d, data, endLimit);
         drawConnectionName(g2d, data, endLimit);
@@ -296,26 +296,26 @@ final class ThreadsView {
     }
 
     private void drawState(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
-      double prev = rangeToPosition(data.getStartTimeUs());
+      double prev = rangeToPosition(data.getRequestStartTimeUs());
       g2d.setColor(ProfilerColors.NETWORK_SENDING_COLOR);
 
-      if (data.getDownloadingTimeUs() > 0) {
-        double download = rangeToPosition(data.getDownloadingTimeUs());
+      if (data.getResponseStartTimeUs() > 0) {
+        double download = rangeToPosition(data.getResponseStartTimeUs());
         // draw sending
         g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2.0, download - prev, STATE_HEIGHT));
         g2d.setColor(ProfilerColors.NETWORK_RECEIVING_COLOR);
         prev = download;
       }
 
-      double end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
+      double end = (data.getConnectionEndTimeUs() > 0) ? rangeToPosition(data.getConnectionEndTimeUs()) : endLimit;
       g2d.fill(new Rectangle2D.Double(prev, (getHeight() - STATE_HEIGHT) / 2.0, end - prev, STATE_HEIGHT));
     }
 
     private void drawConnectionName(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
       g2d.setFont(getFont());
       g2d.setColor(getForeground());
-      double start = rangeToPosition(data.getStartTimeUs());
-      double end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
+      double start = rangeToPosition(data.getRequestStartTimeUs());
+      double end = (data.getConnectionEndTimeUs() > 0) ? rangeToPosition(data.getConnectionEndTimeUs()) : endLimit;
 
       FontMetrics metrics = getFontMetrics(getFont());
       String text =
@@ -326,8 +326,8 @@ final class ThreadsView {
     }
 
     private void drawSelection(@NotNull Graphics2D g2d, @NotNull HttpData data, double endLimit) {
-      double start = rangeToPosition(data.getStartTimeUs());
-      double end = (data.getEndTimeUs() > 0) ? rangeToPosition(data.getEndTimeUs()) : endLimit;
+      double start = rangeToPosition(data.getRequestStartTimeUs());
+      double end = (data.getConnectionEndTimeUs() > 0) ? rangeToPosition(data.getConnectionEndTimeUs()) : endLimit;
       g2d.setStroke(new BasicStroke(SELECTION_OUTLINE_BORDER));
       g2d.setColor(myTable.getSelectionBackground());
       Rectangle2D rect = new Rectangle2D.Double(start - SELECTION_OUTLINE_PADDING,
@@ -376,7 +376,7 @@ final class ThreadsView {
       myTooltipComponent.setVisible(true);
 
       String urlName = HttpData.getUrlName(data.getUrl());
-      long duration = data.getEndTimeUs() - data.getStartTimeUs();
+      long duration = data.getConnectionEndTimeUs() - data.getRequestStartTimeUs();
 
       myContent.removeAll();
       addToContent(newTooltipLabel(urlName));

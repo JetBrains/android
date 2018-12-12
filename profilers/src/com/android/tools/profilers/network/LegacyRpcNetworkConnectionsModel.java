@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.Profiler.BytesRequest;
 import com.android.tools.profiler.proto.Profiler.BytesResponse;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -33,17 +34,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * A {@link NetworkConnectionsModel} that uses an RPC mechanism to complete its queries. It sent queries to datastore, adding or removing
- * data queries may need change datastore.
+ * A {@link NetworkConnectionsModel} that uses the legacy network RPC mechanism to fetch http connection data originated from an app.
+ * Note that if {@link FeatureConfig#isUnifiedPipelineEnabled()} is true, the {@link RpcNetworkConnectionsModel} should be used instead.
  */
-public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
+public class LegacyRpcNetworkConnectionsModel implements NetworkConnectionsModel {
   @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
   @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
   @NotNull private final Common.Session mySession;
 
-  public RpcNetworkConnectionsModel(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
-                                    @NotNull NetworkServiceGrpc.NetworkServiceBlockingStub networkService,
-                                    @NotNull Common.Session session) {
+  public LegacyRpcNetworkConnectionsModel(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
+                                          @NotNull NetworkServiceGrpc.NetworkServiceBlockingStub networkService,
+                                          @NotNull Common.Session session) {
     myProfilerService = profilerService;
     myNetworkService = networkService;
     mySession = session;
@@ -63,6 +64,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
       long startTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getStartTimestamp());
       long uploadedTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getUploadedTimestamp());
       long downloadingTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getDownloadingTimestamp());
+      // In the legacy pipeline, endTimeUs refers to either when the response was downloaded or if the connection was aborted earlier.
       long endTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp());
 
       HttpData.Builder httpBuilder =
@@ -71,6 +73,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
           startTimeUs,
           uploadedTimeUs,
           downloadingTimeUs,
+          endTimeUs,
           endTimeUs,
           requestAccessingThreads(connection.getConnId()));
 

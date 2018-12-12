@@ -19,13 +19,17 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.CharsetToolkit;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Data of http url connection. Each {@code HttpData} object matches a http connection with a unique id, and it includes both request data
@@ -35,10 +39,11 @@ import java.util.*;
 public class HttpData {
 
   private final long myId;
-  private final long myStartTimeUs;
-  private final long myUploadedTimeUs;
-  private final long myDownloadingTimeUs;
-  private final long myEndTimeUs;
+  private final long myRequestStartTimeUs;
+  private final long myRequestCompleteTimeUs;
+  private final long myResponseStartTimeUs;
+  private final long myResponseCompleteTimeUs;
+  private final long myConnectionEndTimeUs;
   @NotNull private final String myUrl;
   @NotNull private final String myMethod;
   @NotNull private final String myTraceId;
@@ -53,10 +58,11 @@ public class HttpData {
 
   private HttpData(@NotNull Builder builder) {
     myId = builder.myId;
-    myStartTimeUs = builder.myStartTimeUs;
-    myUploadedTimeUs = builder.myUploadedTimeUs;
-    myDownloadingTimeUs = builder.myDownloadingTimeUs;
-    myEndTimeUs = builder.myEndTimeUs;
+    myRequestStartTimeUs = builder.myRequestStartTimeUs;
+    myRequestCompleteTimeUs = builder.myRequestCompleteTimeUs;
+    myResponseStartTimeUs = builder.myResponseStartTimeUs;
+    myResponseCompleteTimeUs = builder.myResponseCompleteTimeUs;
+    myConnectionEndTimeUs = builder.myConnectionEndTimeUs;
     myUrl = builder.myUrl;
     myMethod = builder.myMethod;
     myTraceId = builder.myTraceId;
@@ -74,20 +80,24 @@ public class HttpData {
     return myId;
   }
 
-  public long getStartTimeUs() {
-    return myStartTimeUs;
+  public long getRequestStartTimeUs() {
+    return myRequestStartTimeUs;
   }
 
-  public long getUploadedTimeUs() {
-    return myUploadedTimeUs;
+  public long getRequestCompleteTimeUs() {
+    return myRequestCompleteTimeUs;
   }
 
-  public long getDownloadingTimeUs() {
-    return myDownloadingTimeUs;
+  public long getResponseStartTimeUs() {
+    return myResponseStartTimeUs;
   }
 
-  public long getEndTimeUs() {
-    return myEndTimeUs;
+  public long getResponseCompleteTimeUs() {
+    return myResponseCompleteTimeUs;
+  }
+
+  public long getConnectionEndTimeUs() {
+    return myConnectionEndTimeUs;
   }
 
   @NotNull
@@ -139,7 +149,7 @@ public class HttpData {
    * Return the name of the URL, which is the final complete word in the path portion of the URL.
    * The query is included as it can be useful to disambiguate requests. Additionally,
    * the returned value is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
-   *
+   * <p>
    * For example,
    * "www.example.com/demo/" -> "demo"
    * "www.example.com/test.png" -> "test.png"
@@ -218,7 +228,7 @@ public class HttpData {
     /**
      * @return MIME type related information from Content-Type because Content-Type may contain
      * other information such as charset or boundary.
-     *
+     * <p>
      * Examples:
      * "text/html; charset=utf-8" => "text/html"
      * "text/html" => "text/html"
@@ -379,10 +389,11 @@ public class HttpData {
 
   public static final class Builder {
     private final long myId;
-    private final long myStartTimeUs;
-    private final long myUploadedTimeUs;
-    private final long myDownloadingTimeUs;
-    private final long myEndTimeUs;
+    private final long myRequestStartTimeUs;
+    private final long myRequestCompleteTimeUs;
+    private final long myResponseStartTimeUs;
+    private final long myResponseCompleteTimeUs;
+    private final long myConnectionEndTimeUs;
 
     private String myUrl = "";
     private String myMethod = "";
@@ -396,12 +407,30 @@ public class HttpData {
     private String myTraceId = "";
     private List<JavaThread> myThreads = new ArrayList<>();
 
-    public Builder(long id, long startTimeUs, long uploadedTimeUs, long downloadingTimeUs, long endTimeUs, List<JavaThread> threads) {
+    /**
+     * @param id                     the unique identifier for the connection.
+     * @param requestStartTimeUs     the time when the http request started uploading.
+     * @param requestCompleteTimeUs  the time when the http request completed uploading.
+     * @param responseStartTimeUs    the time when the http response was first received.
+     * @param responseCompleteTimeUs the time when the http response was fully received.
+     * @param connectionEndTimeUs    the time when the connection was closed. This can either mean the response was fully received in which
+     *                               case this equals to |responseCompleteTimeUs|, or the connection was aborted in which case some of the
+     *                               other time parameters may not be set.
+     * @param threads                the list of threads used throughout the http connection.
+     */
+    public Builder(long id,
+                   long requestStartTimeUs,
+                   long requestCompleteTimeUs,
+                   long responseStartTimeUs,
+                   long responseCompleteTimeUs,
+                   long connectionEndTimeUs,
+                   List<JavaThread> threads) {
       myId = id;
-      myStartTimeUs = startTimeUs;
-      myUploadedTimeUs = uploadedTimeUs;
-      myDownloadingTimeUs = downloadingTimeUs;
-      myEndTimeUs = endTimeUs;
+      myRequestStartTimeUs = requestStartTimeUs;
+      myRequestCompleteTimeUs = requestCompleteTimeUs;
+      myResponseStartTimeUs = responseStartTimeUs;
+      myResponseCompleteTimeUs = responseCompleteTimeUs;
+      myConnectionEndTimeUs = connectionEndTimeUs;
 
       assert !threads.isEmpty() : "HttpData.Builder must be initialized with at least one thread";
       threads.forEach(this::addJavaThread);
@@ -410,10 +439,11 @@ public class HttpData {
     @VisibleForTesting
     public Builder(@NotNull HttpData template) {
       this(template.getId(),
-           template.getStartTimeUs(),
-           template.getUploadedTimeUs(),
-           template.getDownloadingTimeUs(),
-           template.getEndTimeUs(),
+           template.getRequestStartTimeUs(),
+           template.getRequestCompleteTimeUs(),
+           template.getResponseStartTimeUs(),
+           template.getResponseCompleteTimeUs(),
+           template.getConnectionEndTimeUs(),
            template.getJavaThreads());
       setUrl(template.getUrl());
       setMethod(template.getMethod());
@@ -480,6 +510,5 @@ public class HttpData {
     public HttpData build() {
       return new HttpData(this);
     }
-
   }
 }
