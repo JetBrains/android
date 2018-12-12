@@ -20,8 +20,11 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectBuildVariantsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectIdeSdksLocationConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectModulesConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestionsConfigurable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
@@ -108,4 +111,53 @@ class BasePerspectiveConfigurableTest {
     psd.clickCancel()
   }
 
+  @Test
+  fun viewSelectionDoesNotResetdModuleSelectorModeAndModuleSelection() {
+    val psd = guiTest
+      .importProjectAndWaitForProjectSyncToFinish("PsdSimple")
+      .openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
+
+    psd.selectModulesConfigurable().also { modulesConfigurable ->
+      assertThat(modulesConfigurable.isModuleSelectorMinimized()).isFalse()
+      val moduleSelector = modulesConfigurable.findModuleSelector()
+      assertThat(moduleSelector.modules()).containsExactly("app", "mylibrary")
+      moduleSelector.selectModule("mylibrary")
+      assertThat(moduleSelector.selectedModule()).isEqualTo("mylibrary")
+    }
+
+    psd.selectBuildVariantsConfigurable().also { buildVariantsConfigurable ->
+      assertThat(buildVariantsConfigurable.isModuleSelectorMinimized()).isFalse()
+      buildVariantsConfigurable.minimizeModulesList()
+      assertThat(buildVariantsConfigurable.isModuleSelectorMinimized()).isTrue()
+      val moduleSelector = buildVariantsConfigurable.findModuleSelector()
+      assertThat(moduleSelector.selectedModule()).isEqualTo("mylibrary")
+      assertThat(moduleSelector.modules()).containsExactly("app", "mylibrary")
+      moduleSelector.selectModule("app")
+      assertThat(moduleSelector.selectedModule()).isEqualTo("app")
+    }
+
+    psd.selectDependenciesConfigurable().also { dependenciesConfigurable ->
+      assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isTrue()
+      dependenciesConfigurable.restoreModulesList()
+      assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isFalse()
+      val moduleSelector = dependenciesConfigurable.findModuleSelector()
+      assertThat(moduleSelector.selectedModule()).isEqualTo("app")
+      assertThat(moduleSelector.modules()).containsExactly("<All Modules>", "app", "mylibrary")
+      moduleSelector.selectModule("<All Modules>")
+      assertThat(moduleSelector.selectedModule()).isEqualTo("<All Modules>")
+    }
+
+    psd.selectModulesConfigurable().also { modulesConfigurable ->
+      val moduleSelector = modulesConfigurable.findModuleSelector()
+      assertThat(moduleSelector.selectedModule()).isEqualTo("mylibrary")
+    }
+
+    psd.selectSuggestionsConfigurable().also { suggestionsConfigurable ->
+      val moduleSelector = suggestionsConfigurable.findModuleSelector()
+      assertThat(moduleSelector.modules()).containsExactly("<All Modules>", "app", "mylibrary")
+      assertThat(moduleSelector.selectedModule()).isEqualTo("<All Modules>")
+    }
+
+    psd.clickCancel()
+  }
 }
