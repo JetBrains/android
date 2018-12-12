@@ -21,7 +21,9 @@ import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
+import javax.swing.JComponent
 
+const val MODULES_VIEW = "ModulesView"
 const val MODULES_PERSPECTIVE_DISPLAY_NAME: String = "Modules"
 
 class ModulesPerspectiveConfigurable(context: PsContext)
@@ -39,4 +41,6 @@ class ModulesPerspectiveConfigurable(context: PsContext)
 
   private fun createConfigurable(module: PsAndroidModule) =
       AndroidModuleRootConfigurable(context, module).apply { history = myHistory }
+
+  override fun createComponent(): JComponent = super.createComponent().also { it.name = MODULES_VIEW }
 }
