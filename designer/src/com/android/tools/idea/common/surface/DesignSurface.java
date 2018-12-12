@@ -1381,6 +1381,20 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
              PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
       return createActionHandler();
     }
+    else if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
+      SceneView view = getCurrentSceneView();
+      NlComponent selection = getSelectionModel().getPrimary();
+      Scene scene = getScene();
+      if (view == null || scene == null || selection == null) {
+        return null;
+      }
+      SceneComponent sceneComponent = scene.getSceneComponent(selection);
+      if (sceneComponent == null) {
+        return null;
+      }
+      return new Point(Coordinates.getSwingXDip(view, sceneComponent.getCenterX()),
+                       Coordinates.getSwingYDip(view, sceneComponent.getCenterY()));
+    }
     return myLayeredPane.getData(dataId);
   }
 

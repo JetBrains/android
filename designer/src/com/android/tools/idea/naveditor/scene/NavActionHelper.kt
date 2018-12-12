@@ -17,9 +17,14 @@ package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.naveditor.model.ActionType
 import com.android.tools.idea.naveditor.model.NavCoordinate
+import com.android.tools.idea.naveditor.model.effectiveDestination
+import com.android.tools.idea.naveditor.model.getActionType
+import com.android.tools.idea.naveditor.model.getEffectiveSource
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.geom.Point2D
@@ -176,6 +181,38 @@ fun getEndPoint(context: SceneContext, rectangle: Rectangle2D.Float, direction: 
     context.getSwingDimensionDip(NavSceneManager.ACTION_ARROW_PARALLEL) - 1f)
 }
 
+/**
+ * Gets a point somewhere on the given action, or null if there was a problem.
+ */
+@SwingCoordinate
+fun getAnyPoint(action: SceneComponent, context: SceneContext): Point2D.Float? {
+  val scene = action.scene
+  val rootNlComponent = scene.root?.nlComponent ?: return null
+  val actionNlComponent = action.nlComponent
+  val sourceNlComponent = actionNlComponent.getEffectiveSource(rootNlComponent) ?: return null
+  val sourceSceneComponent = scene.getSceneComponent(sourceNlComponent) ?: return null
+  val sourceRect = Coordinates.getSwingRectDip(context, sourceSceneComponent.fillDrawRect2D(0, null))
+
+  when (actionNlComponent.getActionType(rootNlComponent)) {
+    ActionType.SELF -> {
+      val points = selfActionPoints(getStartPoint(sourceRect),
+                                    getEndPoint(context, sourceRect, ConnectionDirection.BOTTOM),
+                                    context)
+      return Point2D.Float(points[1].x, (points[1].y + points[2].y)/2)
+    }
+    ActionType.REGULAR, ActionType.EXIT_DESTINATION -> {
+      val targetNlComponent = actionNlComponent.effectiveDestination ?: return null
+      val destinationSceneComponent = scene.getSceneComponent(targetNlComponent) ?: return null
+      val destRect = Coordinates.getSwingRectDip(context, destinationSceneComponent.fillDrawRect2D(0, null))
+      val curvePoints = getCurvePoints(sourceRect, destRect, context)
+      return Point2D.Float(getCurveX(curvePoints, 0.5).toFloat(), getCurveY(curvePoints, 0.5).toFloat())
+    }
+    ActionType.EXIT, ActionType.GLOBAL ->
+      return getCenterPoint(Coordinates.getSwingRectDip(context, action.fillDrawRect2D(0, null)))
+    else -> return null
+  }
+}
+
 fun getArrowPoint(context: SceneContext,
                   rectangle: Rectangle2D.Float,
                   direction: ConnectionDirection): Point2D.Float {
@@ -200,4 +237,20 @@ private fun shiftPoint(p: Point2D.Float,
                        shiftX: Float,
                        shiftY: Float): Point2D.Float {
   return Point2D.Float(p.x + shiftX * direction.deltaX, p.y + shiftY * direction.deltaY)
+}
+
+@SwingCoordinate
+private fun getCurveX(points: CurvePoints, t: Double): Double {
+  return (Math.pow(1 - t, 3.0) * points.p1.x
+          + 3 * Math.pow(1 - t, 2.0) * t * points.p2.x
+          + 3 * (1 - t) * Math.pow(t, 2.0) * points.p3.x
+          + Math.pow(t, 3.0) * points.p4.x)
+}
+
+@SwingCoordinate
+private fun getCurveY(points: CurvePoints, t: Double): Double {
+  return (Math.pow(1 - t, 3.0) * points.p1.y
+          + 3 * Math.pow(1 - t, 2.0) * t * points.p2.y
+          + 3 * (1 - t) * Math.pow(t, 2.0) * points.p3.y
+          + Math.pow(t, 3.0) * points.p4.y)
 }
