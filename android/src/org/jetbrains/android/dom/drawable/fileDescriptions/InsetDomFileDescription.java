@@ -20,9 +20,8 @@ import org.jetbrains.android.dom.AbstractSingleRootFileDescription;
 import org.jetbrains.android.dom.drawable.Inset;
 
 public class InsetDomFileDescription extends AbstractSingleRootFileDescription<Inset> {
-  public static final String TAG_NAME = "inset";
 
   public InsetDomFileDescription() {
-    super(Inset.class, TAG_NAME, ResourceFolderType.DRAWABLE);
+    super(Inset.class, "inset", ResourceFolderType.DRAWABLE);
   }
 }
