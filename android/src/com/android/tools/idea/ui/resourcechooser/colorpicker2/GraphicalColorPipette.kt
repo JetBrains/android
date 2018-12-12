@@ -20,11 +20,33 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.*
-import java.awt.event.*
+import java.awt.AlphaComposite
+import java.awt.Color
+import java.awt.Dialog
+import java.awt.Dimension
+import java.awt.Frame
+import java.awt.Graphics2D
+import java.awt.Image
+import java.awt.MouseInfo
+import java.awt.Point
+import java.awt.Rectangle
+import java.awt.RenderingHints
+import java.awt.Robot
+import java.awt.Transparency
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.font.TextAttribute
 import java.awt.image.BufferedImage
 import java.awt.image.ImageObserver
-import javax.swing.*
+import javax.swing.Timer
+import javax.swing.Icon
+import javax.swing.JComponent
+import javax.swing.JDialog
+import javax.swing.JFrame
+import javax.swing.SwingUtilities
+import javax.swing.WindowConstants
 
 /**
  * The size of captured screen area. It is same as the number of pixels are caught.<br>
@@ -34,7 +56,11 @@ private const val SCREEN_CAPTURE_SIZE = 11
 /**
  * The size of zoomed rectangle which shows the captured screen.
  */
-private const val ZOOM_RECTANGLE_SIZE = 64
+private const val ZOOM_RECTANGLE_SIZE = 48
+
+private const val COLOR_CODE_RECTANGLE_GAP = 4
+
+private const val COLOR_CODE_RECTANGLE_HEIGHT = 12
 
 private val PIPETTE_BORDER_COLOR = Color.BLACK
 private val INDICATOR_BOUND_COLOR = Color.RED
@@ -50,6 +76,10 @@ private const val INDICATOR_BOUND_SIZE = ZOOM_RECTANGLE_SIZE * (SCREEN_CAPTURE_S
 private val TRANSPARENT_COLOR = Color(0, true)
 
 private const val CURSOR_NAME = "GraphicalColorPicker"
+
+private val COLOR_VALUE_TEXT_COLOR = Color.WHITE
+private const val COLOR_VALUE_FONT_SIZE = 9.2f
+private val COLOR_VALUE_BACKGROUND = Color(0x80, 0x80, 0x80, 0xB0)
 
 /**
  * Duration of updating the color of current hovered pixel. The unit is millisecond.
@@ -77,14 +107,12 @@ private class PickerDialog(val parent: JComponent, val callback: ColorPipette.Ca
 
   private val timer = Timer(DURATION_COLOR_UPDATING) { updatePipette() }
   private val center = Point(ZOOM_RECTANGLE_SIZE / 2, ZOOM_RECTANGLE_SIZE / 2)
-  private val zoomRect = Rectangle(0, 0, ZOOM_RECTANGLE_SIZE, ZOOM_RECTANGLE_SIZE)
   private val captureRect = Rectangle()
 
-  private val maskImage = UIUtil.createImage(ZOOM_RECTANGLE_SIZE, ZOOM_RECTANGLE_SIZE, BufferedImage.TYPE_INT_ARGB)
-  private val magnifierImage = UIUtil.createImage(ZOOM_RECTANGLE_SIZE, ZOOM_RECTANGLE_SIZE, BufferedImage.TYPE_INT_ARGB)
-
   private val image: BufferedImage = let {
-    val image = parent.graphicsConfiguration.createCompatibleImage(ZOOM_RECTANGLE_SIZE, ZOOM_RECTANGLE_SIZE, Transparency.TRANSLUCENT)
+    val width = ZOOM_RECTANGLE_SIZE
+    val height = ZOOM_RECTANGLE_SIZE + COLOR_CODE_RECTANGLE_GAP + COLOR_CODE_RECTANGLE_HEIGHT
+    val image = parent.graphicsConfiguration.createCompatibleImage(width, height, Transparency.TRANSLUCENT)
     val graphics2d = image.graphics as Graphics2D
     graphics2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR)
     graphics2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF)
@@ -97,7 +125,6 @@ private class PickerDialog(val parent: JComponent, val callback: ColorPipette.Ca
 
   private val picker: Dialog = let {
     val owner = SwingUtilities.getWindowAncestor(parent)
-
     val pickerFrame = when (owner) {
       is Dialog -> JDialog(owner)
       is Frame -> JDialog(owner)
@@ -106,7 +133,7 @@ private class PickerDialog(val parent: JComponent, val callback: ColorPipette.Ca
 
     pickerFrame.isUndecorated = true
     pickerFrame.isAlwaysOnTop = true
-    pickerFrame.size = Dimension(ZOOM_RECTANGLE_SIZE, ZOOM_RECTANGLE_SIZE)
+    pickerFrame.size = Dimension(ZOOM_RECTANGLE_SIZE, ZOOM_RECTANGLE_SIZE + COLOR_CODE_RECTANGLE_GAP + COLOR_CODE_RECTANGLE_HEIGHT)
     pickerFrame.defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
 
     val rootPane = pickerFrame.rootPane
@@ -139,17 +166,6 @@ private class PickerDialog(val parent: JComponent, val callback: ColorPipette.Ca
     })
 
     pickerFrame
-  }
-
-  init {
-    val maskG = maskImage.createGraphics()
-    maskG.color = Color.BLUE
-    maskG.fillRect(0, 0, ZOOM_RECTANGLE_SIZE, ZOOM_RECTANGLE_SIZE)
-
-    maskG.color = Color.RED
-    maskG.composite = AlphaComposite.SrcOut
-    maskG.fillRect(0, 0, ZOOM_RECTANGLE_SIZE, ZOOM_RECTANGLE_SIZE)
-    maskG.dispose()
   }
 
   fun pick() {
@@ -185,7 +201,7 @@ private class PickerDialog(val parent: JComponent, val callback: ColorPipette.Ca
     if (picker.isShowing) {
       val pointerInfo = MouseInfo.getPointerInfo()
       val mouseLoc = pointerInfo.location
-      picker.setLocation(mouseLoc.x - picker.width / 2, mouseLoc.y - picker.height / 2)
+      picker.setLocation(mouseLoc.x - ZOOM_RECTANGLE_SIZE / 2, mouseLoc.y - ZOOM_RECTANGLE_SIZE / 2)
 
       val pickedColor = robot.getPixelColor(mouseLoc.x, mouseLoc.y)
 
@@ -196,8 +212,6 @@ private class PickerDialog(val parent: JComponent, val callback: ColorPipette.Ca
         val halfPixelNumber = SCREEN_CAPTURE_SIZE / 2
         captureRect.setBounds(mouseLoc.x - halfPixelNumber, mouseLoc.y - halfPixelNumber, SCREEN_CAPTURE_SIZE, SCREEN_CAPTURE_SIZE)
 
-        val capture = robot.createScreenCapture(captureRect)
-
         val graphics = image.graphics as Graphics2D
 
         // Clear the cursor graphics
@@ -205,15 +219,8 @@ private class PickerDialog(val parent: JComponent, val callback: ColorPipette.Ca
         graphics.color = TRANSPARENT_COLOR
         graphics.fillRect(0, 0, image.width, image.height)
 
-        graphics.drawImage(capture, zoomRect.x, zoomRect.y, zoomRect.width, zoomRect.height, this)
-
-        // cropping round image
-        graphics.composite = AlphaComposite.DstOut
-        graphics.drawImage(maskImage, zoomRect.x, zoomRect.y, zoomRect.width, zoomRect.height, this)
-
-        // paint magnifier
-        graphics.composite = AlphaComposite.SrcOver
-        graphics.drawImage(magnifierImage, 0, 0, this)
+        val capture = robot.createScreenCapture(captureRect)
+        graphics.drawImage(capture, 0, 0, ZOOM_RECTANGLE_SIZE, ZOOM_RECTANGLE_SIZE, this)
 
         graphics.composite = AlphaComposite.SrcOver
         graphics.color = PIPETTE_BORDER_COLOR
@@ -221,7 +228,28 @@ private class PickerDialog(val parent: JComponent, val callback: ColorPipette.Ca
         graphics.color = INDICATOR_BOUND_COLOR
         graphics.drawRect(INDICATOR_BOUND_START, INDICATOR_BOUND_START, INDICATOR_BOUND_SIZE, INDICATOR_BOUND_SIZE)
 
+        val originalFont = graphics.font
+        // Ignore alpha value since it is always 0xFF when picking color on the screen.
+        val colorValueString = String.format("#%06X", (pickedColor.rgb and 0x00FFFFFF))
+
+        val font = UIUtil.getLabelFont().deriveFont(COLOR_VALUE_FONT_SIZE)
+        val tracking = 0.08
+        graphics.font = font.deriveFont(mapOf(TextAttribute.TRACKING to tracking))
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+
+        graphics.color = COLOR_VALUE_BACKGROUND
+        graphics.fillRect(0, ZOOM_RECTANGLE_SIZE + COLOR_CODE_RECTANGLE_GAP, ZOOM_RECTANGLE_SIZE, COLOR_CODE_RECTANGLE_HEIGHT)
+        graphics.color = COLOR_VALUE_TEXT_COLOR
+
+        val fm = graphics.fontMetrics
+        val rect = fm.getStringBounds(colorValueString, graphics)
+        val textWidth = rect.width * (1.0 + tracking)
+        val x = (ZOOM_RECTANGLE_SIZE / 2 - textWidth / 2).toInt()
+        graphics.drawString(colorValueString, x, ZOOM_RECTANGLE_SIZE + COLOR_CODE_RECTANGLE_GAP + fm.ascent)
+
         picker.cursor = parent.toolkit.createCustomCursor(image, center, CURSOR_NAME)
+
+        graphics.font = originalFont
 
         callback.update(pickedColor)
       }
