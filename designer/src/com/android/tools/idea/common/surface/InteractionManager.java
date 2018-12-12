@@ -423,6 +423,7 @@ public class InteractionManager {
       if (event.isPopupTrigger()) {
         NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
         mySurface.getActionManager().showPopup(event, selected);
+        event.consume();
         return;
       }
 
