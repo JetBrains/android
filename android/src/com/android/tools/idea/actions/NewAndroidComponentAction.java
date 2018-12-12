@@ -33,6 +33,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.util.AndroidBundle;
@@ -75,7 +76,7 @@ public class NewAndroidComponentAction extends AnAction {
     super(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
-    getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : AndroidIcons.AndroidFile);
+    getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : StudioIcons.Shell.Filetree.ANDROID_FILE);
     myMinSdkApi = minSdkVersion;
     myMinBuildSdkApi = minBuildSdkApi;
     myAndroidXRequired = androidXRequired;

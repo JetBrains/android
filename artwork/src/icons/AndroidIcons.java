@@ -25,7 +25,6 @@ public class AndroidIcons {
   public static final Icon NotMatch = load("/icons/notMatch.png");
 
   public static final Icon AndroidFile = load("/icons/android_file.png"); // 16x16
-  public static final Icon ManifestFile = load("/icons/manifest_file.png");
   public static final Icon FontFile = load("/icons/font-file.png");
   public static final Icon Configuration = load("/icons/configuration.png"); // 16x16
   public static final Icon Activity = load("/icons/activity.png"); // 16x16

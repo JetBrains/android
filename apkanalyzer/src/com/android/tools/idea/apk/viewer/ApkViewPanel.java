@@ -44,6 +44,7 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -428,7 +429,7 @@ public class ApkViewPanel implements TreeSelectionListener {
 
       if (!Files.isDirectory(path)) {
         if (fileName == SdkConstants.FN_ANDROID_MANIFEST_XML) {
-          return AndroidIcons.ManifestFile;
+          return StudioIcons.Shell.Filetree.MANIFEST_FILE;
         }
         else if (fileName.endsWith(SdkConstants.DOT_DEX)) {
           return AllIcons.FileTypes.JavaClass;
