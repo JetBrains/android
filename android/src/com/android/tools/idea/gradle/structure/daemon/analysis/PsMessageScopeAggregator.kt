@@ -43,7 +43,7 @@ class PsMessageScopeAggregator(
   private val allProductFlavors: List<Set<String>>
 ) {
   fun aggregate(messageScopes: Set<PsMessageScope>): Set<PsMessageAggregatedScope> {
-    assertCorrectNumberOfDimensions(messageScopes)
+    if (!isCorrectNumberOfDimensions(messageScopes)) return messageScopes.map { PsMessageAggregatedScope(it) }.toSet()
 
     val tailsByBuildType = messageScopes
       .groupBy({ it.buildType }, { PsMessageAggregatedScope(it).copy(buildType = null) })
@@ -100,9 +100,6 @@ class PsMessageScopeAggregator(
              ?.reduce { acc, it -> acc + it }.orEmpty() + aggregatedTails.orEmpty()
   }
 
-  private fun assertCorrectNumberOfDimensions(messages: Set<PsMessageScope>) = messages.forEach {
-    if (allProductFlavors.size != it.productFlavors.size) {
-      throw IllegalArgumentException("productFlavors.size must be ${allProductFlavors.size}")
-    }
-  }
+  private fun isCorrectNumberOfDimensions(messages: Set<PsMessageScope>) =
+    messages.all { allProductFlavors.size == it.productFlavors.size }
 }

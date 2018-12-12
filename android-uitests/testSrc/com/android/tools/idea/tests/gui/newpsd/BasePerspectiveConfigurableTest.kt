@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectBuildVariantsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectIdeSdksLocationConfigurable
@@ -55,7 +56,7 @@ class BasePerspectiveConfigurableTest {
   fun modulesListIsHiddenAndRestored() {
     val psd = guiTest
         .importProjectAndWaitForProjectSyncToFinish("PsdSimple")
-        .openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
+        .openPsd()
 
     var dependenciesConfigurable = psd.selectDependenciesConfigurable();
     assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isFalse()
@@ -82,7 +83,7 @@ class BasePerspectiveConfigurableTest {
   fun moduleSelectorPreservesSelectionOnModeChanges() {
     val psd = guiTest
         .importProjectAndWaitForProjectSyncToFinish("PsdSimple")
-        .openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
+        .openPsd()
 
     val dependenciesConfigurable = psd.selectDependenciesConfigurable();
 
@@ -115,7 +116,7 @@ class BasePerspectiveConfigurableTest {
   fun viewSelectionDoesNotResetdModuleSelectorModeAndModuleSelection() {
     val psd = guiTest
       .importProjectAndWaitForProjectSyncToFinish("PsdSimple")
-      .openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
+      .openPsd()
 
     psd.selectModulesConfigurable().also { modulesConfigurable ->
       assertThat(modulesConfigurable.isModuleSelectorMinimized()).isFalse()
