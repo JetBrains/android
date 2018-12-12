@@ -551,8 +551,8 @@ public class ResourceRepositoryManager implements Disposable {
    * Returns resource repositories for all libraries the app depends upon directly or indirectly.
    */
   @NotNull
-  public List<AarResourceRepository> getLibraryResources() {
-    return ImmutableList.copyOf(getLibraryResourceMap().values());
+  public Collection<AarResourceRepository> getLibraryResources() {
+    return getLibraryResourceMap().values();
   }
 
   @NotNull
