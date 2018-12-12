@@ -32,7 +32,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +48,7 @@ import java.beans.PropertyChangeListener;
 
 public class StringResourceEditor extends UserDataHolderBase implements FileEditor {
 
-  public static final Icon ICON = AndroidIcons.Globe;
+  public static final Icon ICON = StudioIcons.LayoutEditor.Toolbar.LANGUAGE;
   public static final String NAME = "String Resource Editor";
   private static final String TOOL_WINDOW_ID = "StringPreview";
 
@@ -203,7 +203,7 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
       ToolWindow toolWindow = manager.registerToolWindow(TOOL_WINDOW_ID, false, ToolWindowAnchor.RIGHT, project, true);
 
-      toolWindow.setIcon(AndroidIcons.AndroidPreview);
+      toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PREVIEW);
       toolWindow.setStripeTitle("Preview");
       toolWindow.getContentManager().addContent(ContentFactory.SERVICE.getInstance().createContent(myPreview.getComponent(), "", false));
     }

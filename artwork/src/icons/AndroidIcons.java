@@ -14,7 +14,6 @@ public class AndroidIcons {
   }
 
   public static final Icon Android = load("/icons/android.svg"); // 16x16
-  public static final Icon AndroidPreview = load("/icons/androidPreview.png"); // 13x13
   public static final Icon AndroidModule = load("/icons/androidModule.png"); // 16x16
 
   public static final Icon AvdManager = load("/icons/avd_manager.png"); // 16x16
@@ -25,11 +24,8 @@ public class AndroidIcons {
   public static final Icon NotMatch = load("/icons/notMatch.png");
 
   public static final Icon AndroidFile = load("/icons/android_file.png"); // 16x16
-  public static final Icon FontFile = load("/icons/font-file.png");
-  public static final Icon Configuration = load("/icons/configuration.png"); // 16x16
   public static final Icon Activity = load("/icons/activity.png"); // 16x16
   public static final Icon Targets = load("/icons/targets.png"); // 16x16
-  public static final Icon Globe = load("/icons/globe.png"); // 16x16
   public static final Icon Square = load("/icons/square.png"); // 16x16
   public static final Icon Landscape = load("/icons/landscape.png"); // 16x16
   public static final Icon Portrait = load("/icons/portrait.png"); // 16x16
@@ -72,7 +68,6 @@ public class AndroidIcons {
     // buttons (for example in the translation editor) where you can independently add language
     // or region?
     public static final Icon Language = load("/icons/language.png");
-    public static final Icon Region = load("/icons/region.png");
   }
 
   public static class Ddms {

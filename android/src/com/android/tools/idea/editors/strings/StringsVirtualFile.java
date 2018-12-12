@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.testFramework.LightVirtualFile;
 import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -112,7 +113,7 @@ public class StringsVirtualFile extends LightVirtualFile {
 
     @Override
     public Icon getIcon() {
-      return AndroidIcons.Globe;
+      return StudioIcons.LayoutEditor.Toolbar.LANGUAGE;
     }
   }
 }
