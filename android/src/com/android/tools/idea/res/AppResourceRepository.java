@@ -59,9 +59,8 @@ class AppResourceRepository extends MultiResourceRepository {
   @Nullable private Multimap<String, VirtualFile> myResourceDirMap;
 
   @NotNull
-  static AppResourceRepository create(@NotNull AndroidFacet facet, @NotNull List<AarResourceRepository> libraryRepositories) {
-    AppResourceRepository repository =
-        new AppResourceRepository(facet, computeLocalRepositories(facet), libraryRepositories);
+  static AppResourceRepository create(@NotNull AndroidFacet facet, @NotNull Collection<AarResourceRepository> libraryRepositories) {
+    AppResourceRepository repository = new AppResourceRepository(facet, computeLocalRepositories(facet), libraryRepositories);
     ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
 
     return repository;
