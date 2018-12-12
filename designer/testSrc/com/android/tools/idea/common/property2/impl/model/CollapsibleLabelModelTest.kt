@@ -45,13 +45,13 @@ class CollapsibleLabelModelTest {
     private val someEditor = TestPropertyEditorModel(someProperty)
     private val styleEditor = TestPropertyEditorModel(styleProperty)
 
-    val outerGroup = CollapsibleLabelModel(OUTER_GROUP_NAME, null, properties)
-    val colorItem = CollapsibleLabelModel(ATTR_COLOR, colorEditor, properties)
-    val innerGroup = CollapsibleLabelModel(INNER_GROUP_NAME, null, properties)
-    val backgroundTintItem = CollapsibleLabelModel(ATTR_BACKGROUND_TINT, backgroundTintEditor, properties)
-    val textItem = CollapsibleLabelModel(ATTR_TEXT, textEditor, properties)
-    val someItem = CollapsibleLabelModel("some", someEditor, properties)
-    val styleItem = CollapsibleLabelModel(ATTR_STYLE, styleEditor, properties)
+    val outerGroup = CollapsibleLabelModel(OUTER_GROUP_NAME, null, true, properties)
+    val colorItem = CollapsibleLabelModel(ATTR_COLOR, colorEditor, true, properties)
+    val innerGroup = CollapsibleLabelModel(INNER_GROUP_NAME, null, true, properties)
+    val backgroundTintItem = CollapsibleLabelModel(ATTR_BACKGROUND_TINT, backgroundTintEditor, true, properties)
+    val textItem = CollapsibleLabelModel(ATTR_TEXT, textEditor, true, properties)
+    val someItem = CollapsibleLabelModel("some", someEditor, true, properties)
+    val styleItem = CollapsibleLabelModel(ATTR_STYLE, styleEditor, true, properties)
 
     init {
       outerGroup.makeExpandable(OUTER_EXPANDED_BY_DEFAULT)

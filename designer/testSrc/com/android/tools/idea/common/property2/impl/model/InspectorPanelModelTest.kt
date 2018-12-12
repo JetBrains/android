@@ -22,8 +22,10 @@ import com.android.SdkConstants.ATTR_COLOR
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.common.property2.impl.model.util.TestPTableModel
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
+import com.android.tools.idea.uibuilder.property2.testutils.FakeTableLine
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -39,22 +41,27 @@ class InspectorPanelModelTest {
     private val textProperty = TestPropertyItem(SdkConstants.AUTO_URI, ATTR_TEXT, "hello")
     private val textAppProperty = TestPropertyItem(SdkConstants.AUTO_URI, "textApp", "")
     private val someProperty = TestPropertyItem("SomeNamespace", "some", "world")
+    private val otherProperty = TestPropertyItem("OtherNamespace", "other", "cup")
 
     private val colorEditor = TestPropertyEditorModel(colorProperty)
     private val backgroundEditor = TestPropertyEditorModel(backgroundProperty)
     val textEditor = TestPropertyEditorModel(textProperty)
     val textAppEditor = TestPropertyEditorModel(textAppProperty)
     val someEditor = TestPropertyEditorModel(someProperty)
+    val otherEditor = TestPropertyEditorModel(otherProperty)
 
     private val properties = PropertiesComponentMock()
 
-    val outerGroup = CollapsibleLabelModel("OuterGroup", null, properties)
-    val colorItem = CollapsibleLabelModel(ATTR_COLOR, colorEditor, properties)
-    val innerGroup = CollapsibleLabelModel("textApp", textAppEditor, properties)
-    val backgroundItem = CollapsibleLabelModel(ATTR_BACKGROUND_TINT, backgroundEditor, properties)
-    val textItem = CollapsibleLabelModel(ATTR_TEXT, textEditor, properties)
-    val someItem = CollapsibleLabelModel("some", someEditor, properties)
+    val outerGroup = CollapsibleLabelModel("OuterGroup", null, true, properties)
+    val colorItem = CollapsibleLabelModel(ATTR_COLOR, colorEditor, true, properties)
+    val innerGroup = CollapsibleLabelModel("textApp", textAppEditor, true, properties)
+    val backgroundItem = CollapsibleLabelModel(ATTR_BACKGROUND_TINT, backgroundEditor, true, properties)
+    val textItem = CollapsibleLabelModel(ATTR_TEXT, textEditor, true, properties)
+    val someItem = CollapsibleLabelModel("some", someEditor, true, properties)
+    val otherItem = CollapsibleLabelModel("other", otherEditor, false, properties)
     val genericLine = GenericInspectorLineModel()
+    val tableLineModel1 = FakeTableLine(TestPTableModel(false, emptyMap(), emptyList()), true)
+    val tableLineModel2 = FakeTableLine(TestPTableModel(false, emptyMap(), emptyList()), false)
 
     init {
       outerGroup.makeExpandable(true)
@@ -71,6 +78,9 @@ class InspectorPanelModelTest {
       model.add(textItem)
       model.add(genericLine)
       model.add(someItem)
+      model.add(tableLineModel1)
+      model.add(tableLineModel2)
+      model.add(otherItem)
     }
   }
 
@@ -89,6 +99,10 @@ class InspectorPanelModelTest {
     assertThat(inspector.textItem.visible).isTrue()
     assertThat(inspector.genericLine.visible).isFalse()
     assertThat(inspector.someItem.visible).isFalse()
+    assertThat(inspector.tableLineModel1.visible).isTrue()
+    assertThat(inspector.tableLineModel1.filter).isEqualTo("tex")
+    assertThat(inspector.tableLineModel2.visible).isFalse()
+    assertThat(inspector.otherItem.visible).isFalse()
   }
 
   @Test
@@ -106,6 +120,10 @@ class InspectorPanelModelTest {
     assertThat(inspector.textItem.visible).isFalse()
     assertThat(inspector.genericLine.visible).isFalse()
     assertThat(inspector.someItem.visible).isTrue()
+    assertThat(inspector.tableLineModel1.visible).isTrue()
+    assertThat(inspector.tableLineModel1.filter).isEqualTo("o")
+    assertThat(inspector.tableLineModel2.visible).isFalse()
+    assertThat(inspector.otherItem.visible).isFalse()
   }
 
   @Test
