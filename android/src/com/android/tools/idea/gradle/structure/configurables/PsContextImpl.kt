@@ -57,7 +57,7 @@ class PsContextImpl constructor(
 
   private val gradleSyncEventDispatcher = EventDispatcher.create(
     GradleSyncListener::class.java)
-  private var disableSync: Boolean = disableResolveModels
+  private var disableSync: Boolean = false
 
   override var selectedModule: String? = null; private set
 
@@ -110,6 +110,7 @@ class PsContextImpl constructor(
   }
 
   private fun requestGradleModels() {
+    if (disableResolveModels) return
     val project = this.project.ideProject
     gradleSyncEventDispatcher.multicaster.syncStarted(project, false, false)
     gradleSync
@@ -146,7 +147,7 @@ class PsContextImpl constructor(
       project.applyRunAndReparse(runnable)
     }
     finally {
-      disableSync = disableResolveModels
+      disableSync = false
     }
     requestGradleModels()
   }
