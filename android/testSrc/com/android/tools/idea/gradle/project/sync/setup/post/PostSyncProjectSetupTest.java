@@ -219,7 +219,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
 
   public void testProvisionBeforeRunTaskIsAdded() {
     // Create android run configurations
-    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
+    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance();
     AndroidRunConfiguration androidRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
     androidRunConfiguration.setName("androidRunConfiguration");
     AndroidRunConfiguration androidRunConfiguration2 = new AndroidRunConfiguration(getProject(), configurationFactory);

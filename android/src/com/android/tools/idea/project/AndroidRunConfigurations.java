@@ -20,7 +20,6 @@ import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
@@ -45,8 +44,7 @@ public class AndroidRunConfigurations {
 
   public void createRunConfiguration(@NotNull AndroidFacet facet) {
     Module module = facet.getModule();
-    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
-    List<RunConfiguration> configurations = RunManager.getInstance(module.getProject()).getConfigurationsList(configurationFactory.getType());
+    List<RunConfiguration> configurations = RunManager.getInstance(module.getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance());
     for (RunConfiguration configuration : configurations) {
       if (configuration instanceof AndroidRunConfiguration &&
           ((AndroidRunConfiguration)configuration).getConfigurationModule().getModule() == module) {
