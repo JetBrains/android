@@ -107,9 +107,6 @@ public class AndroidIcons {
   }
 
   public static class RunIcons {
-    public static final Icon Debug = load("/icons/run/debug.png");
-
-    public static final Icon Play = load("/icons/run/play.png");
     public static final Icon Replay = load("/icons/run/play2.png"); // TODO: update blaze and remove this
     public static final Icon Restart = load("/icons/run/restart.png");
   }
