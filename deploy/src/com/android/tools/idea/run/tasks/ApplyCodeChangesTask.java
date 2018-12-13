@@ -56,9 +56,14 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
    * @param device The device we are deploying to.
    * @param apk The apk we want to deploy.
    */
-  private Map<Integer, ClassRedefiner> makeSpecificRedefiners(Project project, IDevice device, String applicatinId) {
+  private Map<Integer, ClassRedefiner> makeSpecificRedefiners(Project project, IDevice device, String applicatinId)
+    throws DeployerException {
     if (!DebuggerRedefiner.hasDebuggersAttached(project)) {
       return ImmutableMap.of();
+    }
+    if (!device.getVersion().isGreaterOrEqualThan(28)) {
+      throw new DeployerException(DeployerException.Error.OPERATION_NOT_SUPPORTED, "Cannot perform Apply Code Change while debugging for " +
+                                                                                   "API 27 or below. Please upgrade Android version.");
     }
     int pid = device.getClient(applicatinId).getClientData().getPid();
     return ImmutableMap.of(pid, new DebuggerRedefiner(project));

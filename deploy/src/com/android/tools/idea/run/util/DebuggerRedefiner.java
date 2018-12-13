@@ -17,6 +17,7 @@ package com.android.tools.idea.run.util;
 
 import com.android.tools.deploy.proto.Deploy;
 import com.android.tools.deployer.ClassRedefiner;
+import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.JdiBasedClassRedefiner;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.DebugProcessImpl;
@@ -39,6 +40,8 @@ import com.intellij.xdebugger.XDebugSession;
 import com.sun.jdi.VirtualMachine;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.IntStream;
 import javax.swing.SwingUtilities;
@@ -58,7 +61,7 @@ public class DebuggerRedefiner implements ClassRedefiner {
   }
 
   @Override
-  public Deploy.SwapResponse redefine(Deploy.SwapRequest request) {
+  public Deploy.SwapResponse redefine(Deploy.SwapRequest request) throws DeployerException {
     MultiProcessCommand commands = new MultiProcessCommand();
     Collection<DebuggerSession> debuggerSessions = DebuggerManagerEx.getInstanceEx(project).getSessions();
     List<DebuggerTask> tasks = new ArrayList<>(debuggerSessions.size());
@@ -67,11 +70,19 @@ public class DebuggerRedefiner implements ClassRedefiner {
       return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.ERROR).build();
     }
 
+    // A bit of a hack. Exceptions posted to background tasks ends up on the log only. We are going to gather
+    // as much of these as possible and present it to the user.
+    final List<DeployerException> exceptions = Collections.synchronizedList(new LinkedList<>());
     for (DebuggerSession debuggerSession : debuggerSessions) {
       DebuggerCommandImpl command = new DebuggerCommandImpl() {
         @Override
         protected void action() {
-          redefine(project, debuggerSession, request);
+          try {
+            redefine(project, debuggerSession, request);
+          }
+          catch (DeployerException e) {
+            exceptions.add(e);
+          }
         }
 
         @Override
@@ -85,10 +96,13 @@ public class DebuggerRedefiner implements ClassRedefiner {
     commands.run();
     tasks.forEach(cmd -> cmd.waitFor());
 
+    if (!exceptions.isEmpty()) {
+      throw exceptions.get(0);
+    }
     return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.OK).build();
   }
 
-  private static void redefine(Project project, DebuggerSession session, Deploy.SwapRequest request) {
+  private static void redefine(Project project, DebuggerSession session, Deploy.SwapRequest request) throws DeployerException {
     disableBreakPoints(project, session);
     VirtualMachine vm = session.getProcess().getVirtualMachineProxy().getVirtualMachine();
     new JdiBasedClassRedefiner(vm).redefine(request);
