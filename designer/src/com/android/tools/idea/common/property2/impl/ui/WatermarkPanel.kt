@@ -77,6 +77,6 @@ class WatermarkPanel: AdtSecondaryPanel() {
   }
 
   private fun asHtmlForWrapping(text: String?): String {
-    return if (text != null) "<html>$text</html>" else ""
+    return if (text != null) "<html><div style=\"text-align:center\">$text</div></html>" else ""
   }
 }
