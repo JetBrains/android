@@ -16,15 +16,11 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled
-import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.ui.components.JBList
-import com.intellij.ui.treeStructure.Tree
 import org.fest.swing.core.GenericTypeMatcher
-import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JListFixture
-import org.fest.swing.fixture.JTreeFixture
 import java.awt.Container
 
 open class ProductFlavorsFixture constructor(
@@ -33,24 +29,16 @@ open class ProductFlavorsFixture constructor(
 ) : ConfigPanelFixture() {
 
   fun clickAddFlavorDimension(): InputNameDialogFixture {
-    clickAddButton("Add")
+    clickToolButton("Add")
     val listFixture = JListFixture(robot(), getList())
     listFixture.clickItem("Add Dimension")
     return InputNameDialogFixture.find(ideFrameFixture, "Create New Flavor Dimension")
   }
 
   fun clickAddProductFlavor(): InputNameDialogFixture {
-    clickAddButton("Add")
+    clickToolButton("Add")
     val listFixture = JListFixture(robot(), getList())
     listFixture.clickItem("Add Product Flavor")
     return InputNameDialogFixture.find(ideFrameFixture, "Create New Product Flavor")
-  }
-
-  private fun getList(): JBList<*> {
-    return waitUntilShowingAndEnabled<JBList<*>>(robot(), null, object : GenericTypeMatcher<JBList<*>>(JBList::class.java) {
-      override fun isMatching(list: JBList<*>): Boolean {
-        return list.javaClass.name == "com.intellij.ui.popup.list.ListPopupImpl\$MyList"
-      }
-    })
   }
 }
