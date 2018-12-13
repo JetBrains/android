@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.gradle.structure.configurables.DEPENDENCIES_VIEW
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.robot
+import org.fest.swing.fixture.JListFixture
 import java.awt.Container
 
-class DependenciesPerspectiveConfigurableFixture(
-    ideFrameFixture: IdeFrameFixture,
-    container: Container
-) : BasePerspectiveConfigurableFixture(ideFrameFixture, container) {
+class DependenciesFixture(
+  override val ideFrameFixture: IdeFrameFixture,
+  override val container: Container
+) : ConfigPanelFixture() {
 
-  fun findDependenciesPanel(): DependenciesFixture =
-    DependenciesFixture(ideFrameFixture, container)
-
-}
-
-fun ProjectStructureDialogFixture.selectDependenciesConfigurable(): DependenciesPerspectiveConfigurableFixture {
-  selectConfigurable("Dependencies")
-  return DependenciesPerspectiveConfigurableFixture(
-      ideFrameFixture,
-      findConfigurable(DEPENDENCIES_VIEW))
+  fun clickAddModuleDependency(): AddModuleDependencyDialogFixture {
+    clickToolButton("Add Dependency")
+    val listFixture = JListFixture(robot(), getList())
+    listFixture.clickItem(2 /* 3 Module Dependency */)  // Search by title does not work here.
+    return AddModuleDependencyDialogFixture.find(ideFrameFixture, "Add Module Dependency")
+  }
 }

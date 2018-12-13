@@ -15,34 +15,28 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.structure.dialog.SidePanel
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
-import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.findByType
-import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.ContainerFixture
-import org.fest.swing.fixture.JListFixture
-import org.fest.swing.fixture.JTextComponentFixture
-import org.fest.swing.timing.Wait
-import java.awt.Container
-import java.util.Arrays
+import org.fest.swing.fixture.JTreeFixture
 import javax.swing.JDialog
-import javax.swing.JTextField
+import javax.swing.JTree
 
-class InputNameDialogFixture(
-    override val container: JDialog,
-    override val ideFrameFixture: IdeFrameFixture
+class AddModuleDependencyDialogFixture private constructor(
+  override val container: JDialog,
+  override val ideFrameFixture: IdeFrameFixture
 ) : IdeFrameContainerFixture, ContainerFixture<JDialog> {
 
   override fun target(): JDialog = container
   override fun robot(): Robot = ideFrameFixture.robot()
 
-  fun type(text: String) {
-    JTextComponentFixture(robot(), robot ().finder().findByType<JTextField>(container)).setText(text)
+  fun toggleModule(moduleName: String) {
+    val tree = JTreeFixture(robot(), robot().finder().findByType<JTree>(container))
+    tree.clickPath(moduleName)
   }
 
   fun clickOk() = clickOkAndWaitDialogDisappear()
@@ -50,10 +44,9 @@ class InputNameDialogFixture(
   fun clickCancel() = clickCancelAndWaitDialogDisappear()
 
   companion object {
-    fun find(ideFrameFixture: IdeFrameFixture, title: String): InputNameDialogFixture {
+    fun find(ideFrameFixture: IdeFrameFixture, title: String): AddModuleDependencyDialogFixture {
       val dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog::class.java, title))
-      return InputNameDialogFixture(dialog, ideFrameFixture)
+      return AddModuleDependencyDialogFixture(dialog, ideFrameFixture)
     }
   }
 }
-

@@ -24,7 +24,7 @@ open class BuildTypesFixture constructor(
 ) : ConfigPanelFixture() {
 
   fun clickAdd(): InputNameDialogFixture {
-    clickAddButton("Add Build Type")
+    clickToolButton("Add Build Type")
     return InputNameDialogFixture.find(ideFrameFixture, "Create New Build Type")
   }
 }

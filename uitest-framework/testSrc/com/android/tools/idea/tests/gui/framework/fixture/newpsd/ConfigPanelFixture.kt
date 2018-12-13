@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.ui.components.JBList
 import com.intellij.ui.treeStructure.Tree
+import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JTreeFixture
 
 abstract class ConfigPanelFixture protected constructor(
 ) : IdeFrameContainerFixture {
 
-  protected fun clickAddButton(titlePrefix: String) {
-    val addButton = robot().finder().find<ActionButton>(container) { it.toolTipText?.startsWith(titlePrefix) ?: false }
-    robot().click(addButton)
+  protected fun clickToolButton(titlePrefix: String) {
+    val button = robot().finder().find<ActionButton>(container) { it.toolTipText?.startsWith(titlePrefix) ?: false }
+    robot().click(button)
   }
 }
 
@@ -51,4 +54,15 @@ private fun JTreeFixture.items(): List<String> {
         }
     getItems(treeModel.root)
   }!!
+}
+
+/**
+ * Returns the popup list being displayed, assuming there is one and it is the only one.
+ */
+internal fun ConfigPanelFixture.getList(): JBList<*> {
+  return GuiTests.waitUntilShowingAndEnabled<JBList<*>>(robot(), null, object : GenericTypeMatcher<JBList<*>>(JBList::class.java) {
+    override fun isMatching(list: JBList<*>): Boolean {
+      return list.javaClass.name == "com.intellij.ui.popup.list.ListPopupImpl\$MyList"
+    }
+  })
 }
