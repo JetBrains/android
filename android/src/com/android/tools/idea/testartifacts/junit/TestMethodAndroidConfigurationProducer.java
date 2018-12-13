@@ -21,6 +21,7 @@ import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.actions.RunConfigurationProducer;
+import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.junit.JUnitConfiguration;
 import com.intellij.execution.junit.JUnitConfigurationProducer;
 import com.intellij.execution.junit.JUnitUtil;
@@ -41,9 +42,11 @@ import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurati
 /**
  * Android implementation of {@link AbstractTestMethodConfigurationProducer} so some behaviors can be overridden.
  */
-public class TestMethodAndroidConfigurationProducer extends JUnitConfigurationProducer implements AndroidJUnitConfigurationProducer {
-  protected TestMethodAndroidConfigurationProducer() {
-    super(AndroidJUnitConfigurationType.getInstance());
+final class TestMethodAndroidConfigurationProducer extends JUnitConfigurationProducer implements AndroidJUnitConfigurationProducer {
+  @NotNull
+  @Override
+  public ConfigurationFactory getConfigurationFactory() {
+    return AndroidJUnitConfigurationType.getInstance();
   }
 
   @Override

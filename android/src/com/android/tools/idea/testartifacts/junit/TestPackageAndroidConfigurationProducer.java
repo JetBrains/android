@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.junit;
 
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
+import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.junit.AbstractAllInPackageConfigurationProducer;
 import com.intellij.execution.junit.JUnitConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -27,9 +28,11 @@ import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurati
 /**
  * Android implementation of {@link AbstractAllInPackageConfigurationProducer} so some behaviors can be overridden.
  */
-public class TestPackageAndroidConfigurationProducer extends AbstractAllInPackageConfigurationProducer implements AndroidJUnitConfigurationProducer {
-  protected TestPackageAndroidConfigurationProducer() {
-    super(AndroidJUnitConfigurationType.getInstance());
+final class TestPackageAndroidConfigurationProducer extends AbstractAllInPackageConfigurationProducer implements AndroidJUnitConfigurationProducer {
+  @NotNull
+  @Override
+  public ConfigurationFactory getConfigurationFactory() {
+    return AndroidJUnitConfigurationType.getInstance().getConfigurationFactories()[0];
   }
 
   @Override
