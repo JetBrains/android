@@ -428,8 +428,8 @@ fun RenderResources.resolveMultipleColors(value: ResourceValue?, project: Projec
  *   <li> Otherwise a null is returned. </li>
  * </ul>
  */
-fun RenderResources.resolveAsIcon(value: ResourceValue?, project: Project): Icon? {
-  return resolveAsColorIcon(value, RESOURCE_ICON_SIZE, project) ?: resolveAsDrawable(value, project)
+fun RenderResources.resolveAsIcon(value: ResourceValue?, project: Project, facet: AndroidFacet): Icon? {
+  return resolveAsColorIcon(value, RESOURCE_ICON_SIZE, project) ?: resolveAsDrawable(value, project, facet)
 }
 
 private fun RenderResources.resolveAsColorIcon(value: ResourceValue?, size: Int, project: Project): Icon? {
@@ -445,9 +445,9 @@ private fun findContrastingOtherColor(colors: List<Color>, color: Color): Color 
   return colors.maxBy { MaterialColorUtils.colorDistance(it, color) } ?: colors.first()
 }
 
-private fun RenderResources.resolveAsDrawable(value: ResourceValue?, project: Project): Icon? {
+private fun RenderResources.resolveAsDrawable(value: ResourceValue?, project: Project, facet: AndroidFacet): Icon? {
   val bitmap = AndroidAnnotatorUtil.pickBestBitmap(resolveDrawable(value, project)) ?: return null
-  return GutterIconCache.getInstance().getIcon(bitmap.path, this)
+  return GutterIconCache.getInstance().getIcon(bitmap, this, facet)
 }
 
 /**

@@ -25,6 +25,7 @@ import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationSession;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -111,7 +112,7 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
   public void testLayerList() throws Exception {
     // Reference to a layer-list drawable from a layout file.
     Annotation annotation = findAnnotation("res/layout/color_test.xml", "@drawable/layer_list", XmlAttributeValue.class);
-    checkAnnotationImage(annotation, "annotator/ic_tick_thumbnail.png");
+    checkAnnotationImage(annotation, "annotator/ic_layer_list_thumbnail.png");
   }
 
   public void testFrameworkDrawable() throws Exception {
@@ -138,7 +139,8 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
       expected = new File(getTestDataPath(), imagePath);
     }
     // Go through the same process as the real annotator, to handle retina correctly.
-    BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(GutterIconCache.getInstance().getIcon(expected.getPath(), null));
+    VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(expected);
+    BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(GutterIconCache.getInstance().getIcon(file, null, myFacet));
     ImageDiffUtil.assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.0); // 5% difference allowed
   }
 

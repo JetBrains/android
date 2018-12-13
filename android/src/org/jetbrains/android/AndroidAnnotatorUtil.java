@@ -143,22 +143,8 @@ public class AndroidAnnotatorUtil {
         case "selector":
         case "level-list":
         case "layer-list":
-        case "transition": {
-          int childDepth = parser.getDepth() + 1;
-          parser.nextTag();
-          while (parser.getDepth() >= childDepth) {
-            if (parser.getEventType() == XmlPullParser.START_TAG && parser.getDepth() == childDepth) {
-              if (TAG_ITEM.equals(parser.getName())) {
-                String value = parser.getAttributeValue(ANDROID_URI, ATTR_DRAWABLE);
-                if (value != null) {
-                  source = value;
-                }
-              }
-            }
-            parser.nextTag();
-          }
-          break;
-        }
+        case "transition":
+          return file;
 
         default:
           // <shape> etc - no bitmap to be found.
