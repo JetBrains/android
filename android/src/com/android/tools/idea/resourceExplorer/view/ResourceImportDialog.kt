@@ -36,6 +36,9 @@ import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.FlowLayout
+import java.awt.KeyboardFocusManager
+import java.awt.Rectangle
+import java.beans.PropertyChangeListener
 import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JComponent
@@ -83,6 +86,14 @@ class ResourceImportDialog(
     add(createImportButtonAction(), BorderLayout.EAST)
   }
 
+  private val focusPropertyChangeListener = PropertyChangeListener { evt ->
+    if (evt.newValue !is JComponent) {
+      return@PropertyChangeListener
+    }
+    val focused: JComponent = evt.newValue as JComponent
+    scrollViewPortIfNeeded(focused)
+  }
+
   init {
     setOKButtonText("Import")
     setSize(DIALOG_SIZE.width(), DIALOG_SIZE.height())
@@ -93,6 +104,7 @@ class ResourceImportDialog(
     init()
     dialogViewModel.assetSets.forEach(this::addDesignAssetSet)
     updateValues()
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusPropertyChangeListener)
   }
 
   override fun doOKAction() {
@@ -141,7 +153,7 @@ class ResourceImportDialog(
 
     val presentation = importAction.templatePresentation.clone()
     presentation.text = "Import more files"
-    return ActionButtonWithText(importAction, presentation, "Resource Explorer", JBUI.size(25))
+    return ActionButtonWithText(importAction, presentation, "Resource Explorer", JBUI.size(25)).apply { isFocusable = true }
   }
 
   /**
@@ -201,5 +213,31 @@ class ResourceImportDialog(
         root.repaint()
       }
     }
+  }
+
+  /**
+   * Scroll the [JBScrollPane] to the location of the [component] if it is not
+   * within the visible area.
+   */
+  private fun scrollViewPortIfNeeded(component: JComponent) {
+    if (content.isAncestorOf(component)) {
+      val viewPortLocationOnScreen = root.viewport.locationOnScreen
+      val focusedBounds = component.locationOnScreen
+      val viewportWidth = root.viewport.width
+      val viewportHeight = root.viewport.height
+      val visibleInViewport = (focusedBounds.y < viewPortLocationOnScreen.y
+                               || focusedBounds.y > viewPortLocationOnScreen.y + viewportHeight)
+      if (visibleInViewport) {
+        focusedBounds.translate(-viewPortLocationOnScreen.x, -viewPortLocationOnScreen.y)
+        component.scrollRectToVisible(Rectangle(0, 0,
+                                                viewportWidth,
+                                                viewportHeight))
+      }
+    }
+  }
+
+  override fun dispose() {
+    super.dispose()
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", focusPropertyChangeListener)
   }
 }

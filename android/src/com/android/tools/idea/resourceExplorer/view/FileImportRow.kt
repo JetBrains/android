@@ -47,7 +47,9 @@ class FileImportRow(val viewModel: FileImportRowViewModel) : JPanel(BorderLayout
   private val fileSize = JBLabel(viewModel.fileSize)
   private val fileDimension = JBLabel(viewModel.fileDimension)
 
-  private val doNotImportButton = LinkLabel<Any?>("Do not import", null) { _, _ -> removeButtonClicked() }
+  private val doNotImportButton = LinkLabel<Any?>("Do not import", null) { _, _ -> removeButtonClicked() }.apply {
+    isFocusable = true
+  }
 
   private fun removeButtonClicked() {
     parent.let {
