@@ -24,12 +24,13 @@ import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.ui.Gray
+import com.intellij.ui.JBColor
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableUtil
 import com.intellij.ui.table.JBTable
 import com.intellij.util.IJSwingUtilities
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.Component
 import java.awt.Container
@@ -99,7 +100,7 @@ class PTableImpl(override val tableModel: PTableModel,
     super.setShowGrid(false)
     super.setShowHorizontalLines(true)
     super.setIntercellSpacing(Dimension(0, JBUI.scale(1)))
-    super.setGridColor(UIUtil.getSlightlyDarkerColor(background))
+    super.setGridColor(JBColor(Gray._224, Gray._44))
 
     super.setColumnSelectionAllowed(false)
     super.setCellSelectionEnabled(false)
