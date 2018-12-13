@@ -53,6 +53,8 @@ import icons.StudioIcons
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription
 import java.awt.BorderLayout
 import java.awt.CardLayout
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_ENTER
@@ -92,7 +94,20 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
     cardLayout.show(this, "LOADING")
 
     list.emptyText.text = "No NavHostFragments found"
-    if (!GeneralSettings.getInstance().isSupportScreenReaders) {
+    if (GeneralSettings.getInstance().isSupportScreenReaders) {
+      list.addFocusListener(object: FocusListener {
+        override fun focusLost(e: FocusEvent?) {
+          list.selectedIndices = intArrayOf()
+        }
+
+        override fun focusGained(e: FocusEvent?) {
+          if (list.selectedIndices.isEmpty() && !list.isEmpty) {
+            list.selectedIndex = 0
+          }
+        }
+      })
+    }
+    else {
       list.selectionModel = object : DefaultListSelectionModel() {
         override fun setAnchorSelectionIndex(anchorIndex: Int) {
         }
@@ -104,7 +119,6 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
         }
       }
     }
-
     list.cellRenderer = object : ColoredListCellRenderer<SmartPsiElementPointer<XmlTag>>() {
       override fun customizeCellRenderer(list: JList<out SmartPsiElementPointer<XmlTag>>,
                                          value: SmartPsiElementPointer<XmlTag>?,
