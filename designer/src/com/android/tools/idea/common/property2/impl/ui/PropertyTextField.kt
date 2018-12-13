@@ -20,9 +20,12 @@ import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
+import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
+import javax.swing.BorderFactory
+import javax.swing.JComponent
 import javax.swing.KeyStroke
 
 /**
@@ -61,5 +64,15 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
       return
     }
     editorModel.escape()
+  }
+
+  companion object {
+
+    @JvmStatic
+    fun addBorderAtTextFieldBorderSize(component: JComponent) {
+      val insets = DarculaTextBorder().getBorderInsets(component)
+      // The insets are already scaled: do not use JBUI.Borders.emptyBorder(...)
+      component.border = BorderFactory.createEmptyBorder(insets.top, insets.left, insets.bottom, insets.right)
+    }
   }
 }
