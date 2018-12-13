@@ -181,8 +181,15 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
     scrollPane.border = JBUI.Borders.empty()
-    scrollPane.verticalScrollBar.unitIncrement = VERTICAL_SCROLLING_UNIT_INCREMENT
-    scrollPane.verticalScrollBar.blockIncrement = VERTICAL_SCROLLING_BLOCK_INCREMENT
+    scrollPane.addComponentListener(object : ComponentAdapter() {
+      override fun componentResized(event: ComponentEvent?) {
+        // unitIncrement affects the scroll wheel speed
+        scrollPane.verticalScrollBar.unitIncrement = scrollPane.height
+
+        // blockIncrement affects the page down speed, when clicking above/under the scroll thumb
+        scrollPane.verticalScrollBar.blockIncrement = scrollPane.height
+      }
+    })
     return scrollPane
   }
 
