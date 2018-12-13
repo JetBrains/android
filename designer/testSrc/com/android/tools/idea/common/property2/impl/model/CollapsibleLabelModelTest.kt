@@ -22,6 +22,7 @@ import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.util.text.Matcher
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.junit.Test
 
@@ -120,14 +121,14 @@ class CollapsibleLabelModelTest {
   @Test
   fun testIconOfExpandedGroup() {
     val test = Labels()
-    assertThat(test.outerGroup.icon).isEqualTo(CollapsibleLabelModel.EXPANDED_ICON)
+    assertThat(test.outerGroup.icon).isEqualTo(UIUtil.getTreeExpandedIcon())
   }
 
   @Test
   fun testIconOfCollapsedGroup() {
     val test = Labels()
     test.outerGroup.expanded = false
-    assertThat(test.outerGroup.icon).isEqualTo(CollapsibleLabelModel.COLLAPSED_ICON)
+    assertThat(test.outerGroup.icon).isEqualTo(UIUtil.getTreeCollapsedIcon())
   }
 
   @Test
