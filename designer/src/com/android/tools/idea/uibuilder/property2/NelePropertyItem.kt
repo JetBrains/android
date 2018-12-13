@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.AUTO_URI
@@ -432,7 +433,8 @@ open class NelePropertyItem(
   // region Implementation of colorButton
 
   private fun createColorButton(): ActionIconButton? {
-    if (!type.resourceTypes.contains(ResourceType.COLOR)) {
+    if (!type.resourceTypes.contains(ResourceType.COLOR) &&
+        !type.resourceTypes.contains(ResourceType.DRAWABLE)) {
       return null
     }
     return ColorActionIconButton()
@@ -443,17 +445,38 @@ open class NelePropertyItem(
       get() = true
 
     override fun getActionIcon(focused: Boolean): Icon {
-      return resolveValueAsIcon() ?: return StudioIcons.LayoutEditor.Extras.PIPETTE
+      val value = rawValue
+      return resolveValueAsIcon(value) ?: getActionIconFromUnfinishedValue(value)
+    }
+
+    private fun getActionIconFromUnfinishedValue(value: String?): Icon =
+      if (isColor(value)) StudioIcons.LayoutEditor.Extras.PIPETTE else StudioIcons.LayoutEditor.Properties.IMAGE_PICKER
+
+    private fun isColor(value: String?): Boolean {
+      val parsed = org.jetbrains.android.dom.resources.ResourceValue.parse(value, true, true, false)
+      return when {
+        parsed?.type == ResourceType.COLOR -> true
+        parsed?.type == ResourceType.DRAWABLE -> false
+        name == ATTR_BACKGROUND -> true
+        type == NelePropertyType.DRAWABLE -> false
+        type.resourceTypes.contains(ResourceType.COLOR) -> true
+        type.resourceTypes.contains(ResourceType.DRAWABLE) -> false
+        else -> true
+      }
     }
 
     override val action: AnAction?
       get() {
-        val color = resolveValueAsColor()
-        return ColorSelectionAction(this@NelePropertyItem, color)
+        val value = rawValue
+        if (isColor(value)) {
+          return ColorSelectionAction(this@NelePropertyItem, resolveValueAsColor(value))
+        }
+        else {
+          return OpenResourceManagerAction(this@NelePropertyItem)
+        }
       }
 
-      private fun resolveValueAsColor(): Color? {
-        val value = rawValue
+      private fun resolveValueAsColor(value: String?): Color? {
         if (value != null && !isReferenceValue(value)) {
           return parseColor(value)
         }
@@ -461,8 +484,7 @@ open class NelePropertyItem(
         return resolver?.resolveColor(resValue, project)
       }
 
-      private fun resolveValueAsIcon(): Icon? {
-        val value = rawValue
+      private fun resolveValueAsIcon(value: String?): Icon? {
         if (value != null && !isReferenceValue(value)) {
           val color = parseColor(value) ?: return null
           return JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false))

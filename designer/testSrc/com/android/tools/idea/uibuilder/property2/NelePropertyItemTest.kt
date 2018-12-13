@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.ABSOLUTE_LAYOUT
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
@@ -381,6 +382,33 @@ class NelePropertyItemTest : PropertyTestCase() {
     val components = createImageView()
     val src = createPropertyItem(ANDROID_URI, ATTR_SRC, NelePropertyType.DRAWABLE, components, model)
     assertThat(src.editingSupport.validation("@tools:sample/avatars[1]")).isEqualTo(EDITOR_NO_ERROR)
+  }
+
+  fun testColorIconOfBackgroundAttribute() {
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val components = createImageView()
+    val background = createPropertyItem(ANDROID_URI, ATTR_BACKGROUND, NelePropertyType.DRAWABLE, components, model)
+    assertThat(background.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
+
+    background.value = "@drawable/non-existent-drawable"
+    assertThat(background.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
+
+    background.value = "@color/non-existent-color"
+    assertThat(background.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
+  }
+
+  fun testColorIconOfSrcAttribute() {
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val components = createImageView()
+    val src = createPropertyItem(ANDROID_URI, ATTR_SRC, NelePropertyType.DRAWABLE, components, model)
+    src.value = null
+    assertThat(src.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
+
+    src.value = "@color/non-existent-color"
+    assertThat(src.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
+
+    src.value = "@drawable/non-existent-drawable"
+    assertThat(src.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
   }
 
   private fun createTextView(): List<NlComponent> {
