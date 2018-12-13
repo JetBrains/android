@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Data of http url connection. Each {@code HttpData} object matches a http connection with a unique id, and it includes both request data
@@ -304,10 +305,12 @@ public class HttpData {
     private static final String STATUS_CODE_NAME = "response-status-code";
     public static final int NO_STATUS_CODE = -1;
 
+    @NotNull private final String myRawFields;
     @NotNull private final ImmutableSortedMap<String, String> myFields;
     private int myStatusCode = NO_STATUS_CODE;
 
     ResponseHeader(String fields) {
+      myRawFields = fields;
       fields = fields.trim();
       if (fields.isEmpty()) {
         myFields = new ImmutableSortedMap.Builder<String, String>(String.CASE_INSENSITIVE_ORDER).build();
@@ -345,6 +348,12 @@ public class HttpData {
       return myStatusCode;
     }
 
+    @TestOnly
+    @NotNull
+    public String getRawFields() {
+      return myRawFields;
+    }
+
     @NotNull
     @Override
     public ImmutableSortedMap<String, String> getFields() {
@@ -353,10 +362,18 @@ public class HttpData {
   }
 
   public static final class RequestHeader extends Header {
+    @NotNull private final String myRawFields;
     @NotNull private final ImmutableSortedMap<String, String> myFields;
 
     RequestHeader(String fields) {
+      myRawFields = fields;
       myFields = new ImmutableSortedMap.Builder<String, String>(String.CASE_INSENSITIVE_ORDER).putAll(parseHeaderFields(fields)).build();
+    }
+
+    @TestOnly
+    @NotNull
+    public String getRawFields() {
+      return myRawFields;
     }
 
     @NotNull

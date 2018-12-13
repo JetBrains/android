@@ -20,6 +20,8 @@ import static com.android.tools.profiler.proto.Common.Event.EventGroupIds.NETWOR
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Network;
+import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.network.httpdata.HttpData;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,5 +50,62 @@ public class ProfilerTestData {
       .setKind(Common.Event.Kind.NETWORK_SPEED)
       .setGroupId(NETWORK_RX_VALUE)
       .setNetworkSpeed(Network.NetworkSpeedData.newBuilder().setThroughput(throughput));
+  }
+
+  @NotNull
+  public static Profiler.EventGroup.Builder generateNetworkConnectionData(@NotNull HttpData data) {
+    long connectionId = data.getId();
+    Profiler.EventGroup.Builder builder = Profiler.EventGroup.newBuilder().setGroupId(connectionId);
+    long requestStartNs = TimeUnit.MICROSECONDS.toNanos(data.getRequestStartTimeUs());
+    long requestCompleteNs = TimeUnit.MICROSECONDS.toNanos(data.getRequestCompleteTimeUs());
+    long responseStartNs = TimeUnit.MICROSECONDS.toNanos(data.getResponseStartTimeUs());
+    long responseCompleteNs = TimeUnit.MICROSECONDS.toNanos(data.getResponseCompleteTimeUs());
+    long connectionEndNs = TimeUnit.MICROSECONDS.toNanos(data.getConnectionEndTimeUs());
+    if (requestStartNs > 0) {
+      builder.addEvents(
+        Common.Event.newBuilder().setGroupId(connectionId).setTimestamp(requestStartNs).setKind(Common.Event.Kind.NETWORK_HTTP_CONNECTION)
+          .setNetworkHttpConnection(Network.NetworkHttpConnectionData.newBuilder().setHttpRequestStarted(
+            Network.NetworkHttpConnectionData.HttpRequestStarted.newBuilder()
+              .setUrl(data.getUrl()).setMethod(data.getMethod()).setFields(data.getRequestHeader().getRawFields()))));
+      if (requestCompleteNs > 0) {
+        builder.addEvents(Common.Event.newBuilder().setGroupId(connectionId).setTimestamp(requestCompleteNs)
+                            .setKind(Common.Event.Kind.NETWORK_HTTP_CONNECTION)
+                            .setNetworkHttpConnection(Network.NetworkHttpConnectionData.newBuilder().setHttpRequestCompleted(
+                              Network.NetworkHttpConnectionData.HttpRequestCompleted.newBuilder()
+                                .setPayloadId(data.getRequestPayloadId()))));
+        if (responseStartNs > 0) {
+          builder.addEvents(Common.Event.newBuilder().setGroupId(connectionId).setTimestamp(responseStartNs)
+                              .setKind(Common.Event.Kind.NETWORK_HTTP_CONNECTION)
+                              .setNetworkHttpConnection(Network.NetworkHttpConnectionData.newBuilder().setHttpResponseStarted(
+                                Network.NetworkHttpConnectionData.HttpResponseStarted.newBuilder()
+                                  .setFields(data.getResponseHeader().getRawFields()))));
+          if (responseCompleteNs > 0) {
+            builder.addEvents(Common.Event.newBuilder().setGroupId(connectionId).setTimestamp(responseCompleteNs)
+                                .setKind(Common.Event.Kind.NETWORK_HTTP_CONNECTION)
+                                .setNetworkHttpConnection(Network.NetworkHttpConnectionData.newBuilder().setHttpResponseCompleted(
+                                  Network.NetworkHttpConnectionData.HttpResponseCompleted.newBuilder()
+                                    .setPayloadId(data.getResponsePayloadId()).setPayloadSize(data.getResponsePayloadSize()))));
+          }
+        }
+      }
+
+      if (connectionEndNs > 0) {
+        builder.addEvents(Common.Event.newBuilder().setGroupId(connectionId).setTimestamp(connectionEndNs)
+                            .setKind(Common.Event.Kind.NETWORK_HTTP_CONNECTION).setIsEnded(true)
+                            .setNetworkHttpConnection(Network.NetworkHttpConnectionData.newBuilder().setHttpClosed(
+                              Network.NetworkHttpConnectionData.HttpClosed.newBuilder())));
+      }
+    }
+
+    return builder;
+  }
+
+  @NotNull
+  public static Common.Event.Builder generateNetworkThreadData(@NotNull HttpData data) {
+    assert !data.getJavaThreads().isEmpty();
+    HttpData.JavaThread thread = data.getJavaThreads().get(0);
+    long timestampNs = TimeUnit.MICROSECONDS.toNanos(data.getRequestStartTimeUs());
+    return Common.Event.newBuilder().setGroupId(data.getId()).setKind(Common.Event.Kind.NETWORK_HTTP_THREAD).setTimestamp(timestampNs)
+      .setNetworkHttpThread(Network.NetworkHttpThreadData.newBuilder().setId(thread.getId()).setName(thread.getName()));
   }
 }

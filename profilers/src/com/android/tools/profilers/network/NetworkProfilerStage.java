@@ -60,10 +60,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
   private AspectModel<NetworkProfilerAspect> myAspect = new AspectModel<>();
 
-  private final NetworkConnectionsModel myConnectionsModel =
-    new LegacyRpcNetworkConnectionsModel(getStudioProfilers().getClient().getProfilerClient(),
-                                         getStudioProfilers().getClient().getNetworkClient(),
-                                         getStudioProfilers().getSession());
+  private final NetworkConnectionsModel myConnectionsModel;
 
   private final DetailedNetworkUsage myDetailedNetworkUsage;
   private final NetworkStageLegends myLegends;
@@ -112,6 +109,12 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
         setProfilerMode(ProfilerMode.NORMAL);
       }
     });
+
+    myConnectionsModel = profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled() ?
+      new RpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(), profilers.getSession()) :
+      new LegacyRpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(),
+                                           profilers.getClient().getNetworkClient(),
+                                           profilers.getSession());
 
     myHttpDataFetcher = new HttpDataFetcher(myConnectionsModel, timeline.getSelectionRange());
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
