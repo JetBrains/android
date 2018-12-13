@@ -31,14 +31,16 @@ import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.Font
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
+import java.lang.Integer.max
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 
 private const val TITLE_SEPARATOR_HEIGHT = 4
-const val VERTICAL_SCROLLING_UNIT_INCREMENT = 3
-const val VERTICAL_SCROLLING_BLOCK_INCREMENT = 25
+const val MIN_VERTICAL_SCROLLING_UNIT_INCREMENT = 40
 
 /**
  * Provides a page for a tab defined by a [PropertiesViewTab].
@@ -90,8 +92,15 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
     scrollPane.border = BorderFactory.createEmptyBorder()
-    scrollPane.verticalScrollBar.unitIncrement = VERTICAL_SCROLLING_UNIT_INCREMENT
-    scrollPane.verticalScrollBar.blockIncrement = VERTICAL_SCROLLING_BLOCK_INCREMENT
+    scrollPane.addComponentListener(object : ComponentAdapter() {
+      override fun componentResized(event: ComponentEvent?) {
+        // unitIncrement affects the scroll wheel speed
+        scrollPane.verticalScrollBar.unitIncrement = max(scrollPane.height, MIN_VERTICAL_SCROLLING_UNIT_INCREMENT * JBUI.scale(16)) / 4
+
+        // blockIncrement affects the page down speed, when clicking above/under the scroll thumb
+        scrollPane.verticalScrollBar.blockIncrement = scrollPane.height
+      }
+    })
     return scrollPane
   }
 
