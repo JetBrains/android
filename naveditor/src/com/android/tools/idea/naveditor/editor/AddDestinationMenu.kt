@@ -74,6 +74,7 @@ import java.awt.BorderLayout
 import java.awt.event.HierarchyEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
@@ -82,6 +83,7 @@ import javax.swing.BorderFactory
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ListModel
 import javax.swing.SwingConstants
 import javax.swing.border.CompoundBorder
@@ -295,8 +297,13 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
     destinationsList.addKeyListener(object : KeyAdapter() {
       override fun keyTyped(e: KeyEvent?) {
-        searchField.requestFocus()
-        application.invokeLater { searchField.dispatchEvent(e) }
+        if (e?.keyChar == '\n' || e?.keyCode == VK_ENTER) {
+          destinationsList.selectedValue?.let { addDestination(it) }
+        }
+        else {
+          searchField.requestFocus()
+          application.invokeLater { searchField.dispatchEvent(e) }
+        }
       }
     })
     scrollable.add(destinationsList, BorderLayout.CENTER)
@@ -329,6 +336,9 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
         }
       }, EmptyProgressIndicator())
+
+    result.isFocusCycleRoot = true
+    result.focusTraversalPolicy = LayoutFocusTraversalPolicy()
 
     return result
   }
