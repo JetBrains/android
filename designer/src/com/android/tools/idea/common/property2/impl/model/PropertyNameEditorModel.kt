@@ -34,6 +34,14 @@ class PropertyNameEditorModel(private val newProperty: NewPropertyItem) :
       refresh()
     }
 
+  /**
+   * Commit the current text, and return true if focus can be transferred.
+   */
+  override fun commit(): Boolean {
+    super.commit()
+    return newProperty.delegate != null
+  }
+
   override val editingSupport: EditingSupport
     get() = newProperty.nameEditingSupport
 

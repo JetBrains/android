@@ -34,11 +34,14 @@ import javax.swing.KeyStroke
 class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel) {
   init {
     registerKeyAction({ enter() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
+    registerKeyAction({ tab() }, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), "tab")
+    registerKeyAction({ backTab() }, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK), "backTab")
     registerKeyAction({ escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
     registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
     addFocusListener(TextEditorFocusListener(this, editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
+    focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
   }
 
   override fun updateFromModel() {
@@ -55,8 +58,29 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
 
   private fun enter() {
     enterInLookup()
-    editorModel.enterKeyPressed()
+    commit()
+  }
+
+  private fun tab() {
+    if (commit()) {
+      transferFocus()
+    }
+    // TODO: b/121043039 Add some kind of notification that the commit failed e.g shake the edit control
+  }
+
+  private fun backTab() {
+    if (commit()) {
+      transferFocusBackward()
+    }
+    // TODO: b/121043039 Add some kind of notification that the commit failed e.g shake the edit control
+  }
+
+  private fun commit(): Boolean {
+    if (!editorModel.commit()) {
+      return false
+    }
     selectAll()
+    return true
   }
 
   private fun escape() {

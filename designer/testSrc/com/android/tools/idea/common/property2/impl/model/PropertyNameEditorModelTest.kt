@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.impl.model.util.TestNewPropertyItem
+import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.Mockito.times
 
 class PropertyNameEditorModelTest {
 
   private fun createModel(): Pair<PropertyNameEditorModel, ValueChangedListener> {
-    val property = TestNewPropertyItem()
+    val property = TestNewPropertyItem(mapOf(ATTR_TEXT_COLOR to TestPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR)))
     val model = PropertyNameEditorModel(property)
     val listener = Mockito.mock(ValueChangedListener::class.java)
     model.addListener(listener)
@@ -38,10 +44,15 @@ class PropertyNameEditorModelTest {
     val (model, listener) = createModel()
     val line = FakeInspectorLine(LineType.PROPERTY)
     model.lineModel = line
-    model.text = "world"
-    model.enterKeyPressed()
-    Truth.assertThat(model.property.name).isEqualTo("world")
+    model.text = ATTR_TEXT
+    assertThat(model.commit()).isFalse()
+    Truth.assertThat(model.property.name).isEqualTo(ATTR_TEXT)
     Mockito.verify(listener).valueChanged()
+
+    model.text = ATTR_TEXT_COLOR
+    assertThat(model.commit()).isTrue()
+    Truth.assertThat(model.property.name).isEqualTo(ATTR_TEXT_COLOR)
+    Mockito.verify(listener, times(2)).valueChanged()
   }
 
   @Test
