@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.android.tools.idea.uibuilder.property2.model.SelectedComponentModel
+import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
@@ -40,7 +41,7 @@ class SelectedComponentPanel(private val model: SelectedComponentModel) : AdtSec
   var lineModel: InspectorLineModel? by Delegates.observable<InspectorLineModel?>(null) { _, old, new -> lineModelChanged(old, new) }
 
   init {
-    description.foreground = JBColor.LIGHT_GRAY
+    description.foreground = JBColor(Gray._192, Gray._128)
     border = JBUI.Borders.empty(0, 6, 0, 6)
     updateFromModel()
     add(component, BorderLayout.WEST)
