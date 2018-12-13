@@ -16,8 +16,8 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.SdkConstants
-import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
 import com.intellij.util.ui.ThreeStateCheckBox
@@ -45,6 +45,7 @@ class PropertyThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPro
         propertyModel.value = fromThreeStateValue(event.newValue)
       }
     }
+    PropertyTextField.addBorderAtTextFieldBorderSize(this)
   }
 
   private fun handleValueChanged() {
