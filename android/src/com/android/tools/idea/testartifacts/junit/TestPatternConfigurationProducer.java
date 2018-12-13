@@ -18,7 +18,10 @@ package com.android.tools.idea.testartifacts.junit;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
-import com.intellij.execution.junit.*;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.junit.JUnitConfiguration;
+import com.intellij.execution.junit.JUnitUtil;
+import com.intellij.execution.junit.TestMethodConfigurationProducer;
 import com.intellij.execution.junit2.PsiMemberParameterizedLocation;
 import com.intellij.execution.testframework.AbstractPatternBasedConfigurationProducer;
 import com.intellij.openapi.module.Module;
@@ -37,8 +40,10 @@ import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurati
  * Android implementation of {@link AbstractPatternBasedConfigurationProducer} so some behaviors can be overridden.
  */
 public class TestPatternConfigurationProducer extends AbstractPatternBasedConfigurationProducer<AndroidJUnitConfiguration> implements AndroidJUnitConfigurationProducer {
-  public TestPatternConfigurationProducer() {
-    super(AndroidJUnitConfigurationType.getInstance());
+  @NotNull
+  @Override
+  public ConfigurationFactory getConfigurationFactory() {
+    return AndroidJUnitConfigurationType.getInstance();
   }
 
   @Override
