@@ -17,6 +17,7 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
+import com.android.tools.idea.common.property2.api.NewPropertyItem
 import com.android.tools.idea.common.property2.api.PropertyItem
 import kotlin.properties.Delegates
 
@@ -40,8 +41,12 @@ open class TextFieldPropertyEditorModel(property: PropertyItem, override val edi
   override val editingSupport: EditingSupport
     get() = property.editingSupport
 
-  fun enterKeyPressed() {
+  /**
+   * Commit the current text, and return true if focus can be transferred.
+   */
+  open fun commit(): Boolean {
     commitChange()
+    return true
   }
 
   fun escape() {

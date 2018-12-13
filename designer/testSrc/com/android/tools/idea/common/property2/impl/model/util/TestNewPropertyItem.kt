@@ -17,7 +17,14 @@ package com.android.tools.idea.common.property2.impl.model.util
 
 import com.android.tools.idea.common.property2.api.NewPropertyItem
 
-class TestNewPropertyItem : TestPropertyItem("", "", null, null, null), NewPropertyItem {
+class TestNewPropertyItem(val properties: Map<String, TestPropertyItem> = emptyMap()) :
+  TestPropertyItem("", "", null, null, null), NewPropertyItem {
+
+  override var name: String = ""
+    set(value) {
+      field = value
+      delegate = properties[value]
+    }
 
   override var delegate: TestPropertyItem? = null
 

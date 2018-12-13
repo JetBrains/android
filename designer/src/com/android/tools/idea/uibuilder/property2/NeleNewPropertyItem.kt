@@ -40,9 +40,11 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     FlagsPropertyItem<NeleFlagPropertyItem> {
 
   override var namespace: String = ""
+    get() = delegate?.namespace ?: field
     private set
 
   override var name: String = ""
+    get() = delegate?.name ?: field
     set(value) {
       val (propertyNamespace, propertyName) = parseName(value)
       namespace = propertyNamespace
@@ -131,11 +133,14 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
     if (property != null) {
       return property
     }
-    if (propertyNamespace == TOOLS_URI) {
+    if (delegate?.name == propertyName) {
+      return delegate
+    }
+    if (propertyNamespace == TOOLS_URI || propertyNamespace.isEmpty()) {
       for (ns in properties.namespaces) {
         property = properties.getOrNull(ns, propertyName)
         if (property != null) {
-          return property.designProperty
+          return if (propertyNamespace == TOOLS_URI) property.designProperty else property
         }
       }
     }

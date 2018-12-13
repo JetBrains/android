@@ -65,7 +65,7 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : AdtSecondar
       }
     })
     flagImage.registerKeyAction({ showFlagEditor() }, KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "showFlagEditor")
-    flagImage.registerKeyAction({ editorModel.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
+    flagImage.registerKeyAction({ editorModel.commit() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
     flagImage.registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     flagImage.registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
 

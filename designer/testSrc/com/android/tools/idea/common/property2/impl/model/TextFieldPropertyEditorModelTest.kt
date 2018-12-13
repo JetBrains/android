@@ -50,7 +50,7 @@ class TextFieldPropertyEditorModelTest {
     val line = FakeInspectorLine(LineType.PROPERTY)
     model.lineModel = line
     model.text = "world"
-    model.enterKeyPressed()
+    model.commit()
     assertThat(model.property.value).isEqualTo("world")
     verify(listener).valueChanged()
   }
@@ -100,7 +100,7 @@ class TextFieldPropertyEditorModelTest {
     model.text = "imageView"
 
     // test
-    model.enterKeyPressed()
+    model.commit()
     assertThat(property.lastUpdatedValue).isEqualTo("imageView")
     assertThat(property.updateCount).isEqualTo(1)
     verify(listener).valueChanged()
@@ -113,7 +113,7 @@ class TextFieldPropertyEditorModelTest {
     val (model, listener) = createModel(property)
     model.focusGained()
     model.text = "imageView"
-    model.enterKeyPressed()
+    model.commit()
 
     // test
     model.focusLost()

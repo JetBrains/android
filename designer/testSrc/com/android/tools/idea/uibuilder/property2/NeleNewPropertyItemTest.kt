@@ -94,6 +94,19 @@ class NeleNewPropertyItemTest {
   }
 
   @Test
+  fun testDelegateWithoutPrefix() {
+    val properties = createTable()
+    val model = properties.first!!.model
+    val property = NeleNewPropertyItem(model, properties)
+    property.name = ATTR_TEXT
+    val delegate = property.delegate!!
+    assertThat(delegate.namespace).isEqualTo(ANDROID_URI)
+    assertThat(delegate.name).isEqualTo(ATTR_TEXT)
+    assertThat(property.namespace).isEqualTo(ANDROID_URI)
+    assertThat(property.name).isEqualTo(ATTR_TEXT)
+  }
+
+  @Test
   fun testFlagsDelegate() {
     val properties = createTable()
     val model = properties.first!!.model
