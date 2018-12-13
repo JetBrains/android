@@ -23,6 +23,7 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -47,38 +48,44 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
 
   companion object {
     val LOG = Logger.getInstance(AndroidResolveScopeEnlarger::class.java)!!
-  }
 
-  override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
-    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) return null
+    fun findAdditionalClassesForModule(module: Module, includeTestClasses: Boolean): Collection<PsiClass>? {
+      if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) return null
+      val project = module.project
+      if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return emptyList()
+      if (module.androidFacet == null) return emptyList()
+      val result = mutableListOf<PsiClass>()
 
-    val lightClasses = findRelevantClasses(file, project)
-    LOG.debug { "Enlarging scope for $file with ${lightClasses.size} light Android classes." }
+      project.getProjectSystem()
+        .getLightResourceClassService()
+        .getLightRClassesAccessibleFromModule(module, includeTestClasses)
+        .let(result::addAll)
 
-    return if (lightClasses.isEmpty()) {
-      null
-    } else {
-      // Unfortunately LocalScope looks at containingFile.virtualFile, which is null for non-physical PSI.
-      GlobalSearchScope.filesWithoutLibrariesScope(project, lightClasses.map { it.containingFile.viewProvider.virtualFile })
+      result.addAll(AndroidManifestClassPsiElementFinder.getInstance(project).getManifestClassesAccessibleFromModule(module))
+
+      return result
+    }
+
+    fun getResolveScopeForAdditionalClasses(lightClasses: Collection<PsiClass>, project: Project): SearchScope? {
+      return if (lightClasses.isEmpty()) {
+        null
+      }
+      else {
+        // Unfortunately LocalScope looks at containingFile.virtualFile, which is null for non-physical PSI.
+        GlobalSearchScope.filesWithoutLibrariesScope(project, lightClasses.map { it.containingFile.viewProvider.virtualFile })
+      }
     }
   }
 
-  private fun findRelevantClasses(file: VirtualFile, project: Project): Collection<PsiClass> {
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return emptyList()
+  override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
+    val lightClasses = findRelevantClasses(file, project) ?: return null
+    LOG.debug { "Enlarging scope for $file with ${lightClasses.size} light Android classes." }
+    return getResolveScopeForAdditionalClasses(lightClasses, project)
+  }
+
+  private fun findRelevantClasses(file: VirtualFile, project: Project): Collection<PsiClass>? {
     val module = ModuleUtil.findModuleForFile(file, project) ?: return emptyList()
-    if (module.androidFacet == null) return emptyList()
-    val result = mutableListOf<PsiClass>()
-
-    project.getProjectSystem()
-      .getLightResourceClassService()
-      .getLightRClassesAccessibleFromModule(
-        module,
-        TestArtifactSearchScopes.get(module)?.isAndroidTestSource(file) ?: false
-      )
-      .let(result::addAll)
-
-    result.addAll(AndroidManifestClassPsiElementFinder.getInstance(project).getManifestClassesAccessibleFromModule(module))
-
-    return result
+    val includeTestClasses = TestArtifactSearchScopes.get(module)?.isAndroidTestSource(file) ?: false
+    return findAdditionalClassesForModule(module, includeTestClasses)
   }
 }
