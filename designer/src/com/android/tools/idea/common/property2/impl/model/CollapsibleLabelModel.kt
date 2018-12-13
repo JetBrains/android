@@ -20,9 +20,9 @@ import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.util.text.Matcher
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.TestOnly
 import javax.swing.Icon
-import javax.swing.UIManager
 
 // Prefix to the keys used to store/restore the state of expandable groups in the inspector
 @VisibleForTesting
@@ -65,7 +65,7 @@ open class CollapsibleLabelModel(
   val icon: Icon?
     get() {
       if (expandable) {
-        return if (expanded) EXPANDED_ICON else COLLAPSED_ICON
+        return if (expanded) UIUtil.getTreeExpandedIcon() else UIUtil.getTreeCollapsedIcon()
       }
       return editorModel?.property?.namespaceIcon
     }
@@ -102,14 +102,6 @@ open class CollapsibleLabelModel(
 
   override fun requestFocus() {
     editorModel?.requestFocus()
-  }
-
-  companion object {
-    @JvmField @VisibleForTesting
-    val EXPANDED_ICON = UIManager.get("Tree.expandedIcon") as Icon
-
-    @JvmField @VisibleForTesting
-    val COLLAPSED_ICON = UIManager.get("Tree.collapsedIcon") as Icon
   }
 
   override fun isMatch(matcher: Matcher) = editorModel != null && matcher.matches(name)
