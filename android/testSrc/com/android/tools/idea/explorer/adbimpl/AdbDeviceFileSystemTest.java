@@ -72,7 +72,8 @@ public class AdbDeviceFileSystemTest {
     Function<Void, File> adbRuntimeError = aVoid -> {
       throw new RuntimeException("No Adb for unit tests");
     };
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(adbRuntimeError, myCallbackExecutor, taskExecutor);
+    AdbDeviceFileSystemService service =
+      new AdbDeviceFileSystemService(adbRuntimeError, myCallbackExecutor, taskExecutor, myParentDisposable);
     myFileSystem = new AdbDeviceFileSystem(service, myMockDevice.getIDevice());
     UniqueFileNameGenerator fileNameGenerator = new UniqueFileNameGenerator() {
       private int myNextId;
