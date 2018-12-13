@@ -28,21 +28,16 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.tabs.impl.TabLabel;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
-import java.awt.*;
 import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.GOTO_DECLARATION;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
 @RunWith(GuiTestRemoteRunner.class)
@@ -99,34 +94,5 @@ public class GradleTestArtifactSyncTest {
 
   private static void requirePath(@Nullable VirtualFile file, @NotNull String path) {
     assertThat(file.getPath()).endsWith(path);
-  }
-
-  @Test
-  public void testTestFileBackground() throws Exception {
-    guiTest.importSimpleApplication();
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-
-    editor.open("app/src/test/java/google/simpleapplication/UnitTest.java");
-    TabLabel tabLabel = findTab(editor);
-    Color green = new JBColor(new Color(231, 250, 219), new Color(0x425444));
-    assertEquals(green, tabLabel.getInfo().getTabColor());
-
-    // TODO re-enable following code when we fix background color support
-    //editor.close();
-    //editor.open("app/src/androidTest/java/google/simpleapplication/ApplicationTest.java");
-    //tabLabel = findTab(editor);
-    //Color blue = new JBColor(new Color(0xdcf0ff), new Color(0x3C476B));
-    //assertEquals(blue, tabLabel.getInfo().getTabColor());
-  }
-
-  @NotNull
-  private TabLabel findTab(@NotNull EditorFixture editor) {
-    final VirtualFile file = editor.getCurrentFile();
-    return guiTest.robot().finder().find(new GenericTypeMatcher<TabLabel>(TabLabel.class) {
-      @Override
-      protected boolean isMatching(@NotNull TabLabel tabLabel) {
-        return tabLabel.getInfo().getText().equals(file.getName());
-      }
-    });
   }
 }
