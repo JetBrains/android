@@ -94,14 +94,6 @@ public class AndroidStudioInitializer implements Runnable {
     TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
     TextAttributes xmlTagAttributes = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
-
-    /* Causes IDE startup failure (from the command line)
-          Caused by: java.lang.IllegalAccessError: tried to access class com.intellij.ui.tabs.FileColorConfiguration from class com.intellij.ui.tabs.FileColorConfigurationUtil
-          at com.intellij.ui.tabs.FileColorConfigurationUtil.createFileColorConfigurationIfNotExist(FileColorConfigurationUtil.java:37)
-          at com.intellij.ui.tabs.FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(FileColorConfigurationUtil.java:28)
-          at com.android.tools.idea.startup.AndroidStudioInitializer.run(AndroidStudioInitializer.java:90)
-    FileColorConfigurationUtil.createAndroidTestFileColorConfigurationIfNotExist(ProjectManager.getInstance().getDefaultProject());
-     */
   }
 
   /*
