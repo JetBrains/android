@@ -283,6 +283,13 @@ public class ResourceRepositoryManager implements Disposable {
    */
   @NotNull
   public LocalResourceRepository getAppResources() {
+    LocalResourceRepository appResources = getExistingAppResources();
+    if (appResources != null) {
+      return appResources;
+    }
+
+    getLibraryResources(); // Precompute library resources to do less work inside the read action below.
+
     return ApplicationManager.getApplication().runReadAction((Computable<AppResourceRepository>)() -> {
       synchronized (APP_RESOURCES_LOCK) {
         if (myAppResources == null) {
@@ -322,6 +329,11 @@ public class ResourceRepositoryManager implements Disposable {
    */
   @NotNull
   public LocalResourceRepository getProjectResources() {
+    LocalResourceRepository projectResources = getExistingProjectResources();
+    if (projectResources != null) {
+      return projectResources;
+    }
+
     return ApplicationManager.getApplication().runReadAction((Computable<ProjectResourceRepository>)() -> {
       synchronized (PROJECT_RESOURCES_LOCK) {
         if (myProjectResources == null) {
@@ -359,6 +371,11 @@ public class ResourceRepositoryManager implements Disposable {
    */
   @NotNull
   public LocalResourceRepository getModuleResources() {
+    LocalResourceRepository moduleResources = getExistingModuleResources();
+    if (moduleResources != null) {
+      return moduleResources;
+    }
+
     return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
       synchronized (MODULE_RESOURCES_LOCK) {
         if (myModuleResources == null) {
