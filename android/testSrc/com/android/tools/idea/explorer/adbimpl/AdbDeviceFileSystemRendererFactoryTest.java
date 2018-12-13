@@ -61,7 +61,8 @@ public class AdbDeviceFileSystemRendererFactoryTest extends AndroidTestCase {
     // Prepare
     AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(getProject()),
                                                                         EdtExecutor.INSTANCE,
-                                                                        PooledThreadExecutor.INSTANCE);
+                                                                        PooledThreadExecutor.INSTANCE,
+                                                                        getProject());
     disposeOnTearDown(service);
     AdbDeviceFileSystemRendererFactory factory = new AdbDeviceFileSystemRendererFactory(service);
     DeviceNamePropertiesFetcher fetcher = new DeviceNamePropertiesFetcher(new FutureCallback<DeviceNameProperties>() {
