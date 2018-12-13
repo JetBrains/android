@@ -68,9 +68,10 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
 
   private val addQualifierButton = LinkLabel("Add another qualifier", null, ::onAddQualifierLabelClicked)
     .also { label ->
-    label.border = ADD_BUTTON_BORDER
-    label.isEnabled = canAddConfigurationRow()
-  }
+      label.border = ADD_BUTTON_BORDER
+      label.isEnabled = canAddConfigurationRow()
+      label.isFocusable = true
+    }
 
   private val qualifierTypeLabel = JBLabel("QUALIFIER TYPE").apply {
     preferredSize = QUALIFIER_TYPE_COMBO_SIZE
@@ -81,6 +82,7 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
     border = JBUI.Borders.emptyLeft(FLOW_LAYOUT_GAP)
     font = JBUI.Fonts.smallFont()
   }
+
   init {
     val initialConfigurations = viewModel.getCurrentConfigurations()
     if (initialConfigurations.isEmpty()) {
@@ -112,9 +114,11 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
   }
 
   private fun addConfigurationRow() {
-    qualifierContainer.add(ConfigurationRow(viewModel))
+    val configurationRow = ConfigurationRow(viewModel)
+    qualifierContainer.add(configurationRow)
     qualifierContainer.revalidate()
     qualifierContainer.repaint()
+    configurationRow.qualifierCombo.requestFocus()
   }
 
   private fun canAddConfigurationRow(): Boolean =
@@ -184,7 +188,7 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
           addQualifierButton.isEnabled = canAddConfigurationRow()
         }
       }
-      return ActionButton(action, action.templatePresentation, "Resource Explorer", ADD_BUTTON_SIZE)
+      return ActionButton(action, action.templatePresentation, "Resource Explorer", ADD_BUTTON_SIZE).apply { isFocusable = true }
     }
 
     private fun deleteRow() {
