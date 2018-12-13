@@ -71,6 +71,17 @@ public class DrawableRenderer implements Disposable {
    * @param facet the Android facet
    */
   public DrawableRenderer(@NotNull AndroidFacet facet) {
+    this(facet, ThemeEditorUtils.getConfigurationForModule(facet.getModule()));
+  }
+
+  /**
+   * Initializes the renderer. Every renderer has to be disposed by calling {@link #dispose()}.
+   * Please keep in mind that each renderer instance allocates significant resources inside Layoutlib.
+   *
+   * @param facet the Android facet
+   * @param configuration the configuration to use for rendering
+   */
+  public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
     Module module = facet.getModule();
     RenderLogger logger = new RenderLogger(LauncherIconGenerator.class.getSimpleName(), module);
     myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
@@ -78,12 +89,11 @@ public class DrawableRenderer implements Disposable {
     // Executing them off the UI thread.
     myRenderTaskFuture = FutureUtils.executeOnPooledThread(() -> {
       try {
-        Configuration configuration = ThemeEditorUtils.getConfigurationForModule(module);
         RenderService service = RenderService.getInstance(module.getProject());
         RenderTask renderTask = service.taskBuilder(facet, configuration)
-                                 .withLogger(logger)
-                                 .withParserFactory(myParserFactory)
-                                 .build();
+          .withLogger(logger)
+          .withParserFactory(myParserFactory)
+          .build();
         assert renderTask != null;
         renderTask.getLayoutlibCallback().setLogger(logger);
         if (logger.hasProblems()) {

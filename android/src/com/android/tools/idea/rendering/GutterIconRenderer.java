@@ -23,6 +23,8 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
@@ -37,6 +39,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.Icon;
 import javax.swing.SwingConstants;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +57,11 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   @Override
   @NotNull
   public Icon getIcon() {
-    Icon icon = GutterIconCache.getInstance().getIcon(myFile.getPath(), myResourceResolver);
+    AndroidFacet facet = AndroidFacet.getInstance(myElement);
+    if (facet == null) {
+      return AllIcons.General.Error;
+    }
+    Icon icon = GutterIconCache.getInstance().getIcon(myFile, myResourceResolver, facet);
 
     if (icon != null) {
       return icon;
@@ -65,7 +72,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
 
   @Override
   public AnAction getClickAction() {
-    return new GutterIconClickAction(myFile, myResourceResolver);
+    return new GutterIconClickAction(myFile, myResourceResolver, myElement);
   }
 
   @Override
@@ -95,10 +102,12 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
 
     private final VirtualFile myFile;
     private final ResourceResolver myResourceResolver;
+    private final PsiElement myElement;
 
-    public GutterIconClickAction(VirtualFile file, ResourceResolver resourceResolver) {
+    private GutterIconClickAction(VirtualFile file, ResourceResolver resourceResolver, PsiElement element) {
       myFile = file;
       myResourceResolver = resourceResolver;
+      myElement = element;
     }
 
     @Override
@@ -124,7 +133,11 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
 
     @Nullable
     private JBPopup createPreview(Runnable onClick) {
-      Icon icon = GutterIconFactory.createIcon(myFile.getPath(), myResourceResolver, PREVIEW_MAX_WIDTH, PREVIEW_MAX_HEIGHT);
+      AndroidFacet facet = AndroidFacet.getInstance(myElement);
+      if (facet == null) {
+        return null;
+      }
+      Icon icon = GutterIconFactory.createIcon(myFile, myResourceResolver, PREVIEW_MAX_WIDTH, PREVIEW_MAX_HEIGHT, facet);
 
       if (icon == null) {
         return null;

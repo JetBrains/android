@@ -122,7 +122,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
     VirtualFile bitmap = ResourceHelper.resolveDrawable(resolver, drawable, property.getModel().getProject());
     bitmap = AndroidAnnotatorUtil.pickBestBitmap(bitmap);
-    return bitmap == null ? null : GutterIconCache.getInstance().getIcon(bitmap.getPath(), resolver);
+    return bitmap == null ? null : GutterIconCache.getInstance().getIcon(bitmap, resolver, property.getModel().getFacet());
   }
 
   @Nullable

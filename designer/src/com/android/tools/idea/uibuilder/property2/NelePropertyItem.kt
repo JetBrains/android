@@ -493,7 +493,7 @@ open class NelePropertyItem(
           return JBUI.scale(ColorIcon(RESOURCE_ICON_SIZE, color, false))
         }
         val resValue = asResourceValue(value) ?: return null
-        return resolver?.resolveAsIcon(resValue, project)
+        return resolver?.resolveAsIcon(resValue, project, model.facet)
       }
     }
 

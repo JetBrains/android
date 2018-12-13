@@ -1,4 +1,8 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@drawable/non_existent" />
+    <item>
+        <shape android:shape="oval">
+            <stroke android:width="5dp" android:color="#f00" />
+        </shape>
+    </item>
     <item android:drawable="@drawable/ic_tick" />
 </layer-list>
