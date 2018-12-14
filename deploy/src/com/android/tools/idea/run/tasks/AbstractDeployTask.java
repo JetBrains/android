@@ -27,8 +27,6 @@ import com.android.tools.deployer.DeployerException;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -39,21 +37,20 @@ import com.intellij.openapi.wm.ToolWindowId;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class UnifiedDeployTask implements LaunchTask {
+public abstract class AbstractDeployTask implements LaunchTask {
 
   public static final int MIN_API_VERSION = 26;
-  private static final String ID = "UNIFIED_DEPLOY";
   private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("UnifiedDeployTask", ToolWindowId.RUN);
 
   @NotNull private final Project myProject;
-  @NotNull private final DeployAction myAction;
   @NotNull private final Map<String, List<File>> myPackages;
   @Nullable private DeploymentErrorHandler myDeploymentErrorHandler;
 
-  public static final Logger LOG = Logger.getInstance(UnifiedDeployTask.class);
+  public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
   /**
    * Creates a task to deploy a list of apks.
@@ -62,17 +59,10 @@ public class UnifiedDeployTask implements LaunchTask {
    * @param action          the deployment action that this task will take.
    * @param packages        a map of application ids to apks representing the packages this task will deploy.
    */
-  private UnifiedDeployTask(
-    @NotNull Project project, @NotNull DeployAction action, @NotNull Map<String, List<File>> packages) {
+  public AbstractDeployTask(
+    @NotNull Project project, @NotNull Map<String, List<File>> packages) {
     myProject = project;
-    myAction = action;
     myPackages = packages;
-  }
-
-  @NotNull
-  @Override
-  public String getDescription() {
-    return myAction.getName();
   }
 
   @Nullable
@@ -92,12 +82,6 @@ public class UnifiedDeployTask implements LaunchTask {
     return 20;
   }
 
-  @NotNull
-  @Override
-  public String getId() {
-    return ID;
-  }
-
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     LogWrapper logger = new LogWrapper(LOG);
@@ -112,18 +96,20 @@ public class UnifiedDeployTask implements LaunchTask {
       String applicationId = entry.getKey();
       List<File> apkFiles = entry.getValue();
       try {
-        myAction.deploy(myProject, device, deployer, applicationId, apkFiles);
+        perform(device, deployer, applicationId, apkFiles);
       } catch (DeployerException e) {
-        myDeploymentErrorHandler = new DeploymentErrorHandler(myAction, e);
+        myDeploymentErrorHandler = new DeploymentErrorHandler(getDescription(), e);
         return false;
       }
     }
 
-    NOTIFICATION_GROUP.createNotification(myAction.getName() + " successful", NotificationType.INFORMATION)
+    NOTIFICATION_GROUP.createNotification(getDescription() + " successful", NotificationType.INFORMATION)
       .setImportant(false).notify(myProject);
 
     return true;
   }
+
+  abstract protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
 
   private String getLocalInstaller() {
     File path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
@@ -134,40 +120,12 @@ public class UnifiedDeployTask implements LaunchTask {
     return path.getAbsolutePath();
   }
 
-  public static Builder builder() {
-    return new Builder();
+  protected static final List<String> getPathsToInstall(List<File> apkFiles) {
+    return apkFiles.stream().map(File::getPath).collect(Collectors.toList());
   }
 
-  public static class Builder {
-    private Project project;
-    private DeployAction action;
-    private ImmutableMap.Builder<String, List<File>> packages;
-
-    private Builder() {
-      this.project = null;
-      this.action = null;
-      this.packages = ImmutableMap.builder();
-    }
-
-    public Builder setProject(@NotNull Project project) {
-      this.project = project;
-      return this;
-    }
-
-    public Builder setAction(DeployAction action) {
-      this.action = action;
-      return this;
-    }
-
-    public Builder addPackage(String applicationId, List<File> apkFiles) {
-      this.packages.put(applicationId, apkFiles);
-      return this;
-    }
-
-    public UnifiedDeployTask build() {
-      Preconditions.checkNotNull(project);
-      Preconditions.checkNotNull(action);
-      return new UnifiedDeployTask(project, action, packages.build());
-    }
+  @NotNull
+  protected Project getProject() {
+    return myProject;
   }
 }

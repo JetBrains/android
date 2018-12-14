@@ -31,7 +31,7 @@ import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 
-class InstallActionTest {
+class DeployTaskTest {
   @Mock private lateinit var project: Project
   @Mock private lateinit var device: IDevice
   @Mock private lateinit var deployer: Deployer
@@ -47,8 +47,8 @@ class InstallActionTest {
     Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().build()
 
-    val installAction = InstallAction(null)
-    installAction.deploy(project, device, deployer, "", listOf())
+    val deployTask = DeployTask(project, mapOf(), null)
+    deployTask.perform(device, deployer, "", listOf())
     verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
   }
 
@@ -58,8 +58,8 @@ class InstallActionTest {
     Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setUserInstallOptions("-v").build()
 
-    val installAction = InstallAction("-v")
-    installAction.deploy(project, device, deployer, "", listOf())
+    val deployTask = DeployTask(project, mapOf(), "-v")
+    deployTask.perform(device, deployer, "", listOf())
     verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
   }
 
@@ -69,8 +69,8 @@ class InstallActionTest {
     Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setGrantAllPermissions().build()
 
-    val installAction = InstallAction(null)
-    installAction.deploy(project, device, deployer, "", listOf())
+    val deployTask = DeployTask(project, mapOf(), null)
+    deployTask.perform(device, deployer, "", listOf())
     verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
   }
 
@@ -80,8 +80,8 @@ class InstallActionTest {
     Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setGrantAllPermissions().setUserInstallOptions("-v").build()
 
-    val installAction = InstallAction("-v")
-    installAction.deploy(project, device, deployer, "", listOf())
+    val deployTask = DeployTask(project, mapOf(), "-v")
+    deployTask.perform(device, deployer, "", listOf())
     verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
   }
 
@@ -91,8 +91,8 @@ class InstallActionTest {
     Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallFullApk().build()
 
-    val installAction = InstallAction(null)
-    installAction.deploy(project, device, deployer, "", listOf())
+    val deployTask = DeployTask(project, mapOf(), null)
+    deployTask.perform(device, deployer, "", listOf())
     verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
   }
 
@@ -102,8 +102,8 @@ class InstallActionTest {
     Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.P))
     val expectedOptions = InstallOptions.builder().setAllowDebuggable().setInstallFullApk().setUserInstallOptions("-v").build()
 
-    val installAction = InstallAction("-v")
-    installAction.deploy(project, device, deployer, "", listOf())
+    val deployTask = DeployTask(project, mapOf(), "-v")
+    deployTask.perform(device, deployer, "", listOf())
     verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions))
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.ui;
 
-import static com.android.tools.idea.run.tasks.UnifiedDeployTask.MIN_API_VERSION;
+import static com.android.tools.idea.run.tasks.AbstractDeployTask.MIN_API_VERSION;
 
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.Deployable;
