@@ -16,15 +16,10 @@
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDependency;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
 import static junit.framework.Assert.fail;
@@ -36,22 +31,6 @@ public class GradleBuildModelFixture {
     myTarget = target;
   }
 
-  @NotNull
-  public GradleBuildModel getTarget() {
-    return myTarget;
-  }
-
-  public void requireDependency(@NotNull String configurationName, @NotNull ArtifactDependencySpec expected) {
-    DependenciesModel dependenciesModel = myTarget.dependencies();
-    for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
-      ArtifactDependencySpec actual = ArtifactDependencySpec.create(dependency);
-      if (configurationName.equals(dependency.configurationName()) && expected.equals(actual)) {
-        return;
-      }
-    }
-    fail("Failed to find dependency '" + expected.compactNotation() + "'");
-  }
-
   public void requireDependency(@NotNull ExpectedModuleDependency expected) {
     DependenciesModel dependenciesModel = myTarget.dependencies();
     for (final ModuleDependencyModel dependency : dependenciesModel.modules()) {
@@ -61,13 +40,5 @@ public class GradleBuildModelFixture {
       }
     }
     fail("Failed to find dependency '" + expected.path + "'");
-  }
-
-  public void applyChanges() {
-    ApplicationManager.getApplication().invokeAndWait(() -> WriteCommandAction.runWriteCommandAction(myTarget.getProject(), myTarget::applyChanges));
-  }
-
-  public void reparse() {
-    GuiTask.execute(() -> myTarget.reparse());
   }
 }

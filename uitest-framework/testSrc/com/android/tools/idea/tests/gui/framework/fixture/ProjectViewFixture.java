@@ -27,7 +27,6 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.projectView.impl.ProjectViewTree;
-import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
@@ -180,21 +179,6 @@ public class ProjectViewFixture extends ToolWindowFixture {
         return false;
       }));
       return treeStructureRef.get();
-    }
-
-    @NotNull
-    public NodeFixture findExternalLibrariesNode() {
-      final AbstractTreeStructure treeStructure = getTreeStructure();
-
-      ExternalLibrariesNode node = GuiQuery.getNonNull(() -> {
-        for (Object child : treeStructure.getChildElements(treeStructure.getRootElement())) {
-          if (child instanceof ExternalLibrariesNode) {
-            return (ExternalLibrariesNode)child;
-          }
-        }
-        throw new IllegalStateException("Unable to find 'External Libraries' node");
-      });
-      return new NodeFixture(node, treeStructure);
     }
 
     @NotNull
