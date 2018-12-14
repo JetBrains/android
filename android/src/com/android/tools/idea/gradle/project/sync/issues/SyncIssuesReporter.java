@@ -43,7 +43,7 @@ public class SyncIssuesReporter {
   public SyncIssuesReporter(@NotNull UnresolvedDependenciesReporter unresolvedDependenciesReporter) {
     this(unresolvedDependenciesReporter, new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
          new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter(), new MinSdkInManifestIssuesReporter(),
-         new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter());
+         new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter(), new MissingSdkIssueReporter());
   }
 
   @VisibleForTesting

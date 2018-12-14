@@ -63,6 +63,9 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -323,18 +326,44 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     refreshProjectFiles();
   }
 
+  /**
+   * Prepares multiple projects for import.
+   *
+   * @param relativePath the relative path of the projects from the the test data directory
+   * @param includedBuilds names of all builds to be included (as well as the main project) these names must
+   *                       all be folders within the {@param relativePath}. If empty imports a single project
+   *                       with the root given by {@param relativePath}. The first path will be used as the main
+   *                       project and copied to the main directory, every other path will be copied to a subfolder.
+   * @return root of the imported project or projects.
+   */
   @NotNull
-  protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
+  protected File prepareMultipleProjectsForImport(@NotNull String relativePath, @NotNull String...includedBuilds) throws IOException {
     File root = new File(myFixture.getTestDataPath(), toSystemDependentName(relativePath));
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
     }
 
-    // Sync the model
     Project project = myFixture.getProject();
     File projectRoot = virtualToIoFile(project.getBaseDir());
-    prepareProjectForImport(root, projectRoot);
+
+    List<String> buildNames = new ArrayList<>(Arrays.asList(includedBuilds));
+    if (includedBuilds.length == 0) {
+      buildNames.add(".");
+    }
+
+    prepareProjectForImport(new File(root, buildNames.remove(0)), projectRoot);
+
+    for (String buildName : buildNames) {
+      File includedBuildRoot = new File(root, buildName);
+      File projectBuildRoot = new File(projectRoot, buildName);
+      prepareProjectForImport(includedBuildRoot, projectBuildRoot);
+    }
     return projectRoot;
+  }
+
+  @NotNull
+  protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
+    return prepareMultipleProjectsForImport(relativePath);
   }
 
   @NotNull
