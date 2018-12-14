@@ -47,6 +47,7 @@ import com.intellij.psi.PsiManager
 import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
+import kotlin.properties.Delegates
 
 private const val MODULE_PREFIX = "Module: "
 
@@ -129,6 +130,12 @@ class ResourceExplorerToolbarViewModel(
     set(value) {
       filterOptions.isShowLibraries = value
     }
+
+  var searchString: String by Delegates.observable("") { _, old, new ->
+    if (new != old) {
+      filterOptions.searchString = new
+    }
+  }
 
   /**
    * Implementation of [IdeView.getDirectories] that returns the resource directories of

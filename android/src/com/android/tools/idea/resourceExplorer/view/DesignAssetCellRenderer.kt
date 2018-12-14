@@ -74,7 +74,7 @@ class DesignAssetCellRenderer(
     label.icon = iconProvider.getIcon(assetToRender,
                                       thumbnailSize.width,
                                       thumbnailSize.height,
-                                      { list.repaint(list.getCellBounds(index, index)) },
+                                      { list.getCellBounds(index, index)?.let(list::repaint) },
                                       { ScrollingUtil.isIndexFullyVisible(list, index) })
     assetView.withChessboard = iconProvider.supportsTransparency
     assetView.selected = isSelected

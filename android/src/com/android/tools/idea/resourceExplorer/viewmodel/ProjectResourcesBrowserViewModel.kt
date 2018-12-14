@@ -31,6 +31,7 @@ import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
@@ -88,7 +89,11 @@ class ProjectResourcesBrowserViewModel(
 
   override val resourceTypes: Array<ResourceType> get() = SUPPORTED_RESOURCES
 
-  val filterOptions: FilterOptions = FilterOptions({ resourceChangedCallback?.invoke() })
+  val speedSearch = SpeedSearch(true)
+
+  val filterOptions: FilterOptions = FilterOptions(
+    { resourceChangedCallback?.invoke() },
+    { speedSearch.updatePattern(it) })
 
   init {
     subscribeListener(facet)

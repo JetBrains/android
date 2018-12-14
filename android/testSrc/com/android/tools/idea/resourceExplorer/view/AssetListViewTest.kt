@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
+import com.android.resources.ResourceType
+import com.android.tools.idea.resourceExplorer.model.DesignAsset
+import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.mock.MockVirtualFile
+import com.intellij.ui.speedSearch.SpeedSearch
 import org.junit.Test
 import javax.swing.JList
 
@@ -73,4 +78,35 @@ class AssetListViewTest {
     assertThat(assetListView.layoutOrientation).isEqualTo(JList.VERTICAL)
     assertThat(assetListView.visibleRowCount).isEqualTo(0)
   }
+
+  @Test
+  fun filtering() {
+    val speedSearch = SpeedSearch(true)
+    val assetList = listOf(
+      createMockAssetSet("abc"),
+      createMockAssetSet("def"),
+      createMockAssetSet("ad"))
+    val assetListView = AssetListView(assetList, speedSearch)
+    assertThat(assetListView.model.size).isEqualTo(3)
+    speedSearch.updatePattern("a")
+    assetListView.refilter()
+    assertThat(assetListView.model.size).isEqualTo(2)
+    assertThat(assetListView.model.getElementAt(0).name).isEqualTo("abc")
+    assertThat(assetListView.model.getElementAt(1).name).isEqualTo("ad")
+    speedSearch.updatePattern("abc")
+    assetListView.refilter()
+    assertThat(assetListView.model.size).isEqualTo(1)
+    assertThat(assetListView.model.getElementAt(0).name).isEqualTo("abc")
+    speedSearch.updatePattern("")
+    assetListView.refilter()
+    assertThat(assetListView.model.size).isEqualTo(3)
+  }
+
+  private fun createMockAssetSet(name: String) =
+    DesignAssetSet(name, listOf(
+      DesignAsset(MockVirtualFile("$name.png"), emptyList(), ResourceType.DRAWABLE)
+    ))
+
+
+
 }
