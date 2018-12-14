@@ -204,7 +204,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   override fun createComponent(): JComponent? {
     val component = MyPanel()
-    mySplitter = OnePixelSplitter(false, .15f)
+    mySplitter = OnePixelSplitter(false, .17f)
     mySplitter!!.setHonorComponentsMinimumSize(true)
 
     initSidePanel()
