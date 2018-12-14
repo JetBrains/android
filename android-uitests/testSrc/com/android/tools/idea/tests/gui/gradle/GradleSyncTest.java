@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -33,13 +32,8 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.ChooseGradleHomeDialogFixture;
 import com.android.tools.idea.ui.GuiTestingService;
-import com.google.common.collect.Lists;
-import com.intellij.ide.projectView.TreeStructureProvider;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -72,26 +66,22 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.util.GradleProperties.getUserGradlePropertiesFile;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
 import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.TruthJUnit.assume;
-import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -161,63 +151,6 @@ public class GradleSyncTest {
       }
     }
     fail("No dependency for library3 found");
-  }
-
-  @Ignore("b/70699846")
-  @Test
-  public void jdkNodeModificationInProjectView() throws IOException {
-    guiTest.importSimpleApplication();
-
-    Project project = guiTest.ideFrame().getProject();
-    AndroidTreeStructureProvider treeStructureProvider = null;
-    TreeStructureProvider[] treeStructureProviders = TreeStructureProvider.EP_NAME.getExtensions(project);
-    for (TreeStructureProvider current : treeStructureProviders) {
-      if (current instanceof AndroidTreeStructureProvider) {
-        treeStructureProvider = (AndroidTreeStructureProvider)current;
-      }
-    }
-
-    List<AbstractTreeNode> changedNodes = Lists.newArrayList();
-    treeStructureProvider.addChangeListener((parent, newChildren) -> changedNodes.add(parent));
-
-    ProjectViewFixture projectView = guiTest.ideFrame().getProjectView();
-    ProjectViewFixture.PaneFixture projectPane = projectView.selectProjectPane();
-    projectPane.clickPath("External Libraries", "< 1.8 >", "rt.jar");
-
-    // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
-    // 'javax'.
-    Wait.seconds(1).expecting("'Project View' to be customized").until(() -> changedNodes.size() == 2);
-
-    List<ProjectViewFixture.NodeFixture> libraryNodes = projectPane.findExternalLibrariesNode().getChildren();
-
-    ProjectViewFixture.NodeFixture jdkNode = null;
-    // Find JDK node.
-    for (ProjectViewFixture.NodeFixture node : libraryNodes) {
-      if (node.isJdk()) {
-        jdkNode = node;
-        break;
-      }
-    }
-
-    ProjectViewFixture.NodeFixture finalJdkNode = jdkNode;
-    Wait.seconds(1).expecting("JDK node to be customized").until(() -> finalJdkNode.getChildren().size() == 1);
-
-    // Now we verify that the JDK node has only these children:
-    // - jdk
-    //   - rt.jar
-    //     - java
-    //     - javax
-    List<ProjectViewFixture.NodeFixture> jdkChildren = jdkNode.getChildren();
-    assertThat(jdkChildren).hasSize(1);
-
-    ProjectViewFixture.NodeFixture rtJarNode = jdkChildren.get(0);
-    rtJarNode.requireDirectory("rt.jar");
-
-    List<ProjectViewFixture.NodeFixture> rtJarChildren = rtJarNode.getChildren();
-    assertThat(rtJarChildren).hasSize(2);
-
-    rtJarChildren.get(0).requireDirectory("java");
-    rtJarChildren.get(1).requireDirectory("javax");
   }
 
   @Test
@@ -484,44 +417,6 @@ public class GradleSyncTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     Module javaLib = guiTest.ideFrame().getModule("javaLib");
     assertEquals(JDK_1_8, getJavaLanguageLevel(javaLib));
-  }
-
-  @Ignore("fails; replace with headless integration test; see b/37730035")
-  @Test
-  public void syncDuringOfflineMode() throws IOException {
-    String hyperlinkText = "Disable offline mode and sync project";
-
-    guiTest.importSimpleApplication();
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    File buildFile = new File(ideFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
-    assertAbout(file()).that(buildFile).isFile();
-    appendToFile(buildFile, "dependencies { compile 'something:not:exists' }");
-
-    GradleSettings gradleSettings = GradleSettings.getInstance(ideFrame.getProject());
-    gradleSettings.setOfflineWork(true);
-
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFail();
-    MessagesToolWindowFixture messagesToolWindow = ideFrame.getMessagesToolWindow();
-    MessageFixture message = messagesToolWindow.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
-
-    HyperlinkFixture hyperlink = message.findHyperlink(hyperlinkText);
-    hyperlink.click();
-
-    assertFalse(gradleSettings.isOfflineWork());
-    ideFrame.waitForGradleProjectSyncToFail();
-    messagesToolWindow = ideFrame.getMessagesToolWindow();
-    message = messagesToolWindow.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Failed to resolve:"));
-
-    try {
-      message.findHyperlink(hyperlinkText);
-      fail(hyperlinkText + " link still present");
-    }
-    catch (AssertionError e) {
-      // After offline mode is disable, the previous hyperlink will disappear after next sync
-      assertThat(e.getMessage()).contains("Failed to find URL");
-      assertThat(e.getMessage()).contains(hyperlinkText);
-    }
   }
 
   @Nullable
