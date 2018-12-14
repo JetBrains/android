@@ -19,13 +19,16 @@ import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.idea.common.property2.impl.model.BasePropertyEditorModel
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import javax.swing.JComponent
 
 class TextEditorFocusListener(private val editor: CommonTextField<*>,
+                              private val scrollTo: JComponent,
                               private val model: BasePropertyEditorModel) : FocusListener {
 
   override fun focusGained(event: FocusEvent) {
     model.focusGained()
     editor.selectAll()
+    (scrollTo.parent as? JComponent)?.scrollRectToVisible(scrollTo.bounds)
   }
 
   override fun focusLost(event: FocusEvent) {

@@ -39,7 +39,7 @@ class PropertyThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPro
     registerKeyAction({ propertyModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
 
     propertyModel.addListener(ValueChangedListener { handleValueChanged() })
-    addFocusListener(EditorFocusListener(propertyModel))
+    addFocusListener(EditorFocusListener(this, propertyModel))
     addPropertyChangeListener { event ->
       if (!stateChangeFromModel && event.propertyName == THREE_STATE_CHECKBOX_STATE) {
         propertyModel.value = fromThreeStateValue(event.newValue)
