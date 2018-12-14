@@ -232,6 +232,9 @@ class ResourceExplorerView(
 
     resourcesBrowserViewModel.resourceChangedCallback = ::populateResourcesLists
     populateResourcesLists()
+    resourcesBrowserViewModel.speedSearch.addChangeListener {
+      sectionList.getLists().filterIsInstance<AssetListView>().forEach(AssetListView::refilter)
+    }
 
     add(headerPanel, BorderLayout.NORTH)
     add(sectionList)
@@ -244,7 +247,7 @@ class ResourceExplorerView(
     val selectedIndices = sectionList.selectedIndices
 
     sectionListModel.clear()
-    sectionListModel.addSection(AssetSection<DesignAssetSet>("Loading...", JList()))
+    sectionListModel.addSection(AssetSection<DesignAssetSet>("Loading...", null, JList()))
     resourcesBrowserViewModel.getResourcesLists()
       .whenCompleteAsync(BiConsumer { resourceLists, _ ->
         sectionListModel.clear()
@@ -269,7 +272,7 @@ class ResourceExplorerView(
   }
 
   private fun createSection(section: ResourceSection) =
-    AssetSection(section.libraryName, AssetListView(section.assets).apply {
+    AssetSection(section.libraryName, section.assets.size, AssetListView(section.assets, resourcesBrowserViewModel.speedSearch).apply {
       cellRenderer = DesignAssetCellRenderer(resourcesBrowserViewModel.assetPreviewManager)
       dragHandler.registerSource(this)
       addMouseListener(popupHandler)
@@ -292,6 +295,7 @@ class ResourceExplorerView(
 
   private class AssetSection<T>(
     override var name: String,
+    val size: Int?,
     override var list: JList<T>
   ) : Section<T> {
 
@@ -299,7 +303,8 @@ class ResourceExplorerView(
 
     private fun createHeaderComponent() = JPanel(FlowLayout(FlowLayout.LEFT, 4, 8)).apply {
       isOpaque = false
-      val nameLabel = JBLabel("${this@AssetSection.name} (${list.model.size})").apply {
+      val itemNumber = this@AssetSection.size?.let { " ($it)" } ?: ""
+      val nameLabel = JBLabel("${this@AssetSection.name}$itemNumber").apply {
         font = SECTION_HEADER_LABEL_FONT
       }
       add(nameLabel)

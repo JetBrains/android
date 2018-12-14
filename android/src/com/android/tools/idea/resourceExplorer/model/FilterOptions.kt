@@ -27,10 +27,10 @@ class FilterOptions(
   /**
    * If true, the resources from the dependent libraries will be shown.
    */
-  var isShowLibraries: Boolean by Delegates.observable(false) { _, new, old -> if (new != old) isShowLibrariesChanged() }
+  var isShowLibraries: Boolean by Delegates.observable(false) { _, old, new -> if (new != old) isShowLibrariesChanged() }
 
   /**
    * The search string to use to filter resources
    */
-  var searchString: String by Delegates.observable("") { _, new, old -> if (new != old) searchStringChanged(new) }
+  var searchString: String by Delegates.observable("") { _, old, new -> if (new != old) searchStringChanged(new) }
 }

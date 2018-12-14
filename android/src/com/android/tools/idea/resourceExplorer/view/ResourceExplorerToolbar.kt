@@ -15,19 +15,26 @@
  */
 package com.android.tools.idea.resourceExplorer.view
 
+import com.android.manifmerger.ActionRecorder
 import com.android.tools.idea.resourceExplorer.viewmodel.ResourceExplorerToolbarViewModel
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
+import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.JBColor
+import com.intellij.ui.SearchTextField
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -36,6 +43,7 @@ import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.event.DocumentEvent
 
 /**
  * Toolbar displayed at the top of the resource explorer which allows users
@@ -48,15 +56,19 @@ class ResourceExplorerToolbar(
   private val moduleSelectionAction = ModuleSelectionAction(toolbarViewModel)
 
   init {
-    add(createLeftToolbar().component, BorderLayout.WEST)
+    add(createLeftToolbar().component)
     add(createRightToolbar().component, BorderLayout.EAST)
     border = JBUI.Borders.merge(JBUI.Borders.empty(4, 2), JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), true)
   }
 
   private fun createLeftToolbar() = ActionManager.getInstance().createActionToolbar(
     "resourceExplorer",
-    DefaultActionGroup(AddAction(toolbarViewModel), Separator(), moduleSelectionAction),
-    true)
+    DefaultActionGroup(
+      AddAction(toolbarViewModel),
+      Separator(),
+      moduleSelectionAction,
+      SearchAction(toolbarViewModel)
+    ), true).apply { layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY }
 
 
   private fun createRightToolbar() = ActionManager.getInstance().createActionToolbar(
@@ -130,4 +142,22 @@ private class ShowDependenciesAction internal constructor(val viewModel: Resourc
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     viewModel.isShowDependencies = state
   }
+}
+
+private class SearchAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : DumbAwareAction(), CustomComponentAction {
+
+  val searchField = SearchTextField(true).apply {
+    textEditor.columns = 10
+    textEditor.document.addDocumentListener(object : DocumentAdapter() {
+      override fun textChanged(e: DocumentEvent) {
+        viewModel.searchString = e.document.getText(0, e.document.length)
+      }
+    })
+  }
+
+  override fun actionPerformed(e: AnActionEvent) {
+  }
+
+  override fun createCustomComponent(presentation: Presentation): JComponent = searchField
 }

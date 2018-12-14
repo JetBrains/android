@@ -20,6 +20,9 @@ import com.android.tools.idea.resourceExplorer.widget.AssetView
 import com.android.tools.idea.resourceExplorer.widget.RowAssetView
 import com.android.tools.idea.resourceExplorer.widget.SingleAssetCard
 import com.intellij.ui.CollectionListModel
+import com.intellij.ui.speedSearch.FilteringListModel
+import com.intellij.ui.speedSearch.NameFilteringListModel
+import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
 import javax.swing.JList
@@ -34,7 +37,8 @@ private const val DEFAULT_GRID_MODE = false
  * between grid and list mode.
  */
 class AssetListView(
-  assets: List<DesignAssetSet>
+  assets: List<DesignAssetSet>,
+  speedSearch: SpeedSearch? = null
 ) : JList<DesignAssetSet>() {
 
   var isGridMode: Boolean by Delegates.observable(DEFAULT_GRID_MODE) { _, _, isGridMode ->
@@ -62,11 +66,27 @@ class AssetListView(
     }
   }
 
+  private val filteringListModel: FilteringListModel<DesignAssetSet>?
+
   init {
     model = CollectionListModel(assets)
     isOpaque = false
     visibleRowCount = 0
     isGridMode = DEFAULT_GRID_MODE
+    if (speedSearch != null) {
+      speedSearch.setEnabled(true)
+      filteringListModel = NameFilteringListModel(this, { it: DesignAssetSet -> it.name }, speedSearch::shouldBeShowing, speedSearch)
+    }
+    else {
+      filteringListModel = null
+    }
+  }
+
+  /**
+   * If a [SpeedSearch] was provided in constructor, filters the list items using the [SpeedSearch.getFilter].
+   */
+  fun refilter() {
+    filteringListModel?.refilter()
   }
 
   private fun updateCellSize() {
