@@ -15,30 +15,16 @@
  */
 package com.android.tools.idea.naveditor.actions
 
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.naveditor.model.isDestination
-import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class SelectNextAction(private val surface: NavDesignSurface) : AnAction() {
-  override fun actionPerformed(e: AnActionEvent?) {
-    val selectable = surface.selectableComponents
-    if (selectable.isEmpty()) {
-      return
+class ActivateSelectionAction(val surface: DesignSurface) : AnAction() {
+  override fun actionPerformed(e: AnActionEvent) {
+    surface.selectionModel.selection.let {
+      if (it.size == 1) {
+        surface.notifyComponentActivate(it[0])
+      }
     }
-
-    val selectionModel = surface.selectionModel
-    val selection = selectionModel.selection
-
-    val next = if (selection.size == 1) {
-      val index = selectable.indexOf(selection[0])
-      selectable[(index + 1) % selectable.size]
-    }
-    else {
-      selectable.first()
-    }
-
-    selectionModel.setSelection(listOf(next))
   }
 }

@@ -34,6 +34,7 @@ import com.android.tools.idea.common.scene.LerpPoint;
 import com.android.tools.idea.common.scene.LerpValue;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -45,8 +46,10 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
+import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
+import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -58,6 +61,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -81,6 +85,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
@@ -94,6 +99,7 @@ import java.util.stream.Collectors;
 import javax.swing.JViewport;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -145,6 +151,26 @@ public class NavDesignSurface extends DesignSurface {
     }
     getScheduleRef().set(null);
     super.dispose();
+  }
+
+  @Override
+  public Object getData(@NotNull @NonNls String dataId) {
+    if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
+      NlComponent selection = getSelectionModel().getPrimary();
+      if (selection != null && NavComponentHelperKt.isAction(selection)) {
+        Scene scene = getScene();
+        if (scene != null) {
+          SceneComponent sceneComponent = scene.getSceneComponent(selection);
+          if (sceneComponent != null) {
+            Point2D.Float p2d = NavActionHelperKt.getAnyPoint(sceneComponent, SceneContext.get(getCurrentSceneView()));
+            if (p2d != null) {
+              return new Point((int)p2d.x, (int)p2d.y);
+            }
+          }
+        }
+      }
+    }
+    return super.getData(dataId);
   }
 
   @VisibleForTesting
@@ -671,5 +697,29 @@ public class NavDesignSurface extends DesignSurface {
   protected boolean getSupportPinchAndZoom() {
     // TODO: Enable pinch and zoom for navigation editor
     return false;
+  }
+
+  /**
+   * Returns all the components under the current navigation
+   * that are selectable in the design surface
+   * Contains:
+   * Current root navigation
+   * Global actions under current root
+   * Destinations under current root
+   * Actions under the above destinations that point to a visible destination
+   *
+   * @return the list of destinations
+   */
+  @NotNull
+  public List<NlComponent> getSelectableComponents() {
+    NlComponent root = getCurrentNavigation();
+    return root.flatten().filter(component ->
+                                   component == root ||
+                                   (NavComponentHelperKt.isDestination(component) && component.getParent() == root) ||
+                                   (NavComponentHelperKt.isAction(component) &&
+                                    (component.getParent() == root ||
+                                     (component.getParent() != null && component.getParent().getParent() == root) ||
+                                     NavComponentHelperKt.getActionType(component, root) == ActionType.EXIT_DESTINATION))
+    ).collect(Collectors.toList());
   }
 }

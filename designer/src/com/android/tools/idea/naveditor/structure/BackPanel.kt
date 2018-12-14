@@ -29,6 +29,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import icons.StudioIcons
 import java.awt.BorderLayout
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
@@ -53,6 +56,14 @@ class BackPanel(private val surface: NavDesignSurface, private val updateCallbac
     label.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent?) {
         goBack()
+      }
+    })
+    label.isFocusable = true
+    label.addKeyListener(object: KeyAdapter() {
+      override fun keyTyped(e: KeyEvent?) {
+        if (e?.keyChar == '\n' || e?.keyCode == VK_ENTER) {
+          goBack()
+        }
       }
     })
     surface.model?.addListener(this)
