@@ -75,6 +75,10 @@ open class SuggestionConfigurableFixture(
 
 fun ProjectStructureDialogFixture.selectSuggestionsConfigurable(): SuggestionConfigurableFixture {
   selectConfigurable("Suggestions")
+  return findSuggestionsConfigurable()
+}
+
+fun ProjectStructureDialogFixture.findSuggestionsConfigurable(): SuggestionConfigurableFixture {
   return SuggestionConfigurableFixture(
       container,
       ideFrameFixture,

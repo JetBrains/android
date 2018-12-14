@@ -42,7 +42,13 @@ class SuggestionsViewer(
       revalidateAndRepaint(panel)
     }
 
-    if (panel.isShowing) render() else updateQueue.enqueueTagged(this) { render() }
+    if (panel.isShowing) {
+      updateQueue.cancelAllUpdates()
+      render()
+    }
+    else {
+      updateQueue.enqueueTagged(this) { render() }
+    }
   }
 
   private fun renderIssues(issues: SortedMap<PsIssue.Severity, List<PsIssue>>, scope: PsPath?) {

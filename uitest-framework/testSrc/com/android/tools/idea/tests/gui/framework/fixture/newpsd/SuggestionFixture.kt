@@ -17,9 +17,13 @@ package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
+import com.android.tools.idea.tests.gui.framework.find
+import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.matcher
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ui.components.JBOptionButton
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.fixture.JButtonFixture
@@ -62,7 +66,8 @@ class SuggestionFixture(
   }
 
   private fun findButton(): JButtonFixture {
-    val button = finder().findByType(container, JButton::class.java, true)
+    val button = finder().findAll(container, matcher<JBOptionButton> { true }).singleOrNull()
+                 ?: finder().findByType<JButton>(container)
     return JButtonFixture(robot(), button)
   }
 }

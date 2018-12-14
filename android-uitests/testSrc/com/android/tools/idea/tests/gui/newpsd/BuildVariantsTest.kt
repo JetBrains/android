@@ -19,11 +19,14 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ErrorsReviewConfirmationDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.findSuggestionsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.items
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectBuildVariantsConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestionsConfigurable
+import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.After
@@ -103,6 +106,55 @@ class BuildVariantsTest {
       selectBuildVariantsConfigurable().run {
         selectProductFlavorsTab().run {
           assertThat(items(), equalTo(listOf("newDim", "-newFlavor1", "-newFlavor2")))
+        }
+      }
+      clickCancel()
+    }
+  }
+
+  @Test
+  fun addDependentBuildTypes() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
+
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().run {
+          selectModule("app")
+        }
+        findDependenciesPanel().run {
+          clickAddModuleDependency().run {
+            toggleModule("mylibrary")
+            clickOk()
+          }
+        }
+      }
+      selectBuildVariantsConfigurable().run {
+        findModuleSelector().run {
+          selectModule("app")
+        }
+        selectBuildTypesTab().run {
+          clickAdd().run {
+            type("newBuildType")
+            clickOk()
+          }
+        }
+      }
+      clickOkExpectConfigmrtation().run {
+        clickReview()
+      }
+      findSuggestionsConfigurable().run {
+        findGroup("Errors").run {
+          findMessageMatching("No build type in module 'mylibrary' matches build type 'newBuildType'.")!!.run {
+            clickAction()
+          }
+        }
+      }
+      clickOk()
+    }
+    ide.openPsd().run {
+      selectBuildVariantsConfigurable().run {
+        selectBuildTypesTab().run {
+          Truth.assertThat(items()).contains("newBuildType")
         }
       }
       clickCancel()
