@@ -36,7 +36,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -300,7 +299,6 @@ class SyncResultHandler {
       myCompoundSyncTestManager.reset();
     }
 
-    LocalFileSystem.getInstance().refresh(true);
     if (syncListener != null) {
       syncListener.sourceGenerationFinished(myProject);
     }
