@@ -20,7 +20,7 @@ import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FD_SOURCES
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
-import com.android.tools.idea.res.ProjectResourceRepositoryRootListener
+import com.android.tools.idea.res.AndroidProjectRootListener
 import com.google.common.base.Splitter
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
@@ -147,7 +147,7 @@ class ResourceFolderManager private constructor(facet: AndroidFacet) : AndroidFa
     } else {
       // Listen to root change events. Be notified when project is initialized so we can update the
       // resource set, if necessary.
-      ProjectResourceRepositoryRootListener.ensureSubscribed(facet.module.project)
+      AndroidProjectRootListener.ensureSubscribed(facet.module.project)
       if (facet.configuration.model == null) readFromFacetState(facet) else readFromModel(facet)
     }
   }

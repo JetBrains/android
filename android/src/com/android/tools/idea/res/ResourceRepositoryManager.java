@@ -76,7 +76,6 @@ public class ResourceRepositoryManager implements Disposable {
 
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final AaptOptions.Namespacing myNamespacing;
-  @Nullable private ResourceVisibilityLookup.Provider myResourceVisibilityProvider;
 
   /**
    * If the module is namespaced, this is the shared {@link ResourceNamespace} instance corresponding to the package name from the manifest.
@@ -98,6 +97,8 @@ public class ResourceRepositoryManager implements Disposable {
   /** Libraries and their corresponding resource repositories. */
   @GuardedBy("myLibraryLock")
   private Map<ExternalLibrary, AarResourceRepository> myLibraryResourceMap;
+  @GuardedBy("myLibraryLock")
+  @Nullable private ResourceVisibilityLookup.Provider myResourceVisibilityProvider;
 
   private final Object myLibraryLock = new Object();
 
@@ -210,6 +211,9 @@ public class ResourceRepositoryManager implements Disposable {
   private ResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull AaptOptions.Namespacing namespacing) {
     myFacet = facet;
     myNamespacing = namespacing;
+
+    AndroidProjectRootListener.ensureSubscribed(facet.getModule().getProject());
+
     Disposer.register(facet, this);
   }
 
@@ -427,7 +431,9 @@ public class ResourceRepositoryManager implements Disposable {
   }
 
   private void resetVisibility() {
-    myResourceVisibilityProvider = null;
+    synchronized (myLibraryLock) {
+      myResourceVisibilityProvider = null;
+    }
   }
 
   private void resetLibraries() {
@@ -436,31 +442,31 @@ public class ResourceRepositoryManager implements Disposable {
     }
   }
 
-  void updateRoots() {
+  void updateRootsAndLibraries() {
     resetVisibility();
 
-    getProjectResources(false);
     ProjectResourceRepository projectResources = (ProjectResourceRepository)getProjectResources(false);
+    AppResourceRepository appResources = (AppResourceRepository)getAppResources(false);
     if (projectResources != null) {
       projectResources.updateRoots();
 
-      AppResourceRepository appResources = (AppResourceRepository)getAppResources(false);
       if (appResources != null) {
         appResources.invalidateCache(projectResources);
-
-        Map<ExternalLibrary, AarResourceRepository> oldLibraryResourceMap;
-        synchronized (myLibraryLock) {
-          // Preserve the old library resources during update to prevent them from being garbage collected prematurely.
-          oldLibraryResourceMap = myLibraryResourceMap;
-          myLibraryResourceMap = null;
-        }
-
-        appResources.updateRoots(getLibraryResources());
-
-        if (oldLibraryResourceMap != null) {
-          oldLibraryResourceMap.size(); // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
-        }
       }
+    }
+
+    Map<ExternalLibrary, AarResourceRepository> oldLibraryResourceMap;
+    synchronized (myLibraryLock) {
+      // Preserve the old library resources during update to prevent them from being garbage collected prematurely.
+      oldLibraryResourceMap = myLibraryResourceMap;
+      myLibraryResourceMap = null;
+    }
+    if (appResources != null) {
+      appResources.updateRoots(getLibraryResources());
+    }
+
+    if (oldLibraryResourceMap != null) {
+      oldLibraryResourceMap.size(); // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
     }
   }
 
@@ -502,14 +508,16 @@ public class ResourceRepositoryManager implements Disposable {
 
   @Nullable
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
-    if (myResourceVisibilityProvider == null) {
-      if (!myFacet.requiresAndroidModel() || myFacet.getConfiguration().getModel() == null) {
-        return null;
+    synchronized (myLibraryLock) {
+      if (myResourceVisibilityProvider == null) {
+        if (!myFacet.requiresAndroidModel() || myFacet.getConfiguration().getModel() == null) {
+          return null;
+        }
+        myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
       }
-      myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();
-    }
 
-    return myResourceVisibilityProvider;
+      return myResourceVisibilityProvider;
+    }
   }
 
   @NotNull

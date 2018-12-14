@@ -292,16 +292,16 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
                                  true);
   }
 
-  public void testComputeLibraries() {
+  public void testLibraryResources() {
     addBinaryAarDependency(myModule);
     enableNamespacing("p1.p2");
 
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
-    List<ResourceItem> items = appResources.getResources(ResourceNamespace.fromPackageName("com.example.mylibrary"),
-                                                         ResourceType.STRING, "my_aar_string");
     Collection<SingleNamespaceResourceRepository> repositories = appResources.getLeafResourceRepositories();
     assertThat(repositories).hasSize(4);
 
+    List<ResourceItem> items = appResources.getResources(ResourceNamespace.fromPackageName("com.example.mylibrary"),
+                                                         ResourceType.STRING, "my_aar_string");
     assertThat(items).hasSize(1);
     assertThat(items.get(0).getResourceValue().getValue()).isEqualTo("This string came from an AARv2");
   }
