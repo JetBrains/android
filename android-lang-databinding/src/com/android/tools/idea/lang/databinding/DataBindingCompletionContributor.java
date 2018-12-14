@@ -27,9 +27,11 @@ import com.android.tools.idea.lang.databinding.model.PsiModelField;
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod;
 import com.android.tools.idea.lang.databinding.psi.PsiDbCallExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbExpr;
+import com.android.tools.idea.lang.databinding.psi.PsiDbFunctionRefExpr;
 import com.android.tools.idea.lang.databinding.psi.PsiDbRefExpr;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
+import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionProvider;
@@ -43,6 +45,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiReference;
 import com.intellij.util.ProcessingContext;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -86,6 +89,8 @@ public class DataBindingCompletionContributor extends CompletionContributor {
             if (grandParent instanceof DbFile) {
               autoCompleteVariablesAndUnqualifiedFunctions((DbFile)grandParent, result);
               // TODO: add completions for packages and java.lang classes.
+            } else if (grandParent instanceof PsiDbFunctionRefExpr) {
+              result.addAllElements(populateMethodReferenceCompletions(grandParent));
             } else {
               // grandparent not recognized. don't know how to provide completions.
             }
@@ -174,5 +179,38 @@ public class DataBindingCompletionContributor extends CompletionContributor {
   private static void autoCompleteUnqualifiedFunctions(@NonNull CompletionResultSet result) {
     final LookupElement item = LookupElementBuilder.create(ExprModel.SAFE_UNBOX_METHOD_NAME);
     result.addElement(item);
+  }
+
+  /**
+   * Given a method binding expression, in the form of obj::method, return an immutable list of {@link LookupElement} with methods of the
+   * given object.
+   */
+  private List<LookupElement> populateMethodReferenceCompletions(@NotNull PsiElement referenceExpression) {
+    ImmutableList.Builder<LookupElement> resultBuilder = new ImmutableList.Builder<>();
+    PsiReference[] childReferences = referenceExpression.getFirstChild().getReferences();
+    for (PsiReference reference : childReferences) {
+      if (reference instanceof ResolvesToModelClass) {
+        ResolvesToModelClass ref = (ResolvesToModelClass)reference;
+        PsiModelClass resolvedType = ref.getResolvedType();
+        if (resolvedType == null) {
+          continue;
+        }
+        for (ModelMethod modelMethod : resolvedType.getDeclaredMethods()) {
+          PsiModelMethod psiModelMethod = (PsiModelMethod)modelMethod;
+          if (!psiModelMethod.isPublic()) {
+            continue;
+          }
+          PsiMethod psiMethod = psiModelMethod.getPsiMethod();
+          if (psiMethod.isConstructor()) {
+            continue;
+          } else if (ref.isStatic() != psiModelMethod.isStatic()) {
+            continue;
+          }
+          String name = psiModelMethod.getName();
+          resultBuilder.add(LookupElementBuilder.create(psiMethod, name));
+        }
+      }
+    }
+    return resultBuilder.build();
   }
 }
