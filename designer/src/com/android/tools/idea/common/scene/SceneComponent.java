@@ -30,11 +30,11 @@ import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
-import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -736,13 +736,7 @@ public class SceneComponent {
     myCurrentRight = right;
     myCurrentBottom = bottom;
 
-    boolean animating = false;
-    animating |= myAnimatedDrawX.isAnimating();
-    animating |= myAnimatedDrawY.isAnimating();
-    animating |= myAnimatedDrawWidth.isAnimating();
-    animating |= myAnimatedDrawHeight.isAnimating();
-
-    needsRebuildDisplayList |= animating;
+    needsRebuildDisplayList |= isAnimating();
 
     ImmutableList<Target> targets = getTargets();
     int num = targets.size();
@@ -757,6 +751,14 @@ public class SceneComponent {
       needsRebuildDisplayList |= child.layout(sceneTransform, time);
     }
     return needsRebuildDisplayList;
+  }
+
+  @VisibleForTesting
+  public boolean isAnimating() {
+    return myAnimatedDrawX.isAnimating() ||
+           myAnimatedDrawY.isAnimating() ||
+           myAnimatedDrawWidth.isAnimating() ||
+           myAnimatedDrawHeight.isAnimating();
   }
 
   @AndroidDpCoordinate
