@@ -61,6 +61,7 @@
 
     <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty" icon="AllIcons.Actions.Compile">
       <add-to-group group-id="BuildMenu" anchor="first"/>
+      <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>
     </action>
 
     <group id="AndroidToolbarMakeGroup">
