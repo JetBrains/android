@@ -23,9 +23,6 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
-import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -37,7 +34,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
@@ -46,7 +42,6 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
-import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JMenuItemFixture;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.timing.Wait;
@@ -57,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class NlComponentFixture {
   private static final long TIMEOUT_FOR_WRITE_IN_SECONDS = 10;
+  private static final long TIMEOUT_FOR_SCENE_COMPONENT_AMIMATION_SECONDS = 5;
   private final Robot myRobot;
   private final NlComponent myComponent;
   private final DesignSurface mySurface;
@@ -90,10 +86,10 @@ public class NlComponentFixture {
    * Returns the right bottom point in panel coordinates
    */
   @NotNull
-  private Point getRightBottomPoint() {
+  private Point getRightBottomPoint(@NotNull SceneComponent component) {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int x = Coordinates.getSwingXDip(sceneView, mySceneComponent.getDrawX() + mySceneComponent.getDrawWidth());
-    int y = Coordinates.getSwingYDip(sceneView, mySceneComponent.getDrawY() + mySceneComponent.getDrawHeight());
+    int x = Coordinates.getSwingXDip(sceneView, component.getDrawX() + component.getDrawWidth());
+    int y = Coordinates.getSwingYDip(sceneView, component.getDrawY() + component.getDrawHeight());
     return convertToViewport(x, y);
   }
 
@@ -101,10 +97,10 @@ public class NlComponentFixture {
    * Returns the bottom center point in panel coordinates
    */
   @NotNull
-  private Point getBottomCenterPoint() {
+  private Point getBottomCenterPoint(@NotNull SceneComponent component) {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
-    int bottomY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getDrawY() + mySceneComponent.getDrawHeight());
+    int midX = Coordinates.getSwingXDip(sceneView, component.getCenterX());
+    int bottomY = Coordinates.getSwingYDip(sceneView, component.getDrawY() + component.getDrawHeight());
     return convertToViewport(midX, bottomY);
   }
 
@@ -113,9 +109,17 @@ public class NlComponentFixture {
    */
   @NotNull
   public Point getTopCenterPoint() {
+    return getTopCenterPoint(mySceneComponent);
+  }
+
+  /**
+   * Returns the top center point in panel coordinates
+   */
+  @NotNull
+  public Point getTopCenterPoint(@NotNull SceneComponent component) {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
-    int topY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getDrawY());
+    int midX = Coordinates.getSwingXDip(sceneView, component.getCenterX());
+    int topY = Coordinates.getSwingYDip(sceneView, component.getDrawY());
     return convertToViewport(midX, topY);
   }
 
@@ -124,9 +128,17 @@ public class NlComponentFixture {
    */
   @NotNull
   public Point getLeftCenterPoint() {
+    return getLeftCenterPoint(mySceneComponent);
+  }
+
+  /**
+   * Returns the left center point in panel coordinates
+   */
+  @NotNull
+  private Point getLeftCenterPoint(@NotNull SceneComponent component) {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int leftX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getDrawX());
-    int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
+    int leftX = Coordinates.getSwingXDip(sceneView, component.getDrawX());
+    int midY = Coordinates.getSwingYDip(sceneView, component.getCenterY());
     return convertToViewport(leftX, midY);
   }
 
@@ -134,16 +146,16 @@ public class NlComponentFixture {
    * Returns the right center point in panel coordinates
    */
   @NotNull
-  private Point getRightCenterPoint() {
+  private Point getRightCenterPoint(@NotNull SceneComponent component) {
     SceneView sceneView = mySurface.getCurrentSceneView();
-    int rightX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getDrawX() + mySceneComponent.getDrawWidth());
-    int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
+    int rightX = Coordinates.getSwingXDip(sceneView, component.getDrawX() + component.getDrawWidth());
+    int midY = Coordinates.getSwingYDip(sceneView, component.getCenterY());
     return convertToViewport(rightX, midY);
   }
 
   @NotNull
   public NlComponentFixture resizeBy(int widthBy, int heightBy) {
-    Point point = getRightBottomPoint();
+    Point point = getRightBottomPoint(mySceneComponent);
     myDragAndDrop.drag(mySurface, point);
     myDragAndDrop.drop(mySurface, new Point(((int)point.getX()) + widthBy, ((int)point.getY()) + heightBy));
     pause(SceneComponent.ANIMATION_DURATION);
@@ -172,8 +184,8 @@ public class NlComponentFixture {
   // Note that this op behaves nothing. It is for testing purpose.
   @NotNull
   public NlComponentFixture createConstraintFromBottomToLeftOf(@NotNull NlComponentFixture destination) {
-    myDragAndDrop.drag(mySurface, getBottomCenterPoint());
-    myDragAndDrop.drop(mySurface, destination.getLeftCenterPoint());
+    myDragAndDrop.drag(mySurface, getBottomCenterPoint(mySceneComponent));
+    myDragAndDrop.drop(mySurface, destination.getLeftCenterPoint(destination.mySceneComponent));
 
     // There is no possible connection here, so expect a popup, and just close it:
     JPopupMenuFixture menu = waitForPopup();
@@ -183,56 +195,80 @@ public class NlComponentFixture {
 
   @NotNull
   public NlComponentFixture createConstraintFromBottomToTopOf(@NotNull NlComponentFixture destination) {
-    myDragAndDrop.drag(mySurface, getBottomCenterPoint());
-    myDragAndDrop.drop(mySurface, destination.getTopCenterPoint());
+    myDragAndDrop.drag(mySurface, getBottomCenterPoint(mySceneComponent));
+    myDragAndDrop.drop(mySurface, destination.getTopCenterPoint(destination.mySceneComponent));
     waitForWrite(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, destination);
+    waitForSceneComponentAnimation();
     return this;
   }
 
   @NotNull
   public NlComponentFixture createConstraintFromBottomToBottomOfLayout() {
-    Point bottomCenterPoint = getBottomCenterPoint();
+    SceneComponent parent = mySceneComponent.getParent();
+    if (parent == null) {
+      throw new IllegalStateException("Root component create constraint to its parent");
+    }
+    Point parentBottomCenterPoint = getBottomCenterPoint(parent);
+    Point bottomCenterPoint = getBottomCenterPoint(mySceneComponent);
     myDragAndDrop.drag(mySurface, bottomCenterPoint);
     SceneView sceneView = mySurface.getCurrentSceneView();
     // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
     // and not a component that would be sitting right on the edge
-    myDragAndDrop
-      .drop(mySurface, new Point(bottomCenterPoint.x, mySurface.getCurrentSceneView().getY() * 3 / 2 + sceneView.getSize().height));
+    myDragAndDrop.drop(mySurface, parentBottomCenterPoint);
     waitForWrite(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, "parent");
+    waitForSceneComponentAnimation();
     return this;
   }
 
   @NotNull
   public NlComponentFixture createConstraintFromTopToTopOfLayout() {
-    Point topCenterPoint = getTopCenterPoint();
+    SceneComponent parent = mySceneComponent.getParent();
+    if (parent == null) {
+      throw new IllegalStateException("Root component create constraint to its parent");
+    }
+    Point parentTopCenterPoint = getTopCenterPoint(parent);
+    Point topCenterPoint = getTopCenterPoint(mySceneComponent);
     myDragAndDrop.drag(mySurface, topCenterPoint);
     // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
     // and not a component that would be sitting right on the edge
-    myDragAndDrop.drop(mySurface, new Point(topCenterPoint.x, mySurface.getCurrentSceneView().getY() / 2));
+    myDragAndDrop.drop(mySurface, parentTopCenterPoint);
     waitForWrite(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent");
+    waitForSceneComponentAnimation();
     return this;
   }
 
   @NotNull
   public NlComponentFixture createConstraintFromLeftToLeftOfLayout() {
-    Point leftCenterPoint = getLeftCenterPoint();
+    SceneComponent parent = mySceneComponent.getParent();
+    if (parent == null) {
+      throw new IllegalStateException("Root component create constraint to its parent");
+    }
+    Point parentLeftCenterPoint = getLeftCenterPoint(parent);
+    Point leftCenterPoint = getLeftCenterPoint(mySceneComponent);
     myDragAndDrop.drag(mySurface, leftCenterPoint);
     // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
     // and not a component that would be sitting right on the edge
-    myDragAndDrop.drop(mySurface, new Point(mySurface.getCurrentSceneView().getX() / 2, leftCenterPoint.y));
+    myDragAndDrop.drop(mySurface, parentLeftCenterPoint);
     waitForWrite(SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent");
+    waitForSceneComponentAnimation();
     return this;
   }
 
   @NotNull
   public NlComponentFixture createConstraintFromRightToRightOfLayout() {
-    Point rightCenterPoint = getRightCenterPoint();
+    SceneComponent parent = mySceneComponent.getParent();
+    if (parent == null) {
+      throw new IllegalStateException("Root component create constraint to its parent");
+    }
+    Point parentRightCenterPoint = getRightCenterPoint(parent);
+    Point rightCenterPoint = getRightCenterPoint(mySceneComponent);
     myDragAndDrop.drag(mySurface, rightCenterPoint);
     SceneView sceneView = mySurface.getCurrentSceneView();
     // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
     // and not a component that would be sitting right on the edge
-    myDragAndDrop.drop(mySurface, new Point(sceneView.getX() * 3/2 + sceneView.getSize().width, rightCenterPoint.y));
+    myDragAndDrop.drop(mySurface, parentRightCenterPoint);
     waitForWrite(SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent");
+    waitForSceneComponentAnimation();
     return this;
   }
 
@@ -253,14 +289,15 @@ public class NlComponentFixture {
       }
     }).click();
 
-    Point sourceBaseline = getTopCenterPoint();
+    Point sourceBaseline = getTopCenterPoint(mySceneComponent);
     sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(myComponent)) + 1);
     myDragAndDrop.drag(mySurface, sourceBaseline);
-    Point destinationBaseline = destination.getTopCenterPoint();
+    Point destinationBaseline = destination.getTopCenterPoint(mySceneComponent);
     destinationBaseline
       .translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(destination.getComponent())) - 1);
     myDragAndDrop.drop(mySurface, destinationBaseline);
     waitForWrite(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, destination);
+    waitForSceneComponentAnimation();
     return this;
   }
 
@@ -339,6 +376,12 @@ public class NlComponentFixture {
     Wait.seconds(TIMEOUT_FOR_WRITE_IN_SECONDS)
         .expecting(String.format("%1$s = %2$s", expectedValue, myComponent.getAttribute(SdkConstants.AUTO_URI, attributeName)))
         .until(() -> expectedValue.equals(myComponent.getAttribute(SdkConstants.AUTO_URI, attributeName)));
+  }
+
+  private void waitForSceneComponentAnimation() {
+    Wait.seconds(TIMEOUT_FOR_SCENE_COMPONENT_AMIMATION_SECONDS)
+      .expecting("Expect SceneComponent Animation Finish")
+      .until(() -> !mySceneComponent.isAnimating());
   }
 
   @NotNull
