@@ -29,6 +29,13 @@ private const val CUSTOM_TAG = "com.example.PieChart"
 private const val ATTR_LEGEND = "legend"
 private const val ATTR_LABEL_POS = "labelPosition"
 
+internal const val EXPECTED_ID_TOOLTIP =
+  "android:id:\n" +
+  "Supply an identifier name for this view, to later retrieve it with {@link android.view.View#findViewById View.findViewById()} or " +
+  "{@link android.app.Activity#findViewById Activity.findViewById()}. This must be a resource reference; typically you set this using " +
+  "the <code>@+</code> syntax to create a new ID resources. For example: <code>android:id=\"@+id/my_id\"</code> which allows you to " +
+  "later retrieve the view with <code>findViewById(R.id.my_id)</code>."
+
 private fun PropertiesTable<NelePropertyItem>.contains(namespace: String, name: String): Boolean {
   return this.getOrNull(namespace, name) != null
 }

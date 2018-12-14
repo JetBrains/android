@@ -56,19 +56,6 @@ import icons.StudioIcons
 import org.intellij.lang.annotations.Language
 import java.awt.Color
 
-internal const val EXPECTED_ID_TOOLTIP = """
-android:id:
-Supply an identifier name for this view, to later retrieve it
-             with {@link android.view.View#findViewById View.findViewById()} or
-             {@link android.app.Activity#findViewById Activity.findViewById()}.
-             This must be a
-             resource reference; typically you set this using the
-             <code>@+</code> syntax to create a new ID resources.
-             For example: <code>android:id="@+id/my_id"</code> which
-             allows you to later retrieve the view
-             with <code>findViewById(R.id.my_id)</code>.
-"""
-
 private const val STRINGS = """<?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="demo">Demo String</string>
@@ -409,6 +396,13 @@ class NelePropertyItemTest : PropertyTestCase() {
 
     src.value = "@drawable/non-existent-drawable"
     assertThat(src.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
+  }
+
+  fun testFilterRawAttributeComment() {
+    val comment = "Here is a\n" +
+                  "        comment with an\n" +
+                  "        odd formatting."
+    assertThat(NelePropertyItem.filterRawAttributeComment(comment)).isEqualTo("Here is a comment with an odd formatting.")
   }
 
   private fun createTextView(): List<NlComponent> {

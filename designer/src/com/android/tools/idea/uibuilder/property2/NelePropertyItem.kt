@@ -23,6 +23,7 @@ import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.NULL_RESOURCE
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TOOLS_URI
+import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
@@ -256,7 +257,7 @@ open class NelePropertyItem(
     val value = definition?.getDescription(null) ?: ""
     if (value.isNotEmpty()) {
       sb.append(":\n")
-      sb.append(value)
+      sb.append(filterRawAttributeComment(value))
     }
     return sb.toString()
   }
@@ -495,4 +496,14 @@ open class NelePropertyItem(
     }
 
   // endregion
+
+  companion object {
+    private val lineEndingRegex = Regex("\n *")
+
+    // TODO: b/121033944 Give access to links and format code sections as well.
+    @VisibleForTesting
+    fun filterRawAttributeComment(comment: String): String {
+      return comment.replace(lineEndingRegex, " ")
+    }
+  }
 }
