@@ -62,6 +62,7 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
 
       override fun focusGained(event: FocusEvent) {
         updateFromModel()
+        boundImage.scrollRectToVisible(boundImage.bounds)
       }
     })
   }

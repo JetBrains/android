@@ -39,7 +39,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
     registerKeyAction({ escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
     registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
     registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
-    addFocusListener(TextEditorFocusListener(this, editorModel))
+    addFocusListener(TextEditorFocusListener(this, this, editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
   }

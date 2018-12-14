@@ -45,7 +45,7 @@ class PropertyCheckBox(private val propertyModel: BooleanPropertyEditorModel) : 
     registerKeyAction({ propertyModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
 
     propertyModel.addListener(ValueChangedListener { handleValueChanged() })
-    addFocusListener(EditorFocusListener(propertyModel))
+    addFocusListener(EditorFocusListener(this, propertyModel))
     model.addChangeListener {
       if (!stateChangeFromModel) {
         propertyModel.value = fromStateValue(model.isSelected)

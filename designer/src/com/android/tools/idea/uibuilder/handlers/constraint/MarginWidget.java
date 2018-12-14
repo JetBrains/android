@@ -18,8 +18,11 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.util.ui.JBUI;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.Arrays;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +43,7 @@ public class MarginWidget extends JComboBox<String> {
     setEditable(true);
     JTextField textField = (JTextField)getEditor().getEditorComponent();
     textField.setFont(textField.getFont().deriveFont((float)JBUI.scaleFontSize(12f)));
+    textField.addFocusListener(new ScrollToViewFocusListener(this));
     initComboBox(name);
     setName(name);
   }

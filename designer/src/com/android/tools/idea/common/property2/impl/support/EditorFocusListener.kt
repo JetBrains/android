@@ -18,14 +18,17 @@ package com.android.tools.idea.common.property2.impl.support
 import com.android.tools.idea.common.property2.impl.model.BasePropertyEditorModel
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import javax.swing.JComponent
 
 /**
  * [FocusListener] that can be used in controls using models derived from [BasePropertyEditorModel].
  */
-class EditorFocusListener(private val model: BasePropertyEditorModel) : FocusListener {
+class EditorFocusListener(private val component: JComponent,
+                          private val model: BasePropertyEditorModel) : FocusListener {
 
   override fun focusGained(event: FocusEvent) {
     model.focusGained()
+    (component.parent as? JComponent)?.scrollRectToVisible(component.bounds)
   }
 
   override fun focusLost(event: FocusEvent) {

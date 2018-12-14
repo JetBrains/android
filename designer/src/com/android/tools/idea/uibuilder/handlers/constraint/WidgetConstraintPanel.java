@@ -93,6 +93,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     mVerticalSlider.setName(VERTICAL_BIAS_SLIDER);
     mHorizontalSlider.setName(HORIZONTAL_BIAS_SLIDER);
     myWidgetModel.setComponent(components.isEmpty() ? null : components.get(0));
+    mVerticalSlider.addFocusListener(new ScrollToViewFocusListener(mVerticalSlider));
+    mHorizontalSlider.addFocusListener(new ScrollToViewFocusListener(mHorizontalSlider));
 
     add(mVerticalSlider);
     add(mMain);
