@@ -43,6 +43,12 @@ class ProjectStructureDialogFixture(
     return ideFrameFixture.waitForGradleProjectSyncToFinish()
   }
 
+  fun clickOkExpectConfigmrtation(): ErrorsReviewConfirmationDialogFixture {
+    GuiTests.findAndClickOkButton(this)
+    // Changing the project structure can cause a Gradle build and Studio re-indexing.
+    return ErrorsReviewConfirmationDialogFixture.find(ideFrameFixture, "Problems Found")
+  }
+
   fun clickCancel(): IdeFrameFixture {
     clickCancelAndWaitDialogDisappear()
     return ideFrameFixture
@@ -87,5 +93,10 @@ internal fun ContainerFixture<*>.clickOkAndWaitDialogDisappear() {
 
 internal fun ContainerFixture<*>.clickCancelAndWaitDialogDisappear() {
   GuiTests.findAndClickCancelButton(this)
+  Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+}
+
+internal fun ContainerFixture<*>.clickButtonAndWaitDialogDisappear(text: String) {
+  GuiTests.findAndClickButton(this, text)
   Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
 }
