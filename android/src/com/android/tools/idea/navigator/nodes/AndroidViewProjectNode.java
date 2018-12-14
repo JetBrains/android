@@ -152,7 +152,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     ProjectFileIndex index = ProjectRootManager.getInstance(myProject).getFileIndex();
     VirtualFile projectRootFolder = myProject.getBaseDir();
 
-    if (index.isInContent(file) || index.isInLibraryClasses(file) || index.isInLibrarySource(file) ||
+    if (index.isInContent(file) || index.isInLibrary(file) ||
         (projectRootFolder != null && isAncestor(projectRootFolder, file, false))) {
       return true;
     }
