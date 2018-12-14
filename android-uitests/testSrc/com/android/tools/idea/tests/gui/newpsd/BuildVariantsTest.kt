@@ -19,13 +19,11 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ErrorsReviewConfirmationDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.findSuggestionsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.items
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectBuildVariantsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestionsConfigurable
 import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.hamcrest.CoreMatchers.equalTo
@@ -72,7 +70,8 @@ class BuildVariantsTest {
     ide.openPsd().run {
       selectBuildVariantsConfigurable().run {
         selectBuildTypesTab().run {
-          assertThat(items(), equalTo(listOf("release", "newType", "debug")))
+          Truth.assertThat(items())
+            .containsAllIn(listOf("release", "newType"))  // If still syncing, debug build type may not be yet there.
         }
       }
       clickCancel()
