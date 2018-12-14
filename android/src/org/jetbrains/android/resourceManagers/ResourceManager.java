@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
-import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -300,24 +299,14 @@ public abstract class ResourceManager {
     for (ValueResourceInfo resource : valueResources) {
       elements.add(new LazyValueResourceElementWrapper(resource, context));
     }
-
-    ResourceType resourceType = ResourceType.fromClassName(resType);
-    if (resourceType != null) {
-      if (resourceType == ResourceType.ID) {
-        elements.addAll(findIdDeclarations(namespace, resName));
-      }
-      else if (FolderTypeRelationship.getNonValuesRelatedFolder(resourceType) != null) {
-        List<ResourceItem> resources = getResourceRepository().getResources(namespace, resourceType, resName);
-        for (ResourceItem resource : resources) {
-          if (resource.isFileBased()) {
-            VirtualFile file = ResourceHelper.getSourceAsVirtualFile(resource);
-            if (file != null) {
-              PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
-              if (psiFile != null) {
-                elements.add(new FileResourceElementWrapper(psiFile));
-              }
-            }
-          }
+    if (resType.equals("id")) {
+      elements.addAll(findIdDeclarations(namespace, resName));
+    }
+    if (elements.isEmpty()) {
+      ResourceFolderType folderType = ResourceFolderType.getTypeByName(resType);
+      if (folderType != null) {
+        for (PsiFile file : findResourceFiles(folderType, resName, false, true)) {
+          elements.add(new FileResourceElementWrapper(file));
         }
       }
     }

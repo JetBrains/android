@@ -30,6 +30,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,6 +76,12 @@ class AppResourceRepository extends MultiResourceRepository {
         myResourceDirMap = HashMultimap.create();
         for (LocalResourceRepository resourceRepository : getChildren()) {
           myResourceDirMap.putAll(resourceRepository.getLibraryName(), resourceRepository.getResourceDirs());
+          if (resourceRepository instanceof AarSourceResourceRepository) {
+            VirtualFile resDir = VfsUtil.findFileByIoFile(((AarSourceResourceRepository)resourceRepository).getResourceDirectory(), true);
+            if (resDir != null) {
+              myResourceDirMap.put(resourceRepository.getLibraryName(), resDir);
+            }
+          }
         }
       }
       return myResourceDirMap;
