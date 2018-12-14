@@ -1042,7 +1042,7 @@
     <projectService serviceInterface="com.android.tools.idea.debug.ResourceIdResolver"
                     serviceImplementation="com.android.tools.idea.debug.ProjectResourceIdResolver"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
-    <projectService serviceImplementation="com.android.tools.idea.res.ProjectResourceRepositoryRootListener"/>
+    <projectService serviceImplementation="com.android.tools.idea.res.AndroidProjectRootListener"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceFolderRegistry"/>
     <projectService serviceImplementation="com.android.tools.idea.res.SampleDataListener"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.services.DeveloperServices" />

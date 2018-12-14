@@ -61,7 +61,7 @@ class AppResourceRepository extends MultiResourceRepository {
   @NotNull
   static AppResourceRepository create(@NotNull AndroidFacet facet, @NotNull Collection<AarResourceRepository> libraryRepositories) {
     AppResourceRepository repository = new AppResourceRepository(facet, computeLocalRepositories(facet), libraryRepositories);
-    ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
+    AndroidProjectRootListener.ensureSubscribed(facet.getModule().getProject());
 
     return repository;
   }

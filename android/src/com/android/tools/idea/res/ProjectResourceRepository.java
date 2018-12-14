@@ -38,10 +38,7 @@ final class ProjectResourceRepository extends MultiResourceRepository {
   @NotNull
   public static ProjectResourceRepository create(@NotNull AndroidFacet facet) {
     List<LocalResourceRepository> resources = computeRepositories(facet);
-    ProjectResourceRepository repository = new ProjectResourceRepository(facet, resources);
-
-    ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
-    return repository;
+    return new ProjectResourceRepository(facet, resources);
   }
 
   @NotNull

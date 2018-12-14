@@ -27,35 +27,38 @@ import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.util.AndroidDependenciesCache;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Service that subscribes to project root changes in order to update ResourceRepository roots.
- * Also invalidates the ResourceFolderManager cache upon changes.
+ * Service that subscribes to project root changes in order to invalidate {@link AndroidDependenciesCache},
+ * the {@link ResourceFolderManager} cache, and to update resource repositories.
  */
-public class ProjectResourceRepositoryRootListener {
+public class AndroidProjectRootListener {
+  /**
+   * Makes AndroidProjectRootListener listen to the {@link ProjectTopics#PROJECT_ROOTS} events if it has not been listening already.
+   *
+   * @param project the project to listen on
+   */
+  public static void ensureSubscribed(@NotNull Project project) {
+    ServiceManager.getService(project, AndroidProjectRootListener.class);
+  }
 
-  private ProjectResourceRepositoryRootListener(@NotNull final Project project) {
+  private AndroidProjectRootListener(@NotNull Project project) {
     project.getMessageBus().connect(project).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
-        moduleRootsChanged(project);
+        moduleRootsOrDependenciesChanged(project);
       }
     });
   }
 
-  public static void ensureSubscribed(@NotNull Project project) {
-    ServiceManager.getService(project, ProjectResourceRepositoryRootListener.class);
-  }
-
   /**
-   * Called when module roots have changed in the given project. Locates all
-   * the {@linkplain ProjectResourceRepository} instances (but only those that
-   * have already been initialized) and updates the roots, if necessary.
+   * Called when module roots have changed in the given project.
    *
    * @param project the project whose module roots changed
    */
-  private static void moduleRootsChanged(@NotNull Project project) {
+  private static void moduleRootsOrDependenciesChanged(@NotNull Project project) {
     DumbService.getInstance(project).queueTask(new DumbModeTask() {
       @Override
       public void performInDumbMode(@NotNull ProgressIndicator indicator) {
@@ -63,7 +66,7 @@ public class ProjectResourceRepositoryRootListener {
           indicator.setText("Updating resource repository roots");
           ModuleManager moduleManager = ModuleManager.getInstance(project);
           for (Module module : moduleManager.getModules()) {
-              moduleRootsChanged(module);
+              moduleRootsOrDependenciesChanged(module);
           }
         }
       }
@@ -71,13 +74,11 @@ public class ProjectResourceRepositoryRootListener {
   }
 
   /**
-   * Called when module roots have changed in the given module. Locates the
-   * {@linkplain ProjectResourceRepository} instance (but only if it has
-   * already been initialized) and updates its roots, if necessary.
+   * Called when module roots have changed in the given module.
    *
    * @param module the module whose roots changed
    */
-  private static void moduleRootsChanged(@NotNull Module module) {
+  private static void moduleRootsOrDependenciesChanged(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
       if (facet.requiresAndroidModel() && facet.getConfiguration().getModel() == null) {
@@ -85,10 +86,10 @@ public class ProjectResourceRepositoryRootListener {
         // GradleProjectAvailableListener will be called as soon as it is and do a proper sync.
         return;
       }
-      ResourceFolderManager.getInstance(facet).invalidate();
 
-      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-      repoManager.updateRoots();
+      AndroidDependenciesCache.getInstance(module).dropCache();
+      ResourceFolderManager.getInstance(facet).invalidate();
+      ResourceRepositoryManager.getOrCreateInstance(facet).updateRootsAndLibraries();
     }
   }
 }
