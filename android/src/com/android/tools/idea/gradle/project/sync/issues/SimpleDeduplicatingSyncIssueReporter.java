@@ -56,13 +56,13 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * in subclasses should different semantics be required.
    */
   @Override
-  void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
+  final void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
     reportAll(ImmutableList.of(syncIssue), ImmutableMap.of(syncIssue, module),
               buildFile == null ? ImmutableMap.of() : ImmutableMap.of(module, buildFile));
   }
 
   @Override
-  void reportAll(@NotNull List<SyncIssue> syncIssues,
+  final void reportAll(@NotNull List<SyncIssue> syncIssues,
                  @NotNull Map<SyncIssue, Module> moduleMap,
                  @NotNull Map<Module, VirtualFile> buildFileMap) {
     // Group by the deduplication key.

@@ -94,7 +94,9 @@ public class MissingAndroidSdkErrorHandler extends BaseSyncErrorHandler {
     }
 
     List<NotificationHyperlink> hyperlinks = new ArrayList<>();
-    hyperlinks.add(new OpenFileHyperlink(file.getPath(), lineNumber));
+    if (file.exists()) {
+      hyperlinks.add(new OpenFileHyperlink(file.getPath(), lineNumber));
+    }
     return hyperlinks;
   }
 }
