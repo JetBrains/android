@@ -38,7 +38,7 @@ public class MissingSdkPackageSyncIssuesReporter extends SimpleDeduplicatingSync
     return SyncIssue.TYPE_MISSING_SDK_PACKAGE;
   }
 
-  @Nullable
+  @NotNull
   @Override
   protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
     return issue;

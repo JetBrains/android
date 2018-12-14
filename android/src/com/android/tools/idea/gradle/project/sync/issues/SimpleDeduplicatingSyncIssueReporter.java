@@ -68,10 +68,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
     // Group by the deduplication key.
     Map<Object, List<SyncIssue>> groupedIssues = new LinkedHashMap<>();
     for (SyncIssue issue : syncIssues) {
-      Object key = getDeduplicationKey(issue);
-      if (key != null) {
-        groupedIssues.computeIfAbsent(key, (config) -> new ArrayList<>()).add(issue);
-      }
+      groupedIssues.computeIfAbsent(getDeduplicationKey(issue), (config) -> new ArrayList<>()).add(issue);
     }
 
     // Report once for each group, including the list of affected modules.
@@ -175,7 +172,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
    * @return the key that should be used to deduplicate issues, each issue with the same key will be grouped and reported as one, this
    * method should be stateless.
    */
-  @Nullable
+  @NotNull
   protected abstract Object getDeduplicationKey(@NotNull SyncIssue issue);
 
   /**

@@ -26,7 +26,7 @@ class UnhandledIssuesReporter extends SimpleDeduplicatingSyncIssueReporter {
     return -1; // This factory does not handle any particular issue type.
   }
 
-  @Nullable
+  @NotNull
   @Override
   protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
     return issue;
