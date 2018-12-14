@@ -8,6 +8,7 @@ iml_module(
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order
     test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -37,5 +38,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
+        "//tools/idea/.idea/libraries:mockito[test]",
     ],
 )
