@@ -386,7 +386,6 @@ public class DeviceMenuAction extends DropDownAction {
         customBuilder.setName(CUSTOM_DEVICE_NAME);
         customBuilder.setId(Configuration.CUSTOM_DEVICE_ID);
         myCustomDevice = customBuilder.build();
-        configuration.getConfigurationManager().getDevices().add(myCustomDevice);
         configuration.setEffectiveDevice(myCustomDevice, myDevice.getDefaultState());
       }
     }
