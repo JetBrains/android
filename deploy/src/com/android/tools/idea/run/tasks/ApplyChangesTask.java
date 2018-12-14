@@ -23,21 +23,36 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
-public class ApplyChangesAction extends DeployAction {
-  private static final Logger LOG = Logger.getInstance(ApplyChangesAction.class);
+public class ApplyChangesTask extends AbstractDeployTask {
 
+  private static final Logger LOG = Logger.getInstance(ApplyChangesTask.class);
+  private static final String ID = "APPLY_CHANGES";
+
+  public ApplyChangesTask(@NotNull Project project,
+                          @NotNull Map<String, List<File>> packages) {
+    super(project, packages);
+  }
+
+  @NotNull
   @Override
-  public String getName() {
+  public String getId() {
+    return ID;
+  }
+
+  @NotNull
+  @Override
+  public String getDescription() {
     return "Apply Changes";
   }
 
   @Override
-  public void deploy(Project project, IDevice device, Deployer deployer, String applicationId, List<File> apkFiles)
-    throws DeployerException {
+  protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
     LOG.info("Applying changes to application: " + applicationId);
     try (Trace trace = Trace.begin("Unified.fullSwap")) {
-      deployer.fullSwap(applicationId, getPathsToInstall(apkFiles));
+      deployer.fullSwap(applicationId, getPathsToInstall(files));
     }
   }
 }

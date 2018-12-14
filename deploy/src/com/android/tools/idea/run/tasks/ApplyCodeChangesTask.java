@@ -27,23 +27,27 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
-public class ApplyCodeChangesAction extends DeployAction {
-  private static final Logger LOG = Logger.getInstance(ApplyCodeChangesAction.class);
+public class ApplyCodeChangesTask extends AbstractDeployTask {
 
-  @Override
-  public String getName() {
-    return "Apply Code Changes";
+  private static final Logger LOG = Logger.getInstance(ApplyCodeChangesTask.class);
+  private static final String ID = "APPLY_CODE_CHANGES";
+
+  /**
+   * Creates a task to deploy a list of apks.
+   *
+   * @param project  the project that this task is running within.
+   * @param packages a map of application ids to apks representing the packages this task will deploy.
+   */
+  public ApplyCodeChangesTask(@NotNull Project project, @NotNull Map<String, List<File>> packages) {
+    super(project, packages);
   }
 
+  @NotNull
   @Override
-  public void deploy(Project project, IDevice device, Deployer deployer, String applicationId, List<File> apkFiles)
-    throws DeployerException {
-    LOG.info("Applying code changes to application: " + applicationId);
-    try (Trace trace = Trace.begin("Unified.codeSwap")) {
-      deployer
-        .codeSwap(applicationId, getPathsToInstall(apkFiles), makeSpecificRedefiners(project, device, applicationId));
-    }
+  public String getId() {
+    return ID;
   }
 
   /**
@@ -57,5 +61,20 @@ public class ApplyCodeChangesAction extends DeployAction {
     }
     int pid = device.getClient(applicatinId).getClientData().getPid();
     return ImmutableMap.of(pid, new DebuggerRedefiner(project));
+  }
+
+  @Override
+  protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
+    LOG.info("Applying code changes to application: " + applicationId);
+    try (Trace trace = Trace.begin("Unified.codeSwap")) {
+      deployer
+        .codeSwap(applicationId, getPathsToInstall(files), makeSpecificRedefiners(getProject(), device, applicationId));
+    }
+  }
+
+  @NotNull
+  @Override
+  public String getDescription() {
+    return "Apply Code Changes";
   }
 }

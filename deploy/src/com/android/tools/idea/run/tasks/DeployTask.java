@@ -24,24 +24,35 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
-public class InstallAction extends DeployAction {
-  private static final Logger LOG = Logger.getInstance(InstallAction.class);
+public class DeployTask extends AbstractDeployTask {
+
+  private static final Logger LOG = Logger.getInstance(DeployTask.class);
+  private static final String ID = "DEPLOY";
 
   private final String userInstallOptions;
 
-  public InstallAction(String userInstallOptions) {
+  /**
+   * Creates a task to deploy a list of apks.
+   *
+   * @param project  the project that this task is running within.
+   * @param packages a map of application ids to apks representing the packages this task will deploy.
+   */
+  public DeployTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, String userInstallOptions) {
+    super(project, packages);
     this.userInstallOptions = userInstallOptions;
   }
 
+  @NotNull
   @Override
-  public String getName() {
-    return "Install";
+  public String getId() {
+    return ID;
   }
 
   @Override
-  public void deploy(Project project, IDevice device, Deployer deployer, String applicationId, List<File> apkFiles)
-    throws DeployerException {
+  protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
     InstallOptions.Builder options = InstallOptions.builder().setAllowDebuggable();
 
     // Embedded devices (Android Things) have all runtime permissions granted since there's no requirement for user
@@ -67,7 +78,13 @@ public class InstallAction extends DeployAction {
 
     LOG.info("Installing application: " + applicationId);
     try (Trace trace = Trace.begin("Unified.install")) {
-      deployer.install(applicationId, getPathsToInstall(apkFiles), options.build());
+      deployer.install(applicationId, getPathsToInstall(files), options.build());
     }
+  }
+
+  @NotNull
+  @Override
+  public String getDescription() {
+    return "Install";
   }
 }

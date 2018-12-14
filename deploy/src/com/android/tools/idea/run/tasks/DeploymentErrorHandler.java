@@ -54,8 +54,8 @@ class DeploymentErrorHandler {
     myNotificationListener = null;
   }
 
-  DeploymentErrorHandler(@NotNull DeployAction action, @NotNull DeployerException exception) {
-    myFormattedErrorString = formatDeploymentErrors(action, exception);
+  DeploymentErrorHandler(@NotNull String description, @NotNull DeployerException exception) {
+    myFormattedErrorString = formatDeploymentErrors(description, exception);
     myNotificationListener = new DeploymentErrorNotificationListener();
   }
 
@@ -70,9 +70,9 @@ class DeploymentErrorHandler {
   }
 
   @NotNull
-  private String formatDeploymentErrors(@NotNull DeployAction action, @NotNull DeployerException exception) {
+  private String formatDeploymentErrors(@NotNull String description, @NotNull DeployerException exception) {
     StringBuilder builder = new StringBuilder();
-    builder.append(action.getName());
+    builder.append(description);
     builder.append(" failed.\n");
 
     builder.append(DeployerErrorMessagePresenter.createInstance().present(exception));
