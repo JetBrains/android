@@ -134,8 +134,7 @@ class ProductFlavorsPanel(
               val productFlavor = module.addNewProductFlavor(currentDimension.orEmpty(), newName)
               val dimension = module.findFlavorDimension(currentDimension.orEmpty())
               val node =
-                dimension?.let { treeModel.rootNode.findChildFor(dimension) } ?: treeModel.rootNode
-                  .findChildFor(productFlavor)
+                dimension?.let { treeModel.rootNode.findChildFor(dimension) }?.findChildFor(productFlavor)
               tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
             }
           }

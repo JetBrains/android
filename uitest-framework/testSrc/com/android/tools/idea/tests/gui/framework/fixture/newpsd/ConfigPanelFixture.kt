@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.findByType
+import com.android.tools.idea.tests.gui.framework.matcher
 import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.components.JBList
@@ -26,13 +27,38 @@ import com.intellij.ui.treeStructure.Tree
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JTreeFixture
+import java.awt.Container
+import javax.swing.JComponent
+import javax.swing.JList
+import javax.swing.JTree
 
 abstract class ConfigPanelFixture protected constructor(
 ) : IdeFrameContainerFixture {
 
   protected fun clickToolButton(titlePrefix: String) {
-    val button = robot().finder().find<ActionButton>(container) { it.toolTipText?.startsWith(titlePrefix) ?: false }
+    fun ActionButton.matches() = toolTipText?.startsWith(titlePrefix) ?: false
+    // Find the topmost tool button. (List/Map editors may contains similar buttons)
+    val button =
+      robot()
+        .finder()
+        .findAll(container, matcher<ActionButton> { it.matches() })
+        .minBy { button -> generateSequence<Container>(button) { it.parent }.count() }
+      ?: robot().finder().find<ActionButton>(container) { it.matches() }
     robot().click(button)
+  }
+
+  protected fun findEditor(label: String): PropertyEditorFixture {
+    val component = robot().finder().findByLabel<JComponent>(container, label, JComponent::class.java, false)
+    GuiQuery.get {
+      val checkBoxRect = component.bounds
+      component.scrollRectToVisible(checkBoxRect)
+    }
+    return PropertyEditorFixture(ideFrameFixture, component)
+  }
+
+  fun selectItemByPath(path: String) {
+    val tree = JTreeFixture(robot(), robot().finder().findByType<JTree>(container))
+    tree.selectPath(path)
   }
 }
 

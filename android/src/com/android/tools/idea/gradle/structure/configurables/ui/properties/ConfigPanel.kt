@@ -27,7 +27,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.JComponent
+import javax.swing.JLabel
 
 /**
  * A panel for editing configuration entities such as [PsProductFlavor] and [PsBuildType].
@@ -57,7 +59,8 @@ open class ConfigPanel<in ModelT>(
     setNumberOfProperties(propertiesModel.properties.size)
     for (property in propertiesModel.properties) {
       val editor: ModelPropertyEditor<Any> = property.createEditor(module.parent, module, model)
-      addPropertyComponents(editor.labelComponent, editor.component, editor.statusComponent)
+      val labelComponent = editor.labelComponent
+      addPropertyComponents(labelComponent, editor.component, editor.statusComponent)
       editors.add(editor)
     }
 
