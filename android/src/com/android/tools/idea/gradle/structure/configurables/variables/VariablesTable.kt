@@ -176,6 +176,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     tree.expandPath(TreePath(moduleNode.path))
     val emptyNodePath = TreePath(emptyNode.path)
     scrollRectToVisible(tree.getPathBounds(emptyNodePath))
+    tree.selectionPath = emptyNodePath
     editCellAt(tree.getRowForPath(emptyNodePath), 0, NewVariableEvent(emptyNode))
   }
 
