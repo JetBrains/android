@@ -35,7 +35,8 @@ import javax.swing.JTextField
 
 class InputNameDialogFixture(
     override val container: JDialog,
-    override val ideFrameFixture: IdeFrameFixture
+    override val ideFrameFixture: IdeFrameFixture,
+    private val okWait: () -> Unit
 ) : IdeFrameContainerFixture, ContainerFixture<JDialog> {
 
   override fun target(): JDialog = container
@@ -45,14 +46,14 @@ class InputNameDialogFixture(
     JTextComponentFixture(robot(), robot ().finder().findByType<JTextField>(container)).setText(text)
   }
 
-  fun clickOk() = clickOkAndWaitDialogDisappear()
+  fun clickOk() = clickOkAndWaitDialogDisappear().also { okWait() }
 
   fun clickCancel() = clickCancelAndWaitDialogDisappear()
 
   companion object {
-    fun find(ideFrameFixture: IdeFrameFixture, title: String): InputNameDialogFixture {
+    fun find(ideFrameFixture: IdeFrameFixture, title: String, okWait: () -> Unit): InputNameDialogFixture {
       val dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog::class.java, title))
-      return InputNameDialogFixture(dialog, ideFrameFixture)
+      return InputNameDialogFixture(dialog, ideFrameFixture, okWait)
     }
   }
 }

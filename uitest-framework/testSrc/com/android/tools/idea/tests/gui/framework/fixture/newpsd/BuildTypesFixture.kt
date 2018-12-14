@@ -25,6 +25,12 @@ open class BuildTypesFixture constructor(
 
   fun clickAdd(): InputNameDialogFixture {
     clickToolButton("Add Build Type")
-    return InputNameDialogFixture.find(ideFrameFixture, "Create New Build Type")
+    return InputNameDialogFixture.find(ideFrameFixture, "Create New Build Type") {
+      Thread.sleep(500) // MasterDetailsComponent has up to 500ms delay before acting on selection change.
+      waitForIdle()
+    }
   }
+
+  fun debuggable(): PropertyEditorFixture = findEditor("Debuggable")
+  fun versionNameSuffix(): PropertyEditorFixture = findEditor("Version Name Suffix")
 }

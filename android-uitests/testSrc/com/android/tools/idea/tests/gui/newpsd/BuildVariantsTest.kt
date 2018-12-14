@@ -63,6 +63,8 @@ class BuildVariantsTest {
             type("newType")
             clickOk()
           }
+          debuggable().selectItem("true")
+          versionNameSuffix().enterText("suffix")
         }
       }
       clickOk()
@@ -72,6 +74,11 @@ class BuildVariantsTest {
         selectBuildTypesTab().run {
           Truth.assertThat(items())
             .containsAllIn(listOf("release", "newType"))  // If still syncing, debug build type may not be yet there.
+        }
+        selectBuildTypesTab().run {
+          selectItemByPath("newType")
+          assertThat(debuggable().getText(), equalTo("true"))
+          assertThat(versionNameSuffix().getText(), equalTo("suffix"))
         }
       }
       clickCancel()
@@ -93,10 +100,14 @@ class BuildVariantsTest {
             type("newFlavor1")
             clickOk()
           }
+          minSdkVersion().selectItem("24 (API 24: Android 7.0 (Nougat))")
+          targetSdkVersion().enterText("24")
           clickAddProductFlavor().run {
             type("newFlavor2")
             clickOk()
           }
+          minSdkVersion().enterText("27")
+          targetSdkVersion().selectItem("27 (API 27: Android 8.1 (Oreo))")
         }
       }
       clickOk()
@@ -105,6 +116,14 @@ class BuildVariantsTest {
       selectBuildVariantsConfigurable().run {
         selectProductFlavorsTab().run {
           assertThat(items(), equalTo(listOf("newDim", "-newFlavor1", "-newFlavor2")))
+        }
+        selectProductFlavorsTab().run {
+          selectItemByPath("newDim/newFlavor1")
+          assertThat(minSdkVersion().getText(), equalTo("24"))
+          assertThat(targetSdkVersion().getText(), equalTo("24"))
+          selectItemByPath("newDim/newFlavor2")
+          assertThat(minSdkVersion().getText(), equalTo("27"))
+          assertThat(targetSdkVersion().getText(), equalTo("27"))
         }
       }
       clickCancel()
