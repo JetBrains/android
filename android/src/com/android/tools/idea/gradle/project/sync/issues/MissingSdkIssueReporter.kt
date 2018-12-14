@@ -38,7 +38,7 @@ class MissingSdkIssueReporter : SimpleDeduplicatingSyncIssueReporter() {
   override fun getSupportedIssueType(): Int = TYPE_SDK_NOT_SET
 
   // All issues of this type should be grouped together
-  override fun getDeduplicationKey(issue: SyncIssue): Any? = supportedIssueType
+  override fun getDeduplicationKey(issue: SyncIssue): Any = supportedIssueType
 
   override fun setupNotificationData(project: Project,
                                      syncIssues: List<SyncIssue>,

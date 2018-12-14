@@ -124,7 +124,7 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
     return super.createModuleLink(project, module, projectBuildModel, syncIssues, buildFile);
   }
 
-  @Nullable
+  @NotNull
   @Override
   protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
     return issue;
