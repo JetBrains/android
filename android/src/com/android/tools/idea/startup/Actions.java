@@ -43,11 +43,10 @@ public final class Actions {
 
   public static void moveAction(@NotNull String actionId, @NotNull String oldGroupId, @NotNull String groupId, @NotNull Constraints constraints) {
     ActionManager actionManager = ActionManager.getInstance();
-    AnAction action = actionManager.getAction(actionId);
+    AnAction action = actionManager.getActionOrStub(actionId);
     AnAction group = actionManager.getAction(groupId);
     AnAction oldGroup = actionManager.getAction(oldGroupId);
-    if (action != null && oldGroup != null && group != null && oldGroup instanceof DefaultActionGroup && group instanceof DefaultActionGroup) {
-      ((DefaultActionGroup)oldGroup).getChildren(null); //call get children to resolve stubs
+    if (action != null && oldGroup instanceof DefaultActionGroup && group instanceof DefaultActionGroup) {
       ((DefaultActionGroup)oldGroup).remove(action);
       ((DefaultActionGroup)group).add(action, constraints);
     }
