@@ -90,7 +90,6 @@ fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName:
     fixture.copyFileToProject("$testFolderPath/$fileName", "res/drawable/$fileName")
   }
   return ResourceRepositoryManager
-    .getOrCreateInstance(module)
-    ?.getModuleResources(true)
+    .getModuleResources(module)
     ?.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))!![0]
 }

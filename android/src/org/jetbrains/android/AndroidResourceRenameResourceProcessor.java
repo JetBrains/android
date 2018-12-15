@@ -15,6 +15,16 @@
  */
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.CLASS_VIEW;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.resources.ResourceType.STYLEABLE;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
@@ -24,7 +34,9 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.res.*;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Collections2;
@@ -49,7 +61,12 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -67,6 +84,15 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.android.augment.AndroidLightField;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceElement;
@@ -82,14 +108,6 @@ import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.*;
-import static com.android.resources.ResourceType.STYLEABLE;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * @author Eugene.Kudelevsky
@@ -243,7 +261,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     String id = AndroidResourceUtil.getResourceNameByReferenceText(value.getValue());
     assert id != null;
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
     ResourceNamespace namespace = repositoryManager.getNamespace();
     List<XmlAttributeValue> idDeclarations = manager.findIdDeclarations(namespace, id);
     ProjectFileIndex fileIndex = ProjectRootManager.getInstance(facet.getModule().getProject()).getFileIndex();
@@ -372,7 +390,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
                                                    Map<PsiElement, String> allRenames,
                                                    final AndroidFacet facet) {
     LocalResourceManager localResourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-    ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
     XmlTag tag = PsiTreeUtil.getParentOfType(element, XmlTag.class);
     assert tag != null;
     ResourceType type = localResourceManager.getValueResourceType(tag);
@@ -404,7 +422,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
       final String stylePrefix = name + ".";
       Collection<String> renameCandidates;
-      Collection<String> allStyles = repoManager.getAppResources(true).getResources(ResourceNamespace.TODO(), type).keySet();
+      Collection<String> allStyles = repoManager.getAppResources().getResources(ResourceNamespace.TODO(), type).keySet();
       renameCandidates = Collections2.filter(allStyles, styleName -> styleName.startsWith(stylePrefix));
 
       for (String resourceName : ORDER_BY_LENGTH.sortedCopy(renameCandidates)) {

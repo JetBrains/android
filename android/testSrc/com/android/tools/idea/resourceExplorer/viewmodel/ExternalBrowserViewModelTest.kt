@@ -75,7 +75,7 @@ class ExternalBrowserViewModelTest {
     val res = projectRule.fixture.copyFileToProject(getTestDataDirectory() + "/res/values.xml", "res/values/values.xml").parent.parent
     createTestModuleRepository(facet, listOf(res))
     val repository = ResourceRepositoryManager.getModuleResources(facet)
-    ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches()
+    ResourceRepositoryManager.getInstance(facet).resetAllCaches()
     assertFalse(repository is LocalResourceRepository.EmptyRepository)
 
     val resourceBrowserViewModel = createViewModel(facet)
@@ -105,7 +105,7 @@ class ExternalBrowserViewModelTest {
     projectRule.fixture.copyFileToProject(getAssetDir() + "/add@2x_dark.png", "res/drawable-night-xhdpi/add.png").parent.parent
     projectRule.fixture.copyFileToProject(getAssetDir() + "/add_dark.png", "res/drawable-night-mdpi/add.png").parent.parent
     createTestModuleRepository(facet, listOf(res))
-    ResourceRepositoryManager.getOrCreateInstance(facet).resetAllCaches()
+    ResourceRepositoryManager.getInstance(facet).resetAllCaches()
 
     val resourceBrowserViewModel = createViewModel(facet)
     val virtualFile = pathToVirtualFile(getAssetDir())

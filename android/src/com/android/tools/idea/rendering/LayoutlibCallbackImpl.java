@@ -230,7 +230,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       myNamespace = AUTO_URI;
     }
 
-    myNamespacing = ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing();
+    myNamespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
     if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
       myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
     } else {

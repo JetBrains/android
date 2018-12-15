@@ -31,8 +31,8 @@ class ModuleRClass(
 ) {
   class MainResources(val facet: AndroidFacet, val namespacing: AaptOptions.Namespacing) : ResourcesSource {
     override fun getPackageName(): String? = AndroidManifestUtils.getPackageName(facet)
-    override fun getResourceRepository() = ResourceRepositoryManager.getOrCreateInstance(facet).getAppResources(true)!!
-    override fun getResourceNamespace() = ResourceRepositoryManager.getOrCreateInstance(facet).namespace
+    override fun getResourceRepository() = ResourceRepositoryManager.getAppResources(facet)
+    override fun getResourceNamespace() = ResourceRepositoryManager.getInstance(facet).namespace
   }
 }
 
@@ -47,8 +47,8 @@ class ModuleTestRClass(
 ) {
   class TestResources(val facet: AndroidFacet, val namespacing: AaptOptions.Namespacing) : ResourcesSource {
     override fun getPackageName() = AndroidManifestUtils.getTestPackageName(facet)
-    override fun getResourceRepository() = ResourceRepositoryManager.getOrCreateInstance(facet).testAppResources
-    override fun getResourceNamespace() = ResourceRepositoryManager.getOrCreateInstance(facet).namespace
+    override fun getResourceRepository() = ResourceRepositoryManager.getInstance(facet).testAppResources
+    override fun getResourceNamespace() = ResourceRepositoryManager.getInstance(facet).namespace
     override fun isForTest() = true
   }
 }

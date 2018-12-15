@@ -59,7 +59,7 @@ class ResourceNamespaceReference(
     val resourceNamespace = element.resolveResourceNamespace(prefix) ?: return null
     return when (element.resolveResourceNamespace(prefix)) {
       ResourceNamespace.ANDROID -> ResourceNamespaceFakePsiElement(resourceNamespace, element)
-      in repositoryManager.getAppResources(true)!!.namespaces -> ResourceNamespaceFakePsiElement(resourceNamespace, element)
+      in repositoryManager.appResources.namespaces -> ResourceNamespaceFakePsiElement(resourceNamespace, element)
       else -> null
     }
   }

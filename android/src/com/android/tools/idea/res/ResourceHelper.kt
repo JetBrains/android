@@ -556,7 +556,7 @@ val PsiElement.resourceNamespace: ResourceNamespace?
     return if (getUserData(ModuleUtilCore.KEY_MODULE) != null
                || (vFile != null && (projectFileIndex.isInSource(vFile) || projectFileIndex.getModuleForFile(vFile) != null))) {
       AndroidFacet.getInstance(this)
-        ?.let { ResourceRepositoryManager.getOrCreateInstance(it) }
+        ?.let { ResourceRepositoryManager.getInstance(it) }
         ?.namespace
     }
     else {
@@ -874,8 +874,8 @@ fun getCompletionFromTypes(
     types.add(ResourceType.COLOR)
   }
 
-  val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
-  val appResources = repoManager.getAppResources(true)!!
+  val repoManager = ResourceRepositoryManager.getInstance(facet)
+  val appResources = repoManager.appResources
   val frameworkResources = repoManager.getFrameworkResources(false)
 
   val resources = Lists.newArrayListWithCapacity<String>(500)
@@ -1164,7 +1164,7 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
  * TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module) into repositories, items and values.
  */
 private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
-  val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
+  val repoManager = ResourceRepositoryManager.getInstance(facet)
   return if (namespace == ResourceNamespace.ANDROID) {
     val repo = repoManager.getFrameworkResources(false) as FrameworkResourceRepository
     val items = repo.getResources(ResourceNamespace.ANDROID, type, name)

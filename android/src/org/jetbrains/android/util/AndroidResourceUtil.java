@@ -1131,7 +1131,7 @@ public class AndroidResourceUtil {
   @NotNull
   public static ResourceNamespace getRClassNamespace(@NotNull AndroidFacet facet, String qName) {
     ResourceNamespace resourceNamespace;
-    if (ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing() == Namespacing.DISABLED) {
+    if (ResourceRepositoryManager.getInstance(facet).getNamespacing() == Namespacing.DISABLED) {
       resourceNamespace = ResourceNamespace.RES_AUTO;
     } else {
       resourceNamespace = ResourceNamespace.fromPackageName(StringUtil.getPackageName(qName));

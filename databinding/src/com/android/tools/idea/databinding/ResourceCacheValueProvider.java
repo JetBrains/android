@@ -30,7 +30,7 @@ abstract public class ResourceCacheValueProvider<T> implements CachedValueProvid
     private long myVersion = 0;
     @Override
     public long getModificationCount() {
-      LocalResourceRepository moduleResources = ResourceRepositoryManager.getOrCreateInstance(myFacet).getModuleResources(false);
+      LocalResourceRepository moduleResources = ResourceRepositoryManager.getInstance(myFacet).getExistingModuleResources();
       // make sure it changes if facet's module resource availability changes
       long version = moduleResources == null ? Integer.MIN_VALUE : moduleResources.getModificationCount();
       if (version != myLastVersion) {
@@ -62,7 +62,7 @@ abstract public class ResourceCacheValueProvider<T> implements CachedValueProvid
   @NotNull
   @Override
   public final Result<T> compute() {
-    if (ResourceRepositoryManager.getOrCreateInstance(myFacet).getModuleResources(false) == null) {
+    if (ResourceRepositoryManager.getInstance(myFacet).getExistingModuleResources() == null) {
       return Result.create(defaultValue(), myTracker, myAdditionalTrackers);
     }
     return Result.create(computeWithLock(), myTracker, myAdditionalTrackers);

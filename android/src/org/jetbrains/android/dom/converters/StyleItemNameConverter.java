@@ -218,14 +218,14 @@ public class StyleItemNameConverter extends ResolvingConverter<String> {
       return null;
     }
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
     if (repositoryManager == null) {
       return null;
     }
 
     ResourceRepository repository = attributeReference.getNamespace() == ResourceNamespace.ANDROID ?
                                             repositoryManager.getFrameworkResources(false) :
-                                            repositoryManager.getAppResources(true);
+                                            repositoryManager.getAppResources();
     if (repository == null) {
       return null;
     }

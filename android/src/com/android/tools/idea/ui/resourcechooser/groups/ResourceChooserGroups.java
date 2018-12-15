@@ -132,7 +132,7 @@ public class ResourceChooserGroups {
     ImmutableList.Builder<ResourceChooserItem> items = ImmutableList.builder();
     if (framework) {
       ResourceRepository frameworkResources =
-        ResourceRepositoryManager.getOrCreateInstance(facet).getFrameworkResources(type == ResourceType.STRING);
+        ResourceRepositoryManager.getInstance(facet).getFrameworkResources(type == ResourceType.STRING);
       if (frameworkResources != null) {
         items.addAll(getFrameworkItems(type, includeFileResources, frameworkResources, type));
         if (type == ResourceType.DRAWABLE) {
@@ -142,8 +142,8 @@ public class ResourceChooserGroups {
       }
     }
     else {
-      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-      LocalResourceRepository appResources = repoManager.getAppResources(true);
+      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
+      LocalResourceRepository appResources = repoManager.getAppResources();
 
       //noinspection ConstantConditions
       ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE_ITEMS ? repoManager.getResourceVisibility() : null;
@@ -161,9 +161,8 @@ public class ResourceChooserGroups {
   public static ResourceChooserGroup createThemeAttributesGroup(@NotNull ResourceType type,
                                                                 @NotNull AndroidFacet facet,
                                                                 @NotNull Collection<String> attrs) {
-    //noinspection ConstantConditions
     ResourceVisibilityLookup lookup = FILTER_OUT_PRIVATE_ITEMS
-                                      ? ResourceRepositoryManager.getOrCreateInstance(facet).getResourceVisibility()
+                                      ? ResourceRepositoryManager.getInstance(facet).getResourceVisibility()
                                       : null;
 
     List<ResourceChooserItem> items = new ArrayList<>();
@@ -171,7 +170,6 @@ public class ResourceChooserGroups {
       boolean framework = name.startsWith(SdkConstants.ANDROID_NS_NAME_PREFIX);
       String simpleName = framework ? ResolutionUtils.getNameFromQualifiedName(name) : name;
       if (!framework) {
-        //noinspection ConstantConditions
         if (lookup != null && lookup.isPrivate(ResourceType.ATTR, simpleName)) {
           continue;
         }

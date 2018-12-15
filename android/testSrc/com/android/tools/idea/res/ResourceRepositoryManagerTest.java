@@ -32,7 +32,7 @@ public class ResourceRepositoryManagerTest extends AndroidTestCase {
   public void testLibraryResources() {
     enableNamespacing("p1.p2");
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myFacet);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myFacet);
     assertThat(repositoryManager.getLibraryResources()).isEmpty();
     ResourceNamespace libraryNamespace = ResourceNamespace.fromPackageName("com.example.mylibrary");
     addBinaryAarDependency(myModule);

@@ -59,7 +59,7 @@ class DesignAssetImporterTest {
 
     val designAssetImporter = DesignAssetImporter()
     designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
-    val moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(true)!!
+    val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
     val item = moduleResources.allResources.first()!!
     Truth.assertThat(item.name).isEqualTo("file1")
     Truth.assertThat(item.resourceValue?.value).endsWith("drawable-xhdpi/file1.png")
@@ -81,7 +81,7 @@ class DesignAssetImporterTest {
 
     val designAssetImporter = DesignAssetImporter()
     designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
-    val moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(true)!!
+    val moduleResources = ResourceRepositoryManager.getInstance(facet).getModuleResources()!!
     val items = moduleResources.allResources.sortedBy { it.resourceValue?.value }
 
     var i = 0
@@ -108,7 +108,7 @@ class DesignAssetImporterTest {
 
     val designAssetImporter = DesignAssetImporter()
     designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
-    val moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(true)!!
+    val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
     val item = moduleResources.allResources.first()
 
     Truth.assertThat(item.name).isEqualTo("resource")

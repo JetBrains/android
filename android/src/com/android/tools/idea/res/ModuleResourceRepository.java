@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @see ResourceRepositoryManager#getModuleResources(boolean)
+ * @see ResourceRepositoryManager#getModuleResources()
  */
 final class ModuleResourceRepository extends MultiResourceRepository implements SingleNamespaceResourceRepository {
   @NotNull
@@ -92,7 +92,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
    */
   @NotNull
   static LocalResourceRepository forMainResources(@NotNull AndroidFacet facet) {
-    ResourceNamespace namespace = ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace();
+    ResourceNamespace namespace = ResourceRepositoryManager.getInstance(facet).getNamespace();
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
 
@@ -128,7 +128,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
    */
   @NotNull
   static LocalResourceRepository forTestResources(@NotNull AndroidFacet facet) {
-    ResourceNamespace namespace = ResourceRepositoryManager.getOrCreateInstance(facet).getTestNamespace();
+    ResourceNamespace namespace = ResourceRepositoryManager.getInstance(facet).getTestNamespace();
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
 

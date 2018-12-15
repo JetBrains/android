@@ -126,7 +126,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
 
     generateRClass("test", new File(outputDir, "R.class"));
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
     ResourceNamespace namespace = repositoryManager.getNamespace();
     List<ResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
     // In the namespaced case two repositories are returned. The first one is a module repository,

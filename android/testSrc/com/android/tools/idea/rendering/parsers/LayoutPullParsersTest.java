@@ -351,7 +351,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     assertEquals(RES_AUTO, LayoutPullParsers.create(createRenderTask(drawableFile)).getLayoutNamespace());
 
     // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
-    List<ResourceItem> frameworkResourceItems = ResourceRepositoryManager.getOrCreateInstance(myFacet)
+    List<ResourceItem> frameworkResourceItems = ResourceRepositoryManager.getInstance(myFacet)
       .getFrameworkResources(false)
       .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon");
 

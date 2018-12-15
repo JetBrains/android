@@ -21,12 +21,12 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.collect.Multimap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -101,10 +101,10 @@ public class LocalResourceManager extends ResourceManager {
     return ResourceFolderManager.getInstance(myFacet).getFolders();
   }
 
-  @NotNull
   @Override
-  public Multimap<String, VirtualFile> getAllResourceDirs() {
-    return ResourceRepositoryManager.getOrCreateInstance(myFacet).getAllResourceDirs();
+  @NotNull
+  public Collection<VirtualFile> getAllResourceDirs() {
+    return ResourceRepositoryManager.getInstance(myFacet).getAllResourceDirs();
   }
 
   @Override

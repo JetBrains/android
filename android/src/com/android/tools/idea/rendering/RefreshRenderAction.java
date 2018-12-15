@@ -74,7 +74,7 @@ public class RefreshRenderAction extends AnAction {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         Stream.concat(AndroidUtils.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
           .filter(Objects::nonNull)
-          .forEach(f -> ResourceRepositoryManager.getOrCreateInstance(f).resetAllCaches());
+          .forEach(f -> ResourceRepositoryManager.getInstance(f).resetAllCaches());
       }
 
       configuration.updated(ConfigurationListener.MASK_RENDERING);

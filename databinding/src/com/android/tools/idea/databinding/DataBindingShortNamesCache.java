@@ -34,15 +34,14 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.HashSet;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * PsiShortNames cache that finds classes generated for layout files.
@@ -283,7 +282,7 @@ public class DataBindingShortNamesCache extends PsiShortNamesCache {
 
     @Override
     Map<String, List<DataBindingInfo>> doCompute() {
-      LocalResourceRepository moduleResources = ResourceRepositoryManager.getOrCreateInstance(getFacet()).getModuleResources(false);
+      LocalResourceRepository moduleResources = ResourceRepositoryManager.getInstance(getFacet()).getExistingModuleResources();
       if (moduleResources == null) {
         return defaultValue();
       }
