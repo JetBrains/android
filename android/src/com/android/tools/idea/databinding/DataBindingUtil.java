@@ -193,7 +193,7 @@ public final class DataBindingUtil {
     if (layout == null) {
       return null;
     }
-    LocalResourceRepository moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(false);
+    LocalResourceRepository moduleResources = ResourceRepositoryManager.getInstance(facet).getExistingModuleResources();
     if (moduleResources == null) {
       return null;
     }

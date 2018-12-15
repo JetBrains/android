@@ -61,7 +61,7 @@ open class StyleEnumSupport(val property: NelePropertyItem) : EnumSupport {
    * Convert the sorted list of styles into a sorted list of [EnumValue]s with group headers.
    */
   protected fun convertStyles(styles: List<StyleResourceValue>): List<EnumValue> {
-    val resourceManager = ResourceRepositoryManager.getOrCreateInstance(facet)
+    val resourceManager = ResourceRepositoryManager.getInstance(facet)
     val currentNamespace = resourceManager.namespace
     val namespaceResolver = property.namespaceResolver
     var prev: StyleResourceValue? = null

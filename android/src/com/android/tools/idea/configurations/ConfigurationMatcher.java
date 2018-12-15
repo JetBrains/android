@@ -15,14 +15,33 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.SdkConstants.FD_RES_LAYOUT;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.ide.common.resources.configuration.*;
+import com.android.ide.common.resources.configuration.DensityQualifier;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.ide.common.resources.configuration.NightModeQualifier;
+import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
+import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
+import com.android.ide.common.resources.configuration.UiModeQualifier;
+import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.io.IAbstractFile;
-import com.android.resources.*;
+import com.android.resources.Density;
+import com.android.resources.FolderTypeRelationship;
+import com.android.resources.NightMode;
+import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
+import com.android.resources.ScreenOrientation;
+import com.android.resources.ScreenSize;
+import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -43,16 +62,18 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.jetbrains.android.uipreview.VirtualFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.SdkConstants.FD_RES_LAYOUT;
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 
 /**
  * Produces matches for configurations.
@@ -76,13 +97,13 @@ public class ConfigurationMatcher {
     myFile = file;
 
     myManager = myConfiguration.getConfigurationManager();
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myManager.getModule());
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myManager.getModule());
     if (repositoryManager == null) {
       myResources = null;
       myNamespace = null;
     }
     else {
-      myResources = repositoryManager.getAppResources(true);
+      myResources = repositoryManager.getAppResources();
       myNamespace = repositoryManager.getNamespace();
     }
   }
@@ -690,9 +711,9 @@ public class ConfigurationMatcher {
       }
       FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, locale, target);
       if (currentConfig != null) {
-        ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
+        ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
         if (repositoryManager != null) {
-          LocalResourceRepository resources = repositoryManager.getAppResources(true);
+          LocalResourceRepository resources = repositoryManager.getAppResources();
           ResourceFolderType folderType = ResourceHelper.getFolderType(file);
           if (folderType != null) {
             List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);

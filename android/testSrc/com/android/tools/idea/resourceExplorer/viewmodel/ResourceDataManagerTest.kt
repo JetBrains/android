@@ -55,8 +55,8 @@ class ResourceDataManagerTest {
   @Test
   fun getColorPsiElement() {
     rule.fixture.copyFileToProject("res/values/colors.xml", "res/values/colors.xml")
-    val colorItem = ResourceRepositoryManager.getOrCreateInstance(rule.module.androidFacet!!)
-      .getAppResources(true)!!
+    val colorItem = ResourceRepositoryManager.getInstance(rule.module.androidFacet!!)
+      .appResources
       .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary")
       .first()
     val colorAsset = DesignAsset.fromResourceItem(colorItem)!!

@@ -100,7 +100,7 @@ public class AttributeDefinitionsTest extends AndroidTestCase {
   }
 
   private void checkStyleableAttributes() {
-    ResourceNamespace appNamespace = ResourceRepositoryManager.getOrCreateInstance(myFacet).getNamespace();
+    ResourceNamespace appNamespace = ResourceRepositoryManager.getInstance(myFacet).getNamespace();
     StyleableDefinition theme = styleableDef(ResourceReference.styleable(appNamespace, "Theme"));
     assertThat(theme).isNotNull();
     assertThat(theme.getAttributes()).contains(attrDef(ResourceReference.attr(appNamespace, "colorForeground")));

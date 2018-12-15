@@ -352,7 +352,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private boolean namespacesUsed() {
-    return ResourceRepositoryManager.getOrCreateInstance(myFacet).getNamespacing() != AaptOptions.Namespacing.DISABLED;
+    return ResourceRepositoryManager.getInstance(myFacet).getNamespacing() != AaptOptions.Namespacing.DISABLED;
   }
 
   private static void addToResult(Map<ResourceType, ListMultimap<String, ResourceItem>> result, ResourceItem item) {

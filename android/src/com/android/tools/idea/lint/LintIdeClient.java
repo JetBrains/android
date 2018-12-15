@@ -1161,7 +1161,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+        ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
         ResourceVisibilityLookup.Provider provider = repoManager.getResourceVisibilityProvider();
         if (provider != null) {
           return provider;

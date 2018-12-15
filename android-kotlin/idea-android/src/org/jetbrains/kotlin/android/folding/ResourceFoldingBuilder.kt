@@ -74,7 +74,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
 
         val element = SourceTreeToPsiMap.treeElementToPsi(node) ?: return null
         // We force creation of the app resources repository when necessary to keep things deterministic.
-        val appResources = ResourceRepositoryManager.getInstance(element)?.getAppResources(true) ?: return null
+        val appResources = ResourceRepositoryManager.getInstance(element)?.appResources ?: return null
         val uastContext = ServiceManager.getService(element.project, UastContext::class.java) ?: return null
         return uastContext.convertElement(element, null, null)?.unwrapReferenceAndGetValue(appResources)
     }

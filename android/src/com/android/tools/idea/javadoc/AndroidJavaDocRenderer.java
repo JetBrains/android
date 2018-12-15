@@ -372,7 +372,7 @@ public class AndroidJavaDocRenderer {
       if (resources != null) {
         if (hasGradleModel) {
           // Go through all the binary libraries and look for additional resources there
-          for (AarResourceRepository dependency : ResourceRepositoryManager.getOrCreateInstance(facet).getLibraryResources()) {
+          for (AarResourceRepository dependency : ResourceRepositoryManager.getInstance(facet).getLibraryResources()) {
             addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
           }
         }
@@ -557,7 +557,7 @@ public class AndroidJavaDocRenderer {
     @Override
     @Nullable
     public ResourceRepository getFrameworkResources() {
-      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myModule);
+      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
       return repositoryManager == null ? null : repositoryManager.getFrameworkResources(false);
     }
 

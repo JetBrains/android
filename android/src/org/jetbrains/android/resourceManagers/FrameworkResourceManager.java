@@ -18,13 +18,13 @@ package org.jetbrains.android.resourceManagers;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.ConvertContext;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -46,7 +46,7 @@ public class FrameworkResourceManager extends ResourceManager {
   @Override
   @NotNull
   public ResourceRepository getResourceRepository() {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myModule);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
     assert repositoryManager != null;
     ResourceRepository frameworkResources = repositoryManager.getFrameworkResources(false);
     if (frameworkResources == null) {
@@ -66,13 +66,9 @@ public class FrameworkResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  public Multimap<String, VirtualFile> getAllResourceDirs() {
+  public Collection<VirtualFile> getAllResourceDirs() {
     VirtualFile resDir = getResourceDir();
-    Multimap<String, VirtualFile> result = HashMultimap.create();
-    if (resDir != null) {
-      result.put(null, resDir);
-    }
-    return result;
+    return resDir == null ? ImmutableList.of() : ImmutableList.of(resDir);
   }
 
   @Nullable

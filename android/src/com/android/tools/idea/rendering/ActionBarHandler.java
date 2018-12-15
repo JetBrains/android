@@ -108,7 +108,7 @@ public class ActionBarHandler extends ActionBarCallback {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
       Module module = myRenderTask.getContext().getModule();
-      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
+      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
       if (repositoryManager != null) {
         ResourceNamespace namespace = repositoryManager.getNamespace();
         XmlFile xmlFile = myRenderTask.getXmlFile();

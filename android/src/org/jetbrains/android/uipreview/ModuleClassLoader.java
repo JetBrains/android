@@ -1,9 +1,15 @@
 package org.jetbrains.android.uipreview;
 
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_V7;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
+import static com.android.SdkConstants.EXT_JAR;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalLibrary;
 import com.android.projectmodel.Library;
@@ -20,6 +26,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.aar.AarResourceRepository;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
@@ -28,6 +35,18 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -35,19 +54,6 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 
 /**
  * Render class loader responsible for loading classes in custom views and local and library classes
@@ -101,7 +107,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
           if (isResourceClassName(name)) {
             AndroidFacet facet = AndroidFacet.getInstance(module);
             if (facet != null) {
-              ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+              ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
               byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, repositoryManager);
               if (data != null) {
                 data = convertClass(data);
@@ -316,8 +322,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return;
     }
 
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-    LocalResourceRepository appResources = repositoryManager.getAppResources(true);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
+    LocalResourceRepository appResources = repositoryManager.getAppResources();
 
     ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
 
@@ -334,15 +340,14 @@ public final class ModuleClassLoader extends RenderClassLoader {
       resourcesNamespace = ResourceNamespace.RES_AUTO;
     }
     else {
-      ResourceRepository aarResources = repositoryManager.findLibraryResources(library);
-      if (!(aarResources instanceof SingleNamespaceResourceRepository)) {
+      AarResourceRepository aarResources = repositoryManager.findLibraryResources(library);
+      if (aarResources == null) {
         return;
       }
 
       rClassContents = aarResources;
-      SingleNamespaceResourceRepository resources = (SingleNamespaceResourceRepository)aarResources;
-      resourcesNamespace = resources.getNamespace();
-      packageName = resources.getPackageName();
+      resourcesNamespace = aarResources.getNamespace();
+      packageName = aarResources.getPackageName();
     }
 
     registry.addLibrary(rClassContents, ResourceIdManager.get(module), packageName, resourcesNamespace);

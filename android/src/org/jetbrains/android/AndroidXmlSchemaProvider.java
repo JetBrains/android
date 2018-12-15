@@ -173,7 +173,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
 
   @NotNull
   private static String getLocalXmlNamespace(@NotNull AndroidFacet facet) {
-    return ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace().getXmlNamespaceUri();
+    return ResourceRepositoryManager.getInstance(facet).getNamespace().getXmlNamespaceUri();
   }
 
   @NotNull

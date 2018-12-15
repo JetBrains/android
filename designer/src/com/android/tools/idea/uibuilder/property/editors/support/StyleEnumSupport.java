@@ -45,7 +45,7 @@ public class StyleEnumSupport extends EnumSupport {
   }
 
   private StyleEnumSupport(@NotNull AndroidFacet facet, @NotNull NlProperty property) {
-    this(property, new StyleFilter(facet, property.getResolver()), ResourceRepositoryManager.getOrCreateInstance(facet));
+    this(property, new StyleFilter(facet, property.getResolver()), ResourceRepositoryManager.getInstance(facet));
   }
 
   @VisibleForTesting

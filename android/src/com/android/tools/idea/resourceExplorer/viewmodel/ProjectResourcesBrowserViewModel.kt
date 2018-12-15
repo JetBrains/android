@@ -132,7 +132,7 @@ class ProjectResourcesBrowserViewModel(
    * Returns a map from the library name to its resource items
    */
   private fun getLibraryResources(type: ResourceType): List<ResourceSection> {
-    val repoManager = ResourceRepositoryManager.getOrCreateInstance(facet)
+    val repoManager = ResourceRepositoryManager.getInstance(facet)
     return repoManager.libraryResources.asSequence()
       .flatMap { lib ->
         // Create a section for each library

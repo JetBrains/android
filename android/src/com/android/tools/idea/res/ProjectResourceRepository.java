@@ -24,7 +24,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @see ResourceRepositoryManager#getProjectResources(boolean)
+ * @see ResourceRepositoryManager#getProjectResources()
  */
 final class ProjectResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;

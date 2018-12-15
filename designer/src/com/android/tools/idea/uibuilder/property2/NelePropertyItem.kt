@@ -239,7 +239,7 @@ open class NelePropertyItem(
     get() = firstComponent?.model
 
   private val defaultNamespace: ResourceNamespace
-    get() = ReadAction.compute<ResourceNamespace, RuntimeException> { ResourceRepositoryManager.getOrCreateInstance(model.facet).namespace }
+    get() = ReadAction.compute<ResourceNamespace, RuntimeException> { ResourceRepositoryManager.getInstance(model.facet).namespace }
 
   private fun isReferenceValue(value: String?): Boolean {
     return value != null && (value.startsWith("?") || value.startsWith("@") && !isId(value))

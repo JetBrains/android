@@ -76,7 +76,7 @@ public class ResourceFolderRegistry {
   public ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir) {
     // ResourceFolderRepository.create may require the IDE read lock. To avoid deadlocks it is always obtained first, before the caches
     // locks.
-    return ReadAction.compute(() -> get(facet, dir, ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace()));
+    return ReadAction.compute(() -> get(facet, dir, ResourceRepositoryManager.getInstance(facet).getNamespace()));
   }
 
   @NotNull

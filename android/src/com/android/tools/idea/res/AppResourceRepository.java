@@ -29,7 +29,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
@@ -41,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @see ResourceRepositoryManager#getAppResources(boolean)
+ * @see ResourceRepositoryManager#getAppResources()
  */
 class AppResourceRepository extends MultiResourceRepository {
   static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
@@ -53,10 +52,9 @@ class AppResourceRepository extends MultiResourceRepository {
   private final Object RESOURCE_MAP_LOCK = new Object();
 
   /**
-   * Map from library name to resource dirs.
-   * The key library name may be null.
+   * Resource directories. Computed lazily.
    */
-  @Nullable private Multimap<String, VirtualFile> myResourceDirMap;
+  @Nullable private Collection<VirtualFile> myResourceDirs;
 
   @NotNull
   static AppResourceRepository create(@NotNull AndroidFacet facet, @NotNull Collection<AarResourceRepository> libraryRepositories) {
@@ -67,15 +65,16 @@ class AppResourceRepository extends MultiResourceRepository {
   }
 
   @NotNull
-  Multimap<String, VirtualFile> getAllResourceDirs() {
+  Collection<VirtualFile> getAllResourceDirs() {
     synchronized (RESOURCE_MAP_LOCK) {
-      if (myResourceDirMap == null) {
-        myResourceDirMap = HashMultimap.create();
+      if (myResourceDirs == null) {
+        ImmutableList.Builder<VirtualFile> result = ImmutableList.builder();
         for (LocalResourceRepository resourceRepository : getLocalResources()) {
-          myResourceDirMap.putAll(resourceRepository.getLibraryName(), resourceRepository.getResourceDirs());
+          result.addAll(resourceRepository.getResourceDirs());
         }
+        myResourceDirs = result.build();
       }
-      return myResourceDirMap;
+      return myResourceDirs;
     }
   }
 
@@ -153,7 +152,7 @@ class AppResourceRepository extends MultiResourceRepository {
   void updateRoots(@NotNull List<? extends LocalResourceRepository> localResources,
                    @NotNull Collection<? extends AarResourceRepository> libraryResources) {
     synchronized (RESOURCE_MAP_LOCK) {
-      myResourceDirMap = null;
+      myResourceDirs = null;
     }
     invalidateResourceDirs();
     setChildren(localResources, libraryResources);

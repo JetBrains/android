@@ -95,11 +95,11 @@ public class ResourceResolverCache {
                                               @NotNull String themeStyle,
                                               @NotNull FolderConfiguration fullConfiguration) {
     // Are caches up to date?
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myManager.getModule());
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myManager.getModule());
     if (repositoryManager == null) {
       return ResourceResolver.create(Collections.emptyMap(), null);
     }
-    LocalResourceRepository resources = repositoryManager.getAppResources(true);
+    LocalResourceRepository resources = repositoryManager.getAppResources();
     if (myCachedGeneration != resources.getModificationCount()) {
       myResolverMap.clear();
       myAppResourceMap.clear();

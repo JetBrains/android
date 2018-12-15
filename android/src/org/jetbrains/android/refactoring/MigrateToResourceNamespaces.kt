@@ -104,7 +104,7 @@ class MigrateToResourceNamespacesAction : BaseRefactoringAction() {
   override fun isEnabledOnElements(elements: Array<PsiElement>) = isEnabledOnModule(ModuleUtil.findModuleForPsiElement(elements.first()))
 
   private fun isEnabledOnModule(module: Module?): Boolean {
-    return ResourceRepositoryManager.getOrCreateInstance(module ?: return false)?.namespacing == AaptOptions.Namespacing.DISABLED
+    return ResourceRepositoryManager.getInstance(module ?: return false)?.namespacing == AaptOptions.Namespacing.DISABLED
   }
 }
 
@@ -250,10 +250,10 @@ class MigrateToResourceNamespacesProcessor(
     val psiManager = PsiManager.getInstance(myProject)
 
     for (facet in allFacets) {
-      val repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet)
+      val repositoryManager = ResourceRepositoryManager.getInstance(facet)
       if (repositoryManager.namespacing != AaptOptions.Namespacing.DISABLED) continue
 
-      for (resourceDir in repositoryManager.getModuleResources(true)!!.resourceDirs) {
+      for (resourceDir in repositoryManager.moduleResources.resourceDirs) {
         // TODO(b/78765120): process the files in parallel?
         VfsUtil.processFilesRecursively(resourceDir) { vf ->
           if (vf.fileType == StdFileTypes.XML) {

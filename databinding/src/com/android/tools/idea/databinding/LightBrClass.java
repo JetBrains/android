@@ -23,7 +23,18 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.light.LightField;
 import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
@@ -31,15 +42,14 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.ArrayUtil;
-import org.jetbrains.android.augment.AndroidLightClassBase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.android.augment.AndroidLightClassBase;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The light class that represents a data binding BR file
@@ -65,7 +75,7 @@ public class LightBrClass extends AndroidLightClassBase {
           PsiField[] doCompute() {
             Project project = facet.getModule().getProject();
             PsiElementFactory elementFactory = PsiElementFactory.SERVICE.getInstance(project);
-            LocalResourceRepository moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(false);
+            LocalResourceRepository moduleResources = ResourceRepositoryManager.getInstance(facet).getExistingModuleResources();
             if (moduleResources == null) {
               return defaultValue();
             }

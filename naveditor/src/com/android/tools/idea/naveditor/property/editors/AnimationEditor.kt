@@ -43,7 +43,7 @@ class AnimationEditor(listener: NlEditingListener, comboBox: CustomComboBox) : E
       // TODO: check the type of the start destination if the target is a graph
 
 
-      val repoManager = ResourceRepositoryManager.getOrCreateInstance(myProperty.model.module) ?: return emptyList()
+      val repoManager = ResourceRepositoryManager.getInstance(myProperty.model.module) ?: return emptyList()
       return getAnimatorsPopupContent(repoManager, isFragment)
     }
 
@@ -54,7 +54,7 @@ class AnimationEditor(listener: NlEditingListener, comboBox: CustomComboBox) : E
 
 fun getAnimatorsPopupContent(repoManager: ResourceRepositoryManager, includeAnimators: Boolean): List<ValueWithDisplayString> {
   // TODO: filter out interpolators
-  val appResources = repoManager.getAppResources(true)!!
+  val appResources = repoManager.appResources
   val visibilityLookup = repoManager.resourceVisibility
   val result: MutableList<ValueWithDisplayString> = appResources
     .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIM, visibilityLookup, ResourceVisibility.PUBLIC)

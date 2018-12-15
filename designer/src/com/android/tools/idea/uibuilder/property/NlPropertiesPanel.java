@@ -357,7 +357,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
       return null;
     }
     ResourceNamespace.Resolver resolver = ResourceHelper.getNamespaceResolver(tag);
-    ResourceNamespace defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(myPropertiesManager.getFacet()).getNamespace();
+    ResourceNamespace defaultNamespace = ResourceRepositoryManager.getInstance(myPropertiesManager.getFacet()).getNamespace();
     if (value.getResourceType() == ResourceType.STYLE_ITEM) {
       ResourceReference reference = value.getReference();
       if (reference == null) {

@@ -127,7 +127,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
   val finalIdsUsed: Boolean
     get() {
       return facet.configuration.isAppProject
-             && ResourceRepositoryManager.getOrCreateInstance(facet).namespacing == AaptOptions.Namespacing.DISABLED
+             && ResourceRepositoryManager.getInstance(facet).namespacing == AaptOptions.Namespacing.DISABLED
     }
 
   /**
@@ -140,7 +140,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
   fun isIdDefinedInRTxt(resource: ResourceReference): Boolean {
     assert(resource.resourceType == ResourceType.ID)
 
-    return ResourceRepositoryManager.getOrCreateInstance(facet)
+    return ResourceRepositoryManager.getInstance(facet)
       .libraryResources
       .asSequence()
       .filterIsInstance(AarSourceResourceRepository::class.java)

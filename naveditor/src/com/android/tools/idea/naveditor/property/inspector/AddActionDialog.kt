@@ -344,7 +344,7 @@ open class AddActionDialog(
 
     dialog.myDestinationComboBox.renderer = destinationRenderer
 
-    val repoManager = ResourceRepositoryManager.getOrCreateInstance(model.module)
+    val repoManager = ResourceRepositoryManager.getInstance(model.module)
     val destinationListener = ActionListener {
       dialog.myEnterComboBox.removeAllItems()
       dialog.myExitComboBox.removeAllItems()

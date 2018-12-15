@@ -449,7 +449,7 @@ public class MergedManifest {
       Manifest manifest = facet.getManifest();
       myPackage = manifest == null ? myApplicationId : manifest.getPackage().getValue();
 
-      AaptOptions.Namespacing namespacing = ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing();
+      AaptOptions.Namespacing namespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
       ResourceNamespace namespace =
           namespacing == AaptOptions.Namespacing.DISABLED ? ResourceNamespace.RES_AUTO : ResourceNamespace.fromPackageName(myPackage);
 

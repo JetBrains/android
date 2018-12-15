@@ -6,7 +6,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.collect.Multimap;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,6 +42,13 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
@@ -52,8 +58,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -277,12 +281,11 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
     if (facet == null) {
       return;
     }
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
-    LocalResourceRepository repository = repositoryManager.getAppResources(true);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
+    LocalResourceRepository repository = repositoryManager.getAppResources();
     List<ResourceItem> styles = repository.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, styleName);
     if (styles.size() == 1) {
-      Multimap<String, VirtualFile> resourceDirs = repositoryManager.getAllResourceDirs();
-      resDirs.addAll(new HashSet<>(resourceDirs.values()));
+      resDirs.addAll(repositoryManager.getAllResourceDirs());
     }
   }
 
