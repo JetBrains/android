@@ -53,7 +53,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull private final Project myProject;
   @NotNull private final Map<String, List<File>> myPackages;
   @NotNull private List<LaunchTaskDetail> mySubTaskDetails;
-  @Nullable private DeploymentErrorHandler myDeploymentErrorHandler;
+  @Nullable private DeploymentErrorHandler myErrorHandler;
 
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
@@ -64,16 +64,28 @@ public abstract class AbstractDeployTask implements LaunchTask {
     mySubTaskDetails = new ArrayList<>();
   }
 
-  @Nullable
+  @NotNull
   @Override
   public String getFailureReason() {
-    return myDeploymentErrorHandler != null ? myDeploymentErrorHandler.getFormattedErrorString() : null;
+    return myErrorHandler != null ? myErrorHandler.getFormattedErrorString() : LaunchTask.super.getFailureReason();
+  }
+
+  @NotNull
+  @Override
+  public String getErrorId() {
+    return myErrorHandler != null ? myErrorHandler.getErrorId() : LaunchTask.super.getErrorId();
+  }
+
+  @NotNull
+  @Override
+  public String getError() {
+    return getFailureReason();
   }
 
   @Nullable
   @Override
   public NotificationListener getNotificationListener() {
-    return myDeploymentErrorHandler != null ? myDeploymentErrorHandler.getNotificationListener() : null;
+    return myErrorHandler != null ? myErrorHandler.getNotificationListener() : null;
   }
 
   @Override
@@ -97,7 +109,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
       try {
         perform(device, deployer, applicationId, apkFiles);
       } catch (DeployerException e) {
-        myDeploymentErrorHandler = new DeploymentErrorHandler(getDescription(), e);
+        myErrorHandler = new DeploymentErrorHandler(getDescription(), e);
         return false;
       }
     }
