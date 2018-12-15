@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrad
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.intellij.idea.ExcludeFromTestDiscovery;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +49,7 @@ import static org.mockito.Mockito.mock;
 /**
  * Integration test for Gradle Sync with old versions of Android plugin.
  */
+@ExcludeFromTestDiscovery
 public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase {
   private TestSettings myTestSettings;
 
