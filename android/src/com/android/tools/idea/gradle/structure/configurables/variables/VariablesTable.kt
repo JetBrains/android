@@ -20,16 +20,25 @@ import com.android.tools.idea.gradle.structure.configurables.ui.properties.Model
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.PropertyCellEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.toSelectedTextRenderer
 import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.toRenderer
-import com.android.tools.idea.gradle.structure.configurables.ui.treeview.*
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.FakeShadowNode
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.ShadowNode
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.ShadowedTreeNode
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.childNodes
+import com.android.tools.idea.gradle.structure.configurables.ui.treeview.initializeNode
 import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.PropertyContextStub
+import com.android.tools.idea.gradle.structure.model.meta.SimplePropertyStub
+import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.Disposable
@@ -47,9 +56,23 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Component
-import java.awt.event.*
-import java.util.*
-import javax.swing.*
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
+import java.util.EventObject
+import javax.swing.BorderFactory
+import javax.swing.Box
+import javax.swing.BoxLayout
+import javax.swing.Icon
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTable
+import javax.swing.JTree
+import javax.swing.KeyStroke
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.border.EmptyBorder
 import javax.swing.event.ChangeEvent
@@ -90,23 +113,30 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     tree.selectionModel = DefaultTreeSelectionModel()
 
     setTreeCellRenderer(object : NodeRenderer() {
-      override fun customizeCellRenderer(tree: JTree,
-                                         value: Any?,
-                                         selected: Boolean,
-                                         expanded: Boolean,
-                                         leaf: Boolean,
-                                         row: Int,
-                                         hasFocus: Boolean) {
+      override fun customizeCellRenderer(
+        tree: JTree,
+        value: Any?,
+        selected: Boolean,
+        expanded: Boolean,
+        leaf: Boolean,
+        row: Int,
+        hasFocus: Boolean
+      ) {
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
         if (value is EmptyMapItemNode) {
-          append("Insert new key", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+          append(
+            "Insert new key",
+            if (selected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES
+            else SimpleTextAttributes.GRAYED_ATTRIBUTES
+          )
         }
         val userObject = (value as VariablesBaseNode).userObject
         if (userObject is NodeDescription) {
           icon = userObject.icon
           iconTextGap = iconGap
           ipad = editorInsets
-        } else {
+        }
+        else {
           icon = EmptyIcon.ICON_16
         }
       }
@@ -156,20 +186,28 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     TableCellRenderer { table, value, isSelected, _, rowIndex, columnIndex ->
 
       fun getDefaultComponent() =
-        super.getCellRenderer(row, column).getTableCellRendererComponent(table, value, isSelected, false, rowIndex, columnIndex)
+        super
+          .getCellRenderer(row, column)
+          .getTableCellRendererComponent(table, value, isSelected, false, rowIndex, columnIndex)
 
       fun getNodeRendered() = tree.getPathForRow(rowIndex).lastPathComponent as VariablesBaseNode
 
       when {
         column == UNRESOLVED_VALUE && getNodeRendered() is EmptyListItemNode ->
-          (getDefaultComponent() as JLabel).apply { text = "Insert new value"; foreground = UIUtil.getInactiveTextColor() }
+          (getDefaultComponent() as JLabel).apply {
+            text = "Insert new value"
+            foreground =
+              if (isSelected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES.fgColor
+              else UIUtil.getInactiveTextColor()
+          }
 
         column == NAME -> getDefaultComponent()
 
         else -> {
           coloredComponent.clear()
           if (!tree.isExpanded(rowIndex)) {
-            (value as? ParsedValue<Any>)?.renderAnyTo(coloredComponent.toRenderer(), mapOf())
+            val textRenderer = coloredComponent.toRenderer().toSelectedTextRenderer(isSelected)
+            (value as? ParsedValue<Any>)?.renderAnyTo(textRenderer, mapOf())
           }
           val rowSelected = table.isRowSelected(rowIndex)
           coloredComponent.foreground = if (rowSelected) table.selectionForeground else table.foreground
@@ -487,7 +525,7 @@ class EmptyVariableNode(private val variablesScope: PsVariablesScope, val type: 
       ValueType.LIST -> variablesScope.addNewListVariable(name)
       ValueType.MAP -> variablesScope.addNewMapVariable(name)
       else -> variablesScope.addNewVariable(name)
-  }
+    }
 }
 
 class VariableNode(znode: ShadowNode, variable: PsVariable) : BaseVariableNode(znode, variable) {
@@ -613,6 +651,6 @@ internal data class VariableShadowNode(val variable: PsVariable) : ShadowNode {
   }
 }
 
-private object VariablePropertyContextStub: PropertyContextStub<Any>() {
+private object VariablePropertyContextStub : PropertyContextStub<Any>() {
   override fun parse(value: String) = parseAny(value)
 }
