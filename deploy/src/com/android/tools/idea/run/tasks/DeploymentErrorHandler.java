@@ -18,10 +18,7 @@ package com.android.tools.idea.run.tasks;
 import com.android.tools.deployer.DeployerErrorMessagePresenter;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -29,7 +26,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
-import java.util.List;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,15 +44,13 @@ class DeploymentErrorHandler {
   private final String myFormattedErrorString;
   @Nullable
   private final NotificationListener myNotificationListener;
-
-  DeploymentErrorHandler(@NotNull String simpleErrorString) {
-    myFormattedErrorString = simpleErrorString;
-    myNotificationListener = null;
-  }
+  @NotNull
+  private final DeployerException exception;
 
   DeploymentErrorHandler(@NotNull String description, @NotNull DeployerException exception) {
     myFormattedErrorString = formatDeploymentErrors(description, exception);
     myNotificationListener = new DeploymentErrorNotificationListener();
+    this.exception = exception;
   }
 
   @NotNull
@@ -86,6 +80,10 @@ class DeploymentErrorHandler {
     builder.append(RERUN_OPTION);
 
     return builder.toString();
+  }
+
+  public String getErrorId() {
+    return exception.getError().toString();
   }
 
   private static class DeploymentErrorNotificationListener implements NotificationListener {

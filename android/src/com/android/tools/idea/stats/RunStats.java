@@ -168,6 +168,10 @@ public class RunStats {
     myEvent.getRunEventBuilder().setDeployedFromBundle(fromBundle);
   }
 
+  public void setErrorId(String id) {
+    myEvent.getRunEventBuilder().setDeployFailureId(id);
+  }
+
   public static RunStats from(ExecutionEnvironment env) {
     RunStats data = env.getUserData(KEY);
     if (data == null) {

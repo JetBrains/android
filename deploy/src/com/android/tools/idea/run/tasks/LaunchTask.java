@@ -37,9 +37,14 @@ public interface LaunchTask {
   @NotNull
   String getDescription();
 
-  @Nullable
+  @NotNull
   default String getFailureReason() {
-    return null;
+    return "Error while " + getDescription();
+  }
+
+  @NotNull
+  default String getError() {
+    return "Error " + getDescription();
   }
 
   @Nullable
@@ -62,5 +67,10 @@ public interface LaunchTask {
   @NotNull
   default Collection<LaunchTaskDetail> getSubTaskDetails() {
     return Collections.emptyList();
+  }
+
+  @NotNull
+  default String getErrorId() {
+    return "";
   }
 }
