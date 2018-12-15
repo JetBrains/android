@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.JBTable
+import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -92,7 +93,7 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
 
   protected fun getValueAt(row: Int): Annotated<ParsedValue<ValueT>> = getPropertyAt(row).getParsedValue()
   protected fun setValueAt(row: Int, value: ParsedValue<ValueT>) = getPropertyAt(row).setParsedValue(value)
-  private fun calculateMinRowHeight() = editor(SimplePropertyStub(), propertyContext, null).component.minimumSize.height
+  private fun calculateMinRowHeight() = JBUI.scale(24)
 
   protected fun Annotated<ParsedValue<ValueT>>.toTableModelValue() = Value(this)
   protected fun ParsedValue<ValueT>.toTableModelValue() = Value(this.annotated())

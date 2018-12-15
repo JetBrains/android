@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure.configurables.variables
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.PropertyCellEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.toSelectedTextRenderer
 import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
@@ -37,7 +36,6 @@ import com.android.tools.idea.gradle.structure.model.helpers.parseAny
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.PropertyContextStub
-import com.android.tools.idea.gradle.structure.model.meta.SimplePropertyStub
 import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.treeView.NodeRenderer
@@ -337,8 +335,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     override fun getCellEditorValue(): Any? = textBox.text
   }
 
-  private fun calculateMinRowHeight() = SimplePropertyEditor(SimplePropertyStub(), PropertyContextStub<Any>(), null,
-                                                             listOf()).component.minimumSize.height
+  private fun calculateMinRowHeight() = JBUI.scale(24)
 
   inner class VariableCellEditor : PropertyCellEditor<Any>() {
     override fun initEditorFor(row: Int): ModelPropertyEditor<Any> {

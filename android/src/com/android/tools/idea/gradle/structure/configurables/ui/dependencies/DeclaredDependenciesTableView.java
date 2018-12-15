@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsModuleAndroidDepe
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.TableView;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +55,7 @@ public class DeclaredDependenciesTableView<T extends PsBaseDependency> extends T
 
     addHyperlinkFunctionality();
 
+    setRowHeight(JBUI.scale(24));
     setDragEnabled(false);
     setIntercellSpacing(new Dimension(0, 0));
     setShowGrid(false);

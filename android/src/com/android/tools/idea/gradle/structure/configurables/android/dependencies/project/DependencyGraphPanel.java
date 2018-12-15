@@ -15,11 +15,21 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
+import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
+import static com.intellij.icons.AllIcons.Actions.Collapseall;
+import static com.intellij.icons.AllIcons.Actions.Expandall;
+import static com.intellij.util.ui.tree.TreeUtil.ensureSelection;
+import static java.awt.event.MouseEvent.MOUSE_PRESSED;
+
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.JarDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.MultipleLibraryDependenciesDetails;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.*;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractPsNodeTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.GoToModuleAction;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ModuleDependencyNode;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.SelectNodesMatchingCurrentSelectionAction;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeRootNode;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeStructure;
@@ -45,6 +55,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.navigation.Place;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
@@ -91,6 +102,9 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
     myTree = new Tree(treeModel) {
+      {
+        setRowHeight(JBUI.scale(24));
+      }
       @Override
       protected void processMouseEvent(MouseEvent e) {
         int id = e.getID();
