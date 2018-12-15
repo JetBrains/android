@@ -19,20 +19,16 @@ import com.android.SdkConstants
 import com.android.builder.model.AndroidProject
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.moveCaret
-import com.android.tools.idea.util.toVirtualFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -41,6 +37,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import com.intellij.usageView.UsageInfo
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
@@ -401,6 +398,35 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat((resolveReferenceUnderCaret() as? PsiField)?.containingClass?.name).isEqualTo("string")
     }
 
+    fun testUsageInfos() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(R.string.appString);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.moveCaret("|R.string.appString")
+      UsageInfo(resolveReferenceUnderCaret()!!)
+      myFixture.moveCaret("R.|string.appString")
+      UsageInfo(resolveReferenceUnderCaret()!!)
+      myFixture.moveCaret("R.string.|appString")
+      UsageInfo(resolveReferenceUnderCaret()!!)
+    }
+
     fun testInvalidManifest() {
       runWriteCommandAction(project) {
         myFacet.manifest!!.`package`!!.value = "."
@@ -618,6 +644,35 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       assertThat((resolveReferenceUnderCaret() as? PsiField)?.containingClass?.name).isEqualTo("string")
     }
+
+    fun testUsageInfos() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.R.string.my_aar_string);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.moveCaret("|R.string.my_aar_string")
+      UsageInfo(resolveReferenceUnderCaret()!!)
+      myFixture.moveCaret("R.|string.my_aar_string")
+      UsageInfo(resolveReferenceUnderCaret()!!)
+      myFixture.moveCaret("R.string.|my_aar_string")
+      UsageInfo(resolveReferenceUnderCaret()!!)
+    }
   }
 
   class NonNamespacedModuleWithAar : LightClassesTestBase() {
@@ -696,6 +751,35 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("my_aar_string", "another_aar_string", "class")
+    }
+
+    fun testUsageInfos() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.R.string.my_aar_string);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.moveCaret("|R.string.my_aar_string")
+      UsageInfo(resolveReferenceUnderCaret()!!)
+      myFixture.moveCaret("R.|string.my_aar_string")
+      UsageInfo(resolveReferenceUnderCaret()!!)
+      myFixture.moveCaret("R.string.|my_aar_string")
+      UsageInfo(resolveReferenceUnderCaret()!!)
     }
 
     fun testResourceNames_styleable() {
