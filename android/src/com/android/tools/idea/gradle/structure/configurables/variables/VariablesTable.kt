@@ -417,6 +417,9 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     editor.registerKeyboardAction(::prevCell, KeyStroke.getKeyStroke("shift pressed ENTER"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
 
+  fun addVariableAvailable(): Boolean = getSelectedNodes<VariablesBaseNode>().isNotEmpty()
+  fun removeVariableAvailable(): Boolean = getSelectedNodes<BaseVariableNode>().isNotEmpty()
+
   class VariablesTableModel internal constructor(internal val root: VariablesBaseNode) : DefaultTreeModel(root), TreeTableModel {
     private var tableTree: JTree? = null
 

@@ -48,9 +48,13 @@ class VariablesConfigurable(private val project: Project, private val context: P
     val panel = JPanel(BorderLayout())
     panel.border = BorderFactory.createEmptyBorder(20, 10, 20, 10)
     val table = VariablesTable(project, context.project, this)
-    panel.add(ToolbarDecorator.createDecorator(table)
+    panel.add(
+      ToolbarDecorator
+        .createDecorator(table)
         .setAddAction { createAddAction(it, table) }
+        .setAddActionUpdater { table.addVariableAvailable() }
         .setRemoveAction { table.deleteSelectedVariables() }
+        .setRemoveActionUpdater { table.removeVariableAvailable() }
         .createPanel(), BorderLayout.CENTER)
     return panel
   }
