@@ -51,7 +51,7 @@ public class ApplyChangesTask extends AbstractDeployTask {
   @Override
   protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
     LOG.info("Applying changes to application: " + applicationId);
-    List<TaskRunner.Task<?>> tasks = deployer.fullSwap(applicationId, getPathsToInstall(files));
+    List<TaskRunner.Task<?>> tasks = deployer.fullSwap(getPathsToInstall(files));
     addSubTaskDetails(tasks);
   }
 }

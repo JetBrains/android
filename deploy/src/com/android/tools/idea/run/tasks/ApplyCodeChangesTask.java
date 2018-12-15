@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.ClassRedefiner;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.tasks.TaskRunner;
 import com.android.tools.idea.run.util.DebuggerRedefiner;
-import com.android.tools.tracer.Trace;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -56,24 +56,33 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
    * @param device The device we are deploying to.
    * @param apk The apk we want to deploy.
    */
-  private Map<Integer, ClassRedefiner> makeSpecificRedefiners(Project project, IDevice device, String applicatinId)
+  private Map<Integer, ClassRedefiner> makeSpecificRedefiners(Project project, IDevice device)
     throws DeployerException {
     if (!DebuggerRedefiner.hasDebuggersAttached(project)) {
       return ImmutableMap.of();
     }
+
     if (!device.getVersion().isGreaterOrEqualThan(28)) {
       throw new DeployerException(DeployerException.Error.OPERATION_NOT_SUPPORTED, "Cannot perform Apply Code Change while debugging for " +
                                                                                    "API 27 or below. Please upgrade Android version.");
     }
-    int pid = device.getClient(applicatinId).getClientData().getPid();
-    return ImmutableMap.of(pid, new DebuggerRedefiner(project));
+
+    ClassRedefiner debugRedefiner = new DebuggerRedefiner(project);
+    ImmutableMap.Builder<Integer, ClassRedefiner> debugRedefiners = ImmutableMap.builder();
+    for (Client client : device.getClients()) {
+      if (client.isDebuggerAttached()) {
+        debugRedefiners.put(client.getClientData().getPid(), debugRedefiner);
+      }
+    }
+
+    return debugRedefiners.build();
   }
 
   @Override
   protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
     LOG.info("Applying code changes to application: " + applicationId);
-    Map<Integer, ClassRedefiner> redefiners = makeSpecificRedefiners(getProject(), device, applicationId);
-    List<TaskRunner.Task<?>> tasks = deployer.codeSwap(applicationId, getPathsToInstall(files), redefiners);
+    Map<Integer, ClassRedefiner> redefiners = makeSpecificRedefiners(getProject(), device);
+    List<TaskRunner.Task<?>> tasks = deployer.codeSwap(getPathsToInstall(files), redefiners);
     addSubTaskDetails(tasks);
   }
 

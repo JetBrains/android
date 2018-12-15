@@ -102,7 +102,6 @@ public abstract class AbstractDeployTask implements LaunchTask {
     DeploymentService service = DeploymentService.getInstance(myProject);
     IdeService ideService = new IdeService(myProject);
     Deployer deployer = new Deployer(adb, service.getDexDatabase(), service.getTaskRunner(), installer, ideService, logger);
-
     for (Map.Entry<String, List<File>> entry : myPackages.entrySet()) {
       String applicationId = entry.getKey();
       List<File> apkFiles = entry.getValue();
