@@ -18,7 +18,7 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
-import com.android.tools.tracer.Trace;
+import com.android.tools.deployer.tasks.TaskRunner;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -51,8 +51,7 @@ public class ApplyChangesTask extends AbstractDeployTask {
   @Override
   protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
     LOG.info("Applying changes to application: " + applicationId);
-    try (Trace trace = Trace.begin("Unified.fullSwap")) {
-      deployer.fullSwap(applicationId, getPathsToInstall(files));
-    }
+    List<TaskRunner.Task<?>> tasks = deployer.fullSwap(applicationId, getPathsToInstall(files));
+    addSubTaskDetails(tasks);
   }
 }

@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.ClassRedefiner;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
+import com.android.tools.deployer.tasks.TaskRunner;
 import com.android.tools.idea.run.util.DebuggerRedefiner;
 import com.android.tools.tracer.Trace;
 import com.google.common.collect.ImmutableMap;
@@ -66,10 +67,9 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
   @Override
   protected void perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
     LOG.info("Applying code changes to application: " + applicationId);
-    try (Trace trace = Trace.begin("Unified.codeSwap")) {
-      deployer
-        .codeSwap(applicationId, getPathsToInstall(files), makeSpecificRedefiners(getProject(), device, applicationId));
-    }
+    Map<Integer, ClassRedefiner> redefiners = makeSpecificRedefiners(getProject(), device, applicationId);
+    List<TaskRunner.Task<?>> tasks = deployer.codeSwap(applicationId, getPathsToInstall(files), redefiners);
+    addSubTaskDetails(tasks);
   }
 
   @NotNull
