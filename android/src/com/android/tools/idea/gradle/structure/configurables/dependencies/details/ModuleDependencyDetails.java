@@ -21,12 +21,11 @@ import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
+import javax.swing.JPanel;
+import javax.swing.event.HyperlinkEvent;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
 
 public class ModuleDependencyDetails implements DependencyDetails {
   @NotNull private final PsContext myContext;
@@ -52,7 +51,14 @@ public class ModuleDependencyDetails implements DependencyDetails {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
         assert myDependency != null;
-        myContext.setSelectedModule(myDependency.getName(), this);
+        myContext.getMainConfigurable().navigateTo(
+          myContext
+            .getProject()
+            .findModuleByGradlePath(myDependency.getGradlePath())
+            .getPath()
+            .getDependenciesPath()
+            .getPlaceDestination(myContext),
+          true);
       }
     });
   }
