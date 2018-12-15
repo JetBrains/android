@@ -152,14 +152,19 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     setRowHeight(calculateMinRowHeight())
   }
 
+  private inline fun <reified T: VariablesBaseNode> getSelectedNodes() =
+    selectedRows
+      .map { tree.getPathForRow(it).lastPathComponent as? T }
+      .filterNotNull()
+
   fun deleteSelectedVariables() {
     removeEditor()
-    tree.getSelectedNodes(BaseVariableNode::class.java, null).map { it.variable }.forEach { it.delete() }
+    getSelectedNodes<BaseVariableNode>().map { it.variable }.forEach { it.delete() }
   }
 
   fun addVariable(type: ValueType) {
     getCellEditor()?.stopCellEditing()
-    val selectedNodes = tree.getSelectedNodes(VariablesBaseNode::class.java, null)
+    val selectedNodes = getSelectedNodes<VariablesBaseNode>()
     if (selectedNodes.isEmpty()) {
       return
     }

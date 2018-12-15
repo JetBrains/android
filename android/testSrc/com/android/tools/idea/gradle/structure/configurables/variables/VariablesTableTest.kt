@@ -23,14 +23,19 @@ import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.PsVariable
 import com.android.tools.idea.gradle.structure.model.android.asParsed
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.annotated
+import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.ui.components.JBTextField
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItem
+import org.hamcrest.CoreMatchers.not
 import org.junit.Assert.assertThat
 import java.awt.Color
-import java.io.File
 import java.util.function.Consumer
 import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
@@ -637,6 +642,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val tableModel = variablesTable.tableModel
 
     val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
+    variablesTable.tree.expandPath(TreePath(appNode.path))
     val childCount = appNode.childCount
     val variableNode = appNode.children().asSequence().find { "anotherVariable" == (it as VariableNode).toString() } as VariableNode
     variablesTable.selectNode(variableNode)
@@ -750,7 +756,8 @@ private fun VariablesTable.simulateTextInput(input: String) {
 }
 
 private fun VariablesTable.selectNode(node: VariablesBaseNode) {
-  tree.selectionPath = TreePath(node.path)
+  val selectedRow = tree.getRowForPath(TreePath(node.path))
+  selectionModel.setSelectionInterval(selectedRow, selectedRow)
 }
 
 private fun PsVariable.isList() = value.maybeLiteralValue is List<*>
