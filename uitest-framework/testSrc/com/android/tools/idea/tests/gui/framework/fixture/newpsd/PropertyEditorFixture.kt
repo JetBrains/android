@@ -54,6 +54,7 @@ class PropertyEditorFixture(
       robot(),
       robot().finder().findByType<ComboBox<*>>(container))
     comboBox.enterText(text)
+    robot().type(9.toChar())
   }
 
   fun getText(): String {
