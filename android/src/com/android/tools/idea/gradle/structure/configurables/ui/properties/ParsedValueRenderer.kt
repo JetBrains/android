@@ -83,7 +83,7 @@ fun Any.renderAnyTo(
       }
       text.isNotEmpty()
     }
-}
+  }
 
 /**
  * Renders the receiver to the [textRenderer] with any known values handled by renderers from [knownValues]. Returns true in the case of
@@ -247,4 +247,19 @@ fun makeUnparsedRenderer(textRenderer: TextRenderer) = object : TextRenderer {
       text,
       attributes.derive(attributes.style or STYLE_WAVED, null, null, null)
     )
+}
+
+fun TextRenderer.toSelectedTextRenderer(isSelected: Boolean): TextRenderer {
+  if (!isSelected) return this
+  return object : TextRenderer {
+    override fun append(text: String, attributes: SimpleTextAttributes) =
+      this@toSelectedTextRenderer.append(
+        text,
+        attributes.derive(
+          attributes.style,
+          SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES.fgColor,
+          null,
+          null)
+      )
+  }
 }
