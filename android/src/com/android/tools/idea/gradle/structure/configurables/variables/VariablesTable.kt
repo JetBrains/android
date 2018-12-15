@@ -48,6 +48,7 @@ import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TableUtil
+import com.intellij.ui.components.JBTextField
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.util.ui.AbstractTableCellEditor
@@ -57,13 +58,11 @@ import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Component
 import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.util.EventObject
-import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.Icon
@@ -275,13 +274,10 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
    * Table cell editor that reproduces the layout of a tree element
    */
   inner class NameCellEditor(private val row: Int) : AbstractTableCellEditor() {
-    private val textBox = VariableAwareTextBox(project)
+    private val textBox = JBTextField()
 
     init {
       addTabKeySupportTo(textBox)
-      textBox.addTextListener(ActionListener { stopCellEditing() })
-      textBox.border = BorderFactory.createMatteBorder(editorInsets.top, editorInsets.left, editorInsets.bottom, editorInsets.right,
-                                                       this@VariablesTable.selectionBackground)
       textBox.componentPopupMenu = null
     }
 
@@ -290,9 +286,6 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       val bounds = tree.getRowBounds(row)
       if (e is MouseEvent && e.x < bounds.x) {
         return false
-      }
-      if (e is NewVariableEvent) {
-        textBox.setPlaceholder("Variable name")
       }
       return super.isCellEditable(e)
     }
@@ -414,6 +407,8 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
     }
     editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("TAB"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     editor.registerKeyboardAction(::prevCell, KeyStroke.getKeyStroke("shift pressed TAB"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("ENTER"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    editor.registerKeyboardAction(::prevCell, KeyStroke.getKeyStroke("shift pressed ENTER"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
 
   class VariablesTableModel internal constructor(internal val root: VariablesBaseNode) : DefaultTreeModel(root), TreeTableModel {

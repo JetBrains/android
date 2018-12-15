@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.intellij.ui.components.JBTextField
 import org.hamcrest.CoreMatchers.*
 import org.junit.Assert.assertThat
 import java.awt.Color
@@ -743,7 +744,7 @@ private fun PsProject.applyAllChanges() {
 
 private fun VariablesTable.simulateTextInput(input: String) {
   val editorComp = editorComponent as JPanel
-  val textBox = editorComp.components.first { it is VariableAwareTextBox } as VariableAwareTextBox
+  val textBox = editorComp.components.first { it is JBTextField } as JBTextField
   textBox.text = input
   editingStopped(null)
 }
