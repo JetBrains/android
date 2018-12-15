@@ -90,10 +90,11 @@ public class RunStats {
     return details;
   }
 
-  public void endLaunchTask(LaunchTaskDetail.Builder detail, boolean success) {
+  public void endLaunchTask(LaunchTask task, LaunchTaskDetail.Builder detail, boolean success) {
     Trace.end();
     detail.setEndTimestampMs(System.currentTimeMillis());
     myEvent.getRunEventBuilder().addLaunchTaskDetail(detail);
+    myEvent.getRunEventBuilder().addAllLaunchTaskDetail(task.getSubTaskDetails());
   }
 
   public void beginBeforeRunTasks() {

@@ -21,12 +21,14 @@ import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.Installer;
+import com.android.tools.deployer.tasks.TaskRunner;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -35,6 +37,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowId;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,21 +52,16 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
   @NotNull private final Project myProject;
   @NotNull private final Map<String, List<File>> myPackages;
+  @NotNull private List<LaunchTaskDetail> mySubTaskDetails;
   @Nullable private DeploymentErrorHandler myDeploymentErrorHandler;
 
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
-  /**
-   * Creates a task to deploy a list of apks.
-   *
-   * @param project         the project that this task is running within.
-   * @param action          the deployment action that this task will take.
-   * @param packages        a map of application ids to apks representing the packages this task will deploy.
-   */
   public AbstractDeployTask(
     @NotNull Project project, @NotNull Map<String, List<File>> packages) {
     myProject = project;
     myPackages = packages;
+    mySubTaskDetails = new ArrayList<>();
   }
 
   @Nullable
@@ -120,12 +119,32 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return path.getAbsolutePath();
   }
 
-  protected static final List<String> getPathsToInstall(List<File> apkFiles) {
+  protected static List<String> getPathsToInstall(@NotNull List<File> apkFiles) {
     return apkFiles.stream().map(File::getPath).collect(Collectors.toList());
   }
 
   @NotNull
   protected Project getProject() {
     return myProject;
+  }
+
+  protected void addSubTaskDetails(@NotNull List<TaskRunner.Task<?>> tasks) {
+    for (TaskRunner.Task<?> task : tasks) {
+      if (!task.getName().isEmpty()) {
+        LaunchTaskDetail detail = LaunchTaskDetail.newBuilder()
+          .setId(getId() + "." + task.getName())
+          .setStartTimestampMs(task.getStartTimeMs())
+          .setEndTimestampMs(task.getEndTimeMs())
+          .setTid((int)task.getThreadId())
+          .build();
+        mySubTaskDetails.add(detail);
+      }
+    }
+  }
+
+  @Override
+  @NotNull
+  public Collection<LaunchTaskDetail> getSubTaskDetails() {
+    return mySubTaskDetails;
   }
 }

@@ -130,7 +130,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
         LaunchTaskDetail.Builder details = myStats.beginLaunchTask(task);
         indicator.setText(task.getDescription());
         success = task.perform(device, launchStatus, consolePrinter);
-        myStats.endLaunchTask(details, success);
+        myStats.endLaunchTask(task, details, success);
         if (!success) {
           String failureReason = task.getFailureReason();
           myErrorNotificationListener = task.getNotificationListener();

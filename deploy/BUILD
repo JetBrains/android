@@ -39,5 +39,6 @@ iml_module(
         "//tools/idea:intellij.platform.jps.build_and_others[module]",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )
