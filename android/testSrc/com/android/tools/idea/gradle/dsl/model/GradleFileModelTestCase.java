@@ -192,7 +192,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     return mainModule;
   }
 
-  private void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull File destination) throws IOException {
+  protected void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull File destination) throws IOException {
     final File testFile = testFileName.toFile(myTestDataPath, myTestDataExtension);
     assumeTrue(testFile.exists());
     copyFileOrDir(testFile, destination);

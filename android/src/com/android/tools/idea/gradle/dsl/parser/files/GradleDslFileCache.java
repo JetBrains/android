@@ -83,18 +83,13 @@ public class GradleDslFileCache {
     return (GradleSettingsFile)dslFile;
   }
 
-  @Nullable
-  public GradleSettingsFile getOrCreateSettingsFile(@NotNull Project project, @NotNull BuildModelContext context) {
-    VirtualFile file = getGradleSettingsFile(getBaseDirPath(project));
-    if (file == null) {
-      return null;
-    }
-
-    GradleDslFile dslFile = myParsedBuildFiles.get(file.getUrl());
+  @NotNull
+  public GradleSettingsFile getOrCreateSettingsFile(@NotNull VirtualFile settingsFile, @NotNull BuildModelContext context) {
+    GradleDslFile dslFile = myParsedBuildFiles.get(settingsFile.getUrl());
     if (dslFile == null) {
-      dslFile = new GradleSettingsFile(file, myProject, "settings", context);
+      dslFile = new GradleSettingsFile(settingsFile, myProject, "settings", context);
       dslFile.parse();
-      myParsedBuildFiles.put(file.getUrl(), dslFile);
+      myParsedBuildFiles.put(settingsFile.getUrl(), dslFile);
     }
     else if (!(dslFile instanceof GradleSettingsFile)) {
       throw new IllegalStateException("Found wrong type for settings file in cache!");

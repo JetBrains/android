@@ -31,6 +31,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
@@ -294,10 +295,11 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     String standardProjectKey = getStandardProjectKey(projectReference);
     if (standardProjectKey != null) { // project(':project:path')
       String modulePath = standardProjectKey.substring(standardProjectKey.indexOf('\'') + 1, standardProjectKey.lastIndexOf('\''));
-      GradleSettingsFile file = dslFile.getContext().getOrCreateSettingsFile(dslFile.getProject());
-      if (file == null) {
+      VirtualFile settingFile = dslFile.tryToFindSettingsFile();
+      if (settingFile == null) {
         return null;
       }
+      GradleSettingsFile file = dslFile.getContext().getOrCreateSettingsFile(settingFile);
       GradleSettingsModel model = new GradleSettingsModelImpl(file);
       File moduleDirectory = model.moduleDirectory(modulePath);
       if (moduleDirectory == null) {

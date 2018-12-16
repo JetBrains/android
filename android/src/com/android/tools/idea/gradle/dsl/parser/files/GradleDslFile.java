@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
@@ -37,16 +40,13 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 /**
  * Provides Gradle specific abstraction over a {@link GroovyFile}.
@@ -231,5 +231,22 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
     // Save the file to disk to ensure the changes exist when it is read.
     FileDocumentManager.getInstance().saveDocument(document);
+  }
+
+  @Nullable
+  public VirtualFile tryToFindSettingsFile() {
+    if (this instanceof GradleSettingsFile) {
+      return getFile();
+    }
+
+    VirtualFile buildFileParent = getFile().getParent();
+    while (buildFileParent != null) {
+      VirtualFile maybeSettingsFile = getGradleSettingsFile(virtualToIoFile(buildFileParent));
+      if (maybeSettingsFile != null) {
+        return maybeSettingsFile;
+      }
+      buildFileParent = buildFileParent.getParent();
+    }
+    return null;
   }
 }
