@@ -35,6 +35,9 @@ public abstract class GradleModelProvider {
   public abstract ProjectBuildModel getProjectModel(@NotNull Project project);
 
   @Nullable
+  public abstract ProjectBuildModel getProjectModel(@NotNull Project hostProject, @NotNull String compositeRoot);
+
+  @Nullable
   public abstract GradleBuildModel getBuildModel(@NotNull Project project);
 
   @Nullable

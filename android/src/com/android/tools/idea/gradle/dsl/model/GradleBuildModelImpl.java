@@ -206,11 +206,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   }
 
   public static void populateWithParentModuleSubProjectsProperties(@NotNull GradleBuildFile buildDslFile,
-                                                                    @NotNull BuildModelContext context) {
-    GradleSettingsFile settingsFile = context.getOrCreateSettingsFile(buildDslFile.getProject());
-    if (settingsFile == null) {
+                                                                   @NotNull BuildModelContext context) {
+    VirtualFile maybeSettingsFile = buildDslFile.tryToFindSettingsFile();
+    if (maybeSettingsFile == null) {
       return;
     }
+    GradleSettingsFile settingsFile = context.getOrCreateSettingsFile(maybeSettingsFile);
 
     GradleSettingsModel gradleSettingsModel = new GradleSettingsModelImpl(settingsFile);
     String modulePath = gradleSettingsModel.moduleWithDirectory(buildDslFile.getDirectoryPath());
@@ -242,7 +243,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   }
 
   public static void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildFile buildDslFile,
-                                                                     @NotNull BuildModelContext context) {
+                                                                    @NotNull BuildModelContext context) {
     File propertiesFilePath = new File(buildDslFile.getDirectoryPath(), FN_GRADLE_PROPERTIES);
     VirtualFile propertiesFile = findFileByIoFile(propertiesFilePath, true);
     if (propertiesFile == null) {

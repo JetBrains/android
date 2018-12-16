@@ -19,6 +19,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl.populateSiblingDslFileWithGradlePropertiesFile;
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl.populateWithParentModuleSubProjectsProperties;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -30,6 +31,8 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.function.Consumer;
@@ -38,7 +41,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class ProjectBuildModelImpl implements ProjectBuildModel {
   @NotNull private final BuildModelContext myBuildModelContext;
-  @NotNull private final Project myProject;
   @Nullable private final GradleBuildFile myProjectBuildFile;
 
   @NotNull
@@ -47,16 +49,25 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     return new ProjectBuildModelImpl(project, file);
   }
 
+  @Nullable
+  public static ProjectBuildModel get(@NotNull Project hostProject, @NotNull String compositeRoot) {
+    VirtualFile file = getGradleBuildFile(new File(compositeRoot));
+    if (file == null) {
+      return null;
+    }
+
+    return new ProjectBuildModelImpl(hostProject, file);
+  }
+
   /**
    * @param project the project this model should be built for
    * @param file the file contain the projects main build.gradle
    */
   private ProjectBuildModelImpl(@NotNull Project project, @Nullable VirtualFile file) {
     myBuildModelContext = BuildModelContext.create(project);
-    myProject = project;
 
     // First parse the main project build file.
-    myProjectBuildFile = file != null ?   new GradleBuildFile(file, myProject, project.getName(), myBuildModelContext) : null;
+    myProjectBuildFile = file != null ? new GradleBuildFile(file, project, project.getName(), myBuildModelContext) : null;
     if (myProjectBuildFile != null) {
       myBuildModelContext.setRootProjectFile(myProjectBuildFile);
       ApplicationManager.getApplication().runReadAction(() -> {
@@ -107,10 +118,23 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @Override
   @Nullable
   public GradleSettingsModel getProjectSettingsModel() {
-    GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(myProject);
-    if (settingsFile == null) {
+    VirtualFile virtualFile = null;
+    // If we don't have a root build file, guess the location of the settings file from the project.
+    if (myProjectBuildFile == null) {
+      VirtualFile projectDir = ProjectUtil.guessProjectDir(myBuildModelContext.getProject());
+      if (projectDir != null) {
+        File ioFile = VfsUtilCore.virtualToIoFile(projectDir);
+        virtualFile = getGradleSettingsFile(ioFile);
+      }
+    } else {
+      virtualFile = myProjectBuildFile.tryToFindSettingsFile();
+    }
+
+    if (virtualFile == null) {
       return null;
     }
+
+    GradleSettingsFile settingsFile = myBuildModelContext.getOrCreateSettingsFile(virtualFile);
     return new GradleSettingsModelImpl(settingsFile);
   }
 

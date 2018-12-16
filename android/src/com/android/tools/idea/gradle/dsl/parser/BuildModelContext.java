@@ -79,6 +79,11 @@ public final class BuildModelContext {
   }
 
   @NotNull
+  public Project getProject() {
+    return myProject;
+  }
+
+  @NotNull
   public List<BuildModelNotification> getPublicNotifications() {
     return new ArrayList<>(myNotifications.values());
   }
@@ -118,9 +123,9 @@ public final class BuildModelContext {
     return myFileCache.getSettingsFile(project);
   }
 
-  @Nullable
-  public GradleSettingsFile getOrCreateSettingsFile(@NotNull Project project) {
-    return myFileCache.getOrCreateSettingsFile(project, this);
+  @NotNull
+  public GradleSettingsFile getOrCreateSettingsFile(@NotNull VirtualFile settingsFile) {
+    return myFileCache.getOrCreateSettingsFile(settingsFile, this);
   }
 
   // This should normally not be used. Please use getOrCreateBuildFile
