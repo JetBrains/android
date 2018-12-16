@@ -15,10 +15,19 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
@@ -26,22 +35,20 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import java.io.File;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.List;
-
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-
 public class GradleSettingsModelImpl extends GradleFileModelImpl implements GradleSettingsModel {
   public static final String INCLUDE = "include";
+  private static final String INCLUDE_BUILD = "includeBuild";
 
   /**
    * @deprecated Use {@link ProjectBuildModel#getProjectSettingsModel()} instead.
@@ -209,7 +216,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
   }
 
   @Nullable
-  private String parentModuleNoCheck(@NotNull String modulePath) {
+  private static String parentModuleNoCheck(@NotNull String modulePath) {
     modulePath = standardiseModulePath(modulePath);
     if (modulePath.equals(":")) {
       return null;
@@ -250,7 +257,55 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     return new File(moduleDirectory, buildFileName);
   }
 
+  @NotNull
+  @Override
+  public List<VirtualFile> includedBuilds() {
+    List<GradleDslElement> properties = myGradleDslFile.getPropertyElementsByName(INCLUDE_BUILD);
+    return properties.stream().map((element) -> {
+      String value = extractValueFromElement(element);
+      if (value == null) {
+        return null;
+      }
+      return attemptToFindIncludedBuildRoot(value);
+    }).filter(Objects::nonNull).collect(Collectors.toList());
+  }
+
   private static String standardiseModulePath(@NotNull String modulePath) {
     return modulePath.startsWith(":") ? modulePath : ":" + modulePath;
+  }
+
+  @Nullable
+  private static String extractValueFromElement(@Nullable GradleDslElement element) {
+    if (!(element instanceof GradleDslSimpleExpression)) {
+      return null;
+    }
+
+    return ((GradleDslSimpleExpression)element).getValue(String.class);
+  }
+
+  @Nullable
+  private VirtualFile attemptToFindIncludedBuildRoot(@NotNull String fileName) {
+    File realFile = new File(fileName);
+    VirtualFile file;
+    if (realFile.isAbsolute()) {
+      file = LocalFileSystem.getInstance().findFileByIoFile(realFile);
+    } else {
+      file = myGradleDslFile.getFile().getParent().findFileByRelativePath(fileName);
+    }
+
+    // Make sure the composite root is a directory and that it contains a build.gradle or settings.gradle file.
+    if (file != null && file.isDirectory()) {
+      File compositeRoot = VfsUtilCore.virtualToIoFile(file);
+      VirtualFile buildFile = getGradleBuildFile(compositeRoot);
+      if (buildFile != null) {
+        return file;
+      }
+      VirtualFile settingsFile = getGradleSettingsFile(compositeRoot);
+      if (settingsFile != null) {
+        return file;
+      }
+    }
+
+    return null;
   }
 }
