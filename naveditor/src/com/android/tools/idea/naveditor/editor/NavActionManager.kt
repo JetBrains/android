@@ -34,7 +34,6 @@ import com.android.tools.idea.naveditor.actions.DeepLinkToolbarAction
 import com.android.tools.idea.naveditor.actions.EditExistingAction
 import com.android.tools.idea.naveditor.actions.NestedGraphToolbarAction
 import com.android.tools.idea.naveditor.actions.ReturnToSourceAction
-import com.android.tools.idea.naveditor.actions.SelectAllAction
 import com.android.tools.idea.naveditor.actions.StartDestinationAction
 import com.android.tools.idea.naveditor.actions.StartDestinationToolbarAction
 import com.android.tools.idea.naveditor.actions.ToDestinationAction
@@ -45,6 +44,7 @@ import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.uibuilder.actions.SelectAllAction
 import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
 import com.intellij.openapi.Disposable
