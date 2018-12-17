@@ -35,6 +35,8 @@ class AddLibraryDependencyDialog(private val context: PsContext, module: PsModul
     init()
   }
 
+  override fun postponeValidation(): Boolean = true
+
   override fun addNewDependencies() {
     val library = libraryDependenciesForm!!.selectedLibrary
     val scopeName = scopesPanel.selectedScopeName
