@@ -76,6 +76,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -776,5 +777,26 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   protected DesignSurfaceActionHandler createActionHandler() {
     return new NlDesignSurfaceActionHandler(this);
+  }
+
+  @NotNull
+  @Override
+  public List<NlComponent> getSelectableComponents() {
+    NlModel model = getModel();
+    if (model == null) {
+      return Collections.emptyList();
+    }
+
+    List<NlComponent> roots = model.getComponents();
+    if (roots.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    NlComponent root = roots.get(0);
+    if (root == null) {
+      return Collections.emptyList();
+    }
+
+    return root.flatten().collect(Collectors.toList());
   }
 }

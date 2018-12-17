@@ -32,7 +32,9 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction;
 import com.android.tools.idea.uibuilder.actions.MorphComponentAction;
 import com.android.tools.idea.uibuilder.actions.SelectAllAction;
+import com.android.tools.idea.uibuilder.actions.SelectNextAction;
 import com.android.tools.idea.uibuilder.actions.SelectParentAction;
+import com.android.tools.idea.uibuilder.actions.SelectPreviousAction;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
@@ -62,6 +64,7 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,6 +88,8 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   private AnAction mySelectAllAction;
   private AnAction mySelectParent;
   private GotoComponentAction myGotoComponentAction;
+  private AnAction mySelectNextAction;
+  private AnAction mySelectPreviousAction;
 
   public NlActionManager(@NotNull NlDesignSurface surface) {
     super(surface);
@@ -98,6 +103,8 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
    * <li> {@link SelectAllAction}
    * <li> {@link GotoComponentAction}
    * <li> {@link SelectParentAction}
+   * <li> {@link SelectNextAction}
+   * <li> {@link SelectPreviousAction}
    * </ul>
    */
   @Override
@@ -107,10 +114,15 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       mySelectAllAction = new SelectAllAction(mySurface);
       myGotoComponentAction = new GotoComponentAction(mySurface);
       mySelectParent = new SelectParentAction(mySurface);
+      mySelectNextAction = new SelectNextAction(mySurface);
+      mySelectPreviousAction = new SelectPreviousAction(mySurface);
     }
     registerAction(mySelectAllAction, "$SelectAll", component, parentDisposable);
     registerAction(myGotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component, parentDisposable);
     registerAction(mySelectParent, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), component, parentDisposable);
+    registerAction(mySelectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), mySurface, parentDisposable);
+    registerAction(mySelectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK), mySurface,
+                   parentDisposable);
   }
 
   @NotNull

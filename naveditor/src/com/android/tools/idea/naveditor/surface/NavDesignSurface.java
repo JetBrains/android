@@ -766,6 +766,7 @@ public class NavDesignSurface extends DesignSurface {
    * @return the list of destinations
    */
   @NotNull
+  @Override
   public List<NlComponent> getSelectableComponents() {
     NlComponent root = getCurrentNavigation();
     return root.flatten().filter(component ->

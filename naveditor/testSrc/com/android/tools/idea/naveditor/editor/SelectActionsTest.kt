@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.naveditor.editor
 
-import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.actions.SelectAllAction
-import com.android.tools.idea.naveditor.actions.SelectNextAction
-import com.android.tools.idea.naveditor.actions.SelectPreviousAction
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.uibuilder.actions.SelectNextAction
+import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.jetbrains.android.AndroidTestCase
