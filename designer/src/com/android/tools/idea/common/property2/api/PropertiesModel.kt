@@ -25,7 +25,7 @@ package com.android.tools.idea.common.property2.api
  *
  * @param P A client defined PropertyItem class.
  */
-interface PropertiesModel<out P: PropertyItem> {
+interface PropertiesModel<P: PropertyItem> {
   /**
    * The properties that should be shown in the properties panel.
    */

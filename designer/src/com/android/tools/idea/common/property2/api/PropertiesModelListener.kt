@@ -18,7 +18,7 @@ package com.android.tools.idea.common.property2.api
 /**
  * Listener for [PropertiesModel] events.
  */
-interface PropertiesModelListener<in P : PropertyItem> {
+interface PropertiesModelListener<P : PropertyItem> {
   /**
    * The property items in the [PropertiesModel] were (re)generated.
    *

@@ -33,7 +33,7 @@ public class AddMotionFieldAction extends AnAction {
 
   public AddMotionFieldAction(@NotNull MotionLayoutAttributesModel model,
                               @NotNull FilteredPTableModel<NelePropertyItem> tableModel,
-                              @NotNull PropertiesTable<? extends NelePropertyItem> properties) {
+                              @NotNull PropertiesTable<NelePropertyItem> properties) {
     super(null, "Add Property", StudioIcons.Common.ADD);
     myTableModel = tableModel;
     myNewProperty = new NeleNewPropertyItem(model, properties);
