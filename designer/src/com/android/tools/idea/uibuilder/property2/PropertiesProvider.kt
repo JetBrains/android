@@ -19,5 +19,8 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.PropertiesTable
 
 interface PropertiesProvider {
+
   fun getProperties(model: NelePropertiesModel, optionalValue: Any?, components: List<NlComponent>): PropertiesTable<NelePropertyItem>
+
+  fun createEmptyTable(): PropertiesTable<NelePropertyItem>
 }

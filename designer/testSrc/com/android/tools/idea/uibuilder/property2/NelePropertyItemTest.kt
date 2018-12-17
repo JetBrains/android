@@ -253,6 +253,17 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(components[1].getAttribute(ANDROID_URI, ATTR_TEXT)).isEqualTo(HELLO_WORLD)
   }
 
+  fun testSetNewToolsValue() {
+    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING, createTextView())
+    val design = property.designProperty
+    design.value = HELLO_WORLD
+
+    assertThat(design.value).isEqualTo(HELLO_WORLD)
+    assertThat(design.isReference).isFalse()
+    assertThat(design.resolvedValue).isEqualTo(HELLO_WORLD)
+    assertThat(property.model.properties.getOrNull(TOOLS_URI, ATTR_TEXT) != null)
+  }
+
   fun testGetValueWithDefaultValue() {
     val components = createTextView()
     val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
