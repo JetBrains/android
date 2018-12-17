@@ -305,6 +305,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
       },
       object : DumbAwareAction("Remove Module", "Remove module", IconUtil.getRemoveIcon()) {
         override fun update(e: AnActionEvent) {
+          if (uiDisposed) return
           super.update(e)
           e.presentation.isEnabled = (selectedObject as? PsModule)?.gradlePath != null
         }
