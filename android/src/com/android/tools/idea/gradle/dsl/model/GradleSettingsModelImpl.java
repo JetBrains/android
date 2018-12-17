@@ -22,6 +22,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -36,7 +37,6 @@ import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslEle
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import java.io.File;
@@ -140,7 +140,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
 
   @Nullable
   private File moduleDirectoryNoCheck(String modulePath) {
-    File rootDirPath = getBaseDirPath(myGradleDslFile.getProject());
+    File rootDirPath = virtualToIoFile(myGradleDslFile.getFile().getParent());
     if (modulePath.equals(":")) {
       return rootDirPath;
     }
@@ -295,7 +295,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
 
     // Make sure the composite root is a directory and that it contains a build.gradle or settings.gradle file.
     if (file != null && file.isDirectory()) {
-      File compositeRoot = VfsUtilCore.virtualToIoFile(file);
+      File compositeRoot = virtualToIoFile(file);
       VirtualFile buildFile = getGradleBuildFile(compositeRoot);
       if (buildFile != null) {
         return file;

@@ -35,7 +35,11 @@ import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -156,6 +160,40 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   public void reparse() {
     myBuildModelContext.reset();
     runOverProjectTree(GradleDslFile::reparse);
+  }
+
+  @NotNull
+  @Override
+  public List<GradleBuildModel> getAllIncludedBuildModels() {
+    List<GradleBuildModel> allModels = new ArrayList<>();
+    if (myProjectBuildFile != null) {
+      allModels.add(new GradleBuildModelImpl(myProjectBuildFile));
+    }
+
+    GradleSettingsModel settingsModel = getProjectSettingsModel();
+    if (settingsModel == null) {
+      return allModels;
+    }
+
+    allModels.addAll(settingsModel.modulePaths().stream().map((modulePath) -> {
+      // This should have already been added above
+      if (modulePath.equals(":")) {
+        return null;
+      }
+
+      File moduleDir = settingsModel.moduleDirectory(modulePath);
+      if (moduleDir == null) {
+        return null;
+      }
+
+      VirtualFile file = getGradleBuildFile(moduleDir);
+      if (file == null) {
+        return null;
+      }
+
+      return getModuleBuildModel(file);
+    }).filter(Objects::nonNull).collect(Collectors.toList()));
+    return allModels;
   }
 
   private void runOverProjectTree(@NotNull Consumer<GradleDslFile> func) {
