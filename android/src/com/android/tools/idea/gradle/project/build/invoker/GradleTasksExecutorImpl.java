@@ -482,7 +482,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     synchronized (myCompletionLock) {
       counterBefore = myCompletionCounter;
     }
-    invokeLaterIfNeeded(this::queue);
+    queue();
     synchronized (myCompletionLock) {
       while (true) {
         if (myCompletionCounter > counterBefore) {
