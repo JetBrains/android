@@ -86,6 +86,7 @@ import javax.swing.table.TableCellRenderer
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.DefaultTreeSelectionModel
+import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 
 private const val NAME = 0
@@ -94,8 +95,15 @@ private const val UNRESOLVED_VALUE = 1
 /**
  * Main table for the Variables view in the Project Structure Dialog
  */
-class VariablesTable(private val project: Project, private val psProject: PsProject, parentDisposable: Disposable) :
-  TreeTable(createTreeModel(ProjectShadowNode(psProject), parentDisposable)) {
+class VariablesTable private constructor(
+  private val project: Project,
+  private val psProject: PsProject,
+  private val variablesTreeModel: VariablesTableModel
+) :
+  TreeTable(variablesTreeModel) {
+
+  constructor (project: Project, psProject: PsProject, parentDisposable: Disposable) :
+    this(project, psProject, createTreeModel(ProjectShadowNode(psProject), parentDisposable))
 
   private val iconGap = JBUI.scale(2)
   private val editorInsets = JBUI.insets(1, 2)
@@ -127,9 +135,14 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
         hasFocus: Boolean
       ) {
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
-        if (value is EmptyNamedNode) {
+        val emptyName = when {
+          value is EmptyNamedNode -> value.emptyName
+          value is EmptyValueNode && editingRow == row -> value.emptyName
+          else -> null
+        }
+        if (emptyName != null) {
           append(
-            value.emptyName,
+            emptyName,
             if (selected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES
             else SimpleTextAttributes.GRAYED_ATTRIBUTES
           )
@@ -211,7 +224,7 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
       when {
         column == UNRESOLVED_VALUE && getNodeRendered() is EmptyValueNode ->
           (getDefaultComponent() as JLabel).apply {
-            text = getNodeRendered().cast<EmptyValueNode>().emptyName
+            text = getNodeRendered().cast<EmptyValueNode>().emptyValue
             foreground =
               if (isSelected) SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES.fgColor
               else UIUtil.getInactiveTextColor()
@@ -282,15 +295,28 @@ class VariablesTable(private val project: Project, private val psProject: PsProj
         return null
       }
     }
+    maybeScheduleNameRepaint(row, column)
     return editorComponent
   }
 
   override fun editingCanceled(e: ChangeEvent?) {
     val rowBeingEdited = editingRow
+    val columnBeingEdited = editingColumn
     super.editingCanceled(e)
     val nodeBeingEdited = tree.getPathForRow(rowBeingEdited)?.lastPathComponent
     if (nodeBeingEdited is EmptyVariableNode) {
       nodeBeingEdited.type = null
+    }
+    maybeScheduleNameRepaint(rowBeingEdited, columnBeingEdited)
+  }
+
+  private fun maybeScheduleNameRepaint(row: Int, column: Int) {
+    if (column == UNRESOLVED_VALUE) {
+      tree.getPathForRow(row)?.lastPathComponent?.safeAs<TreeNode>()?.let { treeNode ->
+        if (treeNode is EmptyValueNode) {
+          invokeLater { variablesTreeModel.nodeChanged(treeNode) }
+        }
+      }
     }
   }
 
@@ -614,7 +640,8 @@ class ListItemNode(znode: ShadowNode, index: Int, variable: PsVariable) : BaseVa
 }
 
 class EmptyListItemNode(znode: ShadowNode, private val containingList: PsVariable) : VariablesBaseNode(znode), EmptyValueNode {
-  override val emptyName = "+Value"
+  override val emptyName get() = this.parent.getIndex(this).toString()
+  override val emptyValue = "+Value"
   override fun createVariable(value: ParsedValue<Any>): PsVariable = containingList.addListValue(value)
 }
 
@@ -640,6 +667,7 @@ interface EmptyNamedNode {
 
 interface EmptyValueNode {
   val emptyName: String
+  val emptyValue: String
   fun createVariable(value: ParsedValue<Any>): PsVariable
 }
 
