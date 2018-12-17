@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.items
@@ -24,11 +23,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.fest.swing.timing.Wait
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.regex.Pattern
 
 @RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRemoteRunner::class)
@@ -36,7 +37,7 @@ class DependenciesTest {
 
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest = PsdGuiTestRule()
 
   @Before
   fun setUp() {
@@ -46,6 +47,52 @@ class DependenciesTest {
   @After
   fun tearDown() {
     StudioFlags.NEW_PSD_ENABLED.clearOverride()
+  }
+
+  @Test
+  fun addLibraryDependency() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
+
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().run {
+          selectModule("app")
+        }
+        findDependenciesPanel().run {
+          clickAddLibraryDependency().run {
+            findSearchQueryTextBox().enterText("com.example.jlib:*")
+            findSearchButton().click()
+            findArtifactsView().run {
+              Wait
+                .seconds(10)
+                .expecting("Search completed")
+                .until {
+                  rowCount() == 2
+                }
+              cell(Pattern.compile("lib3")).click()
+            }
+            findVersionsView().run {
+              cell(Pattern.compile("0.5")).click()
+            }
+            clickOk()
+          }
+        }
+        clickOk()
+      }
+    }
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().run {
+          selectModule("app")
+        }
+        findDependenciesPanel().run {
+          assertThat(
+            findDependenciesTable().contents().map { it.toList()})
+            .contains(listOf("com.example.jlib:lib3:0.5", "implementation"))
+        }
+      }
+      clickCancel()
+    }
   }
 
   @Test
