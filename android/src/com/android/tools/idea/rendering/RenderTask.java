@@ -188,7 +188,7 @@ public class RenderTask {
     Module module = facet.getModule();
     myLayoutlibCallback =
         new LayoutlibCallbackImpl(this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory);
-    if (ResourceIdManager.get(module).getFinalIdsUsed()) {
+    if (ResourceIdManager.get(module).finalIdsUsed()) {
       myLayoutlibCallback.loadAndParseRClass();
     }
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);

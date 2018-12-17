@@ -41,7 +41,7 @@ public class ResourceClassRegistry implements ProjectComponent {
 
   /**
    * Adds definition of a new R class to the registry. The R class will contain resources from the given repo in the given namespace and
-   * will be generated when the {@link #findClassDefinition} is called with a class name that matches the {@code aarPackageName} and
+   * will be generated when the {@link #findClassDefinition} is called with a class name that matches the {@code packageName} and
    * the {@code repo} resource repository can be found in the {@link ResourceRepositoryManager} passed to {@link #findClassDefinition}.
    *
    * <p>Note that the {@link ResourceClassRegistry} is a project-level component, so the same R class may be generated in different ways
@@ -51,13 +51,13 @@ public class ResourceClassRegistry implements ProjectComponent {
    */
   public void addLibrary(@NotNull ResourceRepository repo,
                          @NotNull ResourceIdManager idManager,
-                         @Nullable String aarPackageName,
+                         @Nullable String packageName,
                          @NotNull ResourceNamespace namespace) {
-    if (StringUtil.isNotEmpty(aarPackageName)) {
+    if (StringUtil.isNotEmpty(packageName)) {
       if (myPackages == null) {
         myPackages = new HashSet<>();
       }
-      myPackages.add(aarPackageName);
+      myPackages.add(packageName);
       if (!myGeneratorMap.containsKey(repo)) {
         ResourceClassGenerator generator = ResourceClassGenerator.create(idManager, repo, namespace);
         myGeneratorMap.put(repo, generator);

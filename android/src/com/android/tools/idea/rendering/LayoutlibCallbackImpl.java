@@ -848,7 +848,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   /**
    * Load and parse the R class such that resource references in the layout rendering can refer
-   * to local resources properly
+   * to local resources properly.
+   *
+   * <p>This only needs to be done if the build system compiles code of the given module against R.java files generated with final fields,
+   * which will cause the chosen numeric resource ids to be inlined into the consuming code. In this case we treat the R class bytecode as
+   * the source of truth for mapping resources to numeric ids.
    */
   public void loadAndParseRClass() {
     myClassLoader.loadAndParseRClassSilently();
