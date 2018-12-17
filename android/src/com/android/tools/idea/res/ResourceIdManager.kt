@@ -125,6 +125,7 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
    * Whether R classes with final ids are used for compiling custom views.
    */
   val finalIdsUsed: Boolean
+    @JvmName("finalIdsUsed")
     get() {
       return facet.configuration.isAppProject
              && ResourceRepositoryManager.getInstance(facet).namespacing == AaptOptions.Namespacing.DISABLED

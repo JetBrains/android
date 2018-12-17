@@ -19,6 +19,7 @@ import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
+import com.android.builder.model.AndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
@@ -34,6 +35,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.compiler.DummyCompileContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -217,5 +219,35 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     PostProjectBuildTasksExecutor.getInstance(getProject()).onBuildCompletion(DummyCompileContext.getInstance());
     assertThat(loader.isSourceModified("com.google.example.Modified", null)).isFalse();
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
+  }
+
+  public void testLibRClass() throws Exception {
+    VirtualFile defaultManifest = myFacet.getManifestFile();
+
+    AndroidProjectStub androidProject = TestProjects.createBasicProject();
+    androidProject.setProjectType(AndroidProject.PROJECT_TYPE_LIBRARY);
+    myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProject.PROJECT_TYPE_LIBRARY;
+    myFacet.getConfiguration().setModel(
+      new AndroidModuleModel(androidProject.getName(),
+                             Projects.getBaseDirPath(getProject()),
+                             androidProject,
+                             "debug",
+                             new IdeDependenciesFactory()));
+    myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
+    assertThat(myFacet.requiresAndroidModel()).isTrue();
+
+    WriteAction.run(() -> {
+      File sourceProviderManifestFile = myFacet.getMainSourceProvider().getManifestFile();
+      FileUtil.createIfDoesntExist(sourceProviderManifestFile);
+      VirtualFile manifestFile = VfsUtil.findFileByIoFile(sourceProviderManifestFile, true);
+      assertThat(manifestFile).named("Manifest virtual file").isNotNull();
+      byte[] defaultManifestContent = defaultManifest.contentsToByteArray();
+      assertNotNull(defaultManifestContent);
+      manifestFile.setBinaryContent(defaultManifestContent);
+    });
+    assertThat(myFacet.getManifest()).isNotNull();
+
+    ModuleClassLoader loader = ModuleClassLoader.get(new LayoutLibrary() {}, myModule);
+    loader.loadClass("p1.p2.R");
   }
 }
