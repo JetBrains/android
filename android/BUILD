@@ -346,6 +346,7 @@ filegroup(
         ":deploy-artifacts",
         ":nosyncbuilder-artifacts",
         ":profiler-artifacts",
+        "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
