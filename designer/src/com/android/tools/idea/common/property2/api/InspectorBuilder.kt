@@ -20,7 +20,7 @@ package com.android.tools.idea.common.property2.api
  * visually and functionally separate from other sections and may contain editors for
  * multiple properties and even custom forms and collapsible subsections.
  */
-interface InspectorBuilder<in P: PropertyItem> {
+interface InspectorBuilder<P: PropertyItem> {
   /**
    * Add rows of controls to the inspector panel.
    *

@@ -25,7 +25,7 @@ import com.google.common.collect.Table
  * This API is readonly. No methods in [PropertiesTable] can
  * change the content of the backing [Table].
  */
-class PropertiesTableImpl<out P: PropertyItem>(private val table: Table<String, String, P>): PropertiesTable<P> {
+class PropertiesTableImpl<P: PropertyItem>(private val table: Table<String, String, P>): PropertiesTable<P> {
 
   override operator fun get(namespace: String, name: String): P {
     return table[namespace, name] ?: throw NoSuchElementException()
@@ -33,6 +33,10 @@ class PropertiesTableImpl<out P: PropertyItem>(private val table: Table<String, 
 
   override fun getOrNull(namespace: String, name: String): P? {
     return table.get(namespace, name)
+  }
+
+  override fun put(property: P) {
+    table.put(property.namespace, property.name, property)
   }
 
   override fun getByNamespace(namespace: String): Map<String, P> {

@@ -149,7 +149,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     return prev
   }
 
-  open fun setPropertyValue(property:NelePropertyItem, newValue: String?) {
+  open fun setPropertyValue(property: NelePropertyItem, newValue: String?) {
     assert(ApplicationManager.getApplication().isDispatchThread)
     if (property.project.isDisposed || property.components.isEmpty()) {
       return

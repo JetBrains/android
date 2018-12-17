@@ -106,7 +106,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testTwoTabsVisible() {
-    val panel = PropertiesPanel(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     model1!!.propertiesGenerated()
@@ -116,7 +116,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testSwitchBetweenViews() {
-    val panel = PropertiesPanel(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     model1!!.propertiesGenerated()
@@ -136,7 +136,7 @@ class PropertiesPanelTest {
     properties!!.setValue("android.last.property.tab.Layout Editor", "Advanced")
     properties!!.setValue("android.last.property.tab.Navigation Editor", "Last")
 
-    val panel = PropertiesPanel(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     model1!!.propertiesGenerated()
@@ -148,7 +148,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testChangingTabsUpdatesThePreferredTab() {
-    val panel = PropertiesPanel(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
     panel.addView(view2!!)
     model2!!.propertiesGenerated()
     val tabs = panel.component.getComponent(1) as JTabbedPane
@@ -166,7 +166,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testFilterHidesNonSearchableTabs() {
-    val panel = PropertiesPanel(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     tab1a!!.searchable = false
@@ -193,7 +193,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testOneTabNotApplicable() {
-    val panel = PropertiesPanel(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     builder1a!!.applicable = false
@@ -215,7 +215,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testNothingApplicable() {
-    val panel = PropertiesPanel(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     builder1!!.applicable = false
@@ -237,7 +237,7 @@ class PropertiesPanelTest {
     assertThat(hidden.getComponent(3)).isInstanceOf(JTabbedPane::class.java)
   }
 
-  private fun checkBothTabsVisibleInView1(panel: PropertiesPanel, expectedCallCount: Int = 1) {
+  private fun checkBothTabsVisibleInView1(panel: PropertiesPanel<TestPropertyItem>, expectedCallCount: Int = 1) {
     assertThat(panel.pages.size).isEqualTo(2)
     assertThat(builder1!!.attachToInspectorCalled).isEqualTo(expectedCallCount)
     assertThat(builder1a!!.attachToInspectorCalled).isEqualTo(expectedCallCount)
@@ -256,7 +256,7 @@ class PropertiesPanelTest {
     assertThat(tabs.getTitleAt(1)).isEqualTo("Advanced")
   }
 
-  private fun checkAllThreeTabsVisibleInView2(panel: PropertiesPanel, expectedCallCount: Int = 1) {
+  private fun checkAllThreeTabsVisibleInView2(panel: PropertiesPanel<TestPropertyItem>, expectedCallCount: Int = 1) {
     assertThat(panel.pages.size).isEqualTo(3)
     assertThat(builder2!!.attachToInspectorCalled).isEqualTo(expectedCallCount)
     assertThat(builder2a!!.attachToInspectorCalled).isEqualTo(expectedCallCount)

@@ -41,11 +41,11 @@ private const val PROPERTY_TAB_NAME = "tab.name"
  * The content of the inspector is controlled by a list of [PropertiesView]s which
  * must be added to this class using [addView].
  */
-class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesModelListener<PropertyItem> {
+class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposable, PropertiesModelListener<P> {
 
   private var activeModel: PropertiesModel<*>? = null
   private var activeView: PropertiesView<*>? = null
-  private val views = IdentityHashMap<PropertiesModel<*>, PropertiesView<*>>()
+  private val views = IdentityHashMap<PropertiesModel<P>, PropertiesView<P>>()
   private val tabbedPanel = CommonTabbedPane()
   private val watermark = WatermarkPanel()
   private val hidden = JPanel()
@@ -66,16 +66,16 @@ class PropertiesPanel(parentDisposable: Disposable) : Disposable, PropertiesMode
     tabbedPanel.addChangeListener { saveMostRecentTabPage() }
   }
 
-  fun addView(view: PropertiesView<*>) {
+  fun addView(view: PropertiesView<P>) {
     views[view.model] = view
     view.model.addListener(this)
   }
 
-  override fun propertiesGenerated(model: PropertiesModel<*>) {
+  override fun propertiesGenerated(model: PropertiesModel<P>) {
     populateInspector(model)
   }
 
-  override fun propertyValuesChanged(model: PropertiesModel<*>) {
+  override fun propertyValuesChanged(model: PropertiesModel<P>) {
     if (model == activeModel) {
       mainPage.propertyValuesChanged()
       pages.forEach { it.propertyValuesChanged() }

@@ -42,7 +42,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
   private val componentView = NelePropertiesView(componentModel)
   private val motionModel = MotionLayoutAttributesModel(this, facet)
   private val motionEditorView = MotionLayoutAttributesView(motionModel)
-  private val properties = PropertiesPanel(componentModel)
+  private val properties = PropertiesPanel<NelePropertyItem>(componentModel)
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
   private var toolWindow: ToolWindowCallback? = null

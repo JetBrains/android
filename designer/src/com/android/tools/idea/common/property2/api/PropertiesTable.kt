@@ -22,7 +22,7 @@ import com.google.common.collect.Table
 /**
  * Table of properties indexed by namespace and name.
  */
-interface PropertiesTable<out P : PropertyItem> {
+interface PropertiesTable<P : PropertyItem> {
 
   /**
    * Returns a property [P] for the given [namespace] and property [name].
@@ -37,6 +37,13 @@ interface PropertiesTable<out P : PropertyItem> {
    * Null is returned if such a property doesn't exist.
    */
   fun getOrNull(namespace: String, name: String): P?
+
+  /**
+   * Adds a property [property] to an existing table.
+   *
+   * Warning: Using this on an [emptyTable] will cause an error.
+   */
+  fun put(property: P)
 
   /**
    * Return a map from name to property given the specified [namespace].

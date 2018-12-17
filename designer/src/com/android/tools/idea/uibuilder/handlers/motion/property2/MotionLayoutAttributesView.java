@@ -75,7 +75,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
   private static class SelectedTargetBuilder implements InspectorBuilder<NelePropertyItem> {
 
     @Override
-    public void attachToInspector(@NotNull InspectorPanel inspector, @NotNull PropertiesTable<? extends NelePropertyItem> properties) {
+    public void attachToInspector(@NotNull InspectorPanel inspector, @NotNull PropertiesTable<NelePropertyItem> properties) {
       NelePropertyItem any = properties.getFirst();
       if (any == null || any.getComponents().isEmpty()) {
         return;
@@ -115,7 +115,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector,
-                                  @NotNull PropertiesTable<? extends NelePropertyItem> properties) {
+                                  @NotNull PropertiesTable<NelePropertyItem> properties) {
       NelePropertyItem any = properties.getFirst();
       if (any == null) {
         return;
@@ -208,7 +208,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
     private void addPropertyTable(@NotNull InspectorPanel inspector,
                                   @NotNull String titleName,
-                                  @NotNull PropertiesTable<? extends NelePropertyItem> properties,
+                                  @NotNull PropertiesTable<NelePropertyItem> properties,
                                   @NotNull NelePropertyItem... excluded) {
       Function1<NelePropertyItem, Boolean> filter =
         (item) -> !item.getNamespace().isEmpty() && ArrayUtil.find(excluded, item) < 0 && item.getRawValue() != null;
