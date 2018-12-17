@@ -25,27 +25,35 @@ import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJE
 import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS
 import com.android.tools.idea.gradle.dsl.TestFileName.COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import org.junit.Before
 import org.junit.Test
 import java.io.File
 
 class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
-  @Test
-  fun testEnsureCompositeBuildProjectDoNotLeakProperties() {
+  lateinit var compositeRoot : File
+  lateinit var compositeSub : File
+
+  @Before
+  override fun setUp() {
+    super.setUp()
     writeToBuildFile(COMPOSITE_BUILD_MAIN_PROJECT_ROOT_BUILD)
     writeToNewProjectFile("applied.gradle", COMPOSITE_BUILD_MAIN_PROJECT_APPLIED)
     writeToSubModuleBuildFile(COMPOSITE_BUILD_MAIN_PROJECT_SUB_MODULE_BUILD)
     writeToSettingsFile(COMPOSITE_BUILD_MAIN_PROJECT_SETTINGS)
 
     // Set up the composite project.
-    val compositeRoot = File(myProjectBasePath, "CompositeBuild/")
+    compositeRoot = File(myProjectBasePath, "CompositeBuild/")
     assertTrue(compositeRoot.mkdirs())
     createFileAndWriteContent(File(compositeRoot, "settings.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SETTINGS)
     createFileAndWriteContent(File(compositeRoot, "build.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_ROOT_BUILD)
     createFileAndWriteContent(File(compositeRoot, "subApplied.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_APPLIED)
-    val compositeSub = File(compositeRoot, "app")
+    compositeSub = File(compositeRoot, "app")
     assertTrue(compositeSub.mkdirs())
     createFileAndWriteContent(File(compositeSub, "build.gradle"), COMPOSITE_BUILD_COMPOSITE_PROJECT_SUB_MODULE_BUILD)
+  }
 
+  @Test
+  fun testEnsureCompositeBuildProjectDoNotLeakProperties() {
     // Create both ProjectBuildModels
     val mainModel = ProjectBuildModel.get(myProject)
     val compositeModel = ProjectBuildModel.getForCompositeBuild(myProject, compositeRoot.absolutePath)
@@ -79,6 +87,18 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
     val includedBuilds = mainModel.projectSettingsModel!!.includedBuilds()
     assertSize(1, includedBuilds)
     assertEquals(compositeRoot.absolutePath, includedBuilds[0].path)
+  }
+
+  @Test
+  fun testEnsureProjectBuildModelsProduceAllBuildModels() {
+    val mainModel = ProjectBuildModel.get(myProject)
+    val compositeModel = ProjectBuildModel.getForCompositeBuild(myProject, compositeRoot.absolutePath)
+
+    val mainBuildModels = mainModel.allIncludedBuildModels
+    assertSize(2, mainBuildModels)
+
+    val compositeBuildModels = compositeModel!!.allIncludedBuildModels
+    assertSize(2, compositeBuildModels)
   }
 
   private fun createFileAndWriteContent(file: File, content: TestFileName) {
