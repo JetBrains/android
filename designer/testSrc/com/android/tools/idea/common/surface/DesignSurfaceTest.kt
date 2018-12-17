@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
+import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
@@ -130,4 +131,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable): Desig
   override fun createInteractionOnDrag(draggedSceneComponent: SceneComponent, primary: SceneComponent?) = null
 
   override fun forceUserRequestedRefresh() = Unit
+
+  override fun getSelectableComponents(): List<NlComponent> = emptyList()
 }

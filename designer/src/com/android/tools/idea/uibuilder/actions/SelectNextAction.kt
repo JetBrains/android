@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.actions
+package com.android.tools.idea.uibuilder.actions
 
-import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class SelectNextAction(private val surface: NavDesignSurface) : AnAction() {
+class SelectNextAction(private val surface: DesignSurface) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val selectable = surface.selectableComponents
     if (selectable.isEmpty()) {
@@ -38,5 +38,6 @@ class SelectNextAction(private val surface: NavDesignSurface) : AnAction() {
     }
 
     selectionModel.setSelection(listOf(next))
+    surface.repaint()
   }
 }

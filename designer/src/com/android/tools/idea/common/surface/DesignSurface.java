@@ -32,14 +32,14 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.type.DefaultDesignerFileType;
-import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.type.DefaultDesignerFileType;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
@@ -1522,4 +1522,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {
     return ConfigurationManager.getOrCreateInstance(facet);
   }
+
+  /**
+   * Returns all the selectable components in the design surface
+   * @return the list of components
+   */
+  @NotNull
+  abstract public List<NlComponent> getSelectableComponents();
 }
