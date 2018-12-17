@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.actions
+package com.android.tools.idea.uibuilder.actions
 
-import com.android.tools.idea.naveditor.model.isDestination
-import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class SelectAllAction(private val surface: NavDesignSurface) : AnAction("Select All") {
+class SelectAllAction(private val surface: DesignSurface) : AnAction("Select All") {
   override fun actionPerformed(e: AnActionEvent) {
-    val destinations = surface.currentNavigation.children.filter { it.isDestination }
-    surface.selectionModel.setSelection(destinations)
+    surface.selectionModel.setSelection(surface.selectableComponents)
+    surface.repaint()
   }
 }

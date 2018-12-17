@@ -117,7 +117,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       mySelectNextAction = new SelectNextAction(mySurface);
       mySelectPreviousAction = new SelectPreviousAction(mySurface);
     }
-    registerAction(mySelectAllAction, "$SelectAll", component, parentDisposable);
+    registerAction(mySelectAllAction, IdeActions.ACTION_SELECT_ALL, component, parentDisposable);
     registerAction(myGotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component, parentDisposable);
     registerAction(mySelectParent, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), component, parentDisposable);
     registerAction(mySelectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), mySurface, parentDisposable);

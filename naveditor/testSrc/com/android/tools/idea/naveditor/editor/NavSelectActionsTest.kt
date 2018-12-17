@@ -17,10 +17,11 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.actions.SelectAllAction
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.uibuilder.actions.SelectAllAction
 import com.android.tools.idea.uibuilder.actions.SelectNextAction
 import com.android.tools.idea.uibuilder.actions.SelectPreviousAction
+import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.jetbrains.android.AndroidTestCase
@@ -29,7 +30,7 @@ import org.mockito.Mockito.mock
 /**
  * Tests for actions used by the nav editor
  */
-class SelectActionsTest : NavTestCase() {
+class NavSelectActionsTest : NavTestCase() {
   fun testSelectNextAction() {
     val model = model("nav.xml") {
       navigation("root") {
@@ -104,7 +105,7 @@ class SelectActionsTest : NavTestCase() {
 
   fun testSelectAllAction() {
     val model = model("nav.xml") {
-      navigation {
+      navigation("root") {
         action("action1")
         fragment("fragment1")
         fragment("fragment2")
@@ -112,15 +113,20 @@ class SelectActionsTest : NavTestCase() {
       }
     }
 
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
+    surface.selectionModel.setSelection(ImmutableList.of())
+
+    val root = model.find("root")!!
+    val action1 = model.find("action1")!!
     val fragment1 = model.find("fragment1")!!
     val fragment2 = model.find("fragment2")!!
     val fragment3 = model.find("fragment3")!!
 
-    val surface = model.surface as NavDesignSurface
     val action = SelectAllAction(surface)
 
     action.actionPerformed(mock(AnActionEvent::class.java))
-    assertEquals(listOf(fragment1, fragment2, fragment3), model.surface.selectionModel.selection)
+    assertEquals(listOf(root, action1, fragment1, fragment2, fragment3), surface.selectionModel.selection)
   }
 
   private fun performAction(action: AnAction, surface: NavDesignSurface, id: String) {
