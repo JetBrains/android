@@ -160,11 +160,21 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       NlWriteCommandAction.run(property.components, "Set $componentName.${property.name} to $newValue") {
         property.components.forEach { it.setAttribute(property.namespace, property.name, newValue) }
         logPropertyValueChanged(property)
-        if (property.namespace == SdkConstants.TOOLS_URI && property.name == SdkConstants.ATTR_PARENT_TAG) {
-          // When the "parentTag" attribute is set on a <merge> tag,
-          // we may have a different set of available properties available,
-          // since the attributes of the "parentTag" are included if set.
-          firePropertiesGenerated()
+        if (property.namespace == SdkConstants.TOOLS_URI) {
+          if (newValue != null) {
+            // A tools property may not be in the current set of possible properties. So add it now:
+            if (properties.isEmpty) {
+              properties = provider.createEmptyTable()
+            }
+            properties.put(property)
+          }
+
+          if (property.name == SdkConstants.ATTR_PARENT_TAG) {
+            // When the "parentTag" attribute is set on a <merge> tag,
+            // we may have a different set of available properties available,
+            // since the attributes of the "parentTag" are included if set.
+            firePropertiesGenerated()
+          }
         }
       }
     })

@@ -47,6 +47,9 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.EventQueue
 import java.util.*
 
+private const val EXPECTED_ROWS = 3
+private const val EXPECTED_CELLS_PER_ROW = 10
+
 /**
  * Properties generator for Nele.
  *
@@ -78,6 +81,9 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
     }
   }
 
+  override fun createEmptyTable(): PropertiesTable<NelePropertyItem> =
+    PropertiesTable.create(HashBasedTable.create<String, String, NelePropertyItem>(EXPECTED_ROWS, EXPECTED_CELLS_PER_ROW))
+
   private fun getPropertiesImpl(model: NelePropertiesModel, components: List<NlComponent>): Table<String, String, NelePropertyItem> {
     val resourceManagers = ModuleResourceManagers.getInstance(facet)
     val localResourceManager = resourceManagers.localResourceManager
@@ -105,7 +111,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
       val elementDescriptor = descriptorProvider.getDescriptor(tag) ?: return emptyTable
 
       val descriptors = elementDescriptor.getAttributesDescriptors(tag)
-      val properties = HashBasedTable.create<String, String, NelePropertyItem>(3, descriptors.size)
+      val properties = HashBasedTable.create<String, String, NelePropertyItem>(EXPECTED_ROWS, descriptors.size)
 
       for (desc in descriptors) {
         val name = desc.name

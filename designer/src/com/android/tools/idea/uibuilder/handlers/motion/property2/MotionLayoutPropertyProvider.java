@@ -72,6 +72,9 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
   private final XmlElementDescriptorProvider myDescriptorProvider;
   private final Table<String, String, NelePropertyItem> myEmptyTable;
 
+  private static final int EXPECTED_ROWS = 3;
+  private static final int EXPECTED_CELLS_PER_ROW = 10;
+
   public MotionLayoutPropertyProvider(@NotNull AndroidFacet facet) {
     myFacet = facet;
     myProject = facet.getModule().getProject();
@@ -93,6 +96,12 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     }
     return DumbService.getInstance(myProject).runReadActionInSmartMode(
       () -> PropertiesTable.Companion.create(getPropertiesImpl(model, tagPointer, components)));
+  }
+
+  @NotNull
+  @Override
+  public PropertiesTable<NelePropertyItem> createEmptyTable() {
+    return PropertiesTable.Companion.create(HashBasedTable.create(EXPECTED_ROWS, EXPECTED_CELLS_PER_ROW));
   }
 
   private Table<String, String, NelePropertyItem> getPropertiesImpl(@NotNull NelePropertiesModel model,
