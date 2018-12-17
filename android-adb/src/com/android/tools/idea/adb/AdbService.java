@@ -268,6 +268,7 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
     // If we cannot connect to ADB in a reasonable amount of time (10 seconds timeout in AdbService), then something is seriously
     // wrong. The only identified reason so far is that some machines have incompatible versions of adb that were already running.
     // e.g. Genymotion, some HTC flashing software, Ubuntu's adb package may all conflict with the version of adb in the SDK.
+    // A timeout can also happen if the user's hosts file points localhost to the wrong address.
     String msg;
     if (t.getMessage() != null) {
       msg = t.getMessage();
@@ -275,8 +276,10 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
     else {
       msg = String.format("Unable to establish a connection to adb.\n\n" +
                           "Check the Event Log for possible issues.\n" +
-                          "This can happen if you have an incompatible version of adb running already.\n" +
-                          "Try re-opening %1$s after killing any existing adb daemons.\n\n" +
+                          "This can happen if you have an incompatible version of adb running already,\n" +
+                          "or if localhost is pointing to the wrong address.\n" +
+                          "Try re-opening %1$s after killing any existing adb daemons and verifying that your\n" +
+                          "localhost entry is pointing to 127.0.0.1 or ::1 for IPv4 or IPv6, respectively.\n\n" +
                           "If this happens repeatedly, please file a bug at http://b.android.com including the following:\n" +
                           "  1. Output of the command: '%2$s devices'\n" +
                           "  2. Your idea.log file (Help | Show Log in Explorer)\n",
