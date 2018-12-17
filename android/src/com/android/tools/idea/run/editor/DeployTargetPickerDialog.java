@@ -194,7 +194,10 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
         public void onFailure(@Nullable Throwable t) {
           loadingPanel.stopLoading();
           Logger.getInstance(DeployTargetPickerDialog.class).info("Unable to obtain debug bridge", t);
-          // TODO: show an inline banner to restart adb?
+          setErrorText("Unable to connect to ADB. Check the Event Log for possible issues. " +
+                       "Verify that your localhost entry is pointing to 127.0.0.1 or ::1 " +
+                       "for IPv4 or IPv6, respectively.");
+          setOKActionEnabled(false);
         }
       }, EdtExecutor.INSTANCE);
     }
