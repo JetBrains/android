@@ -15,9 +15,13 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.UnifiedEventDataSeries;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class DetailedCpuUsage extends CpuUsage {
@@ -31,8 +35,19 @@ public class DetailedCpuUsage extends CpuUsage {
 
     myThreadRange = new Range(0, 8);
 
-    CpuUsageDataSeries others =
-      new CpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), dataList -> extractData(dataList, true));
+    DataSeries<Long> others;
+    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      others = new UnifiedEventDataSeries(
+        profilers.getClient().getProfilerClient(),
+        profilers.getSession(),
+        Common.Event.Kind.CPU_USAGE,
+        profilers.getSession().getPid(),
+        events -> extractData(events.stream().map(event -> event.getCpuUsage()).collect(Collectors.toList()), true));
+    }
+    else {
+      others =
+        new CpuUsageDataSeries(profilers.getClient().getCpuClient(), profilers.getSession(), dataList -> extractData(dataList, true));
+    }
     myOtherCpuSeries = new RangedContinuousSeries("Others", profilers.getTimeline().getViewRange(), getCpuRange(), others);
 
     CpuThreadCountDataSeries threads = new CpuThreadCountDataSeries(profilers.getClient().getCpuClient(), profilers.getSession());
