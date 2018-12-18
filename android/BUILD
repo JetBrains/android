@@ -93,7 +93,7 @@ iml_module(
         "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/plugins/gradle:intellij.gradle[module]",
         "//tools/idea/plugins/gradle/java:intellij.gradle.java[module]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib-loader[module]",
         "//tools/idea/.idea/libraries:baksmali",
         "//tools/idea/.idea/libraries:dexlib2",
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
@@ -135,6 +135,7 @@ iml_module(
         "//tools/idea/.idea/libraries:Java_Compatibility",
         "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
     ],
 )
 
@@ -232,7 +233,7 @@ iml_module(
         "//tools/idea/plugins/gradle:intellij.gradle[module, test]",
         "//tools/idea/plugins/gradle:intellij.gradle.tests[module, test]",
         "//tools/idea/plugins/groovy/groovy-psi:intellij.groovy.psi[module, test]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib-loader[module, test]",
         "//tools/idea/plugins/properties/properties-psi-api:intellij.properties.psi[module, test]",
         "//tools/base/instant-run:studio.android.sdktools.instant-run-client[module, test]",
         "//tools/idea/platform/diff-impl:intellij.platform.diff.impl[module, test]",
@@ -282,6 +283,7 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
     ],
 )
 

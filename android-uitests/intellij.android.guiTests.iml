@@ -10,7 +10,6 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="KotlinTest" level="project" />
-    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
@@ -45,5 +44,6 @@
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.naveditor" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
   </component>
 </module>
