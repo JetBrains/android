@@ -33,6 +33,7 @@ import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
 import com.intellij.util.containers.isNullOrEmpty
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidResourceUtil
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 
@@ -96,7 +97,7 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
     }
 
     if (psiElement == null) {
-      psiElement = LocalResourceRepository.getItemPsiFile(facet.module.project, resourceItem)
+      psiElement = AndroidResourceUtil.getItemPsiFile(facet.module.project, resourceItem)
     }
     return psiElement
   }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import static com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -37,7 +39,17 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.JavaRecursiveElementWalkingVisitor;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.PsiTypeParameter;
+import com.intellij.psi.SyntheticElement;
+import com.intellij.psi.XmlRecursiveElementWalkingVisitor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
@@ -47,16 +59,19 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlToken;
 import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.actions.BaseRefactoringAction;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE;
 
 public class AndroidModularizeHandler implements RefactoringActionHandler {
 
@@ -269,7 +284,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
 
     @Nullable
     private PsiElement getResourceDefinition(ResourceItem resource) {
-      PsiFile psiFile = LocalResourceRepository.getItemPsiFile(myProject, resource);
+      PsiFile psiFile = AndroidResourceUtil.getItemPsiFile(myProject, resource);
       if (psiFile == null) { // psiFile could be null if this is dynamically defined, so nothing to visit...
         return null;
       }

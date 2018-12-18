@@ -32,7 +32,6 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.aar.AarResourceRepository;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,7 +40,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
@@ -257,27 +255,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     return false;
   }
 
-  /** Returns the {@link PsiFile} corresponding to the source of the given resource item, if possible */
-  @Nullable
-  public static PsiFile getItemPsiFile(@NotNull Project project, @NotNull ResourceItem item) {
-    if (project.isDisposed()) {
-      return null;
-    }
-
-    if (item instanceof PsiResourceItem) {
-      PsiResourceItem psiResourceItem = (PsiResourceItem)item;
-      return psiResourceItem.getPsiFile();
-    }
-
-    VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(item);
-    if (virtualFile != null) {
-      PsiManager psiManager = PsiManager.getInstance(project);
-      return psiManager.findFile(virtualFile);
-    }
-
-    return null;
-  }
-
   /**
    * Returns the {@link XmlTag} corresponding to the given resource item. This is only
    * defined for resource items in value files.
@@ -289,7 +266,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       return psiResourceItem.getTag();
     }
 
-    PsiFile psiFile = getItemPsiFile(project, item);
+    PsiFile psiFile = AndroidResourceUtil.getItemPsiFile(project, item);
     if (psiFile instanceof XmlFile) {
       String resourceName = item.getName();
       XmlFile xmlFile = (XmlFile)psiFile;

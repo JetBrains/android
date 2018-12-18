@@ -63,16 +63,19 @@ import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.FileResourceNameValidator;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.LightResourceClassService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
 import com.android.tools.idea.res.AndroidRClassBase;
+import com.android.tools.idea.res.PsiResourceItem;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
@@ -112,6 +115,8 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.PsiElementProcessor;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
@@ -1273,6 +1278,64 @@ public class AndroidResourceUtil {
       }
     }
     return resDirectories;
+  }
+
+  /** Returns the {@link PsiFile} corresponding to the source of the given resource item, if possible. */
+  @Nullable
+  public static PsiFile getItemPsiFile(@NotNull Project project, @NotNull ResourceItem item) {
+    if (project.isDisposed()) {
+      return null;
+    }
+
+    if (item instanceof PsiResourceItem) {
+      PsiResourceItem psiResourceItem = (PsiResourceItem)item;
+      return psiResourceItem.getPsiFile();
+    }
+
+    VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(item);
+    if (virtualFile != null) {
+      PsiManager psiManager = PsiManager.getInstance(project);
+      return psiManager.findFile(virtualFile);
+    }
+
+    return null;
+  }
+
+  /**
+   * Returns the XML attribute containing declaration of the given ID resource.
+   *
+   * @param project the project containing the resource
+   * @param idResource the ID resource
+   * @return
+   */
+  @Nullable
+  public static XmlAttribute getIdDeclarationAttribute(@NotNull Project project, @NotNull ResourceItem idResource) {
+    assert idResource.getType() == ID;
+    PsiFile psiFile = getItemPsiFile(project, idResource);
+    if (!(psiFile instanceof XmlFile)) {
+      return null;
+    }
+
+    XmlFile xmlFile = (XmlFile)psiFile;
+    String resourceName = idResource.getName();
+
+    // TODO(b/113646219): find the right one, if there are multiple, not the first one.
+    PsiElementProcessor.FindFilteredElement processor = new PsiElementProcessor.FindFilteredElement(element -> {
+      if (element instanceof XmlAttribute) {
+        XmlAttribute attr = (XmlAttribute)element;
+        String attrValue = attr.getValue();
+        if (isIdDeclaration(attrValue)) {
+          ResourceUrl resourceUrl = ResourceUrl.parse(attrValue);
+          if (resourceUrl != null && resourceUrl.name.equals(resourceName)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+    PsiTreeUtil.processElements(xmlFile, processor);
+
+    return (XmlAttribute)processor.getFoundElement();
   }
 
   /**
