@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages;
 
-import com.android.tools.layoutlib.annotations.NotNull;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link Point2D.Double} that represents a sketch point, which is actually a string in the sketch file.

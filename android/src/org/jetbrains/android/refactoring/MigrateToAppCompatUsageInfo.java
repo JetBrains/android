@@ -18,8 +18,6 @@ package org.jetbrains.android.refactoring;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.internal.util.function.TriFunction;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
@@ -723,5 +721,9 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       myProjectBuildModel.applyChanges();
       return getElement();
     }
+  }
+
+  private interface TriFunction<A, B, C, R> {
+    R apply(A a, B b, C c);
   }
 }

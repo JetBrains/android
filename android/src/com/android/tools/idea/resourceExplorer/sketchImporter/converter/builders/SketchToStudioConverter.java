@@ -55,13 +55,13 @@ import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.Sketc
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolInstance;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchSymbolMaster;
 import com.android.tools.idea.resourceExplorer.sketchImporter.ui.SketchFile;
-import com.android.tools.layoutlib.annotations.NotNull;
 import com.google.common.collect.ImmutableList;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**

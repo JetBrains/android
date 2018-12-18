@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
-import com.android.tools.layoutlib.annotations.NotNull;
 import java.awt.Color;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link AssetModel} corresponding to a Color imported from Sketch into Android Studio.

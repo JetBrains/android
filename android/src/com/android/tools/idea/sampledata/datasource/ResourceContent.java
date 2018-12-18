@@ -22,7 +22,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import libcore.io.Streams;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,8 +97,13 @@ public class ResourceContent implements Function<OutputStream, Exception> {
   @NotNull
   public static ResourceContent fromInputStream(@NotNull InputStream stream) {
     byte[] content;
-    try {
-      content = Streams.readFully(stream);
+    try (ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
+      byte[] buffer = new byte[1024];
+      int count;
+      while ((count = stream.read(buffer)) != -1) {
+        bytes.write(buffer, 0, count);
+      }
+      content = bytes.toByteArray();
     }
     catch (IOException e) {
       content = new byte[0];

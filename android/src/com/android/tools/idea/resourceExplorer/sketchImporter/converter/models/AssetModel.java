@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.resourceExplorer.sketchImporter.converter.models;
 
-import com.android.tools.layoutlib.annotations.NotNull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Interface that offers ways to access/change options or characteristics which are common between different types of assets.

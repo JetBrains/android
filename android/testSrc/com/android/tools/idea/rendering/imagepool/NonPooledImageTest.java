@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering.imagepool;
 
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
-import com.android.tools.layoutlib.annotations.NotNull;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.awt.*;
