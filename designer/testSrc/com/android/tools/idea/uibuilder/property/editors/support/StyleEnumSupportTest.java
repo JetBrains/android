@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.CHECK_BOX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
@@ -22,13 +32,13 @@ import com.android.ide.common.rendering.api.StyleResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -37,15 +47,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
-
-import java.util.Collections;
-
-import static com.android.SdkConstants.*;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(JUnit4.class)
 public class StyleEnumSupportTest {
@@ -64,8 +65,6 @@ public class StyleEnumSupportTest {
   private ResourceResolver myResolver;
   @Mock
   private StyleFilter myStyleFilter;
-  @Mock
-  private ResourceRepositoryManager myResourceRepositoryManager;
 
   private StyleEnumSupport mySupport;
   private Disposable myDisposable;
@@ -81,8 +80,7 @@ public class StyleEnumSupportTest {
     when(myComponent.getTag()).thenReturn(myTag);
     when(myTag.knownNamespaces()).thenReturn(new String[]{ANDROID_URI, TOOLS_URI});
     when(myResolver.getStyle(any())).thenAnswer(invocation -> resolveStyle(invocation.getArgument(0)));
-    when(myResourceRepositoryManager.getNamespace()).thenReturn(ResourceNamespace.TODO());
-    mySupport = new StyleEnumSupport(myProperty, myStyleFilter, myResourceRepositoryManager);
+    mySupport = new StyleEnumSupport(myProperty, myStyleFilter, ResourceNamespace.TODO());
   }
 
   @After
@@ -93,7 +91,6 @@ public class StyleEnumSupportTest {
     myTag = null;
     myResolver = null;
     myStyleFilter = null;
-    myResourceRepositoryManager = null;
     mySupport = null;
     myDisposable = null;
   }

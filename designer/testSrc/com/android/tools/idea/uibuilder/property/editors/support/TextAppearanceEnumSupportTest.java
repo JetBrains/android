@@ -15,32 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.collect.ImmutableList;
-import com.intellij.mock.MockApplication;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.mockito.Mock;
-
-import java.util.Collections;
-import java.util.regex.Matcher;
-
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.property.editors.support.StyleEnumSupportTest.createFrameworkStyle;
 import static com.android.tools.idea.uibuilder.property.editors.support.StyleEnumSupportTest.createStyle;
 import static com.android.tools.idea.uibuilder.property.editors.support.TextAppearanceEnumSupport.TEXT_APPEARANCE_PATTERN;
@@ -49,6 +26,29 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.NlProperty;
+import com.google.common.collect.ImmutableList;
+import com.intellij.mock.MockApplication;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.xml.XmlTag;
+import java.util.Collections;
+import java.util.regex.Matcher;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.mockito.Mock;
 
 @RunWith(JUnit4.class)
 public class TextAppearanceEnumSupportTest {
@@ -69,8 +69,6 @@ public class TextAppearanceEnumSupportTest {
   private ResourceResolver myResolver;
   @Mock
   private StyleFilter myStyleFilter;
-  @Mock
-  private ResourceRepositoryManager myResourceRepositoryManager;
 
   private TextAppearanceEnumSupport mySupport;
   private Disposable myDisposable;
@@ -87,9 +85,8 @@ public class TextAppearanceEnumSupportTest {
     when(myComponent.getTag()).thenReturn(myTag);
     when(myTag.knownNamespaces()).thenReturn(new String[]{ANDROID_URI, TOOLS_URI});
     when(myResolver.getStyle(any())).thenAnswer(invocation -> resolveStyle(invocation.getArgument(0)));
-    when(myResourceRepositoryManager.getNamespace()).thenReturn(ResourceNamespace.TODO());
 
-    mySupport = new TextAppearanceEnumSupport(myProperty, myStyleFilter, myResourceRepositoryManager);
+    mySupport = new TextAppearanceEnumSupport(myProperty, myStyleFilter, ResourceNamespace.TODO());
   }
 
   @After
@@ -100,7 +97,6 @@ public class TextAppearanceEnumSupportTest {
     myTag = null;
     myResolver = null;
     myStyleFilter = null;
-    myResourceRepositoryManager = null;
     mySupport = null;
     myDisposable = null;
   }

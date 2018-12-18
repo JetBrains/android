@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PREFIX_THEME_REF;
+import static com.android.SdkConstants.REFERENCE_STYLE;
+import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class TextAppearanceEnumSupport extends StyleEnumSupport {
   static final String TEXT_APPEARANCE = "TextAppearance";
@@ -42,8 +43,8 @@ public class TextAppearanceEnumSupport extends StyleEnumSupport {
   @VisibleForTesting
   TextAppearanceEnumSupport(@NotNull NlProperty property,
                             @NotNull StyleFilter styleFilter,
-                            @NotNull ResourceRepositoryManager resourceManager) {
-    super(property, styleFilter, resourceManager);
+                            @NotNull ResourceNamespace namespace) {
+    super(property, styleFilter, namespace);
   }
 
   @Override
@@ -67,10 +68,9 @@ public class TextAppearanceEnumSupport extends StyleEnumSupport {
     if (value != null && !value.startsWith(PREFIX_RESOURCE_REF) && !value.startsWith(PREFIX_THEME_REF)) {
       // The user did not specify a proper style value.
       // Lookup the value specified to see if there is a matching style.
-      ResourceNamespace currentNamespace = myResourceManager.getNamespace();
 
       // Prefer the users styles:
-      StyleResourceValue styleFound = resolve(currentNamespace, value);
+      StyleResourceValue styleFound = resolve(myDefaultNamespace, value);
 
       // Otherwise try each of the namespaces defined in the XML file:
       if (styleFound == null) {
@@ -88,7 +88,7 @@ public class TextAppearanceEnumSupport extends StyleEnumSupport {
       }
 
       value = styleFound != null ?
-              styleFound.asReference().getRelativeResourceUrl(currentNamespace, getResolver()).toString() : STYLE_RESOURCE_PREFIX + value;
+              styleFound.asReference().getRelativeResourceUrl(myDefaultNamespace, getResolver()).toString() : STYLE_RESOURCE_PREFIX + value;
     }
     String display;
     Matcher matcher = TEXT_APPEARANCE_PATTERN.matcher(resolvedValue);
