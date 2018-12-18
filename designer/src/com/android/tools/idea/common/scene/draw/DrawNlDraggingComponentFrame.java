@@ -18,10 +18,10 @@ package com.android.tools.idea.common.scene.draw;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.layoutlib.annotations.NotNull;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Draw the frame of a SceneComponent

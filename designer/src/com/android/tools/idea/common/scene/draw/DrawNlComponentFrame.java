@@ -19,9 +19,13 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
-
-import com.android.tools.layoutlib.annotations.NotNull;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Stroke;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Draw the frame of a SceneComponent

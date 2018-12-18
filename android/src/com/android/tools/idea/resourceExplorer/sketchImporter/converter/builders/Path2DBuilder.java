@@ -18,8 +18,8 @@ package com.android.tools.idea.resourceExplorer.sketchImporter.converter.builder
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchCurvePoint;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchPoint2D;
 import com.android.tools.idea.resourceExplorer.sketchImporter.parser.pages.SketchShapePath;
-import com.android.tools.layoutlib.annotations.NotNull;
 import java.awt.geom.Path2D;
+import org.jetbrains.annotations.NotNull;
 
 public class Path2DBuilder {
 

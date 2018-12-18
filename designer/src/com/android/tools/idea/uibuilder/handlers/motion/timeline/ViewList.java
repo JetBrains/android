@@ -22,8 +22,6 @@ import static com.android.tools.idea.uibuilder.handlers.motion.timeline.TimeLine
 
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
-import com.android.tools.layoutlib.annotations.NotNull;
-import com.android.tools.layoutlib.annotations.Nullable;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.JBPopupListener;
@@ -69,6 +67,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class ViewList extends JPanel implements Gantt.ChartElement {
   DefaultMutableTreeNode myRootNode = new DefaultMutableTreeNode();
