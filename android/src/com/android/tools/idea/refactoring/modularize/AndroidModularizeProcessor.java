@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.refactoring.modularize;
 
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.TAG_APPLICATION;
+import static com.android.SdkConstants.TAG_MANIFEST;
+import static com.android.SdkConstants.TAG_RESOURCES;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.util.PathString;
@@ -35,7 +40,18 @@ import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiBinaryFile;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiJavaFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.SmartPsiFileRange;
+import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.XmlRecursiveElementWalkingVisitor;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -48,17 +64,18 @@ import com.intellij.refactoring.util.RefactoringUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.swing.JComponent;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.*;
-
-import static com.android.SdkConstants.*;
 
 // TODO: Should we eventually plug into MoveClassHandler.EP_NAME extensions? Offer a QuickFix at any point?
 public class
@@ -177,7 +194,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
     }
 
     for (ResourceItem resource : myResources) {
-      PsiFile psiFile = LocalResourceRepository.getItemPsiFile(myProject, resource);
+      PsiFile psiFile = AndroidResourceUtil.getItemPsiFile(myProject, resource);
       if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.VALUES) {
         // This is just a value, so we won't move the entire file, just its corresponding XmlTag
         XmlTag xmlTag = LocalResourceRepository.getItemTag(myProject, resource);

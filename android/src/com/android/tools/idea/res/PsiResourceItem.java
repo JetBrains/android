@@ -516,7 +516,7 @@ public class PsiResourceItem implements ResourceItem {
   }
 
   @Nullable
-  PsiFile getPsiFile() {
+  public PsiFile getPsiFile() {
     if (smartPsiPointerLock == null) {
       return myFilePointer == null ? myOriginalFile.get() : myFilePointer.getElement();
     } else {
