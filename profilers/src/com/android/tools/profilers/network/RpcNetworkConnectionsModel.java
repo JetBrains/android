@@ -118,7 +118,7 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
         requestStartEvent.getNetworkHttpConnection().getHttpRequestStarted();
       httpBuilder.setUrl(requestStartData.getUrl());
       httpBuilder.setMethod(requestStartData.getMethod());
-      httpBuilder.setTraceId(requestStartData.getTrace());
+      httpBuilder.setTrace(requestStartData.getTrace());
       httpBuilder.setRequestFields(requestStartData.getFields());
       if (!requestCompleteEvent.equals(Common.Event.getDefaultInstance())) {
         httpBuilder.setRequestPayloadId(requestCompleteEvent.getNetworkHttpConnection().getHttpRequestCompleted().getPayloadId());

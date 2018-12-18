@@ -97,8 +97,12 @@ public class LegacyRpcNetworkConnectionsModel implements NetworkConnectionsModel
       getDetails(connectionId, NetworkProfiler.HttpDetailsRequest.Type.REQUEST).getRequest();
     httpBuilder.setUrl(result.getUrl());
     httpBuilder.setMethod(result.getMethod());
-    httpBuilder.setTraceId(result.getTraceId());
     httpBuilder.setRequestFields(result.getFields());
+
+    if (!result.getTraceId().isEmpty()) {
+      String trace = requestBytes(result.getTraceId()).toStringUtf8();
+      httpBuilder.setTrace(trace);
+    }
   }
 
   private void requestHttpRequestBody(long connectionId, @NotNull HttpData.Builder httpBuilder) {

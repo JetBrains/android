@@ -54,11 +54,10 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class ConnectionDetailsViewTest {
-  private static final String fakeTraceId = "fakeTraceId";
   private static final String fakeTrace = "com.google.downloadUrlToStream(ImageFetcher.java:274)";
   private static final HttpData DEFAULT_DATA =
     new HttpData.Builder(1, 10000, 25000, 50000, 100000, 100000, TestHttpData.FAKE_THREAD_LIST)
-      .setUrl("dumbUrl").setTraceId(fakeTraceId).setMethod("GET")
+      .setUrl("dumbUrl").setTrace(fakeTrace).setMethod("GET")
       .build();
 
   private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
@@ -107,7 +106,7 @@ public class ConnectionDetailsViewTest {
     myStage = myStageView.getStage();
     myView = new ConnectionDetailsView(myStageView);
 
-    myProfilerService.addFile(fakeTraceId, ByteString.copyFromUtf8(fakeTrace));
+    myProfilerService.addFile(TestHttpData.fakeStackTraceId(fakeTrace), ByteString.copyFromUtf8(fakeTrace));
   }
 
   @Test
@@ -304,7 +303,7 @@ public class ConnectionDetailsViewTest {
     myView.setHttpData(DEFAULT_DATA);
     assertThat(stackFramesChangedCount[0]).isEqualTo(1);
 
-    StackTrace stackTrace = new StackTrace(myStageView.getStage().getConnectionsModel(), DEFAULT_DATA);
+    StackTrace stackTrace = new StackTrace(DEFAULT_DATA);
     assertThat(stackTraceView.getModel().getCodeLocations()).isEqualTo(stackTrace.getCodeLocations());
   }
 
@@ -313,8 +312,8 @@ public class ConnectionDetailsViewTest {
     HttpData data = new HttpData.Builder(DEFAULT_DATA).build();
     myView.setHttpData(data);
 
-    StackTrace stackTrace = new StackTrace(myStageView.getStage().getConnectionsModel(), data);
-    assertThat(stackTrace.getTrace()).isEqualTo(fakeTrace);
+    StackTrace stackTrace = new StackTrace(data);
+    assertThat(stackTrace.getTrace()).isEqualTo(data.getTrace());
     assertThat(stackTrace.getCodeLocations()).hasSize(1);
 
     // Expands Profiler Mode

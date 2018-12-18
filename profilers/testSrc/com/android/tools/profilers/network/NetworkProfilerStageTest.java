@@ -94,6 +94,12 @@ public class NetworkProfilerStageTest {
     myStage = new NetworkProfilerStage(myStudioProfilers);
     myStage.getStudioProfilers().getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(5));
     myStage.getStudioProfilers().setStage(myStage);
+
+    // TODO remove once we remove the legacy pipeline codebase.
+    for (HttpData httpData : FAKE_HTTP_DATA) {
+      String stackTrace = TestHttpData.fakeStackTrace(httpData.getId());
+      myProfilerService.addFile(TestHttpData.fakeStackTraceId(stackTrace), ByteString.copyFromUtf8(stackTrace));
+    }
   }
 
   @Test
@@ -115,7 +121,7 @@ public class NetworkProfilerStageTest {
     assertThat(data.getConnectionEndTimeUs()).isEqualTo(expectedData.getConnectionEndTimeUs());
     assertThat(data.getMethod()).isEqualTo(expectedData.getMethod());
     assertThat(data.getUrl()).isEqualTo(expectedData.getUrl());
-    assertThat(data.getTraceId()).isEqualTo(expectedData.getTraceId());
+    assertThat(data.getTrace()).isEqualTo(expectedData.getTrace());
     assertThat(data.getRequestPayloadId()).isEqualTo(expectedData.getRequestPayloadId());
     assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
     assertThat(data.getResponseHeader().getField("connId")).isEqualTo(expectedData.getResponseHeader().getField("connId"));
@@ -421,12 +427,8 @@ public class NetworkProfilerStageTest {
   @Test
   public void codeNavigationUnexpandsProfiler() {
     HttpData data = FAKE_HTTP_DATA.get(0);
-
-    myProfilerService
-      .addFile(TestHttpData.fakeStackTraceId(data.getId()), ByteString.copyFromUtf8(TestHttpData.fakeStackTrace(data.getId())));
-
-    StackTrace stackTrace = new StackTrace(myStage.getConnectionsModel(), data);
-    assertThat(stackTrace.getTrace()).isEqualTo(TestHttpData.fakeStackTrace(data.getId()));
+    StackTrace stackTrace = new StackTrace(data);
+    assertThat(stackTrace.getTrace()).isEqualTo(data.getTrace());
     assertThat(stackTrace.getCodeLocations()).hasSize(2);
     myStage.getStackTraceModel().setStackFrames(stackTrace.getTrace());
 

@@ -61,7 +61,7 @@ final class CallStackTabContent extends TabContent {
   @Override
   public void populateFor(@Nullable HttpData data) {
     if (data != null) {
-      StackTrace stackTrace = new StackTrace(myConnectionsModel, data);
+      StackTrace stackTrace = new StackTrace(data);
       myStackTraceView.getModel().setStackFrames(ThreadId.INVALID_THREAD_ID, stackTrace.getCodeLocations());
     }
     else {

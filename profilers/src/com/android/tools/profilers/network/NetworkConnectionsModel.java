@@ -37,8 +37,7 @@ public interface NetworkConnectionsModel {
   List<HttpData> getData(@NotNull Range timeCurrentRangeUs);
 
   /**
-   * Returns the byte string associated with the given {@code id}. For example, this is used for
-   * network request/response payloads and stack traces.
+   * Returns the byte string associated with the given {@code id}. This is used for network request/response payloads.
    * <p>
    * If there is no such content associated with the data, or if it can't be fetched for any
    * reason, {@link ByteString#EMPTY} will be returned.

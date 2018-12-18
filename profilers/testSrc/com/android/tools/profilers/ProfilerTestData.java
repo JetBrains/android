@@ -66,7 +66,8 @@ public class ProfilerTestData {
         Common.Event.newBuilder().setGroupId(connectionId).setTimestamp(requestStartNs).setKind(Common.Event.Kind.NETWORK_HTTP_CONNECTION)
           .setNetworkHttpConnection(Network.NetworkHttpConnectionData.newBuilder().setHttpRequestStarted(
             Network.NetworkHttpConnectionData.HttpRequestStarted.newBuilder()
-              .setUrl(data.getUrl()).setMethod(data.getMethod()).setFields(data.getRequestHeader().getRawFields()))));
+              .setUrl(data.getUrl()).setMethod(data.getMethod()).setFields(data.getRequestHeader().getRawFields())
+              .setTrace(data.getTrace()))));
       if (requestCompleteNs > 0) {
         builder.addEvents(Common.Event.newBuilder().setGroupId(connectionId).setTimestamp(requestCompleteNs)
                             .setKind(Common.Event.Kind.NETWORK_HTTP_CONNECTION)

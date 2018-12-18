@@ -47,7 +47,7 @@ public class HttpData {
   private final long myConnectionEndTimeUs;
   @NotNull private final String myUrl;
   @NotNull private final String myMethod;
-  @NotNull private final String myTraceId;
+  @NotNull private final String myTrace;
   @NotNull private final List<JavaThread> myThreads;
 
   @NotNull private final RequestHeader myRequestHeader;
@@ -66,7 +66,7 @@ public class HttpData {
     myConnectionEndTimeUs = builder.myConnectionEndTimeUs;
     myUrl = builder.myUrl;
     myMethod = builder.myMethod;
-    myTraceId = builder.myTraceId;
+    myTrace = builder.myTrace;
     myThreads = builder.myThreads;
 
     myResponsePayloadSize = builder.myResponsePayloadSize;
@@ -112,7 +112,7 @@ public class HttpData {
   }
 
   @NotNull
-  public String getTraceId() { return myTraceId; }
+  public String getTrace() { return myTrace; }
 
   /**
    * Threads that access a connection. The first thread is the thread that creates the connection.
@@ -421,7 +421,7 @@ public class HttpData {
     private String myRequestPayloadId = "";
     private int myResponsePayloadSize;
 
-    private String myTraceId = "";
+    private String myTrace = "";
     private List<JavaThread> myThreads = new ArrayList<>();
 
     /**
@@ -464,7 +464,7 @@ public class HttpData {
            template.getJavaThreads());
       setUrl(template.getUrl());
       setMethod(template.getMethod());
-      setTraceId(template.getTraceId());
+      setTrace(template.getTrace());
     }
 
     @NotNull
@@ -480,8 +480,8 @@ public class HttpData {
     }
 
     @NotNull
-    public Builder setTraceId(@NotNull String traceId) {
-      myTraceId = traceId;
+    public Builder setTrace(@NotNull String trace) {
+      myTrace = trace;
       return this;
     }
 
