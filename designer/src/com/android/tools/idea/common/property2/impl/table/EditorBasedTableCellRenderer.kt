@@ -59,8 +59,8 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val (model, editor) = componentCache[key] ?: createEditor(key, property, column, depth, table.gridLineColor)
     model.property = property
     if (isSelected && hasFocus) {
-      editor.foreground = UIUtil.getTreeSelectionForeground()
-      editor.background = UIUtil.getTreeSelectionBackground()
+      editor.foreground = UIUtil.getTreeSelectionForeground(true)
+      editor.background = UIUtil.getTreeSelectionBackground(true)
     }
     else {
       editor.foreground = table.foregroundColor

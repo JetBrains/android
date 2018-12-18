@@ -53,8 +53,8 @@ class DefaultNameTableCellRenderer : SimpleColoredComponent(), PTableCellRendere
       indent += iconWidth + minSpacing
     }
     if (isSelected && hasFocus) {
-      foreground = UIUtil.getTreeSelectionForeground()
-      background = UIUtil.getTreeSelectionBackground()
+      foreground = UIUtil.getTreeSelectionForeground(true)
+      background = UIUtil.getTreeSelectionBackground(true)
     }
     else {
       foreground = table.foregroundColor
