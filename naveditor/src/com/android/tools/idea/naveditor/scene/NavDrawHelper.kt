@@ -80,9 +80,9 @@ val HEADER_HEIGHT = HEADER_ICON_SIZE + HEADER_PADDING
 @NavCoordinate
 val HEADER_TEXT_HEIGHT = HEADER_ICON_SIZE - 2 * HEADER_TEXT_PADDING
 
-fun regularFont(context: SceneContext, style: Int): Font {
-  val size = context.getSwingDimension(DEFAULT_FONT_SIZE)
-  return Font(DEFAULT_FONT_NAME, style, size)
+fun regularFont(scale: Float, style: Int): Font {
+  val size = scale * DEFAULT_FONT_SIZE
+  return Font(DEFAULT_FONT_NAME, style, size.toInt())
 }
 
 fun scaledFont(context: SceneContext, style: Int): Font {

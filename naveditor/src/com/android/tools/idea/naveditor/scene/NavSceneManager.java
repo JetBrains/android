@@ -74,8 +74,8 @@ import org.jetbrains.annotations.Nullable;
 public class NavSceneManager extends SceneManager {
   @NavCoordinate private static final int SCREEN_LONG = JBUI.scale(256);
 
-  @NavCoordinate private static final int SUBNAV_WIDTH = JBUI.scale(140);
-  @NavCoordinate private static final int SUBNAV_HEIGHT = JBUI.scale(38);
+  @NavCoordinate public static final int SUBNAV_WIDTH = JBUI.scale(140);
+  @NavCoordinate public static final int SUBNAV_HEIGHT = JBUI.scale(38);
 
   @SwingCoordinate private static final int PAN_LIMIT = JBUI.scale(150);
   @NavCoordinate private static final int BOUNDING_BOX_PADDING = JBUI.scale(100);
