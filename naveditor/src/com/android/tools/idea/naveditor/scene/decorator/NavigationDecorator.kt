@@ -22,27 +22,13 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
-import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
-import com.android.tools.idea.common.scene.draw.DrawTruncatedText
-import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.model.effectiveDestination
 import com.android.tools.idea.naveditor.model.getEffectiveSource
 import com.android.tools.idea.naveditor.model.includeFileName
 import com.android.tools.idea.naveditor.model.isAction
-import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
-import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
-import com.android.tools.idea.naveditor.scene.convertToRoundRect
+import com.android.tools.idea.naveditor.scene.draw.DrawNestedGraph
 import com.android.tools.idea.naveditor.scene.flatten
-import com.android.tools.idea.naveditor.scene.regularFont
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.intellij.util.ui.JBUI
-import java.awt.Font
-
-
-// Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
-@NavCoordinate
-private val NAVIGATION_ARC_SIZE = JBUI.scale(12f)
 
 /**
  * [SceneDecorator] for the whole of a navigation flow (that is, the root component).
@@ -57,15 +43,13 @@ object NavigationDecorator : NavBaseDecorator() {
     val sceneView = sceneContext.surface?.currentSceneView ?: return
 
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
-    @SwingCoordinate val borderRectangle = convertToRoundRect(sceneView, drawRectangle, NAVIGATION_ARC_SIZE)
-    list.add(DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, borderRectangle, sceneContext.colorSet.componentBackground))
-    list.add(DrawRoundRectangle(DRAW_FRAME_LEVEL, borderRectangle, frameColor(sceneContext, component), frameThickness(component)))
-
+    val scale = sceneContext.scale.toFloat()
+    val frameColor = frameColor(sceneContext, component)
+    val frameThickness = frameThickness(component)
     val text = component.nlComponent.includeFileName ?: "Nested Graph"
+    val textColor = textColor(sceneContext, component)
 
-    val font = regularFont(sceneContext, Font.BOLD)
-    list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, text, drawRectangle,
-                               textColor(sceneContext, component), font, true))
+    list.add(DrawNestedGraph(drawRectangle, scale, frameColor, frameThickness, text, textColor))
   }
 
   override fun buildListChildren(list: DisplayList,
