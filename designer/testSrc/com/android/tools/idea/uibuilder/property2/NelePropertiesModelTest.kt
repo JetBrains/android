@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 
 class NelePropertiesModelTest: LayoutTestCase() {
@@ -149,6 +150,34 @@ class NelePropertiesModelTest: LayoutTestCase() {
     assertThat(model.provideDefaultValue(property)?.value).isEqualTo("?attr/textAppearanceSmall")
   }
 
+  fun testPropertyValuesChangesAfterRendering() {
+    // setup
+    @Suppress("UNCHECKED_CAST")
+    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NelePropertyItem>
+    val model = createModel()
+    val nlModel = createNlModel(TEXT_VIEW)
+    val textView = nlModel.find(TEXT_VIEW)!!
+    val view = nlModel.surface.currentSceneView!!
+    val manager = view.sceneManager as SyncLayoutlibSceneManager
+    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", model, null, listOf(textView))
+    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
+    model.surface = nlModel.surface
+    model.addListener(listener)
+    waitUntilEventsProcessed(model)
+    assertThat(model.provideDefaultValue(property)?.value).isEqualTo("?attr/textAppearanceSmall")
+
+    // Value changed should not be reported if the default values are unchanged
+    manager.fireRenderCompleted()
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener, never()).propertyValuesChanged(model)
+
+    // Value changed notification is expected since the default values have changed
+    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
+    manager.fireRenderCompleted()
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener).propertyValuesChanged(model)
+  }
+
   fun testListenersAreConcurrentModificationSafe() {
     // Make sure that ConcurrentModificationException is NOT generated from the code below:
     val model = createModel()
@@ -161,20 +190,20 @@ class NelePropertiesModelTest: LayoutTestCase() {
 
   private fun createNlModel(tag: String): SyncNlModel {
     val builder = model(
-        "linear.xml",
-        component(SdkConstants.LINEAR_LAYOUT)
-          .withBounds(0, 0, 1000, 1500)
-          .id("@id/linear")
-          .matchParentWidth()
-          .matchParentHeight()
-          .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_CONTEXT, "com.example.MyActivity")
-          .children(
-              component(tag)
-                .withBounds(100, 100, 100, 100)
-                .id("@id/$tag")
-                .width("wrap_content")
-                .height("wrap_content")
-          )
+      "linear.xml",
+      component(SdkConstants.LINEAR_LAYOUT)
+        .withBounds(0, 0, 1000, 1500)
+        .id("@id/linear")
+        .matchParentWidth()
+        .matchParentHeight()
+        .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_CONTEXT, "com.example.MyActivity")
+        .children(
+          component(tag)
+            .withBounds(100, 100, 100, 100)
+            .id("@id/$tag")
+            .width("wrap_content")
+            .height("wrap_content")
+        )
     )
     return builder.build()
   }
