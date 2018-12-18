@@ -25,6 +25,7 @@ import java.awt.Color;
 /**
  * Default color set for the "normal" UI mode
  */
+@SuppressWarnings("UseJBColor")
 public class AndroidColorSet extends ColorSet {
 
     public AndroidColorSet() {
@@ -51,7 +52,7 @@ public class AndroidColorSet extends ColorSet {
 
         // Subdued colors
 
-        mSubduedConstraints = Color.blue;
+        mSubduedConstraints = ColorTheme.updateBrightness(mConstraints, 1.2f);
         mSubduedBackground = Color.white;
         mSubduedText = Color.black;
         mSubduedFrames = Color.black;
