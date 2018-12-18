@@ -27,7 +27,6 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandEvent;
@@ -164,5 +163,9 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   @Override
   public ViewEditor getViewEditor() {
     return myCustomViewEditor != null ? myCustomViewEditor : super.getViewEditor();
+  }
+
+  public void fireRenderCompleted() {
+    fireRenderListeners();
   }
 }

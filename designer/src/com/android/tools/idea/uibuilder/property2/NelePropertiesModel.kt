@@ -31,8 +31,10 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
+import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.AccessoryPanelListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -66,6 +68,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private val modelListener = NlModelListener()
   private val accessoryPanelListener = AccessoryPanelListener { panel: AccessoryPanelInterface? -> usePanel(panel) }
   private val accessorySelectionListener = AccessorySelectionListener { panel, selection -> handlePanelSelectionUpdate(panel, selection) }
+  private val renderListener = RenderListener { handleRenderingCompleted() }
   private var activeSurface: DesignSurface? = null
   private var activeSceneView: SceneView? = null
   private var activePanel: AccessoryPanelInterface? = null
@@ -188,7 +191,9 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     if (surface != activeSurface) {
       updateDesignSurface(activeSurface, surface)
       activeSurface = surface
+      (activeSceneView as? ScreenView)?.sceneManager?.removeRenderListener(renderListener)
       activeSceneView = surface?.currentSceneView
+      (activeSceneView as? ScreenView)?.sceneManager?.addRenderListener(renderListener)
     }
     if (surface != null && wantComponentSelectionUpdate(surface, activeSurface, activePanel)) {
       scheduleSelectionUpdate(surface, activeSceneView?.selectionModel?.selection ?: emptyList())
@@ -282,6 +287,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     }
     val newProperties = provider.getProperties(this, accessory, components)
     lastUpdateCompleted = false
+    defaultValueProvider?.clearLookups()
 
     UIUtil.invokeLaterIfNeeded {
       try {
@@ -296,6 +302,12 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       }
     }
     return true
+  }
+
+  private fun handleRenderingCompleted() {
+    if (defaultValueProvider?.hasDefaultValuesChanged() == true) {
+      ApplicationManager.getApplication().invokeLater { firePropertyValueChange() }
+    }
   }
 
   @VisibleForTesting
