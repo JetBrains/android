@@ -30,7 +30,6 @@ iml_module(
         "//tools/idea/.idea/libraries:jsr305",
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
-        "//tools/idea/.idea/libraries:layoutlib",
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/java/java-psi-impl:intellij.java.psi.impl[module]",
         "//tools/idea/java/java-indexing-api:intellij.java.indexing[module]",
@@ -48,6 +47,7 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
     ],
 )
 
@@ -110,7 +110,6 @@ iml_module(
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module, test]",
-        "//tools/idea/.idea/libraries:layoutlib[test]",
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
@@ -137,5 +136,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
     ],
 )
