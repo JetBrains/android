@@ -168,6 +168,7 @@ class VariablesTable private constructor(
     columnSelectionAllowed = false
     setCellSelectionEnabled(true)
     setRowHeight(calculateMinRowHeight())
+    selectionModel.setSelectionInterval(0, 0)
   }
 
   private inline fun <reified T: VariablesBaseNode> getSelectedNodes() =
