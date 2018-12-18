@@ -45,12 +45,12 @@ class DeploymentErrorHandler {
   @Nullable
   private final NotificationListener myNotificationListener;
   @NotNull
-  private final DeployerException exception;
+  private final DeployerException myException;
 
   DeploymentErrorHandler(@NotNull String description, @NotNull DeployerException exception) {
     myFormattedErrorString = formatDeploymentErrors(description, exception);
     myNotificationListener = new DeploymentErrorNotificationListener();
-    this.exception = exception;
+    myException = exception;
   }
 
   @NotNull
@@ -83,7 +83,7 @@ class DeploymentErrorHandler {
   }
 
   public String getErrorId() {
-    return exception.getError().toString();
+    return myException.getId();
   }
 
   private static class DeploymentErrorNotificationListener implements NotificationListener {
