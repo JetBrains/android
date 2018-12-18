@@ -143,11 +143,9 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     if (optionalConnectedDevice.isPresent()) {
       Instant selectionTime = project.getUserData(SELECTION_TIME);
-      Device connectedDevice = optionalConnectedDevice.get();
+      assert selectionTime != null;
 
-      if (selectionTime == null) {
-        return connectedDevice;
-      }
+      Device connectedDevice = optionalConnectedDevice.get();
 
       Instant connectionTime = connectedDevice.getConnectionTime();
       assert connectionTime != null;

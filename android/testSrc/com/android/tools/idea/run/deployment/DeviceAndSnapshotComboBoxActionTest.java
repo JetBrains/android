@@ -117,31 +117,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
-  public void getSelectedDeviceConnectedDeviceIsPresent() {
-    Device.Builder builder = new VirtualDevice.Builder()
-      .setName(Devices.PIXEL_2_XL_API_28)
-      .setKey("Pixel_2_XL_API_28")
-      .setSnapshots(ImmutableList.of());
-
-    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(builder.build()));
-
-    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
-    action.update(myEvent);
-    action.setSelectedDevice(myProject, builder.build());
-
-    Device physicalDevice = new PhysicalDevice.Builder()
-      .setName("LGE Nexus 5X")
-      .setKey("00fff9d2279fa601")
-      .build();
-
-    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Arrays.asList(builder.build(), physicalDevice));
-
-    action.update(myEvent);
-
-    assertEquals(physicalDevice, action.getSelectedDevice(myProject));
-  }
-
-  @Test
   public void getSelectedDeviceSelectionTimeIsBeforeConnectionTime() {
     Device.Builder builder = new VirtualDevice.Builder()
       .setName(Devices.PIXEL_2_XL_API_28)
