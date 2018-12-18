@@ -628,11 +628,7 @@ public final class ResourceRepositoryManager implements Disposable {
   @NotNull
   public Collection<VirtualFile> getAllResourceDirs() {
     // TODO(b/76128326): manage the set of directories here.
-    // TODO: Fix excessive locking.
-    synchronized (APP_RESOURCES_LOCK) {
-      getAppResources();
-      return myAppResources.getAllResourceDirs();
-    }
+    return ((AppResourceRepository)getAppResources()).getAllResourceDirs();
   }
 
   /**
