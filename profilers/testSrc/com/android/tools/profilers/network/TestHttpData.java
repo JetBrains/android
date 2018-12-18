@@ -52,8 +52,9 @@ public final class TestHttpData {
     return (int)(id * 100);
   }
 
-  public static String fakeStackTraceId(long id) {
-    return "stackTraceId" + id;
+  // TODO remove once we remove the legacy pipeline codebase.
+  public static String fakeStackTraceId(String trace) {
+    return Integer.toString(trace.hashCode());
   }
 
   public static String fakeStackTrace(long id) {
@@ -139,7 +140,7 @@ public final class TestHttpData {
     HttpData temp = builder.build();
     long id = temp.getId();
 
-    builder.setTraceId(fakeStackTraceId(id));
+    builder.setTrace(fakeStackTrace(id));
     builder.setUrl(fakeUrl(id));
     if (temp.getRequestCompleteTimeUs() != 0) {
       builder.setRequestPayloadId(fakeRequestPayloadId(id));

@@ -128,6 +128,10 @@ public class RpcNetworkConnectionsModelTest {
       long id = FAKE_DATA.get(i).getId();
       myProfilerService.addFile(FAKE_REQUEST_PAYLOAD_ID + id, ByteString.copyFromUtf8("Request Body " + i));
       myProfilerService.addFile(FAKE_RESPONSE_PAYLOAD_ID + id, ByteString.copyFromUtf8("Response Body " + i));
+
+      // TODO remove once we remove the legacy pipeline codebase.
+      String stackTrace = TestHttpData.fakeStackTrace(id);
+      myProfilerService.addFile(TestHttpData.fakeStackTraceId(stackTrace), ByteString.copyFromUtf8(stackTrace));
     }
   }
 
@@ -185,10 +189,7 @@ public class RpcNetworkConnectionsModelTest {
       assertThat(data.getConnectionEndTimeUs()).isEqualTo(expectedData.getConnectionEndTimeUs());
       assertThat(data.getMethod()).isEqualTo(expectedData.getMethod());
       assertThat(data.getUrl()).isEqualTo(expectedData.getUrl());
-      // TODO add back stack trace support in new pipeline.
-      if (!myUseNewEventPipeline){
-        assertThat(data.getTraceId()).isEqualTo(expectedData.getTraceId());
-      }
+      assertThat(data.getTrace()).isEqualTo(expectedData.getTrace());
       assertThat(data.getRequestPayloadId()).isEqualTo(expectedData.getRequestPayloadId());
       assertThat(data.getResponsePayloadId()).isEqualTo(expectedData.getResponsePayloadId());
       assertThat(data.getResponsePayloadSize()).isEqualTo(expectedData.getResponsePayloadSize());

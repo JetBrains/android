@@ -175,7 +175,6 @@ public class HttpDataTest {
       responseStartTime = 1000,
       responseCompleteTime = 10000,
       connectionEndTime = 100000;
-    String traceId = "traceId";
     String trace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
     String requestPayloadId = "requestPayloadId";
     String responsePayloadId = "responsePayloadId";
@@ -183,7 +182,6 @@ public class HttpDataTest {
     String responsePayload = "responsePayload";
 
     FakeNetworkConnectionsModel connectionsModel = new FakeNetworkConnectionsModel();
-    connectionsModel.addBytes(traceId, ByteString.copyFromUtf8(trace));
     connectionsModel.addBytes(requestPayloadId, ByteString.copyFromUtf8(requestPayload));
     connectionsModel.addBytes(responsePayloadId, ByteString.copyFromUtf8(responsePayload));
 
@@ -194,7 +192,7 @@ public class HttpDataTest {
         .setMethod("method")
         .setRequestPayloadId(requestPayloadId)
         .setResponsePayloadId(responsePayloadId)
-        .setTraceId(traceId)
+        .setTrace(trace)
         .setUrl("url");
 
     HttpData data = builder.build();
@@ -210,12 +208,10 @@ public class HttpDataTest {
     assertThat(data.getMethod()).isEqualTo("method");
     assertThat(data.getRequestPayloadId()).isEqualTo(requestPayloadId);
     assertThat(data.getResponsePayloadId()).isEqualTo(responsePayloadId);
-    assertThat(data.getTraceId()).isEqualTo(traceId);
+    assertThat(data.getTrace()).isEqualTo(trace);
     assertThat(data.getUrl()).isEqualTo("url");
     assertThat(data.getJavaThreads().get(0).getId()).isEqualTo(TestHttpData.FAKE_THREAD.getId());
     assertThat(data.getJavaThreads().get(0).getName()).isEqualTo(TestHttpData.FAKE_THREAD.getName());
-
-    assertThat(new StackTrace(connectionsModel, data).getTrace()).isEqualTo(trace);
 
     assertThat(Payload.newRequestPayload(connectionsModel, data).getBytes().toStringUtf8()).isEqualTo(requestPayload);
     assertThat(Payload.newResponsePayload(connectionsModel, data).getBytes().toStringUtf8()).isEqualTo(responsePayload);
