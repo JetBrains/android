@@ -204,7 +204,7 @@ public class ManualLayoutAlgorithm implements NavSceneLayoutAlgorithm {
     }
   }
 
-  @State(name = "navEditor-manualLayoutAlgorithm", storages = @com.intellij.openapi.components.Storage(file = "navEditor.xml"))
+  @State(name = "navEditor-manualLayoutAlgorithm", storages = @com.intellij.openapi.components.Storage("navEditor.xml"))
   private static class Storage implements PersistentStateComponent<ManualLayoutAlgorithm.LayoutPositions> {
     private LayoutPositions myState;
 
