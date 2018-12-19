@@ -39,7 +39,7 @@ public class CodeSwapAction extends BaseAction {
     new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta shift R" : "control alt F10"), null);
 
   public CodeSwapAction() {
-    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.INSTANT_RUN_CODE_SWAP, SHORTCUT);
+    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_CODE_SWAP, SHORTCUT);
   }
 }
 
