@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
+import com.android.tools.idea.gradle.structure.model.helpers.formatAny
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.android.tools.idea.projectsystem.transform
@@ -137,6 +138,7 @@ class PsVariable(
       getter = { asAny() },
       setter = { setValue(it) },
       parser = ::parseAny,
+      formatter = ::formatAny,
       knownValuesGetter = ::variableKnownValues,
       variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
     )

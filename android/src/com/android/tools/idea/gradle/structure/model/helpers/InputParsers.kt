@@ -32,8 +32,7 @@ fun parseAny(text: String): Annotated<ParsedValue<Any>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else
-  // TODO(b/117824185) : Uncomment when BigDecimal support fixed.
-    ParsedValue.Set.Parsed(text.toIntOrNull() ?: /* text.toBigDecimalOrNull() ?: */ text.toBooleanOrNull() ?: text,
+    ParsedValue.Set.Parsed(text.toIntOrNull() ?: text.toBigDecimalOrNull() ?: text.toBooleanOrNull() ?: text,
                            DslText.Literal).annotated()
 
 fun parseString(text: String): Annotated<ParsedValue<String>> =
@@ -124,6 +123,14 @@ fun parseReferenceOnly(text: String): Annotated<ParsedValue<Unit>> =
       .annotateWithError("A signing config reference should be in a form of '\$configName'")
 
 fun formatLanguageLevel(value: LanguageLevel): String = value.toJavaVersion().toString()
+
+fun formatAny(value: Any): String {
+  if (value !is String) return value.toString()
+  val text = value.toString()
+  return if (text.toIntOrNull() ?: text.toBigDecimalOrNull() ?: text.toBooleanOrNull() != null)
+    "\"$text\""
+  else text
+}
 
 fun formatUnit(value: Unit): String = ""
 
