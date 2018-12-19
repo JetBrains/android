@@ -415,10 +415,6 @@ public class DeviceMenuAction extends DropDownAction {
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
-      List<Device> devices = configuration.getConfigurationManager().getDevices();
-      if (devices.stream().noneMatch(d -> d.getId().equals(myAvdDevice.getId()))) {
-        devices.add(myAvdDevice);
-      }
       configuration.setEffectiveDevice(myAvdDevice, myAvdDevice.getDefaultState());
     }
   }
