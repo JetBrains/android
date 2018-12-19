@@ -22,14 +22,17 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.source.tree.java.JavaFileElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.util.ui.UIUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
@@ -216,6 +219,83 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     // TODO: Check that editing a partial URL doesn't re-render
     // Check module dependency triggers!
     // TODO: Test that remove and replace editing also works as expected
+  }
+
+  public void testNotifyOnRename() {
+
+    // Setup sample project: a strings file, and a couple of layout file
+    @Language("XML") String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                  "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                  "    android:layout_width=\"match_parent\"\n" +
+                                  "    android:layout_height=\"match_parent\">\n" +
+                                  "    <!-- My comment -->\n" +
+                                  "    <TextView\n" +
+                                  "        android:layout_width=\"match_parent\"\n" +
+                                  "        android:layout_height=\"match_parent\"\n" +
+                                  "        android:text=\"@string/hello\" />\n" +
+                                  "</FrameLayout>";
+    final XmlFile layout1 = (XmlFile)myFixture.addFileToProject("res/layout/my_layout1.xml", xml);
+    VirtualFile resourceDir = layout1.getParent().getParent().getVirtualFile();
+    assertNotNull(resourceDir);
+
+
+    final Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout1.getVirtualFile());
+    final ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
+
+    // Listener 1: Listens for changes in layout 1
+    final Ref<Boolean> called1 = new Ref<>(false);
+    final Ref<Set<Reason>> calledValue1 = new Ref<>();
+    ResourceChangeListener listener1 = reason -> {
+      called1.set(true);
+      calledValue1.set(reason);
+    };
+
+    // Listener 2: Only listens for general changes in the module
+    final Ref<Boolean> called2 = new Ref<>(false);
+    final Ref<Set<Reason>> calledValue2 = new Ref<>();
+    ResourceChangeListener listener2 = reason -> {
+      called2.set(true);
+      calledValue2.set(reason);
+    };
+    manager.addListener(listener1, myFacet, layout1.getVirtualFile(), configuration1);
+    manager.addListener(listener2, myFacet, null, null);
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> new RenameDialog(getProject(), layout1, null, null).performRename("newLayout.xml"));
+    ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
+  }
+
+  public void testNotNotifiedOnRenameNonResourceFile() {
+
+    // Setup sample project: a strings file, and a couple of layout file
+    @Language("JAVA") String java = "class Hello {}";
+    final PsiFile javeFile = myFixture.addFileToProject("src/hello.java", java);
+    VirtualFile resourceDir = javeFile.getParent().getParent().getVirtualFile();
+    assertNotNull(resourceDir);
+
+
+    final Configuration configuration1 = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(javeFile.getVirtualFile());
+    final ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
+
+    // Listener 1: Listens for changes in layout 1
+    final Ref<Boolean> called1 = new Ref<>(false);
+    final Ref<Set<Reason>> calledValue1 = new Ref<>();
+    ResourceChangeListener listener1 = reason -> {
+      called1.set(true);
+      calledValue1.set(reason);
+    };
+
+    // Listener 2: Only listens for general changes in the module
+    final Ref<Boolean> called2 = new Ref<>(false);
+    final Ref<Set<Reason>> calledValue2 = new Ref<>();
+    ResourceChangeListener listener2 = reason -> {
+      called2.set(true);
+      calledValue2.set(reason);
+    };
+    manager.addListener(listener1, myFacet, javeFile.getVirtualFile(), configuration1);
+    manager.addListener(listener2, myFacet, null, null);
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> new RenameDialog(getProject(), javeFile, null, null).performRename("newFile.java"));
+    ensureNotCalled(called1, called2);
   }
 
   private static void ensureCalled(final Ref<Boolean> called1,

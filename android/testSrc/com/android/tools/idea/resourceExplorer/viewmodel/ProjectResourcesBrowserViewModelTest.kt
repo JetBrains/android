@@ -25,12 +25,16 @@ import com.android.tools.idea.resourceExplorer.getTestDataDirectory
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.psi.PsiManager
+import com.intellij.refactoring.rename.RenameDialog
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndGet
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
@@ -116,6 +120,41 @@ class ProjectResourcesBrowserViewModelTest {
     Truth.assertThat(values.flatMap { it.designAssets }
                        .map { it.resourceItem.resourceValue?.value })
       .containsExactly("#3F51B5", "#303F9F", "#9dff00")
+  }
+
+  @Test
+  fun updateOnFileNameChanged() {
+    projectRule.fixture.copyDirectoryToProject("res/", "res/")
+    val viewModel = createViewModel(projectRule.module)
+    val resourceChangedLatch = CountDownLatch(1)
+    viewModel.resourceTypeIndex = viewModel.resourceTypes.indexOf(ResourceType.DRAWABLE)
+    val values = viewModel.getResourcesLists().get()[0].assets
+    Truth.assertThat(values).isNotNull()
+    Truth.assertThat(values
+                       .flatMap { it.designAssets }
+                       .mapNotNull { it.resourceItem.resourceValue?.value }
+                       .map {
+                         FileUtil.getRelativePath(projectRule.fixture.tempDirPath, it, '/')
+                       })
+      .containsExactly("res/drawable/png.png", "res/drawable/vector_drawable.xml")
+
+    viewModel.resourceChangedCallback = {
+      resourceChangedLatch.countDown()
+    }
+
+    val file = projectRule.fixture.findFileInTempDir("res/drawable/vector_drawable.xml")!!
+    val psiFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(file)!! }
+    runInEdtAndGet { RenameDialog(projectRule.project, psiFile, null, null).performRename("newName.xml") }
+    Truth.assertWithMessage("resourceChangedCallback was called").that(resourceChangedLatch.await(1, TimeUnit.SECONDS)).isTrue()
+
+    val newValues = viewModel.getResourcesLists().get()[0].assets
+    Truth.assertThat(newValues
+                       .flatMap { it.designAssets }
+                       .mapNotNull { it.resourceItem.resourceValue?.value }
+                       .map {
+                         FileUtil.getRelativePath(projectRule.fixture.tempDirPath, it, '/')
+                       })
+      .containsExactly("res/drawable/png.png", "res/drawable/newName.xml")
   }
 
   private fun createViewModel(module: Module): ProjectResourcesBrowserViewModel {
