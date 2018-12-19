@@ -34,6 +34,7 @@ class TextFieldPropertyEditorModelTest {
 
   private fun createModel(): Pair<TextFieldPropertyEditorModel, ValueChangedListener> {
     val property = TestPropertyItem(ANDROID_URI, "text", "hello")
+    property.defaultValue = "from"
     return createModel(property)
   }
 
@@ -42,6 +43,13 @@ class TextFieldPropertyEditorModelTest {
     val listener = mock(ValueChangedListener::class.java)
     model.addListener(listener)
     return Pair(model, listener)
+  }
+
+  @Test
+  fun testValue() {
+    val (model, _) = createModel()
+    assertThat(model.value).isEqualTo("hello")
+    assertThat(model.placeHolderValue).isEqualTo("from")
   }
 
   @Test

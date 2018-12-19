@@ -45,6 +45,13 @@ interface PropertyItem : PTableItem {
   override var value: String?
 
   /**
+   * The default value
+   *
+   * Default value to display when [value] is null.
+   */
+  val defaultValue: String?
+
+  /**
    * If [value] is a reference then resolve the reference, otherwise this is the same as [value].
    */
   val resolvedValue: String?

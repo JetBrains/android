@@ -45,6 +45,8 @@ open class TestPropertyItem(
       updateCount++
     }
 
+  override var defaultValue: String? = null
+
   override var resolvedValue: String? = initialValue
 
   var updateCount = 0
