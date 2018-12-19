@@ -92,12 +92,11 @@ internal data class Template(private val myTemplateName: String, val myTemplate:
       reader.use {
         val writer = StringWriter()
         val buffer = CharArray(1024)
-        var count: Int
-        do {
-          count = it.read(buffer)
+        var count = it.read(buffer)
+        while (count != -1) {
           writer.write(buffer, 0, count)
+          count = it.read(buffer)
         }
-        while (count != -1)
         val content = writer.toString().trim()
         return Template(name, content, tags)
       }
