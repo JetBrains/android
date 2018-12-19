@@ -14,7 +14,6 @@ public class AndroidIcons {
   }
 
   public static final Icon Android = load("/icons/android.svg"); // 16x16
-  public static final Icon AndroidModule = load("/icons/androidModule.png"); // 16x16
 
   public static final Icon AvdManager = load("/icons/avd_manager.png"); // 16x16
   public static final Icon SdkManager = load("/icons/sdk_manager.png"); // 16x16

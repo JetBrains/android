@@ -8,7 +8,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.LazyUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
   public AndroidRunConfigurationType() {
     super("AndroidRunConfigurationType", AndroidBundle.message("android.run.configuration.type.name"), AndroidBundle.message("android.run.configuration.type.description"),
-          LazyUtil.create(() -> AndroidIcons.AndroidModule));
+          LazyUtil.create(() -> StudioIcons.Shell.Filetree.ANDROID_PROJECT));
 
     addFactory(new AndroidRunConfigurationFactory(this));
   }
