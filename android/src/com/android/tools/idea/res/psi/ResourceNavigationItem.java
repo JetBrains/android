@@ -17,6 +17,7 @@ package com.android.tools.idea.res.psi;
 
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.utils.HashCodes;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.project.Project;
@@ -92,6 +93,21 @@ public final class ResourceNavigationItem implements NavigationItem {
   public boolean canNavigateToSource() {
     NavigationItem target = getNavigationTarget();
     return target != null && target.canNavigateToSource();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    ResourceNavigationItem item = (ResourceNavigationItem)o;
+    return myResource.equals(item.myResource) &&
+           myFile.equals(item.myFile) &&
+           myProject.equals(item.myProject);
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodes.mix(myResource.hashCode(), myFile.hashCode(), myProject.hashCode());
   }
 
   public static class ResourceItemPresentation implements ItemPresentation {
