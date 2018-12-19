@@ -71,7 +71,8 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
       DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(myDependency)
                                                     .createEditor(myDependency.getParent().getParent(),
                                                                   myDependency.getParent(),
-                                                                  Unit.INSTANCE);
+                                                                  Unit.INSTANCE,
+                                                                  null);
     myEditorComponent = myVersionPropertyEditor.getComponent();
     myRequestedVersion.add(myEditorComponent);
 

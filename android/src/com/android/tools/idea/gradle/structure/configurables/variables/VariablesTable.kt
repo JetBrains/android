@@ -53,6 +53,7 @@ import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
+import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
 import com.intellij.util.ui.AbstractTableCellEditor
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
@@ -170,6 +171,22 @@ class VariablesTable private constructor(
     setRowHeight(calculateMinRowHeight())
     selectionModel.setSelectionInterval(0, 0)
   }
+
+  override fun adapt(treeTableModel: TreeTableModel): TreeTableModelAdapter =
+    object : TreeTableModelAdapter(treeTableModel, tree, this) {
+      override fun fireTableDataChanged() {
+        // have to restore table selection since AbstractDataModel.fireTableDataChanged() clears all selection
+        val selectedColumn = this@VariablesTable.selectedColumn
+        val selectedRow = this@VariablesTable.selectedRow
+        super.fireTableDataChanged()
+        if (selectedRow != -1) {
+          selectionModel.setSelectionInterval(selectedRow, selectedRow)
+        }
+        if (selectedColumns.size != -1) {
+          columnModel.selectionModel.setSelectionInterval(selectedColumn, selectedColumn)
+        }
+      }
+    }
 
   private inline fun <reified T: VariablesBaseNode> getSelectedNodes() =
     selectedRows
@@ -393,68 +410,80 @@ class VariablesTable private constructor(
         else -> throw IllegalStateException()
       }
       val uiProperty = uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor)
-      return uiProperty.createEditor(psProject, null, variable).also { addTabKeySupportTo(it.component) }
+      val enterHandlingProxyCellEditor =
+        object : TableCellEditor by this {
+          override fun stopCellEditing(): Boolean {
+            val editingRow = editingRow
+            val editingColumn = editingColumn
+            return this@VariableCellEditor.stopCellEditing()
+              .also { invokeLater { nextCell(ActionEvent(this, ActionEvent.ACTION_PERFORMED, null), editingRow, editingColumn) } }
+          }
+        }
+      val editor = uiProperty.createEditor(psProject, null, variable, enterHandlingProxyCellEditor)
+      addTabKeySupportTo(editor.component)
+      return editor
     }
 
     override fun Annotated<ParsedValue<Any>>.toModelValue(): Any = this
   }
 
+  private fun selectCell(row: Int, column: Int) {
+    this.selectionModel.setSelectionInterval(row, row)
+    this.columnModel.selectionModel.setSelectionInterval(column, column)
+  }
+
+  private fun nextCell(e: ActionEvent) {
+    nextCell(e, editingRow, editingColumn)
+  }
+
+  private fun nextCell(e: ActionEvent, row: Int, col: Int) {
+    val editPosition = row to col
+    TableUtil.stopEditing(this)
+    generateSequence(editPosition) {
+      tree.expandRow(it.first)
+      (if (it.second >= 1) it.first + 1 to 0 else it.first to it.second + 1)
+    }
+      .drop(1)
+      .takeWhile { it.first < tree.rowCount }
+      .firstOrNull { model.isCellEditable(it.first, it.second) }
+      ?.let { (row, column) ->
+        selectionModel.setSelectionInterval(row, row)
+        scrollRectToVisible(this.getCellRect(row, column, true))
+        selectCell(row, column)
+        invokeLater { editCellAt(row, column, e) }
+      }
+  }
+
+  private fun prevCell(e: ActionEvent) {
+    val editPosition = editingRow to editingColumn
+    TableUtil.stopEditing(this)
+    generateSequence(editPosition) {
+      var (nextRow, nextColumn) = if (it.second <= 0) it.first - 1 to 1 else it.first to it.second - 1
+      var totalRows = tree.rowCount
+      while (!tree.isExpanded(nextRow)) {
+        tree.expandRow(nextRow)
+        if (totalRows == tree.rowCount) {
+          break
+        }
+        else {
+          nextRow += tree.rowCount - totalRows
+        }
+        totalRows = tree.rowCount
+      }
+      nextRow to nextColumn
+    }
+      .drop(1)
+      .takeWhile { it.first >= 0 }
+      .firstOrNull { model.isCellEditable(it.first, it.second) }
+      ?.let { (row, column) ->
+        selectionModel.setSelectionInterval(row, row)
+        scrollRectToVisible(this.getCellRect(row, column, true))
+        selectCell(row, column)
+        invokeLater { editCellAt(row, column, e) }
+      }
+  }
+
   private fun addTabKeySupportTo(editor: JComponent) {
-    fun selectCell(row: Int, column: Int) {
-      this.selectionModel.setSelectionInterval(row, row)
-      this.columnModel.selectionModel.setSelectionInterval(column, column)
-    }
-
-    fun nextCell(e: ActionEvent) {
-      if (isEditing) {
-        val editPosition = editingRow to editingColumn
-        TableUtil.stopEditing(this)
-        generateSequence(editPosition) {
-          tree.expandRow(it.first)
-          (if (it.second >= 1) it.first + 1 to 0 else it.first to it.second + 1)
-        }
-          .drop(1)
-          .takeWhile { it.first < tree.rowCount }
-          .firstOrNull { model.isCellEditable(it.first, it.second) }
-          ?.let { (row, column) ->
-            selectionModel.setSelectionInterval(row, row)
-            scrollRectToVisible(this.getCellRect(row, column, true))
-            selectCell(row, column)
-            invokeLater { editCellAt(row, column, e) }
-          }
-      }
-    }
-
-    fun prevCell(e: ActionEvent) {
-      if (isEditing) {
-        val editPosition = editingRow to editingColumn
-        TableUtil.stopEditing(this)
-        generateSequence(editPosition) {
-          var (nextRow, nextColumn) = if (it.second <= 0) it.first - 1 to 1 else it.first to it.second - 1
-          var totalRows = tree.rowCount
-          while (!tree.isExpanded(nextRow)) {
-            tree.expandRow(nextRow)
-            if (totalRows == tree.rowCount) {
-              break
-            }
-            else {
-              nextRow += tree.rowCount - totalRows
-            }
-            totalRows = tree.rowCount
-          }
-          nextRow to nextColumn
-        }
-          .drop(1)
-          .takeWhile { it.first >= 0 }
-          .firstOrNull { model.isCellEditable(it.first, it.second) }
-          ?.let { (row, column) ->
-            selectionModel.setSelectionInterval(row, row)
-            scrollRectToVisible(this.getCellRect(row, column, true))
-            selectCell(row, column)
-            invokeLater { editCellAt(row, column, e) }
-          }
-      }
-    }
     editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("TAB"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     editor.registerKeyboardAction(::prevCell, KeyStroke.getKeyStroke("shift pressed TAB"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     editor.registerKeyboardAction(::nextCell, KeyStroke.getKeyStroke("ENTER"), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
@@ -586,7 +615,7 @@ abstract class BaseVariableNode(znode: ShadowNode, val variable: PsVariable) : V
 class EmptyVariableNode(znode: ShadowNode, private val variablesScope: PsVariablesScope) : VariablesBaseNode(znode), EmptyNamedNode {
   var type: ValueType? = null
     set(value) {
-      field = value;
+      field = value
       setIconFor(value)
     }
 

@@ -24,6 +24,7 @@ import java.awt.TextField
 import javax.swing.JTable
 import javax.swing.table.DefaultTableColumnModel
 import javax.swing.table.DefaultTableModel
+import javax.swing.table.TableCellEditor
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
 
@@ -141,7 +142,7 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
     override fun getCellEditorValue(): Any = lastEditor!!.text
   }
 
-  override fun createNew(property: ModelPropertyT): ModelPropertyEditor<Map<String, ValueT>> =
+  override fun createNew(property: ModelPropertyT, cellEditor: TableCellEditor?): ModelPropertyEditor<Map<String, ValueT>> =
     MapPropertyEditor(property, propertyContext, editor, variablesScope)
 }
 

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.*
 import javax.swing.table.DefaultTableColumnModel
 import javax.swing.table.DefaultTableModel
+import javax.swing.table.TableCellEditor
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
 
@@ -91,7 +92,7 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
 
   override fun getPropertyAt(row: Int) = property.getEditableValues()[row]
 
-  override fun createNew(property: ModelPropertyT): ModelPropertyEditor<List<ValueT>> =
+  override fun createNew(property: ModelPropertyT, cellEditor: TableCellEditor?): ModelPropertyEditor<List<ValueT>> =
     ListPropertyEditor(property, propertyContext, editor, variablesScope)
 }
 

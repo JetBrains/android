@@ -36,6 +36,7 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
+const val VARIABLES_VIEW = "VariablesView"
 /**
  * Configurable defining the Variables panel in the Project Structure Dialog
  */
@@ -57,6 +58,7 @@ class VariablesConfigurable(private val project: Project, private val context: P
         .setRemoveAction { table.deleteSelectedVariables() }
         .setRemoveActionUpdater { table.removeVariableAvailable() }
         .createPanel(), BorderLayout.CENTER)
+    panel.name = VARIABLES_VIEW
     return panel
   }
 

@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui
 
-import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.*
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.*
+import javax.swing.CellEditor
+import javax.swing.table.TableCellEditor
 
 /**
  * A model of the UI for editing the properties of a model of type [ModelT].
@@ -41,12 +42,12 @@ interface PropertyUiModel<in ModelT, out PropertyT : Any> {
   /**
    * Creates a property editor bound to a property of [model] which described by this model.
    */
-  fun createEditor(project: PsProject, module: PsModule?, model: ModelT): ModelPropertyEditor<PropertyT>
+  fun createEditor(project: PsProject, module: PsModule?, model: ModelT, cellEditor: TableCellEditor? = null): ModelPropertyEditor<PropertyT>
 }
 
 typealias
   PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT> =
-  (project: PsProject, module: PsModule?, model: ModelT, ModelPropertyT, PsVariablesScope?) ->
+  (project: PsProject, module: PsModule?, model: ModelT, ModelPropertyT, PsVariablesScope?, cellEditor: TableCellEditor?) ->
   ModelPropertyEditor<PropertyT>
 
 typealias
@@ -75,9 +76,9 @@ class PropertyUiModelImpl<
   private val editorFactory: PropertyEditorFactory<ModelT, ModelPropertyT, PropertyT>
 ) : PropertyUiModel<ModelT, PropertyT> {
   override val propertyDescription: String = property.description
-  override fun createEditor(project: PsProject, module: PsModule?, model: ModelT)
+  override fun createEditor(project: PsProject, module: PsModule?, model: ModelT, cellEditor: TableCellEditor?)
     : ModelPropertyEditor<PropertyT> {
-    return editorFactory(project, module, model, property, module?.variables ?: project.variables)
+    return editorFactory(project, module, model, property, module?.variables ?: project.variables, cellEditor)
   }
 }
 
@@ -94,11 +95,12 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
   module: PsModule?,
   model: ModelT,
   property: ModelPropertyT,
-  variablesScope: PsVariablesScope? = null
+  variablesScope: PsVariablesScope? = null,
+  cellEditor: TableCellEditor?
 ): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
-  return SimplePropertyEditor(boundProperty, boundContext, variablesScope, createDefaultEditorExtensions(project, module))
+  return SimplePropertyEditor(boundProperty, boundContext, variablesScope, createDefaultEditorExtensions(project, module), cellEditor)
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -107,7 +109,8 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ModelT, ValueT>> l
   module: PsModule?,
   model: ModelT,
   property: ModelPropertyT,
-  variablesScope: PsVariablesScope? = null
+  variablesScope: PsVariablesScope? = null,
+  cellEditor: TableCellEditor?
 ): ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
@@ -125,7 +128,8 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ModelT, ValueT>> ma
   module: PsModule?,
   model: ModelT,
   property: ModelPropertyT,
-  variablesScope: PsVariablesScope? = null
+  variablesScope: PsVariablesScope? = null,
+  cellEditor: TableCellEditor?
 ): MapPropertyEditor<ValueT, ModelMapPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
