@@ -592,12 +592,13 @@ public class StudioIcons {
     }
 
     public static class Toolbar {
+      public static final Icon APPLY_ALL_CHANGES = load("/studio/icons/shell/toolbar/apply-all-changes.svg"); // 16x16
+      public static final Icon APPLY_CODE_SWAP = load("/studio/icons/shell/toolbar/apply-code-swap.svg"); // 16x16
       public static final Icon ATTACH_DEBUGGER = load("/studio/icons/shell/toolbar/attach-debugger.svg"); // 16x16
       public static final Icon BUILD = load("/studio/icons/shell/toolbar/build.svg"); // 16x16
       public static final Icon DEBUG = load("/studio/icons/shell/toolbar/debug.svg"); // 16x16
       public static final Icon DEVICE_MANAGER = load("/studio/icons/shell/toolbar/device-manager.svg"); // 16x16
       public static final Icon GRADLE_SYNC = load("/studio/icons/shell/toolbar/gradle-sync.svg"); // 16x16
-      public static final Icon INSTANT_RUN_CODE_SWAP = load("/studio/icons/shell/toolbar/instant-run-code-swap.svg"); // 16x16
       public static final Icon INSTANT_RUN = load("/studio/icons/shell/toolbar/instant-run.svg"); // 16x16
       public static final Icon PROFILER = load("/studio/icons/shell/toolbar/profiler.svg"); // 16x16
       public static final Icon PROJECT_STRUCTURE = load("/studio/icons/shell/toolbar/project-structure.svg"); // 16x16

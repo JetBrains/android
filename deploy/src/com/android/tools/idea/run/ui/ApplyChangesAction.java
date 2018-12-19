@@ -37,7 +37,7 @@ public class ApplyChangesAction extends BaseAction {
     new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta R" : "control F10"), null);
 
   public ApplyChangesAction() {
-    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.INSTANT_RUN, SHORTCUT);
+    super(ID, NAME, KEY, StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES, SHORTCUT);
   }
 }
 
