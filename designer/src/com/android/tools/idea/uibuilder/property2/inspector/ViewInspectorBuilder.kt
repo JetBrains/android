@@ -60,11 +60,9 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
       inspector.addComponent(custom, titleLine)
     }
 
-    val effectiveAttributes = addCommonAttributes(attributes, properties)
-
-    for (propertyName in effectiveAttributes) {
+    for (propertyName in attributes) {
       val property = findProperty(propertyName, properties)
-      if (property != null) {
+      if (property != null && property.name != ATTR_VISIBILITY) {
         inspector.addEditor(editorProvider.createEditor(property), titleLine)
       }
     }
@@ -110,15 +108,5 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
     val panel = handler?.customPanel ?: DummyCustomPanel.INSTANCE
     cachedCustomPanels[tagName] = panel
     return panel
-  }
-
-  private fun addCommonAttributes(attributes: List<String>, properties: PropertiesTable<NelePropertyItem>): List<String> {
-    if (attributes.contains(ATTR_VISIBILITY) && TextViewInspectorBuilder.isApplicable(properties)) {
-      return attributes
-    }
-    val modified = mutableListOf<String>()
-    modified.addAll(attributes)
-    modified.add(ATTR_VISIBILITY)
-    return modified
   }
 }
