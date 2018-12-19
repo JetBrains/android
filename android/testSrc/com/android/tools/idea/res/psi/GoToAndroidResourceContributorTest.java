@@ -17,6 +17,7 @@ package com.android.tools.idea.res.psi;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.util.gotoByName.GotoSymbolModel2;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.editor.Document;
@@ -29,6 +30,8 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlToken;
 import com.intellij.testFramework.EditorTestUtil;
 import com.intellij.util.ui.UIUtil;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,7 +68,7 @@ public class GoToAndroidResourceContributorTest extends AndroidTestCase {
   private PsiElement navigate(@NotNull String name, @NotNull String pattern) {
     GotoSymbolModel2 model = new GotoSymbolModel2(myFixture.getProject());
     Object[] searchResults = model.getElementsByName(name, false, pattern);
-    assertThat(searchResults.length).isEqualTo(1);
+    assertThat(searchResults).hasLength(1);
     Object result = searchResults[0];
     assertThat(result).isInstanceOf(NavigationItem.class);
     UIUtil.dispatchAllInvocationEvents();
@@ -100,5 +103,18 @@ public class GoToAndroidResourceContributorTest extends AndroidTestCase {
     PsiElement element = navigate("my_layout", "my_l");
     assertThat(element).isInstanceOf(XmlTag.class);
     assertThat(((XmlTag)element).getName()).isEqualTo("FrameLayout");
+  }
+
+  /**
+   * Tries to emulate what SEResultsEqualityProvider is doing to deduplicate the result list. Unfortunately some of the types involved are
+   * not public, so we cannot do exactly the same.
+   */
+  public void testEquality() {
+    GoToAndroidResourceContributor contributor = new GoToAndroidResourceContributor();
+    List<NavigationItem> result = new ArrayList<>();
+    contributor.addItems(myModule, "my_layout", result);
+    contributor.addItems(myModule, "my_layout", result);
+    assertThat(result).hasSize(2);
+    assertThat(ImmutableSet.copyOf(result)).hasSize(1);
   }
 }
