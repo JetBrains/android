@@ -20,12 +20,16 @@ import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.common.surface.DesignSurface
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
+
+private val DEFAULT_PROPERTY_SIDE_WIDTH = JBUI.scale(280)
 
 /**
  * Tool Window definition for the Properties Panel
  */
 class NelePropertiesPanelDefinition(facet: AndroidFacet, side: Side, split: Split, autoHide: AutoHide) :
   ToolWindowDefinition<DesignSurface>("Attributes", StudioIcons.Shell.ToolWindows.ATTRIBUTES, "PROPERTIES", side, split, autoHide,
-    { NelePropertiesPanelToolContent(facet, it) })
+                                      DEFAULT_PROPERTY_SIDE_WIDTH, ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
+                                      { NelePropertiesPanelToolContent(facet, it) })
