@@ -89,6 +89,29 @@ public class StudioIcons {
     public static final Icon NWSE_RESIZE = load("/studio/icons/cursors/nwse-resize.svg"); // 32x32
   }
 
+  public static class DeviceConfiguration {
+    public static final Icon COUNTRY_CODE = load("/studio/icons/device-configuration/country-code.svg"); // 16x16
+    public static final Icon DENSITY = load("/studio/icons/device-configuration/density.svg"); // 16x16
+    public static final Icon DIMENSION = load("/studio/icons/device-configuration/dimension.svg"); // 16x16
+    public static final Icon KEYBOARD = load("/studio/icons/device-configuration/keyboard.svg"); // 16x16
+    public static final Icon LAYOUT_DIRECTION = load("/studio/icons/device-configuration/layout-direction.svg"); // 16x16
+    public static final Icon LOCALE = load("/studio/icons/device-configuration/locale.svg"); // 16x16
+    public static final Icon NAVIGATION_METHOD = load("/studio/icons/device-configuration/navigation-method.svg"); // 16x16
+    public static final Icon NAVIGATION_STATE = load("/studio/icons/device-configuration/navigation-state.svg"); // 16x16
+    public static final Icon NETWORK_CODE = load("/studio/icons/device-configuration/network-code.svg"); // 16x16
+    public static final Icon NIGHT_MODE = load("/studio/icons/device-configuration/night-mode.svg"); // 16x16
+    public static final Icon ORIENTATION = load("/studio/icons/device-configuration/orientation.svg"); // 16x16
+    public static final Icon SCREEN_HEIGHT = load("/studio/icons/device-configuration/screen-height.svg"); // 16x16
+    public static final Icon SCREEN_RATIO = load("/studio/icons/device-configuration/screen-ratio.svg"); // 16x16
+    public static final Icon SCREEN_SIZE = load("/studio/icons/device-configuration/screen-size.svg"); // 16x16
+    public static final Icon SCREEN_WIDTH = load("/studio/icons/device-configuration/screen-width.svg"); // 16x16
+    public static final Icon SMALLEST_SCREEN_SIZE = load("/studio/icons/device-configuration/smallest-screen-size.svg"); // 16x16
+    public static final Icon TEXT_INPUT = load("/studio/icons/device-configuration/text-input.svg"); // 16x16
+    public static final Icon TOUCH_SCREEN = load("/studio/icons/device-configuration/touch-screen.svg"); // 16x16
+    public static final Icon UI_MODE = load("/studio/icons/device-configuration/ui-mode.svg"); // 16x16
+    public static final Icon VERSION = load("/studio/icons/device-configuration/version.svg"); // 16x16
+  }
+
   public static class DeviceExplorer {
     public static final Icon SD_CARD_FOLDER = load("/studio/icons/device-explorer/sd-card-folder.svg"); // 16x16
     public static final Icon SHARED_PREFS = load("/studio/icons/device-explorer/shared-prefs.svg"); // 16x16
@@ -430,29 +453,6 @@ public class StudioIcons {
       public static final Icon POP_ACTION = load("/studio/icons/nav-editor/surface/pop-action.svg"); // 56x56
       public static final Icon START_DESTINATION = load("/studio/icons/nav-editor/surface/start-destination.svg"); // 56x56
     }
-  }
-
-  public static class NewResourceFile {
-    public static final Icon COUNTRY_CODE = load("/studio/icons/new-resource-file/country-code.svg"); // 16x16
-    public static final Icon DENSITY = load("/studio/icons/new-resource-file/density.svg"); // 16x16
-    public static final Icon DIMENSION = load("/studio/icons/new-resource-file/dimension.svg"); // 16x16
-    public static final Icon KEYBOARD = load("/studio/icons/new-resource-file/keyboard.svg"); // 16x16
-    public static final Icon LAYOUT_DIRECTION = load("/studio/icons/new-resource-file/layout-direction.svg"); // 16x16
-    public static final Icon LOCALE = load("/studio/icons/new-resource-file/locale.svg"); // 16x16
-    public static final Icon NAVIGATION_METHOD = load("/studio/icons/new-resource-file/navigation-method.svg"); // 16x16
-    public static final Icon NAVIGATION_STATE = load("/studio/icons/new-resource-file/navigation-state.svg"); // 16x16
-    public static final Icon NETWORK_CODE = load("/studio/icons/new-resource-file/network-code.svg"); // 16x16
-    public static final Icon NIGHT_MODE = load("/studio/icons/new-resource-file/night-mode.svg"); // 16x16
-    public static final Icon ORIENTATION = load("/studio/icons/new-resource-file/orientation.svg"); // 16x16
-    public static final Icon SCREEN_HEIGHT = load("/studio/icons/new-resource-file/screen-height.svg"); // 16x16
-    public static final Icon SCREEN_RATIO = load("/studio/icons/new-resource-file/screen-ratio.svg"); // 16x16
-    public static final Icon SCREEN_SIZE = load("/studio/icons/new-resource-file/screen-size.svg"); // 16x16
-    public static final Icon SCREEN_WIDTH = load("/studio/icons/new-resource-file/screen-width.svg"); // 16x16
-    public static final Icon SMALLEST_SCREEN_SIZE = load("/studio/icons/new-resource-file/smallest-screen-size.svg"); // 16x16
-    public static final Icon TEXT_INPUT = load("/studio/icons/new-resource-file/text-input.svg"); // 16x16
-    public static final Icon TOUCH_SCREEN = load("/studio/icons/new-resource-file/touch-screen.svg"); // 16x16
-    public static final Icon UI_MODE = load("/studio/icons/new-resource-file/ui-mode.svg"); // 16x16
-    public static final Icon VERSION = load("/studio/icons/new-resource-file/version.svg"); // 16x16
   }
 
   public static class Profiler {
