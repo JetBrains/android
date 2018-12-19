@@ -39,7 +39,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -133,7 +133,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myThemeList.setCellRenderer(new ColoredListCellRenderer<String>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList list, String style, int index, boolean selected, boolean hasFocus) {
-        setIcon(AndroidIcons.Themes);
+        setIcon(StudioIcons.Shell.Menu.THEME_EDITOR);
 
         String filter = myFilter.getFilter();
         style = ThemeUtils.getPreferredThemeName(style);
