@@ -34,6 +34,7 @@ import com.android.SdkConstants.VALUE_TOP
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.tools.adtui.ptable2.PTableColumn
 import com.android.tools.adtui.ptable2.PTableGroupItem
+import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.idea.common.property2.api.FilteredPTableModel
 import com.android.tools.idea.common.property2.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
 import com.android.tools.idea.common.property2.api.FilteredPTableModel.PTableModelFactory.androidSortOrder
@@ -234,7 +235,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testSortedGroup() {
-    val tableModel = FilteredPTableModel.create(model!!, { true }, androidSortOrder, listOf(MarginGroup()), androidSortOrder, false)
+    val tableModel = FilteredPTableModel.create(model!!, { true }, androidSortOrder, listOf(MarginGroup()), false)
     val items = tableModel.items
     val group = items[3] as PTableGroupItem
     assertThat(items).containsExactly(propWidth, propHeight, propGravity, group, propText, propVisible).inOrder()
@@ -252,6 +253,9 @@ class FilteredPTableModelImplTest {
     override val itemFilter: (TestPropertyItem) -> Boolean
       get() = { it == propMargin || it == propMarginLeft || it == propMarginRight || it == propMarginStart ||
                 it == propMarginEnd || it == propMarginTop || it == propMarginBottom }
+
+    override val comparator: Comparator<PTableItem>
+      get() = FilteredPTableModel.androidSortOrder
 
     private fun part(property: TestPropertyItem?, override: TestPropertyItem? = null): String {
       return override?.value ?: property?.value ?: "?"

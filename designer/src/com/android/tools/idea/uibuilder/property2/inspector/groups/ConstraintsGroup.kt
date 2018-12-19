@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.property2.inspector.groups
 
 import com.android.SdkConstants
+import com.android.tools.adtui.ptable2.PTableItem
+import com.android.tools.idea.common.property2.api.FilteredPTableModel
 import com.android.tools.idea.common.property2.api.GroupSpec
 import com.android.tools.idea.common.property2.api.PropertiesTable
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
@@ -50,6 +52,9 @@ class ConstraintGroup(properties: PropertiesTable<NelePropertyItem>): GroupSpec<
         it.name.startsWith("layout_goneMargin") ||
         others.contains(it.name))
     }
+
+  override val comparator: Comparator<PTableItem>
+    get() = FilteredPTableModel.alphabeticalSortOrder
 
   override fun hashCode(): Int {
     return name.hashCode()

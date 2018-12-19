@@ -87,16 +87,14 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
      * name to null i.e. the new item line will be ready for the user
      * to add another item to the table.
      * The [groups] specifies which item are grouped under a specified
-     * group name. The items are sorted using [itemComparator] and the
-     * group items are sorted using the [groupComparator].
+     * group name. The items are sorted using [itemComparator].
      */
     fun <P : PropertyItem> create(model: PropertiesModel<P>,
                                   itemFilter: (P) -> Boolean,
                                   itemComparator: Comparator<PTableItem> = androidSortOrder,
                                   groups: List<GroupSpec<P>> = emptyList(),
-                                  groupComparator: Comparator<PTableItem> = androidSortOrder,
                                   keepNewAfterFlyAway: Boolean = true): FilteredPTableModel<P> {
-      return FilteredPTableModelImpl(model, itemFilter, itemComparator, groups, groupComparator, keepNewAfterFlyAway)
+      return FilteredPTableModelImpl(model, itemFilter, itemComparator, groups, keepNewAfterFlyAway)
     }
   }
 }

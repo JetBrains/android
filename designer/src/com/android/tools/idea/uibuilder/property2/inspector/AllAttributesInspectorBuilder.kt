@@ -19,7 +19,6 @@ import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.common.property2.api.FilteredPTableModel
 import com.android.tools.idea.common.property2.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
-import com.android.tools.idea.common.property2.api.FilteredPTableModel.PTableModelFactory.androidSortOrder
 import com.android.tools.idea.common.property2.api.GroupSpec
 import com.android.tools.idea.common.property2.api.InspectorBuilder
 import com.android.tools.idea.common.property2.api.InspectorPanel
@@ -49,7 +48,7 @@ class AllAttributesInspectorBuilder(private val model: NelePropertiesModel,
       return
     }
 
-    val allTableModel = FilteredPTableModel.create(model, { true }, alphabeticalSortOrder, createGroups(properties), androidSortOrder)
+    val allTableModel = FilteredPTableModel.create(model, { true }, alphabeticalSortOrder, createGroups(properties))
     addTable(inspector, ALL_ATTRIBUTES_TITLE, allTableModel, allTableUIProvider, searchable = true)
   }
 
