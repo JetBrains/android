@@ -127,6 +127,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARI
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLE_PROPERTY_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_VARIABLE_SET_VALUE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BIG_DECIMAL_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
@@ -3300,6 +3301,26 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val refReferenceTo = refValue as ReferenceTo
     assertThat(referenceTo.text, equalTo("hello"))
     assertThat(refReferenceTo.text, equalTo("hello"))
+  }
+
+  @Test
+  fun testSetBigDecimal() {
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_SET_REFERENCE_VALUE)
+
+    val buildModel = gradleBuildModel
+    buildModel.ext().findProperty("prop1").setValue(BigDecimal(2.343))
+    buildModel.ext().findProperty("prop3").setValue(BigDecimal(4.2))
+    buildModel.ext().findProperty("newProp").setValue(BigDecimal(3))
+
+    applyChangesAndReparse(buildModel)
+
+    val firstProperty = buildModel.ext().findProperty("prop1")
+    verifyPropertyModel(firstProperty, BIG_DECIMAL_TYPE, BigDecimal(2.343), BIG_DECIMAL, REGULAR, 0)
+    val secondProperty = buildModel.ext().findProperty("prop3")
+    verifyPropertyModel(secondProperty, BIG_DECIMAL_TYPE, BigDecimal(4.2), BIG_DECIMAL, REGULAR, 0)
+    val thirdProperty = buildModel.ext().findProperty("newProp")
+    verifyPropertyModel(thirdProperty, INTEGER_TYPE, 3, INTEGER, REGULAR, 0)
+
   }
 
   fun assertSize(expectedSize: Int, list: MutableList<*>?) {
