@@ -36,9 +36,6 @@ public class AndroidIcons {
 
   public static final Icon Variant = load("/icons/variant.png");
 
-  public static final Icon AndroidTestRoot = load("/icons/androidTestRoot.png");
-  public static final Icon AndroidTestsScope = load("/icons/androidTestsScope.svg");
-
   public static final Icon GreyQuestionMark = load("/icons/grey_question.png"); // 23x23
 
   public static class Ddms {
