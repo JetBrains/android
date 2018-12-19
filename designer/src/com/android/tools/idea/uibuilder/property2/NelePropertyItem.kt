@@ -25,6 +25,7 @@ import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TOOLS_URI
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
@@ -105,6 +106,12 @@ open class NelePropertyItem(
       model.setPropertyValue(this, value)
     }
 
+  override val defaultValue: String?
+    get() {
+      val defValue = model.provideDefaultValue(this) ?: return null
+      return resolveValue(asResourceValue(defValue.reference) ?: defValue)
+    }
+
   override val namespaceIcon: Icon?
     get() = when (namespace) {
       "",
@@ -172,24 +179,43 @@ open class NelePropertyItem(
   override fun hashCode() = HashCodes.mix(namespace.hashCode(), name.hashCode())
 
   private fun resolveValue(value: String?): String? {
-    return resolveValueUsingResolver(value)
+    return resolveValue(asResourceValue(value)) ?: value
   }
 
-  private fun resolveValueUsingResolver(value: String?): String? {
-    if (value != null && !isReferenceValue(value)) return value
-    val resValue = asResourceValue(value) ?: return value
+  private fun asResourceValue(value: String?): ResourceValue? {
+    if (value == null) return null
+    return asResourceValue(ResourceUrl.parse(value)?.resolve(defaultNamespace, namespaceResolver))
+  }
+
+  private fun asResourceValue(reference: ResourceReference?): ResourceValue? {
+    if (reference == null) {
+      return null
+    }
+    if (reference.resourceType == ResourceType.ATTR) {
+      val resValue = resolver?.findItemInTheme(reference) ?: return null
+      return resolver?.resolveResValue(resValue)
+    }
+    else {
+      return resolver?.getResolvedResource(reference)
+    }
+  }
+
+  private fun resolveValue(resValue: ResourceValue?): String? {
+    if (resValue == null) {
+      return null
+    }
     when (resValue.resourceType) {
       ResourceType.BOOL,
       ResourceType.DIMEN,
       ResourceType.FRACTION,
-      ResourceType.ID,
       ResourceType.STYLE_ITEM,  // Hack for default values from LayoutLib
       ResourceType.INTEGER,
       ResourceType.STRING -> if (resValue.value != null) return resValue.value
       ResourceType.COLOR -> if (resValue.value?.startsWith("#") == true) return resValue.value
       else -> {}
     }
-    // The value of the remaining resource types are file names, which we don't want to display.
+    // The value of the remaining resource types are file names or ids.
+    // We don't want to show the file names and the ids don't have a value.
     // Instead show the url of this resolved resource.
     return resValue.asReference().getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString()
   }
@@ -210,24 +236,6 @@ open class NelePropertyItem(
 
   protected open val firstComponent: NlComponent?
     get() = components.firstOrNull()
-
-  private fun asResourceValue(value: String?): ResourceValue? {
-    val resRef = when (value) {
-      null -> {
-        val defValue = model.provideDefaultValue(this)
-        defValue?.reference ?: return defValue
-      }
-      else -> ResourceUrl.parse(value)?.resolve(defaultNamespace, namespaceResolver)
-    } ?: return null
-
-    if (resRef.resourceType == ResourceType.ATTR) {
-      val resValue = resolver?.findItemInTheme(resRef) ?: return null
-      return resolver?.resolveResValue(resValue)
-    }
-    else {
-      return resolver?.getResolvedResource(resRef)
-    }
-  }
 
   val project: Project
     get() = model.facet.module.project
@@ -264,20 +272,14 @@ open class NelePropertyItem(
 
   private fun computeTooltipForValue(): String {
     val currentValue = rawValue
-    val actualValue = rawValue ?: valueOf(model.provideDefaultValue(this))
-    val computedResolvedValue = resolvedValue
-    if (currentValue == computedResolvedValue) return ""
+    val defaultValue = defaultValue
+    val resolvedValue = resolvedValue
+    val actualValue = resolvedValue ?: defaultValue
+    if (currentValue == actualValue) return ""
     val defaultText = if (currentValue == null) "[default] " else ""
     val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)
-    val resolvedText = if (computedResolvedValue != actualValue) " = \"$computedResolvedValue\" ($keyStroke)" else ""
-    return "$defaultText\"$actualValue\"$resolvedText"
-  }
-
-  private fun valueOf(value: ResourceValue?): String? {
-    if (value == null) {
-      return null
-    }
-    return value.reference?.getRelativeResourceUrl(defaultNamespace, namespaceResolver)?.toString() ?: value.value
+    val resolvedText = if (resolvedValue != currentValue) " = \"$resolvedValue\" ($keyStroke)" else ""
+    return "$defaultText\"${currentValue?:defaultValue}\"$resolvedText"
   }
 
   private fun findNamespacePrefix(): String {
@@ -446,7 +448,7 @@ open class NelePropertyItem(
       get() = true
 
     override fun getActionIcon(focused: Boolean): Icon {
-      val value = rawValue
+      val value = rawValue ?: defaultValue
       return resolveValueAsIcon(value) ?: getActionIconFromUnfinishedValue(value)
     }
 

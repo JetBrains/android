@@ -46,6 +46,7 @@ class ComboBoxPropertyEditorModelTest {
 
   private fun createModel(enumSupport: EnumSupport): ComboBoxPropertyEditorModel {
     val property = TestPropertyItem(SdkConstants.ANDROID_URI, ATTR_VISIBILITY, "visible")
+    property.defaultValue = "defaultNone"
     return ComboBoxPropertyEditorModel(property, enumSupport, true)
   }
 
@@ -54,6 +55,13 @@ class ComboBoxPropertyEditorModelTest {
     val listener = mock(ValueChangedListener::class.java)
     model.addListener(listener)
     return model to listener
+  }
+
+  @Test
+  fun testValue() {
+    val model = createModel()
+    assertThat(model.value).isEqualTo("visible")
+    assertThat(model.placeHolderValue).isEqualTo("defaultNone")
   }
 
   @Test

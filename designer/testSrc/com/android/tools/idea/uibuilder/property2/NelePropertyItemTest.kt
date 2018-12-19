@@ -264,16 +264,15 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.model.properties.getOrNull(TOOLS_URI, ATTR_TEXT) != null)
   }
 
-  fun testGetValueWithDefaultValue() {
+  fun testGetDefaultValue() {
     val components = createTextView()
     val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
     val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     waitUntilEventsProcessed(property.model)
 
-    assertThat(property.value).isEqualTo("@android:style/TextAppearance.Material.Small")
-    property.model.showResolvedValues = false
     assertThat(property.value).isNull()
+    assertThat(property.defaultValue).isEqualTo("@android:style/TextAppearance.Material.Small")
   }
 
   fun testSetParentTagValue() {
@@ -311,8 +310,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(hardcodedProperty.tooltipForValue).isEmpty()
     assertThat(referenceProperty.tooltipForValue).isEqualTo("\"@string/demo\" = \"Demo String\" ($keyStroke)")
     assertThat(hardcodedFromDefaultProperty.tooltipForValue).isEqualTo("[default] \"16sp\"")
-    assertThat(referenceFromDefaultProperty.tooltipForValue)
-      .isEqualTo("[default] \"@android:dimen/text_size_button_material\" = \"14sp\" ($keyStroke)")
+    assertThat(referenceFromDefaultProperty.tooltipForValue).isEqualTo("[default] \"14sp\"")
   }
 
   fun testCompletion() {

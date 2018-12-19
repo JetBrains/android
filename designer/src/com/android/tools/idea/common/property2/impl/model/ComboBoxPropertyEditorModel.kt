@@ -70,6 +70,9 @@ class ComboBoxPropertyEditorModel(property: PropertyItem, private val enumSuppor
   override val editingSupport: EditingSupport
     get() = property.editingSupport
 
+  override val placeHolderValue: String
+    get() = property.defaultValue ?: ""
+
   fun enterKeyPressed() {
     blockUpdates = true
     try {
