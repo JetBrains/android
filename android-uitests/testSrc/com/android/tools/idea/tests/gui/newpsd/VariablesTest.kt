@@ -102,6 +102,7 @@ class VariablesTest {
         editWithF2()
         selectValue("\$simpleVariableInt : 123")
         selectCell("k1")
+        editWithF2()  // Cancel editing.
         right()
         editWithF2()
         selectValue("\$simpleVariableA : stringValue")

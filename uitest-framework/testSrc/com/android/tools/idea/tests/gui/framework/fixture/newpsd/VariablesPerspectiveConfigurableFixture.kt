@@ -158,18 +158,7 @@ class VariablesPerspectiveConfigurableFixture(
   }
 
   fun selectCell(text: String) {
-    findTable().let { table ->
-      val targetCell = table.cell(text)
-      if (targetCell.column() == 0) {
-        // Workaround for a bug in swing-testing library.
-        val adjacentCell = table.cell(TableCell.row(targetCell.row()).column(1))
-        adjacentCell.select()
-        editWithF2() // Release the editor if it is an editanle cell or do nothing.
-        robot().pressAndReleaseKey(KeyEvent.VK_LEFT, 0)
-      } else {
-        targetCell.select()
-      }
-    }
+    findTable().cell(text).select()
   }
 
   fun contents(): List<Pair<String, String>> =
