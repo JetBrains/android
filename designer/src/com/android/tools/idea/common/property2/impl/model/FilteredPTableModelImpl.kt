@@ -42,7 +42,6 @@ class FilteredPTableModelImpl<P : PropertyItem>(
   private val itemFilter: (P) -> Boolean,
   private val itemComparator: Comparator<PTableItem>,
   private val groups: List<GroupSpec<P>>,
-  private val groupComparator: Comparator<PTableItem>,
   private val keepNewAfterFlyAway: Boolean) : FilteredPTableModel<P>, PTableModel {
   private val listeners = mutableListOf<PTableModelUpdateListener>()
 
@@ -234,7 +233,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
         }
       }
       if (groupItem.children.isNotEmpty()) {
-        groupItem.children.sortWith(groupComparator)
+        groupItem.children.sortWith(group.comparator)
         output.add(groupItem)
         input = temp
         temp = if (input == temp1) temp2 else temp1

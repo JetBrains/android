@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.android.tools.adtui.ptable2.PTableItem
+
 /**
  * A definition of a group in a table.
  *
@@ -26,4 +28,5 @@ interface GroupSpec<P : PropertyItem> {
   val name: String
   val value: String?
   val itemFilter: (P) -> Boolean
+  val comparator: Comparator<PTableItem>
 }
