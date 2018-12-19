@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.structure.model.meta.parseEditorText
 import com.android.tools.idea.gradle.structure.model.meta.valueFormatter
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.ComboBox.TABLE_CELL_EDITOR_PROPERTY
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import icons.StudioIcons
@@ -45,10 +46,12 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.CellEditor
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.table.TableCellEditor
 
 /**
  * A property editor [ModelPropertyEditor] for properties of simple (not complex) types.
@@ -60,7 +63,8 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<PropertyT>,
   variablesScope: PsVariablesScope?,
-  private val extensions: List<EditorExtensionAction<PropertyT, ModelPropertyT>>
+  private val extensions: List<EditorExtensionAction<PropertyT, ModelPropertyT>>,
+  cellEditor: TableCellEditor? = null
 ) :
   PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesScope),
   ModelPropertyEditor<PropertyT>,
@@ -177,6 +181,9 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     fun isEditorChanged() = lastValueSet != null && getValue().value != lastValueSet?.value
 
     init {
+      if (cellEditor != null) {
+        registerTableCellEditor(cellEditor)
+      }
       setEditable(true)
 
       addActionListener {
@@ -266,8 +273,8 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     }
   }
 
-  override fun createNew(property: ModelPropertyT): ModelPropertyEditor<PropertyT> =
-    SimplePropertyEditor(property, propertyContext, variablesScope, extensions)
+  override fun createNew(property: ModelPropertyT, cellEditor: TableCellEditor?): ModelPropertyEditor<PropertyT> =
+    SimplePropertyEditor(property, propertyContext, variablesScope, extensions, cellEditor)
 
   init {
     reload()

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.intellij.openapi.Disposable
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.table.TableCellEditor
 
 /**
  * A model property editor.
@@ -101,5 +102,5 @@ interface EditorExtensionAction<T : Any, ModelPropertyCoreT : ModelPropertyCore<
  * A factory to create property editors with the preconfigured property context.
  */
 interface ModelPropertyEditorFactory<ValueT : Any, in ModelPropertyCoreT : ModelPropertyCore<ValueT>> {
-  fun createNew(property: ModelPropertyCoreT): ModelPropertyEditor<ValueT>
+  fun createNew(property: ModelPropertyCoreT, cellEditor: TableCellEditor? = null): ModelPropertyEditor<ValueT>
 }

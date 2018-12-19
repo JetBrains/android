@@ -29,23 +29,10 @@ import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JTreeFixture
 import java.awt.Container
 import javax.swing.JComponent
-import javax.swing.JList
 import javax.swing.JTree
 
 abstract class ConfigPanelFixture protected constructor(
 ) : IdeFrameContainerFixture {
-
-  protected fun clickToolButton(titlePrefix: String) {
-    fun ActionButton.matches() = toolTipText?.startsWith(titlePrefix) ?: false
-    // Find the topmost tool button. (List/Map editors may contains similar buttons)
-    val button =
-      robot()
-        .finder()
-        .findAll(container, matcher<ActionButton> { it.matches() })
-        .minBy { button -> generateSequence<Container>(button) { it.parent }.count() }
-      ?: robot().finder().find<ActionButton>(container) { it.matches() }
-    robot().click(button)
-  }
 
   protected fun findEditor(label: String): PropertyEditorFixture {
     val component = robot().finder().findByLabel<JComponent>(container, label, JComponent::class.java, false)
@@ -80,15 +67,4 @@ private fun JTreeFixture.items(): List<String> {
         }
     getItems(treeModel.root)
   }!!
-}
-
-/**
- * Returns the popup list being displayed, assuming there is one and it is the only one.
- */
-internal fun ConfigPanelFixture.getList(): JBList<*> {
-  return GuiTests.waitUntilShowingAndEnabled<JBList<*>>(robot(), null, object : GenericTypeMatcher<JBList<*>>(JBList::class.java) {
-    override fun isMatching(list: JBList<*>): Boolean {
-      return list.javaClass.name == "com.intellij.ui.popup.list.ListPopupImpl\$MyList"
-    }
-  })
 }
