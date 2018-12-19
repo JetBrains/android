@@ -192,7 +192,7 @@ public class Device {
         //    printed to the console, serving as the output of the script.
         String command =
           String.format(
-            "uid=`run-as %s whoami` &&" +
+            "uid=`run-as %s whoami` && " +
             "for pid in `run-as %s ps | grep -o -p \"$uid[[:space:]]\\{1,\\}[[:digit:]]\\{1,\\}\" | tr -s ' ' ' ' | cut -d ' ' -f2`; do " +
             "  if [[ `run-as %s readlink /proc/$pid/exe` == /system/bin/app_process* ]]; then " +
             "    echo $pid; " +
