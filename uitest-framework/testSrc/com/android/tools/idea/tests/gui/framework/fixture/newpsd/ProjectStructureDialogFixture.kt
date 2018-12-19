@@ -89,14 +89,17 @@ fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture =
 internal fun ContainerFixture<*>.clickOkAndWaitDialogDisappear() {
   GuiTests.findAndClickOkButton(this)
   Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+  waitForIdle()
 }
 
 internal fun ContainerFixture<*>.clickCancelAndWaitDialogDisappear() {
   GuiTests.findAndClickCancelButton(this)
   Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+  waitForIdle()
 }
 
 internal fun ContainerFixture<*>.clickButtonAndWaitDialogDisappear(text: String) {
   GuiTests.findAndClickButton(this, text)
   Wait.seconds(10).expecting("dialog to disappear").until { !target().isShowing }
+  waitForIdle()
 }
