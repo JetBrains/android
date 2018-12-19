@@ -939,8 +939,8 @@ public final class GradleUtil {
         return filesEqual(folder.getParentFile().getParentFile(),
                           new File(generatedFolder, FD_SOURCE_GEN));
       }
-      else if (FileUtil.namesEqual(folder.getName(), FD_RES_CLASS)) {
-        // Naming convention used in 3.2 and above.
+      else if (FileUtil.namesEqual(folder.getName(), FD_RES_CLASS) || FileUtil.namesEqual(folder.getName(), FilenameConstants.OUT)) {
+        // Naming convention used in 3.2 and above, if R.java files are generated at all.
         return filesEqual(folder.getParentFile().getParentFile().getParentFile(),
                           new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES));
       }
