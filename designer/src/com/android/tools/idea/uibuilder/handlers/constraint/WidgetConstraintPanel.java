@@ -56,7 +56,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
   private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
   private static final Color mSliderColor = new JBColor(0xC9C9C9, 0x242627);
-  private static final JBDimension PANEL_DIMENSION = JBUI.size(201, 215);
+  private static final JBDimension PANEL_DIMENSION = JBUI.size(280, 215);
   @NotNull private final SingleWidgetView mMain;
   private final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   private final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
