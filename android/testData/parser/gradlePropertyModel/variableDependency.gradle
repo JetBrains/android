@@ -1,5 +1,4 @@
 ext {
-  \ n " +
   def prop1 = 'hello'
   def prop2 = "${prop1} world!"
 }
