@@ -63,11 +63,6 @@ public class AndroidIcons {
     public static final Icon CppConfiguration = load("/icons/wizards/cpp_configure.png"); // 256x256
   }
 
-  public static class NeleIcons {
-    // All 16x16 and 32x32 in Retina mode
-    public static final Icon DeviceScreen = load("/icons/nele/DeviceScreen.png");
-  }
-
   public static class RunIcons {
     public static final Icon Replay = load("/icons/run/play2.png"); // TODO: update blaze and remove this
     public static final Icon Restart = load("/icons/run/restart.png");
