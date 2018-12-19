@@ -26,10 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.EventListener;
 
-@State(
-  name = "PsdUISettings",
-  storages = @Storage(file = "android.gradle.psd.xml")
-)
+@State(name = "PsdUISettings", storages = @Storage("android.gradle.psd.xml"))
 public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   public boolean DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
   public boolean RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
