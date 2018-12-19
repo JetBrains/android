@@ -65,7 +65,7 @@ import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
 private const val LEFT_FRACTION = 0.40
-private const val MAX_LABEL_WIDTH = 200
+private const val MAX_LABEL_WIDTH = 240
 
 /**
  * Implementation of a [PTable].

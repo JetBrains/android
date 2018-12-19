@@ -29,7 +29,7 @@ private const val LEFT_FRACTION = 0.4
 private const val RIGHT_FRACTION = 1.0 - LEFT_FRACTION
 private const val MIN_WIDTH = 120
 private const val MIN_HEIGHT = 240
-private const val MAX_LABEL_WIDTH = 200
+private const val MAX_LABEL_WIDTH = 240
 
 /**
  * Layout for 2 column grid used in [InspectorPanelImpl].
