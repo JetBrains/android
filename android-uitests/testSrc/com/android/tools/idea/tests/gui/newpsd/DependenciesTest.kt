@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.items
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectVariablesConfigurable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
@@ -89,6 +90,85 @@ class DependenciesTest {
           assertThat(
             findDependenciesTable().contents().map { it.toList()})
             .contains(listOf("com.example.jlib:lib3:0.5", "implementation"))
+        }
+      }
+      clickCancel()
+    }
+  }
+
+  @Test
+  fun addLibraryDependencyViaVariable() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
+
+    ide.openPsd().run {
+      selectVariablesConfigurable().run {
+        clickAddMap()
+        enterText("deps")
+        tab()
+        enterText("lib3Version")
+        tab()
+        enterText("0.5")
+        tab()
+        enterText("lib4Version")
+        tab()
+        enterText("0.6.1")
+        tab()
+      }
+      selectDependenciesConfigurable().run {
+        findModuleSelector().run {
+          selectModule("app")
+        }
+        findDependenciesPanel().run {
+          clickAddLibraryDependency().run {
+            findSearchQueryTextBox().enterText("com.example.jlib:*")
+            findSearchButton().click()
+            findArtifactsView().run {
+              Wait
+                .seconds(10)
+                .expecting("Search completed")
+                .until {
+                  rowCount() == 2
+                }
+              cell(Pattern.compile("lib3")).click()
+            }
+            findVersionsView().run {
+              cell("\$deps.lib3Version : 0.5").click()
+            }
+            clickOk()
+          }
+          clickAddLibraryDependency().run {
+            findSearchQueryTextBox().enterText("com.example.jlib:lib4")
+            findSearchButton().click()
+            findArtifactsView().run {
+              Wait
+                .seconds(10)
+                .expecting("Search completed")
+                .until {
+                  rowCount() == 1
+                }
+              cell(Pattern.compile("lib4")).click()
+            }
+            findVersionsView().run {
+              cell("\$deps.lib4Version : 0.6.1").click()
+            }
+            clickOk()
+          }
+        }
+        clickOk()
+      }
+    }
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().run {
+          selectModule("app")
+        }
+        findDependenciesPanel().run {
+          assertThat(
+            findDependenciesTable().contents().map { it.toList() })
+            .containsAllIn(listOf(
+              listOf("com.example.jlib:lib3:0.5", "implementation"),
+              listOf("com.example.jlib:lib4:0.6.1", "implementation")
+            ))
         }
       }
       clickCancel()

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 import junit.framework.Assert.*
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import java.math.BigDecimal
@@ -42,7 +43,9 @@ class InputParsersTest {
   }
 
   @Test
+  @Ignore("b/117824185")
   fun any_decimal() {
+    // TODO(b/117824185): Re-enable with decimal handling is fixed.
     val parsed = parseAny("123.1")
     assertTrue(parsed.value is ParsedValue.Set.Parsed)
     assertNull(parsed.annotation)
