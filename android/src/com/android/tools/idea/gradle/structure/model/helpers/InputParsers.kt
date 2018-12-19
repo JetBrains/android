@@ -20,7 +20,11 @@ package com.android.tools.idea.gradle.structure.model.helpers
 import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidTargetHash
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
+import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.intellij.pom.java.LanguageLevel
 import java.io.File
 
@@ -28,7 +32,9 @@ fun parseAny(text: String): Annotated<ParsedValue<Any>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else
-    ParsedValue.Set.Parsed(text.toIntOrNull() ?: text.toBigDecimalOrNull() ?: text.toBooleanOrNull() ?: text, DslText.Literal).annotated()
+  // TODO(b/117824185) : Uncomment when BigDecimal support fixed.
+    ParsedValue.Set.Parsed(text.toIntOrNull() ?: /* text.toBigDecimalOrNull() ?: */ text.toBooleanOrNull() ?: text,
+                           DslText.Literal).annotated()
 
 fun parseString(text: String): Annotated<ParsedValue<String>> =
   if (text == "")

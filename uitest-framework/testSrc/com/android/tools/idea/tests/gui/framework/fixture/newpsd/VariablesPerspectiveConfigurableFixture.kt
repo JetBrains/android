@@ -100,38 +100,55 @@ class VariablesPerspectiveConfigurableFixture(
   }
 
   fun tab() {
+    waitForIdle()
     robot().type(9.toChar())
+    waitForIdle()
   }
 
   fun shiftTab() {
+    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_TAB, KeyEvent.SHIFT_MASK)
+    waitForIdle()
   }
 
   fun right() {
+    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_RIGHT, 0)
+    waitForIdle()
   }
 
   fun up() {
+    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_UP, 0)
+    waitForIdle()
   }
 
   fun down() {
+    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_DOWN, 0)
+    waitForIdle()
   }
 
   fun editWithF2() {
+    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_F2, 0)
+    waitForIdle()
   }
 
   fun editWithEnter() {
+    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0)
+    waitForIdle()
   }
 
   fun enter() {
+    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0)
+    waitForIdle()
   }
 
   fun expandAllWithStar() {
+    waitForIdle()
     robot().pressAndReleaseKey(KeyEvent.VK_MULTIPLY, 0)
     waitForIdle()
   }
