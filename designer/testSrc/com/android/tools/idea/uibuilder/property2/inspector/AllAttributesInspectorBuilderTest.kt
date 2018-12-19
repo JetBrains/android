@@ -15,29 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
-import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP
-import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
-import com.android.SdkConstants.ATTR_TEXT
-import com.android.SdkConstants.ATTR_TEXT_COLOR
-import com.android.SdkConstants.ATTR_TEXT_SIZE
-import com.android.SdkConstants.ATTR_VISIBILITY
-import com.android.SdkConstants.LINEAR_LAYOUT
-import com.android.SdkConstants.TEXT_VIEW
-import com.android.SdkConstants.VALUE_WRAP_CONTENT
+import com.android.SdkConstants
 import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.Dependencies
+import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
-import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import com.android.tools.idea.uibuilder.property2.inspector.groups.CONSTRAINT_GROUP_NAME
 import com.android.tools.idea.uibuilder.property2.support.NeleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.support.NeleEnumSupportProvider
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
@@ -48,19 +33,23 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
+private const val CONSTRAINT_LAYOUT_ID = "constraint"
+
 @RunsInEdt
 class AllAttributesInspectorBuilderTest {
 
   @JvmField @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val projectRule = AndroidProjectRule.withSdk()
 
   @JvmField @Rule
   val edtRule = EdtRule()
 
   @Test
   fun testAllAttributes() {
-    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
-    addProperties(util)
+    addManifest(projectRule.fixture)
+    Dependencies.add(projectRule.fixture, CONSTRAINT_LAYOUT_ID)
+    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW, parentTag = SdkConstants.CONSTRAINT_LAYOUT.oldName())
+    util.loadProperties()
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     Truth.assertThat(util.inspector.lines).hasSize(2)
@@ -70,52 +59,111 @@ class AllAttributesInspectorBuilderTest {
     Truth.assertThat(util.inspector.lines[0].title).isEqualTo("All Attributes")
     Truth.assertThat(util.inspector.lines[0].expandable).isTrue()
 
-    // Check all 6 attributes:
-    Truth.assertThat(util.inspector.lines[1].tableModel?.items?.map { it.name })
-      .containsExactly(
-        ATTR_CONTENT_DESCRIPTION,
-        ATTR_LAYOUT_HEIGHT,
-        ATTR_LAYOUT_MARGIN,
-        ATTR_LAYOUT_WIDTH,
-        ATTR_TEXT,
-        ATTR_TEXT_COLOR,
-        ATTR_TEXT_SIZE,
-        ATTR_VISIBILITY
+    val items = util.inspector.lines[1].tableModel!!.items
+
+    // Check that these 6 attributes are present in alphabetical order:
+    Truth.assertThat(items.map { it.name })
+      .containsAllOf(
+        SdkConstants.ATTR_CONTENT_DESCRIPTION,
+        SdkConstants.ATTR_LAYOUT_HEIGHT,
+        SdkConstants.ATTR_LAYOUT_MARGIN,
+        SdkConstants.ATTR_LAYOUT_WIDTH,
+        SdkConstants.ATTR_TEXT,
+        SdkConstants.ATTR_TEXT_COLOR,
+        SdkConstants.ATTR_TEXT_SIZE,
+        SdkConstants.ATTR_VISIBILITY
       ).inOrder()
 
     // Layout Margin is a group:
-    val margin = util.inspector.lines[1].tableModel!!.items[2] as PTableGroupItem
+    val margin = items.find { it.name == SdkConstants.ATTR_LAYOUT_MARGIN } as PTableGroupItem
     Truth.assertThat(margin.children.map { it.name })
       .containsExactly(
-        ATTR_LAYOUT_MARGIN,
-        ATTR_LAYOUT_MARGIN_START,
-        ATTR_LAYOUT_MARGIN_LEFT,
-        ATTR_LAYOUT_MARGIN_TOP,
-        ATTR_LAYOUT_MARGIN_END,
-        ATTR_LAYOUT_MARGIN_RIGHT,
-        ATTR_LAYOUT_MARGIN_BOTTOM
+        SdkConstants.ATTR_LAYOUT_MARGIN,
+        SdkConstants.ATTR_LAYOUT_MARGIN_START,
+        SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
+        SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
+        SdkConstants.ATTR_LAYOUT_MARGIN_END,
+        SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
+        SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
       ).inOrder()
-  }
 
-  private fun addProperties(util: InspectorTestUtil) {
-    util.addProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
-    util.addProperty(ANDROID_URI, ATTR_TEXT_SIZE, NelePropertyType.FONT_SIZE)
-    util.addProperty(ANDROID_URI, ATTR_TEXT_COLOR, NelePropertyType.COLOR)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_WIDTH, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NelePropertyType.STRING)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, NelePropertyType.DIMENSION)
-    util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.ENUM)
+    // Padding is a group:
+    val padding = items.find { it.name == SdkConstants.ATTR_PADDING } as PTableGroupItem
+    Truth.assertThat(padding.children.map { it.name })
+      .containsExactly(
+        SdkConstants.ATTR_PADDING,
+        SdkConstants.ATTR_PADDING_START,
+        SdkConstants.ATTR_PADDING_LEFT,
+        SdkConstants.ATTR_PADDING_TOP,
+        SdkConstants.ATTR_PADDING_END,
+        SdkConstants.ATTR_PADDING_RIGHT,
+        SdkConstants.ATTR_PADDING_BOTTOM
+      ).inOrder()
 
-    util.properties[ANDROID_URI, ATTR_TEXT].value = "Testing"
-    util.properties[ANDROID_URI, ATTR_LAYOUT_WIDTH].value = VALUE_WRAP_CONTENT
-    util.properties[ANDROID_URI, ATTR_LAYOUT_HEIGHT].value = VALUE_WRAP_CONTENT
+    // Constraints is a group:
+    val constraints = items.find { it.name == CONSTRAINT_GROUP_NAME } as PTableGroupItem
+    Truth.assertThat(constraints.children.map { it.name })
+      .containsExactly(
+        SdkConstants.ATTR_BARRIER_ALLOWS_GONE_WIDGETS,
+        SdkConstants.ATTR_BARRIER_DIRECTION,
+        SdkConstants.ATTR_LAYOUT_CHAIN_HELPER_USE_RTL,
+        SdkConstants.ATTR_LAYOUT_CONSTRAINTSET,
+        SdkConstants.CONSTRAINT_REFERENCED_IDS,
+        SdkConstants.ATTR_LAYOUT_CONSTRAINED_HEIGHT,
+        SdkConstants.ATTR_LAYOUT_CONSTRAINED_WIDTH,
+        SdkConstants.ATTR_LAYOUT_BASELINE_CREATOR,
+        SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
+        SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR,
+        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
+        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+        SdkConstants.ATTR_LAYOUT_CONSTRAINT_CIRCLE,
+        SdkConstants.ATTR_LAYOUT_CONSTRAINT_CIRCLE_ANGLE,
+        SdkConstants.ATTR_LAYOUT_CONSTRAINT_CIRCLE_RADIUS,
+        SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO,
+        SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
+        SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
+        SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN,
+        SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END,
+        SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
+        SdkConstants.ATTR_LAYOUT_HEIGHT_DEFAULT,
+        SdkConstants.ATTR_LAYOUT_HEIGHT_MAX,
+        SdkConstants.ATTR_LAYOUT_HEIGHT_MIN,
+        SdkConstants.ATTR_LAYOUT_HEIGHT_PERCENT,
+        SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
+        SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE,
+        SdkConstants.ATTR_LAYOUT_HORIZONTAL_WEIGHT,
+        SdkConstants.ATTR_LAYOUT_LEFT_CREATOR,
+        SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+        SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
+        SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR,
+        SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+        SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
+        SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
+        SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
+        SdkConstants.ATTR_LAYOUT_TOP_CREATOR,
+        SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
+        SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
+        SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS,
+        SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE,
+        SdkConstants.ATTR_LAYOUT_VERTICAL_WEIGHT,
+        SdkConstants.ATTR_LAYOUT_WIDTH_DEFAULT,
+        SdkConstants.ATTR_LAYOUT_WIDTH_MAX,
+        SdkConstants.ATTR_LAYOUT_WIDTH_MIN,
+        SdkConstants.ATTR_LAYOUT_WIDTH_PERCENT,
+        SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
+        SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
+        SdkConstants.ATTR_LAYOUT_GONE_MARGIN_BOTTOM,
+        SdkConstants.ATTR_LAYOUT_GONE_MARGIN_END,
+        SdkConstants.ATTR_LAYOUT_GONE_MARGIN_LEFT,
+        SdkConstants.ATTR_LAYOUT_GONE_MARGIN_RIGHT,
+        SdkConstants.ATTR_LAYOUT_GONE_MARGIN_START,
+        SdkConstants.ATTR_LAYOUT_GONE_MARGIN_TOP,
+        SdkConstants.ATTR_LAYOUT_OPTIMIZATION_LEVEL,
+        SdkConstants.ATTR_MAX_HEIGHT,
+        SdkConstants.ATTR_MAX_WIDTH,
+        SdkConstants.ATTR_MIN_HEIGHT,
+        SdkConstants.ATTR_MIN_WIDTH
+      ).inOrder()
   }
 
   private fun createBuilder(model: NelePropertiesModel): AllAttributesInspectorBuilder {
