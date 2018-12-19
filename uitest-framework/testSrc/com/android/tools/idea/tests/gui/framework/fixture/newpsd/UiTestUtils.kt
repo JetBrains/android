@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.matcher
 import com.android.tools.idea.tests.gui.framework.robot
+import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.components.JBList
 import org.fest.swing.core.GenericTypeMatcher
@@ -43,7 +44,16 @@ fun waitForIdle() {
       // We often have more than 20 events primarily caused by invokeLater() invocations.
     }
   }
-  throw WaitTimedOutError("Timed out waiting for idle.")
+  val details = try {
+    buildString {
+      appendln("EventCount: ${IdeEventQueue.getInstance().eventCount}")
+      appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent}")
+    }
+  }
+  catch (t: Throwable) {
+    t.message.orEmpty()
+  }
+  throw WaitTimedOutError("Timed out waiting for idle: $details")
 }
 
 internal fun IdeFrameContainerFixture.clickToolButton(titlePrefix: String) {
