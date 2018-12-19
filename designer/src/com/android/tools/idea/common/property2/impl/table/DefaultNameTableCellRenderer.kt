@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.property2.impl.table
 
 import com.android.tools.adtui.ptable2.*
+import com.android.tools.idea.common.property2.api.PropertyItem
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -45,12 +46,16 @@ class DefaultNameTableCellRenderer : SimpleColoredComponent(), PTableCellRendere
     font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     myBorder = JBUI.Borders.empty()
     var indent = standardIndent + depth * depthIndent
-    if (item is PTableGroupItem) {
-      icon = UIUtil.getTreeNodeIcon(table.isExpanded(item), isSelected, hasFocus)
-      iconTextGap = max(iconWidth - icon.iconWidth, minSpacing)
-    }
-    else {
-      indent += iconWidth + minSpacing
+    when {
+      item is PTableGroupItem -> {
+        icon = UIUtil.getTreeNodeIcon(table.isExpanded(item), isSelected, hasFocus)
+        iconTextGap = max(iconWidth - icon.iconWidth, minSpacing)
+      }
+      item is PropertyItem && item.namespaceIcon != null -> {
+        icon = item.namespaceIcon
+        iconTextGap = max(iconWidth - icon.iconWidth, minSpacing)
+      }
+      else -> indent += iconWidth + minSpacing
     }
     if (isSelected && hasFocus) {
       foreground = UIUtil.getTreeSelectionForeground(true)
