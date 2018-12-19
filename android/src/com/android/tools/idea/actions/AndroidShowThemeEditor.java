@@ -20,12 +20,12 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidShowThemeEditor extends AnAction {
   public AndroidShowThemeEditor() {
-    super("Theme Editor", null, AndroidIcons.Themes);
+    super("Theme Editor", null, StudioIcons.Shell.Menu.THEME_EDITOR);
   }
 
   @Override

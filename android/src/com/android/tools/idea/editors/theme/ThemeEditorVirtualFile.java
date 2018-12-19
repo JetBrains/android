@@ -30,7 +30,7 @@ import com.intellij.openapi.vfs.pointers.VirtualFilePointer;
 import com.intellij.openapi.vfs.pointers.VirtualFilePointerManager;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.io.URLUtil;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,7 +139,7 @@ public class ThemeEditorVirtualFile extends LightVirtualFile {
 
     @Override
     public Icon getIcon() {
-      return AndroidIcons.Themes;
+      return StudioIcons.Shell.Menu.THEME_EDITOR;
     }
 
     @Override

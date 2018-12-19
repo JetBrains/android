@@ -30,7 +30,6 @@ public class AndroidIcons {
   public static final Icon Landscape = load("/icons/landscape.png"); // 16x16
   public static final Icon Portrait = load("/icons/portrait.png"); // 16x16
   public static final Icon Display = load("/icons/display.png"); // 16x16
-  public static final Icon Themes = load("/icons/themes.png"); // 16x16
   public static final Icon ThemesPreview = load("/icons/themesPreview.png"); // 13x13
 
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
