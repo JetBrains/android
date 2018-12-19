@@ -55,10 +55,6 @@ import org.xmlpull.v1.XmlPullParser;
 /**
  * Repository of resources of the Android framework.
  *
- * <p>This repository behaves similar to {@link AarSourceResourceRepository} except that it differentiates
- * between resources that are public and non public. {@link #getPublicResources} can be used to obtain only
- * public the resources. This is typically used to display resource lists in the UI.
- *
  * <p>For performance the repository, when possible, is loaded from a binary cache file located
  * under the directory returned by the {@link PathManager#getSystemPath()} method.
  * Loading from a cache file is 7-8 times faster than reading XML files.
