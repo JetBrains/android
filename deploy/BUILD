@@ -5,7 +5,7 @@ iml_module(
     name = "intellij.android.deploy",
     srcs = ["src"],
     iml_files = ["intellij.android.deploy.iml"],
-    test_data = glob(["testData/**"]),
+    test_data = glob(["testData/**"]) + ["//prebuilts/studio/sdk:platform-tools"],
     # do not sort: must match IML order
     test_runtime_deps = ["//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl"],
     test_srcs = ["testSrc"],
@@ -41,5 +41,7 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
     ],
 )
