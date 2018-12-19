@@ -31,6 +31,7 @@
         app:srcCompat="@android:drawable/ic_dialog_email" />
 
     <android.support.v7.widget.RecyclerView
-        app:layoutManager="android.support.v7.widget.GridLayoutManager" />
+        app:layoutManager="android.support.v7.widget.GridLayoutManager"
+        app:layout_behavior="android.support.design.bottomsheet.BottomSheetBehavior" />
 
 </android.support.design.widget.CoordinatorLayout>

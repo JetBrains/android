@@ -69,6 +69,10 @@ public class AndroidDomUtil {
     {RECYCLER_VIEW_LAYOUT_MANAGER_NAME.oldName(), RECYCLER_VIEW_LAYOUT_MANAGER_NAME.newName()};
   private static final String[] RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES =
     {RECYCLER_VIEW_PACKAGE_NAME.oldName(), RECYCLER_VIEW_PACKAGE_NAME.newName()};
+  private static final AndroidxName COORDINATOR_LAYOUT_BEHAVIOR_NAME =
+    AndroidxName.of("android.support.design.widget.", "CoordinatorLayout.Behavior");
+  private static final String[] COORDINATOR_LAYOUT_BEHAVIOR_NAMES =
+    {COORDINATOR_LAYOUT_BEHAVIOR_NAME.oldName(), RECYCLER_VIEW_LAYOUT_MANAGER_NAME.newName()};
 
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
   // TODO: Make SPECIAL_RESOURCE_TYPES into an ImmutableMultimap
@@ -79,6 +83,11 @@ public class AndroidDomUtil {
     .withExtraBasePackages(RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES)
     .completeLibraryClasses(true)
     .withExtendClassNames(RECYCLER_VIEW_LAYOUT_MANAGER_NAMES)
+    .build();
+  private static final PackageClassConverter COORDINATOR_LAYOUT_BEHAVIOR_CONVERTER = new PackageClassConverter.Builder()
+    .useManifestBasePackage(true)
+    .completeLibraryClasses(true)
+    .withExtendClassNames(COORDINATOR_LAYOUT_BEHAVIOR_NAMES)
     .build();
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
@@ -234,6 +243,16 @@ public class AndroidDomUtil {
       // RecyclerView:
       if (localName.equals(ATTR_LAYOUT_MANAGER) && RECYCLER_VIEW.isEquals(tagName)) {
         return RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER;
+      }
+      else if (localName.equals(ATTR_LAYOUT_BEHAVIOR)) {
+        // app:layout_behavior attribute is used by CoordinatorLayout children to specify their behaviour
+        // when scrolling.
+        // https://developer.android.com/reference/android/support/design/widget/CoordinatorLayout
+        XmlTag parentTag = xmlTag.getParentTag();
+        String parentTagName = parentTag != null ? parentTag.getName() : null;
+        if (COORDINATOR_LAYOUT.isEquals(parentTagName)) {
+          return COORDINATOR_LAYOUT_BEHAVIOR_CONVERTER;
+        }
       }
     }
 
