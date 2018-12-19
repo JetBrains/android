@@ -333,12 +333,12 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     return true;
   }
 
-  private static void checkContents(@NotNull FrameworkResourceRepository repository) {
+  private static void checkContents(@NotNull ResourceRepository repository) {
     checkPublicResourcesCount(repository);
     checkAttributes(repository);
   }
 
-  private static void checkAttributes(@NotNull FrameworkResourceRepository repository) {
+  private static void checkAttributes(@NotNull ResourceRepository repository) {
     // `typeface` is declared first at top-level and later referenced from within `<declare-styleable>`.
     // Make sure the later reference doesn't shadow the original definition.
     AttrResourceValue attrValue = getAttrValue(repository, "typeface");
@@ -363,13 +363,13 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     assertThat(attrValue.getValueDescription("maps")).contains("navigation");
   }
 
-  private static AttrResourceValue getAttrValue(@NotNull FrameworkResourceRepository repository,
+  private static AttrResourceValue getAttrValue(@NotNull ResourceRepository repository,
                                                 @NotNull String attrName) {
     ResourceItem attrItem = repository.getResources(ResourceNamespace.ANDROID, ResourceType.ATTR, attrName).get(0);
     return (AttrResourceValue)attrItem.getResourceValue();
   }
 
-  private static void checkPublicResourcesCount(@NotNull FrameworkResourceRepository repository) {
+  private static void checkPublicResourcesCount(@NotNull ResourceRepository repository) {
     List<ResourceItem> resourceItems = repository.getAllResources();
     assertTrue("Too few resources: " + resourceItems.size(), resourceItems.size() >= 10000);
     for (ResourceItem item : resourceItems) {
