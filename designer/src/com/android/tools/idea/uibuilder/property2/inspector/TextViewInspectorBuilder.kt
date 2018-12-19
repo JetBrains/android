@@ -61,8 +61,6 @@ class TextViewInspectorBuilder(private val editorProvider: EditorProvider<NelePr
     addEditor(inspector, properties[ANDROID_URI, ATTR_TEXT_COLOR], textAppearanceLabel)
     addTextStyle(inspector, properties, textAppearanceLabel)
     addAlignment(inspector, properties, textAppearanceLabel)
-
-    addEditor(inspector, properties[ANDROID_URI, ATTR_VISIBILITY], titleLine)
   }
 
   private fun addEditor(inspector: InspectorPanel, property: NelePropertyItem, group: InspectorLineModel): InspectorLineModel {

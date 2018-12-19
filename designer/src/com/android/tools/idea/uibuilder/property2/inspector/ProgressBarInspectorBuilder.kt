@@ -34,8 +34,6 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<Nel
     val tintInt = addOptionalEditor(inspector, properties.getOrNull(ANDROID_URI, ATTR_INDETERMINATE_TINT), titleLine)
     val max = inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_MAXIMUM]), titleLine)
     val progress = inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_PROGRESS]), titleLine)
-    inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_VISIBILITY]), titleLine)
-    inspector.addEditor(editorProvider.createEditor(properties[ANDROID_URI, ATTR_VISIBILITY].designProperty), titleLine)
     val indeterminate = properties[ANDROID_URI, ATTR_INDETERMINATE]
     val model = addEditorAndReturnEditorModel(inspector, indeterminate, titleLine)
     val updater = StateUpdater(indeterminate, listOf(drawable, tint, max, progress), listOf(drawableInt, tintInt))
@@ -67,8 +65,7 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<Nel
       ATTR_INDETERMINATE_DRAWABLE,
       ATTR_MAXIMUM,
       ATTR_PROGRESS,
-      ATTR_INDETERMINATE,
-      ATTR_VISIBILITY
+      ATTR_INDETERMINATE
     )
   }
 

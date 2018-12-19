@@ -29,7 +29,7 @@ import org.junit.Test
 @RunsInEdt
 class LayoutInspectorBuilderTest {
   @JvmField @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val projectRule = AndroidProjectRule.withSdk()
 
   @JvmField @Rule
   val edtRule = EdtRule()
@@ -38,15 +38,21 @@ class LayoutInspectorBuilderTest {
   fun testLinearLayout() {
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
     val builder = LayoutInspectorBuilder(projectRule.project, util.editorProvider)
-    addLayoutProperties(util)
+    util.loadProperties()
     builder.attachToInspector(util.inspector, util.properties)
-    assertThat(util.inspector.lines).hasSize(2)
+    assertThat(util.inspector.lines).hasSize(6)
     assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
     assertThat(util.inspector.lines[0].title).isEqualTo("Layout")
-    assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_LAYOUT_WEIGHT)
+    checkLine(util, 1, ANDROID_URI, ATTR_LAYOUT_WIDTH)
+    checkLine(util, 2, ANDROID_URI, ATTR_LAYOUT_HEIGHT)
+    checkLine(util, 3, ANDROID_URI, ATTR_LAYOUT_WEIGHT)
+    checkLine(util, 4, ANDROID_URI, ATTR_VISIBILITY)
+    checkLine(util, 5, TOOLS_URI, ATTR_VISIBILITY)
   }
 
-  private fun addLayoutProperties(util: InspectorTestUtil) {
-    util.addProperty(ANDROID_URI, ATTR_LAYOUT_WEIGHT, NelePropertyType.DIMENSION)
+  private fun checkLine(util: InspectorTestUtil, line: Int, namespace: String, attrName: String) {
+    assertThat(util.inspector.lines[line].type).isEqualTo(LineType.PROPERTY)
+    assertThat(util.inspector.lines[line].editorModel?.property?.namespace).isEqualTo(namespace)
+    assertThat(util.inspector.lines[line].editorModel?.property?.name).isEqualTo(attrName)
   }
 }

@@ -56,7 +56,7 @@ class ProgressBarInspectorBuilderTest {
     val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    assertThat(util.inspector.lines).hasSize(9)
+    assertThat(util.inspector.lines).hasSize(7)
     assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
     assertThat(util.inspector.lines[0].title).isEqualTo("Common Attributes")
     assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
@@ -64,9 +64,7 @@ class ProgressBarInspectorBuilderTest {
     assertThat(util.inspector.lines[3].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_DRAWABLE)
     assertThat(util.inspector.lines[4].editorModel?.property?.name).isEqualTo(ATTR_MAXIMUM)
     assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS)
-    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
+    assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
   }
 
   @Test
@@ -77,7 +75,7 @@ class ProgressBarInspectorBuilderTest {
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    assertThat(util.inspector.lines).hasSize(11)
+    assertThat(util.inspector.lines).hasSize(9)
     assertThat(util.inspector.lines[0].type).isEqualTo(LineType.TITLE)
     assertThat(util.inspector.lines[0].title).isEqualTo("Common Attributes")
     assertThat(util.inspector.lines[1].editorModel?.property?.name).isEqualTo(ATTR_STYLE)
@@ -87,9 +85,7 @@ class ProgressBarInspectorBuilderTest {
     assertThat(util.inspector.lines[5].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE_TINT)
     assertThat(util.inspector.lines[6].editorModel?.property?.name).isEqualTo(ATTR_MAXIMUM)
     assertThat(util.inspector.lines[7].editorModel?.property?.name).isEqualTo(ATTR_PROGRESS)
-    assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[9].editorModel?.property?.name).isEqualTo(ATTR_VISIBILITY)
-    assertThat(util.inspector.lines[10].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
+    assertThat(util.inspector.lines[8].editorModel?.property?.name).isEqualTo(ATTR_INDETERMINATE)
   }
 
   @Test
