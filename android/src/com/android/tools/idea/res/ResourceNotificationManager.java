@@ -618,8 +618,22 @@ public class ResourceNotificationManager {
 
     @Override
     public void propertyChanged(@NotNull PsiTreeChangeEvent event) {
+      // When renaming a PsiFile, if the file extension stays the same (i.e the file type
+      // stays the same) the generated PsiTreeChangeEvent will trigger "propertyChanged()" (this method) with
+      // the changed file set as the event's element.
+      // On the other hand, if the file extension is changed, a new object is created and the event will
+      // trigger "childReplaced()" instead, the parent being the file's directory and the renamed
+      // file being the new child.
+      if (PsiTreeChangeEvent.PROP_FILE_NAME.equals(event.getPropertyName())) {
+        notice(Reason.RESOURCE_EDIT);
+      }
     }
 
+    /**
+     * Returns true if the event's file is being observed by a listener (addListener(...) has
+     * been called with a non-null VirtualFile.)
+     * @see ResourceNotificationManager#addListener(ResourceChangeListener, AndroidFacet, VirtualFile, Configuration)
+     */
     private boolean isRelevantFile(PsiTreeChangeEvent event) {
       if (!myFileToObserverMap.isEmpty()) {
         final PsiFile file = event.getFile();
