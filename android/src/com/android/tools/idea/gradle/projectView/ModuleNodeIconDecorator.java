@@ -28,7 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packageDependencies.ui.PackageDependenciesNode;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.ColoredTreeCellRenderer;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
@@ -62,7 +62,7 @@ public class ModuleNodeIconDecorator implements ProjectViewNodeDecorator {
       else if (isSourceRoot(folder, project)) {
         TestArtifactSearchScopes testScopes = TestArtifactSearchScopes.get(module);
         if (testScopes != null && testScopes.isAndroidTestSource(folder)) {
-          data.setIcon(AndroidIcons.AndroidTestRoot);
+          data.setIcon(StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT);
         }
       }
     }
