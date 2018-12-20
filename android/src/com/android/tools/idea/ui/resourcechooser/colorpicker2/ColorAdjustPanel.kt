@@ -25,8 +25,8 @@ import javax.swing.*
 import javax.swing.plaf.basic.BasicButtonUI
 import kotlin.math.abs
 
-private val PANEL_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 80)
-private val PANEL_BORDER = JBUI.Borders.empty(4, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 0, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
+private val PANEL_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 70)
+private val PANEL_BORDER = JBUI.Borders.empty(0, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 0, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
 
 private val PIPETTE_BUTTON_BORDER = JBUI.Borders.empty()
 
