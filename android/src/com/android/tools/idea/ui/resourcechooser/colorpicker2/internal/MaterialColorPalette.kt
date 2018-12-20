@@ -45,10 +45,10 @@ private val PALETTE_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 125)
 private val PALETTE_BORDER = JBUI.Borders.empty(10, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 10, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
 
 private val COMBO_BOX_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 35)
-private val COMBO_BOX_BORDER = JBUI.Borders.empty(0, 4, 8, 4)
+private val COMBO_BOX_BORDER = JBUI.Borders.empty(0, 2, 8, 2)
 
 private val COLOR_BUTTON_PREFERRED_SIZE = JBUI.size(34)
-private val COLOR_BUTTON_BORDER = JBUI.Borders.empty(7)
+private val COLOR_BUTTON_BORDER = JBUI.Borders.empty(6)
 /**
  * This value is not adjusted by component size.
  */
