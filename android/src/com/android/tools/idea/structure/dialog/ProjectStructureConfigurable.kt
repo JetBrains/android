@@ -35,7 +35,7 @@ import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
-import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.openapi.options.newEditor.SettingsDialog
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectBundle
 import com.intellij.openapi.project.ProjectManager
@@ -60,13 +60,14 @@ import com.intellij.util.io.storage.HeavyProcessLatch
 import com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
 import com.intellij.util.ui.UIUtil.requestFocus
+import com.intellij.util.ui.update.Activatable
+import com.intellij.util.ui.update.UiNotifyConnector
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.util.EventListener
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -96,6 +97,8 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   private var myDisposable = MyDisposable()
   private var myOpenTimeMs: Long = 0
+  private var inDoOK = false
+  private var needsSync = false
 
   override fun getPreferredFocusedComponent(): JComponent? = myToFocus
 
@@ -253,39 +256,46 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       }
       return
     }
-    val needsSync = AtomicBoolean()
-    val changeListener = object : ProjectStructureChangeListener {
-      override fun projectStructureChanged() {
-        needsSync.set(true)
-      }
-    }
-    add(changeListener)
+    myOpenTimeMs = System.currentTimeMillis()
+    logUsageOpen()
+    myShowing = true
     try {
-      myOpenTimeMs = System.currentTimeMillis()
-      logUsageOpen()
-      myShowing = true
-      try {
-        showDialog(Runnable {
-          if (place != null) {
-            navigateTo(place, true)
-          }
-        })
-      }
-      finally {
-        myShowing = false
-      }
+      showDialog(Runnable {
+        if (place != null) {
+          navigateTo(place, true)
+        }
+      })
     }
     finally {
-      remove(changeListener)
+      myShowing = false
     }
-    if (needsSync.get()) {
+    if (needsSync) {
       GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED)
     }
   }
 
   fun show() = showPlace(null)
 
-  private fun showDialog(advanceInit: Runnable?) = ShowSettingsUtil.getInstance().editConfigurable(myProject, this, advanceInit)
+  private fun showDialog(advanceInit: Runnable) {
+    val dialog = object : SettingsDialog(myProject, "#PSD", this, true, false) {
+      override fun doOKAction() {
+        inDoOK = true
+        try {
+          super.doOKAction()
+        }
+        finally {
+          inDoOK = false
+        }
+      }
+    }
+    UiNotifyConnector.Once(dialog.contentPane, object : Activatable.Adapter() {
+      override fun showNotify() {
+        advanceInit.run()
+      }
+    })
+    dialog.showAndGet()
+  }
+
 
   private fun initSidePanel() {
     val isDefaultProject = myProject === ProjectManager.getInstance().defaultProject
@@ -337,8 +347,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   override fun apply() {
     logUsageApply()
     val modifiedConfigurables = myConfigurables.keys.filter { it.isModified }
+    if (modifiedConfigurables.isEmpty()) return
     modifiedConfigurables.forEach { it.apply() }
-    if (modifiedConfigurables.isNotEmpty()) myChangeEventDispatcher.multicaster.projectStructureChanged()
+    // If we successfully applied changes there is none to notify about the changes since the dialog is being closed.
+    if (!inDoOK) myChangeEventDispatcher.multicaster.projectStructureChanged()
+    needsSync = true
   }
 
   override fun reset() {
