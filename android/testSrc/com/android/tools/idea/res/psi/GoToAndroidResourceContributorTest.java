@@ -106,8 +106,8 @@ public class GoToAndroidResourceContributorTest extends AndroidTestCase {
   }
 
   /**
-   * Tries to emulate what SEResultsEqualityProvider is doing to deduplicate the result list. Unfortunately some of the types involved are
-   * not public, so we cannot do exactly the same.
+   * Tries to emulate what {@link com.intellij.ide.actions.searcheverywhere.TrivialElementsEqualityProvider} is doing to deduplicate the
+   * result list. Unfortunately some of the types involved are not public, so we cannot do exactly the same.
    */
   public void testEquality() {
     GoToAndroidResourceContributor contributor = new GoToAndroidResourceContributor();
