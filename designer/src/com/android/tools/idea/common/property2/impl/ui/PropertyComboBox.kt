@@ -73,6 +73,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     textField.registerKeyAction({ escape() }, KeyStrokes.escape, "escape")
     textField.registerKeyAction({ model.f1KeyPressed() }, KeyStrokes.f1, "help")
     textField.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
+    textField.registerKeyAction({ model.browseButtonPressed() }, KeyStrokes.browse, "browse")
 
     val focusListener = TextEditorFocusListener(textField, this, model)
     addFocusListener(focusListener)

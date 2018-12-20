@@ -87,6 +87,7 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : AdtSecondar
     flagImage.registerKeyAction({ editorModel.commit() }, KeyStrokes.enter, "enter")
     flagImage.registerKeyAction({ editorModel.f1KeyPressed() }, KeyStrokes.f1, "help")
     flagImage.registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
+    flagImage.registerKeyAction({ editorModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
 
     editorModel.addListener(ValueChangedListener { handleValueChanged() })
     handleValueChanged()
