@@ -46,8 +46,8 @@ fun waitForIdle() {
   }
   val details = try {
     buildString {
-      appendln("EventCount: ${IdeEventQueue.getInstance().eventCount}")
       appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent}")
+      appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
     }
   }
   catch (t: Throwable) {
