@@ -18,13 +18,11 @@ package com.android.tools.idea.common.property2.impl.ui
 import com.android.SdkConstants
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
 import com.intellij.util.ui.ThreeStateCheckBox
 import icons.StudioIcons
-import java.awt.event.InputEvent
-import java.awt.event.KeyEvent
-import javax.swing.KeyStroke
 
 /**
  * A standard control for editing a boolean property value with 3 states: on/off/unset.
@@ -35,8 +33,8 @@ class PropertyThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPro
   init {
     icon = StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_CENTER
     state = toThreeStateValue(propertyModel.value)
-    registerKeyAction({ propertyModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
-    registerKeyAction({ propertyModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
+    registerKeyAction({ propertyModel.f1KeyPressed() }, KeyStrokes.f1, "help")
+    registerKeyAction({ propertyModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
 
     propertyModel.addListener(ValueChangedListener { handleValueChanged() })
     addFocusListener(EditorFocusListener(this, propertyModel))
