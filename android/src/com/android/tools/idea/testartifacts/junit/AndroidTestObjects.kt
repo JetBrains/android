@@ -63,8 +63,9 @@ class AndroidTestObject(private val myTestObject: TestObject) : TestObject(myTes
   override fun execute(executor: Executor, runner: ProgramRunner<*>) = myTestObject.execute(executor, runner)
   override fun getConfiguration() = myTestObject.configuration
 
-  override fun getListener(element: PsiElement, configuration: JUnitConfiguration): RefactoringElementListener =
-    myTestObject.getListener(element, configuration)
+  override fun getListener(element: PsiElement, configuration: JUnitConfiguration): RefactoringElementListener? {
+    return myTestObject.getListener(element, configuration)
+  }
 
   override fun isConfiguredByElement(
     configuration: JUnitConfiguration,
