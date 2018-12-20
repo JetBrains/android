@@ -17,6 +17,7 @@ import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.find
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.matcher
 import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.ide.IdeEventQueue
@@ -24,6 +25,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.components.JBList
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.WaitTimedOutError
+import org.fest.swing.timing.Wait
 import org.fest.swing.util.ToolkitProvider
 import sun.awt.SunToolkit
 import java.awt.Container
@@ -60,12 +62,15 @@ internal fun IdeFrameContainerFixture.clickToolButton(titlePrefix: String) {
   fun ActionButton.matches() = toolTipText?.startsWith(titlePrefix) ?: false
   // Find the topmost tool button. (List/Map editors may contains similar buttons)
   val button =
-    robot()
-      .finder()
-      .findAll(container, matcher<ActionButton> { it.matches() })
-      .minBy { button -> generateSequence<Container>(button) { it.parent }.count() }
-    ?: robot().finder().find<ActionButton>(container) { it.matches() }
-  robot().click(button)
+    ActionButtonFixture(
+      robot(),
+      robot()
+        .finder()
+        .findAll(container, matcher<ActionButton> { it.matches() })
+        .minBy { button -> generateSequence<Container>(button) { it.parent }.count() }
+      ?: robot().finder().find<ActionButton>(container) { it.matches() })
+  Wait.seconds(1).expecting("Enabled").until { button.isEnabled }
+  button.click()
 }
 
 /**

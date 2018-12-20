@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.properties.Simpl
 import com.android.tools.idea.gradle.structure.configurables.variables.VARIABLES_VIEW
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture
 import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.ui.SimpleColoredComponent
@@ -52,6 +53,11 @@ class VariablesPerspectiveConfigurableFixture(
   fun clickAddMap() {
     clickToolButton("Add")
     chooseMap()
+  }
+
+  fun clickRemove(removesMultiple: Boolean = false): MessagesFixture {
+    clickToolButton("Remove")
+    return MessagesFixture.findByTitle(robot(), if (removesMultiple) "Remove Variables" else "Remove Variable", 2)
   }
 
   fun chooseSimpleValue() {
@@ -161,6 +167,12 @@ class VariablesPerspectiveConfigurableFixture(
     findTable().cell(text).select()
   }
 
+  fun selectCellWithCtrl(text: String) {
+    robot().pressKey(KeyEvent.VK_CONTROL)
+    findTable().cell(text).select()
+    robot().releaseKey(KeyEvent.VK_CONTROL)
+  }
+
   fun contents(): List<Pair<String, String>> =
     findTable().contents().map { it[0] to it[1] }
 }
@@ -171,3 +183,5 @@ fun ProjectStructureDialogFixture.selectVariablesConfigurable(): VariablesPerspe
       ideFrameFixture,
       findConfigurable(VARIABLES_VIEW))
 }
+
+fun MessagesFixture.clickNo() = click("No")

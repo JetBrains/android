@@ -40,6 +40,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.ListPopup
 import com.intellij.openapi.ui.popup.PopupStep
@@ -190,12 +191,38 @@ class VariablesTable private constructor(
 
   private inline fun <reified T: VariablesBaseNode> getSelectedNodes() =
     selectedRows
-      .map { tree.getPathForRow(it).lastPathComponent as? T }
+      .map { tree.getPathForRow(it)?.lastPathComponent as? T }
       .filterNotNull()
 
   fun deleteSelectedVariables() {
+    fun VariableNode.moduleName() = when (this.variable.parent) {
+      is PsProject -> "project '${this.variable.parent.name}'"
+      is PsModule -> "module '${this.variable.parent.name}'"
+      else -> ""
+    }
+
     removeEditor()
-    getSelectedNodes<BaseVariableNode>().map { it.variable }.forEach { it.delete() }
+    val variableNodes = getSelectedNodes<BaseVariableNode>()
+    val message = when {
+      variableNodes.isEmpty() -> return
+      variableNodes.size == 1 -> variableNodes[0].let { node ->
+        when (node) {
+          is VariableNode -> "Remove variable '${variableNodes[0].variable.name}' from ${node.moduleName()}?"
+          is ListItemNode -> "Remove list item ${node.index} from '${node.variable.parent.name}'?"
+          is MapItemNode -> "Remove map entry '${node.key}' from '${node.variable.parent.name}'?"
+          else -> return
+        }
+      }
+      else -> "Remove ${variableNodes.size} items from project '${psProject.name}'?"
+    }
+    if (Messages.showYesNoDialog(
+        project,
+        message,
+        if (variableNodes.size > 1) "Remove Variables" else "Remove Variable",
+        Messages.getQuestionIcon()
+      ) == Messages.YES) {
+      variableNodes.map { it.variable }.forEach { it.delete() }
+    }
   }
 
   fun addVariable(type: ValueType) {
@@ -657,7 +684,7 @@ class VariableNode(znode: ShadowNode, variable: PsVariable) : BaseVariableNode(z
   }
 }
 
-class ListItemNode(znode: ShadowNode, index: Int, variable: PsVariable) : BaseVariableNode(znode, variable) {
+class ListItemNode(znode: ShadowNode, val index: Int, variable: PsVariable) : BaseVariableNode(znode, variable) {
   init {
     userObject = index
   }
@@ -675,7 +702,7 @@ class EmptyListItemNode(znode: ShadowNode, private val containingList: PsVariabl
   override fun createVariable(value: ParsedValue<Any>): PsVariable = containingList.addListValue(value)
 }
 
-class MapItemNode(znode: ShadowNode, key: String, variable: PsVariable) : BaseVariableNode(znode, variable) {
+class MapItemNode(znode: ShadowNode, val key: String, variable: PsVariable) : BaseVariableNode(znode, variable) {
   init {
     userObject = key
   }

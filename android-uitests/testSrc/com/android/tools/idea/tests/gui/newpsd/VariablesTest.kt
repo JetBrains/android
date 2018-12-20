@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.newpsd
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.clickNo
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectVariablesConfigurable
 import com.google.common.truth.Truth.assertThat
@@ -131,6 +132,83 @@ class VariablesTest {
           "k2" to "v2",
           "" to "", // +New Item
           "" to "" // +New Variable
+        )
+      }
+      clickCancel()
+    }
+  }
+
+  @Test
+  fun removingVariables() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
+
+    ide.openPsd().run {
+      selectVariablesConfigurable().run {
+        clickAddSimpleValue()
+        enterText("simpleVariable")
+        tab()
+        enterText("stringValue")
+        tab()
+        chooseList()
+        enterText("listVariable")
+        tab()
+        enterText("one")
+        tab()
+        enterText("two")
+        tab()
+        clickAddMap()
+        enterText("mapVariable")
+        enter()
+        enterText("k1")
+        enter()
+        enterText("v1")
+        enter()
+      }
+      clickOk()
+    }
+    ide.openPsd().run {
+      selectVariablesConfigurable().run {
+        selectCell("simpleVariable")
+        clickRemove().run {
+          requireMessageContains("Remove variable 'simpleVariable' from project 'PsdSimple'?")
+          clickNo()
+        }
+        selectCell("listVariable")
+        editWithF2() // Cancel editing.
+        right() // Expand.
+        selectCell("two")
+        clickRemove().run {
+          requireMessageContains("Remove list item 1 from 'listVariable'?")
+          clickNo()
+        }
+        selectCell("mapVariable")
+        editWithF2() // Cancel editing.
+        right() // Expand.
+        selectCell("k1")
+        clickRemove().run {
+          requireMessageContains("Remove map entry 'k1' from 'mapVariable'?")
+          clickNo()
+        }
+        selectCell("simpleVariable")
+        selectCellWithCtrl("mapVariable")
+        clickRemove(removesMultiple = true).run {
+          requireMessageContains("Remove 2 items from project 'PsdSimple'?")
+          clickYes()
+        }
+      }
+      clickOk()
+    }
+    ide.openPsd().run {
+      selectVariablesConfigurable().run {
+        assertThat(contents()).containsExactly(
+          "PsdSimple" to "",
+          "listVariable" to "",
+          "0" to "one",
+          "1" to "two",
+          "" to "", // +New Map Entry
+          "" to "", // +New Variable
+          "app" to "",
+          "mylibrary" to ""
         )
       }
       clickCancel()
