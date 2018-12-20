@@ -34,7 +34,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.CpuThreadCountDataSeries
+import com.android.tools.profilers.cpu.LegacyCpuThreadCountDataSeries
 import com.android.tools.profilers.cpu.CpuUsage
 import com.android.tools.profilers.cpu.CpuUsageDataSeries
 import com.android.tools.profilers.cpu.FakeCpuService
@@ -122,7 +122,8 @@ class DataSeriesPerformanceTest {
                                                                    EnergyDuration.Kind.JOB)),
                                  Pair("Cpu-Usage",
                                       CpuUsageDataSeries(client.cpuClient, session) { dataList -> CpuUsage.extractData(dataList, false) }),
-                                 Pair("Cpu-Thread-Count", CpuThreadCountDataSeries(client.cpuClient, session)),
+                                 Pair("Cpu-Thread-Count",
+                                      LegacyCpuThreadCountDataSeries(client.cpuClient, session)),
                                  Pair("Cpu-Thread-State", ThreadStateDataSeries(client.cpuClient, session, 1)),
                                  Pair("Network-Open-Connections", NetworkOpenConnectionsDataSeries(client.networkClient, session)),
                                  Pair("Network-Traffic", NetworkTrafficDataSeries(client.networkClient, session,

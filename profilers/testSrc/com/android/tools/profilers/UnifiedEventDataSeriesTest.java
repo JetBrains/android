@@ -36,12 +36,12 @@ public class UnifiedEventDataSeriesTest {
 
   @Test
   public void testGetDataForXRange() {
-    myService.addEventToEventGroup(STREAM_ID, NETWORK_TX_VALUE, ProfilerTestData.generateNetworkTxEvent(1, 10).build());
-    myService.addEventToEventGroup(STREAM_ID, NETWORK_TX_VALUE, ProfilerTestData.generateNetworkTxEvent(3, 30).build());
-    myService.addEventToEventGroup(STREAM_ID, NETWORK_TX_VALUE, ProfilerTestData.generateNetworkTxEvent(5, 50).build());
-    myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilerTestData.generateNetworkRxEvent(2, 20).build());
-    myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilerTestData.generateNetworkRxEvent(4, 40).build());
-    myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilerTestData.generateNetworkRxEvent(6, 60).build());
+    myService.addEventToEventGroup(STREAM_ID, NETWORK_TX_VALUE, ProfilersTestData.generateNetworkTxEvent(1, 10).build());
+    myService.addEventToEventGroup(STREAM_ID, NETWORK_TX_VALUE, ProfilersTestData.generateNetworkTxEvent(3, 30).build());
+    myService.addEventToEventGroup(STREAM_ID, NETWORK_TX_VALUE, ProfilersTestData.generateNetworkTxEvent(5, 50).build());
+    myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilersTestData.generateNetworkRxEvent(2, 20).build());
+    myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilersTestData.generateNetworkRxEvent(4, 40).build());
+    myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilersTestData.generateNetworkRxEvent(6, 60).build());
 
     UnifiedEventDataSeries series1 = new UnifiedEventDataSeries(myGrpcChannel.getClient().getProfilerClient(),
                                                                 Common.Session.getDefaultInstance(),
@@ -66,8 +66,8 @@ public class UnifiedEventDataSeriesTest {
 
   @Test(expected = AssertionError.class)
   public void testAssertOnMultipleGroupData() {
-    myService.addEventToEventGroup(STREAM_ID, NETWORK_TX_VALUE, ProfilerTestData.generateNetworkTxEvent(1, 10).build());
-    myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilerTestData.generateNetworkRxEvent(2, 20).build());
+    myService.addEventToEventGroup(STREAM_ID, NETWORK_TX_VALUE, ProfilersTestData.generateNetworkTxEvent(1, 10).build());
+    myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilersTestData.generateNetworkRxEvent(2, 20).build());
 
     // Querying a multiple-group data kind without a group id triggers an assert.
     UnifiedEventDataSeries series1 = new UnifiedEventDataSeries(myGrpcChannel.getClient().getProfilerClient(),
