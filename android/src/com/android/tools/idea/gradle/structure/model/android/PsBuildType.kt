@@ -18,12 +18,36 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.BuildType
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
-import com.android.tools.idea.gradle.structure.model.PsPath
-import com.android.tools.idea.gradle.structure.model.helpers.*
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
+import com.android.tools.idea.gradle.structure.model.helpers.buildTypeMatchingFallbackValues
+import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
+import com.android.tools.idea.gradle.structure.model.helpers.parseAny
+import com.android.tools.idea.gradle.structure.model.helpers.parseBoolean
+import com.android.tools.idea.gradle.structure.model.helpers.parseFile
+import com.android.tools.idea.gradle.structure.model.helpers.parseInt
+import com.android.tools.idea.gradle.structure.model.helpers.parseReferenceOnly
+import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.android.tools.idea.gradle.structure.model.helpers.proGuardFileValues
+import com.android.tools.idea.gradle.structure.model.helpers.signingConfigs
+import com.android.tools.idea.gradle.structure.model.helpers.withProFileSelector
+import com.android.tools.idea.gradle.structure.model.meta.ListProperty
+import com.android.tools.idea.gradle.structure.model.meta.MapProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
+import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
+import com.android.tools.idea.gradle.structure.model.meta.asAny
+import com.android.tools.idea.gradle.structure.model.meta.asBoolean
+import com.android.tools.idea.gradle.structure.model.meta.asFile
+import com.android.tools.idea.gradle.structure.model.meta.asInt
+import com.android.tools.idea.gradle.structure.model.meta.asString
+import com.android.tools.idea.gradle.structure.model.meta.asUnit
+import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.android.tools.idea.gradle.structure.model.meta.listProperty
+import com.android.tools.idea.gradle.structure.model.meta.mapProperty
+import com.android.tools.idea.gradle.structure.model.meta.property
+import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
 import com.android.tools.idea.gradle.structure.navigation.PsBuildTypeNavigationPath
-import com.android.tools.idea.gradle.structure.navigation.PsBuildTypesNavigationPath
-import com.android.tools.idea.gradle.structure.navigation.PsBuildVariantsNavigationPath
 import java.io.File
 
 private const val DEBUG_BUILD_TYPE_NAME = "debug"
@@ -249,6 +273,7 @@ open class PsBuildType(
       parser = ::parseFile,
       knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
+      .withProFileSelector(module = { parent })
 
     val proGuardFiles: ListProperty<PsBuildType, File> = listProperty(
       "ProGuard Files",
@@ -259,6 +284,7 @@ open class PsBuildType(
       parser = ::parseFile,
       knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
+      .withProFileSelector(module = { parent })
 
     val manifestPlaceholders: MapProperty<PsBuildType, Any> = mapProperty(
       "Manifest Placeholders",
