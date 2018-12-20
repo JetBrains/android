@@ -30,7 +30,6 @@ import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManagerImpl
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.speedSearch.SpeedSearch
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet

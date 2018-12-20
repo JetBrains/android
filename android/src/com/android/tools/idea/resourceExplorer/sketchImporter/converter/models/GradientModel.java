@@ -78,7 +78,7 @@ public class GradientModel {
       return TYPES[getGradientType()];
     }
     else {
-      LOG.error("Unknown gradient type. Array index is " + Integer.toString(myGradientType));
+      LOG.error("Unknown gradient type. Array index is " + myGradientType);
     }
 
     return null;

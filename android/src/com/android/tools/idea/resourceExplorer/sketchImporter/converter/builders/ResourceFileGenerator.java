@@ -86,8 +86,8 @@ public class ResourceFileGenerator {
   }
 
   private static void updateDimensionsFromVectorDrawable(@NotNull DrawableAssetModel vectorDrawable, @NotNull XmlTag root) {
-    root.setAttribute(ATTRIBUTE_HEIGHT, Double.toString(vectorDrawable.getArtboardHeight()) + SdkConstants.UNIT_DP);
-    root.setAttribute(ATTRIBUTE_WIDTH, Double.toString(vectorDrawable.getArtboardWidth()) + SdkConstants.UNIT_DP);
+    root.setAttribute(ATTRIBUTE_HEIGHT, vectorDrawable.getArtboardHeight() + SdkConstants.UNIT_DP);
+    root.setAttribute(ATTRIBUTE_WIDTH, vectorDrawable.getArtboardWidth() + SdkConstants.UNIT_DP);
     root.setAttribute(ATTRIBUTE_VIEWPORT_HEIGHT, Double.toString(vectorDrawable.getViewportHeight()));
     root.setAttribute(ATTRIBUTE_VIEWPORT_WIDTH, Double.toString(vectorDrawable.getViewportWidth()));
   }
