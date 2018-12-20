@@ -33,7 +33,7 @@ private val defaultConfiguration = QualifierMatcherConfiguration(null, listOf())
  */
 @State(
   name = "ImportConfigurationManager",
-  storages = arrayOf(Storage(value = "design_importer.xml"))
+  storages = [Storage(value = "design_importer.xml")]
 )
 class ImportConfigurationManager : PersistentStateComponent<QualifierMatcherConfiguration> {
 
@@ -42,7 +42,7 @@ class ImportConfigurationManager : PersistentStateComponent<QualifierMatcherConf
   override fun getState(): QualifierMatcherConfiguration? = configuration
 
   override fun loadState(state: QualifierMatcherConfiguration) {
-    this.configuration = state ?: defaultConfiguration
+    this.configuration = state
   }
 
   fun saveMappers(mappers: Set<StaticStringMapper>) {
