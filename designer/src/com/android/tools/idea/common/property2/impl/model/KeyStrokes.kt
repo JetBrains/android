@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
+import com.intellij.openapi.util.SystemInfo
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.KeyStroke
 
 object KeyStrokes {
+  private val CMD_KEY_MASK = if (SystemInfo.isMac) InputEvent.META_DOWN_MASK else InputEvent.CTRL_DOWN_MASK
+
   internal val enter = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0)
   internal val escape = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)
   internal val tab = KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0)
@@ -27,4 +30,5 @@ object KeyStrokes {
   internal val space = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)
   internal val f1 = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0)
   internal val shiftF1 = KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK)
+  internal val browse = KeyStroke.getKeyStroke(KeyEvent.VK_B, CMD_KEY_MASK)
 }

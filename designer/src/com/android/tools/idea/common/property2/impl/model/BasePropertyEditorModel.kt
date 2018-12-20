@@ -89,6 +89,10 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     (property as? HelpSupport)?.secondaryHelp()
   }
 
+  open fun browseButtonPressed() {
+    (property as? HelpSupport)?.browse()
+  }
+
   override fun cancelEditing(): Boolean {
     refresh()
     return true

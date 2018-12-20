@@ -35,4 +35,11 @@ interface HelpSupport {
    * This will be invoked from the user pressing shift-F1 in the property UI.
    */
   fun secondaryHelp()
+
+  /**
+   * Request to browse the current value for the implied property.
+   *
+   * This will be invoked from the user pressing cmd-B in the property UI.
+   */
+  fun browse()
 }

@@ -44,6 +44,7 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : J
     button.isFocusable = true
     button.registerKeyAction({ model.f1KeyPressed() }, KeyStrokes.f1, "help")
     button.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
+    button.registerKeyAction({ model.browseButtonPressed() }, KeyStrokes.browse, "browse")
     button.addFocusListener(EditorFocusListener(this, model))
 
     model.addListener(ValueChangedListener {
