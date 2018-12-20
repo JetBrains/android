@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.util.PatternUtil
+import java.io.File
 import kotlin.reflect.KProperty
 
 /**
@@ -68,6 +70,50 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   variableMatchingStrategy,
   matcher
 )
+
+/**
+ * Attaches file chooser details to the propery.
+ */
+fun <ModelT, PropertyT : Any> ModelSimpleProperty<ModelT, PropertyT>.withFileSelectionRoot(
+  masks: List<String>? = null,
+  browseRoot: (ModelT) -> File?,
+  resolveRoot: (ModelT) -> File?
+) =
+  let { baseProperty ->
+    object : ModelSimpleProperty<ModelT, PropertyT> by baseProperty {
+      override fun bindContext(model: ModelT): ModelPropertyContext<PropertyT> =
+        object : FileTypePropertyContext<PropertyT>, ModelPropertyContext<PropertyT> by baseProperty.bindContext(model) {
+          override val browseRootDir: File? = browseRoot(model)
+          override val resolveRootDir: File? = resolveRoot(model)
+          override val filterPredicate: ((File) -> Boolean)? = masks?.toPredicate()
+        }
+    }
+  }
+
+/**
+ * Attaches file chooser details to the propery.
+ */
+fun <ModelT, PropertyT : Any> ModelListProperty<ModelT, PropertyT>.withFileSelectionRoot(
+  masks: List<String>? = null,
+  browseRoot: ModelT.() -> File?,
+  resolveRoot: ModelT.() -> File?
+) =
+  let { baseProperty ->
+    object : ModelListProperty<ModelT, PropertyT> by baseProperty {
+      override fun bindContext(model: ModelT): ModelPropertyContext<PropertyT> =
+        object : FileTypePropertyContext<PropertyT>, ModelPropertyContext<PropertyT> by baseProperty.bindContext(model) {
+          override val browseRootDir: File? = model.browseRoot()
+          override val resolveRootDir: File? = model.resolveRoot()
+          override val filterPredicate: ((File) -> Boolean)? = masks?.toPredicate()
+        }
+    }
+  }
+
+private fun List<String>.toPredicate(): (File) -> Boolean =
+  map { PatternUtil.fromMask(it) }
+    .let { patterns ->
+      fun(probe: File) = patterns.any { pattern -> pattern.matcher(probe.name).matches() }
+    }
 
 class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   private val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,

@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.structure.model.meta.asFile
 import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.property
+import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
 import java.io.File
 
 class PsSigningConfig(
@@ -92,6 +93,7 @@ class PsSigningConfig(
       parser = ::parseFile,
       matcher = { model, parsedValue, resolvedValue -> matchFiles(model.parent.resolvedModel?.rootDirPath, parsedValue, resolvedValue) }
     )
+      .withFileSelectionRoot(browseRoot = { null }, resolveRoot = { null })
 
     val storePassword: SimpleProperty<PsSigningConfig, String> = property(
       "Store Password",

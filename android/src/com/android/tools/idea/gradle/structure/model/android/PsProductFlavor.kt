@@ -16,7 +16,6 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.builder.model.ProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
-import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
 import com.android.tools.idea.gradle.structure.model.helpers.installedSdksAsInts
@@ -30,6 +29,7 @@ import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.helpers.proGuardFileValues
 import com.android.tools.idea.gradle.structure.model.helpers.productFlavorMatchingFallbackValues
 import com.android.tools.idea.gradle.structure.model.helpers.signingConfigs
+import com.android.tools.idea.gradle.structure.model.helpers.withProFileSelector
 import com.android.tools.idea.gradle.structure.model.meta.ListProperty
 import com.android.tools.idea.gradle.structure.model.meta.MapProperty
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
@@ -290,6 +290,7 @@ open class PsProductFlavor(
       parser = ::parseFile,
       knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
+      .withProFileSelector(module = { parent })
 
     val proGuardFiles: ListProperty<PsProductFlavor, File> = listProperty(
       "ProGuard Files",
@@ -300,6 +301,7 @@ open class PsProductFlavor(
       parser = ::parseFile,
       knownValuesGetter = { model -> proGuardFileValues(model.parent) }
     )
+      .withProFileSelector(module = { parent })
 
     val resConfigs: ListProperty<PsProductFlavor, String> = listProperty(
       "Resource Configs",

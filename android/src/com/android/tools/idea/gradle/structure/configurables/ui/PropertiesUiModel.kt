@@ -15,12 +15,24 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui
 
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.*
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.EditorExtensionAction
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.ListPropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.MapPropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
-import com.android.tools.idea.gradle.structure.model.meta.*
-import javax.swing.CellEditor
+import com.android.tools.idea.gradle.structure.model.meta.BrowseFilesExtension
+import com.android.tools.idea.gradle.structure.model.meta.ExtractNewVariableExtension
+import com.android.tools.idea.gradle.structure.model.meta.FileTypePropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ModelListProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelListPropertyCore
+import com.android.tools.idea.gradle.structure.model.meta.ModelMapProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelMapPropertyCore
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
 import javax.swing.table.TableCellEditor
 
 /**
@@ -82,12 +94,15 @@ class PropertyUiModelImpl<
   }
 }
 
-fun <T : Any, PropertyCoreT : ModelPropertyCore<T>> createDefaultEditorExtensions(
+fun <T : Any, PropertyCoreT : ModelPropertyCore<T>>
+  ModelPropertyContext<T>.createDefaultEditorExtensions(
   project: PsProject,
   module: PsModule?
 ): List<EditorExtensionAction<T, PropertyCoreT>> =
-  if (module != null) listOf(ExtractNewVariableExtension(project, module))
-  else listOf()
+  listOfNotNull<EditorExtensionAction<T, PropertyCoreT>>(
+    if (module != null) ExtractNewVariableExtension(project, module) else null,
+    if (this is FileTypePropertyContext<T>) BrowseFilesExtension<T, PropertyCoreT>(project, this) else null
+  )
 
 fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
   simplePropertyEditor(
@@ -100,7 +115,12 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
 ): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
-  return SimplePropertyEditor(boundProperty, boundContext, variablesScope, createDefaultEditorExtensions(project, module), cellEditor)
+  return SimplePropertyEditor(
+    boundProperty,
+    boundContext,
+    variablesScope,
+    boundContext.createDefaultEditorExtensions(project, module),
+    cellEditor)
 }
 
 @Suppress("UNUSED_PARAMETER")
@@ -117,7 +137,12 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ModelT, ValueT>> l
   return ListPropertyEditor(
     boundProperty, boundContext,
     { propertyCore, _, variables ->
-      SimplePropertyEditor(propertyCore, boundContext, variables, createDefaultEditorExtensions(project, module))
+      SimplePropertyEditor(
+        propertyCore,
+        boundContext,
+        variables,
+        boundContext.createDefaultEditorExtensions(project, module),
+        cellEditor)
     },
     variablesScope)
 }
@@ -136,7 +161,12 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ModelT, ValueT>> ma
   return MapPropertyEditor(
     boundProperty, boundContext,
     { propertyCore, _, variables ->
-      SimplePropertyEditor(propertyCore, boundContext, variables, createDefaultEditorExtensions(project, module))
+      SimplePropertyEditor(
+        propertyCore,
+        boundContext,
+        variables,
+        boundContext.createDefaultEditorExtensions(project, module)
+      )
     },
     variablesScope)
 }

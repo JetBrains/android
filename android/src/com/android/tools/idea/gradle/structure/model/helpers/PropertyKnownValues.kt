@@ -19,10 +19,17 @@ package com.android.tools.idea.gradle.structure.model.helpers
 
 import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.structure.configurables.ui.readOnPooledThread
+import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ListProperty
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.getText
+import com.android.tools.idea.gradle.structure.model.meta.maybeValue
+import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.structure.model.repositories.search.SearchResult
@@ -133,3 +140,10 @@ fun SearchResult.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
     .distinct()
     .sortedDescending()
     .map { version -> ValueDescriptor(version.toString()) }
+
+
+fun <T : PsChildModel> ListProperty<T, File>.withProFileSelector(module: T.() -> PsAndroidModule) =
+  withFileSelectionRoot(
+    masks = listOf("*.pro", "*.txt"),
+    browseRoot = { module().parent.ideProject.basePath?.let { File(it) } },
+    resolveRoot = { module().rootDir })

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import java.io.File
 import kotlin.properties.ReadWriteProperty
 
 /**
@@ -121,6 +122,15 @@ interface ModelPropertyContext<ValueT : Any> {
    * Returns a list of well-known values (constants) with their short human-readable descriptions that are applicable to the property.
    */
   fun getKnownValues(): ListenableFuture<KnownValues<ValueT>>
+}
+
+/**
+ * An extension to a property context providing the details to the file chooser UI.
+ */
+interface FileTypePropertyContext<ValueT: Any>  : ModelPropertyContext<ValueT> {
+  val browseRootDir: File?
+  val resolveRootDir: File?
+  val filterPredicate: ((File) -> Boolean)?
 }
 
 /**
