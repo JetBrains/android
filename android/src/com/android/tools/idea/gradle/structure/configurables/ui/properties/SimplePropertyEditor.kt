@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.structure.model.meta.parseEditorText
 import com.android.tools.idea.gradle.structure.model.meta.valueFormatter
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.ComboBox.TABLE_CELL_EDITOR_PROPERTY
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import icons.StudioIcons
@@ -46,8 +45,8 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.CellEditor
 import javax.swing.DefaultComboBoxModel
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -97,7 +96,15 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       (value ?: ParsedValue.NotSet.annotated()).renderTo(this, formatter, knownValueRenderers)
     }
 
-    override fun createEditorExtensions(): List<Extension> = emptyList()
+    override fun createEditorExtensions(): List<Extension> = extensions.drop(1).map { action ->
+      object : Extension {
+        override fun getIcon(hovered: Boolean): Icon = action.icon
+        override fun getTooltip(): String = action.tooltip
+        override fun getActionOnClick(): Runnable = Runnable {
+          action.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor)
+        }
+      }
+    }
 
     fun loadKnownValues() {
       val availableVariables: List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? = getAvailableVariables()
@@ -218,16 +225,11 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         val extensionAction = extensions.first()
         icon = StudioIcons.Common.PROPERTY_UNBOUND
         toolTipText = extensionAction.tooltip
-        if (extensions.size == 1) {
-          addMouseListener(object : MouseAdapter() {
-            override fun mousePressed(event: MouseEvent) {
-              extensionAction.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor)
-            }
-          })
-        }
-        else {
-          TODO("Multiple extension actions are not yet supported")
-        }
+        addMouseListener(object : MouseAdapter() {
+          override fun mousePressed(event: MouseEvent) {
+            extensionAction.invoke(property, this@SimplePropertyEditor, this@SimplePropertyEditor)
+          }
+        })
       }
 
     override fun requestFocus() {
