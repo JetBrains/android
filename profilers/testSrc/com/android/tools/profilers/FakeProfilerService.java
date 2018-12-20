@@ -490,7 +490,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
           if (request.getGroupId() != EMPTY_REQUEST_VALUE && request.getGroupId() != event.getGroupId()) {
             continue;
           }
-          if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getFromTimestamp() > event.getTimestamp()) {
+          if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getToTimestamp() < event.getTimestamp()) {
             continue;
           }
           if (request.getKind() != event.getKind()) {

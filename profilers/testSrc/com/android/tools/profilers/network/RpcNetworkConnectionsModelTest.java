@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.network;
 
-import static com.android.tools.profilers.ProfilerTestData.generateNetworkConnectionData;
-import static com.android.tools.profilers.ProfilerTestData.generateNetworkThreadData;
+import static com.android.tools.profilers.ProfilersTestData.generateNetworkConnectionData;
+import static com.android.tools.profilers.ProfilersTestData.generateNetworkThreadData;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.model.FakeTimer;

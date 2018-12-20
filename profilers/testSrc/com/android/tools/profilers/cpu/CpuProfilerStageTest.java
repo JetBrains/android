@@ -104,11 +104,13 @@ public class CpuProfilerStageTest extends AspectObserver {
     myServices.enableEventsPipeline(false);
     myStage = new CpuProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer));
     assertThat(myStage.getCpuUsage().getCpuSeries().getDataSeries()).isInstanceOf(CpuUsageDataSeries.class);
+    assertThat(myStage.getCpuUsage().getThreadsCountSeries().getDataSeries()).isInstanceOf(LegacyCpuThreadCountDataSeries.class);
 
     // When unified pipeline is enabled, we use UnifiedEventDataSeries.
     myServices.enableEventsPipeline(true);
     myStage = new CpuProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer));
     assertThat(myStage.getCpuUsage().getCpuSeries().getDataSeries()).isInstanceOf(UnifiedEventDataSeries.class);
+    assertThat(myStage.getCpuUsage().getThreadsCountSeries().getDataSeries()).isInstanceOf(CpuThreadCountDataSeries.class);
   }
 
   @Test
