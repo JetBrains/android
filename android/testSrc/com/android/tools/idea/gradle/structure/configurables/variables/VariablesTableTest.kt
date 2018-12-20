@@ -30,6 +30,8 @@ import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.TestDialog
 import com.intellij.ui.components.JBTextField
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
@@ -42,6 +44,21 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 
 class VariablesTableTest : AndroidGradleTestCase() {
+
+  private lateinit var defaultTestDialog: TestDialog
+
+  override fun setUp() {
+    super.setUp()
+    defaultTestDialog = Messages.setTestDialog(object: TestDialog {
+      override fun show(message: String?): Int = Messages.YES
+    })
+
+  }
+
+  override fun tearDown() {
+    Messages.setTestDialog(defaultTestDialog);
+    super.tearDown()
+  }
 
   fun testModuleNodeDisplay() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
