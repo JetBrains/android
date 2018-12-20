@@ -81,9 +81,9 @@ class VariablesTest {
         enterText("three")
         tab()
         clickAddMap()
-        enterText("mapVaribale")
+        enterText("mapVariable")
         enter()
-        enterText("k1")
+        enterText("k11")
         enter()
         enterText("v1")
         enter()
@@ -91,6 +91,12 @@ class VariablesTest {
         enter()
         enterText("v2")
         enter()
+        selectCell("mapVariable")
+        editWithF2() // Exit the edit mode.
+        right()
+        enter() //We should be editing 'k11' cell.
+        enterText("k1")
+        tab()
       }
       clickOk()
     }
@@ -127,7 +133,7 @@ class VariablesTest {
           "1" to "two",
           "2" to "\$simpleVariableInt : 123",
           "" to "", // +New Map Entry
-          "mapVaribale" to "",
+          "mapVariable" to "",
           "k1" to "\$simpleVariableA : stringValue",
           "k2" to "v2",
           "" to "", // +New Item
