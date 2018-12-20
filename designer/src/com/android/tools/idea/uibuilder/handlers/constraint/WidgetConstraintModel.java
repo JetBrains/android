@@ -112,13 +112,15 @@ public class WidgetConstraintModel {
     {ATTR_LAYOUT_MARGIN_TOP},
     {ATTR_LAYOUT_MARGIN_BOTTOM},
   };
+
   private static final String[][] ourMarginString_rtl = {
     {ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_END},
     {ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_START},
     {ATTR_LAYOUT_MARGIN_TOP},
     {ATTR_LAYOUT_MARGIN_BOTTOM},
   };
-  private static final String[][] ourDeleteAttributes = {
+
+  private static final String[][] ourDeleteAttributes_ltr = {
     {
       ATTR_LAYOUT_START_TO_START_OF,
       ATTR_LAYOUT_START_TO_END_OF,
@@ -135,11 +137,43 @@ public class WidgetConstraintModel {
       ATTR_LAYOUT_MARGIN_RIGHT,
       ATTR_LAYOUT_MARGIN_END,
       ATTR_LAYOUT_HORIZONTAL_BIAS},
-    {ATTR_LAYOUT_TOP_TO_TOP_OF,
+    {
+      ATTR_LAYOUT_TOP_TO_TOP_OF,
       ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
       ATTR_LAYOUT_MARGIN_TOP,
       ATTR_LAYOUT_VERTICAL_BIAS},
-    {ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+    {
+      ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+      ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
+      ATTR_LAYOUT_MARGIN_BOTTOM,
+      ATTR_LAYOUT_VERTICAL_BIAS},
+    {ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
+  };
+
+  private static final String[][] ourDeleteAttributes_rtl = {
+    {
+      ATTR_LAYOUT_END_TO_END_OF,
+      ATTR_LAYOUT_END_TO_START_OF,
+      ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+      ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
+      ATTR_LAYOUT_MARGIN_LEFT,
+      ATTR_LAYOUT_MARGIN_END,
+      ATTR_LAYOUT_HORIZONTAL_BIAS},
+    {
+      ATTR_LAYOUT_START_TO_START_OF,
+      ATTR_LAYOUT_START_TO_END_OF,
+      ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+      ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
+      ATTR_LAYOUT_MARGIN_RIGHT,
+      ATTR_LAYOUT_MARGIN_START,
+      ATTR_LAYOUT_HORIZONTAL_BIAS},
+    {
+      ATTR_LAYOUT_TOP_TO_TOP_OF,
+      ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
+      ATTR_LAYOUT_MARGIN_TOP,
+      ATTR_LAYOUT_VERTICAL_BIAS},
+    {
+      ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
       ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
       ATTR_LAYOUT_MARGIN_BOTTOM,
       ATTR_LAYOUT_VERTICAL_BIAS},
@@ -202,8 +236,12 @@ public class WidgetConstraintModel {
     if (myUpdateCallback != null) {
       GuiUtils.invokeLaterIfNeeded(() -> {
         myIsInCallback = true;
-        myUpdateCallback.run();
-        myIsInCallback = false;
+        try {
+          myUpdateCallback.run();
+        }
+        finally {
+          myIsInCallback = false;
+        }
       }, ModalityState.any());
     }
   }
@@ -231,6 +269,13 @@ public class WidgetConstraintModel {
     myUpdateCallback = modelUpdateCallback;
   }
 
+  /**
+   * Get the margin value.
+   *
+   * @param type One of {@link #CONNECTION_LEFT}, {@link #CONNECTION_RIGHT},
+   *                    {@link #CONNECTION_TOP}, {@link #CONNECTION_BOTTOM}, {@link #CONNECTION_BASELINE}
+   * @return the margin value in dp.
+   */
   public int getMargin(int type) {
     if (myComponent == null) {
       return 0;
@@ -256,6 +301,25 @@ public class WidgetConstraintModel {
       margin = -1;
     }
     return margin;
+  }
+
+  /**
+   * Set the margin value.
+   *
+   * @param type One of {@link #CONNECTION_LEFT}, {@link #CONNECTION_RIGHT},
+   *                    {@link #CONNECTION_TOP}, {@link #CONNECTION_BOTTOM}, {@link #CONNECTION_BASELINE}
+   * @param margin the margin value in dp.
+   */
+  public void setMargin(int type, int margin) {
+    if (myComponent == null || myIsInCallback) {
+      return;
+    }
+    boolean rtl = ConstraintUtilities.isInRTL(myComponent);
+    String[][] marginsAttr = rtl ? ourMarginString_rtl : ourMarginString_ltr;
+
+    for (int i = 0; i < marginsAttr[type].length; i++) {
+      setDimension(marginsAttr[type][i], margin);
+    }
   }
 
   /**
@@ -325,12 +389,19 @@ public class WidgetConstraintModel {
     }
   }
 
+  /**
+   * Remove an attribute.
+   *
+   * @param type One of {@link #CONNECTION_LEFT}, {@link #CONNECTION_RIGHT},
+   *                    {@link #CONNECTION_TOP}, {@link #CONNECTION_BOTTOM}, {@link #CONNECTION_BASELINE}
+   */
   private void removeAttribute(int type) {
     if (myComponent == null || myIsInCallback) {
       return;
     }
+    boolean rtl = ConstraintUtilities.isInRTL(myComponent);
     String label = "Constraint Disconnected";
-    String[] attribute = ourDeleteAttributes[type];
+    String[] attribute = rtl ? ourDeleteAttributes_rtl[type] : ourDeleteAttributes_ltr[type];
     String[] namespace = ourDeleteNamespace[type];
 
     ComponentModification modification = new ComponentModification(myComponent, label);
@@ -544,24 +615,6 @@ public class WidgetConstraintModel {
 
   public void setAspect(String aspect) {
     setSherpaAttribute(ATTR_LAYOUT_DIMENSION_RATIO, aspect);
-  }
-
-  public void setTopMargin(int margin) {
-    setDimension(ATTR_LAYOUT_MARGIN_TOP, margin);
-  }
-
-  public void setLeftMargin(int margin) {
-    setDimension(ATTR_LAYOUT_MARGIN_START, margin);
-    setDimension(ATTR_LAYOUT_MARGIN_LEFT, margin);
-  }
-
-  public void setRightMargin(int margin) {
-    setDimension(ATTR_LAYOUT_MARGIN_END, margin);
-    setDimension(ATTR_LAYOUT_MARGIN_RIGHT, margin);
-  }
-
-  public void setBottomMargin(int margin) {
-    setDimension(ATTR_LAYOUT_MARGIN_BOTTOM, margin);
   }
 
   public void killBaselineConstraint() {

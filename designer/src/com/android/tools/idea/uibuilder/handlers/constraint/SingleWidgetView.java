@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_BOTTOM;
+import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_LEFT;
+import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_RIGHT;
+import static com.android.tools.idea.uibuilder.handlers.constraint.WidgetConstraintModel.CONNECTION_TOP;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ConnectionDraw;
@@ -259,10 +264,10 @@ public class SingleWidgetView extends JPanel {
     add(mLeftMargin);
     add(mRightMargin);
     add(mBottomMargin);
-    mTopMargin.addActionListener(e -> myWidgetModel.setTopMargin(mTopMargin.getMargin()));
-    mLeftMargin.addActionListener(e -> myWidgetModel.setLeftMargin(mLeftMargin.getMargin()));
-    mRightMargin.addActionListener(e -> myWidgetModel.setRightMargin(mRightMargin.getMargin()));
-    mBottomMargin.addActionListener(e -> myWidgetModel.setBottomMargin(mBottomMargin.getMargin()));
+    mTopMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_TOP, mTopMargin.getMargin()));
+    mLeftMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_LEFT, mLeftMargin.getMargin()));
+    mRightMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_RIGHT, mRightMargin.getMargin()));
+    mBottomMargin.addActionListener(e -> myWidgetModel.setMargin(CONNECTION_BOTTOM, mBottomMargin.getMargin()));
     add(mTopKill);
     add(mLeftKill);
     add(mRightKill);
@@ -286,10 +291,10 @@ public class SingleWidgetView extends JPanel {
     mRightKill.addActionListener(e -> rightKill());
     mBottomKill.addActionListener(e -> bottomKill());
     mBaselineKill.addActionListener(e -> baselineKill());
-    mTopConnect.addActionListener(e -> connectConstraint(Scout.Arrange.ConnectTop));
-    mLeftConnect.addActionListener(e -> connectConstraint(Scout.Arrange.ConnectStart));
-    mRightConnect.addActionListener(e -> connectConstraint(Scout.Arrange.ConnectEnd));
-    mBottomConnect.addActionListener(e -> connectConstraint(Scout.Arrange.ConnectBottom));
+    mTopConnect.addActionListener(e -> connectConstraint(CONNECTION_TOP));
+    mLeftConnect.addActionListener(e -> connectConstraint(CONNECTION_LEFT));
+    mRightConnect.addActionListener(e -> connectConstraint(CONNECTION_RIGHT));
+    mBottomConnect.addActionListener(e -> connectConstraint(CONNECTION_BOTTOM));
     mAspectButton.addActionListener(e -> toggleAspect());
     mAspectText.addActionListener(e -> setAspectString());
     mAspectText.addFocusListener(new FocusAdapter() {
@@ -430,11 +435,29 @@ public class SingleWidgetView extends JPanel {
     mCacheBaseline = false;
   }
 
-  private void connectConstraint(Scout.Arrange bottom) {
+  private void connectConstraint(int connectionType) {
     NlComponent component = myWidgetModel.getComponent();
     if (component != null) {
+      boolean rtl = ConstraintUtilities.isInRTL(component);
+      Scout.Arrange arrange;
+      switch (connectionType) {
+        case CONNECTION_LEFT:
+          arrange = rtl ? Scout.Arrange.ConnectEnd : Scout.Arrange.ConnectStart;
+          break;
+        case CONNECTION_RIGHT:
+          arrange = rtl ? Scout.Arrange.ConnectStart : Scout.Arrange.ConnectEnd;
+          break;
+        case CONNECTION_TOP:
+          arrange = Scout.Arrange.ConnectTop;
+          break;
+        case CONNECTION_BOTTOM:
+          arrange = Scout.Arrange.ConnectBottom;
+          break;
+        default:
+          return;
+      }
       component.clearTransaction();
-      Scout.arrangeWidgets(bottom, Collections.singletonList(component), false);
+      Scout.arrangeWidgets(arrange, Collections.singletonList(component), false);
       ComponentModification modification = new ComponentModification(component, "Connect Constraint");
       component.startAttributeTransaction().applyToModification(modification);
       modification.commit();
@@ -541,7 +564,7 @@ public class SingleWidgetView extends JPanel {
       }
     }
 
-    public AspectButton(ColorSet colorSet) {
+    private AspectButton(ColorSet colorSet) {
       mColorSet = colorSet;
       //noinspection UseJBColor
       mColor = new Color(mColorSet.getInspectorFillColor().getRGB() & 0x88FFFFFF, true);
@@ -618,7 +641,7 @@ public class SingleWidgetView extends JPanel {
 
     private ActionListener mListener;
 
-    public ConnectButton() {
+    private ConnectButton() {
       setPreferredSize(size);
       setSize(size);
       setOpaque(false);
