@@ -33,11 +33,13 @@ import static com.android.SdkConstants.FD_RES_RAW;
 
 /**
  * A project-wide {@link PsiTreeChangeListener} that tracks events that are potentially relevant to
- * the {@link ResourceFolderRepository} and/or {@link SampleDataResourceRepository} corresponding to the
- * file being changed.
+ * the {@link ResourceFolderRepository}, {@link com.android.ide.common.resources.ResourceRepository}
+ * and/or {@link SampleDataResourceRepository} corresponding to the file being changed.
  *
  * For {@link ResourceFolderRepository}, this is accomplished by passing the event to {{@link ResourceFolderRepository#getPsiListener()}}.
  * In the case of sample data, the event is forwarded to the project's {@link SampleDataListener}.
+ *
+ * All event happening on resources file are also forwarded to the {@link ResourceNotificationManager}.
  *
  * PsiProjectListener also notifies {@link EditorNotifications} when it detects that a Gradle file has been modified.
  */
@@ -45,6 +47,7 @@ public class PsiProjectListener implements PsiTreeChangeListener {
   private final ResourceFolderRegistry myRegistry;
   private SampleDataListener mySampleDataListener;
   @NotNull private final Project myProject;
+  @NotNull private final ResourceNotificationManager myResourceNotificationManager;
 
   @NotNull
   public static PsiProjectListener getInstance(@NotNull Project project) {
@@ -53,6 +56,7 @@ public class PsiProjectListener implements PsiTreeChangeListener {
 
   public PsiProjectListener(@NotNull Project project) {
     myProject = project;
+    myResourceNotificationManager = ResourceNotificationManager.getInstance(project);
     PsiManager.getInstance(project).addPsiTreeChangeListener(this);
     myRegistry = ResourceFolderRegistry.getInstance(project);
   }
@@ -134,9 +138,14 @@ public class PsiProjectListener implements PsiTreeChangeListener {
 
 
   private void dispatch(@Nullable VirtualFile file, @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
-    if (file == null) {
-      return;
+    if (file != null) {
+      dispatchToRegistry(file, invokeCallback);
     }
+    dispatchToResourceNotificationManager(invokeCallback);
+  }
+
+  private void dispatchToRegistry(@NotNull VirtualFile file,
+                                  @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
     while (file != null) {
       ResourceFolderRegistry.CachedRepositories cached = myRegistry.getCached(file);
       if (cached != null) {
@@ -150,6 +159,13 @@ public class PsiProjectListener implements PsiTreeChangeListener {
       }
 
       file = file.getParent();
+    }
+  }
+
+  private void dispatchToResourceNotificationManager(@NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
+    PsiTreeChangeListener resourceNotificationPsiListener = myResourceNotificationManager.getPsiListener();
+    if (resourceNotificationPsiListener != null) {
+      invokeCallback.consume(resourceNotificationPsiListener);
     }
   }
 
