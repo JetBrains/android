@@ -28,6 +28,7 @@ import com.intellij.ui.navigation.Place
 class ModuleDefaultConfigConfigPanel(defaultConfig: PsAndroidModuleDefaultConfig, context: PsContext) :
   ConfigPanel<PsAndroidModuleDefaultConfig>(
     context,
+    defaultConfig.module.parent,
     defaultConfig.module,
     defaultConfig,
     defaultConfigPropertiesModel(defaultConfig.module.isLibrary)

@@ -21,15 +21,14 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ComponentProvide
 import com.android.tools.idea.gradle.structure.configurables.ui.PROPERTY_PLACE_NAME
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiModel
 import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.JComponent
-import javax.swing.JLabel
 
 /**
  * A panel for editing configuration entities such as [PsProductFlavor] and [PsBuildType].
@@ -39,7 +38,8 @@ import javax.swing.JLabel
  */
 open class ConfigPanel<in ModelT>(
   val context: PsContext,
-  private val module: PsModule,
+  val project: PsProject,
+  private val module: PsModule?,
   private val model: ModelT,
   private val propertiesModel: PropertiesUiModel<ModelT>
 ) : ConfigPanelUi(), ComponentProvider, Place.Navigator, Disposable {
@@ -58,7 +58,7 @@ open class ConfigPanel<in ModelT>(
   private fun initializeEditors() {
     setNumberOfProperties(propertiesModel.properties.size)
     for (property in propertiesModel.properties) {
-      val editor: ModelPropertyEditor<Any> = property.createEditor(module.parent, module, model)
+      val editor: ModelPropertyEditor<Any> = property.createEditor(project, module, model)
       val labelComponent = editor.labelComponent
       addPropertyComponents(labelComponent, editor.component, editor.statusComponent)
       editors.add(editor)

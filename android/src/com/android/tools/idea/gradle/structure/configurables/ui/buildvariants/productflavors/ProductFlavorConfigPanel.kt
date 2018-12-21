@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 class ProductFlavorConfigPanel(productFlavor: PsProductFlavor, context: PsContext) :
   ConfigPanel<PsProductFlavor>(
     context,
+    productFlavor.parent.parent,
     productFlavor.parent,
     productFlavor,
     productFlavorPropertiesModel(productFlavor.parent.isLibrary)
