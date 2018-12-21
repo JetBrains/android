@@ -94,6 +94,7 @@ class VariablesPerspectiveConfigurableFixture(
 
   fun enterText(text: String) {
     waitForIdle() // Default implementation is buggy and may post events before really idle.
+    robot().pressAndReleaseKey(KeyEvent.VK_A, KeyEvent.CTRL_MASK)
     robot().typeText(text)
     waitForIdle()
   }

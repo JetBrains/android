@@ -195,6 +195,17 @@ class VariablesTest {
           requireMessageContains("Remove 2 items from project 'PsdSimple'?")
           clickYes()
         }
+        // Assert the current state to make sure that deleting does not collapse nodes.
+        assertThat(contents()).containsExactly(
+          "PsdSimple" to "",
+          "listVariable" to "",
+          "0" to "one",
+          "1" to "two",
+          "" to "", // +New Map Entry
+          "" to "", // +New Variable
+          "app" to "",
+          "mylibrary" to ""
+        )
       }
       clickOk()
     }
@@ -206,6 +217,57 @@ class VariablesTest {
           "0" to "one",
           "1" to "two",
           "" to "", // +New Map Entry
+          "" to "", // +New Variable
+          "app" to "",
+          "mylibrary" to ""
+        )
+      }
+      clickCancel()
+    }
+  }
+
+  @Test
+  fun renamingVariables() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
+
+    ide.openPsd().run {
+      selectVariablesConfigurable().run {
+        clickAddSimpleValue()
+        enterText("simpleVariable")
+        tab()
+        enterText("stringValue")
+        tab()
+        chooseList()
+        enterText("listVariable")
+        tab()
+        enterText("one")
+        tab()
+        enterText("two")
+        tab()
+        selectCell("simpleVariable")
+        // Assert current state to make sure renaming does not collapse nodes.
+        enterText("aVariable")
+        tab()
+        assertThat(contents()).containsExactly(
+          "PsdSimple" to "",
+          "aVariable" to "stringValue",
+          "listVariable" to "",
+          "0" to "one",
+          "1" to "two",
+          "" to "", // +New Map Entry
+          "" to "", // +New Variable
+          "app" to "",
+          "mylibrary" to ""
+        )
+      }
+      clickOk()
+    }
+    ide.openPsd().run {
+      selectVariablesConfigurable().run {
+        assertThat(contents()).containsExactly(
+          "PsdSimple" to "",
+          "aVariable" to "stringValue",
+          "listVariable" to "[one, two]",
           "" to "", // +New Variable
           "app" to "",
           "mylibrary" to ""
