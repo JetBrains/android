@@ -42,6 +42,8 @@ interface ResourceExplorerViewModel {
    */
   val resourceTypes: Array<ResourceType>
 
+  val selectedTabName: String get() = ""
+
   val assetPreviewManager: AssetPreviewManager
 
   /**
