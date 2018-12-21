@@ -63,16 +63,35 @@ private fun DefaultTreeModel.updateChildrenOf(
       .childNodes
       .map { it.shadowNode to it }
       .toMap()
+
+  fun removeNodes() {
+    existing
+      .filterKeys { !children.contains(it) }
+      .forEach {
+        // Remove any nodes that should no longer be there.
+        removeNodeFromParent(it.value)
+        Disposer.dispose(it.value)
+      }
+  }
+
   children
     .forEachIndexed { index, model ->
       val existingNode = existing[model]
+      // We need to remove any not necessary nodes to prevent unnecessary moves of existing nodes which result in them being collapsed.
+      // We cannot do it right now because it might result in our parent getting collapsed. We will remove nodes once we are sure that at
+      // least one node remains.
       when {
-        existingNode != null ->
+        existingNode != null -> {
+          // We need to have at least one node to prevent the parent node from becoming collapsed
+          // when the last child is removed at intermediate step. We can do it as the first step because [existingNode] will remain.
+          if (index == 0) removeNodes()
+
           // Move existing nodes to the right positions if require.
           if (getIndexOfChild(parentNode, existingNode) != index) {
             removeNodeFromParent(existingNode)
             insertNodeInto(existingNode, parentNode, index)
           }
+        }
         else -> {
           // Create any new nodes and insert them at their positions.
           val newNode = model.createNode()
@@ -81,15 +100,14 @@ private fun DefaultTreeModel.updateChildrenOf(
             newNode.also { initializeNode(it, from = model) },
             parentNode,
             index)
+
+          // We need to have at least one node to prevent the parent node from becoming collapsed
+          // when the last child is removed at intermediate step. It is now safe to do because we inserted a new node.
+          if (index == 0) removeNodes()
         }
       }
     }
-  existing
-    .filterKeys { !children.contains(it) }
-    .forEach {
-      // Remove any nodes that should no longer be there.
-      removeNodeFromParent(it.value)
-      Disposer.dispose(it.value)
-    }
+    // If the target state is "no nodes", then any existing nodes are not yet removed. Remove them here.
+    if (children.isEmpty()) removeNodes()
 }
 
