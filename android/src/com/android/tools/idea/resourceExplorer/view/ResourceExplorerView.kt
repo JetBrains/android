@@ -39,6 +39,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.GuiUtils
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
@@ -114,6 +115,7 @@ class ResourceExplorerView(
 
   private var updatePending = false
 
+  private var fileToSelect: VirtualFile? = null
 
   private var previewSize = DEFAULT_CELL_WIDTH
     set(value) {
@@ -338,7 +340,11 @@ class ResourceExplorerView(
     })
 
   private fun selectIndicesIfNeeded(selectedValue: Any?, selectedIndices: List<IntArray?>) {
-    if (selectedValue != null) {
+    val finalFileToSelect = fileToSelect
+    if (finalFileToSelect != null) {
+      selectAsset(finalFileToSelect)
+    }
+    else if (selectedValue != null) {
         // Attempt to reselect the previously selected element
       // If the value still exist in the list, just reselect it
       sectionList.selectedValue = selectedValue
@@ -349,6 +355,35 @@ class ResourceExplorerView(
         sectionList.selectedIndices = selectedIndices
       }
     }
+  }
+
+  fun selectAsset(virtualFile: VirtualFile) {
+    resourcesBrowserViewModel.resourceTypeIndex = resourcesBrowserViewModel.getTabIndexForFile(virtualFile)
+    if (virtualFile.isDirectory) {
+      return
+    }
+    if (updatePending) {
+      fileToSelect = virtualFile
+    }
+    else {
+      doSelectAsset(virtualFile)
+    }
+  }
+
+  private fun doSelectAsset(file: VirtualFile) {
+    fileToSelect = null
+    sectionList.getLists()
+      .filterIsInstance<AssetListView>()
+      .forEachIndexed { listIndex, list ->
+        for (assetIndex in 0 until list.model.size) {
+          if (list.model.getElementAt(assetIndex).designAssets.any { it.file == file }) {
+            sectionList.selectedIndex = listIndex to assetIndex
+            sectionList.scrollToSelection()
+            list.requestFocusInWindow()
+            return
+          }
+        }
+      }
   }
 
   private fun createSection(section: ResourceSection) =
