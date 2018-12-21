@@ -15,6 +15,21 @@
  */
 package com.android.tools.idea.sdk;
 
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.google.common.base.Preconditions.checkState;
+import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
+import static com.intellij.openapi.util.io.FileUtil.resolveShortWindowsName;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
+
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
@@ -39,7 +54,11 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.projectRoots.*;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -47,6 +66,11 @@ import com.intellij.util.SystemProperties;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -54,22 +78,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static com.google.common.base.Preconditions.checkState;
-import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
-import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
-import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 
 public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
@@ -494,6 +502,65 @@ public class IdeSdks {
   public void setUseEmbeddedJdk() {
     checkState(myIdeInfo.isAndroidStudio(), "This method is for use in Android Studio only.");
     setJdkPath(myEmbeddedDistributionPaths.getEmbeddedJdkPath());
+  }
+
+  /**
+   * Indicates whether the IDE is Android Studio and it is using JAVA_HOME as its JDK.
+   *
+   * @return true if JAVA_HOME is used as JDK
+   */
+  public boolean isUsingJavaHomeJdk() {
+    if (!myIdeInfo.isAndroidStudio()) {
+      return false;
+    }
+    String javaHome = getJdkFromJavaHome();
+    File jdkPath = doGetJdkPath(false);
+    return javaHome != null && filesEqual(jdkPath, toSystemDependentPath(javaHome));
+  }
+
+  /**
+   * Get JDK path based on the value of JAVA_HOME environment variable. If this variable is not defined or does not correspond to a valid
+   * JDK folder then look into java.home system property.
+   *
+   * @return null if no JDK can be found, or the path where the JDK is located.
+   */
+  @Nullable
+  public static String getJdkFromJavaHome() {
+    // Try Environment variable first
+    String result = doGetJdkFromPathOrParent(System.getenv("JAVA_HOME"));
+    if (result != null) {
+      return result;
+    }
+    // Then system property
+    return doGetJdkFromPathOrParent(SystemProperties.getJavaHome());
+  }
+
+  @Nullable
+  private static String doGetJdkFromPathOrParent(@Nullable String path) {
+    if ((path == null) || path == "") {
+      return null;
+    }
+    File pathFile = new File(toSystemDependentName(path));
+    String result = doGetJdkFromPath(pathFile);
+    if (result != null) {
+      return result;
+    }
+    // Sometimes JAVA_HOME is set to a JRE inside a JDK, see if this is the case
+    return doGetJdkFromPath(pathFile.getParentFile());
+  }
+
+  @Nullable
+  private static String doGetJdkFromPath(@NotNull File file) {
+    if (checkForJdk(file)) {
+      return file.getPath();
+    }
+    if (SystemInfo.isMac) {
+      File potentialPath = new File(file, MAC_JDK_CONTENT_PATH);
+      if (potentialPath.isDirectory() && checkForJdk(potentialPath)) {
+        return potentialPath.getPath();
+      }
+    }
+    return null;
   }
 
   /**

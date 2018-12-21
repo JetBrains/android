@@ -29,10 +29,9 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Wizard to setup Android Studio before the first run
@@ -79,6 +78,7 @@ public class FirstRunWizard extends DynamicWizard {
       else {
         addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
       }
+      addPath(new SingleStepPath(new JdkSetupStep()));
       addPath(new SingleStepPath(new SelectThemeStep()));
     }
     if (myMode == FirstRunWizardMode.MISSING_SDK) {

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import static com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType.CUSTOM;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.SdkConstants;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -28,16 +31,14 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Window;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-
-import static com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType.CUSTOM;
-import static org.jetbrains.android.util.AndroidBundle.message;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Android Studio's implementation of a {@link WelcomeScreen}. Starts up a wizard  meant to run the first time someone starts up
@@ -71,6 +72,7 @@ public class StudioFirstRunWelcomeScreen implements WelcomeScreen {
     else {
       wizardBuilder.addStep(new InstallationTypeWizardStep(model));
     }
+    // TODO: Add JdkSetupStep here
     wizardBuilder.addStep(new SelectThemeStep());
 
     myModelWizard = wizardBuilder.build();
