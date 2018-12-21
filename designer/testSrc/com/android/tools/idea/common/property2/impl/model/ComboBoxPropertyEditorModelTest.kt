@@ -88,15 +88,16 @@ class ComboBoxPropertyEditorModelTest {
     val model = createModel()
     val action = object : AnAction() {
       override fun actionPerformed(event: AnActionEvent) {
+        model.property.value = "gone"
         model.focusLost()
       }
     }
     model.isPopupVisible = true
     model.selectedItem = EnumValue.action(action)
-    model.text = "More Fonts..." // Text from action enum value
+    model.text = "More Fonts..." // Text from action enum value. Should be overwritten.
     model.popupMenuWillBecomeInvisible(false)
 
-    assertThat(model.property.value).isEqualTo("visible")
+    assertThat(model.property.value).isEqualTo("gone")
   }
 
   @Test
