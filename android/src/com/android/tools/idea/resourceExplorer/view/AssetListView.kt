@@ -20,6 +20,7 @@ import com.android.tools.idea.resourceExplorer.widget.AssetView
 import com.android.tools.idea.resourceExplorer.widget.RowAssetView
 import com.android.tools.idea.resourceExplorer.widget.SingleAssetCard
 import com.intellij.ui.CollectionListModel
+import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.ui.speedSearch.NameFilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearch
@@ -39,16 +40,18 @@ private const val DEFAULT_GRID_MODE = false
 class AssetListView(
   assets: List<DesignAssetSet>,
   speedSearch: SpeedSearch? = null
-) : JList<DesignAssetSet>() {
+) : JBList<DesignAssetSet>() {
 
   var isGridMode: Boolean by Delegates.observable(DEFAULT_GRID_MODE) { _, _, isGridMode ->
     if (isGridMode) {
       layoutOrientation = JList.HORIZONTAL_WRAP
       assetView = SingleAssetCard()
+      setExpandableItemsEnabled(false)
     }
     else {
       layoutOrientation = JList.VERTICAL
       assetView = RowAssetView()
+      setExpandableItemsEnabled(true)
     }
     updateCellSize()
   }
