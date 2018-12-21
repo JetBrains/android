@@ -49,11 +49,19 @@ import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Compan
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.TwoColorsIcon
 import icons.StudioIcons
 import org.intellij.lang.annotations.Language
+import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import java.awt.Color
 
 private const val STRINGS = """<?xml version="1.0" encoding="utf-8"?>
@@ -414,6 +422,24 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(NelePropertyItem.filterRawAttributeComment(comment)).isEqualTo("Here is a comment with an odd formatting.")
   }
 
+  fun testBrowse() {
+    val components = createTextView()
+    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, components)
+    property.value = "@android:style/TextAppearance.Material.Display2"
+
+    val fileManager = Mockito.mock(FileEditorManager::class.java)
+    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
+    Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
+      .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
+
+    registerProjectComponentImplementation(FileEditorManager::class.java, fileManager)
+    property.browse()
+    Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
+    val descriptor = file.value
+    assertThat(descriptor.file.name).isEqualTo("styles_material.xml")
+    assertThat(findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<style name=\"TextAppearance.Material.Display2\">")
+  }
+
   private fun createTextView(): List<NlComponent> {
     return createComponents(
         component(TEXT_VIEW)
@@ -526,4 +552,11 @@ class NelePropertyItemTest : PropertyTestCase() {
       <style name="stdButton" parent="@android:style/TextAppearance.Material.Widget.Button"/>
     </resources>
   """.trimIndent()
+
+  private fun findLineAtOffset(file: VirtualFile, offset: Int): String {
+    val text = String(file.contentsToByteArray(), Charsets.UTF_8)
+    val line = StringUtil.offsetToLineColumn(text, offset)
+    val lineText = text.substring(offset - line.column, text.indexOf('\n', offset))
+    return lineText.trim()
+  }
 }
