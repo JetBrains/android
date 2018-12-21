@@ -18,6 +18,7 @@ package com.android.tools.idea.resourceExplorer.viewmodel
 import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManager
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.speedSearch.SpeedSearch
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
@@ -69,4 +70,13 @@ interface ResourceExplorerViewModel {
   fun openFile(asset: DesignAsset)
 
   fun facetUpdated(newFacet: AndroidFacet, oldFacet: AndroidFacet)
+
+  /**
+   * Returns the index of the tab in which the given virtual file appears,
+   * or -1 if the file is not found.
+   *
+   * For example if we pass "res/drawable/icon.png, the method should return
+   * the index of the Drawable tab.
+   */
+  fun getTabIndexForFile(virtualFile: VirtualFile): Int
 }
