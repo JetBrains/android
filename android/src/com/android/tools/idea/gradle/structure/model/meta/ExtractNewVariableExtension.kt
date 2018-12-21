@@ -26,7 +26,7 @@ import javax.swing.Icon
 
 class ExtractNewVariableExtension<T : Any, PropertyCoreT : ModelPropertyCore<T>>(
   private val project: PsProject,
-  private val module: PsModule
+  private val module: PsModule?
 ) : EditorExtensionAction<T, PropertyCoreT> {
   override val title: String = "Bind to New Variable"
   override val tooltip: String = "Bind to New Variable"
@@ -42,7 +42,11 @@ class ExtractNewVariableExtension<T : Any, PropertyCoreT : ModelPropertyCore<T>>
 
     editor.updateProperty()
     val dialog =
-      ExtractVariableDialog(project, module.variables, property, editorFactory)
+      ExtractVariableDialog(
+        project,
+        module?.variables ?: project.variables,
+        property,
+        editorFactory)
     if (dialog.showAndGet()) {
       editor.reload()
     }

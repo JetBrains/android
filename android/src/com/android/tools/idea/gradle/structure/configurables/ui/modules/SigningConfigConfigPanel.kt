@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 class SigningConfigConfigPanel(signingConfig: PsSigningConfig, context: PsContext) :
   ConfigPanel<PsSigningConfig>(
     context,
+    signingConfig.parent.parent,
     signingConfig.parent,
     signingConfig,
     signingConfigPropertiesModel()
