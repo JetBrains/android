@@ -27,10 +27,10 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
-import java.awt.Font
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.RenderingHints
+import java.awt.font.TextAttribute
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.Icon
@@ -66,11 +66,14 @@ private val ROW_CELL_BORDER_SELECTED = BorderFactory.createCompoundBorder(
   RoundedLineBorder(UIUtil.getTreeSelectionBackground(), 4, 2)
 )
 
-private val BOTTOM_PANEL_BORDER = JBUI.Borders.empty(10, 8, 10, 10)
+private val BOTTOM_PANEL_BORDER = JBUI.Borders.empty(5, 8, 10, 10)
 
-private val PRIMARY_FONT_SIZE = JBUI.scaleFontSize(12f).toFloat()
+private val PRIMARY_FONT = UIUtil.getLabelFont().deriveFont(mapOf(TextAttribute.WEIGHT to TextAttribute.WEIGHT_DEMIBOLD,
+                                                                  TextAttribute.SIZE to JBUI.scaleFontSize(14f)))
 
-private val SECONDARY_FONT_SIZE = JBUI.scaleFontSize(10f).toFloat()
+private val SECONDARY_FONT_SIZE = JBUI.scaleFontSize(12f).toFloat()
+
+private val SECONDARY_FONT_COLOR = JBColor(UIUtil.getInactiveTextColor().darker(), UIUtil.getInactiveTextColor())
 
 private const val DEFAULT_WIDTH = 120
 
@@ -130,13 +133,15 @@ abstract class AssetView : JPanel(BorderLayout()) {
   var metadata: String by Delegates.observable("") { _, _, newValue -> thirdLineLabel.text = newValue }
 
   protected val titleLabel = JLabel().apply {
-    font = font.deriveFont(Font.BOLD, PRIMARY_FONT_SIZE)
+    font = PRIMARY_FONT
   }
   protected val secondLineLabel = JLabel().apply {
     font = font.deriveFont(SECONDARY_FONT_SIZE)
+    foreground = SECONDARY_FONT_COLOR
   }
   protected val thirdLineLabel = JLabel().apply {
     font = font.deriveFont(SECONDARY_FONT_SIZE)
+    foreground = SECONDARY_FONT_COLOR
   }
 
   abstract var selected: Boolean
@@ -200,7 +205,7 @@ class SingleAssetCard : AssetView() {
 
   override fun computeThumbnailSize(width: Int) = Dimension(width, (width * THUMBNAIL_HEIGHT_WIDTH_RATIO).toInt())
 
-  private val bottomPanel = JPanel(BorderLayout(2, 8)).apply {
+  private val bottomPanel = JPanel(BorderLayout(0, JBUI.scale(2))).apply {
     background = secondaryPanelBackground
     isOpaque = true
     border = BOTTOM_PANEL_BORDER
@@ -248,7 +253,7 @@ class RowAssetView : AssetView() {
   private val metadataPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
     isOpaque = false
     add(secondLineLabel)
-    add(Separator())
+    add(Separator(4, 8))
     add(thirdLineLabel)
   }
 
