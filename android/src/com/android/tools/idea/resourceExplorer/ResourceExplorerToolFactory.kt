@@ -38,7 +38,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import org.jetbrains.android.facet.AndroidFacet
 
-private const val TOOL_WINDOW_ID = "Resources Explorer"
+const val RESOURCE_EXPLORER_TOOL_WINDOW_ID = "Resources Explorer"
 
 private const val STRIPE_TITLE = "Resource Manager"
 
@@ -164,7 +164,7 @@ private class MyFileEditorListener(val project: Project,
 private class MyToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
 
   override fun stateChanged() {
-    val window: ToolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return
+    val window: ToolWindow = ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) ?: return
     val contentManager = window.contentManager
     val resourceExplorerIsPresent = contentManager.contents.any { it.component is ResourceExplorer }
     if (!window.isVisible) {
