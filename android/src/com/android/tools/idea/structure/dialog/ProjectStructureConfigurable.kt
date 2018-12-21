@@ -25,6 +25,7 @@ import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
 import com.google.wireless.android.sdk.stats.PSDEvent
+import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -67,6 +68,7 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.event.KeyEvent
 import java.util.EventListener
 import java.util.function.Consumer
 import javax.swing.JComponent
@@ -286,6 +288,12 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
         finally {
           inDoOK = false
         }
+      }
+
+      override fun doCancelAction() {
+        // Do not close on Escape.
+        if (IdeEventQueue.getInstance().trueCurrentEvent.safeAs<KeyEvent>()?.keyCode == KeyEvent.VK_ESCAPE) return
+        super.doCancelAction()
       }
     }
     UiNotifyConnector.Once(dialog.contentPane, object : Activatable.Adapter() {
