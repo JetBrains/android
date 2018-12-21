@@ -97,16 +97,7 @@ class ResourceExplorerView(
   private val resourceImportDragTarget: ResourceImportDragTarget
 ) : JPanel(BorderLayout()), Disposable, DataProvider {
 
-  override fun getData(dataId: String): Any? {
-    return resourcesBrowserViewModel.getData(dataId, getSelectedAssets())
-  }
 
-  private fun getSelectedAssets(): List<DesignAsset> {
-    return sectionList.getLists()
-      .flatMap { it.selectedValuesList }
-      .filterIsInstance<DesignAssetSet>()
-      .flatMap(DesignAssetSet::designAssets)
-  }
 
   private var previewSize = DEFAULT_CELL_WIDTH
     set(value) {
@@ -242,6 +233,13 @@ class ResourceExplorerView(
     Disposer.register(this, imageCache)
   }
 
+  private fun getSelectedAssets(): List<DesignAsset> {
+    return sectionList.getLists()
+      .flatMap { it.selectedValuesList }
+      .filterIsInstance<DesignAssetSet>()
+      .flatMap(DesignAssetSet::designAssets)
+  }
+
   private fun populateResourcesLists() {
     val selectedValue = sectionList.selectedValue
     val selectedIndices = sectionList.selectedIndices
@@ -310,6 +308,10 @@ class ResourceExplorerView(
       add(nameLabel)
       border = SECTION_HEADER_BORDER
     }
+  }
+
+  override fun getData(dataId: String): Any? {
+    return resourcesBrowserViewModel.getData(dataId, getSelectedAssets())
   }
 
   override fun dispose() {
