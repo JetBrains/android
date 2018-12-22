@@ -23,7 +23,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Component
-import java.awt.Insets
+import javax.swing.BorderFactory
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JSeparator
@@ -40,12 +40,10 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
   private val panel = JPanel(BorderLayout())
   private val separator = JSeparator()
   private val header = JBLabel()
-  private val borderInsets = Insets(0, 0, 0, 0)
 
   init {
-    header.foreground = JBColor.LIGHT_GRAY
+    header.foreground = JBColor(0x444444, 0xCCCCCC)
     header.border = JBUI.Borders.emptyLeft(TOP_ITEM_INDENT)
-    super.setBorderInsets(borderInsets)
   }
 
   override fun getListCellRendererComponent(
@@ -68,7 +66,7 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
   }
 
   override fun customizeCellRenderer(list: JList<out EnumValue>, item: EnumValue, index: Int, selected: Boolean, hasFocus: Boolean) {
-    borderInsets.left = JBUI.scale(indent(item, index))
+    border = BorderFactory.createEmptyBorder(0, indent(item, index), 0, 0)
     customize(item)
   }
 
@@ -85,7 +83,7 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
     }
 
   companion object {
-    private val TOP_ITEM_INDENT = StandardDimensions.HORIZONTAL_PADDING + INDENT_NO_HEADER
-    private val SUB_ITEM_INDENT = StandardDimensions.HORIZONTAL_PADDING + INDENT_WITH_HEADER
+    private val TOP_ITEM_INDENT = StandardDimensions.HORIZONTAL_PADDING + JBUI.scale(INDENT_NO_HEADER)
+    private val SUB_ITEM_INDENT = StandardDimensions.HORIZONTAL_PADDING + JBUI.scale(INDENT_WITH_HEADER)
   }
 }
