@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentStatusRequest;
 import com.android.tools.profiler.proto.Common.AgentData;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Profiler.BeginSessionRequest;
 import com.android.tools.profiler.proto.Profiler.BeginSessionResponse;
 import com.android.tools.profiler.proto.Profiler.BytesRequest;
@@ -450,6 +451,35 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   }
 
   /**
+   * Helper method for populating thread data.
+   *
+   * Thread1 is alive from 1s to 8s, while thread2 is alive from 6s to 15s.
+   */
+  public void populateThreads(long streamId) {
+    addEventToEventGroup(streamId, 1,
+                         ProfilersTestData.generateCpuThreadEvent(1, 1, "Thread 1", Cpu.CpuThreadData.State.RUNNING)
+                           .build());
+    addEventToEventGroup(streamId, 1,
+                         ProfilersTestData.generateCpuThreadEvent(8, 1, "Thread 1", Cpu.CpuThreadData.State.DEAD)
+                           .build());
+    addEventToEventGroup(streamId, 2,
+                         ProfilersTestData.generateCpuThreadEvent(6, 2, "Thread 2", Cpu.CpuThreadData.State.RUNNING)
+                           .build());
+    addEventToEventGroup(streamId, 2,
+                         ProfilersTestData.generateCpuThreadEvent(8, 2, "Thread 2", Cpu.CpuThreadData.State.STOPPED)
+                           .build());
+    addEventToEventGroup(streamId, 2,
+                         ProfilersTestData.generateCpuThreadEvent(10, 2, "Thread 2", Cpu.CpuThreadData.State.SLEEPING)
+                           .build());
+    addEventToEventGroup(streamId, 2,
+                         ProfilersTestData.generateCpuThreadEvent(12, 2, "Thread 2", Cpu.CpuThreadData.State.WAITING)
+                           .build());
+    addEventToEventGroup(streamId, 2,
+                         ProfilersTestData.generateCpuThreadEvent(15, 2, "Thread 2", Cpu.CpuThreadData.State.DEAD)
+                           .build());
+  }
+
+  /**
    * Helper method for creating a list of event groups if one does not exist, otherwise returning the existing group.
    */
   private List<EventGroup.Builder> getListForStream(long streamId) {
@@ -490,7 +520,10 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
           if (request.getGroupId() != EMPTY_REQUEST_VALUE && request.getGroupId() != event.getGroupId()) {
             continue;
           }
-          if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getToTimestamp() < event.getTimestamp()) {
+          if (request.getFromTimestamp() != EMPTY_REQUEST_VALUE && request.getFromTimestamp() > event.getTimestamp()) {
+            continue;
+          }
+          if (request.getToTimestamp() != EMPTY_REQUEST_VALUE && request.getToTimestamp() < event.getTimestamp()) {
             continue;
           }
           if (request.getKind() != event.getKind()) {

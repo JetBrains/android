@@ -67,7 +67,8 @@ class CpuThreadsTooltipViewTest {
 
   @Test
   fun textUpdateOnThreadChange() {
-    var threadSeries = ThreadStateDataSeries(myGrpcChannel.client.cpuClient, ProfilersTestData.SESSION_DATA, 1)
+    var threadSeries = LegacyCpuThreadStateDataSeries(myGrpcChannel.client.cpuClient,
+                                                      ProfilersTestData.SESSION_DATA, 1)
 
     cpuThreadsTooltip.setThread("myThread", threadSeries)
     var labels = TreeWalker(cpuThreadsTooltipView.tooltipPanel).descendants().filterIsInstance<JLabel>()
@@ -87,7 +88,8 @@ class CpuThreadsTooltipViewTest {
     assertThat(labels[2].text).isEqualTo("Dead")
     assertThat(labels[3].text).isEqualTo("Details Unavailable")
 
-    threadSeries = ThreadStateDataSeries(myGrpcChannel.client.cpuClient, ProfilersTestData.SESSION_DATA, 3)
+    threadSeries = LegacyCpuThreadStateDataSeries(myGrpcChannel.client.cpuClient,
+                                                  ProfilersTestData.SESSION_DATA, 3)
     tooltipTime = TimeUnit.SECONDS.toMicros(3) // Should be a captured state.
     cpuStage.studioProfilers.timeline.tooltipRange.set(tooltipTime.toDouble(), tooltipTime.toDouble())
     cpuThreadsTooltip.setThread("newThread", threadSeries)

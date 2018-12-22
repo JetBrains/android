@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.filter.FilterModel;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FilterMetadata;
@@ -692,8 +691,8 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertThat(tooltip.getThreadState()).isNull();
 
     // Thread series: 1 - running - 8 - dead - 11
-    ThreadStateDataSeries series =
-      new ThreadStateDataSeries(myStage.getStudioProfilers().getClient().getCpuClient(), ProfilersTestData.SESSION_DATA, 1);
+    LegacyCpuThreadStateDataSeries series =
+      new LegacyCpuThreadStateDataSeries(myStage.getStudioProfilers().getClient().getCpuClient(), ProfilersTestData.SESSION_DATA, 1);
     tooltip.setThread("myThread", series);
 
     assertThat(tooltip.getThreadName()).isEqualTo("myThread");
