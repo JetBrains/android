@@ -18,12 +18,17 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
-import org.jetbrains.annotations.NotNull;
-
+import com.android.tools.profilers.UnifiedEventDataSeries;
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 
 public class MemoryUsage extends LineChartModel {
 
@@ -32,17 +37,41 @@ public class MemoryUsage extends LineChartModel {
 
   public MemoryUsage(@NotNull StudioProfilers profilers) {
     myMemoryRange = new Range(0, 0);
-    myTotalMemorySeries = createRangedSeries(profilers, getTotalSeriesLabel(), myMemoryRange, MemorySample::getTotalMem);
+    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      myTotalMemorySeries = createRangedSeries(profilers, getTotalSeriesLabel(), myMemoryRange,
+                                               UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                               UnifiedEventDataSeries
+                                                 .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getTotalMem()));
+    }
+    else {
+      myTotalMemorySeries =
+        createLegacyRangedSeries(profilers, getTotalSeriesLabel(), myMemoryRange, sample -> (long)sample.getMemoryUsage().getTotalMem());
+    }
 
     add(myTotalMemorySeries);
   }
 
-  protected RangedContinuousSeries createRangedSeries(StudioProfilers profilers,
-                                                      String name,
-                                                      Range range,
-                                                      Function<MemorySample, Long> getter) {
+  protected RangedContinuousSeries createLegacyRangedSeries(@NotNull StudioProfilers profilers,
+                                                            @NotNull String name,
+                                                            @NotNull Range range,
+                                                            @NotNull Function<MemorySample, Long> getter) {
     MemoryServiceGrpc.MemoryServiceBlockingStub client = profilers.getClient().getMemoryClient();
     MemoryDataSeries series = new MemoryDataSeries(client, profilers.getSession(), getter);
+    return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series);
+  }
+
+  protected RangedContinuousSeries createRangedSeries(@NotNull StudioProfilers profilers,
+                                                      @NotNull String name,
+                                                      @NotNull Range range,
+                                                      int groupId,
+                                                      Function<List<Common.Event>, Stream<SeriesData<Long>>> dataExtractor) {
+    TransportServiceGrpc.TransportServiceBlockingStub client = profilers.getClient().getTransportClient();
+    UnifiedEventDataSeries series = new UnifiedEventDataSeries(client,
+                                                               profilers.getSession().getStreamId(),
+                                                               profilers.getSession().getPid(),
+                                                               Common.Event.Kind.MEMORY_USAGE,
+                                                               groupId,
+                                                               dataExtractor);
     return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series);
   }
 

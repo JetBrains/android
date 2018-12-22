@@ -20,6 +20,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.memory.LegacyAllocationConverter;
 import com.android.tools.idea.profilers.LegacyAllocationTracker;
 import com.android.tools.profiler.proto.Common;
@@ -119,7 +120,8 @@ public class MemoryServiceProxyTest {
 
   @Test
   public void testGetDataWithoutAllocationsInfo() throws Exception {
-    MemoryData.MemorySample memSample = MemoryData.MemorySample.newBuilder().setJavaMem(1).setTimestamp(1).build();
+    MemoryData.MemorySample memSample = MemoryData.MemorySample.newBuilder().setTimestamp(1)
+      .setMemoryUsage(Memory.MemoryUsageData.newBuilder().setJavaMem(1)).build();
     MemoryData memData = MemoryProfiler.MemoryData.newBuilder().addMemSamples(memSample).build();
     myService.setMemoryData(memData);
 
