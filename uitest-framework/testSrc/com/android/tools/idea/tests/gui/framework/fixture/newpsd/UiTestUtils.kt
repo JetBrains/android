@@ -35,27 +35,33 @@ private const val WAIT_FOR_IDLE_TIMEOUT_MS: Int = 20_000
 fun HtmlLabel.plainText(): String = document.getText(0, document.length)
 
 fun waitForIdle() {
+  fun getDetails() =
+    try {
+      buildString {
+        appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent}")
+        appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
+      }
+    }
+    catch (t: Throwable) {
+      t.message.orEmpty()
+    }
+
   val start = System.currentTimeMillis()
+  var intermediate: MutableList<String>? = null
   while (System.currentTimeMillis() - start < WAIT_FOR_IDLE_TIMEOUT_MS) {
     try {
       (ToolkitProvider.instance().defaultToolkit() as SunToolkit).realSync()
       return
     }
     catch (_: SunToolkit.InfiniteLoop) {
+      intermediate = (intermediate ?: mutableListOf()).also {
+        it.add(getDetails())
+      }
       // The implementation of SunToolkit.realSync() allows up to 20 events to be processed in a batch.
       // We often have more than 20 events primarily caused by invokeLater() invocations.
     }
   }
-  val details = try {
-    buildString {
-      appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent}")
-      appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
-    }
-  }
-  catch (t: Throwable) {
-    t.message.orEmpty()
-  }
-  throw WaitTimedOutError("Timed out waiting for idle: $details")
+  throw WaitTimedOutError("Timed out waiting for idle:\n${intermediate?.joinToString("\n").orEmpty()}")
 }
 
 internal fun IdeFrameContainerFixture.clickToolButton(titlePrefix: String) {
