@@ -55,6 +55,7 @@ iml_module(
 iml_module(
     name = "intellij.android.designer.tests",
     iml_files = ["intellij.android.designer.tests.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
     test_data = [
         "//prebuilts/studio/jdk",

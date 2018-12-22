@@ -46,6 +46,7 @@ iml_module(
 iml_module(
     name = "android-layout-inspector-test",
     iml_files = ["android-layout-inspector-test.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.LayoutInspectorTestSuite",
     # keep sorted
     test_data = [

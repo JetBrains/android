@@ -50,6 +50,7 @@ iml_module(
 iml_module(
     name = "connection-assistant-test",
     iml_files = ["connection-assistant-test.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.connection.assistant.ConnectionAssistantTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",

@@ -41,7 +41,10 @@ iml_module(
 iml_module(
     name = "intellij.android.lang.tests",
     iml_files = ["intellij.android.lang.tests.iml"],
-    tags = ["no_test_mac_psq"],  # b/113099009
+    tags = [
+        "no_test_mac_psq",
+        "no_test_windows",
+    ],  # b/113099009
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
     test_data = glob(["testData/**"]) + [
         "//tools/adt/idea/android/annotations",

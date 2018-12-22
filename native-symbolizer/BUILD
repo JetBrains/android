@@ -6,6 +6,7 @@ iml_module(
     # do not sort: must match IML order
     srcs = ["src"],
     iml_files = ["native-symbolizer.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.nativeSymbolizer.NativeSymbolizerTestSuite",
     test_data = glob(["testData/**"]) + [
         "//prebuilts/tools:lldb",

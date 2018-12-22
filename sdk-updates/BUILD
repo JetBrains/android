@@ -38,6 +38,7 @@ iml_module(
 iml_module(
     name = "intellij.android.sdkUpdates.tests",
     iml_files = ["intellij.android.sdkUpdates.tests.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.updater.SdkUpdaterTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
