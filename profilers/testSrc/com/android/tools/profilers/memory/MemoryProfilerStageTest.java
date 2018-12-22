@@ -27,6 +27,7 @@ import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
@@ -531,12 +532,14 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       .setEndTimestamp(time)
       .addMemSamples(MemoryData.MemorySample.newBuilder()
                        .setTimestamp(time)
-                       .setJavaMem(10)
-                       .setNativeMem(20)
-                       .setGraphicsMem(30)
-                       .setStackMem(40)
-                       .setCodeMem(50)
-                       .setOthersMem(60)).build();
+                       .setMemoryUsage(Memory.MemoryUsageData.newBuilder()
+                                         .setJavaMem(10)
+                                         .setNativeMem(20)
+                                         .setGraphicsMem(30)
+                                         .setStackMem(40)
+                                         .setCodeMem(50)
+                                         .setOthersMem(60)))
+      .build();
     myService.setMemoryData(memoryData);
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
     myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);

@@ -110,7 +110,9 @@ end_time: 9223372036854775807
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/GetData" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryData">
         <Message>mem_samples {
   timestamp: 86400000000000
-  java_mem: 1024
+  memory_usage {
+    java_mem: 1024
+  }
 }
 alloc_stats_samples {
   timestamp: 86400000000000
@@ -146,7 +148,9 @@ allocations_info {
         <functionCalled>profiler.proto.MemoryService/GetData</functionCalled>
         <message>mem_samples {
   timestamp: 86400000000000
-  java_mem: 1024
+  memory_usage {
+    java_mem: 1024
+  }
 }
 alloc_stats_samples {
   timestamp: 86400000000000

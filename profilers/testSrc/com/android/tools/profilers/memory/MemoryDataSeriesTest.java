@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.ProfilersTestData;
@@ -39,7 +40,9 @@ public class MemoryDataSeriesTest {
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos(222))
       .addMemSamples(MemoryData.MemorySample.newBuilder()
-                       .setJavaMem(222).setTimestamp(TimeUnit.MICROSECONDS.toNanos(222)).setTotalMem(222))
+        .setTimestamp(TimeUnit.MICROSECONDS.toNanos(222))
+        .setMemoryUsage(Memory.MemoryUsageData.newBuilder()
+                       .setJavaMem(222).setTotalMem(222)))
       .build();
     myService.setMemoryData(memoryData);
     MemoryDataSeries series =
@@ -55,9 +58,13 @@ public class MemoryDataSeriesTest {
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos(555))
       .addMemSamples(0, MemoryData.MemorySample.newBuilder()
-        .setJavaMem(333).setTimestamp(TimeUnit.MICROSECONDS.toNanos(333)).setTotalMem(333))
+        .setTimestamp(TimeUnit.MICROSECONDS.toNanos(333))
+        .setMemoryUsage(Memory.MemoryUsageData.newBuilder()
+          .setJavaMem(333).setTotalMem(333)))
       .addMemSamples(1, MemoryData.MemorySample.newBuilder()
-        .setNativeMem(444).setTimestamp(TimeUnit.MICROSECONDS.toNanos(444)).setTotalMem(444))
+        .setTimestamp(TimeUnit.MICROSECONDS.toNanos(444))
+        .setMemoryUsage(Memory.MemoryUsageData.newBuilder()
+          .setNativeMem(444).setTotalMem(444)))
       .build();
     myService.setMemoryData(memoryData);
     MemoryDataSeries series =
