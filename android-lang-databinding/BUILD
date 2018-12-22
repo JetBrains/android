@@ -40,7 +40,10 @@ iml_module(
 iml_module(
     name = "intellij.android.lang-databinding.tests",
     iml_files = ["intellij.android.lang-databinding.tests.iml"],
-    tags = ["no_test_mac_psq"],  # b/113099009
+    tags = [
+        "no_test_mac_psq",
+        "no_test_windows",
+    ],  # b/113099009
     test_class = "com.android.tools.idea.lang.databinding.LangDataBindingTestSuite",
     test_data = glob(["testData/**"]),
     # do not sort: must match IML order
