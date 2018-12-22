@@ -22,14 +22,16 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
+/**
+ * Legacy class responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
+ */
+public class LegacyCpuThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
 
   @NotNull
   private CpuServiceGrpc.CpuServiceBlockingStub myClient;
@@ -37,7 +39,7 @@ public class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thread
   private final Common.Session mySession;
   private final int myThreadId;
 
-  public ThreadStateDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, @NotNull Common.Session session, int tid) {
+  public LegacyCpuThreadStateDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, @NotNull Common.Session session, int tid) {
     myClient = client;
     mySession = session;
     myThreadId = tid;
@@ -97,37 +99,16 @@ public class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thread
           }
           // We shouldn't add an activity if capture has started before the first activity for the current thread.
           if (state != Cpu.CpuThreadData.State.UNSPECIFIED) {
-            data.add(new SeriesData<>(time, getState(state, inCapture)));
+            data.add(new SeriesData<>(time, CpuThreadsModel.getState(state, inCapture)));
           }
         }
         while (j < captureTimes.size()) {
           inCapture = !inCapture;
-          data.add(new SeriesData<>(captureTimes.get(j).longValue(), getState(state, inCapture)));
+          data.add(new SeriesData<>(captureTimes.get(j).longValue(), CpuThreadsModel.getState(state, inCapture)));
           j++;
         }
       }
     }
     return data;
-  }
-
-  private static CpuProfilerStage.ThreadState getState(Cpu.CpuThreadData.State state, boolean captured) {
-    switch (state) {
-      case RUNNING:
-        return captured ? CpuProfilerStage.ThreadState.RUNNING_CAPTURED : CpuProfilerStage.ThreadState.RUNNING;
-      case DEAD:
-        return captured ? CpuProfilerStage.ThreadState.DEAD_CAPTURED : CpuProfilerStage.ThreadState.DEAD;
-      case SLEEPING:
-        return captured ? CpuProfilerStage.ThreadState.SLEEPING_CAPTURED : CpuProfilerStage.ThreadState.SLEEPING;
-      case WAITING:
-        return captured ? CpuProfilerStage.ThreadState.WAITING_CAPTURED : CpuProfilerStage.ThreadState.WAITING;
-      default:
-        // TODO: Use colors that have been agreed in design review.
-        return CpuProfilerStage.ThreadState.UNKNOWN;
-    }
-  }
-
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(ThreadStateDataSeries.class);
   }
 }

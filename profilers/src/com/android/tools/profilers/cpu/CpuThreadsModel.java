@@ -16,21 +16,26 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.DragAndDropListModel;
 import com.android.tools.profilers.DragAndDropModelListElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
@@ -75,22 +80,48 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       return;
     }
 
-    CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
-                                                                                 .setSession(mySession)
-                                                                                 .setStartTimestamp(
-                                                                                   TimeUnit.MICROSECONDS.toNanos((long)myRange.getMin()))
-                                                                                 .setEndTimestamp(
-                                                                                   TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax()));
-    CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
-    CpuProfiler.GetThreadsResponse response = client.getThreads(request.build());
-
-    // Merge the two lists.
+    long minNs = TimeUnit.MICROSECONDS.toNanos((long)myRange.getMin());
+    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax());
     Map<Integer, RangedCpuThread> requestedThreadsRangedCpuThreads = new HashMap<>();
-    for (CpuProfiler.GetThreadsResponse.Thread newThread : response.getThreadsList()) {
-      RangedCpuThread cpuThread = myThreadIdToCpuThread.computeIfAbsent(newThread.getTid(),
-                                                                        id -> new RangedCpuThread(myRange, newThread.getTid(),
-                                                                                                  newThread.getName()));
-      requestedThreadsRangedCpuThreads.put(newThread.getTid(), cpuThread);
+
+    if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Profiler.GetEventGroupsResponse response = myStage.getStudioProfilers().getClient().getProfilerClient().getEventGroups(
+        Profiler.GetEventGroupsRequest.newBuilder()
+          .setSessionId(mySession.getSessionId())
+          .setKind(Common.Event.Kind.CPU_THREAD)
+          // TODO(b/122110659): set from_timestamp when GetEventGroups works as intended.
+          .setToTimestamp(maxNs)
+          .build());
+
+      // Merge the two lists.
+      for (Profiler.EventGroup eventGroup : response.getGroupsList()) {
+        if (eventGroup.getEventsCount() > 0) {
+          Common.Event first = eventGroup.getEvents(0);
+          Common.Event last = eventGroup.getEvents(eventGroup.getEventsCount() - 1);
+          if (last.getTimestamp() < minNs && last.getIsEnded()) {
+            continue;
+          }
+          Cpu.CpuThreadData threadData = first.getCpuThread();
+          requestedThreadsRangedCpuThreads.put(threadData.getTid(), myThreadIdToCpuThread
+            .computeIfAbsent(threadData.getTid(), id -> new RangedCpuThread(myRange, threadData.getTid(), threadData.getName())));
+        }
+      }
+    }
+    else {
+      CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
+        .setSession(mySession)
+        .setStartTimestamp(minNs)
+        .setEndTimestamp(maxNs);
+      CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
+      CpuProfiler.GetThreadsResponse response = client.getThreads(request.build());
+
+      // Merge the two lists.
+      for (CpuProfiler.GetThreadsResponse.Thread newThread : response.getThreadsList()) {
+        RangedCpuThread cpuThread = myThreadIdToCpuThread.computeIfAbsent(newThread.getTid(),
+                                                                          id -> new RangedCpuThread(myRange, newThread.getTid(),
+                                                                                                    newThread.getName()));
+        requestedThreadsRangedCpuThreads.put(newThread.getTid(), cpuThread);
+      }
     }
 
     // Find elements that already exist and remove them from the incoming set.
@@ -179,6 +210,22 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     fireContentsChanged(this, 0, size());
   }
 
+  protected static CpuProfilerStage.ThreadState getState(Cpu.CpuThreadData.State state, boolean captured) {
+    switch (state) {
+      case RUNNING:
+        return captured ? CpuProfilerStage.ThreadState.RUNNING_CAPTURED : CpuProfilerStage.ThreadState.RUNNING;
+      case DEAD:
+        return captured ? CpuProfilerStage.ThreadState.DEAD_CAPTURED : CpuProfilerStage.ThreadState.DEAD;
+      case SLEEPING:
+        return captured ? CpuProfilerStage.ThreadState.SLEEPING_CAPTURED : CpuProfilerStage.ThreadState.SLEEPING;
+      case WAITING:
+        return captured ? CpuProfilerStage.ThreadState.WAITING_CAPTURED : CpuProfilerStage.ThreadState.WAITING;
+      default:
+        // TODO: Use colors that have been agreed in design review.
+        return CpuProfilerStage.ThreadState.UNKNOWN;
+    }
+  }
+
   public class RangedCpuThread implements DragAndDropModelListElement {
 
     private final int myThreadId;
@@ -195,7 +242,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     /**
      * This is added to the {@link MergeCaptureDataSeries}, however it is only populated
      * when an Atrace capture is parsed. When the data series is populated the results from the
-     * Atrace data series are used in place of the ThreadStateDataSeries for the range that
+     * Atrace data series are used in place of the LegacyCpuThreadStateDataSeries for the range that
      * overlap.
      */
     private final AtraceDataSeries<CpuProfilerStage.ThreadState> myAtraceDataSeries;
@@ -215,8 +262,10 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
       myModel = new StateChartModel<>();
       if (capture == null) {
         // Capture is null for non-imported traces
-        ThreadStateDataSeries threadStateDataSeries =
-          new ThreadStateDataSeries(myStage.getStudioProfilers().getClient().getCpuClient(), mySession, myThreadId);
+        DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries =
+          myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled() ?
+          new CpuThreadStateDataSeries(myStage.getStudioProfilers().getClient().getProfilerClient(), mySession, myThreadId) :
+          new LegacyCpuThreadStateDataSeries(myStage.getStudioProfilers().getClient().getCpuClient(), mySession, myThreadId);
         myAtraceDataSeries = new AtraceDataSeries<>(myStage, (atraceCapture) -> atraceCapture.getThreadStatesForThread(myThreadId));
         mySeries = new MergeCaptureDataSeries<>(myStage, threadStateDataSeries, myAtraceDataSeries);
         // For non-imported traces, the main thread ID is equal to the process ID of the current session

@@ -15,30 +15,28 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.intellij.util.ObjectUtils.assertNotNull;
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilersTestData;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import static com.intellij.util.ObjectUtils.assertNotNull;
-import static org.junit.Assert.assertEquals;
-
 @RunWith(Parameterized.class)
 public class CpuThreadCountDataSeriesTest {
-  @Parameterized.Parameters
+  @Parameterized.Parameters(name = "isUnifiedPipeline={0}")
   public static Collection<Boolean> useNewEventPipelineParameter() {
     return Arrays.asList(false, true);
   }
@@ -58,29 +56,7 @@ public class CpuThreadCountDataSeriesTest {
   @Before
   public void setUp() {
     if (myIsUnifiedPipeline) {
-      // Thread1 is alive from 1s to 8s, while thread2 is alive from 6s to 15s.
-      long streamId = ProfilersTestData.SESSION_DATA.getDeviceId();
-      myProfilerService.addEventToEventGroup(streamId, 1,
-                                             ProfilersTestData.generateCpuThreadEvent(1, 1, "Thread 1", Cpu.CpuThreadData.State.RUNNING)
-                                               .build());
-      myProfilerService.addEventToEventGroup(streamId, 1,
-                                             ProfilersTestData.generateCpuThreadEvent(8, 1, "Thread 1", Cpu.CpuThreadData.State.DEAD)
-                                               .build());
-      myProfilerService.addEventToEventGroup(streamId, 2,
-                                             ProfilersTestData.generateCpuThreadEvent(6, 2, "Thread 2", Cpu.CpuThreadData.State.RUNNING)
-                                               .build());
-      myProfilerService.addEventToEventGroup(streamId, 2,
-                                             ProfilersTestData.generateCpuThreadEvent(8, 2, "Thread 2", Cpu.CpuThreadData.State.STOPPED)
-                                               .build());
-      myProfilerService.addEventToEventGroup(streamId, 2,
-                                             ProfilersTestData.generateCpuThreadEvent(10, 2, "Thread 2", Cpu.CpuThreadData.State.SLEEPING)
-                                               .build());
-      myProfilerService.addEventToEventGroup(streamId, 2,
-                                             ProfilersTestData.generateCpuThreadEvent(12, 2, "Thread 2", Cpu.CpuThreadData.State.WAITING)
-                                               .build());
-      myProfilerService.addEventToEventGroup(streamId, 2,
-                                             ProfilersTestData.generateCpuThreadEvent(15, 2, "Thread 2", Cpu.CpuThreadData.State.DEAD)
-                                               .build());
+      myProfilerService.populateThreads(ProfilersTestData.SESSION_DATA.getDeviceId());
       myDataSeries = new CpuThreadCountDataSeries(myGrpcChannel.getClient().getProfilerClient(), ProfilersTestData.SESSION_DATA);
     }
     else {
