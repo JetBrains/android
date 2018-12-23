@@ -38,7 +38,7 @@ fun waitForIdle() {
   fun getDetails() =
     try {
       buildString {
-        appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent}")
+        appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent} (${IdeEventQueue.getInstance().eventCount})")
         appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
       }
     }
