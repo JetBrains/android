@@ -20,14 +20,17 @@ import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.matcher
 import com.android.tools.idea.tests.gui.framework.robot
+import com.intellij.diagnostic.ThreadDumper
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.ToolkitProvider
 import sun.awt.SunToolkit
+import java.awt.AWTEvent
 import java.awt.Container
 
 private const val WAIT_FOR_IDLE_TIMEOUT_MS: Int = 20_000
@@ -35,11 +38,14 @@ private const val WAIT_FOR_IDLE_TIMEOUT_MS: Int = 20_000
 fun HtmlLabel.plainText(): String = document.getText(0, document.length)
 
 fun waitForIdle() {
+  var lastEvent: AWTEvent? = null
   fun getDetails() =
     try {
       buildString {
         appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent} (${IdeEventQueue.getInstance().eventCount})")
         appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
+        if (lastEvent != null) appendln("lastEvent: ${lastEvent}")
+        appendln("EDT: ${ThreadDumper.dumpEdtStackTrace(ThreadDumper.getThreadInfos())}")
       }
     }
     catch (t: Throwable) {
@@ -50,7 +56,14 @@ fun waitForIdle() {
   var intermediate: MutableList<String>? = null
   while (System.currentTimeMillis() - start < WAIT_FOR_IDLE_TIMEOUT_MS) {
     try {
-      (ToolkitProvider.instance().defaultToolkit() as SunToolkit).realSync()
+      val d = Disposer.newDisposable()
+      try {
+        IdeEventQueue.getInstance().addPostprocessor(IdeEventQueue.EventDispatcher { lastEvent = it; false }, d)
+        (ToolkitProvider.instance().defaultToolkit() as SunToolkit).realSync()
+      }
+      finally {
+        Disposer.dispose(d)
+      }
       return
     }
     catch (_: SunToolkit.InfiniteLoop) {
