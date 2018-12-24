@@ -21,6 +21,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.picker.ColorListener
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.TestOnly
 import java.awt.*
 import java.awt.event.*
@@ -469,6 +470,9 @@ class ColorValueField(private val hex: Boolean = false): JTextField(if (hex) 8 e
     horizontalAlignment = JTextField.CENTER
     isEnabled = true
     isEditable = true
+
+    val labelFont = UIUtil.getLabelFont()
+    font = labelFont.deriveFont(labelFont.size * 0.9f)
 
     addFocusListener(object : FocusAdapter() {
       override fun focusGained(e: FocusEvent?) {
