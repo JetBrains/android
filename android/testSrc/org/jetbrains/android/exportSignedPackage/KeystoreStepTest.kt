@@ -21,18 +21,18 @@ import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
-import com.intellij.testFramework.IdeaTestCase
+import com.intellij.testFramework.LightIdeaTestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.junit.Assert.assertArrayEquals
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
-class KeystoreStepTest : IdeaTestCase() {
+class KeystoreStepTest : LightIdeaTestCase() {
   private lateinit var ideComponents: IdeComponents
 
   override fun setUp() {
     super.setUp()
-    ideComponents = IdeComponents(myProject)
+    ideComponents = IdeComponents(getProject())
   }
 
   override fun tearDown() {
@@ -63,7 +63,7 @@ class KeystoreStepTest : IdeaTestCase() {
     ideComponents.replaceService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(myProject)
+    `when`(wizard.project).thenReturn(getProject())
 
     val keystoreStep = KeystoreStep(wizard, true)
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
@@ -108,7 +108,7 @@ class KeystoreStepTest : IdeaTestCase() {
     ideComponents.replaceService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(myProject)
+    `when`(wizard.project).thenReturn(getProject())
 
     val keystoreStep = KeystoreStep(wizard, true)
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
