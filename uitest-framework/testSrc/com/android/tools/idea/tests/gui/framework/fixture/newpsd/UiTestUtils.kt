@@ -30,21 +30,22 @@ import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.ToolkitProvider
 import sun.awt.SunToolkit
-import java.awt.AWTEvent
 import java.awt.Container
+import java.awt.event.InvocationEvent
+import java.util.ArrayDeque
 
 private const val WAIT_FOR_IDLE_TIMEOUT_MS: Int = 20_000
 
 fun HtmlLabel.plainText(): String = document.getText(0, document.length)
 
 fun waitForIdle() {
-  var lastEvent: AWTEvent? = null
+  val lastEvents = ArrayDeque<String>()  // Always updated on EDT and read only afterwards.
   fun getDetails() =
     try {
       buildString {
         appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent} (${IdeEventQueue.getInstance().eventCount})")
         appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
-        if (lastEvent != null) appendln("lastEvent: ${lastEvent}")
+        appendln("lastEvents:\n${lastEvents.joinToString("\n")}")
         appendln("EDT: ${ThreadDumper.dumpEdtStackTrace(ThreadDumper.getThreadInfos())}")
       }
     }
@@ -58,7 +59,14 @@ fun waitForIdle() {
     try {
       val d = Disposer.newDisposable()
       try {
-        IdeEventQueue.getInstance().addPostprocessor(IdeEventQueue.EventDispatcher { lastEvent = it; false }, d)
+        IdeEventQueue.getInstance().addPostprocessor(IdeEventQueue.EventDispatcher {
+          lastEvents.addLast(it.toString())
+          if (it is InvocationEvent) {
+            lastEvents.add(">" + it.paramString())
+          }
+          if (lastEvents.size > 100) lastEvents.removeFirst()
+          false
+        }, d)
         (ToolkitProvider.instance().defaultToolkit() as SunToolkit).realSync()
       }
       finally {
