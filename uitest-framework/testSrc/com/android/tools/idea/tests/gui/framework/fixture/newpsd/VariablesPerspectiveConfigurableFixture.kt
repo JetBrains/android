@@ -104,6 +104,7 @@ class VariablesPerspectiveConfigurableFixture(
       ideFrameFixture,
       robot().finder().findByType<SimplePropertyEditor<*, *>.EditorWrapper>(container)
     ).selectItem(value)
+    waitForIdle()
   }
 
   fun tab() {
