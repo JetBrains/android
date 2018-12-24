@@ -23,12 +23,12 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinDefaultImpl;
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.mock.MockApplicationEx;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -63,6 +63,7 @@ public class TemplateValueInjectorTest{
     instance.registerService(EmbeddedDistributionPaths.class, new EmbeddedDistributionPaths());
     ApplicationManager.setApplication(instance, myDisposable);
 
+    PluginManagerCore.getPlugins();
     String kotlinEpName = ConvertJavaToKotlinProvider.EP_NAME.getName();
     if (!getRootArea().hasExtensionPoint(kotlinEpName)) {
       getRootArea().registerExtensionPoint(kotlinEpName, ConvertJavaToKotlinDefaultImpl.class.getName());
