@@ -50,7 +50,7 @@ fun waitForIdle() {
         appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent} (${IdeEventQueue.getInstance().eventCount})")
         appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
         appendln("lastEvents:")
-        lastEvents.forEach { append(it) }
+//        lastEvents.forEach { append(it) }
         appendln("EDT: ${ThreadDumper.dumpEdtStackTrace(ThreadDumper.getThreadInfos())}")
       }
     }
