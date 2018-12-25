@@ -35,13 +35,14 @@ import sun.awt.SunToolkit
 import java.awt.Container
 import java.awt.event.InvocationEvent
 import java.util.ArrayDeque
+import java.util.concurrent.ConcurrentLinkedDeque
 
 private const val WAIT_FOR_IDLE_TIMEOUT_MS: Int = 20_000
 
 fun HtmlLabel.plainText(): String = document.getText(0, document.length)
 
 fun waitForIdle() {
-  val lastEvents = ArrayDeque<String>()  // Always updated on EDT and read only afterwards.
+  val lastEvents = ConcurrentLinkedDeque<String>()  // Always updated on EDT but can be read immediately after timeout.
   fun getDetails() =
     try {
       buildString {
