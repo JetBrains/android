@@ -45,6 +45,7 @@ import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.internal.progress.ThreadSafeMockingProgress;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
@@ -60,6 +61,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Override
   protected void tearDown() throws Exception {
+    ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
     myFixture = null;
     super.tearDown();
   }
