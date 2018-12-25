@@ -27,6 +27,7 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -71,6 +72,10 @@ public class AndroidSdksTest extends IdeaTestCase {
 
     mySdkPath = getSdk();
 
+    String jdkHomePath = Jdks.getJdkHomePath(null);
+    if (jdkHomePath != null) {
+      VfsRootAccess.allowRootAccess(getTestRootDisposable(), jdkHomePath);
+    }
     Jdks jdks = Jdks.getInstance();
     myJdk = jdks.chooseOrCreateJavaSdk();
     assertNotNull(myJdk);
