@@ -69,12 +69,8 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    try {
-      myFixture = null;
-    }
-    finally {
-      super.tearDown();
-    }
+    myFixture = null;
+    super.tearDown();
   }
 
   protected AndroidTestBase() {
