@@ -23,14 +23,12 @@ import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.diagnostic.ThreadDumper
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.application.impl.LaterInvocator
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.ToolkitProvider
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import sun.awt.SunToolkit
 import java.awt.Container
 import java.awt.event.InvocationEvent
@@ -48,8 +46,7 @@ fun waitForIdle() {
       buildString {
         appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent} (${IdeEventQueue.getInstance().eventCount})")
         appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
-        appendln("lastEvents:")
-        lastEvents.forEach { append(it) }
+        appendln("lastEvents:\n${lastEvents.joinToString("\n")}")
         appendln("EDT: ${ThreadDumper.dumpEdtStackTrace(ThreadDumper.getThreadInfos())}")
       }
     }
@@ -63,16 +60,12 @@ fun waitForIdle() {
     try {
       val d = Disposer.newDisposable()
       try {
-        IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher {e ->
-          val eventString = e.toString()
-          lastEvents.addLast(eventString)
-          if (e is InvocationEvent && eventString.contains("LaterInvocator.FlushQueue")) {
-            @Suppress("INACCESSIBLE_TYPE")
-            LaterInvocator.getLaterInvocatorQueue().cast<Collection<Any>>().forEach {
-              lastEvents.add(it.toString())
-            }
+        IdeEventQueue.getInstance().addPostprocessor(IdeEventQueue.EventDispatcher {
+          lastEvents.addLast(it.toString())
+          if (it is InvocationEvent) {
+            lastEvents.add(">" + it.paramString())
           }
-          if (lastEvents.size > 500) lastEvents.removeFirst()
+          if (lastEvents.size > 100) lastEvents.removeFirst()
           false
         }, d)
         (ToolkitProvider.instance().defaultToolkit() as SunToolkit).realSync()
