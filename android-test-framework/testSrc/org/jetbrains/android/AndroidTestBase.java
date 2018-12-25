@@ -50,6 +50,7 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.internal.progress.ThreadSafeMockingProgress;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -69,6 +70,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Override
   protected void tearDown() throws Exception {
+    ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
     myFixture = null;
     super.tearDown();
   }
