@@ -120,7 +120,10 @@ public class Jdks {
   }
 
   @Nullable
-  private static String getJdkHomePath(@NotNull LanguageLevel langLevel) {
+  public static String getJdkHomePath(@Nullable LanguageLevel langLevel) {
+    if (langLevel == null) {
+      langLevel = DEFAULT_LANG_LEVEL;
+    }
     Collection<String> jdkHomePaths = new ArrayList<>(JavaSdk.getInstance().suggestHomePaths());
     if (jdkHomePaths.isEmpty()) {
       return null;
