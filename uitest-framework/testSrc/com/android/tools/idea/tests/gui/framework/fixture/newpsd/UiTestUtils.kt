@@ -34,13 +34,17 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 import sun.awt.SunToolkit
 import java.awt.Container
 import java.awt.event.InvocationEvent
-import java.util.ArrayDeque
-import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.concurrent.ConcurrentLinkedQueue
 
 private const val WAIT_FOR_IDLE_TIMEOUT_MS: Int = 20_000
 
 fun HtmlLabel.plainText(): String = document.getText(0, document.length)
+
+private val lock = run {
+  val f = LaterInvocator::class.java.getDeclaredField("LOCK") //NoSuchFieldException
+  f.setAccessible(true)
+  f.get(null)
+}
 
 fun waitForIdle() {
   val lastEvents = ConcurrentLinkedQueue<String>()  // Always updated on EDT but can be read immediately after timeout.
@@ -50,7 +54,7 @@ fun waitForIdle() {
         appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent} (${IdeEventQueue.getInstance().eventCount})")
         appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
         appendln("lastEvents:")
-//        lastEvents.forEach { append(it) }
+        lastEvents.forEach { append(it) }
         appendln("EDT: ${ThreadDumper.dumpEdtStackTrace(ThreadDumper.getThreadInfos())}")
       }
     }
@@ -64,13 +68,15 @@ fun waitForIdle() {
     try {
       val d = Disposer.newDisposable()
       try {
-        IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher {e ->
+        IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
           val eventString = e.toString()
           lastEvents.offer(eventString)
           if (e is InvocationEvent && eventString.contains("LaterInvocator.FlushQueue")) {
             @Suppress("INACCESSIBLE_TYPE")
-            LaterInvocator.getLaterInvocatorQueue().cast<Collection<Any>>().forEach {
-              lastEvents.offer(it.toString())
+            synchronized(lock) {
+              LaterInvocator.getLaterInvocatorQueue().cast<Collection<Any>>().forEach {
+                lastEvents.offer(it.toString())
+              }
             }
           }
           if (lastEvents.size > 500) lastEvents.remove()
