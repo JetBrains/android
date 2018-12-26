@@ -65,7 +65,7 @@ class EditorProviderImpl<in P : PropertyItem>(
       ControlType.FLAG_EDITOR -> {
         val model = FlagPropertyEditorModel(property as FlagsPropertyItem<*>)
         val editor = FlagPropertyEditor(model)
-        return Pair(model, editor)
+        return Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.BOOLEAN -> {

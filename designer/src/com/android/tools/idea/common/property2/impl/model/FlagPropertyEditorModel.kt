@@ -18,6 +18,8 @@ package com.android.tools.idea.common.property2.impl.model
 import com.android.tools.idea.common.property2.api.FlagsPropertyItem
 import com.google.common.base.Joiner
 import com.intellij.ui.SpeedSearchComparator
+import icons.StudioIcons
+import javax.swing.Icon
 
 /**
  * Model for a popup with checkboxes for editing a [FlagsPropertyItem] ie. a property with flags.
@@ -34,7 +36,7 @@ import com.intellij.ui.SpeedSearchComparator
  *  from the property value.
  */
 class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
-  TextFieldPropertyEditorModel(flagsProperty, false) {
+  TextFieldWithLeftButtonEditorModel(flagsProperty, false) {
 
   /**
    * Holds current the value of the property.
@@ -82,6 +84,10 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
       }
       return !(initialSelectedItems.none { isMatch(it) } || initialItemsBelowSeparator.none { isMatch(it) })
     }
+
+  override fun getLeftButtonIcon(focused: Boolean): Icon? {
+    return StudioIcons.LayoutEditor.Properties.FLAG
+  }
 
   /** Returns true if a named flag is currently set */
   fun isSelected(item: String): Boolean {
