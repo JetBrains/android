@@ -29,6 +29,7 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -182,6 +183,10 @@ public class SdksCleanupStepTest extends IdeaTestCase {
     File sdkPath = getSdk();
     IAndroidTarget target = findLatestAndroidTarget(sdkPath);
 
+    String jdkHomePath = Jdks.getJdkHomePath(null);
+    if (jdkHomePath != null) {
+      VfsRootAccess.allowRootAccess(getTestRootDisposable(), jdkHomePath);
+    }
     Jdks jdks = Jdks.getInstance();
     myJdk = jdks.chooseOrCreateJavaSdk();
 
