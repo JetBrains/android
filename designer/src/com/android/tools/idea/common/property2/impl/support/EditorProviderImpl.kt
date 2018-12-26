@@ -52,7 +52,7 @@ class EditorProviderImpl<in P : PropertyItem>(
 
       ControlType.COLOR_EDITOR -> {
         val model = ColorFieldPropertyEditorModel(property)
-        val editor = PropertyColorField(model)
+        val editor = PropertyTextFieldWithLeftButton(model)
         return Pair(model, addActionButtonBinding(model, editor))
       }
 

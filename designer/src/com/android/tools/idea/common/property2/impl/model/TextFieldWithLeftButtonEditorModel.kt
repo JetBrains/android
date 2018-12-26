@@ -17,24 +17,26 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.intellij.openapi.actionSystem.AnAction
-import icons.StudioIcons
 import javax.swing.Icon
 
 /**
- * Model of a TextField control with a color button on the left for editing a color property.
+ * Model of a TextField control with a customizable button on the left for editing a property.
+ *
+ * @property editable True if the value is editable with a text editor.
  */
-class ColorFieldPropertyEditorModel(property: PropertyItem): TextFieldWithLeftButtonEditorModel(property, true) {
+open class TextFieldWithLeftButtonEditorModel(property: PropertyItem,
+                                              editable: Boolean) : TextFieldPropertyEditorModel(property, editable) {
 
   /**
-   * The [property] defines the icon used on the left button.
+   * The icon displayed on the left button if any.
    */
-  override fun getLeftButtonIcon(focused: Boolean): Icon? {
-    return property.colorButton?.getActionIcon(focused) ?: StudioIcons.LayoutEditor.Extras.PIPETTE
+  open fun getLeftButtonIcon(focused: Boolean): Icon? {
+    return null
   }
 
   /**
-   * The [property] defines the action used for the left button.
+   * The action performed when the user clicks the left button.
    */
-  override val buttonAction: AnAction?
-    get() = property.colorButton?.action
+  open val buttonAction: AnAction?
+    get() = null
 }
