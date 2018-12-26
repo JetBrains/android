@@ -97,6 +97,7 @@ class VariablesTest {
         enter() //We should be editing 'k11' cell.
         enterText("k1")
         tab()
+        selectCell("k1")
       }
       clickOk()
     }
