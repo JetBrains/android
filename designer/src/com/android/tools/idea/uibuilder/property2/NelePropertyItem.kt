@@ -200,7 +200,7 @@ open class NelePropertyItem(
 
   override fun hashCode() = HashCodes.mix(namespace.hashCode(), name.hashCode())
 
-  private fun resolveValue(value: String?): String? {
+  protected fun resolveValue(value: String?): String? {
     return resolveValue(asResourceValue(value)) ?: value
   }
 
@@ -376,7 +376,7 @@ open class NelePropertyItem(
     }
   }
 
-  private fun validateResourceReference(text: String): Pair<EditingErrorCategory, String>? {
+  protected fun validateResourceReference(text: String): Pair<EditingErrorCategory, String>? {
     if (text == NULL_RESOURCE) {
       return EDITOR_NO_ERROR
     }
