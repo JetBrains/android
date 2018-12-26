@@ -17,6 +17,7 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
+import com.android.tools.idea.common.property2.impl.support.ImageFocusListener
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -25,8 +26,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
-import java.awt.event.FocusEvent
-import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
@@ -55,16 +54,7 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
       }
     })
     boundImage.isFocusable = button?.actionButtonFocusable ?: false
-    boundImage.addFocusListener(object: FocusListener {
-      override fun focusLost(event: FocusEvent) {
-        updateFromModel()
-      }
-
-      override fun focusGained(event: FocusEvent) {
-        updateFromModel()
-        boundImage.scrollRectToVisible(boundImage.bounds)
-      }
-    })
+    boundImage.addFocusListener(ImageFocusListener(boundImage) { updateFromModel() })
   }
 
   override fun requestFocus() {

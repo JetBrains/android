@@ -43,7 +43,7 @@ class ColorFieldPropertyEditorModelTest {
   fun testDelegates() {
     val (model, action) = createModel()
     assertThat(model.editable).isTrue()
-    assertThat(model.getDrawableIcon(true)).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES)
-    assertThat(model.colorAction).isSameAs(action)
+    assertThat(model.getLeftButtonIcon(true)).isEqualTo(StudioIcons.LayoutEditor.Properties.FAVORITES)
+    assertThat(model.buttonAction).isSameAs(action)
   }
 }
