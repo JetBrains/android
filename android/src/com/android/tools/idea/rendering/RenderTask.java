@@ -281,7 +281,6 @@ public class RenderTask {
         LOG.debug(e);
       }
       myLayoutlibCallback.setLogger(IRenderLogger.NULL_LOGGER);
-      myLayoutlibCallback.setResourceResolver(null);
       if (myRenderSession != null) {
         try {
           RenderService.runAsyncRenderAction(myRenderSession::dispose);
@@ -517,7 +516,6 @@ public class RenderTask {
 
     try {
       myLayoutlibCallback.setLogger(myLogger);
-      myLayoutlibCallback.setResourceResolver(resolver);
 
       RenderSecurityManager securityManager =
           isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getContext().getPlatform()) : null;
@@ -1036,7 +1034,6 @@ public class RenderTask {
 
     try {
       myLayoutlibCallback.setLogger(myLogger);
-      myLayoutlibCallback.setResourceResolver(resolver);
 
       return myLayoutLib.createSession(params);
     }

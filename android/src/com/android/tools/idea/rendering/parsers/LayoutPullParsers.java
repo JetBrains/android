@@ -86,6 +86,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
@@ -175,11 +176,11 @@ public class LayoutPullParsers {
       throw new IllegalArgumentException("RenderTask always should always have PsiFile when it has ResourceFolderType");
     }
 
-    ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
     switch (folderType) {
       case LAYOUT: {
         IRenderLogger logger = renderTask.getLogger();
         HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
+        ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
         return LayoutPsiPullParser.create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver);
       }
       case DRAWABLE:
@@ -203,18 +204,19 @@ public class LayoutPullParsers {
                    CLASS_SUPPORT_PREFERENCE_SCREEN.isEquals(tag)) {
             IRenderLogger logger = renderTask.getLogger();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
+            ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
             return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver);
           }
         }
         return null;
       }
       case FONT:
+        AndroidFacet facet = AndroidFacet.getInstance(renderTask.getContext().getModule());
         renderTask.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);
-        return createFontFamilyParser(file, (fontName) -> resourceResolver != null
-                                                          ? (new ProjectFonts(
-          resourceResolver)).getFont(fontName)
+        return createFontFamilyParser(file, (fontName) -> facet != null
+                                                          ? (new ProjectFonts(facet)).getFont(fontName)
                                                           : null);
       default:
         // Should have been prevented by isSupported(PsiFile)

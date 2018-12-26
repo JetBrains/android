@@ -156,7 +156,7 @@ public class ProjectFontsTest extends FontTestCase {
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file);
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
-    return new ProjectFonts(resolver);
+    return new ProjectFonts(myFacet);
   }
 
   @NotNull

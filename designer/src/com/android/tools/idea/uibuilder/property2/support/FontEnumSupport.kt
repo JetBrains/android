@@ -17,7 +17,8 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.FONT_PREFIX
 import com.android.ide.common.resources.ResourceResolver
-import com.android.tools.idea.common.property2.api.*
+import com.android.tools.idea.common.property2.api.EnumSupport
+import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.fonts.MoreFontsDialog
 import com.android.tools.idea.fonts.ProjectFonts
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
@@ -33,7 +34,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * The bottom item is an action for opening the downloadable font dialog.
  */
 class FontEnumSupport(private val facet: AndroidFacet, private val resolver: ResourceResolver?) : EnumSupport {
-  private val projectFonts = ProjectFonts(resolver)
+  private val projectFonts = ProjectFonts(facet)
 
   override val values: List<EnumValue>
     get() {
@@ -52,19 +53,19 @@ class FontEnumSupport(private val facet: AndroidFacet, private val resolver: Res
       }
 
       if (resolver != null) {
-        val action = SelectFontAction(facet, resolver)
+        val action = SelectFontAction(facet)
         fonts.add(EnumValue.action(action).withSeparator())
       }
 
       return fonts
     }
 
-  private class SelectFontAction(private val facet: AndroidFacet, private val resolver: ResourceResolver) : AnAction("More Fonts...") {
+  private class SelectFontAction(private val facet: AndroidFacet) : AnAction("More Fonts...") {
 
     override fun actionPerformed(event: AnActionEvent) {
       val property = event.dataContext.getData("property") as NelePropertyItem
       // TODO: May need namespace resolver when fonts from libraries are supported
-      val dialog = MoreFontsDialog(facet, resolver, property.resolvedValue)
+      val dialog = MoreFontsDialog(facet, property.resolvedValue)
       dialog.show()
       val font = if (dialog.isOK) dialog.resultingFont else null
       if (font != null) {
