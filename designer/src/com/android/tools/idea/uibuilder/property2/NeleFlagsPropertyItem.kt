@@ -94,8 +94,15 @@ class NeleFlagsPropertyItem(
   }
 
   override fun validate(text: String?): Pair<EditingErrorCategory, String> {
-    val value = (text ?: rawValue).nullize() ?: return EDITOR_NO_ERROR
-    val unknown = VALUE_SPLITTER.split(value).toSet().minus(children.map { it.name }).map { "'$it'" }
+    var flagsValue = (text ?: rawValue).nullize() ?: return EDITOR_NO_ERROR
+    if (flagsValue.startsWith("@")) {
+      val result = validateResourceReference(flagsValue)
+      if (result != null) {
+        return result
+      }
+      flagsValue = resolveValue(flagsValue) ?: flagsValue
+    }
+    val unknown = VALUE_SPLITTER.split(flagsValue).toSet().minus(children.map { it.name }).map { "'$it'" }
     return when {
       unknown.isEmpty() -> EDITOR_NO_ERROR
       unknown.size == 1 -> Pair(EditingErrorCategory.ERROR, "Invalid value: ${unknown.first()}")
