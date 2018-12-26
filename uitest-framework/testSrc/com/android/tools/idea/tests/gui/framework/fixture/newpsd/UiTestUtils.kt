@@ -47,6 +47,7 @@ private val lock = run {
 }
 
 fun waitForIdle() {
+  val start = System.currentTimeMillis()
   val lastEvents = ConcurrentLinkedQueue<String>()  // Always updated on EDT but can be read immediately after timeout.
   fun getDetails() =
     try {
@@ -54,7 +55,7 @@ fun waitForIdle() {
         appendln("TrueCurrentEvent: ${IdeEventQueue.getInstance().trueCurrentEvent} (${IdeEventQueue.getInstance().eventCount})")
         appendln("peekEvent(): ${IdeEventQueue.getInstance().peekEvent()}")
         appendln("lastEvents:")
-        lastEvents.forEach { append(it) }
+        lastEvents.forEach { appendln(it) }
         appendln("EDT: ${ThreadDumper.dumpEdtStackTrace(ThreadDumper.getThreadInfos())}")
       }
     }
@@ -62,7 +63,6 @@ fun waitForIdle() {
       t.message.orEmpty()
     }
 
-  val start = System.currentTimeMillis()
   var intermediate: MutableList<String>? = null
   while (System.currentTimeMillis() - start < WAIT_FOR_IDLE_TIMEOUT_MS) {
     try {
@@ -70,7 +70,7 @@ fun waitForIdle() {
       try {
         IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
           val eventString = e.toString()
-          lastEvents.offer(eventString)
+          lastEvents.offer("[${System.currentTimeMillis() - start}] ${eventString}")
           if (e is InvocationEvent && eventString.contains("LaterInvocator.FlushQueue")) {
             @Suppress("INACCESSIBLE_TYPE")
             synchronized(lock) {
