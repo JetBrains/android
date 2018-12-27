@@ -21,7 +21,7 @@ import com.android.tools.idea.common.property2.api.PropertyItem
 /**
  * Model for a boolean property: on/off (usually used for a single flag in a property with flags).
  */
-class BooleanPropertyEditorModel(property: PropertyItem) : BasePropertyEditorModel(property) {
+class BooleanPropertyEditorModel(property: PropertyItem) : TextFieldWithLeftButtonEditorModel(property, true) {
 
   override var value: String
     get() = property.resolvedValue.orEmpty()

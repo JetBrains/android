@@ -59,7 +59,7 @@ class EditorProviderImpl<in P : PropertyItem>(
       ControlType.THREE_STATE_BOOLEAN -> {
         val model = ThreeStateBooleanPropertyEditorModel(property)
         val editor = PropertyThreeStateCheckBox(model)
-        return Pair(model, editor)
+        return Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.FLAG_EDITOR -> {
@@ -71,7 +71,7 @@ class EditorProviderImpl<in P : PropertyItem>(
       ControlType.BOOLEAN -> {
         val model = BooleanPropertyEditorModel(property)
         val editor = PropertyCheckBox(model)
-        return Pair(model, editor)
+        return Pair(model, addActionButtonBinding(model, editor))
       }
     }
   }
