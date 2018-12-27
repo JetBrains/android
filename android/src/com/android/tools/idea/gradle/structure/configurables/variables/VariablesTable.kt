@@ -475,7 +475,7 @@ class VariablesTable private constructor(
         selectionModel.setSelectionInterval(row, row)
         scrollRectToVisible(this.getCellRect(row, column, true))
         selectCell(row, column)
-        invokeLater { editCellAt(row, column, e) }
+        invokeLater { editCellAt(row, column, null) }
       }
   }
 
