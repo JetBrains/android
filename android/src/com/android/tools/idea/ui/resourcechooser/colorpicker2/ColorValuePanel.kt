@@ -23,9 +23,30 @@ import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.TestOnly
-import java.awt.*
-import java.awt.event.*
-import javax.swing.*
+import java.awt.BasicStroke
+import java.awt.Color
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
+import java.awt.GridLayout
+import java.awt.RenderingHints
+import java.awt.event.ActionEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.MouseListener
+import javax.swing.AbstractAction
+import javax.swing.BorderFactory
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTextField
+import javax.swing.KeyStroke
+import javax.swing.SwingConstants
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.AttributeSet
@@ -33,9 +54,10 @@ import javax.swing.text.PlainDocument
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-private val PANEL_BORDER = JBUI.Borders.empty(0, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 0, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
+private const val HORIZONTAL_MARGIN = HORIZONTAL_MARGIN_TO_PICKER_BORDER + 1
+private val PANEL_BORDER = JBUI.Borders.empty(0, HORIZONTAL_MARGIN, 5, HORIZONTAL_MARGIN)
 
-private val PREFERRED_PANEL_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 50)
+private val PREFERRED_PANEL_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 55)
 
 private const val TEXT_FIELDS_UPDATING_DELAY = 300
 
@@ -430,7 +452,9 @@ abstract class ButtonPanel : JPanel() {
   abstract fun clicked()
 
   override fun paintBorder(g: Graphics) {
-    g as? Graphics2D ?: return
+    if (g !is Graphics2D) {
+      return
+    }
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
     val originalStroke = g.stroke
     when (mouseStatus) {
