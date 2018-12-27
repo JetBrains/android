@@ -73,6 +73,10 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     setFromModel()
   }
 
+  override fun requestFocus() {
+    leftComponent.requestFocusInWindow() || textField.requestFocusInWindow()
+  }
+
   override fun hasFocus(): Boolean {
     return textField.hasFocus()
   }
