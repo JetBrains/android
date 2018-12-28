@@ -309,7 +309,7 @@ public final class StudioFlags {
     "jvmti.refresh",
     "Application refresh with JVMTI",
     "Use JVMTI to support application refresh. This implies incremental deployment",
-    true);
+    false);
 
   public static final Flag<Boolean> UNIFIED_DEPLOYMENT = Flag.create(
     RUNDEBUG,
