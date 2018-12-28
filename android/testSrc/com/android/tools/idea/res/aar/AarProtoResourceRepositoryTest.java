@@ -300,14 +300,12 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       }
       Map<String, Integer> attrValues1 = attr1.getAttributeValues();
       Map<String, Integer> attrValues2 = attr2.getAttributeValues();
-      if (!Objects.equals(attrValues1, attrValues2)) {
+      if (!attrValues1.equals(attrValues2)) {
         return false;
       }
-      if (attrValues1 != null) {
-        for (String valueName: attrValues1.keySet()) {
-          if (!Objects.equals(attr1.getValueDescription(valueName), attr2.getValueDescription(valueName))) {
-            return false;
-          }
+      for (String valueName: attrValues1.keySet()) {
+        if (!Objects.equals(attr1.getValueDescription(valueName), attr2.getValueDescription(valueName))) {
+          return false;
         }
       }
     } else if ((value1 instanceof AttrResourceValue) != (value2 instanceof AttrResourceValue)) {
@@ -582,10 +580,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
             map = new HashMap<>();
             myEnumMap.put(attribute.getName(), map);
           }
-          Map<String, Integer> attributeValues = attribute.getAttributeValues();
-          if (attributeValues != null) {
-            map.putAll(attributeValues);
-          }
+          map.putAll(attribute.getAttributeValues());
         }
       }
     }
