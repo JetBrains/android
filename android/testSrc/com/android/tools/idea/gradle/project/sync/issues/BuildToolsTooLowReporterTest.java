@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.LightIdeaTestCase;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -29,8 +29,8 @@ import java.util.List;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link BuildToolsTooLowReporter}.
  */
-public class BuildToolsTooLowReporterTest extends IdeaTestCase {
+public class BuildToolsTooLowReporterTest extends LightIdeaTestCase {
   @Mock private SyncIssue mySyncIssue;
   @Mock private SdkBuildToolsTooLowErrorHandler myErrorHandler;
   private GradleSyncMessagesStub mySyncMessages;
