@@ -15,27 +15,30 @@
  */
 package com.android.tools.idea.logcat.output;
 
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class LogcatOutputSettingsTest extends PlatformTestCase {
-
+public class LogcatOutputSettingsTest extends LightPlatformTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
       LogcatOutputSettings.getInstance().reset();
-    } finally {
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
+    finally {
       super.tearDown();
     }
   }
 
-  public void testDefaultValues() throws Exception {
+  public void testDefaultValues() {
     assertThat(LogcatOutputSettings.getInstance().isRunOutputEnabled()).isTrue();
     assertThat(LogcatOutputSettings.getInstance().isDebugOutputEnabled()).isTrue();
   }
 
-  public void testSetters() throws Exception {
+  public void testSetters() {
     assertThat(LogcatOutputSettings.getInstance().isRunOutputEnabled()).isTrue();
     assertThat(LogcatOutputSettings.getInstance().isDebugOutputEnabled()).isTrue();
 
