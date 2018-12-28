@@ -99,7 +99,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
   private void assertModuleWithNonDefaultLocation(final GradleSettingsFile file,
                                                   final String moduleName,
                                                   String expectedPath,
-                                                  final File moduleLocation) throws IOException {
+                                                  final File moduleLocation) {
     WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
@@ -239,7 +239,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
       final GradleSettingsFile file = getTestFile(body);
       new WriteCommandAction<Object>(getProject(), file.getPsiFile()) {
         @Override
-        protected void run(@NotNull Result<Object> result) throws Throwable {
+        protected void run(@NotNull Result<Object> result) {
           file.removeModule(module);
         }
       }.execute();
@@ -298,7 +298,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
     return new GradleSettingsFile(vf, getProject());
   }
 
-  private void assertContents(GradleSettingsFile file, String expected) throws IOException {
+  private void assertContents(GradleSettingsFile file, String expected) {
     PsiDocumentManager.getInstance(getProject()).commitDocument(myDocument);
     String actual = myDocument.getText();
     assertEquals(expected, actual);

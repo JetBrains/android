@@ -72,6 +72,9 @@ public class DependenciesExtractorTest extends IdeaTestCase {
         myAndroidProject.dispose();
       }
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }
