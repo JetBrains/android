@@ -39,6 +39,7 @@ import com.intellij.openapi.module.StdModuleTypes
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
@@ -50,7 +51,6 @@ import org.mockito.Mockito.mock
 import java.io.File
 import java.util.ArrayDeque
 import java.util.concurrent.Future
-import javax.xml.ws.Holder
 
 class DependencyManagerTest : AndroidTestCase() {
   private var panel: PalettePanel? = null
@@ -209,15 +209,15 @@ class DependencyManagerTest : AndroidTestCase() {
   }
 
   private fun findItem(tagName: String): Palette.Item {
-    val found = Holder<Palette.Item>()
+    val found = Ref<Palette.Item>()
     palette!!.accept { item ->
       if (item.tagName == tagName) {
-        found.value = item
+        found.set(item)
       }
     }
-    if (found.value == null) {
+    if (found.isNull) {
       throw RuntimeException("The item: $tagName was not found on the palette.")
     }
-    return found.value
+    return found.get()
   }
 }
