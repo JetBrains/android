@@ -28,7 +28,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.google.common.collect.Lists;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -44,7 +44,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Test methods of {@link GradleApkProvider}.
  */
-public class GradleApkProviderGetApkTest extends IdeaTestCase {
+public class GradleApkProviderGetApkTest extends LightPlatformTestCase {
   @Mock private AndroidFacet myAndroidFacet;
   @Mock private AndroidModelFeatures myModelFeatures;
   @Mock private IdeVariant myVariant;
@@ -81,8 +81,8 @@ public class GradleApkProviderGetApkTest extends IdeaTestCase {
 
     List<AndroidArtifactOutput> mainOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
     List<AndroidArtifactOutput> testOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
-    List<OutputFile> mainOutputs2 = Lists.transform(mainOutputs, input -> (OutputFile)input);
-    List<OutputFile> testOutputs2 = Lists.transform(testOutputs, input -> (OutputFile)input);
+    List<OutputFile> mainOutputs2 = Lists.newArrayList(mainOutputs);
+    List<OutputFile> testOutputs2 = Lists.newArrayList(testOutputs);
 
     IdeAndroidArtifact mainArtifact = mock(IdeAndroidArtifact.class);
     IdeAndroidArtifact testArtifact = mock(IdeAndroidArtifact.class);

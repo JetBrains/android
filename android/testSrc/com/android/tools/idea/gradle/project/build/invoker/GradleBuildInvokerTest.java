@@ -22,7 +22,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -42,7 +42,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleBuildInvoker}.
  */
-public class GradleBuildInvokerTest extends IdeaTestCase {
+public class GradleBuildInvokerTest extends LightPlatformTestCase {
   @Mock private FileDocumentManager myFileDocumentManager;
   @Mock private GradleTasksExecutor myTasksExecutor;
 
@@ -61,17 +61,20 @@ public class GradleBuildInvokerTest extends IdeaTestCase {
     myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
     myModules = new Module[]{getModule()};
 
-    myIdeComponents = new IdeComponents(myProject);
+    myIdeComponents = new IdeComponents(getProject());
     myTaskFinder = myIdeComponents.mockService(GradleTaskFinder.class);
     myBuildSettings = myIdeComponents.mockProjectService(BuildSettings.class);
 
-    myBuildInvoker = new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory);
+    myBuildInvoker = new GradleBuildInvoker(getProject(), myFileDocumentManager, myTasksExecutorFactory);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
       myIdeComponents.restore();
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
