@@ -43,7 +43,8 @@ public class DiagnosticReportBuilder {
   public final static long FRAME_IGNORE_THRESHOLD_MS =
     Long.getLong("studio.diagnostic.uiFreezeSampling.frameIgnoreThresholdMs", 200);
   public static final int MAX_REPORTS =
-    Integer.getInteger("studio.diagnostic.uiFreezeSampling.maxReports", 3);
+    Integer.getInteger("studio.diagnostic.uiFreezeSampling.maxReports",
+                       ApplicationManager.getApplication().isEAP() ? 10 : 3);
 
   private final @NotNull Object LOCK = new Object();
   private final long myStartTime;
