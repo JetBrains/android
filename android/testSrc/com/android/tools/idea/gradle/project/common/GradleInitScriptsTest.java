@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.common;
 
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.LightIdeaTestCase;
 import org.mockito.Mock;
 
 import java.io.File;
@@ -35,7 +35,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleInitScripts}.
  */
-public class GradleInitScriptsTest extends IdeaTestCase {
+public class GradleInitScriptsTest extends LightIdeaTestCase {
   @Mock private GradleInitScripts.ContentCreator myContentCreator;
 
   private File myInitScriptPath;
@@ -58,6 +58,9 @@ public class GradleInitScriptsTest extends IdeaTestCase {
           fail(String.format("Failed to delete file '%1$s'", myInitScriptPath.getPath()));
         }
       }
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
