@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.parser;
 
-import com.intellij.testFramework.IdeaTestCase;
+import junit.framework.TestCase;
 
-public class BuildFileKeyTest extends IdeaTestCase  {
+public class BuildFileKeyTest extends TestCase {
   public void testNormalCamelCase() {
     assertEquals("Foo Bar Baz", BuildFileKey.splitCamelCase("fooBarBaz"));
   }
