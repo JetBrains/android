@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.LightIdeaTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link BuildToolsTooLowReporter}.
  */
-public class BuildToolsTooLowReporterTest extends LightIdeaTestCase {
+public class BuildToolsTooLowReporterTest extends LightPlatformTestCase {
   @Mock private SyncIssue mySyncIssue;
   @Mock private SdkBuildToolsTooLowErrorHandler myErrorHandler;
   private GradleSyncMessagesStub mySyncMessages;
