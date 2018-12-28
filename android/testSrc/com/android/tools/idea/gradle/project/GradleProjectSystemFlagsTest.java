@@ -16,12 +16,12 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.intellij.testFramework.IdeaTestCase;
+import junit.framework.TestCase;
 
 /**
  * Tests for {@link com.android.tools.idea.flags.StudioFlags} that are specific to the Gradle Project System.
  */
-public class GradleProjectSystemFlagsTest extends IdeaTestCase {
+public class GradleProjectSystemFlagsTest extends TestCase {
   public void testNewSyncEnabledTest() {
     assertFalse(StudioFlags.NEW_SYNC_INFRA_ENABLED.get());
   }

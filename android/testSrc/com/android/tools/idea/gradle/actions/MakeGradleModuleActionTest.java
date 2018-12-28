@@ -55,7 +55,7 @@ public class MakeGradleModuleActionTest extends IdeaTestCase {
     myAction = new MakeGradleModuleAction();
   }
 
-  public void testDoPerform() throws Exception {
+  public void testDoPerform() {
     Module module = getModule();
     Module[] selectedModules = {module};
     when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(selectedModules);

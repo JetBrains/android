@@ -58,6 +58,9 @@ public class LibraryNodeTest extends IdeaTestCase {
     try {
       myIdeComponents.restore();
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }

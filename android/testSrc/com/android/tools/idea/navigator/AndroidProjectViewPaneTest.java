@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator;
 
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -28,17 +28,10 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link AndroidProjectViewPane}.
  */
-public class AndroidProjectViewPaneTest extends IdeaTestCase {
-  private AndroidProjectViewPane myPane;
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    myPane = new AndroidProjectViewPane(getProject());
+public class AndroidProjectViewPaneTest extends LightPlatformTestCase {
+  public void testGetDataWithSelectedTreeNodesKey() {
+    AndroidProjectViewPane myPane = new AndroidProjectViewPane(getProject());
     myPane.createComponent();
-  }
-
-  public void testGetDataWithSelectedTreeNodesKey() throws Exception {
     JTree tree = myPane.getTree();
     DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)tree.getModel().getRoot();
 
@@ -50,7 +43,7 @@ public class AndroidProjectViewPaneTest extends IdeaTestCase {
 
     rootNode.add(new DefaultMutableTreeNode("node3"));
 
-    tree.setSelectionPaths(new TreePath[] {new TreePath(node1), new TreePath(node2)});
+    tree.setSelectionPaths(new TreePath[]{new TreePath(node1), new TreePath(node2)});
 
     TreeNode[] selection = (TreeNode[])myPane.getData(SELECTED_TREE_NODES.getName());
     assertThat(selection).asList().containsAllOf(node1, node2);

@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import org.mockito.Mock;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -34,7 +34,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link NewGradleSync}.
  */
-public class NewGradleSyncTest extends IdeaTestCase {
+public class NewGradleSyncTest extends LightPlatformTestCase {
   @Mock private GradleSyncMessages mySyncMessages;
   @Mock private SyncExecutor mySyncExecutor;
   @Mock private SyncResultHandler myResultHandler;
@@ -102,7 +102,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
   }
 
-  public void testSyncFromCachedModelsWithoutBuildFileChecksums() throws Exception {
+  public void testSyncFromCachedModelsWithoutBuildFileChecksums() {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
     request.useCachedGradleModels = true;
 
@@ -122,7 +122,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
   }
 
-  public void testSyncFromCachedModelsWithoutModelsCache() throws Exception {
+  public void testSyncFromCachedModelsWithoutModelsCache() {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
     request.useCachedGradleModels = true;
 
@@ -142,7 +142,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
     verify(myResultHandler).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
   }
 
-  public void testSyncFromCachedModelsWithoutBuildFileOutdatedChecksums() throws Exception {
+  public void testSyncFromCachedModelsWithoutBuildFileOutdatedChecksums() {
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
     request.useCachedGradleModels = true;
 
