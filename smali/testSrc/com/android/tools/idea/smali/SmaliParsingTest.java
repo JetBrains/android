@@ -20,7 +20,7 @@ import com.android.tools.idea.smali.psi.SmaliClassSpec;
 import com.android.tools.idea.smali.psi.SmaliFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -32,7 +32,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 /**
  * Tests for smali parsing.
  */
-public class SmaliParsingTest extends IdeaTestCase {
+public class SmaliParsingTest extends LightPlatformTestCase {
   public void testClassDefinitionParsing() {
     String text = ".class public Lcom/example/SanAngeles/TestClass;\n" +
                   ".super Lcom/example/SanAngeles/DemoActivity;\n" +
@@ -47,7 +47,7 @@ public class SmaliParsingTest extends IdeaTestCase {
   }
 
   @NotNull
-  private SmaliFile parse(@NotNull String text) {
+  private static SmaliFile parse(@NotNull String text) {
     PsiFile psiFile = PsiFileFactory.getInstance(getProject()).createFileFromText(SmaliLanguage.getInstance(), text);
     assertThat(psiFile).isInstanceOf(SmaliFile.class);
     return (SmaliFile)psiFile;
