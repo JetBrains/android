@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import org.mockito.Mock;
@@ -33,7 +33,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleSyncState}.
  */
-public class GradleSyncStateTest extends LightPlatformTestCase {
+public class GradleSyncStateTest extends PlatformTestCase {
   @Mock private GradleSyncListener myGradleSyncListener;
   @Mock private GradleSyncState.StateChangeNotification myChangeNotification;
   @Mock private GradleSyncSummary mySummary;
