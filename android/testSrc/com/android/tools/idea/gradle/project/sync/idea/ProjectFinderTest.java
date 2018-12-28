@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.LightIdeaTestCase;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 import org.mockito.Mock;
 
@@ -26,7 +26,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ProjectFinder}.
  */
-public class ProjectFinderTest extends IdeaTestCase {
+public class ProjectFinderTest extends LightIdeaTestCase {
   @Mock private ProjectResolverContext myContext;
 
   private ProjectFinder myProjectFinder;
