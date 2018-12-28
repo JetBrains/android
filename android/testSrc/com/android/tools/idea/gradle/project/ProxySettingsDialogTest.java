@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.intellij.openapi.Disposable;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +31,7 @@ import static com.intellij.openapi.util.Disposer.isDisposed;
 /**
  * Tests for {@link ProxySettingsDialog}.
  */
-public class ProxySettingsDialogTest extends IdeaTestCase {
+public class ProxySettingsDialogTest extends LightPlatformTestCase {
   private ProxySettingsDialog myDialog;
 
   @Override
@@ -49,6 +49,9 @@ public class ProxySettingsDialogTest extends IdeaTestCase {
           dispose(disposable);
         }
       }
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
