@@ -16,7 +16,7 @@
 package com.android.tools.idea.testing;
 
 import com.android.tools.idea.gradle.project.sync.SdkSync;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import static org.mockito.Mockito.mock;
@@ -24,10 +24,10 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link IdeComponents}.
  */
-public class IdeComponentsTest extends IdeaTestCase {
+public class IdeComponentsTest extends LightPlatformTestCase {
   public void testReplaceApplicationService() {
     SdkSync originalSdkSync = SdkSync.getInstance();
-    IdeComponents ideComponents = new IdeComponents(myProject);
+    IdeComponents ideComponents = new IdeComponents(getProject());
     try {
       SdkSync mockSdkSync = mock(SdkSync.class);
       ideComponents.replaceService(SdkSync.class, mockSdkSync);
