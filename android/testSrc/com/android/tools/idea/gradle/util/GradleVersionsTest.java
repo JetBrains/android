@@ -30,9 +30,7 @@ import static com.intellij.util.ThreeState.NO;
 import static com.intellij.util.ThreeState.YES;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link GradleVersions}.
@@ -54,6 +52,9 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
   protected void tearDown() throws Exception {
     try {
       myIdeComponents.restore();
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
