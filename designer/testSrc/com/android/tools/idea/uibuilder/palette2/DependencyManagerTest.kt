@@ -20,11 +20,11 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel
 import com.android.tools.idea.uibuilder.palette.Palette
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.AndroidTestCase
 
 import javax.swing.*
-import javax.xml.ws.Holder
 
 import com.android.SdkConstants.*
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
@@ -117,15 +117,15 @@ class DependencyManagerTest : AndroidTestCase() {
   }
 
   private fun findItem(tagName: String): Palette.Item {
-    val found = Holder<Palette.Item>()
+    val found = Ref<Palette.Item>()
     myPalette!!.accept { item ->
       if (item.tagName == tagName) {
-        found.value = item
+        found.set(item)
       }
     }
-    if (found.value == null) {
+    if (found.isNull) {
       throw RuntimeException("The item: $tagName was not found on the palette.")
     }
-    return found.value
+    return found.get()
   }
 }
