@@ -153,7 +153,7 @@ public final class AttributeDefinitionsImpl implements AttributeDefinitions {
     attr.addFormats(attrValue.getFormats());
 
     Map<String, Integer> valueMappings = attrValue.getAttributeValues();
-    if (valueMappings != null && !valueMappings.isEmpty()) {
+    if (!valueMappings.isEmpty()) {
       attr.setValueMappings(valueMappings);
       Map<String, String> valueDescriptions = Maps.newHashMapWithExpectedSize(valueMappings.size());
       for (String value : valueMappings.keySet()) {

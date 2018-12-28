@@ -84,9 +84,9 @@ class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrRe
   }
 
   @Override
-  @Nullable
+  @NotNull
   public final Map<String, Integer> getAttributeValues() {
-    return myValueMap.isEmpty() ? null : myValueMap;
+    return myValueMap;
   }
 
   @Override
@@ -140,9 +140,6 @@ class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrRe
     stream.writeInt(formatMask);
 
     Map<String, Integer> attributeValues = attr.getAttributeValues();
-    if (attributeValues == null) {
-      attributeValues = Collections.emptyMap();
-    }
     stream.writeInt(attributeValues.size());
     for (Map.Entry<String, Integer> entry : attributeValues.entrySet()) {
       String name = entry.getKey();

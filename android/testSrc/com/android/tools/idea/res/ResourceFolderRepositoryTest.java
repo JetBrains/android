@@ -15,7 +15,24 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.*;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ID_PREFIX;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
+
+import com.android.ide.common.rendering.api.ArrayResourceValue;
+import com.android.ide.common.rendering.api.AttrResourceValue;
+import com.android.ide.common.rendering.api.DensityBasedResourceValue;
+import com.android.ide.common.rendering.api.PluralsResourceValue;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -42,6 +59,12 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.ui.UIUtil;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -49,23 +72,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.picocontainer.MutablePicoContainer;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-
-import static com.android.SdkConstants.*;
-import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
-
 /**
- * TODO: Add XmlTags with Psi events to check childAdded etc working correctly! Currently they mostly seem to generate big rescans.
- * TODO: Test moving from one resource folder to another; should be simulated as an add in one folder and a remove in another;
- *       check that in the ModuleResourceRepository test!
- * TODO: Test that adding and removing characters inside a {@code <string>} element does not cause a full rescan
+ * TODO: Add XmlTags with PSI events to check childAdded etc working correctly. Currently they mostly seem to generate big rescans.
+ * TODO: Test moving from one resource folder to another. Should be simulated as an add in one folder and a remove in another.
+ *       Check that in the ModuleResourceRepository test.
+ * TODO: Test that adding and removing characters inside a {@code <string>} element does not cause a full rescan.
  */
 @SuppressWarnings({"UnusedDeclaration", "SpellCheckingInspection"})
 public class ResourceFolderRepositoryTest extends AndroidTestCase {
@@ -2046,7 +2057,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(Integer.valueOf(0), watchType.getAttributeValues().get("type_countdown"));
     AttrResourceValue crash = findAttr(srv.getAllAttributes(), "crash");
     assertNotNull(crash);
-    assertNull(crash.getAttributeValues());
+    assertTrue(crash.getAttributeValues().isEmpty());
 
     AttrResourceValue minWidth = findAttr(srv.getAllAttributes(), "minWidth");
     assertNotNull(minWidth);
@@ -2122,7 +2133,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(Integer.valueOf(0), watchType.getAttributeValues().get("type_countdown"));
     AttrResourceValue crash = findAttr(srv.getAllAttributes(), "crash");
     assertNotNull(crash);
-    assertNull(crash.getAttributeValues());
+    assertTrue(crash.getAttributeValues().isEmpty());
 
     long generation = resources.getModificationCount();
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -2197,7 +2208,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       assertNull(crash1);
       AttrResourceValue newcrash = findAttr(srv1.getAllAttributes(), "newcrash");
       assertNotNull(newcrash);
-      assertNull(newcrash.getAttributeValues());
+      assertTrue(newcrash.getAttributeValues().isEmpty());
     });
   }
 

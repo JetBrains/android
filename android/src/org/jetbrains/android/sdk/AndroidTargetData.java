@@ -198,7 +198,7 @@ public class AndroidTargetData {
       ResourceValue attr = item.getResourceValue();
       if (attr instanceof AttrResourceValue) {
         Map<String, Integer> valueMap = ((AttrResourceValue)attr).getAttributeValues();
-        if (valueMap != null && !valueMap.isEmpty()) {
+        if (!valueMap.isEmpty()) {
           result.put(attr.getName(), valueMap);
         }
       }
@@ -211,7 +211,7 @@ public class AndroidTargetData {
         List<AttrResourceValue> attrs = ((StyleableResourceValue)styleable).getAllAttributes();
         for (AttrResourceValue attr: attrs) {
           Map<String, Integer> valueMap = attr.getAttributeValues();
-          if (valueMap != null && !valueMap.isEmpty()) {
+          if (!valueMap.isEmpty()) {
             result.put(attr.getName(), valueMap);
           }
         }
