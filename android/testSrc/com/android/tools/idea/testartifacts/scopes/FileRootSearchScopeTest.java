@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import com.android.tools.idea.testartifacts.scopes.FileRootSearchScope;
 import com.google.common.collect.ImmutableList;
 import com.intellij.testFramework.PlatformTestCase;
 
@@ -25,7 +24,7 @@ import static com.intellij.openapi.util.io.FileUtil.createIfNotExists;
 import static com.intellij.openapi.util.io.FileUtil.getTempDirectory;
 
 public class FileRootSearchScopeTest extends PlatformTestCase {
-  public void testAcceptFileCreatedLater() throws Exception {
+  public void testAcceptFileCreatedLater() {
     File root = new File(getTempDirectory(), "root");
     FileRootSearchScope searchScope = new FileRootSearchScope(getProject(), ImmutableList.of(root));
     createIfNotExists(root);
@@ -50,7 +49,7 @@ public class FileRootSearchScopeTest extends PlatformTestCase {
     searchScope.accept(new File(root, "notexist"));
   }
 
-  public void testAcceptNotExistedFileInNonExistedRoot() throws Exception {
+  public void testAcceptNotExistedFileInNonExistedRoot() {
     File root = new File("root");
     FileRootSearchScope searchScope = new FileRootSearchScope(getProject(), ImmutableList.of(root));
     searchScope.accept(new File(root, "notexist"));
