@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
+import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link MissingPlatformsSetupStep}.
  */
-public class MissingPlatformsSetupStepTest extends IdeaTestCase {
+public class MissingPlatformsSetupStepTest extends LightPlatformTestCase {
   private MySyncMessages mySyncMessages;
   private MissingPlatformsSetupStep mySetupStep;
 
@@ -78,7 +78,7 @@ public class MissingPlatformsSetupStepTest extends IdeaTestCase {
   }
 
   private static class MySyncMessages extends GradleSyncMessagesStub {
-    private Map<String, Integer> myMessageCountByGroup = new HashMap<>();
+    private final Map<String, Integer> myMessageCountByGroup = new HashMap<>();
 
     MySyncMessages(@NotNull Project project) {
       super(project);
