@@ -40,7 +40,7 @@ class ProjectStructureDialogFixture(
   fun clickOk(): IdeFrameFixture {
     clickOkAndWaitDialogDisappear()
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
-    return ideFrameFixture.waitForGradleProjectSyncToFinish()
+    return ideFrameFixture.waitForGradleProjectSyncToFinish().also { waitForIdle() }
   }
 
   fun clickOkExpectConfigmrtation(): ErrorsReviewConfirmationDialogFixture {
@@ -57,7 +57,7 @@ class ProjectStructureDialogFixture(
   fun clickOk(waitForSync: Wait): IdeFrameFixture {
     clickOkAndWaitDialogDisappear()
     // Changing the project structure can cause a Gradle build and Studio re-indexing.
-    return ideFrameFixture.waitForGradleProjectSyncToFinish(waitForSync)
+    return ideFrameFixture.waitForGradleProjectSyncToFinish(waitForSync).also { waitForIdle() }
   }
 
   fun selectConfigurable(viewName: String): ProjectStructureDialogFixture {
@@ -65,7 +65,6 @@ class ProjectStructureDialogFixture(
     val sidePanelList = sidePanel.list
     val listFixture = JListFixture(robot(), sidePanelList)
     listFixture.replaceCellReader { list, index -> sidePanel.descriptor.getTextFor(list.model.getElementAt(index) as SidePanel.PlaceData) }
-    println(Arrays.toString(listFixture.contents()))
     listFixture.clickItem(viewName)
     return this
   }
