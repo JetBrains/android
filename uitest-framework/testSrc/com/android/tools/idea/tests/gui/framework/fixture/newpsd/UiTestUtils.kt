@@ -161,7 +161,7 @@ private fun oneFullSync() {
       else {
         val expectEventCount = IdeEventQueue.getInstance().eventCount + 1
         IdeEventQueue.getInstance().postEvent(
-          PeerEvent(Toolkit.getDefaultToolkit(), { postTryIdleMessage(expectEventCount) }, PeerEvent.LOW_PRIORITY_EVENT))
+          PeerEvent(Toolkit.getDefaultToolkit(), { postTryIdleMessage(expectEventCount) }, 0))
       }
     }
 
