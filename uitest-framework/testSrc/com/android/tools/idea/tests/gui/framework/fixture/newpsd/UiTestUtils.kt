@@ -89,8 +89,8 @@ fun waitForIdle() {
       Disposer.dispose(d)
     }
   }
-  catch (_: WaitTimedOutError) {
-    throw WaitTimedOutError("Timed out waiting for idle:\n${getDetails()}")
+  catch (e: WaitTimedOutError) {
+    throw WaitTimedOutError("${e.message}\n${getDetails()}")
   }
 }
 
@@ -146,7 +146,7 @@ private fun oneFullSync() {
           if (condition.await(100, TimeUnit.MILLISECONDS)) return
         }
       }
-      throw WaitTimedOutError("Timed out waiting for idle.")
+      throw WaitTimedOutError("Timed out waiting for sync event.")
     }
     finally {
       Disposer.dispose(d)
