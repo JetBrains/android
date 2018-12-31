@@ -29,16 +29,19 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.ui.picker.ColorListener
 import java.awt.Color
+import java.awt.Component
 import java.awt.Point
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
-import java.util.*
+import java.util.Locale
 import javax.swing.AbstractAction
-import javax.swing.JComponent
+import javax.swing.JTable
 import javax.swing.KeyStroke
+import javax.swing.SwingUtilities
 
 /**
  * Resource actions in Nele.
@@ -75,7 +78,7 @@ class OpenResourceManagerAction(val property: NelePropertyItem) : AnAction("Open
     val hasImageTag = property.components.stream().filter { component -> component.tagName == SdkConstants.IMAGE_VIEW }.findFirst()
     val defaultResourceType = getDefaultResourceType(propertyName)
     val isImageViewDrawable = hasImageTag.isPresent &&
-        (SdkConstants.ATTR_SRC_COMPAT == propertyName || SdkConstants.ATTR_SRC == propertyName)
+                              (SdkConstants.ATTR_SRC_COMPAT == propertyName || SdkConstants.ATTR_SRC == propertyName)
     val dialog = ChooseResourceDialog.builder()
       .setModule(module)
       .setTypes(property.type.resourceTypes)
@@ -100,9 +103,9 @@ class OpenResourceManagerAction(val property: NelePropertyItem) : AnAction("Open
     val lowerCaseProperty = propertyName.toLowerCase(Locale.getDefault())
     return when {
       lowerCaseProperty.contains("color") || lowerCaseProperty.contains("tint")
-        -> ResourceType.COLOR
+      -> ResourceType.COLOR
       lowerCaseProperty.contains("drawable") || propertyName == SdkConstants.ATTR_SRC || propertyName == SdkConstants.ATTR_SRC_COMPAT
-        -> ResourceType.DRAWABLE
+      -> ResourceType.DRAWABLE
       else -> null
     }
   }
@@ -111,10 +114,11 @@ class OpenResourceManagerAction(val property: NelePropertyItem) : AnAction("Open
 class ColorSelectionAction(private val property: NelePropertyItem, private val currentColor: Color?): AnAction("Select Color") {
 
   override fun actionPerformed(event: AnActionEvent) {
-    selectFromColorDialog(locationFromEvent(event), currentColor)
+    val restoreFocusTo = componentToRestoreFocusTo(event)
+    selectFromColorDialog(locationFromEvent(event), currentColor, restoreFocusTo)
   }
 
-  private fun selectFromColorDialog(location: Point, initialColor: Color?) {
+  private fun selectFromColorDialog(location: Point, initialColor: Color?, restoreFocusTo: Component?) {
     val dialog = LightCalloutPopup()
 
     val panel = ColorPickerBuilder()
@@ -128,7 +132,10 @@ class ColorSelectionAction(private val property: NelePropertyItem, private val c
       .focusWhenDisplay(true)
       .setFocusCycleRoot(true)
       .addKeyAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, true), object : AbstractAction() {
-        override fun actionPerformed(event: ActionEvent) = dialog.close()
+        override fun actionPerformed(event: ActionEvent) {
+          dialog.close()
+          restoreFocus(restoreFocusTo)
+        }
       })
       .build()
 
@@ -140,10 +147,31 @@ class ColorSelectionAction(private val property: NelePropertyItem, private val c
     if (input is MouseEvent) {
       return input.locationOnScreen
     }
-    val source = input?.source
-    if (source is JComponent) {
-      return source.locationOnScreen
+    val source = componentFromEvent(event)
+    if (source is Component) {
+      val location = source.locationOnScreen
+      return Point(location.x + source.width / 2, location.y + source.height / 2)
     }
     return Point(20, 20)
+  }
+
+  private fun componentFromEvent(event: AnActionEvent): Component? {
+    return PlatformDataKeys.CONTEXT_COMPONENT.getData(event.dataContext) ?: event.inputEvent?.component
+  }
+
+  private fun componentToRestoreFocusTo(event: AnActionEvent): Component? {
+    val component = componentFromEvent(event) ?: return null
+    val table = SwingUtilities.getAncestorOfClass(JTable::class.java, component)
+    return table ?: component
+  }
+
+  private fun restoreFocus(restoreFocusTo: Component?) {
+    if (restoreFocusTo is JTable && restoreFocusTo.selectedRow > 0 && restoreFocusTo.selectedColumn > 0) {
+      restoreFocusTo.editCellAt(restoreFocusTo.selectedRow, restoreFocusTo.selectedColumn)
+      restoreFocusTo.editorComponent.requestFocus()
+    }
+    else {
+      restoreFocusTo?.requestFocus()
+    }
   }
 }
