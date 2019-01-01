@@ -128,13 +128,14 @@ private fun oneFullSync() {
   val start = System.currentTimeMillis()
 
   fun xQueueSync() {
+    var done = false
     val d = Disposer.newDisposable()
     try {
       IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
         if (e !is KeyEvent || e.keyCode != KeyEvent.VK_PAUSE) false
         else {
           if (e.id == KeyEvent.KEY_RELEASED) {
-            lock.withLock { condition.signalAll() }
+            lock.withLock { done = true ; condition.signalAll() }
           }
           true
         }
@@ -142,11 +143,11 @@ private fun oneFullSync() {
       awtRobot.keyPress(KeyEvent.VK_PAUSE)
       awtRobot.keyRelease(KeyEvent.VK_PAUSE)
       lock.withLock {
-        while (System.currentTimeMillis() - start < 15_000) {
-          if (condition.await(100, TimeUnit.MILLISECONDS)) return
+        while (!done && System.currentTimeMillis() - start < 15_000) {
+          condition.await(100, TimeUnit.MILLISECONDS)
         }
       }
-      throw WaitTimedOutError("Timed out waiting for sync event.")
+      if (!done) throw WaitTimedOutError("Timed out waiting for sync event.")
     }
     finally {
       Disposer.dispose(d)
@@ -154,9 +155,10 @@ private fun oneFullSync() {
   }
 
   fun eventQueueSync() {
+    var done = false
     fun postTryIdleMessage(expectNumber: Int) {
       if (IdeEventQueue.getInstance().eventCount == expectNumber) {
-        lock.withLock { condition.signalAll() }
+        lock.withLock { done = true ; condition.signalAll() }
       }
       else {
         val expectEventCount = IdeEventQueue.getInstance().eventCount + 1
@@ -167,11 +169,11 @@ private fun oneFullSync() {
 
     postTryIdleMessage(-1)
     lock.withLock {
-      while (System.currentTimeMillis() - start < 15_000) {
-        if (condition.await(100, TimeUnit.MILLISECONDS)) return
+      while (!done && System.currentTimeMillis() - start < 15_000) {
+        condition.await(100, TimeUnit.MILLISECONDS)
       }
     }
-    throw WaitTimedOutError("Timed out waiting for idle.")
+    if (!done) throw WaitTimedOutError("Timed out waiting for idle.")
   }
 
   xQueueSync()
