@@ -244,7 +244,11 @@ public class GuiTestRule implements TestRule {
     while ((modalDialog = getActiveModalDialog()) != null && System.currentTimeMillis() < endTime) {
       robot().close(modalDialog);
       errors.add(new AssertionError(
-        String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
+        String.format(
+          "Modal dialog %s: %s with title '%s'",
+          modalDialog.isShowing() ? "showing" : "not showing",
+          modalDialog.getClass().getName(),
+          modalDialog.getTitle())));
     }
     if (System.currentTimeMillis() >= endTime) {
       errors.add(new AssertionError("Potential modal dialog infinite loop"));
