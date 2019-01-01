@@ -16,8 +16,9 @@
 package com.android.tools.idea.uibuilder.property2.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
 import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.idea.common.property2.impl.model.KeyStrokes
+import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
 import com.android.tools.idea.uibuilder.property2.model.ToggleButtonPropertyEditorModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
@@ -28,10 +29,7 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.ToggleActionButton
 import java.awt.BorderLayout
-import java.awt.event.InputEvent
-import java.awt.event.KeyEvent
 import javax.swing.JPanel
-import javax.swing.KeyStroke.getKeyStroke
 
 /**
  * Button with icon that is either pressed (on) or unchanged (off).
@@ -44,8 +42,9 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : J
     val button = ActionButton(action, presentation, ActionPlaces.UNKNOWN, NAVBAR_MINIMUM_BUTTON_SIZE)
     add(button, BorderLayout.CENTER)
     button.isFocusable = true
-    button.registerKeyAction({ model.f1KeyPressed() }, getKeyStroke(KeyEvent.VK_F1, 0), "help")
-    button.registerKeyAction({ model.shiftF1KeyPressed() }, getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
+    button.registerKeyAction({ model.f1KeyPressed() }, KeyStrokes.f1, "help")
+    button.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
+    button.registerKeyAction({ model.browseButtonPressed() }, KeyStrokes.browse, "browse")
     button.addFocusListener(EditorFocusListener(this, model))
 
     model.addListener(ValueChangedListener {

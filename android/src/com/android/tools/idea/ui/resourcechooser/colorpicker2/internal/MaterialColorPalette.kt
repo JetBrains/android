@@ -30,19 +30,26 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.TestOnly
-import java.awt.*
+import java.awt.Color
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.GridLayout
+import java.awt.RenderingHints
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.*
 import javax.swing.KeyStroke
 import java.awt.event.KeyEvent
-
+import javax.swing.BoxLayout
+import javax.swing.DefaultComboBoxModel
+import javax.swing.JButton
+import javax.swing.JComponent
+import javax.swing.JPanel
 
 private const val COLOR_BUTTON_ROW = 2
 private const val COLOR_BUTTON_COLUMN = 8
 
-private val PALETTE_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 125)
-private val PALETTE_BORDER = JBUI.Borders.empty(10, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 10, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
+private val PALETTE_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 120)
+private val PALETTE_BORDER = JBUI.Borders.empty(5, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 10, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
 
 private val COMBO_BOX_PREFERRED_SIZE = JBUI.size(PICKER_PREFERRED_WIDTH, 35)
 private val COMBO_BOX_BORDER = JBUI.Borders.empty(0, 2, 8, 2)
@@ -66,7 +73,7 @@ class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel()
   val colorButtons = Array(COLOR_BUTTON_ROW * COLOR_BUTTON_COLUMN) {
     ColorButton().apply {
       background = PICKER_BACKGROUND_COLOR
-      addActionListener { pickerModel.setColor(color, ColorPalette@this) }
+      addActionListener { pickerModel.setColor(color, this@MaterialColorPalette) }
     }
   }
 

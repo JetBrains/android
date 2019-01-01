@@ -29,14 +29,17 @@ import com.intellij.ui.components.JBList
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Wait
-import org.fest.swing.util.ToolkitProvider
 import org.jetbrains.kotlin.utils.addToStdlib.cast
-import sun.awt.SunToolkit
+import sun.awt.PeerEvent
 import java.awt.Container
+import java.awt.Robot
+import java.awt.Toolkit
 import java.awt.event.InvocationEvent
+import java.awt.event.KeyEvent
 import java.util.concurrent.ConcurrentLinkedQueue
-
-private const val WAIT_FOR_IDLE_TIMEOUT_MS: Int = 20_000
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 fun HtmlLabel.plainText(): String = document.getText(0, document.length)
 
@@ -63,41 +66,32 @@ fun waitForIdle() {
       t.message.orEmpty()
     }
 
-  var intermediate: MutableList<String>? = null
-  while (System.currentTimeMillis() - start < WAIT_FOR_IDLE_TIMEOUT_MS) {
+  try {
+    val d = Disposer.newDisposable()
     try {
-      val d = Disposer.newDisposable()
-      try {
-        IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
-          val eventString = e.toString()
-          lastEvents.offer("[${System.currentTimeMillis() - start}] ${eventString}")
-          if (e is InvocationEvent && eventString.contains("LaterInvocator.FlushQueue")) {
-            @Suppress("INACCESSIBLE_TYPE")
-            synchronized(lock) {
-              LaterInvocator.getLaterInvocatorQueue().cast<Collection<Any>>().forEach {
-                lastEvents.offer(it.toString())
-              }
+      IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
+        val eventString = e.toString()
+        lastEvents.offer("[${System.currentTimeMillis() - start}] ${eventString}")
+        if (e is InvocationEvent && eventString.contains("LaterInvocator.FlushQueue")) {
+          @Suppress("INACCESSIBLE_TYPE")
+          synchronized(lock) {
+            LaterInvocator.getLaterInvocatorQueue().cast<Collection<Any>>().forEach {
+              lastEvents.offer(it.toString())
             }
           }
-          if (lastEvents.size > 500) lastEvents.remove()
-          false
-        }, d)
-        (ToolkitProvider.instance().defaultToolkit() as SunToolkit).realSync()
-      }
-      finally {
-        Disposer.dispose(d)
-      }
-      return
+        }
+        if (lastEvents.size > 500) lastEvents.remove()
+        false
+      }, d)
+      oneFullSync()
     }
-    catch (_: SunToolkit.InfiniteLoop) {
-      intermediate = (intermediate ?: mutableListOf()).also {
-        it.add(getDetails())
-      }
-      // The implementation of SunToolkit.realSync() allows up to 20 events to be processed in a batch.
-      // We often have more than 20 events primarily caused by invokeLater() invocations.
+    finally {
+      Disposer.dispose(d)
     }
   }
-  throw WaitTimedOutError("Timed out waiting for idle:\n${intermediate?.joinToString("\n").orEmpty()}")
+  catch (e: WaitTimedOutError) {
+    throw WaitTimedOutError("${e.message}\n${getDetails()}")
+  }
 }
 
 internal fun IdeFrameContainerFixture.clickToolButton(titlePrefix: String) {
@@ -124,4 +118,64 @@ internal fun IdeFrameContainerFixture.getList(): JBList<*> {
       return list.javaClass.name == "com.intellij.ui.popup.list.ListPopupImpl\$MyList"
     }
   })
+}
+
+private val awtRobot = Robot()
+
+private fun oneFullSync() {
+  val lock = ReentrantLock()
+  val condition = lock.newCondition()
+  val start = System.currentTimeMillis()
+
+  fun xQueueSync() {
+    var done = false
+    val d = Disposer.newDisposable()
+    try {
+      IdeEventQueue.getInstance().addDispatcher(IdeEventQueue.EventDispatcher { e ->
+        if (e !is KeyEvent || e.keyCode != KeyEvent.VK_PAUSE) false
+        else {
+          if (e.id == KeyEvent.KEY_RELEASED) {
+            lock.withLock { done = true ; condition.signalAll() }
+          }
+          true
+        }
+      }, d)
+      awtRobot.keyPress(KeyEvent.VK_PAUSE)
+      awtRobot.keyRelease(KeyEvent.VK_PAUSE)
+      lock.withLock {
+        while (!done && System.currentTimeMillis() - start < 15_000) {
+          condition.await(100, TimeUnit.MILLISECONDS)
+        }
+      }
+      if (!done) throw WaitTimedOutError("Timed out waiting for sync event.")
+    }
+    finally {
+      Disposer.dispose(d)
+    }
+  }
+
+  fun eventQueueSync() {
+    var done = false
+    fun postTryIdleMessage(expectNumber: Int) {
+      if (IdeEventQueue.getInstance().eventCount == expectNumber) {
+        lock.withLock { done = true ; condition.signalAll() }
+      }
+      else {
+        val expectEventCount = IdeEventQueue.getInstance().eventCount + 1
+        IdeEventQueue.getInstance().postEvent(
+          PeerEvent(Toolkit.getDefaultToolkit(), { postTryIdleMessage(expectEventCount) }, 0))
+      }
+    }
+
+    postTryIdleMessage(-1)
+    lock.withLock {
+      while (!done && System.currentTimeMillis() - start < 15_000) {
+        condition.await(100, TimeUnit.MILLISECONDS)
+      }
+    }
+    if (!done) throw WaitTimedOutError("Timed out waiting for idle.")
+  }
+
+  xQueueSync()
+  eventQueueSync()
 }

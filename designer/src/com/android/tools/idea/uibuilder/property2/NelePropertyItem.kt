@@ -39,6 +39,7 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property2.api.ActionIconButton
+import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
@@ -60,6 +61,7 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.pom.Navigatable
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
@@ -95,7 +97,7 @@ open class NelePropertyItem(
   val model: NelePropertiesModel,
   val optionalValue: Any?,
   val components: List<NlComponent>
-) : PropertyItem {
+) : PropertyItem, HelpSupport {
 
   override var value: String?
     get() {
@@ -164,6 +166,26 @@ open class NelePropertyItem(
     override val completion = { getCompletionValues() }
     override val validation = { text: String? -> validate(text) }
     override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
+  }
+
+  // TODO: b/121259587 Implement help
+  override fun help() {
+  }
+
+  // TODO: b/121259587 Implement secondaryHelp
+  override fun secondaryHelp() {
+  }
+
+  override fun browse() {
+    val tag = firstTag ?: return
+    val attribute = tag.getAttribute(name, namespace) ?: return
+    val attributeValue = attribute.valueElement ?: return
+    val file = tag.containingFile
+    val ref = file.findReferenceAt(attributeValue.textOffset)
+    val navigable = ref?.resolve() as? Navigatable ?: return
+    if (navigable != attributeValue) {
+      navigable.navigate(true)
+    }
   }
 
   override val designProperty: NelePropertyItem

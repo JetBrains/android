@@ -20,19 +20,17 @@ import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.EventQueue
 import java.awt.event.ActionEvent
-import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.ComboBoxEditor
-import javax.swing.JComponent
 import javax.swing.JList
-import javax.swing.KeyStroke
 import javax.swing.ListCellRenderer
 import javax.swing.SwingUtilities
 import javax.swing.event.PopupMenuEvent
@@ -65,16 +63,17 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   init {
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
-    registerKeyAction({ model.enterKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
-    registerKeyAction({ model.escapeKeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "escape")
+    registerKeyAction({ model.enterKeyPressed() }, KeyStrokes.enter, "enter")
+    registerKeyAction({ model.escapeKeyPressed() }, KeyStrokes.escape, "escape")
     if (asTableCellEditor) {
       putClientProperty("JComboBox.isTableCellEditor", true)
     }
 
-    textField.registerKeyAction({ enter() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
-    textField.registerKeyAction({ escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
-    textField.registerKeyAction({ model.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
-    textField.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
+    textField.registerKeyAction({ enter() }, KeyStrokes.enter, "enter")
+    textField.registerKeyAction({ escape() }, KeyStrokes.escape, "escape")
+    textField.registerKeyAction({ model.f1KeyPressed() }, KeyStrokes.f1, "help")
+    textField.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
+    textField.registerKeyAction({ model.browseButtonPressed() }, KeyStrokes.browse, "browse")
 
     val focusListener = TextEditorFocusListener(textField, this, model)
     addFocusListener(focusListener)

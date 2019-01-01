@@ -17,28 +17,27 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
-import java.awt.event.InputEvent
-import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
-import javax.swing.KeyStroke
 
 /**
  * A standard control for editing a text property.
  */
 class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel) {
   init {
-    registerKeyAction({ enter() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
-    registerKeyAction({ tab() }, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), "tab")
-    registerKeyAction({ backTab() }, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK), "backTab")
-    registerKeyAction({ escape() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
-    registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
-    registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
+    registerKeyAction({ enter() }, KeyStrokes.enter, "enter")
+    registerKeyAction({ tab() }, KeyStrokes.tab, "tab")
+    registerKeyAction({ backTab() }, KeyStrokes.backtab, "backTab")
+    registerKeyAction({ escape() }, KeyStrokes.escape, "escape")
+    registerKeyAction({ editorModel.f1KeyPressed() }, KeyStrokes.f1, "help")
+    registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
+    registerKeyAction({ editorModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
     addFocusListener(TextEditorFocusListener(this, this, editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves

@@ -42,16 +42,12 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
 
   @Override
   public List<SeriesData<Long>> getDataForXRange(Range xRangeUs) {
-    // TODO b/118319729 remove the one second buffer after our request supports buffering options.
-    long minNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMin()) - TimeUnit.SECONDS.toNanos(1);
-    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMax()) + TimeUnit.SECONDS.toNanos(1);
+    long minNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMin());
 
     Profiler.GetEventGroupsRequest request = Profiler.GetEventGroupsRequest.newBuilder()
       .setSessionId(mySession.getSessionId())
       .setKind(Common.Event.Kind.CPU_THREAD)
-      // TODO: use actual min when GetEventGroups return all groups that overlap with the range.
-      .setFromTimestamp(0)
-      .setToTimestamp(maxNs)
+      // TODO(b/122110659): set from_timestamp and to_timestamp when GetEventGroups works as intended.
       .build();
     Profiler.GetEventGroupsResponse response = myClient.getEventGroups(request);
 

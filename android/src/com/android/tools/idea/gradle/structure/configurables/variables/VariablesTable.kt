@@ -475,7 +475,7 @@ class VariablesTable private constructor(
         selectionModel.setSelectionInterval(row, row)
         scrollRectToVisible(this.getCellRect(row, column, true))
         selectCell(row, column)
-        invokeLater { editCellAt(row, column, e) }
+        invokeLater { editCellAt(row, column, null) }
       }
   }
 
@@ -567,15 +567,13 @@ class VariablesTable private constructor(
           node is EmptyVariableNode && column == NAME -> {
             val parentNode = node.parent as? ShadowedTreeNode
             val variable = node.createVariable(aValue)
-            if (parentNode != null) {
-              tableTree?.expandPath(
-                TreePath(
-                  getPathToRoot(
-                    parentNode
-                      .childNodes
-                      .find { (it.shadowNode as? VariableShadowNode)?.variable === variable }
-                  )))
-            }
+            val newNode =
+              parentNode
+                ?.childNodes
+                ?.find { (it.shadowNode as? VariableShadowNode)?.variable === variable }
+                ?.let { newNode ->
+                  tableTree?.expandPath(TreePath(getPathToRoot(newNode)))
+                }
           }
           node is EmptyNamedNode && column == NAME -> node.createVariable(aValue)
           node is BaseVariableNode && column == NAME -> {

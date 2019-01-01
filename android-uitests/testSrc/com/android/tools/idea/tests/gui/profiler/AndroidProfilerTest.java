@@ -72,6 +72,9 @@ public class AndroidProfilerTest {
     // Start server execution.
     myAdbServer.start();
 
+    // Terminate the service if it's already started (it's a UI test, so there might be no shutdown between tests).
+    AdbService.getInstance().dispose();
+
     // Start ADB with fake server and its port.
     AndroidDebugBridge.enableFakeAdbServerMode(myAdbServer.getPort());
 
@@ -117,7 +120,9 @@ public class AndroidProfilerTest {
     if (myAdbServer != null) {
       myAdbServer.stop().get();
     }
-    AndroidDebugBridge.terminate();
+
+    AdbService.getInstance().dispose();
+    AndroidDebugBridge.disableFakeAdbServerMode();
   }
 
   @Test

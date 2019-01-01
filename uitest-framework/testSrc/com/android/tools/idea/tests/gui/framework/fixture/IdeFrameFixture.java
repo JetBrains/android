@@ -495,11 +495,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
-  public MessagesToolWindowFixture getMessagesToolWindow() {
-    return new MessagesToolWindowFixture(getProject(), robot());
-  }
-
-  @NotNull
   public BuildToolWindowFixture getBuildToolWindow() {
     return new BuildToolWindowFixture(getProject(), robot());
   }

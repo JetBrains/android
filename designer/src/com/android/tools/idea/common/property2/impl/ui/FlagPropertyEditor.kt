@@ -21,10 +21,15 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.ui.*
+import com.intellij.ui.BalloonImpl
+import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.SearchTextField
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
@@ -32,9 +37,23 @@ import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import java.awt.*
-import java.awt.event.*
-import javax.swing.*
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Component
+import java.awt.DefaultFocusTraversalPolicy
+import java.awt.Dimension
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import javax.swing.JButton
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JScrollPane
+import javax.swing.JSeparator
+import javax.swing.JTable
+import javax.swing.ScrollPaneConstants
+import javax.swing.SwingUtilities
 import javax.swing.event.DocumentEvent
 import kotlin.math.max
 
@@ -64,10 +83,11 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : AdtSecondar
         showFlagEditor()
       }
     })
-    flagImage.registerKeyAction({ showFlagEditor() }, KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "showFlagEditor")
-    flagImage.registerKeyAction({ editorModel.commit() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
-    flagImage.registerKeyAction({ editorModel.f1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "help")
-    flagImage.registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK), "help2")
+    flagImage.registerKeyAction({ showFlagEditor() }, KeyStrokes.space, "showFlagEditor")
+    flagImage.registerKeyAction({ editorModel.commit() }, KeyStrokes.enter, "enter")
+    flagImage.registerKeyAction({ editorModel.f1KeyPressed() }, KeyStrokes.f1, "help")
+    flagImage.registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
+    flagImage.registerKeyAction({ editorModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
 
     editorModel.addListener(ValueChangedListener { handleValueChanged() })
     handleValueChanged()
