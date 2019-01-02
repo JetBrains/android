@@ -43,9 +43,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
@@ -300,8 +300,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @Nullable
   protected Class<?> loadClassFile(@NotNull String name, @NotNull VirtualFile classFile) {
     if (myClassFiles == null) {
-      myClassFiles = new HashMap<>();
-      myClassFilesLastModified = new HashMap<>();
+      myClassFiles = new ConcurrentHashMap<>();
+      myClassFilesLastModified = new ConcurrentHashMap<>();
     }
     myClassFiles.put(name, classFile);
     myClassFilesLastModified.put(name, new ClassModificationTimestamp(classFile.getTimeStamp(), classFile.getLength()));
