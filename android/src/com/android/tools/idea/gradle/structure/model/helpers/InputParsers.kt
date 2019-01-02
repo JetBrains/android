@@ -139,3 +139,5 @@ fun matchHashStrings(mode: Any?, parsed: String?, resolved: String) =
 
 fun matchFiles(rootDir: File?, parsed: File?, resolved: File): Boolean =
   parsed?.let { rootDir?.resolve(parsed) } == resolved
+
+fun String.toIntOrString(): Any = this.toIntOrNull() ?: this
