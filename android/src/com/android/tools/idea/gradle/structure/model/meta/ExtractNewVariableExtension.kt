@@ -31,16 +31,18 @@ class ExtractNewVariableExtension<T : Any, PropertyCoreT : ModelPropertyCore<T>>
   override val title: String = "Bind to New Variable"
   override val tooltip: String = "Bind to New Variable"
   override val icon: Icon = AllIcons.Nodes.Variable
+  override val availableInNonPropertyContext: Boolean = false
+  override val isMainAction: Boolean = true
+
   override fun invoke(
     property: PropertyCoreT,
     editor: ModelPropertyEditor<T>,
-    editorFactory: ModelPropertyEditorFactory<T, PropertyCoreT>) {
+    editorFactory: ModelPropertyEditorFactory<T, PropertyCoreT>
+  ) {
 
     editor.updateProperty()
-    val dialog = ExtractVariableDialog(project,
-                                       module.variables,
-                                       property,
-                                       editorFactory)
+    val dialog =
+      ExtractVariableDialog(project, module.variables, property, editorFactory)
     if (dialog.showAndGet()) {
       editor.reload()
     }

@@ -142,7 +142,11 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
     override fun getCellEditorValue(): Any = lastEditor!!.text
   }
 
-  override fun createNew(property: ModelPropertyT, cellEditor: TableCellEditor?): ModelPropertyEditor<Map<String, ValueT>> =
+  override fun createNew(
+    property: ModelPropertyT,
+    cellEditor: TableCellEditor?,
+    isPropertyContext: Boolean
+  ): ModelPropertyEditor<Map<String, ValueT>> =
     MapPropertyEditor(property, propertyContext, editor, variablesScope)
 }
 
