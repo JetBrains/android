@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
 import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionsPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.variables.VariablesConfigurable
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
@@ -30,7 +31,9 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
     val context = PsContextImpl(PsProjectImpl(project, repositorySearchFactory), parentDisposable, false, false, repositorySearchFactory)
 
     return listOf(
-      ProjectStructureItemGroup("main", VariablesConfigurable(project, context)),
+      ProjectStructureItemGroup("main",
+                                IdeSdksConfigurable(null, project),
+                                VariablesConfigurable(project, context)),
       ProjectStructureItemGroup("modules",
                                 ModulesPerspectiveConfigurable(context),
                                 DependenciesPerspectiveConfigurable(context),

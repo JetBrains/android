@@ -17,7 +17,6 @@ package com.android.tools.idea.structure.dialog
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.Project
 
 abstract class AndroidConfigurableContributor {
