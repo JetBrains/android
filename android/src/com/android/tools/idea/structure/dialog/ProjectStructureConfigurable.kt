@@ -78,7 +78,6 @@ import javax.swing.SwingConstants
 
 class ProjectStructureConfigurable(private val myProject: Project) : SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
   private var myHistory = History(this)
-  private val mySdksConfigurable: IdeSdksConfigurable = IdeSdksConfigurable(this, myProject).also { it.setHistory(myHistory) }
   private val myDetails = Wrapper()
   private val myConfigurables = Maps.newLinkedHashMap<Configurable, JComponent>()
   private val myUiState = UIState().also { it.load(myProject) }
@@ -141,8 +140,8 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       }
       masterDetails!!.setHistory(myHistory)
     }
-    else if (toSelect === mySdksConfigurable) {
-      mySdksConfigurable.setHistory(myHistory)
+    else if (toSelect is IdeSdksConfigurable) {
+      toSelect.setHistory(myHistory)
     }
 
     if (toSelect != null) {
@@ -310,9 +309,9 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
     mySidePanel = SidePanel(this, myHistory)
 
-    addConfigurable(mySdksConfigurable)
-
-    if (!isDefaultProject) {
+    if (isDefaultProject) {
+      addConfigurable(IdeSdksConfigurable(this, myProject))
+    } else {
       addConfigurables()
     }
   }
@@ -327,7 +326,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
         .groupBy { it.groupName }
         .mapValues { entry -> entry.value.flatMap { it.items } }
 
-    configurables.entries.forEachIndexed { index, (name, items) ->
+    configurables.entries.forEachIndexed { index, (_, items) ->
       if (index > 0) mySidePanel!!.addSeparator("--")
       items.forEach { addConfigurable(it) }
     }
@@ -366,8 +365,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     val token = HeavyProcessLatch.INSTANCE.processStarted("Resetting Project Structure")
     try {
       val configurables = myConfigurables.keys
-
-      mySdksConfigurable.reset()
 
       for (each in configurables) {
         each.disposeUIResources()
