@@ -22,8 +22,8 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.FmGetConfigurationNameMethod;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
@@ -52,6 +52,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -306,7 +307,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
       if (targetFile.exists()) {
         if (myContext.getProject().isInitialized()) {
           VirtualFile toFile = findFileByIoFile(targetFile, true);
-          final ReadonlyStatusHandler.OperationStatus status = myReadonlyStatusHandler.ensureFilesWritable(toFile);
+          final ReadonlyStatusHandler.OperationStatus status = myReadonlyStatusHandler.ensureFilesWritable(Collections.singletonList(toFile));
           if (status.hasReadonlyFiles()) {
             throw new TemplateUserVisibleException(
               String.format("Attempt to update file that is readonly: %1$s", targetFile.getAbsolutePath()));
