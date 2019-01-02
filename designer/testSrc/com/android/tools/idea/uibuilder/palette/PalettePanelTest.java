@@ -36,6 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.SyncNlModel;
@@ -253,7 +254,8 @@ public class PalettePanelTest extends LayoutTestCase {
     TestToolWindow toolWindow = new TestToolWindow();
     myPanel.registerCallbacks(toolWindow);
 
-    ActionListener listener = myPanel.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.META_MASK));
+    @SuppressWarnings("MagicConstant")
+    ActionListener listener = myPanel.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask()));
     assertThat(listener).isNotNull();
 
     ActionEvent event = mock(ActionEvent.class);
