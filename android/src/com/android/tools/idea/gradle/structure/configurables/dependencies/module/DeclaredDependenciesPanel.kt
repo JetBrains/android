@@ -43,6 +43,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil.isEmpty
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
 import com.intellij.ui.navigation.Place
+import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JComponent
@@ -200,7 +201,7 @@ internal class DeclaredDependenciesPanel(
     dependenciesTable.selectDependency(toSelect)
   }
 
-  private inner class RemoveDependencyAction internal constructor() : DumbAwareAction("Remove Dependency...", "", AllIcons.Actions.Cancel) {
+  private inner class RemoveDependencyAction internal constructor() : DumbAwareAction("Remove Dependency...", "", IconUtil.getRemoveIcon()) {
     init {
       registerCustomShortcutSet(CommonShortcuts.getDelete(), dependenciesTable)
     }
