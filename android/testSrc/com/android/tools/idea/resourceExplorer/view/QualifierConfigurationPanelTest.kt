@@ -24,7 +24,9 @@ import com.intellij.util.ui.UIUtil.findComponentsOfType
 import org.junit.Test
 import org.mockito.Mockito
 import javax.swing.JComboBox
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class QualifierConfigurationPanelTest {
@@ -70,11 +72,27 @@ class QualifierConfigurationPanelTest {
     }
   }
 
+  @Test
+  fun selectedQualifierIsPresentInPopup() {
+    val viewModel = QualifierConfigurationViewModel(FolderConfiguration())
+    val configurationPanel = QualifierConfigurationPanel(viewModel)
+
+    val comboBox = selectComboBoxFirstItem(configurationPanel, 0)!!
+    val selectedItem = comboBox.selectedItem
+    comboBox.firePopupMenuWillBecomeVisible()
+    assertEquals(selectedItem, comboBox.model.getElementAt(0))
+    for (i in 1 until comboBox.model.size) {
+      assertNotEquals(selectedItem, comboBox.model.getElementAt(i))
+    }
+    assertFalse(viewModel.getAvailableQualifiers().contains(selectedItem))
+  }
+
   private fun selectComboBoxFirstItem(configurationPanel: QualifierConfigurationPanel,
-                                      comboBoxIndexInPanel: Int) {
+                                      comboBoxIndexInPanel: Int): JComboBox<*>? {
     val qualifierCombo = findComponentsOfType(configurationPanel, JComboBox::class.java)[comboBoxIndexInPanel]
     qualifierCombo.firePopupMenuWillBecomeVisible()
     qualifierCombo.selectedIndex = 0
+    return qualifierCombo
   }
 
   private fun clickLastDeleteButton(configurationPanel: QualifierConfigurationPanel) {

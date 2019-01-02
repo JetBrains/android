@@ -128,6 +128,16 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
       .map { it.qualifierCombo }
       .all { it.selectedIndex != -1 }
 
+  private fun populateAvailableQualifiers(comboBox: ComboBox<*>) {
+    var availableQualifiers = viewModel.getAvailableQualifiers()
+    val selectedItem = comboBox.selectedItem as ResourceQualifier?
+    if (selectedItem != null) {
+      // Prepend the selected element which is not in the available qualifiers.
+      availableQualifiers = listOf(selectedItem) + availableQualifiers
+    }
+    comboBox.model = CollectionComboBoxModel(availableQualifiers, selectedItem)
+  }
+
   /**
    * A view showing a dropdown to choose a [ResourceQualifier] and the field to set its parameters.
    *
@@ -152,10 +162,7 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
           // Recreate the available qualifiers each time the popup is shown
           // because the available qualifier might have change if another
           // comboBox has had its value changed
-          val comboBox = e.source as ComboBox<*>
-          comboBox.model = CollectionComboBoxModel<ResourceQualifier>(
-            viewModel.getAvailableQualifiers(),
-            comboBox.selectedItem as ResourceQualifier?)
+          populateAvailableQualifiers(e.source as ComboBox<*>)
         }
       })
 
