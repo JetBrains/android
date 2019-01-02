@@ -22,7 +22,6 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.rendering.RenderLogger;
@@ -48,8 +47,6 @@ import java.awt.image.BufferedImage;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +57,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
  * Renders XML drawables to raster images.
  */
 public class DrawableRenderer implements Disposable {
-  @NotNull private final Future<RenderTask> myRenderTaskFuture;
+  @NotNull private final CompletableFuture<RenderTask> myRenderTaskFuture;
   @NotNull private final Object myRenderLock = new Object();
   @NotNull private final MyLayoutPullParserFactory myParserFactory;
   @NotNull private final AtomicInteger myCounter = new AtomicInteger();
@@ -88,7 +85,7 @@ public class DrawableRenderer implements Disposable {
     myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.
-    myRenderTaskFuture = FutureUtils.executeOnPooledThread(() -> {
+    myRenderTaskFuture = CompletableFuture.supplyAsync(() -> {
       try {
         RenderService service = RenderService.getInstance(module.getProject());
         RenderTask renderTask = service.taskBuilder(facet, configuration)
@@ -105,7 +102,7 @@ public class DrawableRenderer implements Disposable {
         getLog().error(e);
         return null;
       }
-    });
+    }, PooledThreadExecutor.INSTANCE);
   }
 
   /**
@@ -122,7 +119,7 @@ public class DrawableRenderer implements Disposable {
     ResourceValue value = new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "ic_image_preview",
                                                 "file://" + resourceName);
 
-    return getRenderTask().thenCompose(renderTask -> {
+    return myRenderTaskFuture.thenCompose(renderTask -> {
       if (renderTask == null) {
         return CompletableFuture.completedFuture(AssetStudioUtils.createDummyImage());
       }
@@ -139,29 +136,13 @@ public class DrawableRenderer implements Disposable {
 
   @Override
   public void dispose() {
-    RenderTask renderTask = getRenderTask().join();
-    if (renderTask != null) {
-      synchronized (myRenderLock) {
-        renderTask.dispose();
+    myRenderTaskFuture.whenComplete((renderTask, throwable) -> {
+      if (renderTask != null) {
+        synchronized (myRenderLock) {
+          renderTask.dispose();
+        }
       }
-    }
-  }
-
-  /**
-   * Returns a {@link CompletableFuture} which provides the {@link RenderTask} computed by {@link DrawableRenderer#myRenderTaskFuture}
-   * or null if an error occurred during the computation.
-   */
-  @NotNull
-  private CompletableFuture<RenderTask> getRenderTask() {
-    return CompletableFuture.supplyAsync(() -> {
-      try {
-        return myRenderTaskFuture.get();
-      }
-      catch (InterruptedException | ExecutionException e) {
-        // The error was logged earlier.
-        return null;
-      }
-    }, PooledThreadExecutor.INSTANCE);
+    });
   }
 
   private static class MyLayoutPullParserFactory implements ILayoutPullParserFactory {
