@@ -44,7 +44,7 @@ public class GeneratedFileWritingAccessProvider extends WritingAccessProvider {
 
   @Override
   @NotNull
-  public Collection<VirtualFile> requestWriting(VirtualFile... files) {
+  public Collection<VirtualFile> requestWriting(@NotNull Collection<VirtualFile> files) {
     List<VirtualFile> readOnlyFiles = new ArrayList<>();
 
     for (VirtualFile file : files) {
