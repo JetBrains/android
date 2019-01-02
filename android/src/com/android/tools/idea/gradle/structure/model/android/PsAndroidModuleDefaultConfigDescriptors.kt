@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.structure.model.helpers.parseReferenceOnly
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.helpers.proGuardFileValues
 import com.android.tools.idea.gradle.structure.model.helpers.signingConfigs
+import com.android.tools.idea.gradle.structure.model.helpers.toIntOrString
 import com.android.tools.idea.gradle.structure.model.helpers.withProFileSelector
 import com.android.tools.idea.gradle.structure.model.meta.ListProperty
 import com.android.tools.idea.gradle.structure.model.meta.MapProperty
@@ -92,7 +93,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     resolvedValueGetter = { minSdkVersion?.apiLevel?.toString() },
     parsedPropertyGetter = { minSdkVersion() },
     getter = { asString() },
-    setter = { setValue(it) },
+    setter = { setValue(it.toIntOrString()) },
     parser = ::parseString,
     knownValuesGetter = ::installedSdksAsStrings
   )
@@ -123,7 +124,7 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
     resolvedValueGetter = { targetSdkVersion?.apiLevel?.toString() },
     parsedPropertyGetter = { targetSdkVersion() },
     getter = { asString() },
-    setter = { setValue(it) },
+    setter = { setValue(it.toIntOrString()) },
     parser = ::parseString,
     knownValuesGetter = ::installedSdksAsStrings
 
