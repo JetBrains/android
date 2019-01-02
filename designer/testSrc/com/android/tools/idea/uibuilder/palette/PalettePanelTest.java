@@ -243,11 +243,19 @@ public class PalettePanelTest extends LayoutTestCase {
   }
 
   public void testTypingInCategoryListStartsFiltering() {
-    checkTypingStartsFiltering(myPanel.getCategoryList());
+    checkTypingStartsFiltering(myPanel.getCategoryList(), 'u', true);
   }
 
   public void testTypingInItemListStartsFiltering() {
-    checkTypingStartsFiltering(myPanel.getItemList());
+    checkTypingStartsFiltering(myPanel.getItemList(), 'u', true);
+  }
+
+  public void testTypingNonCharactersDoesNotStartFiltering() {
+    char[] chars = {'\b', KeyEvent.VK_DELETE, '@', ' '};
+    for (char ch : chars) {
+      checkTypingStartsFiltering(myPanel.getCategoryList(), ch, false);
+      checkTypingStartsFiltering(myPanel.getItemList(), ch, false);
+    }
   }
 
   public void testCommandFStartsFiltering() {
@@ -450,13 +458,18 @@ public class PalettePanelTest extends LayoutTestCase {
     return true;
   }
 
-  private void checkTypingStartsFiltering(@NotNull JComponent component) {
+  private void checkTypingStartsFiltering(@NotNull JComponent component, char character, boolean expectSearchStarted) {
     TestToolWindow toolWindow = new TestToolWindow();
     myPanel.registerCallbacks(toolWindow);
     for (KeyListener listener : component.getKeyListeners()) {
-      listener.keyTyped(new KeyEvent(component, KeyEvent.KEY_TYPED, System.currentTimeMillis(), 0, KeyEvent.VK_UNDEFINED, 'u'));
+      listener.keyTyped(new KeyEvent(component, KeyEvent.KEY_TYPED, System.currentTimeMillis(), 0, KeyEvent.VK_UNDEFINED, character));
     }
-    assertThat(toolWindow.getInitialSearchString()).isEqualTo("u");
+    if (expectSearchStarted) {
+      assertThat(toolWindow.getInitialSearchString()).isEqualTo(String.valueOf(character));
+    }
+    else {
+      assertThat(toolWindow.getInitialSearchString()).isNull();
+    }
   }
 
   @NotNull
