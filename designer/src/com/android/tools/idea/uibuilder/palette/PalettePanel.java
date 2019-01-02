@@ -254,7 +254,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
     return new KeyAdapter() {
       @Override
       public void keyTyped(@NotNull KeyEvent event) {
-        if (event.getKeyChar() >= KeyEvent.VK_0) {
+        if (Character.isAlphabetic(event.getKeyChar())) {
           startFiltering(String.valueOf(event.getKeyChar()));
         }
       }
