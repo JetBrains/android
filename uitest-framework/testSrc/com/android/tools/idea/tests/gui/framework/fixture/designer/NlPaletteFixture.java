@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.SearchTextFieldFixture;
 import com.android.tools.idea.uibuilder.palette.Palette;
-import com.android.tools.idea.uibuilder.palette2.PalettePanel;
+import com.android.tools.idea.uibuilder.palette.PalettePanel;
 import com.intellij.ui.SearchTextField;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;

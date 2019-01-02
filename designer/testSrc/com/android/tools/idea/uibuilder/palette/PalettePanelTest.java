@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.palette2;
+package com.android.tools.idea.uibuilder.palette;
+
+import static com.android.SdkConstants.ADS_ARTIFACT;
+import static com.android.SdkConstants.AD_VIEW;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.cleanUsageTrackerAfterTesting;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.mockNlUsageTracker;
+import static com.google.common.truth.Truth.assertThat;
+import static java.awt.dnd.DnDConstants.ACTION_MOVE;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyCollection;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
 import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.common.model.DnDTransferComponent;
-import com.android.tools.idea.common.model.DnDTransferItem;
-import com.android.tools.idea.common.model.ItemTransferable;
-import com.android.tools.idea.uibuilder.palette.Palette;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbServiceImpl;
@@ -47,24 +72,27 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
+import java.awt.Component;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.lang.reflect.Method;
+import java.util.Collections;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
+import javax.swing.TransferHandler;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.datatransfer.Transferable;
-import java.awt.event.*;
-import java.lang.reflect.Method;
-import java.util.Collections;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.cleanUsageTrackerAfterTesting;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.mockNlUsageTracker;
-import static com.google.common.truth.Truth.assertThat;
-import static java.awt.dnd.DnDConstants.ACTION_MOVE;
-import static org.mockito.Mockito.*;
 
 public class PalettePanelTest extends LayoutTestCase {
   private NlTreeDumper myTreeDumper;
