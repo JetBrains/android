@@ -22,46 +22,23 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
-import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.intellij.psi.xml.XmlFile
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import java.awt.BasicStroke
 import java.awt.Dimension
 import java.awt.geom.Rectangle2D
 
 class NavScreenDecoratorTest : NavTestCase() {
   private val decorator = object : NavScreenDecorator() {
     override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
-      drawScreen(list, sceneContext, component, Coordinates.getSwingRectDip(SceneContext.get(), component.fillDrawRect2D(0, null)))
+      val rectangle = Coordinates.getSwingRectDip(SceneContext.get(), component.fillDrawRect2D(0, null))
+      val image = buildImage(sceneContext, component, rectangle)!!
+      list.add(DrawNavScreen(rectangle, image))
     }
-  }
-
-  fun testPlaceholder() {
-    val model = model("nav.xml") {
-      navigation {
-        fragment("f1")
-      }
-    }
-
-    val sceneComponent = SceneComponent(model.surface.scene!!, model.find("f1")!!, mock(HitProvider::class.java))
-    sceneComponent.setPosition(50, 150)
-    sceneComponent.setSize(100, 200)
-    val sceneView = model.surface.currentSceneView!!
-
-    val displayList = DisplayList()
-
-    decorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), sceneComponent)
-    val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
-    assertEquals(
-      listOf(
-        DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(50f, 150f, 100f, 200f))),
-      displayList.commands)
   }
 
   fun testPreview() {
@@ -120,7 +97,7 @@ class NavScreenDecoratorTest : NavTestCase() {
     val configuration = model.surface.configuration!!
     val dimensions = Dimension(100, 200)
 
-    // This is just so drawImage can complete without blowing up
+    // This is just so createDrawImageCommand can complete without blowing up
     doReturn(resultImage).`when`(thumbnailManager).getThumbnail(layoutFile, configuration, dimensions)
 
     try {
