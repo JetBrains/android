@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.palette2;
+package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.SdkConstants.APP_BAR_LAYOUT;
 import static com.android.SdkConstants.BOTTOM_APP_BAR;
@@ -32,12 +32,16 @@ import static com.android.SdkConstants.TAB_LAYOUT;
 import static com.android.SdkConstants.TEXT_INPUT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
-import static com.android.tools.idea.uibuilder.palette2.DataModel.FAVORITE_ITEMS;
+import static com.android.tools.idea.uibuilder.palette.DataModel.FAVORITE_ITEMS;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.idea.uibuilder.palette.CategoryListModel;
+import com.android.tools.idea.uibuilder.palette.DataModel;
+import com.android.tools.idea.uibuilder.palette.DependencyManager;
+import com.android.tools.idea.uibuilder.palette.ItemListModel;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.uibuilder.palette.Palette;

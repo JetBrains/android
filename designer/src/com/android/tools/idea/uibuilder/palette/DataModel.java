@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.palette2;
+package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.SdkConstants.ANDROIDX_PKG;
 import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
@@ -28,8 +28,6 @@ import static com.android.SdkConstants.VIEW_FRAGMENT;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
-import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;

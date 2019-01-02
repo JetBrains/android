@@ -25,7 +25,7 @@ import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition
-import com.android.tools.idea.uibuilder.palette2.PaletteDefinition
+import com.android.tools.idea.uibuilder.palette.PaletteDefinition
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition
 import com.android.tools.idea.uibuilder.property2.NelePropertiesPanelDefinition
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition
