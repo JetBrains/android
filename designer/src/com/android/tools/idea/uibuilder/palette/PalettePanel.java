@@ -15,26 +15,44 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CustomShortcutSet;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
@@ -45,26 +63,38 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.function.Supplier;
-
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Top level Palette UI.
@@ -240,8 +270,9 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
                                       KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK),
                                       JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
+    //noinspection MagicConstant
     registerKeyboardAction(event -> startFiltering(""),
-                           KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.META_MASK),
+                           KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask()),
                            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
   }
 
