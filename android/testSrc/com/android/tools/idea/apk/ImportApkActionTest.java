@@ -37,7 +37,8 @@ import static com.android.tools.idea.apk.ImportApkAction.LAST_IMPORTED_LOCATION;
 import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -155,6 +156,7 @@ public class ImportApkActionTest extends IdeaTestCase {
     public void removePath(@Nullable String path) {
     }
 
+    @NotNull
     @Override
     public AnAction[] getRecentProjectsActions(boolean addClearListItem) {
       return AnAction.EMPTY_ARRAY;
