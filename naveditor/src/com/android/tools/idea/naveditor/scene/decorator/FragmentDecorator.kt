@@ -21,14 +21,7 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawRectangle
-import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
-import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
-import com.android.tools.idea.naveditor.scene.FRAGMENT_BORDER_SPACING
-import com.android.tools.idea.naveditor.scene.NavColors.FRAME
-import com.android.tools.idea.naveditor.scene.convertToRoundRect
-import com.android.tools.idea.naveditor.scene.growRectangle
-import java.awt.geom.Rectangle2D
+import com.android.tools.idea.naveditor.scene.draw.DrawFragment
 
 /**
  * [SceneDecorator] responsible for creating draw commands for one fragment in the navigation editor.
@@ -41,27 +34,11 @@ object FragmentDecorator : NavScreenDecorator() {
     val sceneView = sceneContext.surface?.currentSceneView ?: return
 
     @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
-    list.add(DrawRectangle(DRAW_FRAME_LEVEL, drawRectangle, FRAME, REGULAR_FRAME_THICKNESS))
 
-    @SwingCoordinate val imageRectangle = Rectangle2D.Float()
-    imageRectangle.setRect(drawRectangle)
-    growRectangle(imageRectangle, -1f, -1f)
-    drawScreen(list, sceneContext, component, imageRectangle)
+    val scale = sceneContext.scale.toFloat()
+    val highlightColor = if (isHighlighted(component)) frameColor(component) else null
+    val image = buildImage(sceneContext, component, drawRectangle)
 
-    if (isHighlighted(component)) {
-      @SwingCoordinate val borderSpacing = Coordinates.getSwingDimension(sceneView, FRAGMENT_BORDER_SPACING)
-
-      @SwingCoordinate val outerRectangle = convertToRoundRect(sceneView, drawRectangle, 2 * FRAGMENT_BORDER_SPACING)
-      growRectangle(outerRectangle, 2 * borderSpacing, 2 * borderSpacing)
-
-      list.add(
-        DrawRoundRectangle(
-          DRAW_FRAME_LEVEL,
-          outerRectangle,
-          frameColor(component),
-          HIGHLIGHTED_FRAME_THICKNESS
-        )
-      )
-    }
+    list.add(DrawFragment(drawRectangle, scale, highlightColor, image))
   }
 }

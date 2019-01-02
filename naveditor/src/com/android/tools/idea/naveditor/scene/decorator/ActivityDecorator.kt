@@ -33,6 +33,7 @@ import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColors.ACTIVITY_BORDER
 import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.convertToRoundRect
+import com.android.tools.idea.naveditor.scene.createDrawImageCommand
 import com.android.tools.idea.naveditor.scene.growRectangle
 import com.android.tools.idea.naveditor.scene.scaledFont
 import com.google.common.annotations.VisibleForTesting
@@ -74,7 +75,9 @@ object ActivityDecorator : NavScreenDecorator() {
     @SwingCoordinate val activityTextHeight = getSwingDimension(sceneView, ACTIVITY_TEXT_HEIGHT)
     imageRectangle.height -= (activityTextHeight - activityPadding)
 
-    drawScreen(list, sceneContext, component, imageRectangle)
+    val image = buildImage(sceneContext, component, imageRectangle)
+    val drawImage = createDrawImageCommand(imageRectangle, image)
+    list.add(drawImage)
 
     val imageBorder = Rectangle2D.Float()
     imageBorder.setRect(imageRectangle)
