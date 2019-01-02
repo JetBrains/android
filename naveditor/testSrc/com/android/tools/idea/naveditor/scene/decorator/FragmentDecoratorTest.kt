@@ -19,20 +19,20 @@ import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawRectangle
-import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
-import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColors.FRAME
-import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_FRAME
-import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
-import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
+import com.android.tools.idea.naveditor.scene.draw.DrawFragment
+import com.android.tools.idea.naveditor.scene.draw.assertDrawCommandsEqual
+import com.intellij.ui.JBColor
 import org.mockito.Mockito
-import java.awt.BasicStroke
+import java.awt.Dimension
+import java.awt.Point
 import java.awt.geom.Rectangle2D
-import java.awt.geom.RoundRectangle2D
+
+private val POSITION = Point(50, 150)
+private val SIZE = Dimension(100, 200)
+private val RECT = Rectangle2D.Float(419f, 469f, 50f, 100f)
+private val COLOR = JBColor(0x1886f7, 0x9ccdff)
 
 class FragmentDecoratorTest : NavTestCase() {
   fun testContent() {
@@ -43,20 +43,16 @@ class FragmentDecoratorTest : NavTestCase() {
     }
 
     val sceneComponent = SceneComponent(model.surface.scene!!, model.find("f1")!!, Mockito.mock(HitProvider::class.java))
-    sceneComponent.setPosition(50, 150)
-    sceneComponent.setSize(100, 200)
+    sceneComponent.setPosition(POSITION.x, POSITION.y)
+    sceneComponent.setSize(SIZE.width, SIZE.height)
 
     val sceneView = model.surface.currentSceneView!!
     val displayList = DisplayList()
+    val context = SceneContext.get(sceneView)
 
-    FragmentDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), sceneComponent)
-    val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
-    assertEquals(
-      listOf(
-        DrawRectangle(DRAW_FRAME_LEVEL, Rectangle2D.Float(419f, 469f, 50f, 100f), FRAME, REGULAR_FRAME_THICKNESS),
-        DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(420f, 470f, 48f, 98f))
-      ),
-      displayList.commands)
+    FragmentDecorator.buildListComponent(displayList, 0, context, sceneComponent)
+    assertEquals(1, displayList.commands.size)
+    assertDrawCommandsEqual(DrawFragment(RECT, context.scale.toFloat(), null), displayList.commands[0] as DrawFragment)
   }
 
   fun testHighlightedContent() {
@@ -67,23 +63,16 @@ class FragmentDecoratorTest : NavTestCase() {
     }
 
     val sceneComponent = SceneComponent(model.surface.scene!!, model.find("f1")!!, Mockito.mock(HitProvider::class.java))
-    sceneComponent.setPosition(50, 150)
-    sceneComponent.setSize(100, 200)
+    sceneComponent.setPosition(POSITION.x, POSITION.y)
+    sceneComponent.setSize(SIZE.width, SIZE.height)
     sceneComponent.drawState = SceneComponent.DrawState.SELECTED
 
     val sceneView = model.surface.currentSceneView!!
     val displayList = DisplayList()
+    val context = SceneContext.get(sceneView)
 
-    FragmentDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), sceneComponent)
-    val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
-    assertEquals(
-      listOf(
-        DrawRectangle(DRAW_FRAME_LEVEL, Rectangle2D.Float(419f, 469f, 50f, 100f), HIGHLIGHTED_FRAME,
-                      REGULAR_FRAME_THICKNESS),
-        DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(420f, 470f, 48f, 98f)),
-        DrawRoundRectangle(DRAW_FRAME_LEVEL, RoundRectangle2D.Float(417f, 467f, 54f, 104f, 2f, 2f), SELECTED,
-                           HIGHLIGHTED_FRAME_THICKNESS)
-      ),
-      displayList.commands)
+    FragmentDecorator.buildListComponent(displayList, 0, context, sceneComponent)
+    assertEquals(1, displayList.commands.size)
+    assertDrawCommandsEqual(DrawFragment(RECT, context.scale.toFloat(), COLOR), displayList.commands[0] as DrawFragment)
   }
 }
