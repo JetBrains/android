@@ -341,7 +341,7 @@ public class LayoutPullParsers {
     String fontRefName = PREFIX_RESOURCE_REF + type.getName() + "/" + ResourceHelper.getResourceName(file);
 
     XmlTag[] fontSubTags = rootTag.getSubTags();
-    Stream<String> stylesStream;
+    Stream<String[]> fontStream;
 
     if (fontSubTags.length == 0) {
       // This might be a downloadable font. Check if we have it.
@@ -351,29 +351,29 @@ public class LayoutPullParsers {
       @SuppressWarnings("ConstantConditions")
       Predicate<FontDetail> exists = font -> fontCacheService.getCachedFontFile(font).exists();
 
-      stylesStream = downloadedFont != null ? downloadedFont.getFonts().stream()
+      fontStream = downloadedFont != null ? downloadedFont.getFonts().stream()
         .filter(exists)
-        .map(FontDetail::getFontStyle) : Stream.empty();
+        .map(font -> new String[]{fontRefName, font.getFontStyle()}) : Stream.empty();
     }
     else {
-      stylesStream = Arrays.stream(fontSubTags)
-        .map(font -> font.getAttributeValue("fontStyle", ANDROID_URI))
-        .filter(StringUtil::isNotEmpty);
+      fontStream = Arrays.stream(fontSubTags)
+        .map(font -> new String[]{font.getAttributeValue("font", ANDROID_URI), "normal"})
+        .filter(font -> StringUtil.isNotEmpty(font[0]));
     }
 
     boolean[] hasElements = new boolean[1];
     String fontColor = '#' + ColorUtil.toHex(UIUtil.getLabelForeground());
-    stylesStream.forEach(styleName -> {
+    fontStream.forEach(font -> {
       hasElements[0] = true;
       Element fontElement = document.createElement(TEXT_VIEW);
       setAndroidAttr(fontElement, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
       setAndroidAttr(fontElement, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
       setAndroidAttr(fontElement, ATTR_TEXT, loremText);
-      setAndroidAttr(fontElement, ATTR_FONT_FAMILY, fontRefName);
+      setAndroidAttr(fontElement, ATTR_FONT_FAMILY, font[0]);
       setAndroidAttr(fontElement, ATTR_TEXT_SIZE, "30sp");
       setAndroidAttr(fontElement, ATTR_TEXT_COLOR, fontColor);
       setAndroidAttr(fontElement, ATTR_PADDING_BOTTOM, "20dp");
-      setAndroidAttr(fontElement, ATTR_TEXT_STYLE, styleName);
+      setAndroidAttr(fontElement, ATTR_TEXT_STYLE, font[1]);
 
       rootLayout.appendChild(fontElement);
     });
