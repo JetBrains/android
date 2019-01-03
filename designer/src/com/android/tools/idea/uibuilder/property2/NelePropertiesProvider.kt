@@ -15,12 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_PKG_PREFIX
+import com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_PADDING_END
+import com.android.SdkConstants.ATTR_PADDING_START
+import com.android.SdkConstants.ATTR_POPUP_BACKGROUND
+import com.android.SdkConstants.ATTR_SRC
+import com.android.SdkConstants.ATTR_SRC_COMPAT
+import com.android.SdkConstants.ATTR_THEME
+import com.android.SdkConstants.AUTO_COMPLETE_TEXT_VIEW
+import com.android.SdkConstants.AUTO_URI
+import com.android.ide.common.rendering.api.AttributeFormat
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.PropertiesTable
 import com.android.tools.idea.lint.LintIdeClient
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.uibuilder.model.hasNlComponentInfo
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.property2.support.TypeResolver
 import com.google.common.collect.HashBasedTable
@@ -29,23 +43,21 @@ import com.google.common.collect.Table
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiManager
-import com.intellij.psi.util.ClassUtil
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor
 import com.intellij.xml.XmlAttributeDescriptor
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
+import org.jetbrains.android.dom.AttributeProcessingUtil
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.attrs.AttributeDefinitions
-import com.android.ide.common.rendering.api.AttributeFormat
-import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.rendering.api.ResourceReference
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.EventQueue
-import java.util.*
+import java.util.ArrayList
 
 private const val EXPECTED_ROWS = 3
 private const val EXPECTED_CELLS_PER_ROW = 10
@@ -64,8 +76,6 @@ private const val EXPECTED_CELLS_PER_ROW = 10
  * on an AutoCompleteTextView widget.
  */
 class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvider {
-  private val descriptorProvider = AndroidDomElementDescriptorProvider()
-  private val emptyTable = ImmutableTable.of<String, String, NelePropertyItem>()
 
   override fun getProperties(model: NelePropertiesModel,
                              optionalValue: Any?,
@@ -76,43 +86,88 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
       return PropertiesTable.emptyTable()
     }
 
-    return DumbService.getInstance(facet.module.project).runReadActionInSmartMode<PropertiesTable<NelePropertyItem>> {
-      PropertiesTable.create(getPropertiesImpl(model, components))
+    val project = facet.module.project
+    val resourceManagers = ModuleResourceManagers.getInstance(facet)
+    val localResourceManager = resourceManagers.localResourceManager
+    val frameworkResourceManager = resourceManagers.frameworkResourceManager
+    val localAttrDefs = localResourceManager.attributeDefinitions
+    val systemAttrDefs = frameworkResourceManager?.attributeDefinitions
+
+    if (frameworkResourceManager == null) {
+      Logger.getInstance(NelePropertiesProvider::class.java).error("No system resource manager for module: " + facet.module.name)
+      return PropertiesTable.emptyTable()
+    }
+    if (systemAttrDefs == null) {
+      return PropertiesTable.emptyTable()
+    }
+    val generator = PropertiesGenerator(facet, model, components, localAttrDefs, systemAttrDefs)
+
+    return DumbService.getInstance(project).runReadActionInSmartMode<PropertiesTable<NelePropertyItem>> {
+      PropertiesTable.create(generator.generate())
     }
   }
 
   override fun createEmptyTable(): PropertiesTable<NelePropertyItem> =
     PropertiesTable.create(HashBasedTable.create<String, String, NelePropertyItem>(EXPECTED_ROWS, EXPECTED_CELLS_PER_ROW))
 
-  private fun getPropertiesImpl(model: NelePropertiesModel, components: List<NlComponent>): Table<String, String, NelePropertyItem> {
-    val resourceManagers = ModuleResourceManagers.getInstance(facet)
-    val localResourceManager = resourceManagers.localResourceManager
-    val frameworkResourceManager = resourceManagers.frameworkResourceManager
-    if (frameworkResourceManager == null) {
-      Logger.getInstance(NelePropertiesProvider::class.java).error("No system resource manager for module: " + facet.module.name)
-      return emptyTable
-    }
+  private class PropertiesGenerator(facet: AndroidFacet,
+                                    private val model: NelePropertiesModel,
+                                    private val components: List<NlComponent>,
+                                    private val localAttrDefs: AttributeDefinitions,
+                                    private val systemAttrDefs: AttributeDefinitions) {
+    private val project = facet.module.project
+    private val apiLookup = LintIdeClient.getApiLookup(project)
+    private val minApi = AndroidModuleInfo.getInstance(facet).minSdkVersion.featureLevel
+    private val psiFacade = JavaPsiFacade.getInstance(project)
+    private val descriptorProvider = AndroidDomElementDescriptorProvider()
+    private var properties: Table<String, String, NelePropertyItem> = ImmutableTable.of()
+    private val emptyTable = ImmutableTable.of<String, String, NelePropertyItem>()
 
-    val project = facet.module.project
-    val apiLookup = LintIdeClient.getApiLookup(project)
-    val minApi = AndroidModuleInfo.getInstance(facet).minSdkVersion.featureLevel
+    fun generate(): Table<String, String, NelePropertyItem> {
+      var combinedProperties: Table<String, String, NelePropertyItem>? = null
+      for (component in components) {
+        val tag = component.tag
+        if (!tag.isValid) {
+          return emptyTable
+        }
 
-    val localAttrDefs = localResourceManager.attributeDefinitions
-    val systemAttrDefs = frameworkResourceManager.attributeDefinitions
+        val elementDescriptor = descriptorProvider.getDescriptor(tag) ?: return emptyTable
+        val descriptors = elementDescriptor.getAttributesDescriptors(tag)
+        properties = HashBasedTable.create<String, String, NelePropertyItem>(EXPECTED_ROWS, descriptors.size)
 
-    var combinedProperties: Table<String, String, NelePropertyItem>? = null
+        loadPropertiesFromDescriptors(tag, descriptors)
+        loadPropertiesFromStyleable(component)
+        loadPropertiesFromLayoutStyleable(component)
 
-    for (component in components) {
-      val tag = component.tag
-      if (!tag.isValid) {
-        return emptyTable
+        // Exception: Always prefer ATTR_SRC_COMPAT over ATTR_SRC:
+        if (properties.contains(AUTO_URI, ATTR_SRC_COMPAT)) {
+          properties.remove(ANDROID_URI, ATTR_SRC)
+          properties.remove(AUTO_URI, ATTR_SRC)
+        }
+
+        // Exceptions:
+        if (tag.name == AUTO_COMPLETE_TEXT_VIEW) {
+          // An AutoCompleteTextView has a popup that is created at runtime.
+          // Properties for this popup can be added to the AutoCompleteTextView tag.
+          val attr = systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND)
+          val property = createProperty(ANDROID_URI, ATTR_POPUP_BACKGROUND, attr, model, components)
+          properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, property)
+        }
+
+        combinedProperties = combine(properties, combinedProperties)
       }
 
-      val elementDescriptor = descriptorProvider.getDescriptor(tag) ?: return emptyTable
+      // The following properties are deprecated in the support library and can be ignored by tools:
+      combinedProperties?.let {
+        it.remove(AUTO_URI, ATTR_PADDING_START)
+        it.remove(AUTO_URI, ATTR_PADDING_END)
+        it.remove(AUTO_URI, ATTR_THEME)
+      }
 
-      val descriptors = elementDescriptor.getAttributesDescriptors(tag)
-      val properties = HashBasedTable.create<String, String, NelePropertyItem>(EXPECTED_ROWS, descriptors.size)
+      return combinedProperties ?: emptyTable
+    }
 
+    private fun loadPropertiesFromDescriptors(tag: XmlTag, descriptors: Array<XmlAttributeDescriptor>) {
       for (desc in descriptors) {
         val name = desc.name
         val namespaceUri = getNamespace(desc, tag)
@@ -123,124 +178,119 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
         }
         val attrDefs = if (ANDROID_URI == namespaceUri) systemAttrDefs else localAttrDefs
         val namespace = ResourceNamespace.fromNamespaceUri(namespaceUri)
-        val attrDef = namespace?.let { attrDefs?.getAttrDefinition(ResourceReference.attr(it, name)) }
-        val property = createProperty(namespaceUri, name, attrDef, model, components)
-        properties.put(namespaceUri, name, property)
-      }
-
-      val tagClass = elementDescriptor.declaration as? PsiClass
-      val className = tagClass?.qualifiedName
-      if (className != null && component.hasNlComponentInfo) {
-        val viewClassName = component.viewInfo?.className
-        if (viewClassName != className && viewClassName != null) {
-          addAttributesFromInflatedStyleable(properties, localAttrDefs, tagClass, viewClassName, model, components)
+        if (!properties.contains(namespaceUri, name)) {
+          val attrDef = namespace?.let { attrDefs.getAttrDefinition(ResourceReference.attr(it, name)) }
+          val property = createProperty(namespaceUri, name, attrDef, model, components)
+          properties.put(namespaceUri, name, property)
         }
       }
-
-      // Exception: Always prefer ATTR_SRC_COMPAT over ATTR_SRC:
-      if (properties.contains(AUTO_URI, ATTR_SRC_COMPAT)) {
-        properties.remove(ANDROID_URI, ATTR_SRC)
-        properties.remove(AUTO_URI, ATTR_SRC)
-      }
-
-      // Exceptions:
-      if (tag.name == AUTO_COMPLETE_TEXT_VIEW) {
-        // An AutoCompleteTextView has a popup that is created at runtime.
-        // Properties for this popup can be added to the AutoCompleteTextView tag.
-        val attr = systemAttrDefs?.getAttrDefByName(ATTR_POPUP_BACKGROUND)
-        val property = createProperty(ANDROID_URI, ATTR_POPUP_BACKGROUND, attr, model, components)
-        properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, property)
-      }
-
-      combinedProperties = combine(properties, combinedProperties)
     }
 
-    // The following properties are deprecated in the support library and can be ignored by tools:
-    combinedProperties?.let {
-      it.remove(AUTO_URI, ATTR_PADDING_START)
-      it.remove(AUTO_URI, ATTR_PADDING_END)
-      it.remove(AUTO_URI, ATTR_THEME)
+    private fun loadPropertiesFromStyleable(component: NlComponent) {
+      var psiClass: PsiClass? = findPsiClassOfComponent(component)
+      while (psiClass != null) {
+        loadFromStyleableName(psiClass, psiClass.name)
+        psiClass = psiClass.superClass
+      }
     }
 
-    return combinedProperties ?: emptyTable
-  }
+    private fun loadPropertiesFromLayoutStyleable(component: NlComponent) {
+      val parent = component.parent ?: return
+      var psiClass: PsiClass? = findPsiClassOfComponent(parent)
+      while (psiClass != null) {
+        loadFromStyleableName(psiClass, AttributeProcessingUtil.getLayoutStyleablePrimary(psiClass))
+        loadFromStyleableName(psiClass, AttributeProcessingUtil.getLayoutStyleableSecondary(psiClass))
+        psiClass = psiClass.superClass
+      }
+    }
 
-  private fun addAttributesFromInflatedStyleable(properties: Table<String, String, NelePropertyItem>,
-                                                 localAttrDefs: AttributeDefinitions,
-                                                 xmlClass: PsiClass,
-                                                 inflatedClassName: String,
-                                                 model: NelePropertiesModel,
-                                                 components: List<NlComponent>) {
-    var inflatedClass = ClassUtil.findPsiClass(PsiManager.getInstance(xmlClass.project), inflatedClassName)
-    while (inflatedClass != null && inflatedClass != xmlClass) {
-      val styleable = inflatedClass.name?.let { localAttrDefs.getStyleableByName(it) }
-      if (styleable != null) {
-        for (attrDef in styleable.attributes) {
-          if (properties.contains(ANDROID_URI, attrDef.name)) {
-            // If the corresponding framework attribute is supported, prefer the framework attribute.
-            continue
+    private fun loadFromStyleableName(psiClass: PsiClass, styleableName: String?) {
+      if (styleableName == null) {
+        return
+      }
+      val namespace = findNamespaceFromPsiClass(psiClass) ?: return
+      val reference = ResourceReference(namespace, ResourceType.STYLEABLE, styleableName)
+      val attrDefs = if (namespace.xmlNamespaceUri == ANDROID_URI) systemAttrDefs else localAttrDefs
+      val styleable = attrDefs.getStyleableDefinition(reference) ?: return
+      styleable.attributes.forEach { addPropertyFromAttribute(it) }
+    }
+
+    private fun findPsiClassOfComponent(component: NlComponent): PsiClass? {
+      val psiClass = PsiTreeUtil.getParentOfType(component.tag, PsiClass::class.java)
+      val viewClassName = component.viewInfo?.className
+      if (viewClassName != null && viewClassName != psiClass?.qualifiedName) {
+        return psiFacade.findClass(viewClassName, GlobalSearchScope.allScope(project))
+      }
+      return psiClass
+    }
+
+    // TODO: Fix the namespace computation below...
+    private fun findNamespaceFromPsiClass(psiClass: PsiClass): ResourceNamespace? {
+      val className = psiClass.qualifiedName ?: return null
+      val namespaceUri = if (className.startsWith(ANDROID_PKG_PREFIX) &&
+                             !className.startsWith(ANDROID_SUPPORT_PKG_PREFIX)) ANDROID_URI
+      else AUTO_URI
+      return ResourceNamespace.fromNamespaceUri(namespaceUri)
+    }
+
+    private fun addPropertyFromAttribute(attribute: AttributeDefinition) {
+      val namespace = attribute.resourceReference.namespace.xmlNamespaceUri
+      val property = createProperty(namespace, attribute.name, attribute, model, components)
+      if (ANDROID_URI == namespace && apiLookup != null &&
+          apiLookup.getFieldVersion("android/R\$attr", attribute.name) > minApi) {
+        // Exclude the framework attributes that were added after the current min API level.
+        return
+      }
+      if (namespace != ANDROID_URI && properties.contains(ANDROID_URI, attribute.name)) {
+        // If the corresponding framework attribute is supported, prefer the framework attribute.
+        return
+      }
+      properties.put(property.namespace, property.name, property)
+    }
+
+    private fun createProperty(namespace: String,
+                               name: String,
+                               attr: AttributeDefinition?,
+                               model: NelePropertiesModel,
+                               components: List<NlComponent>): NelePropertyItem {
+      val type = TypeResolver.resolveType(name, attr)
+      val libraryName = attr?.libraryName ?: ""
+      if (namespace == ANDROID_URI && name == ATTR_ID) {
+        return NeleIdPropertyItem(model, attr, null, components)
+      }
+      if (attr != null && attr.formats.contains(AttributeFormat.FLAGS) && attr.values.isNotEmpty()) {
+        return NeleFlagsPropertyItem(namespace, name, type, attr, libraryName, model, null, components)
+      }
+      return NelePropertyItem(namespace, name, type, attr, libraryName, model, null, components)
+    }
+
+    private fun getNamespace(descriptor: XmlAttributeDescriptor, context: XmlTag): String {
+      return (descriptor as? NamespaceAwareXmlAttributeDescriptor)?.getNamespace(context) ?: ANDROID_URI
+    }
+
+    // When components of different type are selected: e.g. a ImageButton and a TextView,
+    // we just show the attributes those components have in common.
+    private fun combine(properties: Table<String, String, NelePropertyItem>,
+                        combinedProperties: Table<String, String, NelePropertyItem>?): Table<String, String, NelePropertyItem> {
+      if (combinedProperties == null) {
+        return properties
+      }
+      val namespaces = ArrayList(combinedProperties.rowKeySet())
+      val propertiesToRemove = ArrayList<String>()
+      for (namespace in namespaces) {
+        propertiesToRemove.clear()
+        for ((name, item) in combinedProperties.row(namespace)) {
+          if (item != properties.get(namespace, name)) {
+            propertiesToRemove.add(name)
           }
-          val namePair = getPropertyName(attrDef)
-          val property = createProperty(namePair.first, namePair.second, attrDef, model, components)
-          properties.put(property.namespace, property.name, property)
+        }
+        for (propertyName in propertiesToRemove) {
+          combinedProperties.remove(namespace, propertyName)
         }
       }
-
-      inflatedClass = inflatedClass.superClass
+      // Never include the ID attribute when looking at multiple components:
+      combinedProperties.remove(ANDROID_URI, ATTR_ID)
+      return combinedProperties
     }
-  }
-
-  private fun createProperty(namespace: String,
-                             name: String,
-                             attr: AttributeDefinition?,
-                             model: NelePropertiesModel,
-                             components: List<NlComponent>): NelePropertyItem {
-    val type = TypeResolver.resolveType(name, attr)
-    val libraryName = attr?.libraryName ?: ""
-    if (namespace == ANDROID_URI && name == ATTR_ID) {
-      return NeleIdPropertyItem(model, attr, null, components)
-    }
-    if (attr != null && attr.formats.contains(AttributeFormat.FLAGS) && attr.values.isNotEmpty()) {
-      return NeleFlagsPropertyItem(namespace, name, type, attr, libraryName, model, null, components)
-    }
-    return NelePropertyItem(namespace, name, type, attr, libraryName, model, null, components)
-  }
-
-  private fun getNamespace(descriptor: XmlAttributeDescriptor, context: XmlTag): String {
-    return (descriptor as? NamespaceAwareXmlAttributeDescriptor)?.getNamespace(context) ?: ANDROID_URI
-  }
-
-  // TODO: Fix when AttributeDefinition supports namespaces
-  private fun getPropertyName(definition: AttributeDefinition): Pair<String, String> {
-    val qualifiedName = definition.name
-    if (qualifiedName.startsWith(ANDROID_NS_NAME_PREFIX)) {
-      return ANDROID_URI to StringUtil.trimStart(qualifiedName, ANDROID_NS_NAME_PREFIX)
-    }
-    return AUTO_URI to qualifiedName
-  }
-
-  // When components of different type are selected: e.g. a ImageButton and a TextView,
-  // we just show the attributes those components have in common.
-  private fun combine(properties: Table<String, String, NelePropertyItem>,
-                      combinedProperties: Table<String, String, NelePropertyItem>?): Table<String, String, NelePropertyItem> {
-    if (combinedProperties == null) {
-      return properties
-    }
-    val namespaces = ArrayList(combinedProperties.rowKeySet())
-    val propertiesToRemove = ArrayList<String>()
-    for (namespace in namespaces) {
-      propertiesToRemove.clear()
-      for ((name, item) in combinedProperties.row(namespace)) {
-        if (item != properties.get(namespace, name)) {
-          propertiesToRemove.add(name)
-        }
-      }
-      for (propertyName in propertiesToRemove) {
-        combinedProperties.remove(namespace, propertyName)
-      }
-    }
-    // Never include the ID attribute when looking at multiple components:
-    combinedProperties.remove(ANDROID_URI, ATTR_ID)
-    return combinedProperties
   }
 }
