@@ -19,6 +19,7 @@
         <item name="android:textColor">#999999</item>
         <item name="foo">?android:colorForeground</item>
     </style>
+    <attr name="app_attr2" />
     <declare-styleable name="Styleable1">
         <attr name="some_attr" format="color"/>
     </declare-styleable>

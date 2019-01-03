@@ -16,7 +16,7 @@
 package com.android.tools.idea.res.aar;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
+import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AbstractResourceRepository;
 import com.android.ide.common.resources.ResourceItem;
@@ -27,14 +27,19 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
+import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +60,7 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
 
   @Override
   @NotNull
-  protected ListMultimap<String, ResourceItem> getResourcesInternal(
+  protected final ListMultimap<String, ResourceItem> getResourcesInternal(
     @NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
     if (!namespace.equals(myNamespace)) {
       return ImmutableListMultimap.of();
@@ -64,14 +69,19 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
   }
 
   @NotNull
-  protected ListMultimap<String, ResourceItem> getOrCreateMap(@NotNull ResourceType resourceType) {
+  protected final ListMultimap<String, ResourceItem> getOrCreateMap(@NotNull ResourceType resourceType) {
     return myResources.computeIfAbsent(resourceType, type -> ArrayListMultimap.create());
+  }
+
+  protected final void addResourceItem(@NotNull ResourceItem item) {
+    ListMultimap<String, ResourceItem> multimap = getOrCreateMap(item.getType());
+    multimap.put(item.getName(), item);
   }
 
   /**
    * Populates the {@link #myPublicResources} map. Has to be called after {@link #myResources} has been populated.
    */
-  protected void populatePublicResourcesMap() {
+  protected final void populatePublicResourcesMap() {
     for (Map.Entry<ResourceType, ListMultimap<String, ResourceItem>> entry : myResources.entrySet()) {
       ResourceType resourceType = entry.getKey();
       ImmutableSet.Builder<ResourceItem> setBuilder = null;
@@ -88,11 +98,70 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
     }
   }
 
+  /**
+   * Returns a styleable with attr references replaced by attr definitions returned by the {@link #getCanonicalAttr(AttrResourceValue)}
+   * method.
+   */
+  @NotNull
+  static AarStyleableResourceItem resolveAttrReferences(@NotNull AarStyleableResourceItem styleable) {
+    AbstractAarResourceRepository repository = styleable.getRepository();
+    List<AttrResourceValue> attributes = styleable.getAllAttributes();
+    List<AttrResourceValue> resolvedAttributes = null;
+    for (int i = 0; i < attributes.size(); i++) {
+      AttrResourceValue attr = attributes.get(i);
+      AttrResourceValue canonicalAttr = repository.getCanonicalAttr(attr);
+      if (canonicalAttr != attr) {
+        if (resolvedAttributes == null) {
+          resolvedAttributes = new ArrayList<>(attributes.size());
+          for (int j = 0; j < i; j++) {
+            resolvedAttributes.add(attributes.get(j));
+          }
+        }
+        resolvedAttributes.add(canonicalAttr);
+      }
+      else if (resolvedAttributes != null) {
+        resolvedAttributes.add(attr);
+      }
+    }
+
+    if (resolvedAttributes != null) {
+      ResourceNamespace.Resolver namespaceResolver = styleable.getNamespaceResolver();
+      styleable =
+          new AarStyleableResourceItem(styleable.getName(), styleable.getSourceFile(), styleable.getVisibility(), resolvedAttributes);
+      styleable.setNamespaceResolver(namespaceResolver);
+    }
+    return styleable;
+  }
+
+  /**
+   * Makes resource maps immutable.
+   */
+  protected void freezeResources() {
+    for (Map.Entry<ResourceType, ListMultimap<String, ResourceItem>> entry : myResources.entrySet()) {
+      myResources.put(entry.getKey(), ImmutableListMultimap.copyOf(entry.getValue()));
+    }
+  }
+
   @Override
-  public void accept(@NonNull ResourceVisitor visitor) {
+  public void accept(@NotNull ResourceVisitor visitor) {
     if (visitor.shouldVisitNamespace(myNamespace)) {
       acceptByResources(myResources, visitor);
     }
+  }
+
+  @Override
+  @NotNull
+  public List<ResourceItem> getResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType,
+                                         @NotNull String resourceName) {
+    ListMultimap<String, ResourceItem> map = getResourcesInternal(namespace, resourceType);
+    List<ResourceItem> items = map.get(resourceName);
+    return items == null ? ImmutableList.of() : items;
+  }
+
+  @Override
+  @NotNull
+  public ListMultimap<String, ResourceItem> getResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
+    return getResourcesInternal(namespace, resourceType);
   }
 
   @Override
@@ -166,6 +235,31 @@ public abstract class AbstractAarResourceRepository extends AbstractResourceRepo
    */
   @NotNull
   abstract Path getOrigin();
+
+  /**
+   * For an attr reference that doesn't contain formats tries to find an attr definition the reference is pointing to.
+   * If such attr definition belongs to this resource repository and has the same description and and group name as
+   * the attr reference, returns the attr definition. Otherwise returns the attr reference passed as the parameter.
+   */
+  @NotNull
+  AttrResourceValue getCanonicalAttr(@NotNull AttrResourceValue attr) {
+    if (attr.getFormats().isEmpty()) {
+      List<ResourceItem> items = getResources(attr.getNamespace(), ResourceType.ATTR, attr.getName());
+      for (ResourceItem item : items) {
+        if (item instanceof AttrResourceValue &&
+            Objects.equals(((AttrResourceValue)item).getDescription(), attr.getDescription()) &&
+            Objects.equals(((AttrResourceValue)item).getGroupName(), attr.getGroupName())) {
+          return (AttrResourceValue)item;
+        }
+      }
+    }
+    return attr;
+  }
+
+  @NotNull
+  protected static String portableFileName(@NotNull String fileName) {
+    return fileName.replace(File.separatorChar, '/');
+  }
 
   /**
    * Parser of resource URLs. Unlike {@link com.android.resources.ResourceUrl}, this class is resilient to URL syntax

@@ -69,7 +69,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   private static final ResourceNamespace ANDROID_NAMESPACE = ResourceNamespace.ANDROID;
   private static final String CACHE_DIRECTORY = "caches/framework_resources";
   private static final byte[] CACHE_FILE_HEADER = "Framework resource cache".getBytes(StandardCharsets.UTF_8);
-  private static final String CACHE_FILE_FORMAT_VERSION = "5";
+  private static final String CACHE_FILE_FORMAT_VERSION = "6";
   private static final String ANDROID_PLUGIN_ID = "org.jetbrains.android";
 
   private static final Logger LOG = Logger.getInstance(FrameworkResourceRepository.class);
@@ -215,7 +215,8 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
       String fileName = fileOrDirectory.getFileName().toString();
       if (attrs.isDirectory()) {
-        if (fileName.startsWith("values-mcc") || fileName.startsWith("raw-")) {
+        if (fileName.startsWith("values-mcc") ||
+            fileName.startsWith("raw") && (fileName.length() == "raw".length() || fileName.charAt("raw".length()) == '-')) {
           return true; // Mobile country codes and raw resources are not used by LayoutLib.
         }
 

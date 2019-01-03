@@ -23,13 +23,14 @@ import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.ide.common.rendering.api.PluralsResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceItemWithVisibility;
-import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
 import com.android.ide.common.util.PathString;
@@ -40,21 +41,20 @@ import com.android.resources.ResourceVisibility;
 import com.android.testutils.TestUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Splitter;
-import java.io.File;
-import java.io.FileInputStream;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,8 +70,6 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
 
   private static final String LIBRARY_NAME = "design-27.1.1";
   private static final String LIBRARY_PACKAGE = "android.support.design";
-  private static final String PACKAGE_PREFIX = LIBRARY_PACKAGE.replace('.', '/') + '/';
-  private static final ResourceNamespace LIBRARY_NAMESPACE = ResourceNamespace.fromPackageName(LIBRARY_PACKAGE);
 
   private static final String TAG_ATTR = "attr";
   private static final String TAG_ENUM = "enum";
@@ -79,6 +77,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
   private static final String ATTR_NAME = "name";
   private static final String ATTR_VALUE = "value";
   private static final Pattern DIMEN_PATTERN = Pattern.compile("(?<number>-?\\d+(\\.\\d*)?)(?<suffix>px|dp|dip|sp|pt|in|mm|)");
+  private static final Pattern NUMBER_PATTERN = Pattern.compile("(?<number>-?\\d+(\\.\\d*)?)");
   private static final Splitter FLAG_SPLITTER = Splitter.on('|');
 
   private static final Comparator<ResourceItem> ITEM_COMPARATOR = (item1, item2) -> {
@@ -112,14 +111,34 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     return source1.compareTo(source2);
   };
 
+  private static final Comparator<ResourceValue> VALUE_COMPARATOR = (resourceValue1, resourceValue2) -> {
+    int comp = resourceValue1.getResourceType().compareTo(resourceValue2.getResourceType());
+    if (comp != 0) {
+      return comp;
+    }
+    comp = resourceValue1.getNamespace().compareTo(resourceValue2.getNamespace());
+    if (comp != 0) {
+      return comp;
+    }
+    comp = resourceValue1.getName().compareTo(resourceValue2.getName());
+    if (comp != 0) {
+      return comp;
+    }
+    String value1 = resourceValue1.getValue();
+    String value2 = resourceValue2.getValue();
+    if (value1 == value2) {
+      return 0;
+    }
+    if (value1 == null) {
+      return -1;
+    }
+    if (value2 == null) {
+      return 1;
+    }
+    return value1.compareTo(value2);
+  };
+
   private Path myAarFolder;
-  /**
-   * Values of flags and enumerators are stored in res.apk in numerical form. In order to be able to compare
-   * contents of a resource repository loaded from res.apk to contents of a repository loaded from the original
-   * XML files, we convert symbolic representation of flag and enum values to numerical form. This map is
-   * keyed by attribute names. The values are maps from symbolic labels to the corresponding numerical values.
-   */
-  private Map<String, Map<String, Integer>> myEnumMap;
 
   @Override
   protected void setUp() throws Exception {
@@ -127,7 +146,20 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     myAarFolder = Paths.get(myFixture.getTestDataPath(), "design_aar");
   }
 
-  private void compareContents(@NotNull ResourceRepository expected, @NotNull ResourceRepository actual) {
+  /**
+   * Checks if contents of two resource repositories are equivalent.
+   *
+   * @param expected the golden repository
+   * @param actual the repository to compare to the golden one
+   * @param enumMap the map used to establish equivalence between symbolic labels and numeric values of flags and enumerators.
+   *     The map is keyed by attribute names. The values are maps from symbolic labels to the corresponding numerical values.
+   */
+  private static void compareContents(@NotNull SingleNamespaceResourceRepository expected,
+                                      @NotNull SingleNamespaceResourceRepository actual,
+                                      @NotNull Map<String, Map<String, Integer>> enumMap) {
+    assertEquals(expected.getNamespace(), actual.getNamespace());
+    String packagePrefix = getPackagePrefix(expected);
+
     List<ResourceItem> expectedItems = new ArrayList<>(expected.getAllResources());
     List<ResourceItem> actualItems = new ArrayList<>(actual.getAllResources());
 
@@ -138,19 +170,26 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     for (int i = 0, j = 0; i < expectedItems.size() || j < actualItems.size(); i++, j++) {
       ResourceItem expectedItem = i < expectedItems.size() ? expectedItems.get(i) : null;
       ResourceItem actualItem = j < actualItems.size() ? actualItems.get(j) : null;
-      if (actualItem == null || expectedItem == null || !areEquivalent(expectedItem, actualItem)) {
-        if (actualItem != null && actualItem.getType() == ResourceType.ID) {
-          // AarSourceResourceRepository does not create ID resources for some attr values and for inline ID declarations ("@+id/name").
+      if (actualItem == null || expectedItem == null || !areEquivalent(expectedItem, actualItem, packagePrefix)) {
+        if (actualItem != null && actualItem.getType() == ResourceType.ID &&
+            ITEM_COMPARATOR.compare(actualItem, expectedItem) < 0) {
+          // AarSourceResourceRepository does not create ID resources for enum and flag values of attr resources but AAPT2 does.
           i--; // Skip the ID resource.
         } else if (actualItem != null && actualItem.getName().startsWith("$")) {
           i--; // Ignore the resource corresponding to the extracted aapt tag.
+        } else if (expectedItem != null && isEmptyAttr(expectedItem)) {
+          j--; // Ignore empty attr definitions since they are not produced by AAPT2.
+        } else if (expectedItem != null &&
+                   findEquivalentResourceInMatchingConfiguration(expectedItem, actualItems, j - 1, enumMap) != null) {
+          j--;  // AAPT2 may eliminate redundant resource definitions for matching configurations.
         } else {
           if (expectedItem == null) {
             fail("Unexpected ResourceItem at position " + j);
           }
-          assertTrue("Different ResourceItem at position " + i, previousItem != null && areEquivalent(expectedItem, previousItem));
+          assertTrue("Different ResourceItem at position " + i,
+                     previousItem != null && areEquivalent(expectedItem, previousItem, packagePrefix));
           assertTrue("Different ResourceValue at position " + i,
-                     areEquivalentResourceValues(expectedItem.getResourceValue(), previousItem.getResourceValue(), false));
+                     areEquivalentResourceValues(expectedItem.getResourceValue(), previousItem.getResourceValue(), false, enumMap));
           FolderConfiguration expectedConfiguration = expectedItem.getConfiguration();
           FolderConfiguration previousConfiguration = previousItem.getConfiguration();
           ScreenSizeQualifier expectedQualifier = expectedConfiguration.getScreenSizeQualifier();
@@ -162,28 +201,80 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
           j--;
         }
       } else {
-        assertTrue("Different ResourceItem at position " + i, areEquivalent(expectedItem, actualItem));
+        assertTrue("Different ResourceItem at position " + i, areEquivalent(expectedItem, actualItem, packagePrefix));
         assertTrue("Different ResourceValue at position " + i,
-                   areEquivalentResourceValues(expectedItem.getResourceValue(), actualItem.getResourceValue(), false));
+                   areEquivalentResourceValues(expectedItem.getResourceValue(), actualItem.getResourceValue(), false, enumMap));
         previousItem = actualItem;
       }
     }
 
     for (ResourceType type : ResourceType.values()) {
-      List<ResourceItem> expectedPublic = new ArrayList<>(expected.getPublicResources(LIBRARY_NAMESPACE, type));
-      List<ResourceItem> actualPublic = new ArrayList<>(actual.getPublicResources(LIBRARY_NAMESPACE, type));
+      List<ResourceReference> expectedPublic = expected.getPublicResources(expected.getNamespace(), type)
+          .stream()
+          .map(r -> new ResourceReference(r.getNamespace(), r.getType(), r.getName()))
+          .sorted()
+          .distinct()
+          .collect(Collectors.toList());
+      List<ResourceReference> actualPublic = actual.getPublicResources(actual.getNamespace(), type)
+          .stream()
+          .map(r -> new ResourceReference(r.getNamespace(), r.getType(), r.getName()))
+          .sorted()
+          .distinct()
+          .collect(Collectors.toList());
       assertEquals("Number of public resources doesn't match for type " + type.getName(), expectedPublic.size(), actualPublic.size());
-      expectedPublic.sort(ITEM_COMPARATOR);
-      actualPublic.sort(ITEM_COMPARATOR);
       for (int i = 0; i < expectedPublic.size(); i++) {
-        ResourceItem expectedItem = expectedPublic.get(i);
-        ResourceItem actualItem = actualPublic.get(i);
-        assertTrue("Public resource difference at position " + i + " for type " + type.getName(), areEquivalent(expectedItem, actualItem));
+        ResourceReference expectedItem = expectedPublic.get(i);
+        ResourceReference actualItem = actualPublic.get(i);
+        assertEquals("Public resource difference at position " + i + " for type " + type.getName(), expectedItem, actualItem);
       }
     }
   }
 
-  private static boolean areEquivalent(@NotNull ResourceItem item1, @NotNull ResourceItem item2) {
+  /**
+   * Searches {@code resourcesToSearch} backwards starting from {@code startIndex - 1} for a resource with the same type,
+   * namespace, name, and value as the given {@code resource} in a configuration that matches configuration of {@code resource}
+   * according to the {@link FolderConfiguration#isMatchFor(FolderConfiguration)} method.
+   *
+   * @param resource the reference resource
+   * @param resourcesToSearch the resources to search sorted by type, namespace and name.
+   * @param startIndex the index of the resource to start the search from
+   * @param enumMap the map used to establish equivalence between symbolic labels and numeric values of flags and enumerators.
+   *     The map is keyed by attribute names. The values are maps from symbolic labels to the corresponding numerical values.
+   * @return the found equivalent resource, or null if not found
+   */
+  @Nullable
+  private static ResourceItem findEquivalentResourceInMatchingConfiguration(
+      @NotNull ResourceItem resource, @NotNull List<ResourceItem> resourcesToSearch, int startIndex,
+      @NotNull Map<String, Map<String, Integer>> enumMap) {
+    for (int i = startIndex; i >= 0; i--) {
+      ResourceItem candidateMatch = resourcesToSearch.get(i);
+      if (candidateMatch.getType() != resource.getType() ||
+          !candidateMatch.getName().equals(resource.getName()) ||
+          !candidateMatch.getNamespace().equals(resource.getNamespace())) {
+        break;
+      }
+      if (candidateMatch.getConfiguration().isMatchFor(resource.getConfiguration()) &&
+          areEquivalentResourceValues(candidateMatch.getResourceValue(), resource.getResourceValue(), false, enumMap)) {
+        return candidateMatch;
+      }
+    }
+    return null;
+  }
+
+  private static boolean isEmptyAttr(@NotNull ResourceItem item) {
+    if (item.getType() != ResourceType.ATTR) {
+      return false;
+    }
+    AttrResourceValue resourceValue = (AttrResourceValue)item.getResourceValue();
+    return resourceValue.getFormats().isEmpty() && resourceValue.getAttributeValues().isEmpty();
+  }
+
+  @NotNull
+  private static String getPackagePrefix(@NotNull SingleNamespaceResourceRepository repository) {
+    return repository.getPackageName().replace('.', '/') + '/';
+  }
+
+  private static boolean areEquivalent(@NotNull ResourceItem item1, @NotNull ResourceItem item2, @NotNull String packagePrefix) {
     if (!item1.getType().equals(item2.getType())) {
       return false;
     }
@@ -203,16 +294,22 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     if (item1.isFileBased() != item2.isFileBased()) {
       return false;
     }
-    if (item1.isFileBased() && !areEquivalentSources(item1.getSource(), item2.getSource())) {
+    if (item1.isFileBased() && !areEquivalentSources(item1.getSource(), item2.getSource(), packagePrefix)) {
       return false;
     }
-    if (!areEquivalentSources(item1.getOriginalSource(), item2.getOriginalSource())) {
+    if (!areEquivalentSources(item1.getOriginalSource(), item2.getOriginalSource(), packagePrefix)) {
+      return false;
+    }
+    if (item1 instanceof ResourceItemWithVisibility && item2 instanceof ResourceItemWithVisibility &&
+        // Don't distinguish between PRIVATE and PRIVATE_XML_ONLY because AarSourceResourceRepository doesn't make this distinction.
+        (((ResourceItemWithVisibility)item1).getVisibility() == ResourceVisibility.PUBLIC) !=
+        (((ResourceItemWithVisibility)item2).getVisibility() == ResourceVisibility.PUBLIC)) {
       return false;
     }
     return true;
   }
 
-  private static boolean areEquivalentSources(@Nullable PathString path1, @Nullable PathString path2) {
+  private static boolean areEquivalentSources(@Nullable PathString path1, @Nullable PathString path2, String packagePrefix) {
     if (Objects.equals(path1, path2)) {
       return true;
     }
@@ -232,13 +329,14 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
         return portablePath1.equals(portablePath2.replace("/res.apk!/", "/"));
       }
       if (nonFileUri.getScheme().equals("jar")) {
-        return portablePath1.equals(portablePath2.replace("/res-src.jar!/" + PACKAGE_PREFIX + "0/", "/"));
+        return portablePath1.equals(portablePath2.replace("/res-src.jar!/" + packagePrefix + "0/", "/"));
       }
     }
     return false;
   }
 
-  private boolean areEquivalentResourceValues(@Nullable ResourceValue value1, @Nullable ResourceValue value2, boolean allowAttrReferences) {
+  private static boolean areEquivalentResourceValues(@Nullable ResourceValue value1, @Nullable ResourceValue value2,
+                                                     boolean forStyleableAttrs, @NotNull Map<String, Map<String, Integer>> enumMap) {
     if (value1 == value2) {
       return true;
     }
@@ -271,7 +369,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
         return false;
       }
       for (int i = 0; i < attrs1.size(); i++) {
-        if (!areEquivalentResourceValues(attrs1.get(i), attrs2.get(i), true)) {
+        if (!areEquivalentResourceValues(attrs1.get(i), attrs2.get(i), true, enumMap)) {
           return false;
         }
       }
@@ -282,30 +380,28 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     if (value1 instanceof AttrResourceValue && value2 instanceof AttrResourceValue) {
       AttrResourceValue attr1 = (AttrResourceValue)value1;
       AttrResourceValue attr2 = (AttrResourceValue)value2;
-      if (!Objects.equals(attr1.getDescription(), attr2.getDescription())) {
+      // Descriptions of top-level attrs may not match due to different order in which resource files
+      // are processed by AAPT2 and AarSourceResourceRepository.
+      if (forStyleableAttrs && !Objects.equals(attr1.getDescription(), attr2.getDescription())) {
         return false;
       }
-      if (!Objects.equals(attr1.getGroupName(), attr2.getGroupName())) {
+      if (!areEquivalentGroupNames(attr1.getGroupName(), attr2.getGroupName())) {
         return false;
       }
 
-      if (allowAttrReferences && attr1 instanceof AarAttrReference != attr2 instanceof AarAttrReference) {
-        // In a proto resource repository a styleable contains attr references, not definitions.
-        // Attr references don't include formats or attribute values.
-        return true;
-      }
-
-      if (!Objects.equals(attr1.getFormats(), attr2.getFormats())) {
-        return false;
-      }
-      Map<String, Integer> attrValues1 = attr1.getAttributeValues();
-      Map<String, Integer> attrValues2 = attr2.getAttributeValues();
-      if (!attrValues1.equals(attrValues2)) {
-        return false;
-      }
-      for (String valueName: attrValues1.keySet()) {
-        if (!Objects.equals(attr1.getValueDescription(valueName), attr2.getValueDescription(valueName))) {
+      if (!forStyleableAttrs || !(attr1 instanceof AarAttrReference) && !(attr2 instanceof AarAttrReference)) {
+        if (!Objects.equals(attr1.getFormats(), attr2.getFormats())) {
           return false;
+        }
+        Map<String, Integer> attrValues1 = attr1.getAttributeValues();
+        Map<String, Integer> attrValues2 = attr2.getAttributeValues();
+        if (!attrValues1.equals(attrValues2)) {
+          return false;
+        }
+        for (String valueName : attrValues1.keySet()) {
+          if (!Objects.equals(attr1.getValueDescription(valueName), attr2.getValueDescription(valueName))) {
+            return false;
+          }
         }
       }
     } else if ((value1 instanceof AttrResourceValue) != (value2 instanceof AttrResourceValue)) {
@@ -318,17 +414,17 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       if (!Objects.equals(style1.getParentStyle(), style2.getParentStyle())) {
         return false;
       }
-      Collection<StyleItemResourceValue> items1 = style1.getDefinedItems();
-      Collection<StyleItemResourceValue> items2 = style2.getDefinedItems();
-      if (items1.size() != items2.size()) {
+      List<StyleItemResourceValue> styleItems1 = new ArrayList<>(style1.getDefinedItems());
+      List<StyleItemResourceValue> styleItems2 = new ArrayList<>(style2.getDefinedItems());
+      if (styleItems1.size() != styleItems2.size()) {
         return false;
       }
-      Iterator<StyleItemResourceValue> it1 = items1.iterator();
-      Iterator<StyleItemResourceValue> it2 = items2.iterator();
-      while (it1.hasNext()) {
-        StyleItemResourceValue item1 = it1.next();
-        StyleItemResourceValue item2 = it2.next();
-        if (!areEquivalentResourceValues(item1, item2, true)) {
+      styleItems1.sort(VALUE_COMPARATOR);
+      styleItems2.sort(VALUE_COMPARATOR);
+      for (int i = 0; i < styleItems1.size(); i++) {
+        StyleItemResourceValue item1 = styleItems1.get(i);
+        StyleItemResourceValue item2 = styleItems2.get(i);
+        if (!areEquivalentResourceValues(item1, item2, true, enumMap)) {
           return false;
         }
       }
@@ -343,7 +439,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
         return false;
       }
       for (int i = 0; i < array1.getElementCount(); i++) {
-        if (!array1.getElement(i).equals(array2.getElement(i))) {
+        if (!areEquivalentValues(array1.getElement(i), array2.getElement(i))) {
           return false;
         }
       }
@@ -358,7 +454,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
         return false;
       }
       for (int i = 0; i < plural1.getPluralsCount(); i++) {
-        if (!plural1.getQuantity(i).equals(plural2.getQuantity(i)) || !plural1.getValue(i).equals(plural2.getValue(i))) {
+        if (!plural1.getQuantity(i).equals(plural2.getQuantity(i)) || !areEquivalentValues(plural1.getValue(i), plural2.getValue(i))) {
           return false;
         }
       }
@@ -396,20 +492,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
         break;
 
       case STRING:
-        if (!v2.contains("%")) {
-          String temp = v1;
-          v1 = v2;
-          v2 = temp;
-        }
-        if (v2.contains("%")) {
-          // AAR string resources do not contain any xliff information.
-          // Allow "Share with %s" to match "Share with (Mail)" or "Share with ${application_name}".
-          Pattern pattern = buildPattern(v2);
-          if (pattern.matcher(v1).matches()) {
-            return true;
-          }
-        }
-        break;
+        return areEquivalentStrings(v1, v2);
 
       case STYLE_ITEM:
         ResourceUrl url1 = ResourceUrl.parse(v1);
@@ -436,18 +519,27 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       // The second value is a number, but the first value is not. Try to convert the first value to a number
       // and compare again.
       try {
-        if (getNumericValue(value1.getName(), v1) == Long.decode(v2).intValue()) {
+        if (getNumericValue(value1.getName(), v1, enumMap) == Long.decode(v2).intValue()) {
           return true;
         }
       } catch (IllegalArgumentException e) {
         return false;
       }
     }
-    return false;
+    if (!areEquivalentValues(v1, v2)) {
+      return false;
+    }
+    return true;
   }
 
-  private int getNumericValue(@NotNull String attributeName, @NotNull String value) {
-    Map<String, Integer> map = myEnumMap.get(attributeName);
+  private static boolean areEquivalentGroupNames(@Nullable String groupName1, @Nullable String groupName2) {
+    // Proto resource repository always returns null attr group names, so don't compare group names if at least one of them is null.
+    return groupName1 == null || groupName2 == null || groupName1.equals(groupName2);
+  }
+
+  private static int getNumericValue(@NotNull String attributeName, @NotNull String value,
+                                     @NotNull Map<String, Map<String, Integer>> enumMap) {
+    Map<String, Integer> map = enumMap.get(attributeName);
     if (map == null) {
       throw new IllegalArgumentException(attributeName);
     }
@@ -476,6 +568,45 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     return number + suffix;
   }
 
+  @NotNull
+  private static String normalizeNumericValue(@NotNull String value) {
+    Matcher matcher = NUMBER_PATTERN.matcher(value);
+    if (!matcher.matches()) {
+      return value;
+    }
+    return XmlUtils.trimInsignificantZeros(value);
+  }
+
+  private static boolean areEquivalentValues(@NotNull String v1, @NotNull String v2) {
+    if (v1.equals(v2)) {
+      return true;
+    }
+    if (normalizeNumericValue(v1).equals(normalizeNumericValue(v2))) {
+      return true;
+    }
+    if (v1.startsWith("#") && v1.startsWith("#") && v1.equalsIgnoreCase(v2)) {
+      return true;
+    }
+    return areEquivalentStrings(v1, v2);
+  }
+
+  private static boolean areEquivalentStrings(@NotNull String v1, @NotNull String v2) {
+    if (!v2.contains("%")) {
+      String temp = v1;
+      v1 = v2;
+      v2 = temp;
+    }
+    if (v2.contains("%")) {
+      // AAR string resources do not contain any xliff information.
+      // Allow "Share with %s" to match "Share with (Mail)" or "Share with ${application_name}".
+      Pattern pattern = buildPattern(v2);
+      if (pattern.matcher(v1).matches()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Builds a regular expression pattern replacing format specifiers with (\$\{.*\}|\(.*\)) patterns and
    * escaping the rest the string.
@@ -486,58 +617,75 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
   @NotNull
   private static Pattern buildPattern(@NotNull String formatStr) {
     StringBuilder buf = new StringBuilder(formatStr.length() * 2);
-    boolean escaped = false;
+    StringBuilder formatSpecifier = new StringBuilder();
+    boolean afterBackslash = false;
     boolean inFormatSpecifier = false;
     for (int i = 0; i < formatStr.length(); i++) {
       char c = formatStr.charAt(i);
       if (inFormatSpecifier) {
-        if (c == 's') {
-          buf.append("(\\$\\{.*\\}|\\(.*\\))");
+        appendWithEscaping(c, formatSpecifier, afterBackslash);
+        if (c == 's' || c == 'd') {
+          buf.append("(\\$\\{.*\\}|\\(.*\\)|").append(formatSpecifier).append(')');
+          formatSpecifier.setLength(0);
           inFormatSpecifier = false;
         }
       } else {
-        switch (c) {
-          case '%':
-            if (escaped) {
-              buf.append(c);
-              escaped = false;
-            } else {
-              inFormatSpecifier = true;
-            }
-            break;
-          case '\\':
-          case '.':
-          case '^':
-          case '$':
-          case '|':
-          case '(':
-          case ')':
-          case '{':
-          case '}':
-          case '[':
-          case ']':
-          case '*':
-          case '+':
-          case '?':
-            buf.append('\\').append(c);
-            escaped = c != '\\' || !escaped;
-            break;
-          default:
+        if (c == '%') {
+          if (afterBackslash) {
             buf.append(c);
-            escaped = false;
-            break;
+            afterBackslash = false;
+          }
+          else {
+            formatSpecifier.append(c);
+            inFormatSpecifier = true;
+          }
+        }
+        else {
+          afterBackslash = appendWithEscaping(c, buf, afterBackslash);
         }
       }
     }
     return Pattern.compile(buf.toString());
   }
 
-  private static Map<String, Map<String, Integer>> loadEnumMap() throws Exception {
-    File res = getSdkResFolder();
-    File file = new File(res, "values/attrs.xml");
+  private static boolean appendWithEscaping(char c, @NotNull StringBuilder destination, boolean afterBackslash) {
+    switch (c) {
+      case '\\':
+      case '.':
+      case '^':
+      case '$':
+      case '|':
+      case '(':
+      case ')':
+      case '{':
+      case '}':
+      case '[':
+      case ']':
+      case '*':
+      case '+':
+      case '?':
+        destination.append('\\').append(c);
+        afterBackslash = c == '\\' && !afterBackslash;
+        break;
+      default:
+        destination.append(c);
+        afterBackslash = false;
+        break;
+    }
+    return afterBackslash;
+  }
+
+  /**
+   * Values of flags and enumerators are stored in res.apk in numerical form. In order to be able to compare
+   * contents of a resource repository loaded from res.apk to contents of a repository loaded from the original
+   * XML files, we convert symbolic representation of flag and enum values to numerical form. The returned map is
+   * keyed by attribute names. The values are maps from symbolic labels to the corresponding numerical values.
+   */
+  static Map<String, Map<String, Integer>> loadEnumMap(@NotNull Path sdkResFolder) throws Exception {
+    Path file = sdkResFolder.resolve("values/attrs.xml");
     Map<String, Map<String, Integer>> map = new HashMap<>();
     XmlPullParser xmlPullParser = XmlPullParserFactory.newInstance().newPullParser();
-    xmlPullParser.setInput(new FileInputStream(file), null);
+    xmlPullParser.setInput(Files.newInputStream(file), null);
     int eventType = xmlPullParser.getEventType();
     String attr = null;
     while (eventType != XmlPullParser.END_DOCUMENT) {
@@ -567,30 +715,26 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     return map;
   }
 
-  private void updateEnumMap(@NotNull AarSourceResourceRepository repository) {
+  private static void updateEnumMap(@NotNull Map<String, Map<String, Integer>> enumMap, @NotNull AarSourceResourceRepository repository) {
     ResourceNamespace namespace = repository.getNamespace();
-    Collection<ResourceItem> items = repository.getResources(namespace, ResourceType.STYLEABLE).values();
-    for (ResourceItem item : items) {
-      ResourceValue value = item.getResourceValue();
-      if (value instanceof StyleableResourceValue) {
-        List<AttrResourceValue> attributes = ((StyleableResourceValue)value).getAllAttributes();
-        for (AttrResourceValue attribute : attributes) {
-          Map<String, Integer> map = myEnumMap.get(attribute.getName());
-          if (map == null) {
-            map = new HashMap<>();
-            myEnumMap.put(attribute.getName(), map);
-          }
-          map.putAll(attribute.getAttributeValues());
+    Collection<ResourceItem> items = repository.getResources(namespace, ResourceType.ATTR).values();
+    for (ResourceItem item: items) {
+      ResourceValue attr = item.getResourceValue();
+      if (attr instanceof AttrResourceValue) {
+        Map<String, Integer> attributeValues = ((AttrResourceValue)attr).getAttributeValues();
+        if (!attributeValues.isEmpty()) {
+          Map<String, Integer> map = enumMap.computeIfAbsent(attr.getName(), name -> new HashMap<>());
+          map.putAll(attributeValues);
         }
       }
     }
   }
 
   @NotNull
-  private static File getSdkResFolder() {
+  private static Path getSdkResFolder() {
     String sdkPath = TestUtils.getSdk().toString();
     String platformDir = TestUtils.getLatestAndroidPlatform();
-    return new File(sdkPath + "/platforms/" + platformDir + "/data/res");
+    return Paths.get(sdkPath, "platforms", platformDir, "/data/res");
   }
 
   private static void checkVisibility(@NotNull AarProtoResourceRepository repository) {
@@ -609,7 +753,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
 
   private static void checkSourceAttachments(@NotNull AarProtoResourceRepository repository, @NotNull Path aarFolder) {
     List<ResourceItem> resources = repository.getAllResources();
-    String xmlFilePrefix = "jar://" + aarFolder.resolve("res-src.jar").toString() + "!/" + PACKAGE_PREFIX + "0/res/";
+    String xmlFilePrefix = "jar://" + aarFolder.resolve("res-src.jar").toString() + "!/" + getPackagePrefix(repository) + "0/res/";
     String nonXmlFilePrefix = "apk://" + aarFolder.resolve("res.apk").toString() + "!/res/";
     for (ResourceItem resource : resources) {
       PathString originalSource = resource.getOriginalSource();
@@ -624,7 +768,8 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testLoading() throws Exception {
-    myEnumMap = loadEnumMap();
+    // Load enums and flags defined by the Android framework.
+    Map<String, Map<String, Integer>> enumMap = loadEnumMap(getSdkResFolder());
 
     long loadTimeFromSources = 0;
     long loadTimeFromResApk = 0;
@@ -642,8 +787,9 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
       assertEquals(LIBRARY_NAME, fromResApk.getLibraryName());
       assertEquals(namespace, fromResApk.getNamespace());
       if (i == 0) {
-        updateEnumMap(fromSources);
-        compareContents(fromSources, fromResApk);
+        // Update enumMap by adding enums defined by the library we are testing with.
+        updateEnumMap(enumMap, fromSources);
+        compareContents(fromSources, fromResApk, enumMap);
         checkVisibility(fromResApk);
         checkSourceAttachments(fromResApk, myAarFolder);
       }

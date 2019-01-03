@@ -17,13 +17,14 @@ package com.android.tools.idea.res.aar;
 
 import com.android.ide.common.rendering.api.PluralsResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.resources.Arity;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ObjectIntHashMap;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,8 +32,8 @@ import org.jetbrains.annotations.Nullable;
  * Resource item representing a plurals resource.
  */
 final class AarPluralsResourceItem extends AbstractAarValueResourceItem implements PluralsResourceValue {
-  @NotNull private final List<String> myQuantities;
-  @NotNull private final List<String> myValues;
+  @NotNull private final Arity[] myArities;
+  @NotNull private final String[] myValues;
 
   /**
    * Initializes the resource.
@@ -40,43 +41,49 @@ final class AarPluralsResourceItem extends AbstractAarValueResourceItem implemen
    * @param name the name of the resource
    * @param sourceFile the source file containing definition of the resource
    * @param visibility the visibility of the resource
-   * @param quantities the quantities, e.g. "one", "two", "few"
-   * @param values the values corresponding to the quantities
+   * @param quantityValues the values corresponding to quantities
    */
   public AarPluralsResourceItem(@NotNull String name,
                                 @NotNull AarSourceFile sourceFile,
                                 @NotNull ResourceVisibility visibility,
-                                @NotNull List<String> quantities,
-                                @NotNull List<String> values) {
+                                @NotNull Map<Arity, String> quantityValues) {
+    this(name, sourceFile, visibility,
+         quantityValues.keySet().toArray(Arity.EMPTY_ARRAY), quantityValues.values().toArray(ArrayUtil.EMPTY_STRING_ARRAY));
+  }
+
+  private AarPluralsResourceItem(@NotNull String name,
+                                 @NotNull AarSourceFile sourceFile,
+                                 @NotNull ResourceVisibility visibility,
+                                 @NotNull Arity[] arities,
+                                 @NotNull String[] values) {
     super(ResourceType.PLURALS, name, sourceFile, visibility);
-    assert quantities.size() == values.size();
-    myQuantities = quantities;
+    myArities = arities;
     myValues = values;
   }
 
   @Override
   public int getPluralsCount() {
-    return myQuantities.size();
+    return myArities.length;
   }
 
   @Override
   @NotNull
   public String getQuantity(int index) {
-    return myQuantities.get(index);
+    return myArities[index].getName();
   }
 
   @Override
   @NotNull
   public String getValue(int index) {
-    return myValues.get(index);
+    return myValues[index];
   }
 
   @Override
   @Nullable
   public String getValue(@NotNull String quantity) {
-    for (int i = 0, n = myQuantities.size(); i < n; i++) {
-      if (quantity.equals(myQuantities.get(i))) {
-        return myValues.get(i);
+    for (int i = 0, n = myArities.length; i < n; i++) {
+      if (quantity.equals(myArities[i])) {
+        return myValues[i];
       }
     }
 
@@ -86,7 +93,7 @@ final class AarPluralsResourceItem extends AbstractAarValueResourceItem implemen
   @Override
   @Nullable
   public String getValue() {
-    return myValues.isEmpty() ? null : myValues.get(0);
+    return myValues.length == 0 ? null : myValues[0];
   }
 
   @Override
@@ -94,7 +101,7 @@ final class AarPluralsResourceItem extends AbstractAarValueResourceItem implemen
     if (this == obj) return true;
     if (!super.equals(obj)) return false;
     AarPluralsResourceItem other = (AarPluralsResourceItem) obj;
-    return myQuantities.equals(other.myQuantities) && myValues.equals(other.myValues);
+    return Arrays.equals(myArities, other.myArities) && Arrays.equals(myValues, other.myValues);
   }
 
   @Override
@@ -103,11 +110,11 @@ final class AarPluralsResourceItem extends AbstractAarValueResourceItem implemen
                  @NotNull ObjectIntHashMap<AarSourceFile> sourceFileIndexes,
                  @NotNull ObjectIntHashMap<ResourceNamespace.Resolver> namespaceResolverIndexes) throws IOException {
     super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
-    int n = myQuantities.size();
+    int n = myArities.length;
     stream.writeInt(n);
     for (int i = 0; i < n; i++) {
-      stream.writeString(myQuantities.get(i));
-      stream.writeString(myValues.get(i));
+      stream.writeInt(myArities[i].ordinal());
+      stream.writeString(myValues[i]);
     }
   }
 
@@ -121,13 +128,13 @@ final class AarPluralsResourceItem extends AbstractAarValueResourceItem implemen
                                             @NotNull AarSourceFile sourceFile,
                                             @NotNull ResourceNamespace.Resolver resolver) throws IOException {
     int n = stream.readInt();
-    List<String> quantities = n == 0 ? Collections.emptyList() : new ArrayList<>(n);
-    List<String> values = n == 0 ? Collections.emptyList() : new ArrayList<>(n);
+    Arity[] arities = n == 0 ? Arity.EMPTY_ARRAY : new Arity[n];
+    String[] values = n == 0 ? ArrayUtil.EMPTY_STRING_ARRAY : new String[n];
     for (int i = 0; i < n; i++) {
-      quantities.add(stream.readString());
-      values.add(stream.readString());
+      arities[i] = Arity.values()[stream.readInt()];
+      values[i] = stream.readString();
     }
-    AarPluralsResourceItem item = new AarPluralsResourceItem(name, sourceFile, visibility, quantities, values);
+    AarPluralsResourceItem item = new AarPluralsResourceItem(name, sourceFile, visibility, arities, values);
     item.setNamespaceResolver(resolver);
     return item;
   }

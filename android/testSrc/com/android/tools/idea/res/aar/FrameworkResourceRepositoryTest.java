@@ -46,6 +46,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
@@ -334,6 +335,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   private static void checkContents(@NotNull ResourceRepository repository) {
     checkPublicResourcesCount(repository);
     checkAttributes(repository);
+    checkIdResources(repository);
   }
 
   private static void checkAttributes(@NotNull ResourceRepository repository) {
@@ -365,6 +367,12 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
                                                 @NotNull String attrName) {
     ResourceItem attrItem = repository.getResources(ResourceNamespace.ANDROID, ResourceType.ATTR, attrName).get(0);
     return (AttrResourceValue)attrItem.getResourceValue();
+  }
+
+  private static void checkIdResources(@NotNull ResourceRepository repository) {
+    List<ResourceItem> items = repository.getResources(ResourceNamespace.ANDROID, ResourceType.ID, "mode_normal");
+    items = items.stream().filter(item -> item.getConfiguration().isDefault()).collect(Collectors.toList());
+    assertThat(items).hasSize(1);
   }
 
   private static void checkPublicResourcesCount(@NotNull ResourceRepository repository) {
