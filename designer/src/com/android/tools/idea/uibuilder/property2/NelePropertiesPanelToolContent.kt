@@ -16,7 +16,8 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.adtui.stdui.registerActionKey
+import com.android.tools.adtui.stdui.registerAnActionKey
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.idea.common.property2.api.PropertiesPanel
@@ -53,10 +54,10 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
     add(properties.component, BorderLayout.CENTER)
     properties.addView(componentView)
     properties.addView(motionEditorView)
-    registerKeyAction(showResolvedValueAction, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
+    registerActionKey({ toolWindow?.startFiltering("") }, KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask()), "search",
                       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerKeyAction({ toolWindow?.startFiltering("") }, KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask()), "search",
-                      WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerAnActionKey({ showResolvedValueAction }, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
+                        WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
 
   override fun setToolContext(toolContext: DesignSurface?) {

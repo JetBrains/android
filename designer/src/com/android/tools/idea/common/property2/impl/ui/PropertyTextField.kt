@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.stdui.CommonTextField
-import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
@@ -31,13 +31,13 @@ import javax.swing.JComponent
  */
 class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel) {
   init {
-    registerKeyAction({ enter() }, KeyStrokes.enter, "enter")
-    registerKeyAction({ tab() }, KeyStrokes.tab, "tab")
-    registerKeyAction({ backTab() }, KeyStrokes.backtab, "backTab")
-    registerKeyAction({ escape() }, KeyStrokes.escape, "escape")
-    registerKeyAction({ editorModel.f1KeyPressed() }, KeyStrokes.f1, "help")
-    registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
-    registerKeyAction({ editorModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
+    registerActionKey({ enter() }, KeyStrokes.enter, "enter")
+    registerActionKey({ tab() }, KeyStrokes.tab, "tab")
+    registerActionKey({ backTab() }, KeyStrokes.backtab, "backTab")
+    registerActionKey({ escape() }, KeyStrokes.escape, "escape")
+    registerActionKey({ editorModel.f1KeyPressed() }, KeyStrokes.f1, "help")
+    registerActionKey({ editorModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
+    registerActionKey({ editorModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
     addFocusListener(TextEditorFocusListener(this, this, editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves

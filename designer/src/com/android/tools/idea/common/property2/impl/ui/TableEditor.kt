@@ -20,7 +20,7 @@ import com.android.tools.adtui.ptable2.PTable
 import com.android.tools.adtui.ptable2.PTableCellEditorProvider
 import com.android.tools.adtui.ptable2.PTableCellRendererProvider
 import com.android.tools.adtui.ptable2.PTableColumn
-import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
@@ -52,9 +52,9 @@ class TableEditor(val lineModel: TableLineModelImpl,
       val item = if (index >= 0 && index < model.items.size) model.items[index] else null
       lineModel.selectedItem = item
     }
-    component.registerKeyAction({ (lineModel.selectedItem as? HelpSupport)?.browse() }, KeyStrokes.browse, "browse")
-    component.registerKeyAction({ (lineModel.selectedItem as? HelpSupport)?.help() }, KeyStrokes.f1, "help")
-    component.registerKeyAction({ (lineModel.selectedItem as? HelpSupport)?.secondaryHelp() }, KeyStrokes.shiftF1, "help2")
+    component.registerActionKey({ (lineModel.selectedItem as? HelpSupport)?.browse() }, KeyStrokes.browse, "browse")
+    component.registerActionKey({ (lineModel.selectedItem as? HelpSupport)?.help() }, KeyStrokes.f1, "help")
+    component.registerActionKey({ (lineModel.selectedItem as? HelpSupport)?.secondaryHelp() }, KeyStrokes.shiftF1, "help2")
   }
 
   private fun handleValueChanged() {

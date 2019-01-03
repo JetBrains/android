@@ -41,11 +41,11 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : JComboB
     @Suppress("LeakingThis")
     super.setEditor(CommonComboBoxEditor(model, this))
     textField = editor.editorComponent as CommonTextField<*>
-    textField?.registerKeyAction({ moveNext() }, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "moveNext")
-    textField?.registerKeyAction({ movePrevious() }, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "movePrevious")
-    textField?.registerKeyAction({ moveNextPage() }, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), "moveNextPage")
-    textField?.registerKeyAction({ movePreviousPage() }, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), "movePreviousPage")
-    textField?.registerKeyAction({ togglePopup() }, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_DOWN_MASK), "toggle")
+    textField?.registerActionKey({ moveNext() }, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "moveNext")
+    textField?.registerActionKey({ movePrevious() }, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "movePrevious")
+    textField?.registerActionKey({ moveNextPage() }, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), "moveNextPage")
+    textField?.registerActionKey({ movePreviousPage() }, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), "movePreviousPage")
+    textField?.registerActionKey({ togglePopup() }, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_DOWN_MASK), "toggle")
 
     setFromModel()
 

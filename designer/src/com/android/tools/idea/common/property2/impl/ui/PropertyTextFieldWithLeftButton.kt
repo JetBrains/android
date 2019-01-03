@@ -17,7 +17,7 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.idea.common.property2.impl.support.ImageFocusListener
@@ -57,11 +57,11 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     textField.isOpaque = false
     super.add(leftComponent, BorderLayout.WEST)
     super.add(textField, BorderLayout.CENTER)
-    leftButton?.registerKeyAction({ buttonPressed(null) }, KeyStrokes.space, "space")
-    leftButton?.registerKeyAction({ buttonPressed(null) }, KeyStrokes.enter, "enter")
-    leftButton?.registerKeyAction({ editorModel.f1KeyPressed() }, KeyStrokes.f1, "help")
-    leftButton?.registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
-    leftButton?.registerKeyAction({ editorModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
+    leftButton?.registerActionKey({ buttonPressed(null) }, KeyStrokes.space, "space")
+    leftButton?.registerActionKey({ buttonPressed(null) }, KeyStrokes.enter, "enter")
+    leftButton?.registerActionKey({ editorModel.f1KeyPressed() }, KeyStrokes.f1, "help")
+    leftButton?.registerActionKey({ editorModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
+    leftButton?.registerActionKey({ editorModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
 
     editorModel.addListener(ValueChangedListener { updateFromModel() })
     leftButton?.addMouseListener(object: MouseAdapter() {
