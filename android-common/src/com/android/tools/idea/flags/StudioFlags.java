@@ -390,6 +390,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "ui.editing", "Enable editing ViewNode properties in the properties table.",
     "If enabled, users can edit properties in the properties table.", false);
+  public static final Flag<Boolean>  DYNAMIC_LAYOUT_INSPECTOR_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector", "Enable dynamic layout inspector",
+    "Turns on the dynamic layout inspector.", false);
 
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
   public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(
