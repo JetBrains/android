@@ -333,52 +333,67 @@ public class AttributeProcessingUtil {
     return TagToClassMapper.getInstance(facet.getModule()).getClassMap(className);
   }
 
+  /**
+   * Returns the expected styleable name for the layout attributes defined by the
+   * specified PsiClass of the layout.
+   */
+  @Nullable
+  public static String getLayoutStyleablePrimary(@NotNull PsiClass psiLayoutClass) {
+    String viewName = psiLayoutClass.getName();
+    if (viewName == null) {
+      return null;
+    }
+    // Not using Map here for lookup by prefix for performance reasons - using switch instead of ImmutableMap makes
+    // attribute highlighting 20% faster as measured by AndroidLayoutDomTest#testCustomAttrsPerformance
+    switch (viewName) {
+      case VIEW_GROUP:
+        return "ViewGroup_MarginLayout";
+      case TABLE_ROW:
+        return "TableRow_Cell";
+      default:
+        return viewName + "_Layout";
+    }
+  }
+
+  /**
+   * Returns a styleable name that is mistakeely used for the layout attributes defined by the
+   * specified PsiClass of the layout.
+   */
+  @Nullable
+  public static String getLayoutStyleableSecondary(@NotNull PsiClass psiLayoutClass) {
+    String viewName = psiLayoutClass.getName();
+    if (viewName == null) {
+      return null;
+    }
+    // Not using Map here for lookup by prefix for performance reasons - using switch instead of ImmutableMap makes
+    // attribute highlighting 20% faster as measured by AndroidLayoutDomTest#testCustomAttrsPerformance
+    switch (viewName) {
+      case "AppBarLayout":
+      case "CollapsingToolbarLayout":
+      case "CoordinatorLayout":
+        // Support library doesn't have particularly consistent naming
+        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
+        return viewName + "_LayoutParams";
+
+      default:
+        return null;
+    }
+  }
+
   private static void registerAttributesFromSuffixedStyleables(@NotNull AndroidFacet facet,
                                                                @NotNull DomElement element,
                                                                @NotNull PsiClass psiClass,
                                                                @NotNull AttributeProcessor callback,
                                                                @NotNull Set<XmlName> skipAttrNames) {
-    String viewName = psiClass.getName();
-    if (viewName == null) {
-      return;
+    String primary = getLayoutStyleablePrimary(psiClass);
+    if (primary != null) {
+      registerAttributes(facet, element, primary, getResourcePackage(psiClass), callback, skipAttrNames);
     }
 
-    // Not using Map here for lookup by prefix for performance reasons - using switch instead of ImmutableMap makes
-    // attribute highlighting 20% faster as measured by AndroidLayoutDomTest#testCustomAttrsPerformance
-    String styleableName;
-    switch (viewName) {
-      case "ViewGroup":
-        styleableName = "ViewGroup_MarginLayout";
-        break;
-      case "TableRow":
-        styleableName = "TableRow_Cell";
-        break;
-      case "CollapsingToolbarLayout":
-        // Support library doesn't have particularly consistent naming
-        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "CollapsingAppBarLayout_LayoutParams", null, callback, skipAttrNames);
-
-        styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
-        break;
-      case "CoordinatorLayout":
-        // Support library doesn't have particularly consistent naming
-        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "CoordinatorLayout_LayoutParams", null, callback, skipAttrNames);
-
-        styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
-        break;
-      case "AppBarLayout":
-        // Support library doesn't have particularly consistent naming
-        // Styleable definition: https://android.googlesource.com/platform/frameworks/support/+/master/design/res/values/attrs.xml
-        registerAttributes(facet, element, "AppBarLayout_LayoutParams", null, callback, skipAttrNames);
-
-        styleableName = viewName + "_Layout";  // This is what it should be... (may be fixed in the future)
-        break;
-      default:
-        styleableName = viewName + "_Layout";
+    String secondary = getLayoutStyleableSecondary(psiClass);
+    if (secondary != null) {
+      registerAttributes(facet, element, secondary, null, callback, skipAttrNames);
     }
-
-    registerAttributes(facet, element, styleableName, getResourcePackage(psiClass), callback, skipAttrNames);
   }
 
   /**
