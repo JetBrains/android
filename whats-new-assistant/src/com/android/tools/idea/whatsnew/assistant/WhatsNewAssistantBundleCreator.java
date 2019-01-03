@@ -255,13 +255,33 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
     return String.format("%d.%d.%d", revision.getMajor(), revision.getMinor(), revision.getMicro());
   }
 
-  public static boolean shouldShowReleaseNotes() {
+  public static boolean shouldShowWhatsNew() {
+    if (!shouldShowReleaseNotes())
+      return false;
+    return hasResourceConfig();
+  }
+
+  @VisibleForTesting
+  static boolean shouldShowReleaseNotes() {
     if (!(StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.get() && IdeInfo.getInstance().isAndroidStudio())) return false;
 
     Optional<AssistantBundleCreator> creator = getCreator();
     // We can't test if the config file exists until after the download attempt, which occurs later
-    // TODO: possibly initialize the file + downloading before the panel needs to be opened
     return creator.isPresent();
+  }
+
+  /**
+   * Checks whether this version of Studio has a matching version resource.
+   * @return true if a resource config exists for current Studio version
+   */
+  private static boolean hasResourceConfig() {
+    try (InputStream stream = WhatsNewAssistantBundleCreator.class.getResourceAsStream("/" + getVersion() + ".xml")) {
+      return stream != null;
+    }
+    catch (IOException e) {
+      getLog().warn(e);
+      return false;
+    }
   }
 
   @VisibleForTesting
