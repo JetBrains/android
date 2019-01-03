@@ -34,6 +34,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiReference
 import com.intellij.psi.SmartPointerManager
@@ -67,8 +68,7 @@ import javax.swing.JList
 class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardLayout()) {
 
   private val asyncIcon = AsyncProcessIcon("find NavHostFragments")
-  private val model = DefaultListModel<SmartPsiElementPointer<XmlTag>>()
-  @VisibleForTesting val list = JBList<SmartPsiElementPointer<XmlTag>>(model)
+  @VisibleForTesting val list = JBList<SmartPsiElementPointer<XmlTag>>(DefaultListModel())
   private val cardLayout = layout as CardLayout
   private var resourceVersion = 0L
 
@@ -183,12 +183,15 @@ class HostPanel(private val surface: NavDesignSurface) : AdtSecondaryPanel(CardL
 
       ProgressManager.getInstance().executeProcessUnderProgress(
         {
-          ApplicationManager.getApplication().runReadAction {
-            model.clear()
-            findReferences(psi).forEach { model.addElement(SmartPointerManager.createPointer(it)) }
+          surface.model?.project?.let { project ->
+            val listModel = list.model as DefaultListModel
+            listModel.clear()
+            DumbService.getInstance(project).runReadActionInSmartMode {
+              findReferences(psi).forEach { listModel.addElement(SmartPointerManager.createPointer(it)) }
+            }
           }
+          cardLayout.show(this, "LIST")
         }, EmptyProgressIndicator())
-      cardLayout.show(this, "LIST")
     }
   }
 }
