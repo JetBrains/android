@@ -1302,6 +1302,11 @@
     <moduleDescriptionProvider implementation="com.android.tools.idea.npw.java.NewJavaModuleDescriptionProvider"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="com.android.tools.idea.npw.dynamicapp.ConditionalDeliverySettings"
+                      serviceImplementation="com.android.tools.idea.npw.dynamicapp.ConditionalDeliverySettings"/>
+  </extensions>
+
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
     <newResourceCreationHandler
         implementation="com.android.tools.idea.gradle.actions.GradleNewResourceCreationHandler" />

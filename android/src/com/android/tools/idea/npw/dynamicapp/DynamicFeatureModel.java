@@ -169,7 +169,9 @@ public class DynamicFeatureModel extends WizardModel {
     myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, false);
     myTemplateValues.put(ATTR_DYNAMIC_IS_INSTANT_MODULE, instantModule().get());
     // Dynamic delivery conditions
-    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY, StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get());
+    myTemplateValues.put(
+      ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY,
+      StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get() && ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC);
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME);
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS);
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.ON_DEMAND_ONLY);
