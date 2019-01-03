@@ -433,7 +433,7 @@ class NelePropertyItemTest : PropertyTestCase() {
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
 
     registerProjectComponentImplementation(FileEditorManager::class.java, fileManager)
-    property.browse()
+    property.helpSupport.browse()
     Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
     assertThat(descriptor.file.name).isEqualTo("styles_material.xml")

@@ -21,6 +21,7 @@ import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.intellij.util.ui.ThreeStateCheckBox
 
 /**
@@ -47,9 +48,7 @@ private class CustomThreeStateCheckBox(private val propertyModel: ThreeStateBool
 
   init {
     state = toThreeStateValue(propertyModel.value)
-    registerActionKey({ propertyModel.f1KeyPressed() }, KeyStrokes.f1, "help")
-    registerActionKey({ propertyModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
-    registerActionKey({ propertyModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
+    HelpSupportBinding.registerHelpKeyActions(this, { propertyModel.property })
 
     addFocusListener(EditorFocusListener(this, propertyModel))
     addPropertyChangeListener { event ->

@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.TextFieldWithLeftButtonEditorModel
+import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.common.property2.impl.support.ImageFocusListener
 import com.intellij.ide.DataManager
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
@@ -59,9 +60,9 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     super.add(textField, BorderLayout.CENTER)
     leftButton?.registerActionKey({ buttonPressed(null) }, KeyStrokes.space, "space")
     leftButton?.registerActionKey({ buttonPressed(null) }, KeyStrokes.enter, "enter")
-    leftButton?.registerActionKey({ editorModel.f1KeyPressed() }, KeyStrokes.f1, "help")
-    leftButton?.registerActionKey({ editorModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
-    leftButton?.registerActionKey({ editorModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
+    if (leftButton != null) {
+      HelpSupportBinding.registerHelpKeyActions(leftButton, { editorModel.property })
+    }
 
     editorModel.addListener(ValueChangedListener { updateFromModel() })
     leftButton?.addMouseListener(object: MouseAdapter() {

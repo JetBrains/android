@@ -16,9 +16,8 @@
 package com.android.tools.idea.uibuilder.property2.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.adtui.stdui.registerActionKey
-import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.uibuilder.property2.model.ToggleButtonPropertyEditorModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
@@ -42,9 +41,7 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : J
     val button = ActionButton(action, presentation, ActionPlaces.UNKNOWN, NAVBAR_MINIMUM_BUTTON_SIZE)
     add(button, BorderLayout.CENTER)
     button.isFocusable = true
-    button.registerActionKey({ model.f1KeyPressed() }, KeyStrokes.f1, "help")
-    button.registerActionKey({ model.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
-    button.registerActionKey({ model.browseButtonPressed() }, KeyStrokes.browse, "browse")
+    HelpSupportBinding.registerHelpKeyActions(button, { model.property })
     button.addFocusListener(EditorFocusListener(this, model))
 
     model.addListener(ValueChangedListener {

@@ -90,10 +90,10 @@ interface which should be used for all properties. The most important fields are
 - browseButton: Describe a button to show on the right side of the property
   editor.
 - colorButton: Describe a button to show inside a color control.
-
-In addition an implementation could also implement the following interfaces:
-- [HelpSupport.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/HelpSupport.kt)
-   for supporting F1 and shift-F1 help while an editor has focus.
+- helpSupport: Specifies actions for supporting help on F1 and shift-F1. See
+  [HelpSupport.kt](http://cs/android/tools/adt/idea/designer/src/com/android/tools/idea/common/property2/api/HelpSupport.kt)
+- editingSupport: Specifies validation and completion support for the property. See
+  [EditingSupport.kt](http://cs/android/tools/adt/idea/adt-ui-model/src/main/java/com/android/tools/adtui/model/stdui/EditingSupport.kt)
 
 InspectorBuilder
 -------------------------------------------------------------------------------

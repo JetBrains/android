@@ -18,9 +18,11 @@ package com.android.tools.idea.common.property2.impl.ui
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.registerActionKey
+
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
+import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import java.awt.BorderLayout
@@ -71,9 +73,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
     textField.registerActionKey({ enter() }, KeyStrokes.enter, "enter")
     textField.registerActionKey({ escape() }, KeyStrokes.escape, "escape")
-    textField.registerActionKey({ model.f1KeyPressed() }, KeyStrokes.f1, "help")
-    textField.registerActionKey({ model.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
-    textField.registerActionKey({ model.browseButtonPressed() }, KeyStrokes.browse, "browse")
+    HelpSupportBinding.registerHelpKeyActions(this, { model.property })
 
     val focusListener = TextEditorFocusListener(textField, this, model)
     addFocusListener(focusListener)
