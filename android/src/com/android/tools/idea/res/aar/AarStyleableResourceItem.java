@@ -18,7 +18,6 @@ package com.android.tools.idea.res.aar;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleableResourceValue;
-import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.res.aar.Base128InputStream.StreamFormatException;
@@ -75,6 +74,10 @@ final class AarStyleableResourceItem extends AbstractAarValueResourceItem implem
     super.serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
     stream.writeInt(myAttrs.size());
     for (AttrResourceValue attr : myAttrs) {
+      if (attr instanceof AarAttrResourceItem && !attr.getFormats().isEmpty()) {
+        // Don't write redundant format information to the stream.
+        attr = ((AarAttrResourceItem)attr).createReference();
+      }
       ((AbstractAarValueResourceItem)attr).serialize(stream, configIndexes, sourceFileIndexes, namespaceResolverIndexes);
     }
   }
@@ -96,25 +99,14 @@ final class AarStyleableResourceItem extends AbstractAarValueResourceItem implem
     List<AttrResourceValue> attrs = n == 0 ? Collections.emptyList() : new ArrayList<>(n);
     for (int i = 0; i < n; i++) {
       AbstractAarResourceItem attrItem = deserialize(stream, configurations, sourceFiles, namespaceResolvers);
-      if (!(attrItem instanceof AarAttrResourceItem)) {
+      if (!(attrItem instanceof AttrResourceValue)) {
         throw StreamFormatException.invalidFormat();
       }
-      AttrResourceValue attr = getCanonicalAttr((AarAttrResourceItem)attrItem, repository);
+      AttrResourceValue attr = repository.getCanonicalAttr((AttrResourceValue)attrItem);
       attrs.add(attr);
     }
     AarStyleableResourceItem item = new AarStyleableResourceItem(name, sourceFile, visibility, attrs);
     item.setNamespaceResolver(resolver);
     return item;
-  }
-
-  @NotNull
-  private static AttrResourceValue getCanonicalAttr(@NotNull AarAttrResourceItem attr, @NotNull AbstractAarResourceRepository repository) {
-    List<ResourceItem> items = repository.getResources(attr.getNamespace(), ResourceType.ATTR, attr.getName());
-    for (ResourceItem item : items) {
-      if (item.equals(attr)) {
-        return (AarAttrResourceItem)item;
-      }
-    }
-    return attr;
   }
 }

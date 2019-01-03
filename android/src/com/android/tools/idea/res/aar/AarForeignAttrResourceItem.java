@@ -18,6 +18,7 @@ package com.android.tools.idea.res.aar;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceVisibility;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  * Resource item representing an attr resource that is defined in a namespace different from the namespace
  * of the owning AAR.
  */
-public class AarForeignAttrResourceItem extends AarAttrResourceItem {
+class AarForeignAttrResourceItem extends AarAttrResourceItem {
   @NotNull private final ResourceNamespace myNamespace;
 
   /**

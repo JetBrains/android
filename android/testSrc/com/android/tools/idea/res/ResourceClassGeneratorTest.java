@@ -272,6 +272,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertEquals(name, clz.getName());
     String rAttr = Arrays.stream(clz.getDeclaredFields()).map(Field::toString).reduce((a, b) -> a + "\n" + b).orElse("");
     assertEquals("public static final int my.test.pkg.R$attr.some_attr\n" +
+                 "public static final int my.test.pkg.R$attr.app_attr2\n" +
                  "public static final int my.test.pkg.R$attr.app_declared_attr", rAttr);
     assertNotNull(clz.newInstance());
   }
