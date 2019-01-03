@@ -292,7 +292,7 @@ public class NlComponentFixture {
     Point sourceBaseline = getTopCenterPoint(mySceneComponent);
     sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(myComponent)) + 1);
     myDragAndDrop.drag(mySurface, sourceBaseline);
-    Point destinationBaseline = destination.getTopCenterPoint(mySceneComponent);
+    Point destinationBaseline = destination.getTopCenterPoint(destination.mySceneComponent);
     destinationBaseline
       .translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(destination.getComponent())) - 1);
     myDragAndDrop.drop(mySurface, destinationBaseline);
