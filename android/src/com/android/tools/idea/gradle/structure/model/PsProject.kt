@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
+import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.util.function.Consumer
@@ -38,4 +40,16 @@ interface PsProject : PsModel {
   fun removeModule(gradlePath: String)
 
   fun onModuleChanged(disposable: Disposable, handler: (PsModule) -> Unit)
+
+  object Descriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildModel> {
+    override fun getResolved(model: PsProject): Nothing? = null
+    override fun getParsed(model: PsProject): ProjectBuildModel? = model.parsedModel
+    override fun prepareForModification(model: PsProject) = Unit
+    override fun setModified(model: PsProject) {
+      model.isModified = true
+    }
+
+    override fun enumerateModels(model: PsProject): Collection<PsModel> = model.modules
+    override val properties: Collection<ModelProperty<PsProject, *, *, *>> = listOf()
+  }
 }
