@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.support.ImageFocusListener
@@ -49,8 +49,8 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
     add(boundImage, BorderLayout.EAST)
     updateFromModel()
 
-    boundImage.registerKeyAction({ buttonPressed(null) }, KeyStrokes.space, "space")
-    boundImage.registerKeyAction({ buttonPressed(null) }, KeyStrokes.enter, "enter")
+    boundImage.registerActionKey({ buttonPressed(null) }, KeyStrokes.space, "space")
+    boundImage.registerActionKey({ buttonPressed(null) }, KeyStrokes.enter, "enter")
     model.addListener(ValueChangedListener { updateFromModel() })
 
     boundImage.addMouseListener(object: MouseAdapter() {
