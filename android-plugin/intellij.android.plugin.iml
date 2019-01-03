@@ -23,5 +23,6 @@
     <orderEntry type="module" module-name="intellij.android.lang-databinding" />
     <orderEntry type="module" module-name="intellij.android.databinding" />
     <orderEntry type="module" module-name="intellij.android.naveditor" />
+    <orderEntry type="module" module-name="intellij.android.layout-inspector" />
   </component>
 </module>
