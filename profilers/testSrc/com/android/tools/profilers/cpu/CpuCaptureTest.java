@@ -15,6 +15,10 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -25,16 +29,13 @@ import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.google.common.collect.ImmutableMap;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
+import org.junit.Test;
 
 // TODO: Add more variation of trace files (e.g trace with no threads)
 public class CpuCaptureTest {
@@ -151,6 +152,21 @@ public class CpuCaptureTest {
       // Expected IOException to be thrown in VmTraceParser.
       assertThat(executionExceptionCause.getCause()).isInstanceOf(IOException.class);
       // CpuCaptureParser#traceBytesToCapture catches the IOException and throw an IllegalStateException instead.
+    }
+    assertThat(capture).isNull();
+  }
+
+  @Test
+  public void missingCaptureDataThrowsException() throws IOException, InterruptedException {
+    CpuCapture capture = null;
+    try {
+      Range range = new Range(0, 30);
+      Map<CpuThreadInfo, CaptureNode> captureTrees = new HashMap<>();
+      capture = new CpuCapture(new FakeTraceParser(range, captureTrees, true), 20, CpuProfiler.CpuProfilerType.UNSPECIFIED_PROFILER);
+      fail();
+    }
+    catch (IllegalStateException e) {
+      assertEquals(e.getMessage(), "Trace file contained no CPU data.");
     }
     assertThat(capture).isNull();
   }
