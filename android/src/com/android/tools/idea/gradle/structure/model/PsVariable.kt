@@ -182,7 +182,7 @@ class PsVariable(
         val value = property.getValue(model, ::FAKE_PROPERTY)
         if (value !is ParsedValue.Set.Parsed || value.dslText !is DslText.Reference) return
         val propertyCore = property.bind(model) as? GradleModelCoreProperty<*, *> ?: return
-        var propertyModel: GradlePropertyModel = propertyCore.getParsedProperty()?.unresolvedModel ?: return
+        var propertyModel: GradlePropertyModel = propertyCore.getParsedPropertyForRead()?.unresolvedModel ?: return
         val seen = mutableSetOf<GradlePropertyModel>()
         while (propertyModel.valueType == GradlePropertyModel.ValueType.REFERENCE && propertyModel.dependencies.isNotEmpty()) {
           if (!seen.add(propertyModel)) return
