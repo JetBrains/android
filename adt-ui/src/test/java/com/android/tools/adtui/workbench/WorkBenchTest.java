@@ -24,6 +24,8 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.EventDispatcher;
+import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -139,25 +141,25 @@ public class WorkBenchTest extends WorkBenchTestCase {
     }
   }
 
-  public void testComponentResize() {
+  public void testComponentResize() throws Exception {
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
       .isEqualTo(-1);
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
       .isEqualTo(-1);
     mySplitter.setFirstSize(400);
-    fireComponentResize(myContent);
+    fireComponentResize();
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
       .isEqualTo(AdtUiUtils.unscale(400));
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
       .isEqualTo(AdtUiUtils.unscale(MIN_TOOL_WIDTH));
   }
 
-  public void testComponentDownSizeWithToolAdjustments() {
+  public void testComponentDownSizeWithToolAdjustments() throws Exception {
     myContent.setMinimumSize(new Dimension(310, 400));
     mySplitter.setSize(1000, 600);
     mySplitter.setFirstSize(1000);
     mySplitter.setLastSize(2800);
-    fireComponentResize(myContent);
+    fireComponentResize();
     assertThat(mySplitter.getFirstSize()).isEqualTo(325);
     assertThat(mySplitter.getLastSize()).isEqualTo(364);
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
@@ -166,14 +168,14 @@ public class WorkBenchTest extends WorkBenchTestCase {
       .isEqualTo(AdtUiUtils.unscale(364));
   }
 
-  public void testComponentDownSizeToSmallerThanMinimum() {
+  public void testComponentDownSizeToSmallerThanMinimum() throws Exception {
     // Content and tool windows are all specified with a minimum width of 310.
     // When the total width is only 900 the space should be divided equally.
     myContent.setMinimumSize(new Dimension(310, 400));
     mySplitter.setSize(900, 600);
     mySplitter.setFirstSize(1000);
     mySplitter.setLastSize(2800);
-    fireComponentResize(myContent);
+    fireComponentResize();
     assertThat(mySplitter.getFirstSize()).isEqualTo(300);
     assertThat(mySplitter.getLastSize()).isEqualTo(300);
     assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
@@ -182,21 +184,22 @@ public class WorkBenchTest extends WorkBenchTestCase {
       .isEqualTo(AdtUiUtils.unscale(MIN_TOOL_WIDTH));
   }
 
-  private static void fireComponentResize(@NotNull JComponent component) {
-    ComponentEvent event = mock(ComponentEvent.class);
-    for (ComponentListener listener : component.getComponentListeners()) {
-      listener.componentResized(event);
-    }
+  private void fireComponentResize() throws Exception {
+    Field dispatcherField = mySplitter.getClass().getDeclaredField("myDividerDispatcher");
+    dispatcherField.setAccessible(true);
+    @SuppressWarnings("unchecked")
+    EventDispatcher<ComponentListener> dispatcher = (EventDispatcher<ComponentListener>)dispatcherField.get(mySplitter);
+    dispatcher.getMulticaster().componentResized(new ComponentEvent(mySplitter, ComponentEvent.COMPONENT_RESIZED));
   }
 
-  public void testRestoreDefaultLayout() {
+  public void testRestoreDefaultLayout() throws Exception {
     myToolWindow1.setAutoHide(true);
     myModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.TOP, 0);
     myToolWindow2.setMinimized(true);
     assertThat(myModel.getAllTools()).containsExactly(myToolWindow2, myToolWindow1, myToolWindow3).inOrder();
     mySplitter.setFirstSize(2000);
     mySplitter.setLastSize(4000);
-    fireComponentResize(myContent);
+    fireComponentResize();
 
     myWorkBench.restoreDefaultLayout();
 
@@ -208,13 +211,13 @@ public class WorkBenchTest extends WorkBenchTestCase {
     assertThat(myToolWindow2.isMinimized()).isFalse();
   }
 
-  public void testStoreAndRestoreDefaultLayout() {
+  public void testStoreAndRestoreDefaultLayout() throws Exception {
     myToolWindow1.setAutoHide(true);
     myModel.changeToolSettingsAfterDragAndDrop(myToolWindow2, Side.LEFT, Split.TOP, 0);
     assertThat(myModel.getAllTools()).containsExactly(myToolWindow2, myToolWindow1, myToolWindow3).inOrder();
     mySplitter.setFirstSize(325);
     mySplitter.setLastSize(400);
-    fireComponentResize(myContent);
+    fireComponentResize();
 
     myWorkBench.storeDefaultLayout();
 
@@ -226,7 +229,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
     myToolWindow2.setMinimized(false);
     mySplitter.setFirstSize(111);
     mySplitter.setLastSize(444);
-    fireComponentResize(myContent);
+    fireComponentResize();
 
     myWorkBench.restoreDefaultLayout();
 
@@ -238,9 +241,9 @@ public class WorkBenchTest extends WorkBenchTestCase {
     assertThat(myToolWindow2.isSplit()).isFalse();
   }
 
-  public void testModelSwap() {
+  public void testModelSwap() throws Exception {
     mySplitter.setFirstSize(400);
-    fireComponentResize(myContent);
+    fireComponentResize();
     assertThat(myToolWindow1.isLeft()).isTrue();
     assertThat(myToolWindow2.isLeft()).isFalse();
     assertThat(myToolWindow3.isLeft()).isFalse();
