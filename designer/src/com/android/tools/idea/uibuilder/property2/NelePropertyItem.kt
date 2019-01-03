@@ -87,12 +87,17 @@ import javax.swing.Icon
  * the current [Configuration]. If the user changes the current
  * configuration the properties panel should be updated with
  * potentially different resolved values.
+ *
+ * The [componentName] if present is the name of the View component
+ * that this property was defined on. If it is not present the
+ * origin of the property is unknown.
  */
 open class NelePropertyItem(
   override val namespace: String,
   override val name: String,
   val type: NelePropertyType,
   val definition: AttributeDefinition?,
+  val componentName: String,
   val libraryName: String,
   val model: NelePropertiesModel,
   val optionalValue: Any?,
@@ -190,7 +195,7 @@ open class NelePropertyItem(
 
   override val designProperty: NelePropertyItem
     get() = if (namespace == TOOLS_URI) this else
-      NelePropertyItem(TOOLS_URI, name, type, definition, libraryName, model, optionalValue, components)
+      NelePropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, optionalValue, components)
 
   override fun equals(other: Any?) =
     when (other) {
