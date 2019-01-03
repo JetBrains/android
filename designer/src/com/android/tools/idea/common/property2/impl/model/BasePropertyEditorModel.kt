@@ -81,18 +81,6 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
 
   override var lineModel: InspectorLineModel? = null
 
-  open fun f1KeyPressed() {
-    (property as? HelpSupport)?.help()
-  }
-
-  open fun shiftF1KeyPressed() {
-    (property as? HelpSupport)?.secondaryHelp()
-  }
-
-  open fun browseButtonPressed() {
-    (property as? HelpSupport)?.browse()
-  }
-
   override fun cancelEditing(): Boolean {
     refresh()
     return true

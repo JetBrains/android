@@ -102,7 +102,7 @@ open class NelePropertyItem(
   val model: NelePropertiesModel,
   val optionalValue: Any?,
   val components: List<NlComponent>
-) : PropertyItem, HelpSupport {
+) : PropertyItem {
 
   override var value: String?
     get() {
@@ -167,21 +167,19 @@ open class NelePropertyItem(
       }
     }
 
+  override val helpSupport = object : HelpSupport {
+    // TODO: b/121259587 Implement help
+    // TODO: b/121259587 Implement secondaryHelp
+    override fun browse() { browseToValue() }
+  }
+
   override val editingSupport = object : EditingSupport {
     override val completion = { getCompletionValues() }
     override val validation = { text: String? -> validate(text) }
     override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
   }
 
-  // TODO: b/121259587 Implement help
-  override fun help() {
-  }
-
-  // TODO: b/121259587 Implement secondaryHelp
-  override fun secondaryHelp() {
-  }
-
-  override fun browse() {
+  private fun browseToValue() {
     val tag = firstTag ?: return
     val attribute = tag.getAttribute(name, namespace) ?: return
     val attributeValue = attribute.valueElement ?: return

@@ -94,6 +94,12 @@ interface PropertyItem : PTableItem {
     get() = ""
 
   /**
+   * Help support for this property
+   */
+  val helpSupport: HelpSupport
+    get() = HelpSupport.INSTANCE
+
+  /**
    * Editing support while editing this property
    */
   val editingSupport: EditingSupport

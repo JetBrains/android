@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.property2.api
 
+import com.intellij.openapi.actionSystem.AnAction
+
 /**
  * Support for Help binding.
  *
@@ -27,14 +29,16 @@ interface HelpSupport {
    *
    * This will be invoked from the user pressing F1 in the property UI.
    */
-  fun help()
+  val help: AnAction?
+    get() = null
 
   /**
    * Request secondary help for the implied property.
    *
    * This will be invoked from the user pressing shift-F1 in the property UI.
    */
-  fun secondaryHelp()
+  val secondaryHelp: AnAction?
+    get() = null
 
   /**
    * Request to browse the current value for the implied property.
@@ -42,4 +46,15 @@ interface HelpSupport {
    * This will be invoked from the user pressing cmd-B in the property UI.
    */
   fun browse()
+
+  companion object {
+    val INSTANCE: HelpSupport = DefaultHelpSupport()
+  }
+
+  /**
+   * Default [HelpSupport] with noop for all methods.
+   */
+  private class DefaultHelpSupport : HelpSupport {
+    override fun browse() {}
+  }
 }

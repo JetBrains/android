@@ -19,6 +19,7 @@ import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
@@ -35,9 +36,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
     registerActionKey({ tab() }, KeyStrokes.tab, "tab")
     registerActionKey({ backTab() }, KeyStrokes.backtab, "backTab")
     registerActionKey({ escape() }, KeyStrokes.escape, "escape")
-    registerActionKey({ editorModel.f1KeyPressed() }, KeyStrokes.f1, "help")
-    registerActionKey({ editorModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
-    registerActionKey({ editorModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
+    HelpSupportBinding.registerHelpKeyActions(this, { editorModel.property })
     addFocusListener(TextEditorFocusListener(this, this, editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
