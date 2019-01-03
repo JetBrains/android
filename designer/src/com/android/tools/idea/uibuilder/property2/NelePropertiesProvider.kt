@@ -27,6 +27,7 @@ import com.android.SdkConstants.ATTR_SRC_COMPAT
 import com.android.SdkConstants.ATTR_THEME
 import com.android.SdkConstants.AUTO_COMPLETE_TEXT_VIEW
 import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.FQCN_AUTO_COMPLETE_TEXT_VIEW
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -150,7 +151,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
           // An AutoCompleteTextView has a popup that is created at runtime.
           // Properties for this popup can be added to the AutoCompleteTextView tag.
           val attr = systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND)
-          val property = createProperty(ANDROID_URI, ATTR_POPUP_BACKGROUND, attr, model, components)
+          val property = createProperty(ANDROID_URI, ATTR_POPUP_BACKGROUND, attr, FQCN_AUTO_COMPLETE_TEXT_VIEW, model, components)
           properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, property)
         }
 
@@ -180,7 +181,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
         val namespace = ResourceNamespace.fromNamespaceUri(namespaceUri)
         if (!properties.contains(namespaceUri, name)) {
           val attrDef = namespace?.let { attrDefs.getAttrDefinition(ResourceReference.attr(it, name)) }
-          val property = createProperty(namespaceUri, name, attrDef, model, components)
+          val property = createProperty(namespaceUri, name, attrDef, "", model, components)
           properties.put(namespaceUri, name, property)
         }
       }
@@ -212,7 +213,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
       val reference = ResourceReference(namespace, ResourceType.STYLEABLE, styleableName)
       val attrDefs = if (namespace.xmlNamespaceUri == ANDROID_URI) systemAttrDefs else localAttrDefs
       val styleable = attrDefs.getStyleableDefinition(reference) ?: return
-      styleable.attributes.forEach { addPropertyFromAttribute(it) }
+      styleable.attributes.forEach { addPropertyFromAttribute(it, psiClass) }
     }
 
     private fun findPsiClassOfComponent(component: NlComponent): PsiClass? {
@@ -233,9 +234,9 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
       return ResourceNamespace.fromNamespaceUri(namespaceUri)
     }
 
-    private fun addPropertyFromAttribute(attribute: AttributeDefinition) {
+    private fun addPropertyFromAttribute(attribute: AttributeDefinition, psiClass: PsiClass) {
       val namespace = attribute.resourceReference.namespace.xmlNamespaceUri
-      val property = createProperty(namespace, attribute.name, attribute, model, components)
+      val property = createProperty(namespace, attribute.name, attribute, psiClass.qualifiedName ?: "", model, components)
       if (ANDROID_URI == namespace && apiLookup != null &&
           apiLookup.getFieldVersion("android/R\$attr", attribute.name) > minApi) {
         // Exclude the framework attributes that were added after the current min API level.
@@ -251,17 +252,18 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
     private fun createProperty(namespace: String,
                                name: String,
                                attr: AttributeDefinition?,
+                               componentName: String,
                                model: NelePropertiesModel,
                                components: List<NlComponent>): NelePropertyItem {
       val type = TypeResolver.resolveType(name, attr)
       val libraryName = attr?.libraryName ?: ""
       if (namespace == ANDROID_URI && name == ATTR_ID) {
-        return NeleIdPropertyItem(model, attr, null, components)
+        return NeleIdPropertyItem(model, attr, componentName, null, components)
       }
       if (attr != null && attr.formats.contains(AttributeFormat.FLAGS) && attr.values.isNotEmpty()) {
-        return NeleFlagsPropertyItem(namespace, name, type, attr, libraryName, model, null, components)
+        return NeleFlagsPropertyItem(namespace, name, type, attr, componentName, libraryName, model, null, components)
       }
-      return NelePropertyItem(namespace, name, type, attr, libraryName, model, null, components)
+      return NelePropertyItem(namespace, name, type, attr, componentName, libraryName, model, null, components)
     }
 
     private fun getNamespace(descriptor: XmlAttributeDescriptor, context: XmlTag): String {

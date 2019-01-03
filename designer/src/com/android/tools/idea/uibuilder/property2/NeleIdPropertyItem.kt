@@ -48,8 +48,10 @@ const val NO_EXIT_CODE = DialogWrapper.NEXT_USER_EXIT_CODE
 @VisibleForTesting
 const val PREVIEW_EXIT_CODE = DialogWrapper.NEXT_USER_EXIT_CODE + 1
 
-class NeleIdPropertyItem(model: NelePropertiesModel, definition: AttributeDefinition?, optionalValue: Any?, components: List<NlComponent>) :
-  NelePropertyItem(ANDROID_URI, ATTR_ID, NelePropertyType.ID, definition, "", model, optionalValue, listOf(components.first())) {
+class NeleIdPropertyItem(model: NelePropertiesModel, definition: AttributeDefinition?, componentName: String, optionalValue: Any?,
+                         components: List<NlComponent>) :
+  NelePropertyItem(ANDROID_URI, ATTR_ID, NelePropertyType.ID, definition, componentName, "", model, optionalValue,
+                   listOf(components.first())) {
 
   private var tempValue: String? = null
 

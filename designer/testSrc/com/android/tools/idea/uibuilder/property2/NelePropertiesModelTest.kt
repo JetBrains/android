@@ -141,7 +141,8 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val textView = nlModel.find(TEXT_VIEW)!!
     val view = nlModel.surface.currentSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
-    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", model, null, listOf(textView))
+    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE,
+                                    null, "", "", model, null, listOf(textView))
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
     waitUntilEventsProcessed(model)
@@ -159,7 +160,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val textView = nlModel.find(TEXT_VIEW)!!
     val view = nlModel.surface.currentSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
-    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", model, null, listOf(textView))
+    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", "", model, null, listOf(textView))
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
     model.addListener(listener)

@@ -42,11 +42,12 @@ class NeleFlagsPropertyItem(
   name: String,
   type: NelePropertyType,
   private val attrDefinition: AttributeDefinition,
+  componentName: String,
   libraryName: String,
   model: NelePropertiesModel,
   optionalValue: Any?,
   components: List<NlComponent>
-) : NelePropertyItem(namespace, name, type, attrDefinition, libraryName, model, optionalValue, components),
+) : NelePropertyItem(namespace, name, type, attrDefinition, componentName, libraryName, model, optionalValue, components),
     FlagsPropertyItem<NeleFlagPropertyItem> {
   private val _flags = mutableListOf<NeleFlagPropertyItem>()
   private val _lastValues = mutableSetOf<String>()
@@ -194,7 +195,8 @@ class NeleFlagsPropertyItem(
  * A generated [PropertyItem] which can be used in an editor in the property inspector.
  */
 class NeleFlagPropertyItem(override val flags: NeleFlagsPropertyItem, name: String, override val maskValue: Int) :
-  NelePropertyItem(flags.namespace, name, NelePropertyType.BOOLEAN, null, "", flags.model, flags.optionalValue, flags.components),
+  NelePropertyItem(flags.namespace, name, NelePropertyType.BOOLEAN, null, flags.componentName, "", flags.model,
+                   flags.optionalValue, flags.components),
   FlagPropertyItem {
 
   override val isReference: Boolean
