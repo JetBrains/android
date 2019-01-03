@@ -23,14 +23,11 @@ import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.model.AndroidCoordinate
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.model.MergedManifest
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -75,21 +72,6 @@ fun NlModel.overrideConfigurationScreenSize(@AndroidCoordinate xDimension: Int, 
 
     screen.screenRound = device.defaultHardware.screen.screenRound
     screen.chin = device.defaultHardware.screen.chin
-  }
-
-  // If a custom device already exists, remove it before adding the latest one
-  val devices = configuration.configurationManager.devices
-  var customDeviceReplaced = false
-  for (i in devices.indices) {
-    if ("Custom" == devices[i].id) {
-      devices[i] = device
-      customDeviceReplaced = true
-      break
-    }
-  }
-
-  if (!customDeviceReplaced) {
-    devices.add(device)
   }
 
   val better: VirtualFile?

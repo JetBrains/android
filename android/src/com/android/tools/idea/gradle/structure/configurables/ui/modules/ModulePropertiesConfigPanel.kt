@@ -27,6 +27,7 @@ import com.intellij.ui.navigation.Place
 class ModulePropertiesConfigPanel(module: PsAndroidModule, context: PsContext) :
   ConfigPanel<PsAndroidModule>(
     context,
+    module.parent,
     module,
     module,
     androidModulePropertiesModel()

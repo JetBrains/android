@@ -239,6 +239,15 @@ class SerializationTest : TestCase() {
     testSerialization("DrawLineToMouse,0,30.0x40.0", DrawLineToMouse(0, Point2D.Float(30f, 40f)), factory)
   }
 
+  fun testNestedGraph() {
+    val factory = { s: String -> DrawNestedGraph(s) }
+
+    testSerialization("DrawNestedGraph,10.0x20.0x30.0x40.0,1.5,ffff0000,1.0,text1,ff0000ff", DrawNestedGraph(
+      Rectangle2D.Float(10f, 20f, 30f, 40f), 1.5f, Color.RED, 1f, "text1", Color.BLUE), factory)
+    testSerialization("DrawNestedGraph,50.0x60.0x70.0x80.0,0.5,ffffffff,2.0,text2,ff000000", DrawNestedGraph(
+      Rectangle2D.Float(50f, 60f, 70f, 80f), 0.5f, Color.WHITE, 2f, "text2", Color.BLACK), factory)
+  }
+
   companion object {
     private fun testSerialization(s: String, drawCommand: DrawCommand, factory: (String) -> DrawCommand) {
       val serialized = drawCommand.serialize()

@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsBuildType
 class BuildTypeConfigPanel(buildType: PsBuildType, context: PsContext) :
   ConfigPanel<PsBuildType>(
     context,
+    buildType.parent.parent,
     buildType.parent,
     buildType,
     buildTypePropertiesModel(buildType.parent.isLibrary)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -97,6 +98,9 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(25))
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(25))
 
+      assertThat(
+        PsProductFlavor.ProductFlavorDescriptors.getParsed(productFlavor)?.minSdkVersion()?.valueType,
+        equalTo(GradlePropertyModel.ValueType.INTEGER))
       assertThat(minSdkVersion.resolved.asTestValue(), equalTo("10"))
       assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("10"))
 
@@ -106,6 +110,9 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(signingConfig.parsedValue.asTestValue(), nullValue())
 
+      assertThat(
+        PsProductFlavor.ProductFlavorDescriptors.getParsed(productFlavor)?.targetSdkVersion()?.valueType,
+        equalTo(GradlePropertyModel.ValueType.INTEGER))
       assertThat(targetSdkVersion.resolved.asTestValue(), equalTo("20"))
       // TODO(b/71988818) assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("19"))
 

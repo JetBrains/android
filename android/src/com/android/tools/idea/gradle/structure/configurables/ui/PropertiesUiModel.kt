@@ -100,7 +100,7 @@ fun <T : Any, PropertyCoreT : ModelPropertyCore<T>>
   module: PsModule?
 ): List<EditorExtensionAction<T, PropertyCoreT>> =
   listOfNotNull<EditorExtensionAction<T, PropertyCoreT>>(
-    if (module != null) ExtractNewVariableExtension(project, module) else null,
+    ExtractNewVariableExtension(project, module),
     if (this is FileTypePropertyContext<T>) BrowseFilesExtension<T, PropertyCoreT>(project, this) else null
   )
 

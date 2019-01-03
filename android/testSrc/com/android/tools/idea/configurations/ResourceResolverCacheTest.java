@@ -129,7 +129,6 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
       screen.setXDimension(100);
       screen.setYDimension(100);
     });
-    configurationManager.getDevices().add(customDevice);
     configuration.setEffectiveDevice(customDevice, customDevice.getState("Portrait"));
     ResourceResolver newResolver = configuration.getResourceResolver();
 

@@ -88,6 +88,8 @@ class ProjectResourcesBrowserViewModel(
 
   override val resourceTypes: Array<ResourceType> get() = SUPPORTED_RESOURCES
 
+  override val selectedTabName: String get() = resourceTypes[resourceTypeIndex].displayName
+
   val speedSearch = SpeedSearch(true)
 
   val filterOptions: FilterOptions = FilterOptions(

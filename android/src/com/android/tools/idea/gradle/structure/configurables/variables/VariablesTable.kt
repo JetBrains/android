@@ -642,7 +642,7 @@ class EmptyVariableNode(znode: ShadowNode, private val variablesScope: PsVariabl
       setIconFor(value)
     }
 
-  override val emptyName = "+New Variable"
+  override val emptyName = "+New variable"
   override fun createVariable(key: String): PsVariable =
     when (type) {
       ValueType.LIST -> variablesScope.addNewListVariable(key)
@@ -694,7 +694,7 @@ class ListItemNode(znode: ShadowNode, val index: Int, variable: PsVariable) : Ba
 
 class EmptyListItemNode(znode: ShadowNode, private val containingList: PsVariable) : VariablesBaseNode(znode), EmptyValueNode {
   override val emptyName get() = this.parent.getIndex(this).toString()
-  override val emptyValue = "+Value"
+  override val emptyValue = "+New value"
   override fun createVariable(value: ParsedValue<Any>): PsVariable = containingList.addListValue(value)
 }
 
@@ -725,7 +725,7 @@ interface EmptyValueNode {
 }
 
 class EmptyMapItemNode(znode: ShadowNode, private val containingMap: PsVariable) : VariablesBaseNode(znode), EmptyNamedNode {
-  override val emptyName = "+New Entry"
+  override val emptyName = "+New entry"
   override fun createVariable(key: String) = containingMap.addMapValue(key)
 }
 

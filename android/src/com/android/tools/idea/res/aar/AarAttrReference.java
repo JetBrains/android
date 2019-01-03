@@ -67,9 +67,9 @@ class AarAttrReference extends AbstractAarValueResourceItem implements AttrResou
   }
 
   @Override
-  @Nullable
+  @NotNull
   public final Map<String, Integer> getAttributeValues() {
-    return null;
+    return Collections.emptyMap();
   }
 
   @Override

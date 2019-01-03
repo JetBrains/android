@@ -69,6 +69,13 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   ModelPropertyEditor<PropertyT>,
   ModelPropertyEditorFactory<PropertyT, ModelPropertyT> {
 
+  init {
+    check(
+      extensions.count { it.isMainAction } <= 1) {
+      "Multiple isMainAction == true editor extensions: ${extensions.filter { it.isMainAction }}"
+    }
+  }
+
   private var knownValueRenderers: Map<ParsedValue<PropertyT>, ValueRenderer> = mapOf()
   private var disposed = false
   private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
@@ -96,7 +103,10 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       (value ?: ParsedValue.NotSet.annotated()).renderTo(this, formatter, knownValueRenderers)
     }
 
-    override fun createEditorExtensions(): List<Extension> = extensions.drop(1).map { action ->
+    override fun createEditorExtensions(): List<Extension> =
+      extensions
+        .filter { !it.isMainAction }
+        .map { action ->
       object : Extension {
         override fun getIcon(hovered: Boolean): Icon = action.icon
         override fun getTooltip(): String = action.tooltip
@@ -215,14 +225,13 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   inner class EditorWrapper(private val property: ModelPropertyT) : JPanel(BorderLayout()) {
     init {
       add(renderedComboBox)
-      if (extensions.isNotEmpty()) {
-        add(createMiniButton(), BorderLayout.EAST)
+      extensions.firstOrNull { it.isMainAction }?.let {
+        add(createMiniButton(it), BorderLayout.EAST)
       }
     }
 
-    private fun createMiniButton(): JComponent =
+    private fun createMiniButton(extensionAction: EditorExtensionAction<PropertyT, ModelPropertyT>): JComponent =
       JLabel().apply {
-        val extensionAction = extensions.first()
         icon = StudioIcons.Common.PROPERTY_UNBOUND
         toolTipText = extensionAction.tooltip
         addMouseListener(object : MouseAdapter() {
@@ -275,8 +284,17 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     }
   }
 
-  override fun createNew(property: ModelPropertyT, cellEditor: TableCellEditor?): ModelPropertyEditor<PropertyT> =
-    SimplePropertyEditor(property, propertyContext, variablesScope, extensions, cellEditor)
+  override fun createNew(
+    property: ModelPropertyT,
+    cellEditor: TableCellEditor?,
+    isPropertyContext: Boolean
+  ): ModelPropertyEditor<PropertyT> =
+    SimplePropertyEditor(
+      property,
+      propertyContext,
+      variablesScope,
+      extensions.filter { isPropertyContext || it.availableInNonPropertyContext },
+      cellEditor)
 
   init {
     reload()

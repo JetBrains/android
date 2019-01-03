@@ -24,6 +24,7 @@ import com.android.tools.idea.resourceExplorer.viewmodel.ResourceSection
 import com.android.tools.idea.resourceExplorer.widget.Section
 import com.android.tools.idea.resourceExplorer.widget.SectionList
 import com.android.tools.idea.resourceExplorer.widget.SectionListModel
+import com.intellij.concurrency.JobScheduler
 import com.intellij.ide.dnd.DnDManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -34,9 +35,11 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.ui.GuiUtils
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
@@ -52,6 +55,7 @@ import java.awt.event.InputEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.font.TextAttribute
+import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -88,6 +92,14 @@ private val GRID_MODE_BACKGROUND = UIUtil.getPanelBackground()
 private val LIST_MODE_BACKGROUND = UIUtil.getListBackground()
 
 /**
+ * Delay to wait for before showing the "Loading" state.
+ *
+ * If we don't delay showing the loading state, user might see a quick flickering
+ * when switching tabs because of the quick change from old resources to loading view to new resources.
+ */
+private const val DELAY_BEFORE_LOADING_STATE = 100L // ms
+
+/**
  * View meant to display [com.android.tools.idea.resourceExplorer.model.DesignAsset] located
  * in the project.
  * It uses an [ProjectResourcesBrowserViewModel] to populates the views
@@ -97,16 +109,8 @@ class ResourceExplorerView(
   private val resourceImportDragTarget: ResourceImportDragTarget
 ) : JPanel(BorderLayout()), Disposable, DataProvider {
 
-  override fun getData(dataId: String): Any? {
-    return resourcesBrowserViewModel.getData(dataId, getSelectedAssets())
-  }
+  private var updatePending = false
 
-  private fun getSelectedAssets(): List<DesignAsset> {
-    return sectionList.getLists()
-      .flatMap { it.selectedValuesList }
-      .filterIsInstance<DesignAssetSet>()
-      .flatMap(DesignAssetSet::designAssets)
-  }
 
   private var previewSize = DEFAULT_CELL_WIDTH
     set(value) {
@@ -242,33 +246,82 @@ class ResourceExplorerView(
     Disposer.register(this, imageCache)
   }
 
+  private fun getSelectedAssets(): List<DesignAsset> {
+    return sectionList.getLists()
+      .flatMap { it.selectedValuesList }
+      .filterIsInstance<DesignAssetSet>()
+      .flatMap(DesignAssetSet::designAssets)
+  }
+
   private fun populateResourcesLists() {
     val selectedValue = sectionList.selectedValue
     val selectedIndices = sectionList.selectedIndices
+    updatePending = true
 
-    sectionListModel.clear()
-    sectionListModel.addSection(AssetSection<DesignAssetSet>("Loading...", null, JList()))
-    resourcesBrowserViewModel.getResourcesLists()
+    val future = resourcesBrowserViewModel.getResourcesLists()
       .whenCompleteAsync(BiConsumer { resourceLists, _ ->
-        sectionListModel.clear()
-        val sections = resourceLists
-          .filterNot { it.assets.isEmpty() }
-          .map(this::createSection)
-          .toList()
-        sectionListModel.addSections(sections)
-
-        // Attempt to reselect the previously selected element
-        if (selectedValue != null) {
-          // If the value still exist in the list, just reselect it
-          sectionList.selectedValue = selectedValue
-
-          // Otherwise, like if the selected resource was renamed, we reselect the element
-          // based on the indexes
-          if (sectionList.selectedIndex == null) {
-            sectionList.selectedIndices = selectedIndices
-          }
-        }
+        updatePending = false
+        displayResources(resourceLists)
+        selectIndicesIfNeeded(selectedValue, selectedIndices)
       }, EdtExecutor.INSTANCE)
+
+    if (!future.isDone) {
+      JobScheduler.getScheduler().schedule(
+        { GuiUtils.invokeLaterIfNeeded(this::displayLoading, ModalityState.defaultModalityState()) },
+        DELAY_BEFORE_LOADING_STATE,
+        TimeUnit.MILLISECONDS)
+    }
+  }
+
+  private fun displayLoading() {
+    if (!updatePending) {
+      return
+    }
+    sectionListModel.clear()
+    sectionListModel.addSection(createLoadingSection())
+  }
+
+  private fun displayResources(resourceLists: List<ResourceSection>) {
+    sectionListModel.clear()
+    val sections = resourceLists
+      .filterNot { it.assets.isEmpty() }
+      .map(this::createSection)
+      .toList()
+    if (!sections.isEmpty()) {
+      sectionListModel.addSections(sections)
+    }
+    else {
+      sectionListModel.addSection(createEmptySection())
+    }
+  }
+
+  private fun createLoadingSection() = AssetSection<DesignAssetSet>(
+    resourcesBrowserViewModel.facet.module.name, null,
+    AssetListView(emptyList(), null).apply {
+      setPaintBusy(true)
+      setEmptyText("Loading...")
+      background = this@ResourceExplorerView.background
+    })
+
+  private fun createEmptySection() = AssetSection<DesignAssetSet>(
+    resourcesBrowserViewModel.facet.module.name, null,
+    AssetListView(emptyList(), null).apply {
+      setEmptyText("No ${resourcesBrowserViewModel.selectedTabName.toLowerCase()} available")
+      background = this@ResourceExplorerView.background
+    })
+
+  private fun selectIndicesIfNeeded(selectedValue: Any?, selectedIndices: List<IntArray?>) {
+    if (selectedValue != null) {
+        // Attempt to reselect the previously selected element
+      // If the value still exist in the list, just reselect it
+      sectionList.selectedValue = selectedValue
+
+      // Otherwise, like if the selected resource was renamed, we reselect the element
+      // based on the indexes
+      if (sectionList.selectedIndex == null) {
+        sectionList.selectedIndices = selectedIndices
+      }
+    }
   }
 
   private fun createSection(section: ResourceSection) =
@@ -310,6 +363,10 @@ class ResourceExplorerView(
       add(nameLabel)
       border = SECTION_HEADER_BORDER
     }
+  }
+
+  override fun getData(dataId: String): Any? {
+    return resourcesBrowserViewModel.getData(dataId, getSelectedAssets())
   }
 
   override fun dispose() {

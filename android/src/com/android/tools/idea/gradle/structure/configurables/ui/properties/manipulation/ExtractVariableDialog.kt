@@ -59,7 +59,7 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
 
   private fun configureFormFor(form: ExtractVariableForm, scope: String) {
     val (newName, property) = worker.changeScope(scopes[scope]!!, form.myNameField.text)
-    val editor = editorFactory.createNew(property)
+    val editor = editorFactory.createNew(property, isPropertyContext = false)
     form.myNameField.text = newName
     form.setValueEditor(editor.component)
     form.myScopeField.selectedItem = scope

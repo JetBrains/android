@@ -18,6 +18,7 @@ package com.android.tools.idea.resourceExplorer.widget
 import com.google.common.collect.HashBiMap
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.ColoredListCellRenderer
+import com.intellij.ui.ScrollingUtil
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
@@ -224,6 +225,11 @@ class SectionList(private val model: SectionListModel) : JBScrollPane() {
     content?.background = bg
     viewport?.background = bg
     super.setBackground(bg)
+  }
+
+  fun scrollToSelection() {
+    val (listIndex, itemIndex) = selectedIndex ?: return
+    ScrollingUtil.ensureIndexIsVisible(allInnerLists[listIndex], itemIndex, 1)
   }
 }
 

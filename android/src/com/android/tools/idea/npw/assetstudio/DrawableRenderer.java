@@ -54,6 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * Renders XML drawables to raster images.
@@ -121,23 +122,24 @@ public class DrawableRenderer implements Disposable {
     ResourceValue value = new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "ic_image_preview",
                                                 "file://" + resourceName);
 
-    RenderTask renderTask = getRenderTask();
-    if (renderTask == null) {
-      return CompletableFuture.completedFuture(AssetStudioUtils.createDummyImage());
-    }
+    return getRenderTask().thenCompose(renderTask -> {
+      if (renderTask == null) {
+        return CompletableFuture.completedFuture(AssetStudioUtils.createDummyImage());
+      }
 
-    synchronized (myRenderLock) {
-      myParserFactory.addFileContent(new PathString(resourceName), xmlText);
-      renderTask.setOverrideRenderSize(size.width, size.height);
-      renderTask.setMaxRenderSize(size.width, size.height);
+      synchronized (myRenderLock) {
+        myParserFactory.addFileContent(new PathString(resourceName), xmlText);
+        renderTask.setOverrideRenderSize(size.width, size.height);
+        renderTask.setMaxRenderSize(size.width, size.height);
 
-      return renderTask.renderDrawable(value);
-    }
+        return renderTask.renderDrawable(value);
+      }
+    });
   }
 
   @Override
   public void dispose() {
-    RenderTask renderTask = getRenderTask();
+    RenderTask renderTask = getRenderTask().join();
     if (renderTask != null) {
       synchronized (myRenderLock) {
         renderTask.dispose();
@@ -145,15 +147,21 @@ public class DrawableRenderer implements Disposable {
     }
   }
 
-  @Nullable
-  private RenderTask getRenderTask() {
-    try {
-      return myRenderTaskFuture.get();
-    }
-    catch (InterruptedException | ExecutionException e) {
-      // The error was logged earlier.
-      return null;
-    }
+  /**
+   * Returns a {@link CompletableFuture} which provides the {@link RenderTask} computed by {@link DrawableRenderer#myRenderTaskFuture}
+   * or null if an error occurred during the computation.
+   */
+  @NotNull
+  private CompletableFuture<RenderTask> getRenderTask() {
+    return CompletableFuture.supplyAsync(() -> {
+      try {
+        return myRenderTaskFuture.get();
+      }
+      catch (InterruptedException | ExecutionException e) {
+        // The error was logged earlier.
+        return null;
+      }
+    }, PooledThreadExecutor.INSTANCE);
   }
 
   private static class MyLayoutPullParserFactory implements ILayoutPullParserFactory {
