@@ -303,7 +303,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
           String typeName = typeMsg.getName();
           ResourceType resourceType = ResourceType.fromClassName(typeName);
           if (resourceType == null) {
-            // AAPT2 emits "^attr-private" type for all Framework non-public "attr" resources. For reference see
+            // AAPT2 emits "^attr-private" type for all non-public "attr" resources. For reference see http://b/122572805 and
             // https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/tools/aapt2/link/Linkers.h#65.
             if (typeName.equals("^attr-private")) {
               resourceType = ResourceType.ATTR;
