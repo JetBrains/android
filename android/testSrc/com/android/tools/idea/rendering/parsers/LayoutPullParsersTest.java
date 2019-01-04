@@ -283,7 +283,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
   private static FontFamily createRobotoFontFamily() {
     return new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, "Roboto", "", "", ImmutableList.of(
-      new MutableFontDetail(700, 100, true, "https://fonts.google.com/roboto700i", "", false)));
+      new MutableFontDetail(700, 100, true, "https://fonts.google.com/roboto700i", "", false, false)));
   }
 
   @NotNull
