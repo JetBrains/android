@@ -20,4 +20,5 @@ ext {
     rootBool = true
     rootBool3 = rootBool
     rootBool2 = rootBool3
+    rootFloat = 3.14
 }

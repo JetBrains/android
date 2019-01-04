@@ -18,7 +18,14 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.KnownValues
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
+import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.util.concurrent.ListenableFuture
@@ -26,6 +33,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assume.assumeThat
+import java.math.BigDecimal
 
 class PsVariablesTest : AndroidGradleTestCase() {
 
@@ -34,12 +42,13 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psProject = PsProjectImpl(project)
     val variables = psProject.variables
     assertThat(
-      variables.map { it.name },
+      variables.map { it.name to it.value },
       equalTo(listOf(
-        "someVar",
-        "rootBool",
-        "rootBool3",
-        "rootBool2"
+        "someVar" to "Present".asParsed<Any>(),
+        "rootBool" to true.asParsed(),
+        "rootBool3" to ("rootBool" to true).asParsed(),
+        "rootBool2" to ("rootBool3" to true).asParsed(),
+        "rootFloat" to BigDecimal("3.14").asParsed()
       ))
     )
   }
@@ -200,6 +209,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
             ("myVariable" to "26.1.0").asParsed().annotated(),
             ("variable1" to "1.3").asParsed().annotated(),
             ("anotherVariable" to "3.0.1").asParsed().annotated(),
+            ("rootFloat" to "3.14").asParsed().annotated(),
             ("varRefString" to "1.3").asParsed().annotated()
           )
         )
@@ -235,6 +245,9 @@ class PsVariablesTest : AndroidGradleTestCase() {
     assertThat(secondTmp123, nullValue())
     val tmp321 = variables.getOrCreateVariable("tmp321")
     assertThat(tmp321.value, equalTo("123".asParsed<Any>()))
+    val float271 = variables.getOrCreateVariable("float271")
+    float271.value = BigDecimal("2.71").asParsed<Any>()
+    assertThat(float271.value, equalTo(BigDecimal("2.71").asParsed<Any>()))
   }
 
   fun testRefresh() {
@@ -243,7 +256,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val variables = psProject.variables
     val otherVariables = PsVariables(psProject, "other", null)
 
-    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3")))
+    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat")))
 
     val someVar = variables.getVariable("someVar")
     someVar?.setName("tmp321")
@@ -251,10 +264,10 @@ class PsVariablesTest : AndroidGradleTestCase() {
     rootBool2?.delete()
     val tmp999 = variables.getOrCreateVariable("tmp999")
     tmp999.value = 999.asParsed()
-    assertThat(variables.map{ it.name }.toSet(), equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999")))
+    assertThat(variables.map { it.name }.toSet(), equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat")))
 
-    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3")))
+    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat")))
     otherVariables.refresh()
-    assertThat(otherVariables.entries.keys, equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999")))
+    assertThat(otherVariables.entries.keys, equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat")))
   }
 }
