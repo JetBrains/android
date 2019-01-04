@@ -20,7 +20,6 @@ import com.android.SdkConstants.TAG_INCLUDE
 import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -47,7 +46,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
@@ -223,21 +221,6 @@ class AddDestinationMenuTest : NavTestCase() {
     assertEquals(1, gallery.itemsCount)
     assertEquals("navigation.xml", (gallery.model.getElementAt(0) as Destination).label)
   }
-
-  fun testCaching() {
-    val group = surface.actionManager.getToolbarActions(null, listOf<NlComponent>())
-    val addDestinationMenu = group.getChildren(null)[0] as AddDestinationMenu
-    val panel = addDestinationMenu.mainPanel
-    // get it again and check that it's the same instance
-    assertSame(panel, addDestinationMenu.mainPanel)
-
-    myFixture.addClass("class Foo extends android.support.v4.app.Fragment {}")
-    UIUtil.dispatchAllInvocationEvents()
-
-    assertNotSame(panel, addDestinationMenu.mainPanel)
-    addDestinationMenu.destinations.first { it.label == "Foo" }
-  }
-
 
   fun testCreateBlank() {
     model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))

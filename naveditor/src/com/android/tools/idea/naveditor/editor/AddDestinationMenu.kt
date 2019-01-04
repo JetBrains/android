@@ -27,12 +27,8 @@ import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.res.ResourceNotificationManager
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import com.intellij.ide.ui.LafManager
-import com.intellij.ide.ui.LafManagerListener
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -47,7 +43,6 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
@@ -179,38 +174,11 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   @VisibleForTesting
   lateinit var searchField: SearchTextField
 
-  private var _mainPanel: JPanel? = null
-
   override val mainPanel: JPanel
-    get() {
-      creatingInProgress = false
-      return _mainPanel ?: createSelectionPanel().also { _mainPanel = it }
-    }
+    get() = createSelectionPanel()
 
   @VisibleForTesting
   lateinit var blankDestinationButton: ActionButtonWithText
-
-  private val refreshCallback = {
-    _mainPanel = createSelectionPanel()
-  }
-
-  init {
-    val resourceListener = ResourceNotificationManager.ResourceChangeListener { _mainPanel = null }
-    val notificationManager = ResourceNotificationManager.getInstance(surface.project)
-    val facet = surface.model!!.facet
-    notificationManager.addListener(resourceListener, facet, null, null)
-
-    val lafListener = LafManagerListener { _mainPanel = null }
-    LafManager.getInstance().addLafManagerListener(lafListener)
-
-    surface.model?.module?.let { NavigationSchema.addSchemaRebuildListener(it, refreshCallback) }
-
-    Disposer.register(surface, Disposable {
-      notificationManager.removeListener(resourceListener, facet, null, null)
-      LafManager.getInstance().removeLafManagerListener(lafListener)
-      surface.model?.module?.let { NavigationSchema.removeSchemaRebuildListener(it, refreshCallback) }
-    })
-  }
 
   private var neverShown = true
 
