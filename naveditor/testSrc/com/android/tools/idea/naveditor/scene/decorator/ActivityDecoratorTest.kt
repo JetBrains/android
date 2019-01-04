@@ -19,27 +19,25 @@ import com.android.tools.idea.common.scene.HitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
-import com.android.tools.idea.common.scene.draw.DrawRectangle
-import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
-import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.scene.DEFAULT_FONT_NAME
-import com.android.tools.idea.naveditor.scene.DRAW_ACTIVITY_BORDER_LEVEL
-import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
-import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
-import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
-import com.android.tools.idea.naveditor.scene.NavColors.ACTIVITY_BORDER
-import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
-import com.android.tools.idea.naveditor.scene.NavColors.FRAME
-import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
-import com.android.tools.idea.naveditor.scene.NavColors.TEXT
-import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
+import com.android.tools.idea.naveditor.scene.draw.DrawActivity
+import com.android.tools.idea.naveditor.scene.draw.assertDrawCommandsEqual
+import com.intellij.ui.JBColor
 import org.mockito.Mockito
-import java.awt.Font
+import java.awt.Dimension
+import java.awt.Point
 import java.awt.geom.Rectangle2D
-import java.awt.geom.RoundRectangle2D
+
+private val POSITION = Point(50, 150)
+private val SIZE = Dimension(100, 200)
+private val RECT = Rectangle2D.Float(419f, 469f, 50f, 100f)
+private val IMAGE_RECT = Rectangle2D.Float(423f, 473f, 42f, 83f)
+private val FRAME_COLOR = JBColor(0xa7a7a7, 0x2d2f31)
+private val SELECTED_COLOR = JBColor(0x1886f7, 0x9ccdff)
+private val TEXT_COLOR = JBColor(0xa7a7a7, 0x888888)
+private const val REGULAR_FRAME_THICKNESS = 1f
+private const val HIGHLIGHTED_FRAME_THICKNESS = 2f
 
 class ActivityDecoratorTest : NavTestCase() {
   fun testContent() {
@@ -50,24 +48,18 @@ class ActivityDecoratorTest : NavTestCase() {
     }
 
     val sceneComponent = SceneComponent(model.surface.scene!!, model.find("f1")!!, Mockito.mock(HitProvider::class.java))
-    sceneComponent.setPosition(50, 150)
-    sceneComponent.setSize(100, 200)
+    sceneComponent.setPosition(POSITION.x, POSITION.y)
+    sceneComponent.setSize(SIZE.width, SIZE.height)
 
     val sceneView = model.surface.currentSceneView!!
     val displayList = DisplayList()
+    val context = SceneContext.get(sceneView)
 
-    ActivityDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), sceneComponent)
-    val roundRect = RoundRectangle2D.Float(419f, 469f, 50f, 100f, 6f, 6f)
-    assertEquals(
-      listOf(
-        DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, roundRect, COMPONENT_BACKGROUND),
-        DrawRoundRectangle(DRAW_FRAME_LEVEL, roundRect, FRAME, REGULAR_FRAME_THICKNESS),
-        DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f)),
-        DrawRectangle(DRAW_ACTIVITY_BORDER_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f), ACTIVITY_BORDER,
-                      ACTIVITY_BORDER_WIDTH),
-        DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Activity", Rectangle2D.Float(419f, 556f, 50f, 13f), TEXT,
-                          Font(DEFAULT_FONT_NAME, Font.BOLD, 9), true)),
-      displayList.commands)
+    ActivityDecorator.buildListComponent(displayList, 0, context, sceneComponent)
+
+    assertEquals(1, displayList.commands.size)
+    assertDrawCommandsEqual(DrawActivity(RECT, IMAGE_RECT, context.scale.toFloat(), FRAME_COLOR, REGULAR_FRAME_THICKNESS, TEXT_COLOR),
+                            displayList.commands[0])
   }
 
   fun testHighlightedContent() {
@@ -78,25 +70,19 @@ class ActivityDecoratorTest : NavTestCase() {
     }
 
     val sceneComponent = SceneComponent(model.surface.scene!!, model.find("f1")!!, Mockito.mock(HitProvider::class.java))
-    sceneComponent.setPosition(50, 150)
-    sceneComponent.setSize(100, 200)
+    sceneComponent.setPosition(POSITION.x, POSITION.y)
+    sceneComponent.setSize(SIZE.width, SIZE.height)
     sceneComponent.drawState = SceneComponent.DrawState.SELECTED
 
     val sceneView = model.surface.currentSceneView!!
     val displayList = DisplayList()
+    val context = SceneContext.get(sceneView)
 
-    ActivityDecorator.buildListComponent(displayList, 0, SceneContext.get(sceneView), sceneComponent)
-    val roundRect = RoundRectangle2D.Float(419f, 469f, 50f, 100f, 6f, 6f)
-    assertEquals(
-      listOf(
-        DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, roundRect, COMPONENT_BACKGROUND),
-        DrawRoundRectangle(DRAW_FRAME_LEVEL, roundRect, SELECTED, HIGHLIGHTED_FRAME_THICKNESS),
-        DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f)),
-        DrawRectangle(DRAW_ACTIVITY_BORDER_LEVEL, Rectangle2D.Float(423f, 473f, 42f, 83f), ACTIVITY_BORDER,
-                      ACTIVITY_BORDER_WIDTH),
-        DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Activity", Rectangle2D.Float(419f, 556f, 50f, 13f), TEXT,
-                          Font(DEFAULT_FONT_NAME, Font.BOLD, 9), true)),
-      displayList.commands)
+    ActivityDecorator.buildListComponent(displayList, 0, context, sceneComponent)
 
+    assertEquals(1, displayList.commands.size)
+    assertDrawCommandsEqual(
+      DrawActivity(RECT, IMAGE_RECT, context.scale.toFloat(), SELECTED_COLOR, HIGHLIGHTED_FRAME_THICKNESS, TEXT_COLOR),
+      displayList.commands[0])
   }
 }

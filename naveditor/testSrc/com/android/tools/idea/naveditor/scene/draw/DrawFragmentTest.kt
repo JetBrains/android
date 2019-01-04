@@ -41,7 +41,7 @@ class DrawFragmentTest : NavTestCase() {
 
     assertEquals(drawFragment.commands.size, 2)
     assertEquals(drawFragment.commands[0], DrawRectangle(0, RECTANGLE, FRAME_COLOR, REGULAR_FRAME_THICKNESS))
-    assertEquals(drawFragment.commands[1], DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, IMAGE_RECT))
+    assertDrawCommandsEqual(DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, IMAGE_RECT), drawFragment.commands[1])
   }
 
   fun testDrawHighlightedFragment() {
@@ -49,7 +49,7 @@ class DrawFragmentTest : NavTestCase() {
 
     assertEquals(drawFragment.commands.size, 3)
     assertEquals(drawFragment.commands[0], DrawRectangle(0, RECTANGLE, FRAME_COLOR, REGULAR_FRAME_THICKNESS))
-    assertEquals(drawFragment.commands[1], DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, IMAGE_RECT))
+    assertDrawCommandsEqual(DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, IMAGE_RECT), drawFragment.commands[1])
     assertEquals(drawFragment.commands[2], DrawRoundRectangle(2, HIGHLIGHT_RECT, HIGHLIGHT_COLOR, HIGHLIGHTED_FRAME_THICKNESS))
   }
 
@@ -59,6 +59,6 @@ class DrawFragmentTest : NavTestCase() {
 
     assertEquals(drawFragment.commands.size, 2)
     assertEquals(drawFragment.commands[0], DrawRectangle(0, RECTANGLE, FRAME_COLOR, REGULAR_FRAME_THICKNESS))
-    assertDrawCommandsEqual(drawFragment.commands[1] as DrawNavScreen, DrawNavScreen(IMAGE_RECT, image))
+    assertDrawCommandsEqual(DrawNavScreen(IMAGE_RECT, image), drawFragment.commands[1] )
   }
 }
