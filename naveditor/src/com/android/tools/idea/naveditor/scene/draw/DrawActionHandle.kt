@@ -40,18 +40,18 @@ data class DrawActionHandle(private val level: Int,
                             private val outerColor: Color,
                             private val innerColor: Color
 ) : CompositeDrawCommand() {
-  private constructor(sp: Array<String>)
-    : this(sp[0].toInt(),
-           stringToPoint2D(sp[1]),
-           sp[2].toFloat(),
-           sp[3].toFloat(),
-           sp[4].toFloat(),
-           sp[5].toFloat(),
-           sp[6].toInt(),
-           stringToColor(sp[7]),
-           stringToColor(sp[8]))
+  private constructor(tokens: Array<String>)
+    : this(tokens[0].toInt(),
+           stringToPoint2D(tokens[1]),
+           tokens[2].toFloat(),
+           tokens[3].toFloat(),
+           tokens[4].toFloat(),
+           tokens[5].toFloat(),
+           tokens[6].toInt(),
+           stringToColor(tokens[7]),
+           stringToColor(tokens[8]))
 
-  constructor(s: String) : this(parse(s, 9))
+  constructor(serialized: String) : this(parse(serialized, 9))
 
   override fun getLevel(): Int = level
 

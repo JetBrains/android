@@ -49,7 +49,8 @@ import java.awt.geom.Rectangle2D
 data class DrawSelfAction(@SwingCoordinate private val start: Point2D.Float,
                      @SwingCoordinate private val end: Point2D.Float,
                      private val myColor: Color) : DrawCommandBase() {
-  private constructor(sp: Array<String>) : this(stringToPoint2D(sp[0]), stringToPoint2D(sp[1]), stringToColor(sp[2]))
+  private constructor(tokens: Array<String>) : this(stringToPoint2D(tokens[0]), stringToPoint2D(tokens[1]),
+                                                    stringToColor(tokens[2]))
 
   constructor(s: String) : this(parse(s, 3))
 

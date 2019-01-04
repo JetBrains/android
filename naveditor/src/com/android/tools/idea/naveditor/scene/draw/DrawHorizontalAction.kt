@@ -39,14 +39,15 @@ data class DrawHorizontalAction(private val level: Int,
                                 @SwingCoordinate private val rectangle: Rectangle2D.Float,
                                 private val color: Color,
                                 private val isPopAction: Boolean) : CompositeDrawCommand() {
-  private constructor(sp: Array<String>)
-    : this(sp[0].toInt(), stringToRect2D(sp[1]), stringToColor(sp[2]), sp[3].toBoolean())
+  private constructor(tokens: Array<String>)
+    : this(tokens[0].toInt(), stringToRect2D(tokens[1]), stringToColor(tokens[2]), tokens[3].toBoolean())
 
-  constructor(s: String) : this(parse(s, 4))
+  constructor(serialized: String) : this(parse(serialized, 4))
 
   override fun getLevel(): Int = level
 
-  override fun serialize(): String = buildString(javaClass.simpleName, level, rect2DToString(rectangle), colorToString(color), isPopAction)
+  override fun serialize(): String = buildString(javaClass.simpleName, level, rect2DToString(rectangle),
+                                                 colorToString(color), isPopAction)
 
   override fun buildCommands(): List<DrawCommand> {
     val scale = rectangle.height / ACTION_ARROW_PERPENDICULAR

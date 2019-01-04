@@ -52,9 +52,9 @@ private const val FONT_NAME = "Default"
 class DrawNavScreen(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float,
                     @VisibleForTesting val image: RefinableImage) : DrawCommandBase() {
 
-  private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), RefinableImage())
+  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), RefinableImage())
 
-  constructor(s: String) : this(parse(s, 1))
+  constructor(serialized: String) : this(parse(serialized, 1))
 
   override fun getLevel(): Int {
     return DRAW_NAV_SCREEN_LEVEL

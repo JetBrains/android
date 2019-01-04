@@ -34,8 +34,8 @@ data class DrawActionHandleDrag(private val level: Int,
                                 @SwingCoordinate private val finalOuterRadius: Float,
                                 @SwingCoordinate private val innerRadius: Float,
                                 private val duration: Int) : CompositeDrawCommand() {
-  private constructor(sp: Array<String>) : this(sp[0].toInt(), stringToPoint2D(sp[1]), sp[2].toFloat(), sp[3].toFloat(), sp[4].toFloat(),
-                                                sp[5].toInt())
+  private constructor(tokens: Array<String>) : this(tokens[0].toInt(), stringToPoint2D(tokens[1]), tokens[2].toFloat(), tokens[3].toFloat(),
+                                                    tokens[4].toFloat(), tokens[5].toInt())
 
   constructor(s: String) : this(parse(s, 6))
 

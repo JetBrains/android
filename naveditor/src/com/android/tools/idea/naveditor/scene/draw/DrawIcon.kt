@@ -66,9 +66,10 @@ data class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float,
     image = iconToImage(icon).getScaledInstance(rectangle.width.toInt(), rectangle.height.toInt(), Image.SCALE_SMOOTH)
   }
 
-  private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), IconType.valueOf(sp[1]), stringToColorOrNull((sp[2])))
+  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), IconType.valueOf(tokens[1]),
+                                                    stringToColorOrNull((tokens[2])))
 
-  constructor(s: String) : this(parse(s, 3))
+  constructor(serialized: String) : this(parse(serialized, 3))
 
   override fun getLevel(): Int {
     return DRAW_ICON_LEVEL
