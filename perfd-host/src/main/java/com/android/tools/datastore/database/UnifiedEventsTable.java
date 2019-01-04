@@ -25,7 +25,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +32,7 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
   public enum Statements {
     // Since no data should be updated after it has been inserted we drop any duplicated request from the poller.
     INSERT(
-      "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, SessionId, GroupId, Kind, Timestamp, Data) VALUES (?, ?, ?, ?, ?, ?)"),
+      "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, ProcessId, GroupId, Kind, Timestamp, Data) VALUES (?, ?, ?, ?, ?, ?)"),
     // Only used for test.
     QUERY_EVENTS("SELECT Data FROM [UnifiedEventsTable]");
 
@@ -67,13 +66,13 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
     try {
       createTable("UnifiedEventsTable",
                   "StreamId INTEGER NOT NULL", // Optional filter, required for all data.
-                  "SessionId INTEGER NOT NULL", // Optional filter, not required for data (eg device/process).
+                  "ProcessId INTEGER NOT NULL", // Optional filter, not required for data (eg device/process).
                   "GroupId INTEGER NOT NULL", // Optional filter, not required for data.
                   "Kind INTEGER NOT NULL", // Required filter, required for all data.
                   "Timestamp INTEGER NOT NULL", // Optional filter, required for all data.
                   "Data BLOB");
 
-      createUniqueIndex("UnifiedEventsTable", "StreamId", "SessionId", "GroupId", "Kind", "Timestamp");
+      createUniqueIndex("UnifiedEventsTable", "StreamId", "ProcessId", "GroupId", "Kind", "Timestamp");
       createUniqueIndex("UnifiedEventsTable", "StreamId", "Kind", "Timestamp");
     }
     catch (SQLException ex) {
@@ -82,8 +81,9 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
   }
 
   public void insertUnifiedEvent(long streamId, @NotNull Common.Event event) {
-    execute(Statements.INSERT, streamId,
-            event.getSessionId(),
+    execute(Statements.INSERT,
+            streamId,
+            event.getPid(),
             event.getGroupId(),
             event.getKind().getNumber(),
             event.getTimestamp(),
@@ -143,9 +143,15 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
     String sql = "SELECT [Data]%s From [UnifiedEventsTable] WHERE Kind = ? %s";
     StringBuilder filter = new StringBuilder();
     baseParams.add(request.getKind().getNumber());
-    if (request.getSessionId() != 0) {
-      filter.append(" AND SessionId = ?");
-      baseParams.add(request.getSessionId());
+
+    if (request.getStreamId() != 0) {
+      filter.append(" AND StreamId = ?");
+      baseParams.add(request.getStreamId());
+    }
+
+    if (request.getPid() != 0) {
+      filter.append(" AND ProcessId = ?");
+      baseParams.add(request.getPid());
     }
 
     if (request.getGroupId() != 0) {
