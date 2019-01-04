@@ -54,5 +54,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/json:intellij.json[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/adt/idea/android-runtime-pipeline:intellij.android.runtimePipeline[module]",
     ],
 )

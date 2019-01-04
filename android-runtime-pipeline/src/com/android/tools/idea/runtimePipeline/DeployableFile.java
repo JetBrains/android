@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.idea.runtimePipeline;
 
 import com.android.annotations.VisibleForTesting;
 import com.intellij.openapi.application.PathManager;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Represents a file on the host (where Studio is running) that will be copied to the device.
  */
-public final class ProfilerHostFile {
+public final class DeployableFile {
   /**
    * Name of the file on the host.
    */
@@ -57,7 +57,7 @@ public final class ProfilerHostFile {
    */
   @NotNull private final Supplier<String> myHomePathSupplier;
 
-  private ProfilerHostFile(@NotNull Builder builder) {
+  private DeployableFile(@NotNull Builder builder) {
     myFileName = builder.myFileName;
     myReleaseDir = builder.myReleaseDir;
     myDevDir = builder.myDevDir;
@@ -94,10 +94,10 @@ public final class ProfilerHostFile {
     return dir;
   }
 
-  public static final class Builder {
+  public static class Builder {
     @NotNull private final String myFileName;
     @NotNull private String myReleaseDir = "plugins/android/resources";
-    @NotNull private String myDevDir = "../../bazel-genfiles/tools/base/profiler/app";
+    @NotNull private String myDevDir = "../../bazel-genfiles/tools/base";
     @Nullable private String myOnDeviceAbiFileNameFormat;
     @NotNull private Supplier<String> myHomePathSupplier = () -> PathManager.getHomePath();
 
@@ -133,14 +133,14 @@ public final class ProfilerHostFile {
 
     @VisibleForTesting
     @NotNull
-    Builder setHomePathSupplier(Supplier<String> pathSupplier) {
+    public Builder setHomePathSupplier(Supplier<String> pathSupplier) {
       myHomePathSupplier = pathSupplier;
       return this;
     }
 
     @NotNull
-    public ProfilerHostFile build() {
-      return new ProfilerHostFile(this);
+    public DeployableFile build() {
+      return new DeployableFile(this);
     }
   }
 }
