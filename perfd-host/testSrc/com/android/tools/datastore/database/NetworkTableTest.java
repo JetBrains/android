@@ -17,6 +17,7 @@ package com.android.tools.datastore.database;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -29,8 +30,8 @@ public class NetworkTableTest extends DatabaseTest<NetworkTable> {
   private static final int VALID_CONN_ID = 3;
   private static final int INVALID_CONN_ID = -1;
   private static final int TEST_DATA = 10;
-  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setSessionId(1L).setDeviceId(1234).build();
-  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setDeviceId(4321).build();
+  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setSessionId(1L).setStreamId(1234).build();
+  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setStreamId(4321).build();
 
   @Override
   public void setUp() throws Exception {
@@ -39,11 +40,13 @@ public class NetworkTableTest extends DatabaseTest<NetworkTable> {
   }
 
   @Override
+  @NotNull
   protected NetworkTable createTable() {
     return new NetworkTable();
   }
 
   @Override
+  @NotNull
   protected List<Consumer<NetworkTable>> getTableQueryMethodsForVerification() {
     List<Consumer<NetworkTable>> methodCalls = new ArrayList<>();
     methodCalls.add((table) -> assertThat(
