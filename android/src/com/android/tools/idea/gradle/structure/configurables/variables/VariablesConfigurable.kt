@@ -22,17 +22,11 @@ import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.BaseConfigurable
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.ui.popup.ListPopup
-import com.intellij.openapi.ui.popup.PopupStep
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.ToolbarDecorator
-import com.intellij.util.ui.EmptyIcon
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
