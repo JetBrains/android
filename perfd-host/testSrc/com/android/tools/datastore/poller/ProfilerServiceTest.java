@@ -55,7 +55,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   private static final Common.Session START_SESSION_1 = Common.Session
     .newBuilder()
     .setSessionId(1)
-    .setDeviceId(DEVICE_ID)
+    .setStreamId(DEVICE_ID)
     .setPid(1234)
     .setStartTimestamp(100)
     .setEndTimestamp(Long.MAX_VALUE)
@@ -64,7 +64,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   private static final Common.Session START_SESSION_2 = Common.Session
     .newBuilder()
     .setSessionId(2)
-    .setDeviceId(DEVICE_ID)
+    .setStreamId(DEVICE_ID)
     .setPid(4321)
     .setStartTimestamp(150)
     .setEndTimestamp(Long.MAX_VALUE)

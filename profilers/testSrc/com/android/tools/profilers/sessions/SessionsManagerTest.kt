@@ -114,14 +114,14 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testBeginSession() {
-    val deviceId = 1
+    val streamId = 1L
     val pid = 10
-    val onlineDevice = Common.Device.newBuilder().setDeviceId(deviceId.toLong()).setState(Common.Device.State.ONLINE).build()
+    val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId).setState(Common.Device.State.ONLINE).build()
     val onlineProcess = Common.Process.newBuilder().setPid(pid).setState(Common.Process.State.ALIVE).build()
     beginSessionHelper(onlineDevice, onlineProcess)
 
     val session = myManager.selectedSession
-    assertThat(session.deviceId).isEqualTo(deviceId)
+    assertThat(session.streamId).isEqualTo(streamId)
     assertThat(session.pid).isEqualTo(pid)
     assertThat(myManager.profilingSession).isEqualTo(session)
     assertThat(myManager.isSessionAlive).isTrue()
@@ -151,9 +151,9 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Test
   fun testEndSession() {
-    val deviceId = 1
+    val streamId = 1
     val pid = 10
-    val onlineDevice = Common.Device.newBuilder().setDeviceId(deviceId.toLong()).setState(Common.Device.State.ONLINE).build()
+    val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId.toLong()).setState(Common.Device.State.ONLINE).build()
     val onlineProcess = Common.Process.newBuilder().setPid(pid).setState(Common.Process.State.ALIVE).build()
 
     // endSession calls on no active session is a no-op
@@ -166,7 +166,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
     beginSessionHelper(onlineDevice, onlineProcess)
     var session = myManager.selectedSession
-    assertThat(session.deviceId).isEqualTo(deviceId)
+    assertThat(session.streamId).isEqualTo(streamId)
     assertThat(session.pid).isEqualTo(pid)
     assertThat(myManager.profilingSession).isEqualTo(session)
     assertThat(myManager.isSessionAlive).isTrue()
@@ -181,7 +181,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
     endSessionHelper()
     session = myManager.selectedSession
-    assertThat(session.deviceId).isEqualTo(deviceId)
+    assertThat(session.streamId).isEqualTo(streamId)
     assertThat(session.pid).isEqualTo(pid)
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.isSessionAlive).isFalse()
@@ -330,7 +330,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     val liveAllocationsInfoTimestamp = 40L
     val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
     val cpuTraceInfo = CpuProfiler.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
-    var allocationInfos = MemoryProfiler.MemoryData.newBuilder()
+    val allocationInfos = MemoryProfiler.MemoryData.newBuilder()
       .addAllocationsInfo(MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(legacyAllocationsInfoTimestamp).setEndTime(
         legacyAllocationsInfoTimestamp + 1).setLegacy(true).build())
       .addAllocationsInfo(MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(liveAllocationsInfoTimestamp).build())
@@ -535,7 +535,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     assertThat(myManager.sessionArtifacts[0].session).isEqualTo(session2)
   }
 
-  fun beginSessionHelper(device: Common.Device, process: Common.Process) {
+  private fun beginSessionHelper(device: Common.Device, process: Common.Process) {
     if (useUnifiedEvents) {
       myManager.beginSession(1, device, process)
       myManager.update()
@@ -545,7 +545,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     }
   }
 
-  fun endSessionHelper() {
+  private fun endSessionHelper() {
     myManager.endCurrentSession()
     if (useUnifiedEvents) {
       myManager.update()

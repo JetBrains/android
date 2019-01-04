@@ -33,11 +33,13 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CpuThreadCountDataSeries implements DataSeries<Long> {
   @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myClient;
-  @NotNull private final Common.Session mySession;
+  private final long myStreamId;
+  private final int myPid;
 
-  public CpuThreadCountDataSeries(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub client, @NotNull Common.Session session) {
+  public CpuThreadCountDataSeries(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub client, long streamId, int pid) {
     myClient = client;
-    mySession = session;
+    myStreamId = streamId;
+    myPid = pid;
   }
 
   @Override
@@ -45,7 +47,8 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
     long minNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMin());
 
     Profiler.GetEventGroupsRequest request = Profiler.GetEventGroupsRequest.newBuilder()
-      .setSessionId(mySession.getSessionId())
+      .setStreamId(myStreamId)
+      .setPid(myPid)
       .setKind(Common.Event.Kind.CPU_THREAD)
       // TODO(b/122110659): set from_timestamp and to_timestamp when GetEventGroups works as intended.
       .build();

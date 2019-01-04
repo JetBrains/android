@@ -933,7 +933,7 @@ public final class StudioProfilersTest {
     profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
-    assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(profilers.getSession().getStreamId()).isEqualTo(device.getDeviceId());
     assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
     assertThat(profilers.getSession().getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
 
@@ -942,7 +942,7 @@ public final class StudioProfilersTest {
     process = process.toBuilder().setState(Common.Process.State.DEAD).build();
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(profilers.getSession().getStreamId()).isEqualTo(device.getDeviceId());
     assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
     assertThat(profilers.getSession().getEndTimestamp()).isNotEqualTo(Long.MAX_VALUE);
   }
@@ -960,7 +960,7 @@ public final class StudioProfilersTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
     profilers.setProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(profilers.getSession().getStreamId()).isEqualTo(device.getDeviceId());
     assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
     assertThat(profilers.getSession().getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
 
@@ -972,7 +972,7 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(deadDevice, deadProcess);
     myProfilerService.setTimestampNs(FakeTimer.ONE_SECOND_IN_NS);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(profilers.getSession().getStreamId()).isEqualTo(device.getDeviceId());
     assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
     assertThat(profilers.getSession().getEndTimestamp()).isNotEqualTo(Long.MAX_VALUE);
   }
@@ -997,7 +997,7 @@ public final class StudioProfilersTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Common.Session session = profilers.getSession();
     assertThat(session).isNotNull();
-    assertThat(session.getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(session.getStreamId()).isEqualTo(device.getDeviceId());
     assertThat(session.getPid()).isEqualTo(process.getPid());
 
     // The same process coming alive should not start a new session automatically.
@@ -1022,7 +1022,7 @@ public final class StudioProfilersTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getSession()).isNotNull();
-    assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(profilers.getSession().getStreamId()).isEqualTo(device.getDeviceId());
     assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
     assertThat(profilers.getSession().getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
     assertThat(profilers.getStage()).isInstanceOf(StudioMonitorStage.class);
@@ -1037,7 +1037,7 @@ public final class StudioProfilersTest {
     myProfilerService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(profilers.getSession()).isNotNull();
-    assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(profilers.getSession().getStreamId()).isEqualTo(device.getDeviceId());
     assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
     assertThat(profilers.getSession().getEndTimestamp()).isNotEqualTo(Long.MAX_VALUE);
     assertThat(profilers.getStage()).isInstanceOf(FakeStage.class);
@@ -1051,7 +1051,7 @@ public final class StudioProfilersTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     assertThat(profilers.getSession()).isNotNull();
-    assertThat(profilers.getSession().getDeviceId()).isEqualTo(device.getDeviceId());
+    assertThat(profilers.getSession().getStreamId()).isEqualTo(device.getDeviceId());
     assertThat(profilers.getSession().getPid()).isEqualTo(process.getPid());
     assertThat(profilers.getSession().getEndTimestamp()).isEqualTo(Long.MAX_VALUE);
     assertThat(profilers.getStage()).isInstanceOf(StudioMonitorStage.class);
