@@ -28,6 +28,7 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -45,7 +46,7 @@ private const val ICON_LEFT_BORDER = 2
  * The [leftButton] can optionally be a custom component e.g. a checkbox.
  */
 open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWithLeftButtonEditorModel,
-                                           component: JComponent? = null): AdtSecondaryPanel(BorderLayout()) {
+                                           component: JComponent? = null) : AdtSecondaryPanel(BorderLayout()), DataProvider {
   protected val leftComponent = component ?: IconWithFocusBorder()
   protected val leftButton = leftComponent as? IconWithFocusBorder
   protected val textField = PropertyTextField(editorModel)
@@ -102,17 +103,24 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     action.actionPerformed(event)
     editorModel.refresh()
   }
+
+  override fun getData(dataId: String): Any? {
+    return editorModel.getData(dataId)
+  }
 }
 
 /**
  * A component to show an icon with a focus border.
  */
-class IconWithFocusBorder : JBLabel() {
-
+class IconWithFocusBorder : JBLabel(), DataProvider {
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
     if (hasFocus() && g is Graphics2D) {
       DarculaUIUtil.paintFocusBorder(g, width, height, 0f, true)
     }
+  }
+
+  override fun getData(dataId: String): Any? {
+    return (parent as? DataProvider)?.getData(dataId)
   }
 }
