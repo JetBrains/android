@@ -37,7 +37,22 @@ import java.math.BigDecimal
 
 class PsVariablesTest : AndroidGradleTestCase() {
 
-  fun testGetModuleVariables_project() {
+  fun testGetBuildScriptVariables() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    val psProject = PsProjectImpl(project)
+    val variables = psProject.buildScriptVariables
+    assertThat(
+      variables.map { it.name to it.value },
+      equalTo(listOf(
+        "scriptVar1" to 1.asParsed(),
+        "scriptVar2" to "2".asParsed(),
+        "scriptBool" to true.asParsed(),
+        "agpVersionX" to "3.4.x".asParsed()
+      ))
+    )
+  }
+
+  fun testGetProjectVariables() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProjectImpl(project)
     val variables = psProject.variables
@@ -45,7 +60,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
       variables.map { it.name to it.value },
       equalTo(listOf(
         "someVar" to "Present".asParsed<Any>(),
-        "rootBool" to true.asParsed(),
+        "rootBool" to ("scriptBool" to true).asParsed(),
         "rootBool3" to ("rootBool" to true).asParsed(),
         "rootBool2" to ("rootBool3" to true).asParsed(),
         "rootFloat" to BigDecimal("3.14").asParsed()
@@ -95,7 +110,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables
     var refreshed = 0
-    variables.onChange(testRootDisposable, {refreshed++})
+    variables.onChange(testRootDisposable) { refreshed++ }
     val listVar = variables.addNewListVariable("newList1")
     assertThat(refreshed, equalTo(1))
     listVar.addListValue("v1".asParsed())
@@ -109,9 +124,9 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables
     var refreshed = 0
-    variables.onChange(testRootDisposable, {refreshed++})
+    variables.onChange(this.testRootDisposable) { refreshed++ }
     val listVar = variables.addNewListVariable("newList1")
-    listVar.listItems.onChange(testRootDisposable, {refreshed++})
+    listVar.listItems.onChange(testRootDisposable) { refreshed++ }
     assertThat(refreshed, equalTo(1))
 
     val newItem1 = listVar.addListValue(ParsedValue.NotSet)
@@ -138,7 +153,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val variables = psAppModule.variables
     var refreshed = 0
-    variables.onChange(testRootDisposable, { refreshed++ })
+    variables.onChange(testRootDisposable) { refreshed++ }
     val mapVar = variables.addNewMapVariable("newMap1")
     assertThat(refreshed, equalTo(1))
     mapVar.addMapValue("a")?.value = 1.asParsed()
@@ -206,6 +221,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
         variables,
         equalTo(
           setOf(
+            ("agpVersionX" to "3.4.x").asParsed().annotated(),
             ("myVariable" to "26.1.0").asParsed().annotated(),
             ("variable1" to "1.3").asParsed().annotated(),
             ("anotherVariable" to "3.0.1").asParsed().annotated(),
@@ -222,8 +238,14 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val psProject = PsProjectImpl(project)
     val psAppModule = psProject.findModuleByName("app") as PsAndroidModule
     val scopes = psAppModule.variables.getVariableScopes()
-    assertThat(scopes.map { it.name }, equalTo(listOf("testGetVariableScopes", "app")))
-    assertThat(scopes.map { it.title }, equalTo(listOf("Project: testGetVariableScopes", "Module: app")))
+    assertThat(
+      scopes.map { it.name },
+      equalTo(listOf("testGetVariableScopes (build script)", "testGetVariableScopes (project)", "app"))
+    )
+    assertThat(
+      scopes.map { it.title },
+      equalTo(listOf("Build Script: testGetVariableScopes", "Project: testGetVariableScopes", "Module: app"))
+    )
   }
 
   fun testGetNewVariableName() {
@@ -254,7 +276,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
     val psProject = PsProjectImpl(project)
     val variables = psProject.variables
-    val otherVariables = PsVariables(psProject, "other", null)
+    val otherVariables = PsVariables(psProject, "other", "other", null)
 
     assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat")))
 

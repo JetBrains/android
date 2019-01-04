@@ -36,6 +36,7 @@ import java.util.function.Consumer
 interface PsProject : PsModel {
   val ideProject: Project
   val parsedModel: ProjectBuildModel
+  val buildScriptVariables: PsVariables
   val variables: PsVariables
   val pomDependencyCache: PsPomDependencyCache
   val repositorySearchFactory: RepositorySearchFactory

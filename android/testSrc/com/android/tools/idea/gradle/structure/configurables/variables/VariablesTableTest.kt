@@ -70,7 +70,7 @@ class VariablesTableTest : AndroidGradleTestCase() {
     assertThat(rootNode.childCount, equalTo(10))
 
     val projectNode = rootNode.getChildAt(0) as DefaultMutableTreeNode
-    assertThat(tableModel.getValueAt(projectNode, 0) as String, equalTo("testModuleNodeDisplay"))
+    assertThat(tableModel.getValueAt(projectNode, 0) as String, equalTo("testModuleNodeDisplay (project)"))
     assertThat(tableModel.getValueAt(projectNode, 1), equalTo<Any>(ParsedValue.NotSet))
     assertThat(projectNode.childCount, not(0))
     assertThat(variablesTable.tree.isExpanded(TreePath(projectNode.path)), equalTo(true))

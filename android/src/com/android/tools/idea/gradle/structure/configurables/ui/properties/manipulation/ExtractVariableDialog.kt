@@ -47,7 +47,9 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
 
     scopes.forEach { scope, _ -> form.myScopeField!!.addItem(scope) }
 
-    configureFormFor(form, scopes.keys.first())
+    // Prefer Project scope. (The first scope in the list is expected to be the build script scope.)
+    val defaultScope = scopes.keys.drop(1).firstOrNull() ?: scopes.keys.first()
+    configureFormFor(form, defaultScope)
 
     form.myScopeField.addActionListener {
       configureFormFor(form, form.myScopeField.selectedItem as String)
