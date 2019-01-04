@@ -26,6 +26,7 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.runtimePipeline.DeployableFile;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -47,24 +48,24 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ProfilerDeviceFileManager {
   private static class HostFiles {
-    @NotNull static final ProfilerHostFile PERFD = new ProfilerHostFile.Builder("perfd")
+    @NotNull static final DeployableFile PERFD = new ProfilerHostFileBuilder("perfd")
       .setReleaseDir("plugins/android/resources/perfd")
       .setDevDir("../../bazel-bin/tools/base/profiler/native/perfd/android")
       .setExecutable(true)
       .build();
 
-    @NotNull static final ProfilerHostFile PERFA = new ProfilerHostFile.Builder("perfa.jar").build();
+    @NotNull static final DeployableFile PERFA = new ProfilerHostFileBuilder("perfa.jar").build();
 
-    @NotNull static final ProfilerHostFile PERFA_OKHTTP = new ProfilerHostFile.Builder("perfa_okhttp.dex").build();
+    @NotNull static final DeployableFile PERFA_OKHTTP = new ProfilerHostFileBuilder("perfa_okhttp.dex").build();
 
-    @NotNull static final ProfilerHostFile JVMTI_AGENT = new ProfilerHostFile.Builder("libperfa.so")
+    @NotNull static final DeployableFile JVMTI_AGENT = new ProfilerHostFileBuilder("libperfa.so")
       .setReleaseDir("plugins/android/resources/perfa")
       .setDevDir("../../bazel-bin/tools/base/profiler/native/perfa/android")
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("libperfa_%s.so") // e.g. libperfa_arm64.so
       .build();
 
-    @NotNull static final ProfilerHostFile SIMPLEPERF = new ProfilerHostFile.Builder("simpleperf")
+    @NotNull static final DeployableFile SIMPLEPERF = new ProfilerHostFileBuilder("simpleperf")
       .setReleaseDir("plugins/android/resources/simpleperf")
       .setDevDir("../../prebuilts/tools/common/simpleperf")
       .setExecutable(true)
@@ -120,7 +121,7 @@ public final class ProfilerDeviceFileManager {
    * If executable, then the abi is taken into account.
    */
   @VisibleForTesting
-  void copyFileToDevice(@NotNull ProfilerHostFile hostFile)
+  void copyFileToDevice(@NotNull DeployableFile hostFile)
     throws AdbCommandRejectedException, IOException {
     final File dir = hostFile.getDir();
 
@@ -242,12 +243,12 @@ public final class ProfilerDeviceFileManager {
   }
 
   @NotNull
-  private Abi getBestAbi(@NotNull ProfilerHostFile hostFile) {
+  private Abi getBestAbi(@NotNull DeployableFile hostFile) {
     return getBestAbis(hostFile).get(0);
   }
 
   @NotNull
-  private List<Abi> getBestAbis(@NotNull ProfilerHostFile hostFile) {
+  private List<Abi> getBestAbis(@NotNull DeployableFile hostFile) {
     final File dir = hostFile.getDir();
     List<Abi> supportedAbis = myDevice.getAbis()
                                       .stream()
