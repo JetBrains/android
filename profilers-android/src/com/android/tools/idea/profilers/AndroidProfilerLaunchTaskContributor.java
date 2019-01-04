@@ -40,6 +40,7 @@ import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.StudioProfilers;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.process.ProcessAdapter;
@@ -55,6 +56,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -259,10 +261,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    */
   @NotNull
   private static Common.Device getProfilerDevice(@NotNull IDevice device, @NotNull ProfilerService profilerService) {
-    Profiler.GetDevicesResponse response =
-      profilerService.getProfilerClient().getProfilerClient().getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
-
-    for (Common.Device profilerDevice : response.getDeviceList()) {
+    List<Common.Device> devices = StudioProfilers.getUpToDateDevices(StudioFlags.PROFILER_UNIFIED_PIPELINE.get(),
+                                                                     profilerService.getProfilerClient(), null);
+    for (Common.Device profilerDevice : devices) {
       if (profilerDevice.getSerial().equals(device.getSerialNumber()) && profilerDevice.getState() == Common.Device.State.ONLINE) {
         return profilerDevice;
       }
