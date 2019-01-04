@@ -44,9 +44,9 @@ class DrawFragment(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2
                    @VisibleForTesting val highlightColor: Color?,
                    @VisibleForTesting val image: RefinableImage? = null) : CompositeDrawCommand() {
 
-  constructor(s: String) : this(parse(s, 3))
+  constructor(serialized: String) : this(parse(serialized, 3))
 
-  private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), sp[1].toFloat(), stringToColorOrNull(sp[2]))
+  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toFloat(), stringToColorOrNull(tokens[2]))
 
   override fun getLevel() = DRAW_FRAME_LEVEL
 

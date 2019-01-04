@@ -49,10 +49,11 @@ data class DrawNestedGraph(private val rectangle: Rectangle2D.Float,
                            private val text: String,
                            private val textColor: Color) : CompositeDrawCommand() {
 
-  constructor(s: String) : this(parse(s, 6))
+  constructor(serialized: String) : this(parse(serialized, 6))
 
-  private constructor(sp: Array<String>) : this(stringToRect2D(sp[0]), sp[1].toFloat(), stringToColor(sp[2]),
-                                                sp[3].toFloat(), sp[4], stringToColor(sp[5]))
+  private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toFloat(),
+                                                    stringToColor(tokens[2]), tokens[3].toFloat(),
+                                                    tokens[4], stringToColor(tokens[5]))
 
   override fun getLevel() = DRAW_FRAME_LEVEL
 

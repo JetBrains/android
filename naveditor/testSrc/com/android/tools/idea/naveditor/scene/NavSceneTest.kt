@@ -86,12 +86,8 @@ class NavSceneTest : NavTestCase() {
       "DrawNestedGraph,580.0x400.0x70.0x19.0,0.5,ffa7a7a7,1.0,Nested Graph,ffa7a7a7\n" +
       "DrawTruncatedText,3,subnav,580.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
       "\n" +
-      "DrawFilledRoundRectangle,1,400.0x400.0x76.5x128.0x6.0x6.0,fffafafa\n" +
-      "DrawRoundRectangle,1,400.0x400.0x76.5x128.0x6.0x6.0,ffa7a7a7,1.0\n" +
-      "DrawTruncatedText,3,Activity,400.0x515.0x76.5x13.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawActivity,400.0x400.0x76.5x128.0,404.0x404.0x68.5x111.0,0.5,ffa7a7a7,1.0,ffa7a7a7\n" +
       "DrawTruncatedText,3,activity,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
-      "DrawPlaceholder,5,404.0x404.0x68.5x111.0\n" +
-      "DrawRectangle,5,404.0x404.0x68.5x111.0,ffa7a7a7,1.0\n" +
       "\n" +
       "UNClip\n", list.generateSortedDisplayList()
     )

@@ -35,9 +35,9 @@ private val text2 = " to add a destination"
 @SwingCoordinate private val VERTICAL_OFFSET = JBUI.scale(3)
 
 class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommand {
-  private constructor(sp: Array<String>) : this(stringToPoint(sp[0]))
+  private constructor(tokens: Array<String>) : this(stringToPoint(tokens[0]))
 
-  constructor(s: String) : this(parse(s, 1))
+  constructor(serialized: String) : this(parse(serialized, 1))
 
   override fun getLevel(): Int {
     return DRAW_FRAME_LEVEL
