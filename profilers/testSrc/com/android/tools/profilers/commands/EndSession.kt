@@ -25,9 +25,11 @@ import com.android.tools.profiler.proto.Profiler
  */
 class EndSession(timer: FakeTimer) : CommandHandler(timer) {
   override fun handleCommand(command: Profiler.Command, events: MutableList<Profiler.EventGroup.Builder>) {
-    events.find { it.groupId == command.endSession.sessionId }!!.addEvents(Common.Event.newBuilder().apply {
+    val group = events.find { it.groupId == command.endSession.sessionId }!!
+    val previous_pid = group.getEvents(0).pid
+    group.addEvents(Common.Event.newBuilder().apply {
+      pid = previous_pid
       groupId = command.endSession.sessionId
-      sessionId = command.endSession.sessionId
       kind = Common.Event.Kind.SESSION
       isEnded = true
       timestamp = timer.currentTimeNs

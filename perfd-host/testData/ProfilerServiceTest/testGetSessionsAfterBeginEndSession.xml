@@ -86,7 +86,7 @@ pid: 1234
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/BeginSession" Class="class com.android.tools.profiler.proto.Profiler$BeginSessionResponse">
         <Message>session {
   session_id: 1
-  device_id: 1234
+  stream_id: 1234
   pid: 1234
   start_timestamp: 100
   end_timestamp: 9223372036854775807
@@ -96,7 +96,7 @@ pid: 1234
         <functionCalled>profiler.proto.ProfilerService/BeginSession</functionCalled>
         <message>session {
   session_id: 1
-  device_id: 1234
+  stream_id: 1234
   pid: 1234
   start_timestamp: 100
   end_timestamp: 9223372036854775807
@@ -112,7 +112,7 @@ pid: 1234
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/BeginSession" Class="class com.android.tools.profiler.proto.Profiler$BeginSessionResponse">
         <Message>session {
   session_id: 2
-  device_id: 1234
+  stream_id: 1234
   pid: 4321
   start_timestamp: 150
   end_timestamp: 9223372036854775807
@@ -122,7 +122,7 @@ pid: 1234
         <functionCalled>profiler.proto.ProfilerService/BeginSession</functionCalled>
         <message>session {
   session_id: 2
-  device_id: 1234
+  stream_id: 1234
   pid: 4321
   start_timestamp: 150
   end_timestamp: 9223372036854775807
@@ -138,7 +138,7 @@ pid: 1234
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/EndSession" Class="class com.android.tools.profiler.proto.Profiler$EndSessionResponse">
         <Message>session {
   session_id: 1
-  device_id: 1234
+  stream_id: 1234
   pid: 1234
   start_timestamp: 100
   end_timestamp: 200
@@ -148,7 +148,7 @@ pid: 1234
         <functionCalled>profiler.proto.ProfilerService/EndSession</functionCalled>
         <message>session {
   session_id: 1
-  device_id: 1234
+  stream_id: 1234
   pid: 1234
   start_timestamp: 100
   end_timestamp: 200
@@ -164,7 +164,7 @@ pid: 1234
     <GrpcCall FunctionCalled="profiler.proto.ProfilerService/EndSession" Class="class com.android.tools.profiler.proto.Profiler$EndSessionResponse">
         <Message>session {
   session_id: 2
-  device_id: 1234
+  stream_id: 1234
   pid: 4321
   start_timestamp: 150
   end_timestamp: 250
@@ -174,7 +174,7 @@ pid: 1234
         <functionCalled>profiler.proto.ProfilerService/EndSession</functionCalled>
         <message>session {
   session_id: 2
-  device_id: 1234
+  stream_id: 1234
   pid: 4321
   start_timestamp: 150
   end_timestamp: 250

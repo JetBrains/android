@@ -44,7 +44,8 @@ public class UnifiedEventDataSeriesTest {
     myService.addEventToEventGroup(STREAM_ID, NETWORK_RX_VALUE, ProfilersTestData.generateNetworkRxEvent(6, 60).build());
 
     UnifiedEventDataSeries series1 = new UnifiedEventDataSeries(myGrpcChannel.getClient().getProfilerClient(),
-                                                                Common.Session.getDefaultInstance(),
+                                                                STREAM_ID,
+                                                                0,
                                                                 Common.Event.Kind.NETWORK_SPEED,
                                                                 NETWORK_TX_VALUE,
                                                                 UnifiedEventDataSeries.fromFieldToDataExtractor(
@@ -54,7 +55,8 @@ public class UnifiedEventDataSeriesTest {
     Truth.assertThat(data1.stream().map(data -> data.value).collect(Collectors.toList())).containsExactly(10L, 30L, 50L);
 
     UnifiedEventDataSeries series2 = new UnifiedEventDataSeries(myGrpcChannel.getClient().getProfilerClient(),
-                                                                Common.Session.getDefaultInstance(),
+                                                                STREAM_ID,
+                                                                0,
                                                                 Common.Event.Kind.NETWORK_SPEED,
                                                                 NETWORK_RX_VALUE,
                                                                 UnifiedEventDataSeries.fromFieldToDataExtractor(
@@ -71,7 +73,8 @@ public class UnifiedEventDataSeriesTest {
 
     // Querying a multiple-group data kind without a group id triggers an assert.
     UnifiedEventDataSeries series1 = new UnifiedEventDataSeries(myGrpcChannel.getClient().getProfilerClient(),
-                                                                Common.Session.getDefaultInstance(),
+                                                                STREAM_ID,
+                                                                0,
                                                                 Common.Event.Kind.NETWORK_SPEED,
                                                                 UnifiedEventDataSeries.DEFAULT_GROUP_ID,
                                                                 UnifiedEventDataSeries.fromFieldToDataExtractor(
