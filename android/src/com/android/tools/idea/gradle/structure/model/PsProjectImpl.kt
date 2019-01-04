@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySe
 import com.android.tools.idea.gradle.structure.configurables.RepositorySearchFactory
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
+import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
@@ -48,12 +50,23 @@ class PsProjectImpl(
 
   override val modules: PsModelCollection<PsModule> get() = moduleCollection
   override val modelCount: Int get() = moduleCollection.size
-
+  override var androidGradlePluginVersion by PsProject.Descriptors.androidGradlePluginVersion
   init {
     // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
     variables = PsVariables(this, "Project: $name", null)
     moduleCollection = PsModuleCollection(this)
   }
+
+  override fun getBuildScriptArtifactRepositories(): Collection<ArtifactRepository> =
+    (parsedModel
+       .projectBuildModel
+       ?.buildscript()
+       ?.repositories()
+       ?.repositories()
+       .orEmpty()
+       .mapNotNull { it.toArtifactRepository() } +
+     listOfNotNull(AndroidSdkRepositories.getAndroidRepository(), AndroidSdkRepositories.getGoogleRepository())
+    ).toSet()
 
   override fun findModuleByName(moduleName: String): PsModule? =
     moduleCollection.firstOrNull { it -> it.name == moduleName }
