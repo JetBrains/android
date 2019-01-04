@@ -15,16 +15,35 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
+import com.android.tools.idea.common.scene.draw.DrawCommand
 import org.jetbrains.android.AndroidTestCase
 
-fun assertDrawCommandsEqual(first: DrawNavScreen, second: DrawNavScreen) {
-  AndroidTestCase.assertEquals(first.rectangle, second.rectangle)
-  AndroidTestCase.assertEquals(first.image, second.image)
+fun assertDrawCommandsEqual(expected: DrawNavScreen, actual: DrawCommand) {
+  val navScreen = actual as DrawNavScreen
+  AndroidTestCase.assertEquals(expected.rectangle, navScreen.rectangle)
+  AndroidTestCase.assertEquals(expected.image, navScreen.image)
 }
 
-fun assertDrawCommandsEqual(first: DrawFragment, second: DrawFragment) {
-  AndroidTestCase.assertEquals(first.rectangle, second.rectangle)
-  AndroidTestCase.assertEquals(first.scale, second.scale)
-  AndroidTestCase.assertEquals(first.highlightColor, second.highlightColor)
-  AndroidTestCase.assertEquals(first.image, second.image)
+fun assertDrawCommandsEqual(expected: DrawPlaceholder, actual: DrawCommand) {
+  val placeHolder = actual as DrawPlaceholder
+  AndroidTestCase.assertEquals(expected.rectangle, placeHolder.rectangle)
+}
+
+fun assertDrawCommandsEqual(expected: DrawFragment, actual: DrawCommand) {
+  val drawFragment = actual as DrawFragment
+  AndroidTestCase.assertEquals(expected.rectangle, drawFragment.rectangle)
+  AndroidTestCase.assertEquals(expected.scale, drawFragment.scale)
+  AndroidTestCase.assertEquals(expected.highlightColor, drawFragment.highlightColor)
+  AndroidTestCase.assertEquals(expected.image, drawFragment.image)
+}
+
+fun assertDrawCommandsEqual(expected: DrawActivity, actual: DrawCommand) {
+  val drawActivity = actual as DrawActivity
+  AndroidTestCase.assertEquals(expected.rectangle, drawActivity.rectangle)
+  AndroidTestCase.assertEquals(expected.imageRectangle, drawActivity.imageRectangle)
+  AndroidTestCase.assertEquals(expected.scale, drawActivity.scale)
+  AndroidTestCase.assertEquals(expected.frameColor, drawActivity.frameColor)
+  AndroidTestCase.assertEquals(expected.frameThickness, drawActivity.frameThickness)
+  AndroidTestCase.assertEquals(expected.textColor, drawActivity.textColor)
+  AndroidTestCase.assertEquals(expected.image, drawActivity.image)
 }

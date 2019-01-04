@@ -56,8 +56,8 @@ public class DrawAction extends DrawCommandBase {
 
   private final Color myColor;
 
-  public DrawAction(@NotNull String s) {
-    this(DrawCommandSerializationHelperKt.parse(s, 4));
+  public DrawAction(@NotNull String serialized) {
+    this(DrawCommandSerializationHelperKt.parse(serialized, 4));
   }
 
   @Override
