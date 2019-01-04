@@ -137,10 +137,25 @@ class DownloadableFontCacheServiceImpl extends FontLoader implements Downloadabl
         continue;
       }
       hasAnyDownloadedFonts = true;
-      output.append(String.format("<font android:font=\"%1$s\" android:fontStyle=\"%2$s\" android:fontWeight=\"%3$d\" />",
-                                  cachedFile.getAbsolutePath(),
-                                  detail.getFontStyle(),
-                                  detail.getWeight()));
+      boolean hasExplicitStyle = detail.getHasExplicitStyle();
+      int weight = detail.getWeight();
+      if (hasExplicitStyle && weight != -1) {
+        output.append(String.format("<font android:font=\"%1$s\" android:fontStyle=\"%2$s\" android:fontWeight=\"%3$d\" />",
+                                    cachedFile.getAbsolutePath(),
+                                    detail.getFontStyle(),
+                                    detail.getWeight()));
+      } else if (hasExplicitStyle) {
+        output.append(String.format("<font android:font=\"%1$s\" android:fontStyle=\"%2$s\" />",
+                                    cachedFile.getAbsolutePath(),
+                                    detail.getFontStyle()));
+      } else if (weight != -1) {
+        output.append(String.format("<font android:font=\"%1$s\" android:fontWeight=\"%2$d\" />",
+                                    cachedFile.getAbsolutePath(),
+                                    detail.getWeight()));
+      } else {
+        output.append(String.format("<font android:font=\"%1$s\" />",
+                                    cachedFile.getAbsolutePath()));
+      }
     }
     if (!hasAnyDownloadedFonts) {
       return null;

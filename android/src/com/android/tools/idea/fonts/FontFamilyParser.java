@@ -34,7 +34,6 @@ import java.util.Map;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.AUTO_URI;
-import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WEIGHT;
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
 
 /**
@@ -115,10 +114,12 @@ class FontFamilyParser {
           break;
         case FONT:
           String fontName = getAttributeValue(attributes, ATTR_FONT);
-          int weight = parseInt(getAttributeValue(attributes, ATTR_FONT_WEIGHT), DEFAULT_WEIGHT);
+          int weight = parseInt(getAttributeValue(attributes, ATTR_FONT_WEIGHT), -1);
           int width = parseInt(getAttributeValue(attributes, ATTR_FONT_WIDTH), DEFAULT_WIDTH);
-          boolean italics = parseFontStyle(getAttributeValue(attributes, ATTR_FONT_STYLE));
-          myResult = addFont(fontName, weight, width, italics);
+          String fontStyle = getAttributeValue(attributes, ATTR_FONT_STYLE);
+          boolean italics = parseFontStyle(fontStyle);
+          boolean hasExplicitStyle = fontStyle != null;
+          myResult = addFont(fontName, weight, width, italics, hasExplicitStyle);
           break;
         default:
           Logger.getInstance(FontFamilyParser.class).warn("Unrecognized tag: " + name + " in file: " + myFile);
@@ -164,7 +165,7 @@ class FontFamilyParser {
       return QueryParser.parseDownloadableFont(authority, query);
     }
 
-    private QueryParser.ParseResult addFont(@Nullable String fontName, int weight, int width, boolean italics) {
+    private QueryParser.ParseResult addFont(@Nullable String fontName, int weight, int width, boolean italics, boolean hasExplicitStyle) {
       if (myResult instanceof ParseErrorResult) {
         return myResult;
       }
@@ -178,7 +179,7 @@ class FontFamilyParser {
       if (result == null) {
         result = new CompoundFontResult();
       }
-      result.addFont(fontName, weight, width, italics);
+      result.addFont(fontName, weight, width, italics, hasExplicitStyle);
       return result;
     }
   }
@@ -195,8 +196,8 @@ class FontFamilyParser {
       return myFonts;
     }
 
-    private void addFont(@NotNull String fontName, int weight, int width, boolean italics) {
-      myFonts.put(fontName, new MutableFontDetail(weight, width, italics));
+    private void addFont(@NotNull String fontName, int weight, int width, boolean italics, boolean hasExplicitStyle) {
+      myFonts.put(fontName, new MutableFontDetail(weight, width, italics, hasExplicitStyle));
     }
   }
 

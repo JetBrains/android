@@ -293,7 +293,7 @@ public class ProjectFonts {
   private void createEmbeddedFontFamily(@NotNull String name, @NotNull String fileName) {
     String fontName = StringUtil.trimStart(name, "@font/");
     String fileUrl = FILE_PROTOCOL_START + fileName;
-    MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false, fileUrl, "", false);
+    MutableFontDetail detail = new MutableFontDetail(DEFAULT_WEIGHT, DEFAULT_WIDTH, false, fileUrl, "", false, false);
     FontFamily family = new FontFamily(FontProvider.EMPTY_PROVIDER, FontSource.PROJECT, fontName, fileUrl, "", Collections.singletonList(detail));
     myProjectFonts.put(name, family);
   }
