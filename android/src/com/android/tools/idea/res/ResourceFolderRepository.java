@@ -1538,6 +1538,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                 }
               }
             }
+          } else if (folderType == FONT) {
+            clearFontCache(psiFile.getVirtualFile());
           }
         }
       }
@@ -1695,6 +1697,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                      psiFile.getFileType() == StdFileTypes.XML) {
             // TODO: Handle removals of id's (values an attributes) incrementally
             rescan(psiFile, folderType);
+          } else if (folderType == FONT) {
+            clearFontCache(psiFile.getVirtualFile());
           }
         }
       }
