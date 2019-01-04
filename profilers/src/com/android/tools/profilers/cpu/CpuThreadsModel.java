@@ -87,7 +87,8 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       Profiler.GetEventGroupsResponse response = myStage.getStudioProfilers().getClient().getProfilerClient().getEventGroups(
         Profiler.GetEventGroupsRequest.newBuilder()
-          .setSessionId(mySession.getSessionId())
+          .setStreamId(mySession.getStreamId())
+          .setPid(mySession.getPid())
           .setKind(Common.Event.Kind.CPU_THREAD)
           // TODO(b/122110659): set from_timestamp when GetEventGroups works as intended.
           .setToTimestamp(maxNs)
@@ -264,7 +265,10 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
         // Capture is null for non-imported traces
         DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries =
           myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled() ?
-          new CpuThreadStateDataSeries(myStage.getStudioProfilers().getClient().getProfilerClient(), mySession, myThreadId) :
+          new CpuThreadStateDataSeries(myStage.getStudioProfilers().getClient().getProfilerClient(),
+                                       mySession.getStreamId(),
+                                       mySession.getPid(),
+                                       myThreadId) :
           new LegacyCpuThreadStateDataSeries(myStage.getStudioProfilers().getClient().getCpuClient(), mySession, myThreadId);
         myAtraceDataSeries = new AtraceDataSeries<>(myStage, (atraceCapture) -> atraceCapture.getThreadStatesForThread(myThreadId));
         mySeries = new MergeCaptureDataSeries<>(myStage, threadStateDataSeries, myAtraceDataSeries);

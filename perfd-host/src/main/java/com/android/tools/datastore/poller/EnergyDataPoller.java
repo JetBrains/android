@@ -86,7 +86,7 @@ public final class EnergyDataPoller extends PollRunner {
     try {
       myLastRetryTime = System.currentTimeMillis();
       // TODO: Test on single core phones to see if they report data via "cpu0" or "cpu".
-      response = myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(session.getDeviceId()).build());
+      response = myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(session.getStreamId()).build());
     }
     catch (StatusRuntimeException e) {
       getLog().debug("Unable to parse CPU frequency files.", e);
@@ -97,7 +97,7 @@ public final class EnergyDataPoller extends PollRunner {
 
   // TODO: Remove this temporary function once we're not creating fake data anymore
   private long queryCurrentTime() {
-    Profiler.TimeRequest timeRequest = Profiler.TimeRequest.newBuilder().setStreamId(mySession.getDeviceId()).build();
+    Profiler.TimeRequest timeRequest = Profiler.TimeRequest.newBuilder().setStreamId(mySession.getStreamId()).build();
     return myProfilerService.getCurrentTime(timeRequest).getTimestampNs();
   }
 
@@ -184,7 +184,7 @@ public final class EnergyDataPoller extends PollRunner {
         try {
           // TODO: Test on single core phones to see if they report data via "cpu0" or "cpu".
           myCpuConfig = new CpuConfig(
-            myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(mySession.getDeviceId()).build()),
+            myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(mySession.getStreamId()).build()),
             myLogService);
         }
         catch (StatusRuntimeException e) {
