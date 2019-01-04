@@ -1,6 +1,13 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-
+ext.someVar = "Present"
+ext.rootBool = scriptBool
 buildscript {
+    ext.scriptVar1 = 1
+    ext {
+        scriptVar2 = "2"
+        scriptBool = true
+        agpVersionX = "3.4.x"
+    }
     repositories {
         // This will be populated by AndroidGradleTestCase
     }
@@ -16,8 +23,6 @@ allprojects {
 }
 
 ext {
-    someVar = "Present"
-    rootBool = true
     rootBool3 = rootBool
     rootBool2 = rootBool3
     rootFloat = 3.14

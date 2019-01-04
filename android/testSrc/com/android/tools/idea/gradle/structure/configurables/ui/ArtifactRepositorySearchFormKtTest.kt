@@ -86,7 +86,7 @@ class ArtifactRepositorySearchFormKtTest : GradleFileModelTestCase() {
         }"""
     )
 
-    val variables = object: PsVariables(stubModel, "variables", null) {
+    val variables = object: PsVariables(stubModel, "variables", "variables", null) {
       override fun getContainer(from: PsModel): ExtModel? = gradleBuildModel.ext()
     }
     val choices = prepareArtifactVersionChoices(notExactQuery, foundArtifact, variables)

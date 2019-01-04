@@ -122,7 +122,7 @@ class VariablesTest {
         selectCell("mylibrary")
         expandAllWithStar()
         assertThat(contents()).containsExactly(
-          "PsdSimple" to "",
+          "PsdSimple (project)" to "",
           "simpleVariableA" to "stringValue",
           "simpleVariableInt" to "123",
           "referenceVariable" to "\$simpleVariableInt : 123",
@@ -204,7 +204,7 @@ class VariablesTest {
         }
         // Assert the current state to make sure that deleting does not collapse nodes.
         assertThat(contents()).containsExactly(
-          "PsdSimple" to "",
+          "PsdSimple (project)" to "",
           "listVariable" to "",
           "0" to "one",
           "1" to "two",
@@ -219,7 +219,7 @@ class VariablesTest {
     ide.openPsd().run {
       selectVariablesConfigurable().run {
         assertThat(contents()).containsExactly(
-          "PsdSimple" to "",
+          "PsdSimple (project)" to "",
           "listVariable" to "",
           "0" to "one",
           "1" to "two",
@@ -256,7 +256,7 @@ class VariablesTest {
         enterText("aVariable")
         tab()
         assertThat(contents()).containsExactly(
-          "PsdSimple" to "",
+          "PsdSimple (project)" to "",
           "aVariable" to "stringValue",
           "listVariable" to "",
           "0" to "one",
@@ -272,7 +272,7 @@ class VariablesTest {
     ide.openPsd().run {
       selectVariablesConfigurable().run {
         assertThat(contents()).containsExactly(
-          "PsdSimple" to "",
+          "PsdSimple (project)" to "",
           "aVariable" to "stringValue",
           "listVariable" to "[one, two]",
           "" to "", // +New Variable
