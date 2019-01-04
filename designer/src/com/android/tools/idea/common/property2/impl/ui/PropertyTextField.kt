@@ -23,6 +23,7 @@ import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
+import com.intellij.openapi.actionSystem.DataProvider
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -30,7 +31,8 @@ import javax.swing.JComponent
 /**
  * A standard control for editing a text property.
  */
-class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel) {
+class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel),
+                                                                     DataProvider {
   init {
     registerActionKey({ enter() }, KeyStrokes.enter, "enter")
     registerActionKey({ tab() }, KeyStrokes.tab, "tab")
@@ -52,6 +54,10 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
 
   override fun getToolTipText(event: MouseEvent): String? {
     return PropertyTooltip.setToolTip(this, event, editorModel.property, forValue = true, text = text.orEmpty())
+  }
+
+  override fun getData(dataId: String): Any? {
+    return editorModel.getData(dataId)
   }
 
   private fun enter() {

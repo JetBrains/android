@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.property2.api
 
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataKey
 
 /**
  * Support for Help binding.
@@ -49,6 +50,8 @@ interface HelpSupport {
 
   companion object {
     val INSTANCE: HelpSupport = DefaultHelpSupport()
+
+    val PROPERTY_ITEM = DataKey.create<PropertyItem>("propertyItem")
   }
 
   /**

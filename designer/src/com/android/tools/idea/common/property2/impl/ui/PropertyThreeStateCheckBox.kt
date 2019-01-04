@@ -17,11 +17,10 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
-import com.android.tools.adtui.stdui.registerActionKey
-import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
 import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.util.ui.ThreeStateCheckBox
 
 /**
@@ -43,7 +42,8 @@ class PropertyThreeStateCheckBox(model: ThreeStateBooleanPropertyEditorModel) :
   }
 }
 
-private class CustomThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPropertyEditorModel) : ThreeStateCheckBox() {
+private class CustomThreeStateCheckBox(private val propertyModel: ThreeStateBooleanPropertyEditorModel) : ThreeStateCheckBox(),
+                                                                                                          DataProvider {
   private var stateChangeFromModel = false
 
   init {
@@ -71,6 +71,10 @@ private class CustomThreeStateCheckBox(private val propertyModel: ThreeStateBool
 
   override fun getToolTipText(): String? {
     return propertyModel.tooltip
+  }
+
+  override fun getData(dataId: String): Any? {
+    return propertyModel.getData(dataId)
   }
 
   private fun toThreeStateValue(value: String?) =
