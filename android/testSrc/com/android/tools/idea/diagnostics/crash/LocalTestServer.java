@@ -17,9 +17,9 @@ package com.android.tools.idea.diagnostics.crash;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
-import io.netty.channel.oio.OioEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.oio.OioServerSocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,12 +45,12 @@ public class LocalTestServer {
 
   public void start() throws Exception {
     ServerBootstrap b = new ServerBootstrap();
-    myEventLoopGroup = new OioEventLoopGroup();
+    myEventLoopGroup = new NioEventLoopGroup();
     b.group(myEventLoopGroup)
-      .channel(OioServerSocketChannel.class)
+      .channel(NioServerSocketChannel.class)
       .childHandler(new ChannelInitializer<SocketChannel>() {
         @Override
-        protected void initChannel(SocketChannel ch) throws Exception {
+        protected void initChannel(SocketChannel ch) {
           ChannelPipeline p = ch.pipeline();
           p.addLast(new HttpServerCodec());
           // Note: Netty's decompressor uses jcraft jzlib, which is not exported as a library
@@ -58,12 +58,12 @@ public class LocalTestServer {
           p.addLast(new HttpObjectAggregator(32 * 1024)); // big enough to collect a full thread dump
           p.addLast(new ChannelInboundHandlerAdapter() {
             @Override
-            public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+            public void channelReadComplete(ChannelHandlerContext ctx) {
               ctx.flush();
             }
 
             @Override
-            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            public void channelRead(ChannelHandlerContext ctx, Object msg) {
               if (!(msg instanceof FullHttpRequest)) {
                 return;
               }
@@ -75,7 +75,7 @@ public class LocalTestServer {
             }
 
             @Override
-            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
               ctx.write(cause.toString()).addListener(ChannelFutureListener.CLOSE);
             }
           });
