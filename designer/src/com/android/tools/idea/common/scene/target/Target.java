@@ -84,6 +84,13 @@ public interface Target {
   void setComponent(@NotNull SceneComponent component);
 
   /**
+   * Called when the associated {@link SceneComponent} selection state changes.
+   * @param selected true if component is selected, false otherwise.
+   */
+  default void componentSelectionChanged(boolean selected) {
+  }
+
+  /**
    * Implementing classes should add their own {@link DrawCommand} to the provided
    * {@link DisplayList} to draw any needed graphic
    *
