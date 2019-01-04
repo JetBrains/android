@@ -17,7 +17,6 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
-import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.nativeSymbolizer.Symbol;
@@ -25,12 +24,11 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NativeSymbolsPoller extends PollRunner {
   private static final int MAX_SYMBOLS_PER_REQUEST = 1000;
@@ -92,7 +90,7 @@ public class NativeSymbolsPoller extends PollRunner {
 
   @Nullable
   private Common.Process findProcess() {
-    Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setDeviceId(mySession.getDeviceId()).build();
+    Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setDeviceId(mySession.getStreamId()).build();
     Profiler.GetProcessesResponse response = myProfilerService.getProcesses(request);
     for (Common.Process process : response.getProcessList()) {
       if (process.getPid() == mySession.getPid()) {
