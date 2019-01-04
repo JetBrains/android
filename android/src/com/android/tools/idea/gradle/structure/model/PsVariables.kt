@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsMutableCollection
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.annotations.VisibleForTesting
 
-open class PsVariables constructor(
+open class PsVariables (
   override val model: PsModel,
   override val name: String,
   override val title: String,

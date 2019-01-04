@@ -27,9 +27,11 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Shadowe
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.childNodes
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.initializeNode
 import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
+import com.android.tools.idea.gradle.structure.model.PsBuildScript
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariable
+import com.android.tools.idea.gradle.structure.model.PsVariables
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
@@ -195,6 +197,7 @@ class VariablesTable private constructor(
   fun deleteSelectedVariables() {
     fun VariableNode.moduleName() = when (this.variable.parent) {
       is PsProject -> "project '${this.variable.parent.name}'"
+      is PsBuildScript -> "the build script of project '${this.variable.parent.parent.name}'"
       is PsModule -> "module '${this.variable.parent.name}'"
       else -> ""
     }
@@ -744,17 +747,20 @@ internal fun createTreeModel(root: ShadowNode, parentDisposable: Disposable): Va
 
 internal data class ProjectShadowNode(val project: PsProject) : ShadowNode {
   override fun getChildrenModels(): Collection<ShadowNode> =
-    listOf(RootModuleShadowNode(project)) + project.modules.sortedBy { it.name }.map { ModuleShadowNode(it) }
+    listOf(RootModuleShadowNode(project.buildScriptVariables)) +
+    listOf(RootModuleShadowNode(project.variables)) +
+    project.modules.sortedBy { it.name }.map { ModuleShadowNode(it) }
 
   override fun createNode(): VariablesBaseNode = VariablesBaseNode(this)
   override fun onChange(disposable: Disposable, listener: () -> Unit) = project.modules.onChange(disposable, listener)
 }
 
-internal data class RootModuleShadowNode(val project: PsProject) : ShadowNode {
+internal data class RootModuleShadowNode(val scope: PsVariables) : ShadowNode {
   override fun getChildrenModels(): Collection<ShadowNode> =
-    project.variables.map { VariableShadowNode(it) } + VariableEmptyShadowNode(project.variables)
-  override fun createNode(): VariablesBaseNode = ModuleNode(this, project.variables)
-  override fun onChange(disposable: Disposable, listener: () -> Unit) = project.variables.onChange(disposable, listener)
+    scope.map { VariableShadowNode(it) } + VariableEmptyShadowNode(scope)
+
+  override fun createNode(): VariablesBaseNode = ModuleNode(this, scope)
+  override fun onChange(disposable: Disposable, listener: () -> Unit) = scope.onChange(disposable, listener)
 }
 
 internal data class ModuleShadowNode(val module: PsModule) : ShadowNode {

@@ -122,6 +122,7 @@ class VariablesTest {
         selectCell("mylibrary")
         expandAllWithStar()
         assertThat(contents()).containsExactly(
+          "PsdSimple (build script)" to "",
           "PsdSimple (project)" to "",
           "simpleVariableA" to "stringValue",
           "simpleVariableInt" to "123",
@@ -177,7 +178,7 @@ class VariablesTest {
       selectVariablesConfigurable().run {
         selectCell("simpleVariable")
         clickRemove().run {
-          requireMessageContains("Remove variable 'simpleVariable' from project 'PsdSimple'?")
+          requireMessageContains("Remove variable 'simpleVariable' from the build script of project 'PsdSimple'?")
           clickNo()
         }
         selectCell("listVariable")
@@ -204,6 +205,7 @@ class VariablesTest {
         }
         // Assert the current state to make sure that deleting does not collapse nodes.
         assertThat(contents()).containsExactly(
+          "PsdSimple (build script)" to "",
           "PsdSimple (project)" to "",
           "listVariable" to "",
           "0" to "one",
@@ -219,6 +221,7 @@ class VariablesTest {
     ide.openPsd().run {
       selectVariablesConfigurable().run {
         assertThat(contents()).containsExactly(
+          "PsdSimple (build script)" to "",
           "PsdSimple (project)" to "",
           "listVariable" to "",
           "0" to "one",
@@ -256,13 +259,14 @@ class VariablesTest {
         enterText("aVariable")
         tab()
         assertThat(contents()).containsExactly(
-          "PsdSimple (project)" to "",
+          "PsdSimple (build script)" to "",
           "aVariable" to "stringValue",
           "listVariable" to "",
           "0" to "one",
           "1" to "two",
           "" to "", // +New Map Entry
           "" to "", // +New Variable
+          "PsdSimple (project)" to "",
           "app" to "",
           "mylibrary" to ""
         )
@@ -272,10 +276,11 @@ class VariablesTest {
     ide.openPsd().run {
       selectVariablesConfigurable().run {
         assertThat(contents()).containsExactly(
-          "PsdSimple (project)" to "",
+          "PsdSimple (build script)" to "",
           "aVariable" to "stringValue",
           "listVariable" to "[one, two]",
           "" to "", // +New Variable
+          "PsdSimple (project)" to "",
           "app" to "",
           "mylibrary" to ""
         )
