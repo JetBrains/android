@@ -50,6 +50,7 @@ import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
 import com.android.tools.idea.uibuilder.property2.support.EmptyBrowseActionIconButton
+import com.android.tools.idea.uibuilder.property2.support.HelpActions
 import com.android.tools.idea.uibuilder.property2.support.IdEnumSupport
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
@@ -169,7 +170,7 @@ open class NelePropertyItem(
 
   override val helpSupport = object : HelpSupport {
     // TODO: b/121259587 Implement help
-    // TODO: b/121259587 Implement secondaryHelp
+    override val secondaryHelp = HelpActions.secondaryHelp
     override fun browse() { browseToValue() }
   }
 
