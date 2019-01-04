@@ -797,8 +797,9 @@ config_setting(
 # sanity test
 java_test(
     name = "DebugOnEmulatorTest",
+    size = "enormous",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]) + [
         "//prebuilts/studio/sdk:platforms/android-23",
     ] + select({
