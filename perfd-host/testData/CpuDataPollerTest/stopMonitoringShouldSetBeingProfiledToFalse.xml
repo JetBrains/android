@@ -4,7 +4,7 @@
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStartRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </Message>
@@ -12,7 +12,7 @@
         <functionCalled>profiler.proto.CpuService/StartMonitoringApp</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </message>
@@ -26,7 +26,7 @@
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: -9223372036854775808
@@ -36,7 +36,7 @@ end_timestamp: 9223372036854775807
         <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: -9223372036854775808
@@ -64,7 +64,7 @@ end_timestamp: 9223372036854775807
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetThreads" Class="class com.android.tools.profiler.proto.CpuProfiler$GetThreadsRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: -9223372036854775808
@@ -74,7 +74,7 @@ end_timestamp: 9223372036854775807
         <functionCalled>profiler.proto.CpuService/GetThreads</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: -9223372036854775808
@@ -146,7 +146,7 @@ threads {
     <GrpcCall FunctionCalled="profiler.proto.CpuService/CheckAppProfilingState" Class="class com.android.tools.profiler.proto.CpuProfiler$ProfilingStateRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </Message>
@@ -154,7 +154,7 @@ threads {
         <functionCalled>profiler.proto.CpuService/CheckAppProfilingState</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </message>
@@ -170,7 +170,7 @@ threads {
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetTraceInfo" Class="class com.android.tools.profiler.proto.CpuProfiler$GetTraceInfoRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 from_timestamp: -9223372036854775808
@@ -180,7 +180,7 @@ to_timestamp: 9223372036854775807
         <functionCalled>profiler.proto.CpuService/GetTraceInfo</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 from_timestamp: -9223372036854775808
@@ -196,7 +196,7 @@ to_timestamp: 9223372036854775807
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: 86415000000000
@@ -206,7 +206,7 @@ end_timestamp: 9223372036854775807
         <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: 86415000000000
@@ -234,7 +234,7 @@ end_timestamp: 9223372036854775807
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetThreads" Class="class com.android.tools.profiler.proto.CpuProfiler$GetThreadsRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: 86415000000000
@@ -244,7 +244,7 @@ end_timestamp: 9223372036854775807
         <functionCalled>profiler.proto.CpuService/GetThreads</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: 86415000000000
@@ -316,7 +316,7 @@ threads {
     <GrpcCall FunctionCalled="profiler.proto.CpuService/CheckAppProfilingState" Class="class com.android.tools.profiler.proto.CpuProfiler$ProfilingStateRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </Message>
@@ -324,7 +324,7 @@ threads {
         <functionCalled>profiler.proto.CpuService/CheckAppProfilingState</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </message>
@@ -342,7 +342,7 @@ check_timestamp: 2
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetTraceInfo" Class="class com.android.tools.profiler.proto.CpuProfiler$GetTraceInfoRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 to_timestamp: 9223372036854775807
@@ -351,7 +351,7 @@ to_timestamp: 9223372036854775807
         <functionCalled>profiler.proto.CpuService/GetTraceInfo</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 to_timestamp: 9223372036854775807
@@ -366,7 +366,7 @@ to_timestamp: 9223372036854775807
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStopRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </Message>
@@ -374,7 +374,7 @@ to_timestamp: 9223372036854775807
         <functionCalled>profiler.proto.CpuService/StopMonitoringApp</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </message>
@@ -388,7 +388,7 @@ to_timestamp: 9223372036854775807
     <GrpcCall FunctionCalled="profiler.proto.CpuService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuStopRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </Message>
@@ -396,7 +396,7 @@ to_timestamp: 9223372036854775807
         <functionCalled>profiler.proto.CpuService/StopMonitoringApp</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </message>

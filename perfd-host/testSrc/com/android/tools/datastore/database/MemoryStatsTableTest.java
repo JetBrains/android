@@ -30,8 +30,8 @@ import java.util.function.Consumer;
 import static com.google.common.truth.Truth.assertThat;
 
 public class MemoryStatsTableTest extends DatabaseTest<MemoryStatsTable> {
-  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setSessionId(1L).setDeviceId(1234).setPid(1).build();
-  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setDeviceId(4321).setPid(-1).build();
+  private static final Common.Session VALID_SESSION = Common.Session.newBuilder().setSessionId(1L).setStreamId(1234).setPid(1).build();
+  private static final Common.Session INVALID_SESSION = Common.Session.newBuilder().setSessionId(-1L).setStreamId(4321).setPid(-1).build();
 
   @Override
   protected MemoryStatsTable createTable() {
