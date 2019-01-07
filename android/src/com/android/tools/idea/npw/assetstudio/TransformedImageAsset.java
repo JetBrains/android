@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static com.android.ide.common.util.AssetUtil.NO_EFFECTS;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
 
 import com.android.ide.common.util.AssetUtil;
@@ -152,7 +153,9 @@ public final class TransformedImageAsset {
     int y = roundToInt( (imageSize.height - height) / 2.);
     BufferedImage outImage = AssetUtil.newArgbBufferedImage(imageSize.width, imageSize.height);
     Graphics2D g = (Graphics2D)outImage.getGraphics();
-    AssetUtil.drawEffects(g, scaledImage, x, y, new AssetUtil.Effect[] { new AssetUtil.FillEffect(myTint, myOpacity) });
+    AssetUtil.Effect[] effects =
+        myTint == null || myOpacity == 0 ? NO_EFFECTS : new AssetUtil.FillEffect[] {new AssetUtil.FillEffect(myTint, myOpacity)};
+    AssetUtil.drawEffects(g, scaledImage, x, y, effects);
 
     g.dispose();
 

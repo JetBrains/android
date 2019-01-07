@@ -131,7 +131,8 @@ public final class IconGeneratorTestUtil {
         VdIcon androidIcon = new VdIcon(MaterialDesignIcons.getDefaultIcon());
         BufferedImage sourceImage = androidIcon.renderIcon(512, 512);
         File pngFile = FileUtil.createTempFile("android", ".png");
-        ImageIO.write(sourceImage, "PNG", pngFile);
+        BufferedImage coloredImage = AssetUtil.filledImage(sourceImage, new Color(0xA4C639));
+        ImageIO.write(coloredImage, "PNG", pngFile);
         return pngFile;
 
       case SVG:

@@ -30,12 +30,11 @@ public class LauncherLegacyIconGeneratorTest extends AndroidTestCase {
   private void checkGraphic(@NotNull SourceType sourceType) throws IOException {
     LauncherLegacyIconGenerator generator = new LauncherLegacyIconGenerator(getProject(), 15, null);
     disposeOnTearDown(generator);
+    generator.useForegroundColor().set(false);
     generator.shape().set(IconGenerator.Shape.CIRCLE);
-    //generator.cropped().set(true);
-    generator.backgroundColor().set(new Color(0xFF0000));
-    List<String> expectedFolders =
-        ImmutableList.of("", "mipmap-xxxhdpi", "mipmap-xxhdpi", "mipmap-xhdpi", "mipmap-hdpi", "mipmap-mdpi");
-    IconGeneratorTestUtil.checkGraphic(generator, sourceType, "red_circle", 5, expectedFolders, "launcher");
+    generator.backgroundColor().set(new Color(0xFFFF00));
+    List<String> expectedFolders = ImmutableList.of("", "mipmap-xxxhdpi", "mipmap-xxhdpi", "mipmap-xhdpi", "mipmap-hdpi", "mipmap-mdpi");
+    IconGeneratorTestUtil.checkGraphic(generator, sourceType, "android_in_circle", 5, expectedFolders, "launcher");
   }
 
   public void testPngCircle() throws Exception {
