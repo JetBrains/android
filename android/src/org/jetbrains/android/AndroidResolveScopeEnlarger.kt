@@ -26,11 +26,16 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.ResolveScopeEnlarger
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -47,9 +52,15 @@ import org.jetbrains.android.facet.AndroidFacet
 class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
 
   companion object {
-    val LOG = Logger.getInstance(AndroidResolveScopeEnlarger::class.java)!!
+    private val LOG = Logger.getInstance(AndroidResolveScopeEnlarger::class.java)
 
-    fun findAdditionalClassesForModule(module: Module, includeTestClasses: Boolean): Collection<PsiClass>? {
+    // Keys for caching resolve scopes.
+    private val resolveScopeWithTestsKey =
+      Key.create<CachedValue<SearchScope?>>("${AndroidResolveScopeEnlarger::class.java.name}.resolveScopeWithTests")
+    private val resolveScopeSansTestsKey =
+      Key.create<CachedValue<SearchScope?>>("${AndroidResolveScopeEnlarger::class.java.name}.resolveScopeSansTests")
+
+    private fun computeAdditionalClassesForModule(module: Module, includeTestClasses: Boolean): Collection<PsiClass>? {
       if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) return null
       val project = module.project
       if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return emptyList()
@@ -66,26 +77,32 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
       return result
     }
 
-    fun getResolveScopeForAdditionalClasses(lightClasses: Collection<PsiClass>, project: Project): SearchScope? {
-      return if (lightClasses.isEmpty()) {
-        null
-      }
-      else {
-        // Unfortunately LocalScope looks at containingFile.virtualFile, which is null for non-physical PSI.
-        GlobalSearchScope.filesWithoutLibrariesScope(project, lightClasses.map { it.containingFile.viewProvider.virtualFile })
-      }
+    private fun computeAdditionalResolveScopeForModule(module: Module, includeTests: Boolean): SearchScope? {
+      val lightClasses = computeAdditionalClassesForModule(module, includeTests) ?: return null
+      LOG.debug { "Enlarging scope for $module with ${lightClasses.size} light Android classes." }
+      if (lightClasses.isEmpty()) return null
+
+      // Unfortunately LocalScope looks at containingFile.virtualFile, which is null for non-physical PSI.
+      val virtualFiles = lightClasses.map { it.containingFile.viewProvider.virtualFile }
+      return GlobalSearchScope.filesWithoutLibrariesScope(module.project, virtualFiles)
+    }
+
+    /** Returns the (possibly cached) additional resolve scope for the given module. */
+    fun getAdditionalResolveScopeForModule(module: Module, includeTests: Boolean): SearchScope? {
+      // Cache is invalidated on any PSI change.
+      val cacheKey = if (includeTests) resolveScopeWithTestsKey else resolveScopeSansTestsKey
+      return CachedValuesManager.getManager(module.project).getCachedValue(module, cacheKey, {
+        CachedValueProvider.Result(
+          computeAdditionalResolveScopeForModule(module, includeTests),
+          PsiModificationTracker.MODIFICATION_COUNT
+        )
+      }, false)
     }
   }
 
   override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
-    val lightClasses = findRelevantClasses(file, project) ?: return null
-    LOG.debug { "Enlarging scope for $file with ${lightClasses.size} light Android classes." }
-    return getResolveScopeForAdditionalClasses(lightClasses, project)
-  }
-
-  private fun findRelevantClasses(file: VirtualFile, project: Project): Collection<PsiClass>? {
-    val module = ModuleUtil.findModuleForFile(file, project) ?: return emptyList()
-    val includeTestClasses = TestArtifactSearchScopes.get(module)?.isAndroidTestSource(file) ?: false
-    return findAdditionalClassesForModule(module, includeTestClasses)
+    val module = ModuleUtil.findModuleForFile(file, project) ?: return null
+    val includeTests = TestArtifactSearchScopes.get(module)?.isAndroidTestSource(file) ?: false
+    return getAdditionalResolveScopeForModule(module, includeTests)
   }
 }
