@@ -17,7 +17,7 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.adtui.stdui.registerActionKey
+import com.android.tools.adtui.stdui.registerAnActionKey
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
@@ -27,6 +27,7 @@ import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.components.JBLabel
@@ -50,6 +51,8 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
   protected val leftComponent = component ?: IconWithFocusBorder()
   protected val leftButton = leftComponent as? IconWithFocusBorder
   protected val textField = PropertyTextField(editorModel)
+  protected open val buttonAction: AnAction?
+    get() = editorModel.buttonAction
 
   init {
     border = DarculaTextBorder()
@@ -59,8 +62,8 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     textField.isOpaque = false
     super.add(leftComponent, BorderLayout.WEST)
     super.add(textField, BorderLayout.CENTER)
-    leftButton?.registerActionKey({ buttonPressed(null) }, KeyStrokes.space, "space")
-    leftButton?.registerActionKey({ buttonPressed(null) }, KeyStrokes.enter, "enter")
+    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.space, "space")
+    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.enter, "enter")
     if (leftButton != null) {
       HelpSupportBinding.registerHelpKeyActions(leftButton, { editorModel.property })
     }
@@ -68,7 +71,7 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     editorModel.addListener(ValueChangedListener { updateFromModel() })
     leftButton?.addMouseListener(object: MouseAdapter() {
       override fun mousePressed(event: MouseEvent) {
-        buttonPressed(event)
+        buttonClicked(event)
       }
     })
     leftButton?.addFocusListener(ImageFocusListener(leftButton) { setFromModel() })
@@ -93,12 +96,13 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     toolTipText = editorModel.tooltip
   }
 
-  open fun buttonPressed(mouseEvent: MouseEvent?) {
-    var action = editorModel.buttonAction ?: return
-    var event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, DataManager.getInstance().getDataContext(this))
+  private fun buttonClicked(mouseEvent: MouseEvent) {
+    var action = buttonAction ?: return
+    val context = DataManager.getInstance().getDataContext(leftComponent)
+    var event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, context)
     if (action is ActionGroup) {
       action = action.getChildren(event).firstOrNull() ?: return
-      event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, DataManager.getInstance().getDataContext(this))
+      event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, context)
     }
     action.actionPerformed(event)
     editorModel.refresh()

@@ -208,6 +208,14 @@ open class NelePropertyItem(
     return resolveValue(asResourceValue(value)) ?: value
   }
 
+  fun resolveValueAsColor(value: String?): Color? {
+    if (value != null && !isReferenceValue(value)) {
+      return parseColor(value)
+    }
+    val resValue = asResourceValue(value) ?: return null
+    return resolver?.resolveColor(resValue, project)
+  }
+
   private fun asResourceValue(value: String?): ResourceValue? {
     if (value == null) return null
     return asResourceValue(ResourceUrl.parse(value)?.resolve(defaultNamespace, namespaceResolver))
@@ -454,7 +462,7 @@ open class NelePropertyItem(
     }
 
     override val action: AnAction?
-      get() = OpenResourceManagerAction(this@NelePropertyItem)
+      get() = OpenResourceManagerAction
   }
 
   // endregion
@@ -498,19 +506,11 @@ open class NelePropertyItem(
       get() {
         val value = rawValue
         if (isColor(value)) {
-          return ColorSelectionAction(this@NelePropertyItem, resolveValueAsColor(value))
+          return ColorSelectionAction
         }
         else {
-          return OpenResourceManagerAction(this@NelePropertyItem)
+          return OpenResourceManagerAction
         }
-      }
-
-      private fun resolveValueAsColor(value: String?): Color? {
-        if (value != null && !isReferenceValue(value)) {
-          return parseColor(value)
-        }
-        val resValue = asResourceValue(value) ?: return null
-        return resolver?.resolveColor(resValue, project)
       }
 
       private fun resolveValueAsIcon(value: String?): Icon? {
