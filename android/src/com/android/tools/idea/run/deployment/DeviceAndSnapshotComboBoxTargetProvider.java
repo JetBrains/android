@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetConfigurable;
@@ -49,7 +50,8 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
     return new State();
   }
 
-  private static final class State extends DeployTargetState {
+  @VisibleForTesting
+  static final class State extends DeployTargetState {
   }
 
   @NotNull
