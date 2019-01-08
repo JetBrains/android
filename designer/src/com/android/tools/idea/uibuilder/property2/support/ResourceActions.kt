@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property2.support
 import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
+import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
@@ -65,10 +66,11 @@ class ToggleShowResolvedValueAction(val model: NelePropertiesModel) : AnAction("
   }
 }
 
-class OpenResourceManagerAction(val property: NelePropertyItem) : AnAction("Open Resource Manager") {
+object OpenResourceManagerAction : AnAction("Open Resource Manager") {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val newValue = selectFromResourceDialog()
+    val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
+    val newValue = selectFromResourceDialog(property)
     if (newValue != null) {
       property.value = newValue
     }
@@ -78,7 +80,7 @@ class OpenResourceManagerAction(val property: NelePropertyItem) : AnAction("Open
     (event.inputEvent?.source as? JComponent)?.requestFocus()
   }
 
-  private fun selectFromResourceDialog(): String? {
+  private fun selectFromResourceDialog(property: NelePropertyItem): String? {
     val module = property.model.facet.module
     val propertyName = property.name
     val tag = if (property.components.size == 1) property.components[0].tag else null
@@ -118,14 +120,16 @@ class OpenResourceManagerAction(val property: NelePropertyItem) : AnAction("Open
   }
 }
 
-class ColorSelectionAction(private val property: NelePropertyItem, private val currentColor: Color?): AnAction("Select Color") {
+object ColorSelectionAction: AnAction("Select Color") {
 
   override fun actionPerformed(event: AnActionEvent) {
+    val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
+    val currentColor = property.resolveValueAsColor(property.rawValue)
     val restoreFocusTo = componentToRestoreFocusTo(event)
-    selectFromColorDialog(locationFromEvent(event), currentColor, restoreFocusTo)
+    selectFromColorDialog(locationFromEvent(event), property, currentColor, restoreFocusTo)
   }
 
-  private fun selectFromColorDialog(location: Point, initialColor: Color?, restoreFocusTo: Component?) {
+  private fun selectFromColorDialog(location: Point, property: NelePropertyItem, initialColor: Color?, restoreFocusTo: Component?) {
     val dialog = LightCalloutPopup()
 
     val panel = ColorPickerBuilder()
@@ -150,14 +154,14 @@ class ColorSelectionAction(private val property: NelePropertyItem, private val c
   }
 
   private fun locationFromEvent(event: AnActionEvent): Point {
-    val input = event.inputEvent
-    if (input is MouseEvent) {
-      return input.locationOnScreen
-    }
     val source = componentFromEvent(event)
     if (source is Component) {
       val location = source.locationOnScreen
       return Point(location.x + source.width / 2, location.y + source.height / 2)
+    }
+    val input = event.inputEvent
+    if (input is MouseEvent) {
+      return input.locationOnScreen
     }
     return Point(20, 20)
   }
