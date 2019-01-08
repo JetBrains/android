@@ -80,9 +80,9 @@ class AsyncDevicesGetter {
       () -> new VirtualDevicesWorkerDelegate(myChecker, myService),
       Collections.emptyList());
 
-    Collection<IDevice> connectedDevices = myConnectedDevicesWorker.get(
+    Collection<IDevice> connectedDevices = new ArrayList<>(myConnectedDevicesWorker.get(
       () -> new ConnectedDevicesWorkerDelegate(project),
-      Collections.emptyList());
+      Collections.emptyList()));
 
     List<Device> devices = new ArrayList<>(virtualDevices.size() + connectedDevices.size());
 
