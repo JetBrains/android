@@ -14,6 +14,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor
 
 import com.android.tools.idea.naveditor.editor.AddDestinationMenu
+import com.android.tools.idea.naveditor.editor.DESTINATION_MENU_MAIN_PANEL_NAME
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureTemplateParametersWizardFixture
@@ -32,7 +33,12 @@ import javax.swing.JDialog
 import javax.swing.JPanel
 
 class AddDestinationMenuFixture(private val robot: Robot, private val menu: AddDestinationMenu) :
-  ComponentFixture<AddDestinationMenuFixture, JPanel>(AddDestinationMenuFixture::class.java, robot, menu.mainPanel) {
+  ComponentFixture<AddDestinationMenuFixture, JPanel>(
+    AddDestinationMenuFixture::class.java,
+    robot,
+    DESTINATION_MENU_MAIN_PANEL_NAME,
+    JPanel::class.java
+  ) {
 
   fun selectDestination(label: String) {
     val index = ProgressManager.getInstance().runProcess(Computable {
