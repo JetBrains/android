@@ -38,9 +38,12 @@ const val WARNING_VALUE = "warning"
  */
 open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JBTextField() {
 
-  private var lookup: Lookup<M>? = null
+  private var _lookup: Lookup<M>? = null
   private var updatingFromModel = false
   private var documentChangeFromSetText = false
+
+  val lookup: Lookup<M>?
+    get() = _lookup
 
   init {
     if (editorModel.editingSupport.completion != EDITOR_NO_COMPLETIONS) {
@@ -60,7 +63,7 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
           myLookup.close()
         }
       })
-      lookup = myLookup
+      _lookup = myLookup
     }
     isFocusable = true
     setFromModel()
@@ -87,11 +90,11 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
   }
 
   fun enterInLookup(): Boolean {
-    return lookup?.enter() ?: false
+    return _lookup?.enter() ?: false
   }
 
   fun escapeInLookup(): Boolean {
-    return lookup?.escape() ?: false
+    return _lookup?.escape() ?: false
   }
 
   private fun setFromModel() {
