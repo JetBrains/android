@@ -29,7 +29,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.android.SdkConstants.ANDROID_URI;
@@ -188,7 +188,7 @@ class FontFamilyParser {
     private Map<String, MutableFontDetail> myFonts;
 
     CompoundFontResult() {
-      myFonts = new HashMap<>();
+      myFonts = new LinkedHashMap<>();
     }
 
     @NotNull

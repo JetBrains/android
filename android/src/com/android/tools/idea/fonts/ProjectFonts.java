@@ -194,7 +194,6 @@ public class ProjectFonts {
       best = new FontDetail(best, wanted);
       fonts.add(best);
     }
-    fonts.sort(Comparator.comparing(font -> font.getFamily().getName()));
     return createCompoundFamily(name, fonts);
   }
 
