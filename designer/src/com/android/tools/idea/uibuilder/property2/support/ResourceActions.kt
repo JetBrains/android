@@ -39,6 +39,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.util.Locale
 import javax.swing.AbstractAction
+import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities
@@ -67,8 +68,14 @@ class ToggleShowResolvedValueAction(val model: NelePropertiesModel) : AnAction("
 class OpenResourceManagerAction(val property: NelePropertyItem) : AnAction("Open Resource Manager") {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val newValue = selectFromResourceDialog() ?: return
-    property.value = newValue
+    val newValue = selectFromResourceDialog()
+    if (newValue != null) {
+      property.value = newValue
+    }
+    // The resource picker is a modal dialog.
+    // Attempt to request focus back to the original Swing component where the event came from.
+    // Without this, focus would go back to the table containing the editor.
+    (event.inputEvent?.source as? JComponent)?.requestFocus()
   }
 
   private fun selectFromResourceDialog(): String? {
