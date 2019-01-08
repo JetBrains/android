@@ -89,6 +89,8 @@ import javax.swing.SwingConstants
 import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
 
+const val DESTINATION_MENU_MAIN_PANEL_NAME = "destinationMenuMainPanel"
+
 /**
  * "Add" popup menu in the navigation editor.
  */
@@ -225,6 +227,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         }
       }
     }
+    result.name = DESTINATION_MENU_MAIN_PANEL_NAME
 
     searchField = SearchTextField()
     // leading space is required so text doesn't overlap magnifying glass
