@@ -53,7 +53,7 @@ class FontFamilyParser {
     }
     catch (SAXException | ParserConfigurationException | IOException ex) {
       String message = "Could not parse font xml file " + xmlFile;
-      Logger.getInstance(FontFamilyParser.class).error(message, ex);
+      Logger.getInstance(FontFamilyParser.class).debug(message, ex);
       return new ParseErrorResult(message);
     }
   }
