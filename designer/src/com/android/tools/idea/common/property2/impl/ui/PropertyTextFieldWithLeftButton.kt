@@ -102,6 +102,7 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
       event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, DataManager.getInstance().getDataContext(this))
     }
     action.actionPerformed(event)
+    editorModel.refresh()
   }
 }
 
