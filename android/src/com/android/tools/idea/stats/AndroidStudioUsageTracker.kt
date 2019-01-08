@@ -26,6 +26,7 @@ import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
 import com.google.wireless.android.sdk.stats.StudioProjectChange
 import com.google.wireless.android.sdk.stats.UserSentiment
+import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
@@ -46,6 +47,8 @@ import java.util.concurrent.TimeUnit
  * Tracks Android Studio specific metrics
  */
 object AndroidStudioUsageTracker {
+  private const val IDLE_TIME_BEFORE_SHOWING_DIALOG = 3 * 60 * 1000
+
   @JvmStatic
   val productDetails: ProductDetails
     get() {
@@ -100,9 +103,15 @@ object AndroidStudioUsageTracker {
    * returning UNKNOWN_SATISFACTION_LEVEL means that the user hit the Cancel button in the dialog.
    */
   fun requestUserSentiment() {
-    val dialog = SatisfactionDialog()
-    val now = AnalyticsSettings.dateProvider.now()
-    UIUtil.invokeLaterIfNeeded {
+    val eventQueue = IdeEventQueue.getInstance()
+
+    lateinit var runner : Runnable
+    runner = Runnable {
+      // Ensure we're invoked only once.
+      eventQueue.removeIdleListener(runner)
+
+      val now = AnalyticsSettings.dateProvider.now()
+      val dialog = SatisfactionDialog()
       dialog.showAndGetOk().doWhenDone(Runnable {
         val result = dialog.selectedSentiment
         UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
@@ -117,9 +126,10 @@ object AndroidStudioUsageTracker {
           AnalyticsSettings.lastSentimentAnswerDate = now
         }
         AnalyticsSettings.saveSettings()
-      }
-      )
+      })
     }
+
+    eventQueue.addIdleListener(runner, IDLE_TIME_BEFORE_SHOWING_DIALOG)
   }
 
   private fun runHourlyReports() {
