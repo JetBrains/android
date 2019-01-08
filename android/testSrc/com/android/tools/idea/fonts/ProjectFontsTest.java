@@ -71,10 +71,10 @@ public class ProjectFontsTest extends FontTestCase {
 
     assertThat(family.getFonts().size()).isEqualTo(2);
 
-    assertFontDetail(family.getFonts().get(0), "fonta", "Regular", 400, 100, false,
-                     FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileA.getPath()), new File(fileA.getPath()));
-    assertFontDetail(family.getFonts().get(1), "fontb", "Regular Italic", 400, 100, true,
+    assertFontDetail(family.getFonts().get(0), "fontb", "Regular Italic", 400, 100, true,
                      FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileB.getPath()), new File(fileB.getPath()));
+    assertFontDetail(family.getFonts().get(1), "fonta", "Regular", 400, 100, false,
+                     FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileA.getPath()), new File(fileA.getPath()));
   }
 
   public void testCompoundFamilyFileWithCircularReferences() {
