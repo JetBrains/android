@@ -41,6 +41,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.psi.PsiWhiteSpace;
@@ -56,7 +57,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.concurrent.GuardedBy;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -87,6 +87,7 @@ import org.jetbrains.annotations.NotNull;
  * <li>Add listener or remove listener can be done from any thread</li>
  * </ul>
  */
+@SuppressWarnings({"SynchronizeOnThis"})
 public class ResourceNotificationManager {
   private final Project myProject;
 
@@ -108,11 +109,7 @@ public class ResourceNotificationManager {
   /**
    * Project wide observer: a single one will do
    */
-  @GuardedBy("this")
-  @Nullable
-  private ProjectPsiTreeObserver myProjectPsiTreeObserver;
-
-  private final ProjectBuildObserver myProjectBuildObserver = new ProjectBuildObserver();
+  private ProjectEventObserver myProjectEventObserver;
 
   /**
    * Whether we've already been notified about a change and we'll be firing it shortly
@@ -180,18 +177,19 @@ public class ResourceNotificationManager {
      *                      you can listen for changes in (must be a configuration corresponding to the file)
      * @return the current resource modification stamp of the given module
      */
-    public synchronized ResourceVersion addListener(@NotNull ResourceChangeListener listener,
-                                                    @NotNull AndroidFacet facet,
-                                                    @Nullable VirtualFile file,
-                                                    @Nullable Configuration configuration) {
+  public ResourceVersion addListener(@NotNull ResourceChangeListener listener,
+                                     @NotNull AndroidFacet facet,
+                                     @Nullable VirtualFile file,
+                                     @Nullable Configuration configuration) {
+    synchronized (this) {
       Module module = facet.getModule();
       ModuleEventObserver moduleEventObserver = myModuleToObserverMap.get(module);
       if (moduleEventObserver == null) {
         if (myModuleToObserverMap.isEmpty()) {
-          if (myProjectPsiTreeObserver == null) {
-            myProjectPsiTreeObserver = new ProjectPsiTreeObserver();
+          if (myProjectEventObserver == null) {
+            myProjectEventObserver = new ProjectEventObserver();
           }
-          myProjectBuildObserver.startListening();
+          myProjectEventObserver.registerListeners();
         }
         moduleEventObserver = new ModuleEventObserver(facet);
         myModuleToObserverMap.put(module, moduleEventObserver);
@@ -220,6 +218,7 @@ public class ResourceNotificationManager {
       }
 
       return getCurrentVersion(facet, file != null ? AndroidPsiUtils.getPsiFileSafely(myProject, file) : null, configuration);
+    }
   }
 
   /**
@@ -230,10 +229,11 @@ public class ResourceNotificationManager {
    * @param file          the file passed in to the corresponding {@link #addListener} call
    * @param configuration the configuration passed in to the corresponding {@link #addListener} call
    */
-  public synchronized void removeListener(@NotNull ResourceChangeListener listener,
-                                          @NonNull AndroidFacet facet,
-                                          @Nullable VirtualFile file,
-                                          @Nullable Configuration configuration) {
+  public void removeListener(@NotNull ResourceChangeListener listener,
+                             @NonNull AndroidFacet facet,
+                             @Nullable VirtualFile file,
+                             @Nullable Configuration configuration) {
+    synchronized (this) {
       if (file != null) {
         if (configuration != null) {
           ConfigurationEventObserver configurationEventObserver = myConfigurationToObserverMap.get(configuration);
@@ -262,23 +262,12 @@ public class ResourceNotificationManager {
         moduleEventObserver.removeListener(listener);
         if (!moduleEventObserver.hasListeners()) {
           myModuleToObserverMap.remove(module);
-          if (myModuleToObserverMap.isEmpty() && myProjectPsiTreeObserver != null) {
-            myProjectBuildObserver.stopListening();
-            myProjectPsiTreeObserver = null;
+          if (myModuleToObserverMap.isEmpty() && myProjectEventObserver != null) {
+            myProjectEventObserver.unregisterListeners();
           }
         }
       }
-  }
-
-  /**
-   * Returns a implementation of {@link PsiTreeChangeListener} that is not registered and is used as a
-   * delegate (e.g in {@link PsiProjectListener}).
-   * <p>
-   * If no listener has been added to the {@link ResourceNotificationManager}, this method returns null.
-   */
-  @Nullable
-  public synchronized PsiTreeChangeListener getPsiListener() {
-      return myProjectPsiTreeObserver;
+    }
   }
 
   private final Object CHANGE_PENDING_LOCK = new Object();
@@ -334,9 +323,6 @@ public class ResourceNotificationManager {
   private class ModuleEventObserver implements ModificationTracker, ResourceFolderManager.ResourceFolderListener {
     private final AndroidFacet myFacet;
     private long myGeneration;
-    private final Object myListenersLock = new Object();
-
-    @GuardedBy("myListenersLock")
     private final List<ResourceChangeListener> myListeners = Lists.newArrayListWithExpectedSize(4);
 
     private ModuleEventObserver(@NotNull AndroidFacet facet) {
@@ -350,21 +336,17 @@ public class ResourceNotificationManager {
     }
 
     private void addListener(@NotNull ResourceChangeListener listener) {
-      synchronized (myListenersLock) {
-        if (myListeners.isEmpty()) {
-          registerListeners();
-        }
-        myListeners.add(listener);
+      if (myListeners.isEmpty()) {
+        registerListeners();
       }
+      myListeners.add(listener);
     }
 
     private void removeListener(@NotNull ResourceChangeListener listener) {
-      synchronized (myListenersLock) {
-        myListeners.remove(listener);
+      myListeners.remove(listener);
 
-        if (myListeners.isEmpty()) {
-          unregisterListeners();
-        }
+      if (myListeners.isEmpty()) {
+        unregisterListeners();
       }
     }
 
@@ -400,7 +382,7 @@ public class ResourceNotificationManager {
       myGeneration = generation;
       ApplicationManager.getApplication().assertIsDispatchThread();
       List<ResourceChangeListener> listeners;
-      synchronized (myListenersLock) {
+      synchronized (this) {
         listeners = Lists.newArrayList(myListeners);
       }
       for (ResourceChangeListener listener : listeners) {
@@ -409,9 +391,7 @@ public class ResourceNotificationManager {
     }
 
     private boolean hasListeners() {
-      synchronized (myListenersLock) {
-        return !myListeners.isEmpty();
-      }
+      return !myListeners.isEmpty();
     }
 
     // ---- Implements ResourceFolderManager.ResourceFolderListener ----
@@ -435,19 +415,26 @@ public class ResourceNotificationManager {
     }
   }
 
-  private class ProjectBuildObserver implements AndroidProjectBuildNotifications.AndroidProjectBuildListener {
+  private class ProjectEventObserver implements PsiTreeChangeListener, AndroidProjectBuildNotifications.AndroidProjectBuildListener {
     private boolean myAlreadyAddedBuildListener;
     private boolean myIgnoreBuildEvents;
 
-    private void startListening() {
-      if (!myAlreadyAddedBuildListener) { // See comment in stopListening
+    private ProjectEventObserver() {
+    }
+
+    private void registerListeners() {
+      if (!myAlreadyAddedBuildListener) { // See comment in unregisterListeners
         myAlreadyAddedBuildListener = true;
         AndroidProjectBuildNotifications.subscribe(myProject, this);
       }
       myIgnoreBuildEvents = false;
+
+      PsiManager.getInstance(myProject).addPsiTreeChangeListener(this);
     }
 
-    private void stopListening() {
+    private void unregisterListeners() {
+      PsiManager.getInstance(myProject).removePsiTreeChangeListener(this);
+
       // Unfortunately, we can't remove build tasks once they've been added.
       //    https://youtrack.jetbrains.com/issue/IDEA-139893
       // Therefore, we leave the listeners around, and make sure we only add
@@ -465,12 +452,8 @@ public class ResourceNotificationManager {
         notice(Reason.PROJECT_BUILD);
       }
     }
-  }
 
-  private class ProjectPsiTreeObserver implements PsiTreeChangeListener {
-
-    private ProjectPsiTreeObserver() {
-    }
+    // ---- Implements PsiTreeChangeEvent. These are fired project-wide. ----
 
     @Override
     public void beforeChildAddition(@NotNull PsiTreeChangeEvent event) {
