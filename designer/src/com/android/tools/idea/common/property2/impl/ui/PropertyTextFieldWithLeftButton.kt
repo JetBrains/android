@@ -89,9 +89,6 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     isVisible = editorModel.visible
     leftButton?.icon = editorModel.getLeftButtonIcon(leftButton?.hasFocus() == true)
     toolTipText = editorModel.tooltip
-    if (editorModel.focusRequest && !leftComponent.isFocusOwner) {
-      leftComponent.requestFocusInWindow()
-    }
   }
 
   open fun buttonPressed(mouseEvent: MouseEvent?) {
