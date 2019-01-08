@@ -150,7 +150,7 @@ public class DependencyManager implements Disposable {
   }
 
   private synchronized void registerDependencyUpdates() {
-    if (myRegisteredForDependencyUpdates) {
+    if (myRegisteredForDependencyUpdates || myProject.isDisposed()) {
       return;
     }
     myRegisteredForDependencyUpdates = true;
@@ -176,11 +176,15 @@ public class DependencyManager implements Disposable {
   }
 
   private boolean computeUseAndroidXDependencies() {
+    if (myProject.isDisposed()) {
+      return false;
+    }
+
     if (MigrateToAndroidxUtil.hasAndroidxProperty(myProject)) {
       return MigrateToAndroidxUtil.isAndroidx(myProject);
     }
 
-    if (myModule == null) {
+    if (myModule == null || myModule.isDisposed()) {
       return false;
     }
 
