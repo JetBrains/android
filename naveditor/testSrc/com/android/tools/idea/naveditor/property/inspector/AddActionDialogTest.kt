@@ -118,6 +118,7 @@ class AddActionDialogTest : NavTestCase() {
       assertEquals(model.find("f1"), dialog.source)
       assertEquals("f2", dialog.popTo)
       assertEquals("a1", dialog.id)
+      assertFalse(dialog.dialog.myIdTextField.isEnabled)
     }
   }
 
@@ -169,6 +170,7 @@ class AddActionDialogTest : NavTestCase() {
       assertEquals(model.find("f2"), dialog.myDestinationComboBox.getItemAt(5).component)
       assertEquals(6, dialog.myDestinationComboBox.itemCount)
       assertTrue(dialog.myDestinationComboBox.isEnabled)
+      assertTrue(dialog.myIdTextField.isEnabled)
 
       for (combo in arrayOf(dialog.myEnterComboBox, dialog.myExitComboBox, dialog.myPopEnterComboBox, dialog.myPopExitComboBox)) {
         assertEquals(null, combo.getItemAt(0).value)
