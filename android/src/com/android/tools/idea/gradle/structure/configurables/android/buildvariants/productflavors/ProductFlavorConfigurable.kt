@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.Disposer
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -37,6 +38,7 @@ class ProductFlavorConfigurable(
 ) :
   ChildModelConfigurable<PsProductFlavor, ProductFlavorConfigPanel>(productFlavor) {
   override fun getBannerSlogan() = "Product Flavor '${productFlavor.name}'"
+  override fun getIcon(expanded: Boolean): Icon = productFlavor.icon
   override fun createPanel(): ProductFlavorConfigPanel = ProductFlavorConfigPanel(productFlavor, context)
 }
 
@@ -47,6 +49,7 @@ class FlavorDimensionConfigurable(
 ) : NamedConfigurable<PsFlavorDimension>(), ContainerConfigurable<PsProductFlavor> {
   override fun getEditableObject(): PsFlavorDimension = flavorDimension
   override fun getBannerSlogan(): String = "Dimension '$flavorDimension'"
+  override fun getIcon(expanded: Boolean): Icon = flavorDimension.icon
   override fun isModified(): Boolean = false
   override fun getDisplayName(): String = flavorDimension.name
   override fun apply() = Unit

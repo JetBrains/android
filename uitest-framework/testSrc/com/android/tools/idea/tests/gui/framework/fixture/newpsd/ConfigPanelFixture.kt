@@ -46,6 +46,7 @@ abstract class ConfigPanelFixture protected constructor(
   fun selectItemByPath(path: String) {
     val tree = JTreeFixture(robot(), robot().finder().findByType<JTree>(container))
     tree.selectPath(path)
+    waitForIdle()
   }
 }
 
