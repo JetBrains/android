@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.profilers.ProfilerDeviceFileManager.DEVICE_DIR
 import com.google.common.truth.Truth.assertThat
 
 import org.junit.Before
@@ -59,14 +58,15 @@ class ProfilerDeviceFileManagerTest {
     val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
     val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
 
-    ProfilerDeviceFileManager(mockDevice).copyFileToDevice(hostFile)
+    val fileManager = ProfilerDeviceFileManager(mockDevice)
+    fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
     val expectedPaths = listOf(
       Pair("dev/perfa.jar", "perfa.jar")
     ).map { (host, device) ->
       // maps from relative paths to absolute paths
-      Pair("${temporaryFolder.root.absolutePath}/$host", DEVICE_DIR + device)
+      Pair("${temporaryFolder.root.absolutePath}/$host", fileManager.deviceFullDir + device)
     }
 
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
@@ -106,14 +106,15 @@ class ProfilerDeviceFileManagerTest {
     val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
     val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
 
-    ProfilerDeviceFileManager(mockDevice).copyFileToDevice(hostFile)
+    val fileManager = ProfilerDeviceFileManager(mockDevice)
+    fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
     val expectedPaths = listOf(
       Pair("dev/${Abi.ARMEABI_V7A}/perfd", "perfd")
     ).map { (host, device) ->
       // maps from relative paths to absolute paths
-      Pair("${temporaryFolder.root.absolutePath}/$host", DEVICE_DIR + device)
+      Pair("${temporaryFolder.root.absolutePath}/$host", fileManager.deviceFullDir + device)
     }
 
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
@@ -156,7 +157,8 @@ class ProfilerDeviceFileManagerTest {
     val hostPathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
     val devicePathCaptor: ArgumentCaptor<String> = ArgumentCaptor.forClass(String::class.java)
 
-    ProfilerDeviceFileManager(mockDevice).copyFileToDevice(hostFile)
+    val fileManager = ProfilerDeviceFileManager(mockDevice)
+    fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(2)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
     val expectedAbis = listOf(
@@ -167,7 +169,7 @@ class ProfilerDeviceFileManagerTest {
     val expectedHostPaths = expectedAbis.map { "${temporaryFolder.root.absolutePath}/dev/${it}/simpleperf" }
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedHostPaths)
 
-    val expectedDevicePaths = expectedAbis.map { "${DEVICE_DIR}simpleperf_${it.cpuArch}" }
+    val expectedDevicePaths = expectedAbis.map { "${fileManager.deviceFullDir}simpleperf_${it.cpuArch}" }
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedDevicePaths)
   }
 }

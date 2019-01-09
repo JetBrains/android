@@ -9,5 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
   </component>
 </module>
