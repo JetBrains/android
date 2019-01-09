@@ -917,7 +917,7 @@ public class Scene implements SelectionListener, Disposable {
     final RenderTask task = renderService.taskBuilder(facet, model.getConfiguration())
                                          .withLogger(logger)
                                          .withPsiFile(xmlFile)
-                                         .build();
+                                         .buildSynchronously();
     if (task == null) {
       return null;
     }
