@@ -31,7 +31,12 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.extensions.Extensions
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.StdModuleTypes
+import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
@@ -166,6 +171,34 @@ class DependencyManagerTest : AndroidTestCase() {
     dependencyManager!!.setNotifyAlways(true)
     simulateProjectSync()
     assertEquals(0, dependencyUpdateCount)
+  }
+
+  fun testSetPaletteWithDisposedProject() {
+    val foo = createTempDir("foo")
+    val bar = createTempDir("bar")
+    val tempProject = ProjectManagerEx.getInstanceEx().createProject(null, foo.path)!!
+    val localDependencyManager: DependencyManager
+
+    val future = try {
+      val tempModule = WriteCommandAction.runWriteCommandAction(tempProject, Computable<Module> {
+        ModuleManager.getInstance(tempProject).newModule(bar.path, StdModuleTypes.JAVA.id)
+      })
+
+      localDependencyManager = DependencyManager(tempProject)
+      localDependencyManager.setPalette(palette!!, tempModule)
+    }
+    finally {
+      WriteCommandAction.runWriteCommandAction(tempProject) {
+        Disposer.dispose(tempProject)
+      }
+    }
+
+    // Test: The following lines should not yield project already disposed exceptions:
+    future.get()
+    UIUtil.dispatchAllInvocationEvents()
+
+    // Cleanup:
+    Disposer.dispose(localDependencyManager)
   }
 
   private fun simulateProjectSync() {
