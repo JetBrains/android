@@ -33,7 +33,6 @@ const val ENABLE_JETIFIER_PROPERTY = "android.enableJetifier"
  * Returns a [PropertiesFile] instance for the `gradle.properties` file in the given project or null if it does not exist.
  */
 private fun Project.getProjectProperties(createIfNotExists: Boolean = false): PropertiesFile? {
-  if (isDisposed) return null
   val projectBaseDirectory = VfsUtil.findFileByIoFile(File(FileUtil.toCanonicalPath(basePath)), true)
   val gradlePropertiesFile = if (createIfNotExists)
     projectBaseDirectory?.findOrCreateChildData(this, SdkConstants.FN_GRADLE_PROPERTIES)
