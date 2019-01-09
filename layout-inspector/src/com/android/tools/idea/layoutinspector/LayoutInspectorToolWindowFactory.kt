@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.layoutinspector.surface.InspectorPanel
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
@@ -25,7 +26,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val contentManager = toolWindow.contentManager
-    contentManager.addContent(contentManager.factory.createContent(JLabel("foo"), "", true))
+    contentManager.addContent(contentManager.factory.createContent(InspectorPanel(), "", true))
   }
 
   override fun init(window: ToolWindow?) {
