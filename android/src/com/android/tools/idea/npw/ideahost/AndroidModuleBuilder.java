@@ -34,9 +34,7 @@ import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModifiableRootModel;
 import icons.AndroidArtworkIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,11 +67,6 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
    * This adapter class hosts the Android Studio {@link ModelWizard} instance
    */
   @Nullable/*No adapter has been instantiated*/ private IdeaWizardAdapter myWizardAdapter;
-
-  @Override
-  public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
-    // Unused. See class header.
-  }
 
   @Override
   public String getBuilderId() {
