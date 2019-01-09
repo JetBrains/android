@@ -24,8 +24,8 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -36,6 +36,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
@@ -60,23 +62,25 @@ public class DependencyManager implements Disposable {
   private boolean myUseAndroidXDependencies;
   private boolean myRegisteredForDependencyUpdates;
   private boolean myNotifyAlways;
+  private Consumer<Future<?>> mySyncTopicConsumer;
 
   public DependencyManager(@NotNull Project project) {
     myProject = project;
     myMissingLibraries = new HashSet<>();
     myListeners = new ArrayList<>(2);
     myPalette = Palette.EMPTY;
+    mySyncTopicConsumer = future -> {};
   }
 
   public void addDependencyChangeListener(@NotNull DependencyChangeListener listener) {
     myListeners.add(listener);
   }
 
-  public void setPalette(@NotNull Palette palette, @NotNull Module module) {
+  public Future<?> setPalette(@NotNull Palette palette, @NotNull Module module) {
     myPalette = palette;
     myModule = module;
     // These computations are quite expensive, run them on a background thread to avoid blocking the UI.
-    ensureRunningOnBackgroundThread(() -> {
+    return ensureRunningOnBackgroundThread(() -> {
       checkForRelevantDependencyChanges();
       registerDependencyUpdates();
       invokeLaterIfNeeded(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
@@ -93,6 +97,11 @@ public class DependencyManager implements Disposable {
 
   public boolean dependsOn(@NotNull GoogleMavenArtifactId artifactId) {
     return DependencyManagementUtil.dependsOn(myModule, artifactId);
+  }
+
+  @TestOnly
+  public void setSyncTopicListener(@NotNull Consumer<Future<?>> listener) {
+    mySyncTopicConsumer = listener;
   }
 
   @TestOnly
@@ -148,11 +157,11 @@ public class DependencyManager implements Disposable {
     myProject.getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
       // checkForRelevantDependencyChanges can be quite expensive, run this on a background thread,
       // however the DependencyChangeListeners must be called from the UI thread as they update the UI.
-      ensureRunningOnBackgroundThread(() -> {
+      mySyncTopicConsumer.accept(ensureRunningOnBackgroundThread(() -> {
         if ((result == ProjectSystemSyncManager.SyncResult.SUCCESS && checkForRelevantDependencyChanges()) || myNotifyAlways) {
           invokeLaterIfNeeded(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
         }
-      });
+      }));
     });
   }
 
@@ -188,12 +197,13 @@ public class DependencyManager implements Disposable {
     void onDependenciesChanged();
   }
 
-  private static void ensureRunningOnBackgroundThread(@NotNull Runnable runnable) {
-    if (ApplicationManager.getApplication().isDispatchThread() && !ApplicationManager.getApplication().isUnitTestMode()) {
-      ApplicationManager.getApplication().executeOnPooledThread(runnable);
+  private static Future<?> ensureRunningOnBackgroundThread(@NotNull Runnable runnable) {
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      return ApplicationManager.getApplication().executeOnPooledThread(runnable);
     }
     else {
       runnable.run();
+      return Futures.immediateFuture(null);
     }
   }
 }
