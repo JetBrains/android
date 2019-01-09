@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.annotations.NonNull;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
@@ -86,7 +84,7 @@ public class AndroidDebuggerContext implements JDOMExternalizable {
 
   @NotNull
   public List<AndroidDebugger> getAndroidDebuggers() {
-    return Lists.newArrayList(AndroidDebugger.EP_NAME.getExtensions());
+    return AndroidDebugger.EP_NAME.getExtensionList();
   }
 
   @Nullable
