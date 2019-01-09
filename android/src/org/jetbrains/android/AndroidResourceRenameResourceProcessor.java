@@ -202,7 +202,9 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     else if (computedElement instanceof XmlAttributeValue) {
       XmlAttributeValue value = (XmlAttributeValue)computedElement;
       if (AndroidResourceUtil.isIdDeclaration(value)) {
-        prepareIdRenaming(value, newName, allRenames, facet);
+        if (AndroidResourceUtil.isIdDeclaration(newName)) {
+          prepareIdRenaming(value, newName, allRenames, facet);
+        }
       }
       else {
         prepareValueResourceRenaming(computedElement, newName, allRenames, facet);
