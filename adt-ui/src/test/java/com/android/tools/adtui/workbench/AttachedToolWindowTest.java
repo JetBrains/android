@@ -77,6 +77,9 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
         Disposer.dispose(myToolWindow);
       }
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }

@@ -105,7 +105,10 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     try {
       KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
       //myManager.projectClosed();
-      //myManager.disposeComponent();
+      //myManager.disposeComponent()
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
