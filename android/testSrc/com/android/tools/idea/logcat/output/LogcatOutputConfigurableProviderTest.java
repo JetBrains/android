@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.Collection;
-import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -159,8 +158,7 @@ public class LogcatOutputConfigurableProviderTest extends AndroidTestCase {
   }
 
   private static LogcatOutputConfigurableProvider getLogcatProvider() {
-    DebuggerConfigurableProvider[] providers = DebuggerConfigurableProvider.EXTENSION_POINT.getExtensions();
     return (LogcatOutputConfigurableProvider)
-      Stream.of(providers).filter(x -> x instanceof LogcatOutputConfigurableProvider).findAny().orElse(null);
+      DebuggerConfigurableProvider.EXTENSION_POINT.extensions().filter(x -> x instanceof LogcatOutputConfigurableProvider).findAny().orElse(null);
   }
 }
