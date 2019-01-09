@@ -17,11 +17,11 @@ package com.android.tools.idea.fonts;
 
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.dom.AndroidDomUtil;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WEIGHT;
 import static com.google.common.truth.Truth.assertThat;
@@ -36,7 +36,7 @@ public class SystemFontsTest extends FontTestCase {
   }
 
   public void testAllSystemFontsAvailable() {
-    List<String> fontNames = mySystemFonts.getFontFamilies().stream().map(FontFamily::getName).collect(Collectors.toList());
+    List<String> fontNames = ContainerUtil.map(mySystemFonts.getFontFamilies(), FontFamily::getName);
     assertThat(fontNames).containsExactlyElementsIn(AndroidDomUtil.AVAILABLE_FAMILIES);
   }
 

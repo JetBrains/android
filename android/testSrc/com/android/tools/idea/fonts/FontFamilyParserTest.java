@@ -20,7 +20,7 @@ import com.android.ide.common.fonts.QueryParser;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.UsefulTestCase;
+import junit.framework.TestCase;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +29,7 @@ import java.util.Iterator;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class FontFamilyParserTest extends UsefulTestCase {
+public class FontFamilyParserTest extends TestCase {
 
   public void testParseFontFamilyWithReferences() throws Exception {
     @Language("XML")

@@ -17,13 +17,12 @@ package com.android.tools.idea.sdk;
 
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestCase;
+import junit.framework.TestCase;
 
 /**
  * Tests for {@link Jdks}.
  */
-public class JdksTest extends IdeaTestCase {
-
+public class JdksTest extends TestCase {
   // These tests verify that LanguageLevel#isAtLeast does what we think it does (this is IntelliJ code.) Leaving these tests here as a way
   // ensure that regressions are not introduced later.
   public void testHasMatchingLangLevelWithLangLevel1dot6AndJdk7() {

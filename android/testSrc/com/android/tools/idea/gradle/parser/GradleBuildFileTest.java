@@ -23,7 +23,6 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -39,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.parser.GradleBuildFile.UNRECOGNIZED_VALUE;
+import static org.junit.Assert.assertNotEquals;
 
 public class GradleBuildFileTest extends IdeaTestCase {
   private Document myDocument;
@@ -530,8 +530,8 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals(1, dependencies.size());
     Dependency dependency = (Dependency)dependencies.get(0);
     assertNotNull(dependency);
-    Map<String, Object> expected = ImmutableMap.of("path", ":foo", "configuration", (Object)"bar");
-    assert(Maps.difference(expected, (Map<? extends String, ?>)dependency.data).areEqual());
+    Map<String, Object> expected = ImmutableMap.of("path", ":foo", "configuration", "bar");
+    assert(Maps.difference(expected, (Map<String, ?>)dependency.data).areEqual());
   }
 
   public void testGetsMavenRepositories() throws Exception {
@@ -575,7 +575,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     ImmutableList<String> fileList = ImmutableList.of("*.jar", "*.aar");
     Map<String, Object> nvMap = ImmutableMap.of(
       "dir", "libs",
-      "includes", (Object)fileList
+      "includes", fileList
     );
     Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, nvMap);
     List<Dependency> expected = ImmutableList.of(dep);
@@ -591,7 +591,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     ImmutableList<String> fileList = ImmutableList.of("*.jar", "*.aar");
     Map<String, Object> nvMap = ImmutableMap.of(
       "dir", "libs",
-      "includes", (Object)fileList
+      "includes", fileList
     );
     Dependency dep = new Dependency(Dependency.Scope.API, Dependency.Type.FILETREE, nvMap);
     List<Dependency> expected = ImmutableList.of(dep);
@@ -603,7 +603,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     ImmutableList<String> fileList = ImmutableList.of("*.jar", "*.aar");
     Map<String, Object> nvMap = ImmutableMap.of(
       "dir", "libs",
-      "includes", (Object)fileList
+      "includes", fileList
     );
     final Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, nvMap);
     WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
@@ -1354,7 +1354,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
     // Even though the unparseables are different, we ignore them for the purposes of deciding
     // whether to write them out.
-    assertFalse(unparseableOne.equals(unparseableTwo));
+    assertNotEquals(unparseableOne, unparseableTwo);
     assertFalse(GradleBuildFile.shouldWriteValue(unparseableOne, unparseableTwo));
   }
 
@@ -1375,7 +1375,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertContents(fileContent);
   }
 
-  private static String getSimpleTestFile() throws IOException {
+  private static String getSimpleTestFile() {
     return
       "buildscript {\n" +
       "    repositories {\n" +
@@ -1449,7 +1449,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     return GroovyPsiElementFactory.getInstance(myProject).createClosureFromText("{}");
   }
 
-  private void assertContents(String expected) throws IOException {
+  private void assertContents(String expected) {
     PsiDocumentManager.getInstance(getProject()).commitDocument(myDocument);
     String actual = myDocument.getText();
     assertEquals(expected, actual);
