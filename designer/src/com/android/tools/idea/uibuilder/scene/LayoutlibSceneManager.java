@@ -555,7 +555,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
   void doRequestLayoutAndRender(boolean animate) {
     requestRender(getTriggerFromChangeType(getModel().getLastChangeType()))
-      .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate));
+      .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), PooledThreadExecutor.INSTANCE);
   }
 
   /**
@@ -865,7 +865,7 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   protected CompletableFuture<Void> updateModel() {
     return inflate(true)
-      .whenCompleteAsync((result, exception) -> notifyListenersModelUpdateComplete())
+      .whenCompleteAsync((result, exception) -> notifyListenersModelUpdateComplete(), PooledThreadExecutor.INSTANCE)
       .thenApply(result -> null);
   }
 
@@ -974,7 +974,7 @@ public class LayoutlibSceneManager extends SceneManager {
         if (result) {
           notifyListenersModelUpdateComplete();
         }
-      })
+      }, PooledThreadExecutor.INSTANCE)
       .thenCompose(inflated -> {
         long elapsedFrameTimeMs = myElapsedFrameTimeMs;
 
