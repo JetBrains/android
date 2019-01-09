@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.annotations.VisibleForTesting;
@@ -16,6 +17,7 @@ import com.intellij.util.io.DataInputOutputUtil;
 import com.intellij.util.io.IOUtil;
 import com.intellij.util.io.KeyDescriptor;
 import com.intellij.util.text.CharArrayUtil;
+import com.intellij.util.xml.NanoXmlBuilder;
 import com.intellij.util.xml.NanoXmlUtil;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.ResourceEntry;
@@ -107,12 +109,12 @@ public class AndroidValueResourcesIndex
     }
     final boolean[] ourRootTag = {false};
 
-    NanoXmlUtil.parse(CharArrayUtil.readerFromCharSequence(inputData.getContentAsText()), new NanoXmlUtil.IXMLBuilderAdapter() {
+    NanoXmlUtil.parse(CharArrayUtil.readerFromCharSequence(inputData.getContentAsText()), new NanoXmlBuilder() {
       @Override
       public void startElement(String name, String nsPrefix, String nsURI, String systemID, int lineNr)
         throws Exception {
         ourRootTag[0] = RESOURCES_ROOT_TAG.equals(name) && nsPrefix == null;
-        stop();
+        NanoXmlBuilder.stop();
       }
     });
     return ourRootTag[0];
@@ -151,11 +153,11 @@ public class AndroidValueResourcesIndex
   @VisibleForTesting
   static String normalizeDelimiters(String s) {
     int length = s.length();
-    for (int j = 0, n = length; j < n; j++) {
+    for (int j = 0; j < length; j++) {
       final char ch = s.charAt(j);
       if (!Character.isLetterOrDigit(ch) && ch != '_') {
         StringBuilder result = new StringBuilder(length);
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < length; i++) {
           final char c = s.charAt(i);
           if (Character.isLetterOrDigit(c)) {
             result.append(c);

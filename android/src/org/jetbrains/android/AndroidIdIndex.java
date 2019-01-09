@@ -1,30 +1,15 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
 import com.intellij.util.text.CharArrayUtil;
+import com.intellij.util.xml.NanoXmlBuilder;
 import com.intellij.util.xml.NanoXmlUtil;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -32,9 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -52,12 +35,11 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
       if (CharArrayUtil.indexOf(content, SdkConstants.NS_RESOURCES, 0) == -1) {
         return Collections.emptyMap();
       }
-      final HashMap<String, Set<String>> map = new HashMap<String, Set<String>>();
-      
-      NanoXmlUtil.parse(CharArrayUtil.readerFromCharSequence(inputData.getContentAsText()), new NanoXmlUtil.IXMLBuilderAdapter() {
+      final Map<String, Set<String>> map = new HashMap<>();
+
+      NanoXmlUtil.parse(CharArrayUtil.readerFromCharSequence(inputData.getContentAsText()), new NanoXmlBuilder() {
         @Override
-        public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type) throws Exception {
-          super.addAttribute(key, nsPrefix, nsURI, value, type);
+        public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type) {
           final boolean declaration = AndroidResourceUtil.isIdDeclaration(value);
 
           if (declaration || AndroidResourceUtil.isIdReference(value)) {
@@ -67,7 +49,7 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
               if (declaration) {
                 id = "+" + id;
               }
-              map.put(id, Collections.<String>emptySet());
+              map.put(id, Collections.emptySet());
             }
           }
           else if (AndroidResourceUtil.isConstraintReferencedIds(nsURI, nsPrefix, key)) {
@@ -83,7 +65,7 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
         }
       });
       if (!map.isEmpty()) {
-        map.put(MARKER, new HashSet<String>(map.keySet()));
+        map.put(MARKER, new HashSet<>(map.keySet()));
       }
       return map;
     }
@@ -107,7 +89,7 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
         throw new IOException("Corrupt Index: Size " + size);
       }
 
-      final Set<String> result = new HashSet<String>(size);
+      final Set<String> result = new HashSet<>(size);
 
       for (int i = 0; i < size; i++) {
         final String s = in.readUTF();
