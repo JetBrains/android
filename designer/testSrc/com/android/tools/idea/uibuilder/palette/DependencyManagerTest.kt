@@ -31,12 +31,7 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.extensions.Extensions
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.StdModuleTypes
-import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
@@ -44,12 +39,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.mock
 import java.io.File
-import java.util.ArrayDeque
-import java.util.concurrent.Future
 import javax.xml.ws.Holder
 
 class DependencyManagerTest : AndroidTestCase() {
@@ -58,7 +50,6 @@ class DependencyManagerTest : AndroidTestCase() {
   private var disposable: Disposable? = null
   private var dependencyManager: DependencyManager? = null
   private var dependencyUpdateCount = 0
-  private val syncListeners = ArrayDeque<Future<*>>()
 
   @Throws(Exception::class)
   override fun setUp() {
@@ -72,10 +63,8 @@ class DependencyManagerTest : AndroidTestCase() {
     Disposer.register(testRootDisposable, disposable!!)
 
     dependencyManager = DependencyManager(project)
-    dependencyManager?.setSyncTopicListener { syncListeners.add(it) }
     if (getTestName(true) != "noNotificationOnProjectSyncBeforeSetPalette") {
-      syncListeners.add(dependencyManager!!.setPalette(palette!!, myModule))
-      waitAndDispatchAll()
+      dependencyManager!!.setPalette(palette!!, myModule)
     }
     Disposer.register(disposable!!, dependencyManager!!)
     dependencyManager!!.addDependencyChangeListener { dependencyUpdateCount++ }
@@ -105,7 +94,7 @@ class DependencyManagerTest : AndroidTestCase() {
 
   fun testEnsureLibraryIsIncluded() {
     val (floatingActionButton, recyclerView, cardView) =
-      listOf(FLOATING_ACTION_BUTTON.defaultName(), RECYCLER_VIEW.defaultName(), CARD_VIEW.defaultName()).map(this::findItem)
+        listOf(FLOATING_ACTION_BUTTON.defaultName(), RECYCLER_VIEW.defaultName(), CARD_VIEW.defaultName()).map(this::findItem)
 
     assertThat(dependencyManager!!.needsLibraryLoad(floatingActionButton)).isTrue()
     assertThat(dependencyManager!!.needsLibraryLoad(recyclerView)).isTrue()
@@ -173,39 +162,8 @@ class DependencyManagerTest : AndroidTestCase() {
     assertEquals(0, dependencyUpdateCount)
   }
 
-  fun testSetPaletteWithDisposedProject() {
-    val foo = createTempDir("foo")
-    val bar = createTempDir("bar")
-    val tempProject = ProjectManagerEx.getInstanceEx().createProject(null, foo.path)!!
-
-    val future = try {
-      val tempModule = WriteCommandAction.runWriteCommandAction(tempProject, Computable<Module> {
-        ModuleManager.getInstance(tempProject).newModule(bar.path, StdModuleTypes.JAVA.id)
-      })
-
-      val localDependencyManager = DependencyManager(tempProject)
-      localDependencyManager.setPalette(palette!!, tempModule)
-    }
-    finally {
-      WriteCommandAction.runWriteCommandAction(tempProject) {
-        Disposer.dispose(tempProject)
-      }
-    }
-
-    future.get()
-    UIUtil.dispatchAllInvocationEvents()
-  }
-
   private fun simulateProjectSync() {
     project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
-    waitAndDispatchAll()
-  }
-
-  private fun waitAndDispatchAll() {
-    while (syncListeners.isNotEmpty()) {
-      syncListeners.remove().get()
-    }
-    UIUtil.dispatchAllInvocationEvents()
   }
 
   private fun findItem(tagName: String): Palette.Item {
