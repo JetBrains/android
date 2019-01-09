@@ -106,6 +106,9 @@ public class WorkBenchTest extends WorkBenchTestCase {
     try {
       Disposer.dispose(myWorkBench);
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }

@@ -55,6 +55,9 @@ public class GoogleMavenRepositoryTest extends GradleFileModelTestCase {
     try {
       myIdeComponents.restore();
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }
