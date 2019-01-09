@@ -60,6 +60,7 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   // TODO: Navigation isn't in androidx yet
   // ANDROIDX_NAVIGATION_FRAGMENT("androidx.navigation", "navigation-fragment", false),
   NAVIGATION_FRAGMENT("android.arch.navigation", "navigation-fragment", false),
+  NAVIGATION_UI("android.arch.navigation", "navigation-ui", false),
   // This is currently only used in tests
   NAVIGATION("androidx.navigation", "navigation-runtime", false),
 
