@@ -1843,7 +1843,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                                 psiResourceFile.removeItem((PsiResourceItem)item);
                               }
 
-                              if (!StringUtil.isEmpty(newName)) {
+                              if (newValue.getValue().startsWith(NEW_ID_PREFIX) && !StringUtil.isEmpty(newName)) {
                                 PsiResourceItem newItem = PsiResourceItem.forXmlTag(newName, ResourceType.ID, myNamespace, xmlTag, true);
                                 map.put(newName, newItem);
                                 psiResourceFile.addItem(newItem);
@@ -1895,7 +1895,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                               if (psiResourceFile.isSourceOf(item)) {
                                 psiResourceFile.removeItem((PsiResourceItem)item);
                               }
-                              if (!StringUtil.isEmpty(newName)) {
+                              if (newChild.getText().startsWith(NEW_ID_PREFIX) && !StringUtil.isEmpty(newName)) {
                                 PsiResourceItem newItem = PsiResourceItem.forXmlTag(newName, ResourceType.ID, myNamespace, xmlTag, true);
                                 map.put(newName, newItem);
                                 psiResourceFile.addItem(newItem);
