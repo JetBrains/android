@@ -248,7 +248,7 @@ public class PreviewProvider implements Disposable {
       RenderLogger logger = renderService.createLogger(facet);
       myRenderTask = renderService.taskBuilder(facet, configuration)
                                   .withLogger(logger)
-                                  .build();
+                                  .buildSynchronously();
     }
 
     return myRenderTask;

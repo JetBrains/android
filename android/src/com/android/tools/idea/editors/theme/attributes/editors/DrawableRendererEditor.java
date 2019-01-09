@@ -64,7 +64,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     RenderLogger logger = new RenderLogger("ThemeEditorLogger", null);
     RenderTask task = service.taskBuilder(facet, configuration)
       .withLogger(logger)
-      .build();
+      .buildSynchronously();
     assert task != null;
     task.getLayoutlibCallback().setLogger(logger);
     return task;

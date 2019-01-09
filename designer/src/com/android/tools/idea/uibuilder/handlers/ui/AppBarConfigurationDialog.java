@@ -708,7 +708,7 @@ public class AppBarConfigurationDialog extends JDialog {
     final RenderTask task = renderService.taskBuilder(facet, myEditor.getConfiguration())
                                          .withLogger(logger)
                                          .withPsiFile(xmlFile)
-                                         .build();
+                                         .buildSynchronously();
     RenderResult result = null;
     if (task != null) {
       task.setRenderingMode(SessionParams.RenderingMode.NORMAL);

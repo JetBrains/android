@@ -133,6 +133,6 @@ private fun createRenderTaskForTest(facet: AndroidFacet, xmlFile: XmlFile, confi
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()
     .disableSecurityManager()
-    .build()
+    .buildSynchronously()
 
 private fun Image.toBufferedImage() = ImageUtil.toBufferedImage(this)
