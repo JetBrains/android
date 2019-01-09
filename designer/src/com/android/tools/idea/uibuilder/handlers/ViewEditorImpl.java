@@ -169,7 +169,7 @@ public class ViewEditorImpl extends ViewEditor {
     RenderService renderService = RenderService.getInstance(module.getProject());
     final RenderTask task = renderService.taskBuilder(model.getFacet(), getConfiguration())
       .withPsiFile(xmlFile)
-      .build();
+      .buildSynchronously();
     if (task == null) {
       return CompletableFuture.completedFuture(Collections.emptyMap());
     }

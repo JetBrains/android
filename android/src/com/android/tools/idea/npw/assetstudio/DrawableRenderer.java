@@ -91,7 +91,7 @@ public class DrawableRenderer implements Disposable {
         RenderTask renderTask = service.taskBuilder(facet, configuration)
           .withLogger(logger)
           .withParserFactory(myParserFactory)
-          .build();
+          .buildSynchronously();
         assert renderTask != null;
         renderTask.getLayoutlibCallback().setLogger(logger);
         if (logger.hasProblems()) {

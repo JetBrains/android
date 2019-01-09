@@ -779,55 +779,57 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderService renderService = RenderService.getInstance(getModel().getProject());
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration)
       .withPsiFile(getModel().getFile());
-    RenderTask newTask = setupRenderTaskBuilder(renderTaskBuilder).build();
-    if (newTask != null) {
-      newTask.getLayoutlibCallback()
-        .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
-      return newTask.inflate().whenComplete((result, exception) -> {
-        if (exception != null) {
-          Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
-        }
+    return setupRenderTaskBuilder(renderTaskBuilder).build()
+      .thenCompose(newTask -> {
+        if (newTask != null) {
+          newTask.getLayoutlibCallback()
+            .setAdaptiveIconMaskPath(getDesignSurface().getAdaptiveIconShape().getPathDescription());
+          return newTask.inflate().whenComplete((result, exception) -> {
+            if (exception != null) {
+              Logger.getInstance(LayoutlibSceneManager.class).warn(exception);
+            }
 
-        if (result == null || !result.getRenderResult().isSuccess()) {
-          newTask.dispose();
+            if (result == null || !result.getRenderResult().isSuccess()) {
+              newTask.dispose();
+            }
+            else {
+              // Update myRenderTask with the new task
+              synchronized (myRenderingTaskLock) {
+                if (myRenderTask != null && !myRenderTask.isDisposed()) {
+                  myRenderTask.dispose();
+                }
+                myRenderTask = newTask;
+              }
+            }
+          })
+            .thenApply(result -> result != null ? result : RenderResult.createBlank(getModel().getFile()))
+            .thenApply(result -> {
+              if (project.isDisposed()) {
+                return false;
+              }
+
+              updateHierarchy(result);
+              myRenderResultLock.writeLock().lock();
+              try {
+                updateCachedRenderResult(result);
+              }
+              finally {
+                myRenderResultLock.writeLock().unlock();
+              }
+
+              return true;
+            });
         }
         else {
-          // Update myRenderTask with the new task
           synchronized (myRenderingTaskLock) {
             if (myRenderTask != null && !myRenderTask.isDisposed()) {
               myRenderTask.dispose();
             }
-            myRenderTask = newTask;
           }
         }
-      })
-        .thenApply(result -> result != null ? result : RenderResult.createBlank(getModel().getFile()))
-        .thenApply(result -> {
-          if (project.isDisposed()) {
-            return false;
-          }
 
-          updateHierarchy(result);
-          myRenderResultLock.writeLock().lock();
-          try {
-            updateCachedRenderResult(result);
-          }
-          finally {
-            myRenderResultLock.writeLock().unlock();
-          }
-
-          return true;
-        });
-    }
-    else {
-      synchronized (myRenderingTaskLock) {
-        if (myRenderTask != null && !myRenderTask.isDisposed()) {
-          myRenderTask.dispose();
-        }
-      }
-    }
-
-    return CompletableFuture.completedFuture(false);
+        return CompletableFuture.completedFuture(false);
+      });
   }
 
   @GuardedBy("myRenderResultLock")
