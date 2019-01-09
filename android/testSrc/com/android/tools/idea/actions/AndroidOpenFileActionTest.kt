@@ -16,24 +16,18 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.adtui.validation.Validator
-import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.newvfs.impl.StubVirtualFile
-import com.intellij.testFramework.IdeaTestCase
 import junit.framework.TestCase
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import java.io.File
-import kotlin.properties.Delegates
 
 /**
  * Tests for [AndroidOpenFileAction]
  */
-class AndroidOpenFileActionTest : IdeaTestCase() {
-
+class AndroidOpenFileActionTest : TestCase() {
   fun testSelectableFiles() {
     val descriptor = mock(FileChooserDescriptor::class.java)
     `when`(descriptor.isFileSelectable(any<VirtualFile>())).thenReturn(true)

@@ -17,9 +17,9 @@ package com.android.tools.adtui.treegrid;
 
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
+import junit.framework.TestCase;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +37,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.KeyEvent.*;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
-public class TreeGridTest extends PlatformTestCase {
+public class TreeGridTest extends TestCase {
   private TreeGrid<String> myGrid;
   private JList<String> myGroup1;
   private JList<String> myGroup2;

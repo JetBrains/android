@@ -23,8 +23,6 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-
 import static com.android.SdkConstants.DOT_XML;
 
 public class ConvertLayoutToDataBindingActionTest extends AndroidTestCase {
@@ -35,7 +33,7 @@ public class ConvertLayoutToDataBindingActionTest extends AndroidTestCase {
     super.setUp();
   }
 
-  public void testLayout() throws IOException {
+  public void testLayout() {
     String path = "res/layout/layout.xml";
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + DOT_XML, path);
     doTest("layout_after.xml", path, file);
