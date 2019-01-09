@@ -61,6 +61,12 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
   abstract fun PsUISettings.setLastEditedItem(value: String?)
 
   init {
+    // Calling initTree() first so that various changes made by the call can can be
+    // overridden below. The method invocation, however, is still required. It configures
+    // the cell renderer which does not display icons otherwise.
+    @Suppress("LeakingThis")
+    initTree()
+
     splitter.orientation = true
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.configurables"
     tree.model = treeModel
