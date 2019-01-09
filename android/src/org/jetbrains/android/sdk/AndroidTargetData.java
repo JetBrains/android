@@ -1,29 +1,17 @@
-/*
- * Copyright 2000-2010 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.resources.FrameworkResources;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
+import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -34,21 +22,19 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
-import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
-import com.android.tools.idea.layoutlib.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -139,7 +125,6 @@ public class AndroidTargetData {
     return set != null && set.contains(name);
   }
 
-  @Nullable
   private void parsePublicResCache() {
     final String resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
     final String publicXmlPath = resDirPath + '/' + SdkConstants.FD_RES_VALUES + "/public.xml";
@@ -256,8 +241,8 @@ public class AndroidTargetData {
 
   @VisibleForTesting
   static class MyPublicResourceCacheBuilder extends NanoXmlUtil.IXMLBuilderAdapter {
-    private final Map<String, Set<String>> myResult = new HashMap<String, Set<String>>();
-    private final TIntObjectHashMap<String> myIdMap = new TIntObjectHashMap<String>(3000);
+    private final Map<String, Set<String>> myResult = new HashMap<>();
+    private final TIntObjectHashMap<String> myIdMap = new TIntObjectHashMap<>(3000);
 
     private String myName;
     private String myType;
@@ -265,12 +250,12 @@ public class AndroidTargetData {
     private boolean inGroup;
 
     @Override
-    public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) throws Exception {
+    public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) {
       if ("public".equals(name) && myName != null && myType != null) {
         Set<String> set = myResult.get(myType);
 
         if (set == null) {
-          set = new HashSet<String>();
+          set = new HashSet<>();
           myResult.put(myType, set);
         }
         set.add(myName);
@@ -287,8 +272,7 @@ public class AndroidTargetData {
     }
 
     @Override
-    public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type)
-      throws Exception {
+    public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type) {
       switch (key) {
         case "name":
           myName = value;
@@ -308,8 +292,7 @@ public class AndroidTargetData {
     }
 
     @Override
-    public void startElement(String name, String nsPrefix, String nsURI, String systemID, int lineNr)
-      throws Exception {
+    public void startElement(String name, String nsPrefix, String nsURI, String systemID, int lineNr) {
       if (!inGroup) {
         // This is a top-level <attr> so clear myType and myId
         myType = null;
@@ -324,7 +307,7 @@ public class AndroidTargetData {
     }
 
     @Override
-    public void endElement(String name, String nsPrefix, String nsURI) throws Exception {
+    public void endElement(String name, String nsPrefix, String nsURI) {
       if ("public-group".equals(name)) {
         inGroup = false;
       }
@@ -374,7 +357,7 @@ public class AndroidTargetData {
 
     @Nullable
     private Set<String> collectValues(int pathId) {
-      final Set<String> result = new HashSet<String>();
+      final Set<String> result = new HashSet<>();
       try {
         final BufferedReader reader = new BufferedReader(new FileReader(myTarget.getPath(pathId)));
 
