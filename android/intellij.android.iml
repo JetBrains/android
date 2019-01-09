@@ -116,5 +116,6 @@
     <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="jaxb-runtime" level="project" />
+    <orderEntry type="library" name="NanoXML" level="project" />
   </component>
 </module>

@@ -256,7 +256,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repositories).hasSize(1);
     RepositoryModel repositoryModel = repositories.get(0);
     assertThat(repositoryModel).isInstanceOf(FlatDirRepositoryModel.class);
-    ;
+
     FlatDirRepositoryModel repository = (FlatDirRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
     assertEquals("name", "flatDir", repository.name().value());
