@@ -172,5 +172,6 @@
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
     <orderEntry type="module" module-name="intellij.android.resources-aar" />
+    <orderEntry type="library" name="NanoXML" level="project" />
   </component>
 </module>
