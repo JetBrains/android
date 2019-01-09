@@ -250,10 +250,17 @@ public class NavigationSchemaTest extends AndroidTestCase {
                      "@Navigator.Name(\"fragment_sub\")\n" +
                      "public class QuickValidateWithDelete extends ActivityNavigator {}\n";
     PsiClass navigator = addClass(content);
+    WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
+
     NavigationSchema schema = NavigationSchema.get(myModule).rebuildSchema().get();
     assertTrue(schema.quickValidate());
 
     WriteCommandAction.runWriteCommandAction(getProject(), () -> navigator.getContainingFile().delete());
+    WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
+    DumbService dumbService = DumbService.getInstance(getProject());
+    dumbService.queueTask(new UnindexedFilesUpdater(getProject()));
+    dumbService.completeJustSubmittedTasks();
+
     assertFalse(schema.quickValidate());
   }
 
