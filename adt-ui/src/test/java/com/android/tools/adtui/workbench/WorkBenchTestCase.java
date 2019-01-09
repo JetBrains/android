@@ -37,6 +37,9 @@ public abstract class WorkBenchTestCase extends PlatformTestCase {
       myProjectComponentStack.restoreComponents();
       myProjectComponentStack = null;
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
     }
