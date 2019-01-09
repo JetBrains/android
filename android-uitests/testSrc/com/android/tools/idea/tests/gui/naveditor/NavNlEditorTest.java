@@ -244,6 +244,15 @@ public class NavNlEditorTest {
       .getLayoutEditor(false)
       .waitForRenderToFinish()
       .assertCanInteractWithSurface();
+
+    String contents = guiTest
+      .ideFrame()
+      .getEditor()
+      .open("app/build.gradle")
+      .getCurrentFileContents();
+
+    assertTrue(contents.contains("navigation-fragment"));
+    assertTrue(contents.contains("navigation-ui"));
   }
 
   @Test
