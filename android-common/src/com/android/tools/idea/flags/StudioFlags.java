@@ -452,6 +452,14 @@ public final class StudioFlags {
     "Use ResourceRepository to resolve references, not ResourceManager.",
     false);
 
+  public static final Flag<Boolean> RUN_DOM_EXTENDER = Flag.create(
+    EDITOR,
+    "run.dom.extender",
+    "Run DOM extender",
+    "When disabled AndroidDomExtender does nothing, simulating a situation where DOM extensions have not been " +
+    "computed yet.",
+    true);
+
   private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(
     ANALYZER, "enable.app.size.optimizer", "Enable size optimization suggestions in apk analyzer",
