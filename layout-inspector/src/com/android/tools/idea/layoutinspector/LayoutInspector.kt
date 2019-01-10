@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.layoutinspector.ui.InspectorPanel
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowFactory
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import kotlin.properties.Delegates
 
-class LayoutInspectorToolWindowFactory : ToolWindowFactory {
-  val TOOL_WINDOW_ID = "Layout Inspector"
-
-  override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val contentManager = toolWindow.contentManager
-    contentManager.addContent(contentManager.factory.createContent(InspectorPanel(project), "", true))
+class LayoutInspector(layoutInspectorModel: InspectorModel) {
+  val modelChangeListeners = mutableListOf<(InspectorModel, InspectorModel) -> Unit>()
+  var layoutInspectorModel: InspectorModel by Delegates.observable(layoutInspectorModel) { _, old, new ->
+    modelChangeListeners.forEach { it(old, new) }
   }
 }

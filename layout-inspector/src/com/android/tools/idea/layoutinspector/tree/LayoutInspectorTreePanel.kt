@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector
+package com.android.tools.idea.layoutinspector.tree
 
-import com.android.tools.idea.layoutinspector.ui.InspectorPanel
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowFactory
+import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import javax.swing.JComponent
+import javax.swing.JLabel
 
-class LayoutInspectorToolWindowFactory : ToolWindowFactory {
-  val TOOL_WINDOW_ID = "Layout Inspector"
+class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
+  override fun setToolContext(toolContext: LayoutInspector?) {
+  }
 
-  override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val contentManager = toolWindow.contentManager
-    contentManager.addContent(contentManager.factory.createContent(InspectorPanel(project), "", true))
+  override fun getComponent(): JComponent {
+    return JLabel("tree")
+  }
+
+  override fun dispose() {
   }
 }
