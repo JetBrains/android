@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
@@ -46,11 +45,11 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
   private AsyncDevicesGetter myDevicesGetter;
-  private Project myProject;
 
   private Clock myClock;
   private ConnectionTimeService myService;
 
+  private Project myProject;
   private Presentation myPresentation;
   private AnActionEvent myEvent;
 
@@ -59,11 +58,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Before
   public void mockDevicesGetter() {
     myDevicesGetter = Mockito.mock(AsyncDevicesGetter.class);
-  }
-
-  @Before
-  public void initProject() {
-    myProject = myRule.getProject();
   }
 
   @Before
@@ -76,10 +70,12 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Before
   public void mockEvent() {
+    myProject = myRule.getProject();
     myPresentation = new Presentation();
 
     myEvent = Mockito.mock(AnActionEvent.class);
-    Mockito.when(myEvent.getData(LangDataKeys.MODULE)).thenReturn(myRule.getModule());
+
+    Mockito.when(myEvent.getProject()).thenReturn(myProject);
     Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
   }
 
@@ -103,7 +99,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(ImmutableList.of());
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.update(myEvent);
@@ -121,7 +117,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(ImmutableList.of());
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.update(myEvent);
@@ -139,7 +135,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(ImmutableList.of());
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.update(myEvent);
@@ -153,7 +149,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build(null, myService);
 
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Arrays.asList(builder.build(null, myService), physicalDevice));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Arrays.asList(builder.build(null, myService), physicalDevice));
 
     action.update(myEvent);
 
@@ -169,7 +165,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(ImmutableList.of());
 
     Device device1 = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device1));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device1));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.update(myEvent);
@@ -182,7 +178,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(ImmutableList.of())
       .build(null, myService);
 
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Arrays.asList(builder.build(null, myService), device2));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Arrays.asList(builder.build(null, myService), device2));
 
     action.update(myEvent);
 
@@ -207,7 +203,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(ImmutableList.of());
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.update(myEvent);
@@ -233,7 +229,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class));
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.update(myEvent);
@@ -267,7 +263,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     Device device1 = virtualDeviceBuilder.build(null, myService);
     Device device2 = physicalDeviceBuilder.build(null, myService);
 
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Arrays.asList(device1, device2));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Arrays.asList(device1, device2));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.update(myEvent);
@@ -300,7 +296,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.update(myEvent);
@@ -328,7 +324,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(ImmutableList.of("snap_2018-08-07_16-27-58"));
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> false, myDevicesGetter, myClock);
     action.update(myEvent);
@@ -374,7 +370,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(ImmutableList.of());
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.update(myEvent);
@@ -396,7 +392,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(ImmutableList.of());
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.setSelectedDevice(myProject, builder.build(null, myService));
@@ -419,7 +415,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(ImmutableList.of());
 
     Device device1 = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device1));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device1));
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel XL API 28")
@@ -449,7 +445,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.setSelectedDevice(myProject, builder.build(null, myService));
@@ -472,7 +468,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.setSelectedDevice(myProject, builder.build(null, myService));
@@ -496,7 +492,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION);
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.setSelectedDevice(myProject, builder.build(null, myService));
@@ -520,7 +516,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .setSnapshots(ImmutableList.of());
 
     Device device = builder.build(null, myService);
-    Mockito.when(myDevicesGetter.get(myRule.getModule())).thenReturn(Collections.singletonList(device));
+    Mockito.when(myDevicesGetter.get(myProject)).thenReturn(Collections.singletonList(device));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> true, () -> true, myDevicesGetter, myClock);
     action.setSelectedDevice(myProject, builder.build(null, myService));
