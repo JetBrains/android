@@ -74,7 +74,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.support.AndroidxName;
-import com.android.tools.idea.databinding.DataBindingProjectComponent;
+import com.android.tools.idea.databinding.DataBindingModuleComponent;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -461,10 +461,10 @@ public class AndroidDomUtil {
     }
 
     Module module = facet.getModule();
-    DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
+    DataBindingModuleComponent dataBindingComponent = module.getComponent(DataBindingModuleComponent.class);
     if (dataBindingComponent != null) {
       String attributeName = attribute.getName();
-      if (dataBindingComponent.getBindingAdapterAttributes(module).contains(attributeName)) {
+      if (dataBindingComponent.getBindingAdapterAttributes().contains(attributeName)) {
         if (namespace == null) {
           namespace = ResourceNamespace.RES_AUTO;
         }
