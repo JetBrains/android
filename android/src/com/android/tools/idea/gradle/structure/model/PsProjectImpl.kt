@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.AndroidSdkRepositories
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.util.GradleWrapper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
@@ -53,6 +54,11 @@ class PsProjectImpl(
   override val modules: PsModelCollection<PsModule> get() = moduleCollection
   override val modelCount: Int get() = moduleCollection.size
   override var androidGradlePluginVersion by PsProjectDescriptors.androidGradlePluginVersion
+  override var gradleVersion by PsProjectDescriptors.gradleVersion
+
+  private var gradleVersionModified = false
+  private var newGradleVewrsion: String? = null
+
   init {
     // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
     buildScriptVariables = PsVariables(buildScript, "$name (build script)", "Build Script: $name", null)
@@ -98,6 +104,9 @@ class PsProjectImpl(
       object : WriteCommandAction<Nothing>(ideProject, "Applying changes to the project structure.") {
         override fun run(result: Result<Nothing>) {
           parsedModel.applyChanges()
+          if (gradleVersionModified) {
+            GradleWrapper.find(ideProject)?.updateDistributionUrlAndDisplayFailure(newGradleVewrsion!!)
+          }
           isModified = false
         }
       }.execute()
@@ -136,5 +145,16 @@ class PsProjectImpl(
 
   override fun onModuleChanged(disposable: Disposable, handler: (PsModule) -> Unit) {
     moduleCollection.onModuleChanged(disposable, handler)
+  }
+
+  override fun getGradleVersionValue(notApplied: Boolean): String? =
+    if (notApplied && gradleVersionModified) newGradleVewrsion
+    else GradleWrapper.find(ideProject)?.gradleFullVersion
+
+  override fun setGradleVersionValue(value: String) {
+    if (value == getGradleVersionValue(notApplied = true).orEmpty()) return
+    isModified = true
+    gradleVersionModified = true
+    newGradleVewrsion = value
   }
 }
