@@ -464,7 +464,7 @@ public class AndroidDomUtil {
     DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
     if (dataBindingComponent != null) {
       String attributeName = attribute.getName();
-      if (dataBindingComponent.getBindingAdapterAttributes(module).anyMatch(name -> name.equals(attributeName))) {
+      if (dataBindingComponent.getBindingAdapterAttributes(module).contains(attributeName)) {
         if (namespace == null) {
           namespace = ResourceNamespace.RES_AUTO;
         }
