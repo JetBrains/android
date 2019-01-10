@@ -18,11 +18,13 @@ package com.android.tools.idea.run.deployment;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.emulator.SnapshotOuterClass.Snapshot;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -56,17 +58,13 @@ final class VirtualDevice extends Device {
   @NotNull
   private final ImmutableCollection<String> mySnapshots;
 
-  @Nullable
-  private final AvdInfo myAvdInfo;
-
   @NotNull
-  static VirtualDevice newDisconnectedVirtualDevice(@NotNull AvdInfo avdInfo) {
+  static Builder newDisconnectedDeviceBuilder(@NotNull AvdInfo avdInfo) {
     return new Builder()
       .setName(AvdManagerConnection.getAvdDisplayName(avdInfo))
       .setKey(avdInfo.getName())
-      .setSnapshots(getSnapshots(avdInfo))
-      .setAvdInfo(avdInfo)
-      .build();
+      .setAndroidDevice(new LaunchableAndroidDevice(avdInfo))
+      .setSnapshots(getSnapshots(avdInfo));
   }
 
   @NotNull
@@ -130,26 +128,26 @@ final class VirtualDevice extends Device {
   }
 
   @NotNull
-  static VirtualDevice newConnectedVirtualDevice(@NotNull VirtualDevice virtualDevice,
-                                                 @NotNull ConnectionTimeService service,
-                                                 @NotNull IDevice ddmlibDevice) {
-    String key = virtualDevice.getKey();
+  static Builder newConnectedDeviceBuilder(@NotNull VirtualDevice virtualDevice, @NotNull IDevice ddmlibDevice) {
+    AvdInfo avdInfo = ((LaunchableAndroidDevice)virtualDevice.getAndroidDevice()).getAvdInfo();
 
     return new Builder()
       .setName(virtualDevice.getName())
-      .setKey(key)
-      .setConnectionTime(service.get(key))
-      .setDdmlibDevice(ddmlibDevice)
+      .setKey(virtualDevice.getKey())
+      .setAndroidDevice(new ConnectedAndroidDevice(ddmlibDevice, Collections.singletonList(avdInfo)))
       .setConnected(true)
-      .setSnapshots(virtualDevice.mySnapshots)
-      .setAvdInfo(virtualDevice.myAvdInfo)
-      .build();
+      .setSnapshots(virtualDevice.mySnapshots);
   }
 
   static final class Builder extends Device.Builder<Builder> {
     private boolean myConnected;
+
+    @NotNull
     private ImmutableCollection<String> mySnapshots;
-    private AvdInfo myAvdInfo;
+
+    Builder() {
+      mySnapshots = ImmutableList.of();
+    }
 
     @NotNull
     Builder setConnected(boolean connected) {
@@ -164,12 +162,6 @@ final class VirtualDevice extends Device {
     }
 
     @NotNull
-    Builder setAvdInfo(@Nullable AvdInfo avdInfo) {
-      myAvdInfo = avdInfo;
-      return this;
-    }
-
-    @NotNull
     @Override
     Builder self() {
       return this;
@@ -177,17 +169,16 @@ final class VirtualDevice extends Device {
 
     @NotNull
     @Override
-    VirtualDevice build() {
-      return new VirtualDevice(this);
+    VirtualDevice build(@Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service) {
+      return new VirtualDevice(this, checker, service);
     }
   }
 
-  private VirtualDevice(@NotNull Builder builder) {
-    super(builder);
+  private VirtualDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service) {
+    super(builder, checker, service);
 
     myConnected = builder.myConnected;
     mySnapshots = builder.mySnapshots;
-    myAvdInfo = builder.myAvdInfo;
   }
 
   @NotNull
@@ -207,30 +198,31 @@ final class VirtualDevice extends Device {
     return mySnapshots;
   }
 
-  @Nullable
-  AvdInfo getAvdInfo() {
-    return myAvdInfo;
+  @NotNull
+  @Override
+  AndroidVersion getAndroidVersion() {
+    Object androidDevice = getAndroidDevice();
+
+    if (androidDevice instanceof LaunchableAndroidDevice) {
+      return ((LaunchableAndroidDevice)androidDevice).getAvdInfo().getAndroidVersion();
+    }
+
+    IDevice ddmlibDevice = getDdmlibDevice();
+    assert ddmlibDevice != null;
+
+    return ddmlibDevice.getVersion();
   }
 
   @NotNull
   @Override
   DeviceFutures newDeviceFutures(@NotNull Project project, @Nullable String snapshot) {
-    AndroidDevice androidDevice;
+    AndroidDevice device = getAndroidDevice();
 
-    if (myConnected) {
-      IDevice ddmlibDevice = getDdmlibDevice();
-      assert ddmlibDevice != null;
-
-      androidDevice = new ConnectedAndroidDevice(ddmlibDevice, Collections.singletonList(myAvdInfo));
-    }
-    else {
-      assert myAvdInfo != null;
-
-      androidDevice = new LaunchableAndroidDevice(myAvdInfo);
-      androidDevice.launch(project, snapshot);
+    if (!myConnected) {
+      device.launch(project, snapshot);
     }
 
-    return new DeviceFutures(Collections.singletonList(androidDevice));
+    return new DeviceFutures(Collections.singletonList(device));
   }
 
   @Override
@@ -242,25 +234,16 @@ final class VirtualDevice extends Device {
     VirtualDevice device = (VirtualDevice)object;
 
     return getName().equals(device.getName()) &&
+           isValid() == device.isValid() &&
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
-           Objects.equals(getDdmlibDevice(), device.getDdmlibDevice()) &&
+           getAndroidDevice().equals(device.getAndroidDevice()) &&
            myConnected == device.myConnected &&
-           mySnapshots.equals(device.mySnapshots) &&
-           Objects.equals(myAvdInfo, device.myAvdInfo);
+           mySnapshots.equals(device.mySnapshots);
   }
 
   @Override
   public int hashCode() {
-    int hashCode = getName().hashCode();
-
-    hashCode = 31 * hashCode + getKey().hashCode();
-    hashCode = 31 * hashCode + Objects.hashCode(getConnectionTime());
-    hashCode = 31 * hashCode + Objects.hashCode(getDdmlibDevice());
-    hashCode = 31 * hashCode + Boolean.hashCode(myConnected);
-    hashCode = 31 * hashCode + mySnapshots.hashCode();
-    hashCode = 31 * hashCode + Objects.hashCode(myAvdInfo);
-
-    return hashCode;
+    return Objects.hash(getName(), isValid(), getKey(), getConnectionTime(), getAndroidDevice(), myConnected, mySnapshots);
   }
 }

@@ -52,26 +52,26 @@ class EditorProviderImpl<in P : PropertyItem>(
 
       ControlType.COLOR_EDITOR -> {
         val model = ColorFieldPropertyEditorModel(property)
-        val editor = PropertyColorField(model)
+        val editor = PropertyTextFieldWithLeftButton(model)
         return Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.THREE_STATE_BOOLEAN -> {
         val model = ThreeStateBooleanPropertyEditorModel(property)
         val editor = PropertyThreeStateCheckBox(model)
-        return Pair(model, editor)
+        return Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.FLAG_EDITOR -> {
         val model = FlagPropertyEditorModel(property as FlagsPropertyItem<*>)
         val editor = FlagPropertyEditor(model)
-        return Pair(model, editor)
+        return Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.BOOLEAN -> {
         val model = BooleanPropertyEditorModel(property)
         val editor = PropertyCheckBox(model)
-        return Pair(model, editor)
+        return Pair(model, addActionButtonBinding(model, editor))
       }
     }
   }

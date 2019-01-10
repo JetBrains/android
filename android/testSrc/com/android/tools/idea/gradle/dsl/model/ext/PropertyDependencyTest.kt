@@ -632,7 +632,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val pbm = ProjectBuildModel.get(myProject)
     val buildModel = pbm.projectBuildModel!!
 
-    assertSize(1, buildModel.ext().properties)
+    assertSize(1, buildModel.ext().inScopeProperties.entries)
 
     val artModel = buildModel.buildscript().dependencies().artifacts()[0]!!
     verifyPropertyModel(artModel.completeModel().resultModel, STRING_TYPE, "hello:kotlin:2.0", STRING, REGULAR, 1)

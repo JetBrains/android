@@ -34,6 +34,9 @@ internal data class AarSourceFile(val relativePath: String?, val configuration: 
     stream.writeInt(configIndexes[configuration.folderConfiguration.qualifierString])
   }
 
+  val repository : AbstractAarResourceRepository
+    get() = configuration.repository
+
   companion object {
     /**
      * Creates a AarSourceFile by reading its contents of the given stream.

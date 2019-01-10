@@ -34,7 +34,7 @@
     <orderEntry type="module" module-name="intellij.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.groovy.psi" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.psi" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.instant-run-client" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.diff.impl" scope="TEST" />
@@ -111,5 +111,6 @@
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
   </component>
 </module>

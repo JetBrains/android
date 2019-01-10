@@ -415,6 +415,8 @@ public class StudioIcons {
 
   public static class Misc {
     public static final Icon GRADLE_VARIABLE = load("/studio/icons/misc/gradle-variable.svg"); // 16x16
+    public static final Icon PRODUCT_FLAVOR_DIMENSION = load("/studio/icons/misc/product-flavor-dimension.svg"); // 16x16
+    public static final Icon PRODUCT_FLAVOR = load("/studio/icons/misc/product-flavor.svg"); // 16x16
   }
 
   public static class NavEditor {

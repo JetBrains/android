@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.common",
     srcs = ["src"],
     iml_files = ["intellij.android.common.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.AndroidCommonTestSuite",
     test_data = [
         "//tools/adt/idea/adt-ui/lib/libwebp",

@@ -157,6 +157,7 @@ iml_module(
 iml_module(
     name = "intellij.android.kotlin.tests",
     iml_files = ["intellij.android.kotlin.tests.iml"],
+    tags = ["no_test_windows"],
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
     test_data = [
         "//prebuilts/studio/layoutlib:data/res",

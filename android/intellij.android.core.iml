@@ -105,7 +105,7 @@
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="intellij.gradle" />
     <orderEntry type="module" module-name="intellij.gradle.java" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
     <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="library" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
@@ -171,5 +171,6 @@
     <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />
     <orderEntry type="module" module-name="android.sdktools.tracer" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib" />
   </component>
 </module>

@@ -42,6 +42,7 @@ import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.uast.getContainingClass
 import java.io.File
 
 /**
@@ -400,6 +401,30 @@ sealed class LightClassesTestBase : AndroidTestCase() {
           .map(PsiField::getName)
       ).containsExactly("appString", "bar")
     }
+
+    fun testContainingClass() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(R.string.${caret}appString);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      assertThat((resolveReferenceUnderCaret() as? PsiField)?.containingClass?.name).isEqualTo("string")
+    }
   }
 
   class SingleModuleNamespaced : SingleModule() {
@@ -556,6 +581,30 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("my_aar_string", "class")
     }
+
+    fun testContainingClass() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.R.string.${caret}my_aar_string);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      assertThat((resolveReferenceUnderCaret() as? PsiField)?.containingClass?.name).isEqualTo("string")
+    }
   }
 
   class NonNamespacedModuleWithAar : LightClassesTestBase() {
@@ -708,6 +757,30 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         "com.example.mylibrary.R",
         "com.example.anotherLib.R"
       )
+    }
+
+    fun testContainingClass() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                getResources().getString(com.example.mylibrary.R.string.${caret}my_aar_string);
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      assertThat((resolveReferenceUnderCaret() as? PsiField)?.containingClass?.name).isEqualTo("string")
     }
 
     /**

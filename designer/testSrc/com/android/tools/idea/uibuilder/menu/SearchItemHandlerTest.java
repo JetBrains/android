@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.menu;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.model.NlComponentBackend;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -39,6 +40,7 @@ public final class SearchItemHandlerTest {
   private NlModel myModel;
   private ViewEditor myEditor;
   private NlComponent newChild;
+  private NlComponentBackend myBackend;
 
   private ViewHandler myHandler;
 
@@ -50,8 +52,10 @@ public final class SearchItemHandlerTest {
     myModel = mock(NlModel.class);
     myEditor = mock(ViewEditor.class);
     newChild = mock(NlComponent.class);
+    myBackend = mock(NlComponentBackend.class);
     when(myModel.getProject()).thenReturn(rule.getProject());
     when(newChild.getModel()).thenReturn(myModel);
+    when(newChild.getBackend()).thenReturn(myBackend);
 
     myHandler = new SearchItemHandler();
   }

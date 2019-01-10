@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.dynamicfeature
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.dynamicapp.ConditionalDeliverySettings
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureKind
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -30,6 +31,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.JLabelMatcher
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,11 +42,18 @@ class AddDynamicFeatureTest {
   @Rule
   @JvmField
   val guiTest = GuiTestRule()
+  private var conditionalDeliveryStore = false
+
+  @Before
+  fun setUp() {
+    conditionalDeliveryStore = ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC
+  }
 
   @After
   fun tearDown() {
     StudioFlags.UAB_INSTANT_DYNAMIC_FEATURE_MODULE.clearOverride()
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.clearOverride()
+    ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC = conditionalDeliveryStore
   }
   /**
    * Verifies that user is able to add a Dynamic Feature Module through the
@@ -256,6 +265,7 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_includeAtInstallTime() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
+    ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC = true
 
     val ideFrame = guiTest.importSimpleApplication()
 
@@ -301,6 +311,7 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_installOnDemandOnly() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
+    ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC = true
 
     val ideFrame = guiTest.importSimpleApplication()
 
@@ -346,6 +357,7 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_installOnDemandWithMinSdk() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
+    ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC = true
 
     val ideFrame = guiTest.importSimpleApplication()
 
@@ -398,6 +410,7 @@ class AddDynamicFeatureTest {
   @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_installOnDemandDeviceFeatures() {
     StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.override(true)
+    ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC = true
 
     val ideFrame = guiTest.importSimpleApplication()
 

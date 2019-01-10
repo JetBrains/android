@@ -23,6 +23,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.res.aar.Base128InputStream.StreamFormatException;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.intellij.util.containers.ObjectIntHashMap;
 import java.io.IOException;
@@ -44,7 +45,7 @@ class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrRe
   /** The keys are enum or flag names, the values are the value descriptions. */
   @NotNull private final Map<String, String> myValueDescriptionMap;
   @Nullable private final String myDescription;
-  @Nullable private String myGroupName;
+  @Nullable private final String myGroupName;
 
   /**
    * Initializes the resource.
@@ -71,7 +72,7 @@ class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrRe
     super(ResourceType.ATTR, name, sourceFile, visibility);
     myDescription = description;
     myGroupName = groupName;
-    myFormats = formats.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(formats);
+    myFormats = ImmutableSet.copyOf(formats);
     // Cannot use ImmutableMap.copyOf() since valueMap may contain null values.
     myValueMap = valueMap.isEmpty() ? Collections.emptyMap() : Collections.unmodifiableMap(valueMap);
     myValueDescriptionMap = valueDescriptionMap.isEmpty() ? Collections.emptyMap() : Collections.unmodifiableMap(valueDescriptionMap);
@@ -113,9 +114,18 @@ class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrRe
     if (!super.equals(obj)) return false;
     AarAttrResourceItem other = (AarAttrResourceItem) obj;
     return Objects.equals(myDescription, other.myDescription) &&
+           Objects.equals(myGroupName, other.myGroupName) &&
            myFormats.equals(other.myFormats) &&
            myValueMap.equals(other.myValueMap) &&
            myValueDescriptionMap.equals(other.myValueDescriptionMap);
+  }
+
+  /**
+   * Creates and returns an {@link AarAttrReference} pointing to this attribute.
+   */
+  @NotNull
+  AarAttrReference createReference() {
+    return new AarAttrReference(getNamespace(), getName(), getSourceFile(), getVisibility(), myDescription, myGroupName);
   }
 
   @Override
@@ -133,6 +143,10 @@ class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrRe
     String namespaceSuffix = namespace.equals(defaultNamespace) ?
                              null : namespace.getXmlNamespaceUri().substring(URI_DOMAIN_PREFIX.length());
     stream.writeString(namespaceSuffix);
+
+    stream.writeString(attr.getDescription());
+    stream.writeString(attr.getGroupName());
+
     int formatMask = 0;
     for (AttributeFormat format : attr.getFormats()) {
       formatMask |= 1 << format.ordinal();
@@ -150,21 +164,21 @@ class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrRe
       String description = attr.getValueDescription(name);
       stream.writeString(description);
     }
-
-    stream.writeString(attr.getDescription());
-    stream.writeString(attr.getGroupName());
   }
 
   /**
    * Creates an AarAttrResourceItem by reading its contents of the given stream.
    */
   @NotNull
-  static AarAttrResourceItem deserialize(@NotNull Base128InputStream stream,
-                                         @NotNull String name,
-                                         @NotNull ResourceVisibility visibility,
-                                         @NotNull AarSourceFile sourceFile,
-                                         @NotNull ResourceNamespace.Resolver resolver) throws IOException {
+  static AbstractAarValueResourceItem deserialize(@NotNull Base128InputStream stream,
+                                                  @NotNull String name,
+                                                  @NotNull ResourceVisibility visibility,
+                                                  @NotNull AarSourceFile sourceFile,
+                                                  @NotNull ResourceNamespace.Resolver resolver) throws IOException {
     String namespaceSuffix = stream.readString();
+    String description = stream.readString();
+    String groupName = stream.readString();
+
     int formatMask = stream.readInt();
     Set<AttributeFormat> formats = EnumSet.noneOf(AttributeFormat.class);
     AttributeFormat[] attributeFormatValues = AttributeFormat.values();
@@ -187,10 +201,17 @@ class AarAttrResourceItem extends AbstractAarValueResourceItem implements AttrRe
         descriptionMap.put(valueName, valueDescription);
       }
     }
-    String description = stream.readString();
-    String groupName = stream.readString();
-    AarAttrResourceItem item;
-    if (namespaceSuffix == null) {
+    AbstractAarValueResourceItem item;
+    if (formats.isEmpty() && valueMap.isEmpty()) {
+      ResourceNamespace namespace = namespaceSuffix == null ?
+                                    sourceFile.getConfiguration().getRepository().getNamespace() :
+                                    ResourceNamespace.fromNamespaceUri(URI_DOMAIN_PREFIX + namespaceSuffix);
+      if (namespace == null) {
+        throw StreamFormatException.invalidFormat();
+      }
+      item = new AarAttrReference(namespace, name, sourceFile, visibility, description, groupName);
+    }
+    else if (namespaceSuffix == null) {
       item = new AarAttrResourceItem(name, sourceFile, visibility, description, groupName, formats, valueMap, descriptionMap);
     }
     else {

@@ -29,10 +29,12 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
@@ -288,9 +290,9 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @Override
   public void update(@NotNull AnActionEvent event) {
-    Project project = event.getProject();
+    Module module = event.getData(LangDataKeys.MODULE);
 
-    if (project == null) {
+    if (module == null) {
       return;
     }
 
@@ -303,8 +305,10 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     presentation.setVisible(true);
 
-    myDevices = myDevicesGetter.get(project);
+    myDevices = myDevicesGetter.get(module);
     myDevices.sort(new DeviceComparator());
+
+    Project project = module.getProject();
 
     if (myDevices.isEmpty()) {
       setSelectedDevice(project, null);

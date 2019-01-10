@@ -48,11 +48,11 @@ import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -184,19 +184,16 @@ public class GraphicsLayoutRenderer {
           }
         };
 
-    if (ResourceIdManager.get(module).getFinalIdsUsed()) {
+    if (ResourceIdManager.get(module).finalIdsUsed()) {
       // Load the local project R identifiers.
-      boolean loadRResult = ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
-        @Override
-        public Boolean compute() {
-          // create can run from a different thread so we need to run this in a read action to make sure the module hasn't been disposed
-          // half way.
-          if (module.isDisposed()) {
-            return false;
-          }
-          layoutlibCallback.loadAndParseRClass();
-          return true;
+      boolean loadRResult = ReadAction.compute(() -> {
+        // create can run from a different thread so we need to run this in a read action to make sure the module hasn't been disposed
+        // half way.
+        if (module.isDisposed()) {
+          return false;
         }
+        layoutlibCallback.loadAndParseRClass();
+        return true;
       });
       if (!loadRResult) {
         throw new AlreadyDisposedException("Module was already disposed");

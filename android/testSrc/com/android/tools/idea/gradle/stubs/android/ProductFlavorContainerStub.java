@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+
+import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProviderContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-
-import static com.intellij.openapi.util.text.StringUtil.capitalize;
 
 public class ProductFlavorContainerStub implements ProductFlavorContainer {
   @NotNull private final ProductFlavorStub myFlavor;
@@ -63,7 +63,7 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
     mySourceProvider.addRenderscriptDirectory("src/" + flavorName + "/renderscript");
     mySourceProvider.addResDirectory("src/" + flavorName + "/rs");
     mySourceProvider.addResourcesDirectory("src/" + flavorName + "/resources");
-    mySourceProvider.setManifestFile("src/" + flavorName + "/manifest.xml");
+    mySourceProvider.setManifestFile("src/" + flavorName + "/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
 
     String nameSuffix = flavorName.equals("main") ? "" : capitalize(flavorName);
 

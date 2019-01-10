@@ -131,15 +131,9 @@ fun GradleDslFile.getBlockElement(
       // Ext element is supported for any Gradle domain object that implements ExtensionAware. Here we get or create
       // such an element if needed.
       EXT_BLOCK_NAME -> {
-        if (resultElement !is BuildScriptDslElement) {
-          val newElement = ExtDslElement(resultElement)
-          resultElement.setParsedElement(newElement)
-          return@fold newElement
-        }
-        else {
-          return@fold parentElement.dslFile.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement::class.java)
-            ?: ExtDslElement(parentElement.dslFile).also { parentElement.dslFile.addParsedPropertyAsFirstElement(it) }
-        }
+        val newElement = ExtDslElement(resultElement)
+        resultElement.setParsedElement(newElement)
+        return@fold newElement
       }
       APPLY_BLOCK_NAME -> {
         val newApplyElement = ApplyDslElement(resultElement)
@@ -242,7 +236,7 @@ private fun createNewElementForFileOrSubProject(resultElement: GradlePropertiesD
     CONFIGURATIONS_BLOCK_NAME -> ConfigurationsDslElement(resultElement)
     DEPENDENCIES_BLOCK_NAME -> DependenciesDslElement(resultElement)
     SUBPROJECTS_BLOCK_NAME -> SubProjectsDslElement(resultElement)
-    BUILDSCRIPT_BLOCK_NAME -> BuildScriptDslElement(resultElement)
+    BUILDSCRIPT_BLOCK_NAME -> BuildScriptDslElement(resultElement.dslFile)
     REPOSITORIES_BLOCK_NAME -> RepositoriesDslElement(resultElement)
     else -> {
       val projectKey = ProjectPropertiesDslElement.getStandardProjectKey(nestedElementName) ?: return null

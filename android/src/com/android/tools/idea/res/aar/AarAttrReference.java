@@ -31,27 +31,33 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Resource value representing a reference to an attr resource.
+ * Resource value representing a reference to an attr resource, but potentially with its own description
+ * and group name. Unlike {@link AarAttrResourceItem}, does not contain formats and enum or flag information.
  */
 class AarAttrReference extends AbstractAarValueResourceItem implements AttrResourceValue {
   @NotNull private final ResourceNamespace myNamespace;
   @Nullable private final String myDescription;
+  @Nullable private final String myGroupName;
 
   /**
    * Initializes the attr reference.
    *
+   * @param namespace the namespace of the attr resource
    * @param name the name of the resource
    * @param sourceFile the source file containing definition of the resource
-   * @param description the description of the attr resource
+   * @param description the description of the attr resource, if available
+   * @param groupName the name of the attr group, if available
    */
   public AarAttrReference(@NotNull ResourceNamespace namespace,
                           @NotNull String name,
                           @NotNull AarSourceFile sourceFile,
                           @NotNull ResourceVisibility visibility,
-                          @Nullable String description) {
+                          @Nullable String description,
+                          @Nullable String groupName) {
     super(ResourceType.ATTR, name, sourceFile, visibility);
     myNamespace = namespace;
     myDescription = description;
+    myGroupName = groupName;
   }
 
   @Override
@@ -87,7 +93,7 @@ class AarAttrReference extends AbstractAarValueResourceItem implements AttrResou
   @Override
   @Nullable
   public final String getGroupName() {
-    return null;
+    return myGroupName;
   }
 
   @Override
@@ -96,11 +102,13 @@ class AarAttrReference extends AbstractAarValueResourceItem implements AttrResou
     if (!super.equals(obj)) return false;
     AarAttrReference other = (AarAttrReference) obj;
     return myNamespace.equals(other.myNamespace) &&
-        Objects.equals(myDescription, other.myDescription);
+        Objects.equals(myDescription, other.myDescription) &&
+        Objects.equals(myGroupName, other.myGroupName);
   }
 
   @Override
   public int hashCode() {
+    // myGroupName is not included in hash code intentionally since it doesn't improve quality of hashing.
     return HashCodes.mix(super.hashCode(), myNamespace.hashCode(), Objects.hashCode(myDescription));
   }
 

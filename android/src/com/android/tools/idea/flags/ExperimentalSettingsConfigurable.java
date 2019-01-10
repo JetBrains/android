@@ -16,12 +16,14 @@
 package com.android.tools.idea.flags;
 
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.npw.dynamicapp.ConditionalDeliverySettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.TitledSeparator;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +36,7 @@ import java.util.Hashtable;
 public class ExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   @NotNull private final GradleExperimentalSettings mySettings;
   @NotNull private final RenderSettings myRenderSettings;
+  @NotNull private final ConditionalDeliverySettings myConditionalDeliverySettings;
 
   private JPanel myPanel;
   private JSpinner myModuleNumberSpinner;
@@ -41,17 +44,22 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myUseL2DependenciesCheckBox;
   private JCheckBox myUseSingleVariantSyncCheckbox;
   private JSlider myLayoutEditorQualitySlider;
+  private TitledSeparator myCreateNewModuleWizardTitledSeparator;
+  private JCheckBox myConditionalDeliveryCheckbox;
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
-    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project));
+    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project), ConditionalDeliverySettings.getInstance());
   }
 
   @VisibleForTesting
   ExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings,
-                                   @NotNull RenderSettings renderSettings) {
+                                   @NotNull RenderSettings renderSettings,
+                                   @NotNull ConditionalDeliverySettings conditionalDeliverySettings) {
     mySettings = settings;
     myRenderSettings = renderSettings;
+    myConditionalDeliverySettings = conditionalDeliverySettings;
+
     // TODO make visible once Gradle Sync switches to L2 dependencies
     myUseL2DependenciesCheckBox.setVisible(false);
 
@@ -62,6 +70,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutEditorQualitySlider.setPaintLabels(true);
     myLayoutEditorQualitySlider.setPaintTicks(true);
     myLayoutEditorQualitySlider.setMajorTickSpacing(25);
+
+    myCreateNewModuleWizardTitledSeparator.setVisible(StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get());
+    myConditionalDeliveryCheckbox.setVisible(StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get());
 
     reset();
   }
@@ -101,7 +112,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     if (mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
         mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
         mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
-        (int)(myRenderSettings.getQuality() * 100) != getQualitySetting()) {
+        (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
+        myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC != isConditionalDeliverySync()) {
       return true;
     }
     Integer value = getMaxModuleCountForSourceGen();
@@ -118,12 +130,15 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
     mySettings.USE_SINGLE_VARIANT_SYNC = isUseSingleVariantSync();
 
+
     Integer value = getMaxModuleCountForSourceGen();
     if (value != null) {
       mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = value;
     }
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
+
+    myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC = isConditionalDeliverySync();
   }
 
   @VisibleForTesting
@@ -167,6 +182,15 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseSingleVariantSyncCheckbox.setSelected(value);
   }
 
+  boolean isConditionalDeliverySync() {
+    return myConditionalDeliveryCheckbox.isSelected();
+  }
+
+  @TestOnly
+  void setConditionalDeliverySync(boolean value) {
+    myConditionalDeliveryCheckbox.setSelected(value);
+  }
+
   @Override
   public void reset() {
     mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
@@ -174,6 +198,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
+    myConditionalDeliveryCheckbox.setSelected(myConditionalDeliverySettings.USE_CONDITIONAL_DELIVERY_SYNC);
   }
 
   private void createUIComponents() {

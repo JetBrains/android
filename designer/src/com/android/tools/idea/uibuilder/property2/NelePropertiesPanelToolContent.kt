@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowCallback
@@ -54,7 +55,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
     properties.addView(motionEditorView)
     registerKeyAction(showResolvedValueAction, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
                       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerKeyAction({ toolWindow?.startFiltering("") }, KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.META_MASK), "search",
+    registerKeyAction({ toolWindow?.startFiltering("") }, KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask()), "search",
                       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
 

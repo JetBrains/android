@@ -40,10 +40,10 @@ import com.intellij.lang.jvm.JvmModifier;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.JavaPsiFacade;
@@ -712,15 +712,22 @@ public class NavigationSchema implements Disposable {
     }
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       NavigationSchema newVersion = new NavigationSchema(myModule);
-      try {
-        ReadAction.run(() -> newVersion.init());
-      }
-      catch (Throwable t) {
-        synchronized (myTaskLock) {
-          myRebuildTask.completeExceptionally(t);
-          myRebuildTask = null;
+      DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
+        try {
+          newVersion.init();
         }
+        catch (Throwable t) {
+          synchronized (myTaskLock) {
+            myRebuildTask.completeExceptionally(t);
+            myRebuildTask = null;
+          }
+        }
+      });
+      if (myRebuildTask == null) {
+        // there was an error during init
+        return;
       }
+
       if (equals(newVersion)) {
         synchronized (myTaskLock) {
           myRebuildTask.complete(this);

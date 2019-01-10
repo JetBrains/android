@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.SdkConstants;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.SourceProviderContainer;
 import com.android.tools.idea.gradle.stubs.FileStructure;
@@ -44,7 +45,7 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
     mySourceProvider.addRenderscriptDirectory("src/" + myName + "/renderscript");
     mySourceProvider.addResDirectory("src/" + myName + "/rs");
     mySourceProvider.addResourcesDirectory("src/" + myName + "/resources");
-    mySourceProvider.setManifestFile("src/" + myName + "/manifest.xml");
+    mySourceProvider.setManifestFile("src/" + myName + "/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
   }
 
   @NotNull

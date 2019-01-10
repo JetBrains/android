@@ -19,14 +19,25 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import com.android.tools.idea.run.AndroidDevice;
 import com.google.common.collect.ImmutableList;
 import java.time.Clock;
+import java.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public final class SelectDeviceAndSnapshotActionTest {
+  private ConnectionTimeService myService;
   private DeviceAndSnapshotComboBoxAction myComboBoxAction;
+
+  @Before
+  public void newService() {
+    Clock clock = Mockito.mock(Clock.class);
+    Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
+
+    myService = new ConnectionTimeService(clock);
+  }
 
   @Before
   public void newComboBoxAction() {
@@ -42,8 +53,9 @@ public final class SelectDeviceAndSnapshotActionTest {
     Device device = new VirtualDevice.Builder()
       .setName(Devices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(ImmutableList.of())
-      .build();
+      .build(null, myService);
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
       .setComboBoxAction(myComboBoxAction)
@@ -58,8 +70,9 @@ public final class SelectDeviceAndSnapshotActionTest {
     Device device = new VirtualDevice.Builder()
       .setName(Devices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)
-      .build();
+      .build(null, myService);
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
       .setComboBoxAction(myComboBoxAction)
@@ -74,8 +87,9 @@ public final class SelectDeviceAndSnapshotActionTest {
     Device device = new VirtualDevice.Builder()
       .setName(Devices.PIXEL_2_XL_API_28)
       .setKey("Pixel_2_XL_API_28")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(ImmutableList.of("snap_2018-08-07_16-27-58"))
-      .build();
+      .build(null, myService);
 
     try {
       new SelectDeviceAndSnapshotAction.Builder()

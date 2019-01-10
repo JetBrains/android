@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,74 +49,27 @@ public class DeviceAndSnapshotComboBoxDeployableProvider implements DeployablePr
       return null;
     }
 
-    if (device instanceof VirtualDevice) {
-      return new VirtualDeployable((VirtualDevice)device, myApplicationIdProvider.getPackageName());
-    }
-    else if (device instanceof PhysicalDevice) {
-      return new PhysicalDeployable((PhysicalDevice)device, myApplicationIdProvider.getPackageName());
-    }
-    else {
-      throw new AssertionError("Unknown device type: " + device.getClass().getCanonicalName());
-    }
+    return new DeployableDevice(device, myApplicationIdProvider.getPackageName());
   }
 
-  private static class VirtualDeployable implements Deployable {
-    @NotNull private final VirtualDevice myDevice;
+  private static final class DeployableDevice implements Deployable {
+    @NotNull private final Device myDevice;
     @NotNull private final String myPackageName;
 
-    private VirtualDeployable(@NotNull VirtualDevice virtualDevice, @NotNull String packageName) {
-      myDevice = virtualDevice;
+    private DeployableDevice(@NotNull Device device, @NotNull String packageName) {
+      myDevice = device;
       myPackageName = packageName;
     }
 
     @NotNull
     @Override
     public AndroidVersion getVersion() {
-      AvdInfo info = myDevice.getAvdInfo();
-      assert info != null;
-      return info.getAndroidVersion();
+      return myDevice.getAndroidVersion();
     }
 
     @Override
     public boolean isApplicationRunningOnDeployable() {
-      if (!myDevice.isConnected()) {
-        return false;
-      }
-      IDevice device = myDevice.getDdmlibDevice();
-      if (device == null || !device.isOnline()) {
-        return false;
-      }
-      List<Client> clients = Deployable.searchClientsForPackage(device, myPackageName);
-      return !clients.isEmpty();
-    }
-  }
-
-  private static class PhysicalDeployable implements Deployable {
-    @NotNull private final PhysicalDevice myPhysicalDevice;
-    @NotNull private final String myPackageName;
-
-    private PhysicalDeployable(@NotNull PhysicalDevice physicalDevice, @NotNull String packageName) {
-      myPhysicalDevice = physicalDevice;
-      myPackageName = packageName;
-    }
-
-    @NotNull
-    @Override
-    public AndroidVersion getVersion() {
-      IDevice device = myPhysicalDevice.getDdmlibDevice();
-      assert device != null;
-      return device.getVersion();
-    }
-
-    @Override
-    public boolean isApplicationRunningOnDeployable() {
-      IDevice device = myPhysicalDevice.getDdmlibDevice();
-      assert device != null;
-      if (!device.isOnline()) {
-        return false;
-      }
-      List<Client> clients = Deployable.searchClientsForPackage(device, myPackageName);
-      return !clients.isEmpty();
+      return myDevice.isRunning(myPackageName);
     }
   }
 }

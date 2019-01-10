@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.rendering.multi;
 
-import com.android.annotations.NonNull;
+import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.BuildToolInfo;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A special {@link IAndroidTarget} which simulates a particular given API level,
@@ -65,15 +66,15 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
     return new CompatibilityRenderTarget(newDelegate, original.myApiLevel, original.myRealTarget);
   }
 
-  /** The {@link com.android.sdklib.IAndroidTarget} we're using for actual rendering */
+  /** The {@link IAndroidTarget} we're using for actual rendering */
   @NotNull
   public IAndroidTarget getRenderTarget() {
     return myDelegate;
   }
 
   /**
-   * The simulated {@link com.android.sdklib.IAndroidTarget} if it happens to be installed; we use this
-   * to pick up better assets for example
+   * The simulated {@link IAndroidTarget} if it happens to be installed; we use this
+   * to pick up better assets for example.
    */
   @Nullable
   public IAndroidTarget getRealTarget() {
@@ -85,19 +86,15 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
     return myDelegate.getDescription();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public AndroidVersion getVersion() {
     return myVersion;
   }
 
   @Override
   public String getVersionName() {
-    String name = SdkVersionInfo.getAndroidName(myApiLevel);
-    if (name == null) {
-      name = Integer.toString(myApiLevel);
-    }
-    return name;
+    return SdkVersionInfo.getAndroidName(myApiLevel);
   }
 
   @Override
@@ -106,7 +103,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  public int compareTo(@NonNull IAndroidTarget other) {
+  public int compareTo(@NotNull IAndroidTarget other) {
     int delta = myApiLevel - other.getVersion().getApiLevel();
     if (delta != 0) {
       return delta;
@@ -123,11 +120,13 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   // Resource tricks
 
   @Override
+  @NotNull
   public String getPath(int pathId) {
     return myDelegate.getPath(pathId);
   }
 
   @Override
+  @NotNull
   public File getFile(int pathId) {
     return myDelegate.getFile(pathId);
   }
@@ -179,8 +178,8 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
     return myDelegate.getBuildToolInfo();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public List<String> getBootClasspath() {
     return myDelegate.getBootClasspath();
   }
@@ -190,8 +189,8 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
     return myDelegate.hasRenderingLibrary();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File[] getSkins() {
     return myDelegate.getSkins();
   }
@@ -203,11 +202,13 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   }
 
   @Override
+  @NotNull
   public List<OptionalLibrary> getOptionalLibraries() {
     return myDelegate.getOptionalLibraries();
   }
 
   @Override
+  @NotNull
   public List<OptionalLibrary> getAdditionalLibraries() {
     return myDelegate.getAdditionalLibraries();
   }

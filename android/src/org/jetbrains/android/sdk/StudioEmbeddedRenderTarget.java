@@ -16,8 +16,6 @@
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -32,12 +30,11 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link IAndroidTarget} to render using the layoutlib version and resources shipped with Android Studio.
@@ -63,6 +60,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
 
   /**
    * Method that allows to disable the use of the embedded render target. Only for testing.
+   *
    * @param value if true, the embedded layoutlib won't be used
    */
   @VisibleForTesting
@@ -73,7 +71,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   }
 
   /**
-   * Returns a CompatibilityRenderTarget that will use StudioEmbeddedRenderTarget to do the rendering
+   * Returns a CompatibilityRenderTarget that will use StudioEmbeddedRenderTarget to do the rendering.
    */
   public static CompatibilityRenderTarget getCompatibilityTarget(@NotNull IAndroidTarget target) {
     if (ourDisableEmbeddedTargetForTesting) {
@@ -139,8 +137,8 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     return PlatformTarget.PLATFORM_VENDOR;
   }
 
-  @NonNull
   @Override
+  @NotNull
   public AndroidVersion getVersion() {
     // This method will never be called if this is used as a delegate of CompatibilityRenderTarget
     throw new UnsupportedOperationException("This target can only be used as a CompatibilityRenderTarget delegate");
@@ -168,10 +166,9 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   }
 
   @Override
+  @NotNull
   public String getPath(int pathId) {
-    /*
-    The prebuilt version of layoutlib only includes the layoutlib.jar and the resources.
-     */
+    // The prebuilt version of layoutlib only includes the layoutlib.jar and the resources.
     switch (pathId) {
       case DATA:
         return getLocation() + SdkConstants.OS_PLATFORM_DATA_FOLDER;
@@ -190,17 +187,12 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   }
 
   @Override
-  public File getFile(int pathId) {
-    return new File(getPath(pathId));
-  }
-
-  @Override
   public BuildToolInfo getBuildToolInfo() {
     return null;
   }
 
-  @NonNull
   @Override
+  @NotNull
   public List<String> getBootClasspath() {
     return ImmutableList.of(getPath(IAndroidTarget.ANDROID_JAR));
   }
@@ -240,26 +232,26 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     return getName();
   }
 
-  @NonNull
   @Override
+  @NotNull
   public List<OptionalLibrary> getOptionalLibraries() {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
   }
 
-  @NonNull
   @Override
+  @NotNull
   public List<OptionalLibrary> getAdditionalLibraries() {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
   }
 
-  @NonNull
   @Override
+  @NotNull
   public File[] getSkins() {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
   }
 
-  @Nullable
   @Override
+  @Nullable
   public File getDefaultSkin() {
     throw new UnsupportedOperationException(ONLY_FOR_RENDERING_ERROR);
   }

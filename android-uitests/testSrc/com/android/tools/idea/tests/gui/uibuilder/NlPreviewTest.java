@@ -358,6 +358,7 @@ public class NlPreviewTest {
     assertTrue(editor.isPreviewShowing("ic_launcher.xml"));
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/120809429
   @Test
   public void closeAllFileShouldClosePreview() throws Exception {
     // Regression test for b/73592522

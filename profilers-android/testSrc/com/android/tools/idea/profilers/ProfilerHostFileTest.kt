@@ -27,30 +27,30 @@ class ProfilerHostFileTest {
 
   @Test
   fun testFileName() {
-    ProfilerHostFile.Builder("myName").build().let {
+    ProfilerHostFileBuilder("myName").build().let {
       assertThat(it.fileName).isEqualTo("myName")
     }
   }
 
   @Test
   fun testIsExecutable() {
-    ProfilerHostFile.Builder("myName").setExecutable(true).build().let {
+    ProfilerHostFileBuilder("myName").setExecutable(true).build().let {
       assertThat(it.isExecutable).isTrue()
     }
 
-    ProfilerHostFile.Builder("myName").setExecutable(false).build().let {
+    ProfilerHostFileBuilder("myName").setExecutable(false).build().let {
       assertThat(it.isExecutable).isFalse()
     }
   }
 
   @Test
   fun testOnDeviceAbiFileNameFormat() {
-    ProfilerHostFile.Builder("myName").build().let {
+    ProfilerHostFileBuilder("myName").build().let {
       assertThat(it.onDeviceAbiFileNameFormat).isNull()
       assertThat(it.isAbiDependent).isFalse()
     }
 
-    ProfilerHostFile.Builder("myName").setOnDeviceAbiFileNameFormat("myFormat_%s").build().let {
+    ProfilerHostFileBuilder("myName").setOnDeviceAbiFileNameFormat("myFormat_%s").build().let {
       assertThat(it.onDeviceAbiFileNameFormat).isEqualTo("myFormat_%s")
       assertThat(it.isAbiDependent).isTrue()
     }
@@ -61,7 +61,7 @@ class ProfilerHostFileTest {
     val releaseDir = temporaryFolder.newFolder("release")
     temporaryFolder.newFolder("dev")
 
-    val hostFile = ProfilerHostFile.Builder("myfile")
+    val hostFile = ProfilerHostFileBuilder("myfile")
       .setReleaseDir("release")
       .setDevDir("dev")
       .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)
@@ -74,7 +74,7 @@ class ProfilerHostFileTest {
   fun getDirIsDevDirIfNoReleaseDir() {
     val devDir = temporaryFolder.newFolder("dev")
 
-    val hostFile = ProfilerHostFile.Builder("myfile")
+    val hostFile = ProfilerHostFileBuilder("myfile")
       .setReleaseDir("release")
       .setDevDir("dev")
       .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)

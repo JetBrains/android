@@ -24,6 +24,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tools to be used by decorators for setting timed state transitions on NLComponents
@@ -129,19 +130,15 @@ public class DecoratorUtilities {
   /**
    * This sets the view state and when it was issued
    * it computes the time and looks up the previous state
-   *
-   * @param component
-   * @param type
-   * @param to
    */
-  public static void setTimeChange(NlComponent component, String type, ViewStates to) {
+  public static void setTimeChange(@NotNull NlComponent component, @NotNull String type, @NotNull ViewStates newMode) {
     long time = System.nanoTime();
-    component.putClientProperty(type + MODE_SUFFIX, to);
-    ViewStates from = (ViewStates)component.getClientProperty(type + MODE_SUFFIX);
-    if (from == null) {
-      from = ViewStates.NORMAL;
+    ViewStates previousMode = (ViewStates)component.getClientProperty(type + MODE_SUFFIX);
+    if (previousMode == null) {
+      previousMode = ViewStates.NORMAL;
     }
-    component.putClientProperty(type + PREV_SUFFIX, from);
+    component.putClientProperty(type + MODE_SUFFIX, newMode);
+    component.putClientProperty(type + PREV_SUFFIX, previousMode);
     component.putClientProperty(type + TIME_SUFFIX, time);
   }
 
@@ -154,15 +151,14 @@ public class DecoratorUtilities {
   }
 
   public static Long getTimedChange_time(NlComponent component, String type) {
-
     return (Long)component.getClientProperty(type + TIME_SUFFIX);
   }
 
-  public static int MASK_TOP = 1;
-  public static int MASK_BOTTOM = 2;
-  public static int MASK_LEFT = 4;
-  public static int MASK_RIGHT = 8;
-  public static int MASK_BASELINE = 16;
+  public static final int MASK_TOP = 1;
+  public static final int MASK_BOTTOM = 2;
+  public static final int MASK_LEFT = 4;
+  public static final int MASK_RIGHT = 8;
+  public static final int MASK_BASELINE = 16;
 
   static HashSet<String> getConnected(NlComponent c, List<NlComponent> sisters, ArrayList<String>... list) {
     HashSet<String> set = new HashSet<>();

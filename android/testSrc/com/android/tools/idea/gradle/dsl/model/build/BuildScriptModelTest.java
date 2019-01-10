@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_PARSE_DEPENDENCIES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_PARSE_REPOSITORIES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS;
@@ -35,6 +36,8 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -179,5 +182,41 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = projectBuildModel.getModuleBuildModel(mySubModule);
 
     verifyPropertyModel(buildModel.android().defaultConfig().applicationId(), STRING_TYPE, "boo", STRING, PropertyType.REGULAR, 1);
+  }
+
+  @Test
+  public void testExtPropertiesNotVisibleFromBuildscriptBlock() throws IOException {
+    writeToBuildFile(BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ArtifactDependencyModel> artifacts = buildModel.buildscript().dependencies().artifacts();
+    assertSize(1, artifacts);
+    verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:$VERSION");
+  }
+
+  @Test
+  public void testAddExtVariableToBuildscriptBlock() throws IOException {
+    writeToBuildFile(BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    List<ArtifactDependencyModel> artifacts = buildModel.buildscript().dependencies().artifacts();
+    assertSize(1, artifacts);
+    verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:$VERSION");
+
+    // Add the missing variable to the buildscript block.
+    buildModel.buildscript().ext().findProperty("VERSION").setValue("2.1.2");
+    // Add a new normal dependency that uses the VERSION property to ensure we don't resolve to the buildscript one.
+    buildModel.android().defaultConfig().applicationId().setValue(new ReferenceTo("VERSION"));
+
+    applyChangesAndReparse(buildModel);
+
+    artifacts = buildModel.buildscript().dependencies().artifacts();
+    assertSize(1, artifacts);
+    verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:2.1.2");
+
+    ResolvedPropertyModel applicationId = buildModel.android().defaultConfig().applicationId();
+    verifyPropertyModel(applicationId, "android.defaultConfig.applicationId", "3.2.0");
   }
 }

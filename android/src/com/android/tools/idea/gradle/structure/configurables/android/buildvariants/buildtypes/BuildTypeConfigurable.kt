@@ -18,13 +18,14 @@ import com.android.tools.idea.gradle.structure.configurables.android.ChildModelC
 import com.android.tools.idea.gradle.structure.configurables.ui.*
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BuildTypeConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
+import javax.swing.Icon
 
 class BuildTypeConfigurable(
   private val buildType: PsBuildType,
   val context: PsContext
 ) : ChildModelConfigurable<PsBuildType, BuildTypeConfigPanel>(buildType) {
   override fun getBannerSlogan() = "Build Type '${buildType.name}'"
-
+  override fun getIcon(expanded: Boolean): Icon? = buildType.icon
   override fun createPanel(): BuildTypeConfigPanel = BuildTypeConfigPanel(buildType, context)
 }
 

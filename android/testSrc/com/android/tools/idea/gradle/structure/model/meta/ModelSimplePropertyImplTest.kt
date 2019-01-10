@@ -221,4 +221,32 @@ class ModelSimplePropertyImplTest : GradleFileModelTestCase() {
                }""".trimIndent()
     verifyFileContents(myBuildFile, expected)
   }
+
+  @Test
+  fun testPropertyInitializer() {
+    val text = """
+               ext {
+                 prop25 = 25
+               }""".trimIndent()
+    writeToBuildFile(text)
+
+    val buildModelInstance = gradleBuildModel
+    val extModel = buildModelInstance.ext()
+    val findProperty = extModel.findProperty("prop25")
+    val resolved = findProperty.resolve()
+    var property: ResolvedPropertyModel? = null
+    val notYetProp25 = Model.property(
+      "description",
+      resolvedValueGetter = { 26 },
+      parsedPropertyGetter = { property },
+      parsedPropertyInitializer = { property = resolved; resolved },
+      getter = { asInt() },
+      setter = { setValue(it) },
+      parser = { value -> (::parseInt)(value) }
+    ).bind(Model)
+
+    assertThat(notYetProp25.getParsedValue().value, equalTo<ParsedValue<Any>>(ParsedValue.NotSet))
+    notYetProp25.setParsedValue(25.asParsed())
+    assertThat(notYetProp25.getParsedValue().value, equalTo<ParsedValue<Any>>(25.asParsed()))
+  }
 }

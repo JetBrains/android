@@ -25,6 +25,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -36,6 +37,7 @@ import com.intellij.util.indexing.UnindexedFilesUpdater;
 import com.intellij.util.io.ZipUtil;
 import java.io.File;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import org.intellij.lang.annotations.Language;
@@ -66,6 +68,20 @@ public class NavigationSchemaTest extends AndroidTestCase {
       PsiTestUtil.addLibrary(myFixture.getModule(), new File(tempDir, "classes.jar").getPath());
     }
     NavigationSchema.createIfNecessary(myModule);
+  }
+
+  public void testDumbMode() throws Exception {
+    DumbServiceImpl.getInstance(getProject()).setDumb(true);
+    try {
+      NavigationSchema schema = NavigationSchema.get(myModule);
+      CompletableFuture<NavigationSchema> future = schema.rebuildSchema();
+      DumbServiceImpl.getInstance(getProject()).setDumb(false);
+      schema = future.get();
+      assertNotNull(schema);
+    }
+    finally {
+      DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    }
   }
 
   public void testSubtags() {
@@ -234,10 +250,17 @@ public class NavigationSchemaTest extends AndroidTestCase {
                      "@Navigator.Name(\"fragment_sub\")\n" +
                      "public class QuickValidateWithDelete extends ActivityNavigator {}\n";
     PsiClass navigator = addClass(content);
+    WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
+
     NavigationSchema schema = NavigationSchema.get(myModule).rebuildSchema().get();
     assertTrue(schema.quickValidate());
 
     WriteCommandAction.runWriteCommandAction(getProject(), () -> navigator.getContainingFile().delete());
+    WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
+    DumbService dumbService = DumbService.getInstance(getProject());
+    dumbService.queueTask(new UnindexedFilesUpdater(getProject()));
+    dumbService.completeJustSubmittedTasks();
+
     assertFalse(schema.quickValidate());
   }
 

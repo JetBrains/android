@@ -17,17 +17,27 @@ package com.android.tools.idea.gradle.dsl.model.build;
 
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
 
 public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildScriptModel {
@@ -65,5 +75,24 @@ public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildSc
   @TestOnly
   public void removeRepositoriesBlocks() {
     myDslElement.removeProperty(REPOSITORIES_BLOCK_NAME);
+  }
+
+  @NotNull
+  @Override
+  public ExtModel ext() {
+    ExtDslElement extDslElement = myDslElement.getPropertyElement(EXT_BLOCK_NAME, ExtDslElement.class);
+    if (extDslElement == null) {
+      extDslElement = new ExtDslElement(myDslElement);
+      List<GradleDslElement> elements = myDslElement.getAllElements();
+      int index = (!elements.isEmpty() && elements.get(0) instanceof ApplyDslElement) ? 1 : 0;
+      myDslElement.addNewElementAt(index, extDslElement);
+    }
+    return new ExtModelImpl(extDslElement);
+  }
+
+  @NotNull
+  @Override
+  public Map<String, GradlePropertyModel> getInScopeProperties() {
+    return super.getDeclaredProperties().stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
   }
 }

@@ -21,19 +21,23 @@ import com.android.aapt.ConfigurationOuterClass.Configuration;
 import com.android.aapt.Resources;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
+import com.android.resources.Arity;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.CharMatcher;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Table;
@@ -42,19 +46,20 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.BitUtil;
 import com.intellij.util.io.URLUtil;
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
@@ -67,11 +72,17 @@ import org.jetbrains.annotations.Nullable;
  * See https://android.googlesource.com/platform/frameworks/base/+/master/tools/aapt2/Resources.proto
  */
 public class AarProtoResourceRepository extends AbstractAarResourceRepository {
-  private static final Logger LOG = Logger.getInstance(AarProtoResourceRepository.class);
+  /** Configuration filter that accepts all configurations. */
+  protected static final Predicate<Configuration> TRIVIAL_CONFIG_FILTER = config -> true;
+  /** Resource type filter that accepts all resource types. */
+  protected static final Predicate<ResourceType> TRIVIAL_RESOURCE_TYPE_FILTER = type -> true;
+
   /** Protocol for accessing contents of .apk files. */
   @NotNull private static final String APK_PROTOCOL = "apk";
   /** The name of the res.apk ZIP entry containing value resources. */
   private static final String RESOURCE_TABLE_ENTRY = "resources.pb";
+
+  private static final Logger LOG = Logger.getInstance(AarProtoResourceRepository.class);
 
   // The following constants represent the complex dimension encoding defined in
   // https://android.googlesource.com/platform/frameworks/base/+/master/libs/androidfw/include/androidfw/ResourceTypes.h
@@ -85,7 +96,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
   // The signed mantissa is stored in the higher 24 bits of the value.
   private static final int COMPLEX_MANTISSA_SHIFT = 8;
 
-  @NotNull private final Path myResApkFile;
+  @NotNull protected final Path myResApkFile;
   /**
    * Common prefix of paths of all file resources. Used to compose resource paths returned by
    * the {@link AarFileResourceItem#getSource()} method.
@@ -102,25 +113,15 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
    */
   @Nullable private final String mySourceAttachmentPrefix;
 
-  private ResourceUrlParser myUrlParser;
-
-  private AarProtoResourceRepository(@NotNull DataLoader loader,
-                                     @NotNull String libraryName,
-                                     @Nullable Path sourceJar) {
-    super(loader.getNamespace(), libraryName);
-    myResApkFile = loader.resApkFile;
+  protected AarProtoResourceRepository(@NotNull Loader loader, @Nullable String libraryName, @Nullable Path sourceJar) {
+    super(loader.myNamespace, libraryName);
+    myResApkFile = loader.myResApkFile;
 
     myResourcePathPrefix = myResApkFile.toString() + URLUtil.JAR_SEPARATOR;
-    myResourceUrlPrefix = APK_PROTOCOL + "://" + myResourcePathPrefix.replace(File.separatorChar, '/');
+    myResourceUrlPrefix = APK_PROTOCOL + "://" + portableFileName(myResApkFile.toString()) + URLUtil.JAR_SEPARATOR;
 
-    mySourceAttachmentPrefix = sourceJar != null && loader.packageName != null ?
-        sourceJar.toString() + URLUtil.JAR_SEPARATOR + getPackageNamePrefix(loader.packageName) : null;
-
-    if (loader.resourceTableMsg != null) {
-      loadResourceTable(loader.resourceTableMsg);
-
-      populatePublicResourcesMap();
-    }
+    mySourceAttachmentPrefix = sourceJar != null && loader.myPackageName != null ?
+        sourceJar.toString() + URLUtil.JAR_SEPARATOR + getPackageNamePrefix(loader.myPackageName) : null;
   }
 
   @Override
@@ -131,7 +132,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
 
   @Override
   @Nullable
-  public String getPackageName() {
+  public final String getPackageName() {
     return myNamespace.getPackageName();
   }
 
@@ -144,12 +145,13 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
    */
   @NotNull
   public static AarProtoResourceRepository create(@NotNull Path resApkFile, @NotNull String libraryName) {
-    DataLoader loader = new DataLoader(resApkFile);
+    Loader loader = new Loader(resApkFile, TRIVIAL_CONFIG_FILTER, TRIVIAL_RESOURCE_TYPE_FILTER);
     try {
-      loader.load();
+      loader.readApkFile();
     } catch (IOException e) {
       LOG.error(e);
-      return new AarProtoResourceRepository(loader, libraryName, null); // Return an empty repository.
+      // Return an empty repository.
+      return new AarProtoResourceRepository(loader, libraryName, null);
     }
 
     // TODO: Make the source jar a parameter of this method and stop relying on a name convention here.
@@ -158,7 +160,10 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       sourceJar = null;
     }
 
-    return new AarProtoResourceRepository(loader, libraryName, sourceJar);
+
+    AarProtoResourceRepository repository = new AarProtoResourceRepository(loader, libraryName, sourceJar);
+    loader.loadRepositoryContents(repository);
+    return repository;
   }
 
   /**
@@ -173,46 +178,6 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
     }
     filename += "-src.jar";
     return resApkFile.resolveSibling(filename);
-  }
-
-  private void loadResourceTable(@NotNull Resources.ResourceTable resourceTableMsg) {
-    Table<String, Configuration, AarSourceFile> sourceFileCache = HashBasedTable.create();
-    myUrlParser = new ResourceUrlParser();
-    try  {
-      // String pool is only needed if there is a source attachment.
-      StringPool stringPool = mySourceAttachmentPrefix == null ?
-          null : new StringPool(resourceTableMsg.getSourcePool(), myNamespace.getPackageName());
-
-      for (Resources.Package packageMsg : resourceTableMsg.getPackageList()) {
-        for (Resources.Type typeMsg : packageMsg.getTypeList()) {
-          ResourceType resourceType = ResourceType.fromClassName(typeMsg.getName());
-          if (resourceType == null) {
-            LOG.warn("Unexpected resource type: " + typeMsg.getName());
-            continue;
-          }
-          for (Resources.Entry entryMsg : typeMsg.getEntryList()) {
-            String resourceName = entryMsg.getName();
-            Resources.Visibility visibilityMsg = entryMsg.getVisibility();
-            ResourceVisibility visibility = computeVisibility(visibilityMsg);
-            for (Resources.ConfigValue configValueMsg : entryMsg.getConfigValueList()) {
-              Resources.Value valueMsg = configValueMsg.getValue();
-              Resources.Source sourceMsg = valueMsg.getSource();
-              String sourcePath = stringPool == null ? null : stringPool.getString(sourceMsg.getPathIdx());
-              if (sourcePath != null && sourcePath.isEmpty()) {
-                sourcePath = null;
-              }
-              AarSourceFile sourceFile = getSourceFile(sourcePath, configValueMsg.getConfig(), sourceFileCache);
-              ResourceItem item = createResourceItem(valueMsg, resourceType, resourceName, sourceFile, visibility);
-              if (item != null) {
-                addResourceItem(item);
-              }
-            }
-          }
-        }
-      }
-    } finally {
-      myUrlParser = null; // Not needed anymore.
-    }
   }
 
   @Override
@@ -258,7 +223,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
 
   /**
    * Checks if the given relative resource path is expected to contain an overlay segment or not.
-   * The check is based on how resource items are created by the {@link #createResourceItem} methods.
+   * The check is based on how resource items are created by the {@link Loader#createResourceItem} methods.
    *
    * @param relativeResourcePath the relative path of a resource that may or may not start with an overlay number segment
    * @param forFileResource true is the resource is a file resource, false if it is a value resource
@@ -285,429 +250,6 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
     return SdkUtils.endsWithIgnoreCase(filePath, DOT_XML);
   }
 
-  @Nullable
-  private AarResourceItem createResourceItem(@NotNull Resources.Value valueMsg, @NotNull ResourceType resourceType,
-                                             @NotNull String resourceName, @NotNull AarSourceFile sourceFile,
-                                             @NotNull ResourceVisibility visibility) {
-    switch (valueMsg.getValueCase()) {
-      case ITEM:
-        return createResourceItem(valueMsg.getItem(), resourceType, resourceName, sourceFile, visibility);
-
-      case COMPOUND_VALUE:
-        String description = valueMsg.getComment();
-        if (CharMatcher.whitespace().matchesAllOf(description)) {
-          description = null;
-        }
-        return createResourceItem(valueMsg.getCompoundValue(), resourceName, sourceFile, visibility, description);
-
-      case VALUE_NOT_SET:
-      default:
-        LOG.warn("Unexpected Value message: " + valueMsg);
-        break;
-    }
-    return null;
-  }
-
-  @Nullable
-  private AarResourceItem createResourceItem(@NotNull Resources.Item itemMsg, @NotNull ResourceType resourceType,
-                                             @NotNull String resourceName, @NotNull AarSourceFile sourceFile,
-                                             @NotNull ResourceVisibility visibility) {
-    switch (itemMsg.getValueCase()) {
-      case FILE: {
-        // For XML files, which contain proto XML that is not human-readable, use the source attachment path when available.
-        // For other resources use the path inside res.apk.
-        String path = sourceFile.getRelativePath();
-        if (path == null || !isXml(path)) {
-          path = itemMsg.getFile().getPath();
-        }
-        AarConfiguration configuration = sourceFile.getConfiguration();
-        FolderConfiguration folderConfiguration = configuration.getFolderConfiguration();
-        DensityQualifier densityQualifier = folderConfiguration.getDensityQualifier();
-        if (densityQualifier != null) {
-          Density densityValue = densityQualifier.getValue();
-          if (densityValue != null) {
-            return new AarDensityBasedFileResourceItem(resourceType, resourceName, configuration, visibility, path, densityValue);
-          }
-        }
-        return new AarFileResourceItem(resourceType, resourceName, configuration, visibility, path);
-      }
-
-      case REF: {
-        String ref = decode(itemMsg.getRef());
-        return createResourceItem(resourceType, resourceName, sourceFile, visibility, ref);
-      }
-
-      case STR: {
-        String textValue = itemMsg.getStr().getValue();
-        return new AarValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue);
-      }
-
-      case RAW_STR: {
-        String str = itemMsg.getRawStr().getValue();
-        return createResourceItem(resourceType, resourceName, sourceFile, visibility, str);
-      }
-
-      case PRIM: {
-        String str = decode(itemMsg.getPrim());
-        return createResourceItem(resourceType, resourceName, sourceFile, visibility, str);
-      }
-
-      case STYLED_STR: {
-        Resources.StyledString styledStrMsg = itemMsg.getStyledStr();
-        String textValue = styledStrMsg.getValue();
-        String rawXmlValue = ProtoStyledStringDecoder.getRawXmlValue(styledStrMsg);
-        if (rawXmlValue.equals(textValue)) {
-          return new AarValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue);
-        }
-        return new AarTextValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue, rawXmlValue);
-      }
-
-      case ID: {
-        return createResourceItem(resourceType, resourceName, sourceFile, visibility, "");
-      }
-
-      case VALUE_NOT_SET:
-      default:
-        LOG.warn("Unexpected Item message: " + itemMsg);
-        break;
-    }
-    return null;
-  }
-
-  @NotNull
-  private static AarResourceItem createResourceItem(@NotNull ResourceType resourceType, @NotNull String resourceName,
-                                                    @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility,
-                                                    @Nullable String value) {
-    return new AarValueResourceItem(resourceType, resourceName, sourceFile, visibility, value);
-  }
-
-  @Nullable
-  private AarResourceItem createResourceItem(@NotNull Resources.CompoundValue compoundValueMsg, @NotNull String resourceName,
-                                             @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility,
-                                             @Nullable String description) {
-    switch (compoundValueMsg.getValueCase()) {
-      case ATTR:
-        return createAttr(compoundValueMsg.getAttr(), resourceName, sourceFile, visibility, description);
-
-      case STYLE:
-        return createStyle(compoundValueMsg.getStyle(), resourceName, sourceFile, visibility);
-
-      case STYLEABLE:
-        return createStyleable(compoundValueMsg.getStyleable(), resourceName, sourceFile, visibility);
-
-      case ARRAY:
-        return createArray(compoundValueMsg.getArray(), resourceName, sourceFile, visibility);
-
-      case PLURAL:
-        return createPlurals(compoundValueMsg.getPlural(), resourceName, sourceFile, visibility);
-
-      case VALUE_NOT_SET:
-      default:
-        LOG.warn("Unexpected CompoundValue message: " + compoundValueMsg);
-        return null;
-    }
-  }
-
-  @Nullable
-  private static AarAttrResourceItem createAttr(@NotNull Resources.Attribute attributeMsg, @NotNull String resourceName,
-                                                @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility,
-                                                @Nullable String description) {
-    Set<AttributeFormat> formats = decodeFormatFlags(attributeMsg.getFormatFlags());
-
-    List<Resources.Attribute.Symbol> symbolList = attributeMsg.getSymbolList();
-    if (symbolList.isEmpty() && attributeMsg.getFormatFlags() == Resources.Attribute.FormatFlags.ANY.getNumber()) {
-      return null;
-    }
-    Map<String, Integer> valueMap = Collections.emptyMap();
-    Map<String, String> valueDescriptionMap = Collections.emptyMap();
-    for (Resources.Attribute.Symbol symbolMsg : symbolList) {
-      String name = symbolMsg.getName().getName();
-      // Remove the explicit resource type to match the behavior of AarSourceResourceRepository.
-      int slashPos = name.lastIndexOf('/');
-      if (slashPos >= 0) {
-        name = name.substring(slashPos + 1);
-      }
-      String symbolDescription = symbolMsg.getComment();
-      if (CharMatcher.whitespace().matchesAllOf(symbolDescription)) {
-        symbolDescription = null;
-      }
-      if (valueMap.isEmpty()) {
-        valueMap = new HashMap<>();
-      }
-      valueMap.put(name, symbolMsg.getValue());
-      if (symbolDescription != null) {
-        if (valueDescriptionMap.isEmpty()) {
-          valueDescriptionMap = new HashMap<>();
-        }
-        valueDescriptionMap.put(name, symbolDescription);
-      }
-    }
-
-    String groupName = null; // Attribute group name is not available in a proto resource repository.
-    return new AarAttrResourceItem(resourceName, sourceFile, visibility, description, groupName, formats, valueMap, valueDescriptionMap);
-  }
-
-  @NotNull
-  private AarStyleResourceItem createStyle(@NotNull Resources.Style styleMsg, @NotNull String resourceName,
-                                           @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
-    String parentStyle = styleMsg.getParent().getName();
-    myUrlParser.parseResourceUrl(parentStyle);
-    parentStyle = myUrlParser.getQualifiedName();
-    List<StyleItemResourceValue> styleItems = new ArrayList<>(styleMsg.getEntryCount());
-    for (Resources.Style.Entry entryMsg : styleMsg.getEntryList()) {
-      String url = entryMsg.getKey().getName();
-      myUrlParser.parseResourceUrl(url);
-      String name = myUrlParser.getQualifiedName();
-      String value = decode(entryMsg.getItem());
-      StyleItemResourceValueImpl itemValue = new StyleItemResourceValueImpl(myNamespace, name, value, myLibraryName);
-      styleItems.add(itemValue);
-    }
-
-    return new AarStyleResourceItem(resourceName, sourceFile, visibility, parentStyle, styleItems);
-  }
-
-  @NotNull
-  private AarStyleableResourceItem createStyleable(@NotNull Resources.Styleable styleableMsg, @NotNull String resourceName,
-                                                   @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
-    List<AttrResourceValue> attrs = new ArrayList<>(styleableMsg.getEntryCount());
-    for (Resources.Styleable.Entry entryMsg : styleableMsg.getEntryList()) {
-      String url = entryMsg.getAttr().getName();
-      myUrlParser.parseResourceUrl(url);
-      String packageName = myUrlParser.getNamespacePrefix();
-      ResourceNamespace attrNamespace = packageName == null ? myNamespace : ResourceNamespace.fromPackageName(packageName);
-      String comment = entryMsg.getComment();
-      AarAttrReference attr =
-          new AarAttrReference(attrNamespace, myUrlParser.getName(), sourceFile, visibility, comment.isEmpty() ? null : comment);
-      attrs.add(attr);
-    }
-    return new AarStyleableResourceItem(resourceName, sourceFile, visibility, attrs);
-  }
-
-  @NotNull
-  private AarArrayResourceItem createArray(@NotNull Resources.Array arrayMsg, @NotNull String resourceName,
-                                           @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
-    List<String> elements = new ArrayList<>(arrayMsg.getElementCount());
-    for (Resources.Array.Element elementMsg : arrayMsg.getElementList()) {
-      String text = decode(elementMsg.getItem());
-      if (text != null) {
-        elements.add(text);
-      }
-    }
-    return new AarArrayResourceItem(resourceName, sourceFile, visibility, elements);
-  }
-
-  @NotNull
-  private AarPluralsResourceItem createPlurals(@NotNull Resources.Plural pluralMsg, @NotNull String resourceName,
-                                               @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
-    List<String> quantities = new ArrayList<>(pluralMsg.getEntryCount());
-    List<String> values = new ArrayList<>(pluralMsg.getEntryCount());
-    for (Resources.Plural.Entry entryMsg : pluralMsg.getEntryList()) {
-      quantities.add(getQuantity(entryMsg.getArity()));
-      values.add(decode(entryMsg.getItem()));
-    }
-    return new AarPluralsResourceItem(resourceName, sourceFile, visibility, quantities, values);
-  }
-
-  @NotNull
-  private static String getQuantity(@NotNull Resources.Plural.Arity arity) {
-    switch (arity) {
-      case ZERO:
-        return "zero";
-      case ONE:
-        return "one";
-      case TWO:
-        return "two";
-      case FEW:
-        return "few";
-      case MANY:
-        return "many";
-      case OTHER:
-      default:
-        return "other";
-    }
-  }
-
-  @NotNull
-  private static ResourceVisibility computeVisibility(@NotNull Resources.Visibility visibilityMsg) {
-    switch (visibilityMsg.getLevel()) {
-      case UNKNOWN:
-        return ResourceVisibility.PRIVATE_XML_ONLY;
-      case PRIVATE:
-        return ResourceVisibility.PRIVATE;
-      case PUBLIC:
-        return ResourceVisibility.PUBLIC;
-      case UNRECOGNIZED:
-      default:
-        return ResourceVisibility.UNDEFINED;
-    }
-  }
-
-  private void addResourceItem(@NotNull ResourceItem item) {
-    ListMultimap<String, ResourceItem> multimap = getOrCreateMap(item.getType());
-    multimap.put(item.getName(), item);
-  }
-
-  @Nullable
-  private String decode(@NotNull Resources.Item itemMsg) {
-    switch (itemMsg.getValueCase()) {
-      case REF:
-        return decode(itemMsg.getRef());
-      case STR:
-        return itemMsg.getStr().getValue();
-      case RAW_STR:
-        return itemMsg.getRawStr().getValue();
-      case STYLED_STR:
-        return itemMsg.getStyledStr().getValue();
-      case FILE:
-        return itemMsg.getFile().getPath();
-      case ID:
-        return null;
-      case PRIM:
-        return decode(itemMsg.getPrim());
-      case VALUE_NOT_SET:
-      default:
-        break;
-    }
-    return null;
-  }
-
-  @NotNull
-  private String decode(@NotNull Resources.Reference referenceMsg) {
-    String name = referenceMsg.getName();
-    if (name.isEmpty()) {
-      return "@null";
-    }
-    if (referenceMsg.getType() == Resources.Reference.Type.ATTRIBUTE) {
-      myUrlParser.parseResourceUrl(name);
-      if (myUrlParser.hasType(ResourceType.ATTR.getName())) {
-        name = myUrlParser.getQualifiedName();
-      }
-      return '?' + name;
-    }
-    return '@' + name;
-  }
-
-  @Nullable
-  private static String decode(@NotNull Resources.Primitive primitiveMsg) {
-    switch (primitiveMsg.getOneofValueCase()) {
-      case NULL_VALUE:
-        return null;
-
-      case EMPTY_VALUE:
-        return "";
-
-      case FLOAT_VALUE:
-        return XmlUtils.trimInsignificantZeros(Float.toString(primitiveMsg.getFloatValue()));
-
-      case DIMENSION_VALUE:
-        return decodeComplexDimensionValue(primitiveMsg.getDimensionValue(), 1., DIMEN_SUFFIXES);
-
-      case FRACTION_VALUE:
-        return decodeComplexDimensionValue(primitiveMsg.getFractionValue(), 100., FRACTION_SUFFIXES);
-
-      case INT_DECIMAL_VALUE:
-        return Integer.toString(primitiveMsg.getIntDecimalValue());
-
-      case INT_HEXADECIMAL_VALUE:
-        return String.format("0x%X", primitiveMsg.getIntHexadecimalValue());
-
-      case BOOLEAN_VALUE:
-        return Boolean.toString(primitiveMsg.getBooleanValue());
-
-      case COLOR_ARGB8_VALUE:
-        return String.format("#%08X", primitiveMsg.getColorArgb8Value());
-
-      case COLOR_RGB8_VALUE:
-        return String.format("#%06X", primitiveMsg.getColorRgb8Value() & 0xFFFFFF);
-
-      case COLOR_ARGB4_VALUE:
-        int argb = primitiveMsg.getColorArgb4Value();
-        return String.format("#%X%X%X%X", (argb >>> 24) & 0xF, (argb >>> 16) & 0xF, (argb >>> 8) & 0xF, argb & 0xF);
-
-      case COLOR_RGB4_VALUE:
-        int rgb = primitiveMsg.getColorRgb4Value();
-        return String.format("#%X%X%X", (rgb >>> 16) & 0xF, (rgb >>> 8) & 0xF, rgb & 0xF);
-
-      case ONEOFVALUE_NOT_SET:
-      default:
-        LOG.warn("Unexpected Primitive message: " + primitiveMsg);
-        break;
-    }
-    return null;
-  }
-
-  /**
-   * Decodes a dimension value in the Android binary XML encoding and returns a string suitable for regular XML.
-   *
-   * @param bits the encoded value
-   * @param scaleFactor the scale factor to apply to the result
-   * @param unitSuffixes the unit suffixes, either {@link #DIMEN_SUFFIXES} or {@link #FRACTION_SUFFIXES}
-   * @return the decoded value as a string, e.g. "-6.5dp", or "60%"
-   * @see <a href="https://android.googlesource.com/platform/frameworks/base/+/master/libs/androidfw/include/androidfw/ResourceTypes.h">
-   *     ResourceTypes.h</a>
-   */
-  private static String decodeComplexDimensionValue(int bits, double scaleFactor, @NotNull String[] unitSuffixes) {
-    int unitCode = bits & COMPLEX_UNIT_MASK;
-    String unit = unitCode < unitSuffixes.length ? unitSuffixes[unitCode] : " unknown unit: " + unitCode;
-    int radix = (bits >> COMPLEX_RADIX_SHIFT) & COMPLEX_RADIX_MASK;
-    int mantissa = bits >> COMPLEX_MANTISSA_SHIFT;
-    double value = mantissa * RADIX_FACTORS[radix] * scaleFactor;
-    return XmlUtils.trimInsignificantZeros(String.format(Locale.US, "%.5g", value)) + unit;
-  }
-
-  @NotNull
-  private static Set<AttributeFormat> decodeFormatFlags(int flags) {
-    EnumSet<AttributeFormat> result = EnumSet.noneOf(AttributeFormat.class);
-    if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.REFERENCE_VALUE)) {
-      result.add(AttributeFormat.REFERENCE);
-    }
-    if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.STRING_VALUE)) {
-      result.add(AttributeFormat.STRING);
-    }
-    if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.INTEGER_VALUE)) {
-      result.add(AttributeFormat.INTEGER);
-    }
-    if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.BOOLEAN_VALUE)) {
-      result.add(AttributeFormat.BOOLEAN);
-    }
-    if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.COLOR_VALUE)) {
-      result.add(AttributeFormat.COLOR);
-    }
-    if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.FLOAT_VALUE)) {
-      result.add(AttributeFormat.FLOAT);
-    }
-    if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.DIMENSION_VALUE)) {
-      result.add(AttributeFormat.DIMENSION);
-    }
-    if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.FRACTION_VALUE)) {
-      result.add(AttributeFormat.FRACTION);
-    }
-    if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.ENUM_VALUE)) {
-      result.add(AttributeFormat.ENUM);
-    }
-    if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.FLAGS_VALUE)) {
-      result.add(AttributeFormat.FLAGS);
-    }
-    return Collections.unmodifiableSet(result);
-  }
-
-  @NotNull
-  private AarSourceFile getSourceFile(@Nullable String sourcePath,
-                                      @NotNull Configuration configMsg,
-                                      @NotNull Table<String, Configuration, AarSourceFile> cache) {
-    String sourcePathKey = sourcePath == null ? "" : sourcePath;
-    AarSourceFile sourceFile = cache.get(sourcePathKey, configMsg);
-    if (sourceFile != null) {
-      return sourceFile;
-    }
-
-    FolderConfiguration configuration = ProtoConfigurationDecoder.getConfiguration(configMsg);
-
-    sourceFile = new AarSourceFile(sourcePath, new AarConfiguration(this, configuration));
-    cache.put(sourcePathKey, configMsg, sourceFile);
-    return sourceFile;
-  }
-
   @NotNull
   private static String getPackageNamePrefix(@NotNull String packageName) {
     return packageName.replace('.', '/') + '/';
@@ -719,25 +261,519 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
     return getClass().getSimpleName() + '@' + Integer.toHexString(System.identityHashCode(this)) + " for " + myResApkFile;
   }
 
-  private static class DataLoader {
-    @NotNull final Path resApkFile;
-    @Nullable Resources.ResourceTable resourceTableMsg;
-    @Nullable String packageName;
+  protected static class Loader {
+    @NotNull private final Path myResApkFile;
+    @NotNull private final Predicate<Configuration> myConfigFilter;
+    @NotNull private final Predicate<ResourceType> myResourceTypeFilter;
+    @NotNull private final ResourceUrlParser myUrlParser = new ResourceUrlParser();
+    @NotNull private final ListMultimap<String, AarStyleableResourceItem> myStyleables = ArrayListMultimap.create();
+    @NotNull private final Table<String, Configuration, AarSourceFile> mySourceFileCache = HashBasedTable.create();
+    @Nullable private Resources.ResourceTable myResourceTableMsg;
+    @Nullable private String myPackageName;
+    private ResourceNamespace myNamespace;
 
-    DataLoader(@NotNull Path resApkFile) {
-      this.resApkFile = resApkFile;
+    Loader(@NotNull Path resApkFile, @NotNull Predicate<Configuration> configFilter, @NotNull Predicate<ResourceType> resourceTypeFilter) {
+      myResApkFile = resApkFile;
+      myConfigFilter = configFilter;
+      myResourceTypeFilter = resourceTypeFilter;
     }
 
-    void load() throws IOException {
-      try (ZipFile zipFile = new ZipFile(resApkFile.toFile())) {
-        resourceTableMsg = readResourceTableFromResApk(zipFile);
-        packageName = AndroidManifestUtils.getPackageNameFromResApk(zipFile);
+    void readApkFile() throws IOException {
+      try (ZipFile zipFile = new ZipFile(myResApkFile.toFile())) {
+        myResourceTableMsg = readResourceTableFromResApk(zipFile);
+        myPackageName = AndroidManifestUtils.getPackageNameFromResApk(zipFile);
+      } finally {
+        myNamespace = myPackageName == null ? ResourceNamespace.RES_AUTO : ResourceNamespace.fromPackageName(myPackageName);
+      }
+    }
+
+    public void loadRepositoryContents(@NotNull AarProtoResourceRepository repository) {
+      if (myResourceTableMsg != null) {
+        loadFromResourceTable(repository, myResourceTableMsg);
+      }
+    }
+
+    private void loadFromResourceTable(@NotNull AarProtoResourceRepository repository, @NotNull Resources.ResourceTable resourceTableMsg) {
+      // String pool is only needed if there is a source attachment.
+      StringPool stringPool = repository.mySourceAttachmentPrefix == null ?
+                              null : new StringPool(resourceTableMsg.getSourcePool(), myNamespace.getPackageName());
+
+      for (Resources.Package packageMsg : resourceTableMsg.getPackageList()) {
+        for (Resources.Type typeMsg : packageMsg.getTypeList()) {
+          String typeName = typeMsg.getName();
+          ResourceType resourceType = ResourceType.fromClassName(typeName);
+          if (resourceType == null) {
+            // AAPT2 emits "^attr-private" type for all Framework non-public "attr" resources. For reference see
+            // https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/tools/aapt2/link/Linkers.h#65.
+            if (typeName.equals("^attr-private")) {
+              resourceType = ResourceType.ATTR;
+            }
+            else {
+              LOG.warn("Unexpected resource type: " + typeName);
+              continue;
+            }
+          }
+          if (myResourceTypeFilter.test(resourceType)) {
+            for (Resources.Entry entryMsg : typeMsg.getEntryList()) {
+              String resourceName = entryMsg.getName();
+              Resources.Visibility visibilityMsg = entryMsg.getVisibility();
+              ResourceVisibility visibility = decodeVisibility(visibilityMsg);
+              for (Resources.ConfigValue configValueMsg : entryMsg.getConfigValueList()) {
+                Resources.Value valueMsg = configValueMsg.getValue();
+                Resources.Source sourceMsg = valueMsg.getSource();
+                String sourcePath = stringPool == null ? null : stringPool.getString(sourceMsg.getPathIdx());
+                if (sourcePath != null && sourcePath.isEmpty()) {
+                  sourcePath = null;
+                }
+                Configuration configMsg = configValueMsg.getConfig();
+                if (myConfigFilter.test(configMsg)) {
+                  AarSourceFile sourceFile = getSourceFile(repository, sourcePath, configMsg);
+                  ResourceItem item = createResourceItem(valueMsg, resourceType, resourceName, sourceFile, visibility);
+                  if (item != null) {
+                    addResourceItem(repository, item);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      for (AarStyleableResourceItem styleable : myStyleables.values()) {
+        repository.addResourceItem(resolveAttrReferences(styleable));
+      }
+
+      repository.populatePublicResourcesMap();
+      repository.freezeResources();
+    }
+
+    private void addResourceItem(@NotNull AarProtoResourceRepository repository, @NotNull ResourceItem item) {
+      if (item.getType() == ResourceType.STYLEABLE) {
+        myStyleables.put(item.getName(), (AarStyleableResourceItem)item);
+      }
+      else {
+        repository.addResourceItem(item);
+      }
+    }
+
+    @Nullable
+    private AarResourceItem createResourceItem(@NotNull Resources.Value valueMsg, @NotNull ResourceType resourceType,
+                                               @NotNull String resourceName, @NotNull AarSourceFile sourceFile,
+                                               @NotNull ResourceVisibility visibility) {
+      switch (valueMsg.getValueCase()) {
+        case ITEM:
+          return createResourceItem(valueMsg.getItem(), resourceType, resourceName, sourceFile, visibility);
+
+        case COMPOUND_VALUE:
+          String description = valueMsg.getComment();
+          if (CharMatcher.whitespace().matchesAllOf(description)) {
+            description = null;
+          }
+          return createResourceItem(valueMsg.getCompoundValue(), resourceName, sourceFile, visibility, description);
+
+        case VALUE_NOT_SET:
+        default:
+          LOG.warn("Unexpected Value message: " + valueMsg);
+          break;
+      }
+      return null;
+    }
+
+    @Nullable
+    private AarResourceItem createResourceItem(@NotNull Resources.Item itemMsg, @NotNull ResourceType resourceType,
+                                               @NotNull String resourceName, @NotNull AarSourceFile sourceFile,
+                                               @NotNull ResourceVisibility visibility) {
+      switch (itemMsg.getValueCase()) {
+        case FILE: {
+          // For XML files, which contain proto XML that is not human-readable, use the source attachment path when available.
+          // For other resources use the path inside res.apk.
+          String path = sourceFile.getRelativePath();
+          if (path == null || !isXml(path)) {
+            path = itemMsg.getFile().getPath();
+          }
+          AarConfiguration configuration = sourceFile.getConfiguration();
+          if (DensityBasedResourceValue.isDensityBasedResourceType(resourceType)) {
+            FolderConfiguration folderConfiguration = configuration.getFolderConfiguration();
+            DensityQualifier densityQualifier = folderConfiguration.getDensityQualifier();
+            if (densityQualifier != null) {
+              Density densityValue = densityQualifier.getValue();
+              if (densityValue != null) {
+                return new AarDensityBasedFileResourceItem(resourceType, resourceName, configuration, visibility, path, densityValue);
+              }
+            }
+          }
+          return new AarFileResourceItem(resourceType, resourceName, configuration, visibility, path);
+        }
+
+        case REF: {
+          String ref = decode(itemMsg.getRef());
+          return createResourceItem(resourceType, resourceName, sourceFile, visibility, ref);
+        }
+
+        case STR: {
+          String textValue = itemMsg.getStr().getValue();
+          return new AarValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue);
+        }
+
+        case RAW_STR: {
+          String str = itemMsg.getRawStr().getValue();
+          return createResourceItem(resourceType, resourceName, sourceFile, visibility, str);
+        }
+
+        case PRIM: {
+          String str = decode(itemMsg.getPrim());
+          return createResourceItem(resourceType, resourceName, sourceFile, visibility, str);
+        }
+
+        case STYLED_STR: {
+          Resources.StyledString styledStrMsg = itemMsg.getStyledStr();
+          String textValue = styledStrMsg.getValue();
+          String rawXmlValue = ProtoStyledStringDecoder.getRawXmlValue(styledStrMsg);
+          if (rawXmlValue.equals(textValue)) {
+            return new AarValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue);
+          }
+          return new AarTextValueResourceItem(resourceType, resourceName, sourceFile, visibility, textValue, rawXmlValue);
+        }
+
+        case ID: {
+          return createResourceItem(resourceType, resourceName, sourceFile, visibility, null);
+        }
+
+        case VALUE_NOT_SET:
+        default:
+          LOG.warn("Unexpected Item message: " + itemMsg);
+          break;
+      }
+      return null;
+    }
+
+    @NotNull
+    private static AarResourceItem createResourceItem(@NotNull ResourceType resourceType, @NotNull String resourceName,
+                                                      @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility,
+                                                      @Nullable String value) {
+      return new AarValueResourceItem(resourceType, resourceName, sourceFile, visibility, value);
+    }
+
+    @Nullable
+    private AarResourceItem createResourceItem(@NotNull Resources.CompoundValue compoundValueMsg, @NotNull String resourceName,
+                                               @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility,
+                                               @Nullable String description) {
+      switch (compoundValueMsg.getValueCase()) {
+        case ATTR:
+          return createAttr(compoundValueMsg.getAttr(), resourceName, sourceFile, visibility, description);
+
+        case STYLE:
+          return createStyle(compoundValueMsg.getStyle(), resourceName, sourceFile, visibility);
+
+        case STYLEABLE:
+          return createStyleable(compoundValueMsg.getStyleable(), resourceName, sourceFile, visibility);
+
+        case ARRAY:
+          return createArray(compoundValueMsg.getArray(), resourceName, sourceFile, visibility);
+
+        case PLURAL:
+          return createPlurals(compoundValueMsg.getPlural(), resourceName, sourceFile, visibility);
+
+        case VALUE_NOT_SET:
+        default:
+          LOG.warn("Unexpected CompoundValue message: " + compoundValueMsg);
+          return null;
       }
     }
 
     @NotNull
-    ResourceNamespace getNamespace() {
-      return packageName == null ? ResourceNamespace.RES_AUTO : ResourceNamespace.fromPackageName(packageName);
+    private static AarAttrResourceItem createAttr(@NotNull Resources.Attribute attributeMsg, @NotNull String resourceName,
+                                                  @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility,
+                                                  @Nullable String description) {
+      Set<AttributeFormat> formats = decodeFormatFlags(attributeMsg.getFormatFlags());
+
+      List<Resources.Attribute.Symbol> symbolList = attributeMsg.getSymbolList();
+      Map<String, Integer> valueMap = Collections.emptyMap();
+      Map<String, String> valueDescriptionMap = Collections.emptyMap();
+      for (Resources.Attribute.Symbol symbolMsg : symbolList) {
+        String name = symbolMsg.getName().getName();
+        // Remove the explicit resource type to match the behavior of AarSourceResourceRepository.
+        int slashPos = name.lastIndexOf('/');
+        if (slashPos >= 0) {
+          name = name.substring(slashPos + 1);
+        }
+        String symbolDescription = symbolMsg.getComment();
+        if (CharMatcher.whitespace().matchesAllOf(symbolDescription)) {
+          symbolDescription = null;
+        }
+        if (valueMap.isEmpty()) {
+          valueMap = new HashMap<>();
+        }
+        valueMap.put(name, symbolMsg.getValue());
+        if (symbolDescription != null) {
+          if (valueDescriptionMap.isEmpty()) {
+            valueDescriptionMap = new HashMap<>();
+          }
+          valueDescriptionMap.put(name, symbolDescription);
+        }
+      }
+
+      String groupName = null; // Attribute group name is not available in a proto resource repository.
+      return new AarAttrResourceItem(resourceName, sourceFile, visibility, description, groupName, formats, valueMap, valueDescriptionMap);
+    }
+
+    @NotNull
+    private AarStyleResourceItem createStyle(@NotNull Resources.Style styleMsg, @NotNull String resourceName,
+                                             @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
+      String libraryName = sourceFile.getRepository().getLibraryName();
+      myUrlParser.parseResourceUrl(styleMsg.getParent().getName());
+      String parentStyle = myUrlParser.getQualifiedName();
+      if (StyleResourceValue.isDefaultParentStyleName(parentStyle, resourceName)) {
+        parentStyle = null; // Don't store a parent style name that can be derived from the name of the style.
+      }
+      List<StyleItemResourceValue> styleItems = new ArrayList<>(styleMsg.getEntryCount());
+      for (Resources.Style.Entry entryMsg : styleMsg.getEntryList()) {
+        String url = entryMsg.getKey().getName();
+        myUrlParser.parseResourceUrl(url);
+        String name = myUrlParser.getQualifiedName();
+        String value = decode(entryMsg.getItem());
+        StyleItemResourceValueImpl itemValue = new StyleItemResourceValueImpl(myNamespace, name, value, libraryName);
+        styleItems.add(itemValue);
+      }
+
+      return new AarStyleResourceItem(resourceName, sourceFile, visibility, parentStyle, styleItems);
+    }
+
+    @NotNull
+    private AarStyleableResourceItem createStyleable(@NotNull Resources.Styleable styleableMsg, @NotNull String resourceName,
+                                                     @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
+      List<AttrResourceValue> attrs = new ArrayList<>(styleableMsg.getEntryCount());
+      for (Resources.Styleable.Entry entryMsg : styleableMsg.getEntryList()) {
+        String url = entryMsg.getAttr().getName();
+        myUrlParser.parseResourceUrl(url);
+        String packageName = myUrlParser.getNamespacePrefix();
+        ResourceNamespace attrNamespace = packageName == null ? myNamespace : ResourceNamespace.fromPackageName(packageName);
+        String comment = entryMsg.getComment();
+        AarAttrReference attr =
+            new AarAttrReference(attrNamespace, myUrlParser.getName(), sourceFile, visibility, comment.isEmpty() ? null : comment, null);
+        attrs.add(attr);
+      }
+      return new AarStyleableResourceItem(resourceName, sourceFile, visibility, attrs);
+    }
+
+    @NotNull
+    private AarArrayResourceItem createArray(@NotNull Resources.Array arrayMsg, @NotNull String resourceName,
+                                             @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
+      List<String> elements = new ArrayList<>(arrayMsg.getElementCount());
+      for (Resources.Array.Element elementMsg : arrayMsg.getElementList()) {
+        String text = decode(elementMsg.getItem());
+        if (text != null) {
+          elements.add(text);
+        }
+      }
+      return new AarArrayResourceItem(resourceName, sourceFile, visibility, elements);
+    }
+
+    @NotNull
+    private AarPluralsResourceItem createPlurals(@NotNull Resources.Plural pluralMsg, @NotNull String resourceName,
+                                                 @NotNull AarSourceFile sourceFile, @NotNull ResourceVisibility visibility) {
+      EnumMap<Arity, String> values = new EnumMap<>(Arity.class);
+      for (Resources.Plural.Entry entryMsg : pluralMsg.getEntryList()) {
+        values.put(decodeArity(entryMsg.getArity()), decode(entryMsg.getItem()));
+      }
+      return new AarPluralsResourceItem(resourceName, sourceFile, visibility, values);
+    }
+
+    @NotNull
+    private AarSourceFile getSourceFile(@NotNull AarProtoResourceRepository repository, @Nullable String sourcePath,
+                                        @NotNull Configuration configMsg) {
+      String sourcePathKey = sourcePath == null ? "" : sourcePath;
+      AarSourceFile sourceFile = mySourceFileCache.get(sourcePathKey, configMsg);
+      if (sourceFile != null) {
+        return sourceFile;
+      }
+
+      FolderConfiguration configuration = ProtoConfigurationDecoder.getConfiguration(configMsg);
+      if (!configuration.isDefault()) {
+        configuration.normalize();
+      }
+
+      sourceFile = new AarSourceFile(sourcePath, new AarConfiguration(repository, configuration));
+      mySourceFileCache.put(sourcePathKey, configMsg, sourceFile);
+      return sourceFile;
+    }
+
+    @Nullable
+    private String decode(@NotNull Resources.Item itemMsg) {
+      switch (itemMsg.getValueCase()) {
+        case REF:
+          return decode(itemMsg.getRef());
+        case STR:
+          return itemMsg.getStr().getValue();
+        case RAW_STR:
+          return itemMsg.getRawStr().getValue();
+        case STYLED_STR:
+          return itemMsg.getStyledStr().getValue();
+        case FILE:
+          return itemMsg.getFile().getPath();
+        case ID:
+          return null;
+        case PRIM:
+          return decode(itemMsg.getPrim());
+        case VALUE_NOT_SET:
+        default:
+          break;
+      }
+      return null;
+    }
+
+    @NotNull
+    private String decode(@NotNull Resources.Reference referenceMsg) {
+      String name = referenceMsg.getName();
+      if (name.isEmpty()) {
+        return "";
+      }
+      if (referenceMsg.getType() == Resources.Reference.Type.ATTRIBUTE) {
+        myUrlParser.parseResourceUrl(name);
+        if (myUrlParser.hasType(ResourceType.ATTR.getName())) {
+          name = myUrlParser.getQualifiedName();
+        }
+        return '?' + name;
+      }
+      return '@' + name;
+    }
+
+    @Nullable
+    private static String decode(@NotNull Resources.Primitive primitiveMsg) {
+      switch (primitiveMsg.getOneofValueCase()) {
+        case NULL_VALUE:
+          return null;
+
+        case EMPTY_VALUE:
+          return "";
+
+        case FLOAT_VALUE:
+          return XmlUtils.trimInsignificantZeros(Float.toString(primitiveMsg.getFloatValue()));
+
+        case DIMENSION_VALUE:
+          return decodeComplexDimensionValue(primitiveMsg.getDimensionValue(), 1., DIMEN_SUFFIXES);
+
+        case FRACTION_VALUE:
+          return decodeComplexDimensionValue(primitiveMsg.getFractionValue(), 100., FRACTION_SUFFIXES);
+
+        case INT_DECIMAL_VALUE:
+          return Integer.toString(primitiveMsg.getIntDecimalValue());
+
+        case INT_HEXADECIMAL_VALUE:
+          return String.format("0x%X", primitiveMsg.getIntHexadecimalValue());
+
+        case BOOLEAN_VALUE:
+          return Boolean.toString(primitiveMsg.getBooleanValue());
+
+        case COLOR_ARGB8_VALUE:
+          return String.format("#%08X", primitiveMsg.getColorArgb8Value());
+
+        case COLOR_RGB8_VALUE:
+          return String.format("#%06X", primitiveMsg.getColorRgb8Value() & 0xFFFFFF);
+
+        case COLOR_ARGB4_VALUE:
+          int argb = primitiveMsg.getColorArgb4Value();
+          return String.format("#%X%X%X%X", (argb >>> 24) & 0xF, (argb >>> 16) & 0xF, (argb >>> 8) & 0xF, argb & 0xF);
+
+        case COLOR_RGB4_VALUE:
+          int rgb = primitiveMsg.getColorRgb4Value();
+          return String.format("#%X%X%X", (rgb >>> 16) & 0xF, (rgb >>> 8) & 0xF, rgb & 0xF);
+
+        case ONEOFVALUE_NOT_SET:
+        default:
+          LOG.warn("Unexpected Primitive message: " + primitiveMsg);
+          break;
+      }
+      return null;
+    }
+
+    /**
+     * Decodes a dimension value in the Android binary XML encoding and returns a string suitable for regular XML.
+     *
+     * @param bits the encoded value
+     * @param scaleFactor the scale factor to apply to the result
+     * @param unitSuffixes the unit suffixes, either {@link #DIMEN_SUFFIXES} or {@link #FRACTION_SUFFIXES}
+     * @return the decoded value as a string, e.g. "-6.5dp", or "60%"
+     * @see <a href="https://android.googlesource.com/platform/frameworks/base/+/master/libs/androidfw/include/androidfw/ResourceTypes.h">
+     *     ResourceTypes.h</a>
+     */
+    private static String decodeComplexDimensionValue(int bits, double scaleFactor, @NotNull String[] unitSuffixes) {
+      int unitCode = bits & COMPLEX_UNIT_MASK;
+      String unit = unitCode < unitSuffixes.length ? unitSuffixes[unitCode] : " unknown unit: " + unitCode;
+      int radix = (bits >> COMPLEX_RADIX_SHIFT) & COMPLEX_RADIX_MASK;
+      int mantissa = bits >> COMPLEX_MANTISSA_SHIFT;
+      double value = mantissa * RADIX_FACTORS[radix] * scaleFactor;
+      return XmlUtils.trimInsignificantZeros(String.format(Locale.US, "%.5g", value)) + unit;
+    }
+
+    @NotNull
+    private static Set<AttributeFormat> decodeFormatFlags(int flags) {
+      Set<AttributeFormat> result = EnumSet.noneOf(AttributeFormat.class);
+      if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.REFERENCE_VALUE)) {
+        result.add(AttributeFormat.REFERENCE);
+      }
+      if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.STRING_VALUE)) {
+        result.add(AttributeFormat.STRING);
+      }
+      if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.INTEGER_VALUE)) {
+        result.add(AttributeFormat.INTEGER);
+      }
+      if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.BOOLEAN_VALUE)) {
+        result.add(AttributeFormat.BOOLEAN);
+      }
+      if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.COLOR_VALUE)) {
+        result.add(AttributeFormat.COLOR);
+      }
+      if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.FLOAT_VALUE)) {
+        result.add(AttributeFormat.FLOAT);
+      }
+      if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.DIMENSION_VALUE)) {
+        result.add(AttributeFormat.DIMENSION);
+      }
+      if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.FRACTION_VALUE)) {
+        result.add(AttributeFormat.FRACTION);
+      }
+      if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.ENUM_VALUE)) {
+        result.add(AttributeFormat.ENUM);
+      }
+      if (BitUtil.isSet(flags, Resources.Attribute.FormatFlags.FLAGS_VALUE)) {
+        result.add(AttributeFormat.FLAGS);
+      }
+      return result;
+    }
+
+    @NotNull
+    private static Arity decodeArity(@NotNull Resources.Plural.Arity arity) {
+      switch (arity) {
+        case ZERO:
+          return Arity.ZERO;
+        case ONE:
+          return Arity.ONE;
+        case TWO:
+          return Arity.TWO;
+        case FEW:
+          return Arity.FEW;
+        case MANY:
+          return Arity.MANY;
+        case OTHER:
+        default:
+          return Arity.OTHER;
+      }
+    }
+
+    @NotNull
+    private static ResourceVisibility decodeVisibility(@NotNull Resources.Visibility visibilityMsg) {
+      switch (visibilityMsg.getLevel()) {
+        case UNKNOWN:
+          return ResourceVisibility.PRIVATE_XML_ONLY;
+        case PRIVATE:
+          return ResourceVisibility.PRIVATE;
+        case PUBLIC:
+          return ResourceVisibility.PUBLIC;
+        case UNRECOGNIZED:
+        default:
+          return ResourceVisibility.UNDEFINED;
+      }
     }
 
     /**
@@ -825,7 +861,7 @@ public class AarProtoResourceRepository extends AbstractAarResourceRepository {
       for (int i = 0, n = strings.length; i < n; i++) {
         String str = strings[i];
         if (!str.isEmpty()) {
-          str = str.replace(File.separatorChar, '/');
+          str = portableFileName(str);
           if (str.charAt(0) == '/') {
             // The string represents an absolute path. Convert it to a relative path.
             if (prefix == null) {

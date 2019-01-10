@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
@@ -22,13 +25,17 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import org.jetbrains.annotations.NotNull;
 
 public class SyncIssuesReporter {
   @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(6);
@@ -43,7 +50,8 @@ public class SyncIssuesReporter {
   public SyncIssuesReporter(@NotNull UnresolvedDependenciesReporter unresolvedDependenciesReporter) {
     this(unresolvedDependenciesReporter, new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
          new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter(), new MinSdkInManifestIssuesReporter(),
-         new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter(), new MissingSdkIssueReporter());
+         new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter(), new MissingSdkIssueReporter(),
+         new OutOfDateThirdPartyPluginIssueReporter());
   }
 
   @VisibleForTesting
@@ -112,7 +120,7 @@ public class SyncIssuesReporter {
       strategy.reportAll(entry.getValue(), moduleMap, buildFileMap);
     }
 
-    if (hasSyncErrors[0] && project != null) {
+    if (hasSyncErrors[0]) {
       GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
     }
   }
