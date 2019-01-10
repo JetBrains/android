@@ -18,9 +18,9 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
-import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
-import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
+import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
+import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
 import com.android.tools.idea.common.scene.draw.parse
@@ -32,6 +32,7 @@ import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.regularFont
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
+import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Font
 import java.awt.geom.Rectangle2D
@@ -62,8 +63,8 @@ data class DrawNestedGraph(private val rectangle: Rectangle2D.Float,
     val arcSize = NAVIGATION_ARC_SIZE * scale
     val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
 
-    val fillRectangle = DrawFilledRoundRectangle(0, roundRectangle, COMPONENT_BACKGROUND)
-    val drawRectangle = DrawRoundRectangle(1, roundRectangle, frameColor, frameThickness)
+    val fillRectangle = FillShape(roundRectangle, COMPONENT_BACKGROUND)
+    val drawRectangle = DrawShape(roundRectangle, frameColor, BasicStroke(frameThickness))
 
     val font = regularFont(scale, Font.BOLD)
     val rectangle = Rectangle2D.Float(roundRectangle.x, roundRectangle.y, roundRectangle.width, roundRectangle.height)
