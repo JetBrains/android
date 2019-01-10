@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueAnnotation
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.android.tools.idea.gradle.structure.model.meta.getValue
-import com.android.tools.idea.gradle.structure.model.meta.parseEditorText
 import com.android.tools.idea.gradle.structure.model.meta.valueFormatter
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.ui.ComboBox
