@@ -25,5 +25,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
     ],
 )
