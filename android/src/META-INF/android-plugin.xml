@@ -1399,5 +1399,8 @@
     <component>
       <implementation-class>com.android.tools.idea.model.MergedManifest</implementation-class>
     </component>
+    <component>
+      <implementation-class>com.android.tools.idea.databinding.DataBindingModuleComponent</implementation-class>
+    </component>
   </module-components>
 </idea-plugin>
