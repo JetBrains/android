@@ -16,15 +16,12 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.resources.ResourceResolver;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
@@ -34,6 +31,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -57,9 +55,13 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   @Override
   @NotNull
   public Icon getIcon() {
+    if (!myElement.isValid()) {
+      return EmptyIcon.ICON_0;
+    }
+
     AndroidFacet facet = AndroidFacet.getInstance(myElement);
     if (facet == null) {
-      return AllIcons.General.Error;
+      return EmptyIcon.ICON_0;
     }
     Icon icon = GutterIconCache.getInstance().getIcon(myFile, myResourceResolver, facet);
 
@@ -67,7 +69,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
       return icon;
     }
 
-    return AllIcons.General.Error;
+    return EmptyIcon.ICON_0;
   }
 
   @Override
