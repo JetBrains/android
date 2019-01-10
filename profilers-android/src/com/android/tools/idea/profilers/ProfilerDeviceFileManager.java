@@ -40,9 +40,9 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ProfilerDeviceFileManager extends DeployableFileManager {
   private static class HostFiles {
-    @NotNull static final DeployableFile PERFD = new ProfilerHostFileBuilder("perfd")
-      .setReleaseDir("plugins/android/resources/perfd")
-      .setDevDir("../../bazel-bin/tools/base/profiler/native/perfd/android")
+    @NotNull static final DeployableFile PERFD = new ProfilerHostFileBuilder("transport")
+      .setReleaseDir("plugins/android/resources/transport")
+      .setDevDir("../../bazel-bin/tools/base/transport/android")
       .setExecutable(true)
       .build();
 
@@ -109,7 +109,7 @@ public final class ProfilerDeviceFileManager extends DeployableFileManager {
 
   @NotNull
   public static String getPerfdPath() {
-    return DEVICE_BASE_DIR + DEVICE_SUB_DIR + "perfd";
+    return DEVICE_BASE_DIR + DEVICE_SUB_DIR + "transport";
   }
 
   @NotNull
