@@ -26,12 +26,13 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.concurrency.JobLauncher;
 import com.intellij.lang.properties.PropertiesFileType;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
@@ -39,6 +40,8 @@ import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupManager;
@@ -61,6 +64,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
@@ -301,10 +307,15 @@ public class GradleFiles {
       List<VirtualFile> externalBuildFiles = new ArrayList<>();
 
       List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
-      JobLauncher jobLauncher = JobLauncher.getInstance();
-      jobLauncher.invokeConcurrentlyUnderProgress(modules, null, (module) -> {
+      ExecutorService executorService = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor();
+      ProgressManager progressManager = ProgressManager.getInstance();
+      ProgressIndicator progressIndicator = progressManager.getProgressIndicator();
+      Application application = ApplicationManager.getApplication();
+
+      Consumer<Module> computeHashes = module -> {
         VirtualFile buildFile = getGradleBuildFile(module);
         if (buildFile != null) {
+          ProgressManager.checkCanceled();
           File path = VfsUtilCore.virtualToIoFile(buildFile);
           if (path.isFile()) {
             putHashForFile(fileHashes, buildFile);
@@ -313,8 +324,9 @@ public class GradleFiles {
         NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
         if (ndkModuleModel != null) {
           for (File externalBuildFile : ndkModuleModel.getAndroidProject().getBuildFiles()) {
+            ProgressManager.checkCanceled();
             if (externalBuildFile.isFile()) {
-              // TODO find a better way to find a VirtualFile without refreshing the file systerm. It is expensive.
+              // TODO find a better way to find a VirtualFile without refreshing the file system. It is expensive.
               VirtualFile virtualFile = findFileByIoFile(externalBuildFile, true);
               externalBuildFiles.add(virtualFile);
               if (virtualFile != null) {
@@ -323,8 +335,26 @@ public class GradleFiles {
             }
           }
         }
-        return true;
-      });
+      };
+
+      modules.stream()
+        .map(module ->
+               executorService.submit(
+                 () -> progressManager.executeProcessUnderProgress(
+                   () -> application.runReadAction(
+                     () -> computeHashes.accept(module)),
+                   progressIndicator
+                 )
+               )
+        )
+        .forEach(future -> {
+          try {
+            future.get();
+          }
+          catch (InterruptedException | ExecutionException e) {
+            // ignored, the hashes won't be updated. This will cause areGradleFilesModified to return true.
+          }
+        });
 
       storeExternalBuildFiles(externalBuildFiles);
 
@@ -422,13 +452,13 @@ public class GradleFiles {
    * Listens for changes to the PsiTree of gradle build files. If a tree changes in any
    * meaningful way then relevant file is recorded. A change is meaningful under the following
    * conditions:
-   *
+   * <p>
    * 1) Only whitespace has been added and deleted
    * 2) The whitespace doesn't affect the structure of the files psi tree
-   *
+   * <p>
    * For example, adding spaces to the end of a line is not a meaningful change, but adding a new
    * line in between a line i.e "apply plugin: 'java'" -> "apply plugin: \n'java'" will be meaningful.
-   *
+   * <p>
    * Note: We need to use both sets of before (beforeChildAddition, etc) and after methods (childAdded, etc)
    * on the listener. This is because, for some reason, the events we care about on some files are sometimes
    * only triggered with the children set in the after method and sometimes no after method is triggered
