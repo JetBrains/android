@@ -239,7 +239,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_SHOW_ONLY_SELECTION = Flag.create(
     NELE, "show.only.selection", "Show only selection boundaries when mouse is not hovered in layout",
     "Enable this flag to show selection boundaries without other decoration when mouse is not hovered in layout",
-    false);
+    true);
 
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
