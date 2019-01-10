@@ -15,18 +15,28 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -37,20 +47,26 @@ import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.ui.UIUtil;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
 import static com.intellij.ide.actions.ShowFilePathAction.openFile;
+import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.util.ThreeState.YES;
+
+import java.awt.*;
+import java.io.File;
 
 /**
  * Notifies users that a Gradle project "sync" is either being in progress or failed.
  */
 public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel>
   implements DumbAware {
+
+  private static final long PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS = TimeUnit.DAYS.toMillis(30);
 
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
 
@@ -87,7 +103,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       }
     }
 
-    return newPanelType.create(myProject);
+    return newPanelType.create(myProject, file, myProjectInfo);
   }
 
   @VisibleForTesting
@@ -120,21 +136,44 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       NONE() {
         @Override
         @Nullable
-        NotificationPanel create(@NotNull Project project) {
+        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+          if (StudioFlags.NEW_PSD_ENABLED.get() &&
+              (System.currentTimeMillis() - GradleExperimentalSettings.getInstance().PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP >
+              PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS)) {
+            if (!projectInfo.isBuildWithGradle()) {
+              return null;
+            }
+
+            if (!file.getName().equals(SdkConstants.FN_BUILD_GRADLE) && !file.getName().equals(SdkConstants.FN_BUILD_GRADLE_KTS)) {
+              return null;
+            }
+
+            Module module = findModuleForFile(file, project);
+            if (module == null) {
+              if (ApplicationManager.getApplication().isUnitTestMode()) {
+                module = ModuleManager.getInstance(project).getModules()[0]; // arbitrary module
+              }
+              else {
+                return null;
+              }
+            }
+            return new ProjectStructureNotificationPanel(project, this, "Configure project in Project Structure dialog.",
+                                                         module);
+          }
           return null;
         }
       },
       IN_PROGRESS() {
         @Override
         @NotNull
-        NotificationPanel create(@NotNull Project project) {
+        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
           return new NotificationPanel(this, "Gradle project sync in progress...");
         }
       },
       FAILED() {
         @Override
         @NotNull
-        NotificationPanel create(@NotNull Project project) {
+        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
           String text = "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.";
           return new SyncProblemNotificationPanel(project, this, text);
         }
@@ -142,7 +181,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       SYNC_NEEDED() {
         @Override
         @NotNull
-        NotificationPanel create(@NotNull Project project) {
+        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
           boolean buildFilesModified = GradleFiles.getInstance(project).areExternalBuildFilesModified();
           String text = (buildFilesModified ? "External build files" : "Gradle files") +
                         " have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
@@ -151,7 +190,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       },;
 
       @Nullable
-      abstract NotificationPanel create(@NotNull Project project);
+      abstract NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo);
     }
 
     @NotNull private final Type type;
@@ -233,6 +272,34 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         File logFile = new File(PathManager.getLogPath(), "idea.log");
         openFile(logFile);
       });
+    }
+  }
+
+  @VisibleForTesting
+  static class ProjectStructureNotificationPanel extends NotificationPanel {
+    private Project myProject;
+
+    ProjectStructureNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text, @NotNull Module module) {
+      super(type, text);
+
+      myProject = project;
+
+      createActionLabel("Open Project Structure", () -> {
+        ProjectSettingsService projectSettingsService = ProjectSettingsService.getInstance(myProject);
+        if (projectSettingsService instanceof AndroidProjectSettingsService) {
+          projectSettingsService.openModuleSettings(module);
+        }
+      });
+      createActionLabel("Hide notification", () -> {
+        GradleExperimentalSettings.getInstance().PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP = System.currentTimeMillis();
+        setVisible(false);
+      });
+    }
+
+    @Override
+    public Color getBackground() {
+      Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.READONLY_BACKGROUND_COLOR);
+      return color == null ? UIUtil.getPanelBackground() : color;
     }
   }
 }
