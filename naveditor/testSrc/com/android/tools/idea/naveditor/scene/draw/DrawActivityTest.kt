@@ -20,7 +20,6 @@ import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.intellij.ui.JBColor
 import java.awt.Color
@@ -48,7 +47,7 @@ class DrawActivityTest : NavTestCase() {
     assertEquals(5, drawFragment.commands.size)
     assertEquals(DrawFilledRoundRectangle(0, BORDER_RECT, BACKGROUND_COLOR), drawFragment.commands[0])
     assertEquals(DrawRoundRectangle(1, BORDER_RECT, FRAME_COLOR, FRAME_THICKNESS), drawFragment.commands[1])
-    assertDrawCommandsEqual(DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, IMAGE_RECT), drawFragment.commands[2])
+    assertDrawCommandsEqual(DrawPlaceholder(IMAGE_RECT), drawFragment.commands[2])
     assertEquals(DrawRectangle(3, IMAGE_RECT, IMAGE_BORDER_COLOR, IMAGE_BORDER_WIDTH), drawFragment.commands[3])
     assertEquals(DrawTruncatedText(4, "Activity", TEXT_RECT, TEXT_COLOR, FONT, true), drawFragment.commands[4])
   }

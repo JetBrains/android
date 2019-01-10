@@ -32,16 +32,13 @@ import java.awt.BasicStroke
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
-class DrawPlaceholder(private val level: Int,
-                      @VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float) : CompositeDrawCommand() {
+class DrawPlaceholder(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2D.Float) : CompositeDrawCommand() {
   private constructor(tokens: Array<String>)
-    : this(tokens[0].toInt(), stringToRect2D(tokens[1]))
+    : this(stringToRect2D(tokens[0]))
 
-  constructor(serialized: String) : this(parse(serialized, 2))
+  constructor(serialized: String) : this(parse(serialized, 1))
 
-  override fun getLevel(): Int = level
-
-  override fun serialize(): String = buildString(javaClass.simpleName, level, rect2DToString(rectangle))
+  override fun serialize(): String = buildString(javaClass.simpleName, rect2DToString(rectangle))
 
   override fun buildCommands(): List<DrawCommand> {
     val rect = DrawFilledRectangle(0, rectangle, PLACEHOLDER_BACKGROUND)

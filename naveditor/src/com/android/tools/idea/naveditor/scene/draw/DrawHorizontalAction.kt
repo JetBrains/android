@@ -20,6 +20,7 @@ import com.android.tools.idea.common.scene.draw.ArrowDirection
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawArrow
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
 import com.android.tools.idea.common.scene.draw.DrawLine
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
@@ -35,18 +36,15 @@ import java.awt.Color
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 
-data class DrawHorizontalAction(private val level: Int,
-                                @SwingCoordinate private val rectangle: Rectangle2D.Float,
+data class DrawHorizontalAction(@SwingCoordinate private val rectangle: Rectangle2D.Float,
                                 private val color: Color,
-                                private val isPopAction: Boolean) : CompositeDrawCommand() {
+                                private val isPopAction: Boolean) : CompositeDrawCommand(COMPONENT_LEVEL) {
   private constructor(tokens: Array<String>)
-    : this(tokens[0].toInt(), stringToRect2D(tokens[1]), stringToColor(tokens[2]), tokens[3].toBoolean())
+    : this(stringToRect2D(tokens[0]), stringToColor(tokens[1]), tokens[2].toBoolean())
 
-  constructor(serialized: String) : this(parse(serialized, 4))
+  constructor(serialized: String) : this(parse(serialized, 3))
 
-  override fun getLevel(): Int = level
-
-  override fun serialize(): String = buildString(javaClass.simpleName, level, rect2DToString(rectangle),
+  override fun serialize(): String = buildString(javaClass.simpleName, rect2DToString(rectangle),
                                                  colorToString(color), isPopAction)
 
   override fun buildCommands(): List<DrawCommand> {

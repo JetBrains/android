@@ -17,12 +17,12 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawCommand.TARGET_LEVEL
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToRect2D
-import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
 import com.android.tools.idea.naveditor.scene.HEADER_ICON_SIZE
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_HEIGHT
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_PADDING
@@ -35,14 +35,12 @@ class DrawHeader(private val rectangle: Rectangle2D.Float,
                  private val scale: Float,
                  private val text: String,
                  private val isStart: Boolean,
-                 private val hasDeepLink: Boolean) : CompositeDrawCommand() {
+                 private val hasDeepLink: Boolean) : CompositeDrawCommand(TARGET_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 5))
 
   private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toFloat(), tokens[2],
                                                     tokens[3].toBoolean(), tokens[4].toBoolean())
-
-  override fun getLevel() = DRAW_SCREEN_LABEL_LEVEL
 
   override fun serialize() = buildString(javaClass.simpleName, rect2DToString(rectangle), scale, text, isStart, hasDeepLink)
 

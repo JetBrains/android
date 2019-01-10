@@ -33,7 +33,7 @@ private const val HEIGHT = 120f
 class DrawPlaceholderTest : NavTestCase() {
   fun testDrawPlaceholder() {
     val rectangle = Rectangle2D.Float(X, Y, WIDTH, HEIGHT)
-    val drawPlaceholder = DrawPlaceholder(0, rectangle)
+    val drawPlaceholder = DrawPlaceholder(rectangle)
     val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
 
     assertContainsOrdered(drawPlaceholder.commands.toList(),
