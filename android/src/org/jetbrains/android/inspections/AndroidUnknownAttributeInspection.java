@@ -28,6 +28,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomFileDescription;
 import org.jetbrains.android.dom.AndroidAnyAttributeDescriptor;
+import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.AndroidXmlTagDescriptor;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
@@ -71,10 +72,16 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
     if (!(file instanceof XmlFile)) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
+
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
+
+    if (!AndroidDomExtender.areExtensionsKnown()) {
+      return ProblemDescriptor.EMPTY_ARRAY;
+    }
+
     if (isMyFile(facet, (XmlFile)file)) {
       MyVisitor visitor = new MyVisitor(manager, isOnTheFly);
       file.accept(visitor);
