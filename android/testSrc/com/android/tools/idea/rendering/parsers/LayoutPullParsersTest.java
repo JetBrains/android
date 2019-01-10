@@ -238,7 +238,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
   public void testFontFamily() throws Exception {
     myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/fonta.ttf");
-    myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/fontb.ttf");
+    myFixture.copyFileToProject("fonts/Roboto-Black.ttf", "res/font/fontb.ttf");
     VirtualFile file = myFixture.copyFileToProject("fonts/my_font_family.xml", "res/font/my_font_family.xml");
     assertNotNull(file);
     RenderTask task = createRenderTask(file);
@@ -258,7 +258,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
       "<TextView",
       "    layout_width=\"wrap_content\"",
       "    layout_height=\"wrap_content\"",
-      "    fontFamily=\"@font/my_font_family\"",
+      "    fontFamily=\"@font/fontb\"",
       "    paddingBottom=\"20dp\"",
       "    text=\"Lorem ipsum dolor sit amet, consectetur adipisicing elit.\"",
       "    textColor=\"" + labelColor + "\"",
@@ -267,12 +267,12 @@ public class LayoutPullParsersTest extends AndroidTestCase {
       "<TextView",
       "    layout_width=\"wrap_content\"",
       "    layout_height=\"wrap_content\"",
-      "    fontFamily=\"@font/my_font_family\"",
+      "    fontFamily=\"@font/fonta\"",
       "    paddingBottom=\"20dp\"",
       "    text=\"Lorem ipsum dolor sit amet, consectetur adipisicing elit.\"",
       "    textColor=\"" + labelColor + "\"",
       "    textSize=\"30sp\"",
-      "    textStyle=\"italic\" />",
+      "    textStyle=\"normal\" />",
       "</LinearLayout>",
       "");
 
@@ -283,7 +283,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
   private static FontFamily createRobotoFontFamily() {
     return new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, "Roboto", "", "", ImmutableList.of(
-      new MutableFontDetail(700, 100, true, "https://fonts.google.com/roboto700i", "", false)));
+      new MutableFontDetail(700, 100, true, "https://fonts.google.com/roboto700i", "", false, false)));
   }
 
   @NotNull

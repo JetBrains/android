@@ -81,7 +81,7 @@ private class NamespacedAarInnerRClass(
       FieldModifier.NON_FINAL,
       { _, _ -> true},
       resourceType,
-      containingClass
+      this
     )
   }
 
@@ -155,7 +155,7 @@ private class NonNamespacedInnerRClass(
           map
         },
       resourceType,
-      containingClass,
+      this,
       FieldModifier.NON_FINAL
     )
   }

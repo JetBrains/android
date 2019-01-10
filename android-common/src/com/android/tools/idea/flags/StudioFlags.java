@@ -71,7 +71,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY = Flag.create(
     NPW, "dynamic.apps.conditional.delivery", "Support for conditional delivery for dynamic feature modules",
     "Support for conditional delivery for dynamic feature modules",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_USE_HOME_FOLDER_AS_EXTRA_TEMPLATE_ROOT_FOLDER = Flag.create(
     NPW, "home.template.root", "Use .android folder as a Template Root Folder",
@@ -390,6 +390,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "ui.editing", "Enable editing ViewNode properties in the properties table.",
     "If enabled, users can edit properties in the properties table.", false);
+  public static final Flag<Boolean>  DYNAMIC_LAYOUT_INSPECTOR_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector", "Enable dynamic layout inspector",
+    "Turns on the dynamic layout inspector.", false);
 
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
   public static final Flag<Boolean> MIGRATE_TO_APPCOMPAT_REFACTORING_ENABLED = Flag.create(

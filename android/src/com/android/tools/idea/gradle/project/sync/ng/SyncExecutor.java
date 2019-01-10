@@ -268,7 +268,7 @@ class SyncExecutor {
                                                  @NotNull BuildOutputInstantReaderImpl buildOutputReader,
                                                  @NotNull SyncExecutionCallback callback,
                                                  boolean forceFullVariantsSync) {
-    SyncAction syncAction = createSyncAction(true, isSingleVariantSync(myProject));
+    SyncAction syncAction = createSyncAction(true, !forceFullVariantsSync && isSingleVariantSync(myProject));
     // We have to set an empty collection in #forTasks so Gradle knows we want to execute the build until run tasks step
     BuildActionExecuter<Void> executor = connection.action().projectsLoaded(syncAction, models -> callback.setDone(models, id))
       .build().forTasks(emptyList());

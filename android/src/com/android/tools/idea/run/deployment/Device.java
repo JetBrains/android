@@ -16,8 +16,14 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.android.tools.idea.run.deployable.Deployable;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ThreeState;
 import java.time.Instant;
 import java.util.Collection;
 import javax.swing.Icon;
@@ -28,14 +34,16 @@ abstract class Device {
   @NotNull
   private final String myName;
 
+  private final boolean myIsValid;
+
   @NotNull
   private final String myKey;
 
   @Nullable
   private final Instant myConnectionTime;
 
-  @Nullable
-  private final IDevice myDdmlibDevice;
+  @NotNull
+  private final AndroidDevice myAndroidDevice;
 
   static abstract class Builder<T extends Builder<T>> {
     @Nullable
@@ -45,10 +53,7 @@ abstract class Device {
     private String myKey;
 
     @Nullable
-    private Instant myConnectionTime;
-
-    @Nullable
-    private IDevice myDdmlibDevice;
+    private AndroidDevice myAndroidDevice;
 
     @NotNull
     final T setName(@NotNull String name) {
@@ -63,14 +68,8 @@ abstract class Device {
     }
 
     @NotNull
-    final T setConnectionTime(@NotNull Instant connectionTime) {
-      myConnectionTime = connectionTime;
-      return self();
-    }
-
-    @NotNull
-    final T setDdmlibDevice(@NotNull IDevice ddmlibDevice) {
-      myDdmlibDevice = ddmlibDevice;
+    final T setAndroidDevice(@NotNull AndroidDevice androidDevice) {
+      myAndroidDevice = androidDevice;
       return self();
     }
 
@@ -78,18 +77,21 @@ abstract class Device {
     abstract T self();
 
     @NotNull
-    abstract Device build();
+    abstract Device build(@Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service);
   }
 
-  Device(@NotNull Builder builder) {
+  Device(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service) {
     assert builder.myName != null;
     myName = builder.myName;
 
     assert builder.myKey != null;
     myKey = builder.myKey;
 
-    myConnectionTime = builder.myConnectionTime;
-    myDdmlibDevice = builder.myDdmlibDevice;
+    assert builder.myAndroidDevice != null;
+    myAndroidDevice = builder.myAndroidDevice;
+
+    myIsValid = checker == null || !checker.validate(myAndroidDevice).isCompatible().equals(ThreeState.NO);
+    myConnectionTime = service.get(myKey);
   }
 
   @NotNull
@@ -100,6 +102,10 @@ abstract class Device {
   @NotNull
   final String getName() {
     return myName;
+  }
+
+  final boolean isValid() {
+    return myIsValid;
   }
 
   @NotNull
@@ -115,9 +121,39 @@ abstract class Device {
     return myConnectionTime;
   }
 
+  @NotNull
+  final AndroidDevice getAndroidDevice() {
+    return myAndroidDevice;
+  }
+
+  @NotNull
+  abstract AndroidVersion getAndroidVersion();
+
+  final boolean isRunning(@NotNull String appPackage) {
+    if (!isConnected()) {
+      return false;
+    }
+
+    IDevice device = getDdmlibDevice();
+    assert device != null;
+
+    if (!device.isOnline()) {
+      return false;
+    }
+
+    return !Deployable.searchClientsForPackage(device, appPackage).isEmpty();
+  }
+
   @Nullable
   final IDevice getDdmlibDevice() {
-    return myDdmlibDevice;
+    AndroidDevice device = getAndroidDevice();
+
+    // TODO(b/122324579) Add a getDevice method to AndroidDevice
+    if (!(device instanceof ConnectedAndroidDevice)) {
+      return null;
+    }
+
+    return ((ConnectedAndroidDevice)device).getDevice();
   }
 
   @NotNull

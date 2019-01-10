@@ -111,23 +111,36 @@ class JUnitClientImpl(val host: String, val port: Int, initHandlers: Array<Clien
     }
   }
 
+  private class ShoutIntoVoidOutputStream: OutputStream() {
+    override fun write(b: Int) {}
+  }
+
   inner class ClientSendThread(val connection: Socket, val objectOutputStream: ObjectOutputStream) : Thread(SEND_THREAD) {
     override fun run() {
       try {
         while (!connection.isClosed) {
           val message = poolOfMessages.take()
           LOG.info("Sending message: $message")
-          try {
-            objectOutputStream.writeObject(message)
-          } catch (e : IOException) {
-            // if we tried to send a non-serializable Throwable, then wrap its string representation in an Exception and send that instead.
-            if ((e is NotSerializableException || e is InvalidClassException) && message is JUnitInfoMessage && message.info is JUnitFailureInfo) {
-              val info = message.info
-              val serializableThrowable = Exception(info.failure.exception.toString())
-              val serializableMessage = JUnitInfoMessage(JUnitFailureInfo(info.type, Failure(info.description, serializableThrowable)))
-              objectOutputStream.writeObject(serializableMessage)
-            } else {
-              throw e
+          val throwawayStream = ObjectOutputStream(ShoutIntoVoidOutputStream())
+          throwawayStream.use {
+            try {
+              // calling writeObject on a non-serializable object leaves the output stream in an indeterminate, inoperable state.
+              // Try sending the object on a throwaway stream first - if it fails, the real stream is undamaged, and we can send
+              // a sanitized version of it.
+              throwawayStream.writeObject(message)
+              objectOutputStream.writeObject(message)
+            }
+            catch (e: IOException) {
+              // if we tried to send a non-serializable Throwable, then wrap its string representation in an Exception and send that instead.
+              if ((e is NotSerializableException || e is InvalidClassException) && message is JUnitInfoMessage && message.info is JUnitFailureInfo) {
+                val info = message.info
+                val serializableThrowable = Exception(info.failure.exception.toString())
+                val serializableMessage = JUnitInfoMessage(JUnitFailureInfo(info.type, Failure(info.description, serializableThrowable)))
+                objectOutputStream.writeObject(serializableMessage)
+              }
+              else {
+                throw e
+              }
             }
           }
         }

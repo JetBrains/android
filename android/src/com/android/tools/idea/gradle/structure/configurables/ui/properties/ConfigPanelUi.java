@@ -28,7 +28,7 @@ public class ConfigPanelUi {
   public static final int H_GAP = 4;
   private int myLastRow = -1;
   private JPanel myPanel;
-  private JPanel myComponentPanel;
+  protected JPanel myComponentPanel;
 
   public final JComponent getUiComponent() {
     return myComponentPanel;

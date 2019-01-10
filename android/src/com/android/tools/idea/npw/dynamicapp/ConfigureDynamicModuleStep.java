@@ -151,7 +151,8 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    if (StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get()) {
+    if (StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get()
+        && ConditionalDeliverySettings.getInstance().USE_CONDITIONAL_DELIVERY_SYNC) {
       return Collections.singletonList(new ConfigureModuleDownloadOptionsStep(getModel()));
     } else {
       return Collections.singletonList(new ConfigureDynamicDeliveryStep(getModel()));

@@ -133,6 +133,15 @@ fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFutur
     it!!.toVersionValueDescriptors()
   }
 
+fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<ValueDescriptor<String>>> =
+  Futures.transform(
+    model.repositorySearchFactory
+      .create(model.getBuildScriptArtifactRepositories())
+      .search(SearchRequest(SearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0))
+  ) {
+    it!!.toVersionValueDescriptors()
+  }
+
 @VisibleForTesting
 fun SearchResult.toVersionValueDescriptors(): List<ValueDescriptor<String>> =
   artifacts

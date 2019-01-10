@@ -5,6 +5,7 @@ load("//tools/base/bazel:maven.bzl", "maven_repo")
 iml_module(
     name = "kotlin-integration-tests",
     iml_files = ["kotlin-integration-tests.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
     # keep sorted
     test_data = [

@@ -69,7 +69,6 @@ public class DownloadableFontCacheServiceImplTest extends FontTestCase {
     assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\">" +
                  "<font android:font=\"" + fakeTtfFile.getAbsolutePath() + "\" " +
-                 "android:fontStyle=\"italic\" " +
                  "android:fontWeight=\"400\" />" +
                  "</font-family>",
                  service.toXml(compoundFontFamily));
@@ -83,6 +82,6 @@ public class DownloadableFontCacheServiceImplTest extends FontTestCase {
                                              @NotNull String menuUrl,
                                              @NotNull String menuName) {
     return new FontFamily(provider, fontSource, name, menuUrl, menuName, Collections.singletonList(
-      new MutableFontDetail(400, 100, false, "https://fonts.com/roboto/v15/qrs.ttf", "", false)));
+      new MutableFontDetail(400, 100, false, "https://fonts.com/roboto/v15/qrs.ttf", "", false, false)));
   }
 }

@@ -95,7 +95,7 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
     fun addBorderAtTextFieldBorderSize(component: JComponent) {
       val insets = DarculaTextBorder().getBorderInsets(component)
       // The insets are already scaled: do not use JBUI.Borders.emptyBorder(...)
-      component.border = BorderFactory.createEmptyBorder(insets.top, insets.left, insets.bottom, insets.right)
+      component.border = BorderFactory.createEmptyBorder(0, insets.left, 0, insets.right)
     }
   }
 }

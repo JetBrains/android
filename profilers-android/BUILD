@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.profilersAndroid",
     srcs = ["src"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
@@ -53,5 +54,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/json:intellij.json[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/adt/idea/android-runtime-pipeline:intellij.android.runtimePipeline[module]",
     ],
 )

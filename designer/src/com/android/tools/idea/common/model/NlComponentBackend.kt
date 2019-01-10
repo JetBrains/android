@@ -45,4 +45,7 @@ open interface NlComponentBackend {
 
   // TODO: return list later.
   fun getAffectedFile(): VirtualFile?
+
+  // TODO: potentially remove later (by adding directly to transaction commit)
+  fun reformatAndRearrange()
 }

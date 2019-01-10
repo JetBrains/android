@@ -64,6 +64,7 @@ import com.android.ide.common.util.PathString;
 import com.android.ide.common.xml.AndroidManifestParser;
 import com.android.ide.common.xml.ManifestData;
 import com.android.projectmodel.ResourceFolder;
+import com.android.resources.Arity;
 import com.android.resources.Density;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
@@ -74,9 +75,11 @@ import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import com.intellij.openapi.application.ApplicationManager;
@@ -98,9 +101,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -144,7 +149,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     super(namespace, libraryName);
     myResourceDirectory = resourceDirectory;
     myResourcePathPrefix = myResourceDirectory.toString() + File.separatorChar;
-    myResourceUrlPrefix = myResourcePathPrefix.replace(File.separatorChar, '/');
+    myResourceUrlPrefix = portableFileName(myResourcePathPrefix);
     myRTxtIds = rTxtDeclaredIds;
 
     myManifestPackageName = NullableLazyValue.createValue(() -> {
@@ -224,11 +229,6 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     catch (Exception e) {
       LOG.error("Failed to load resources from " + myResourceDirectory.toString(), e);
     }
-  }
-
-  private void addResourceItem(@NotNull ResourceItem item) {
-    ListMultimap<String, ResourceItem> multimap = getOrCreateMap(item.getType());
-    multimap.put(item.getName(), item);
   }
 
   @VisibleForTesting
@@ -376,6 +376,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       stream.setStringCache(Maps.newHashMapWithExpectedSize(10000)); // Enable string instance sharing to minimize memory consumption.
       loadFromStream(stream);
       populatePublicResourcesMap();
+      freezeResources();
       myLoadedFromCache = true;
       return true;
     }
@@ -534,10 +535,23 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   }
 
   protected class Loader implements ResourceFileFilter {
+    /** The set of attribute formats that is used when no formats are explicitly specified and the attribute is not a flag or enum. */
+    private final Set<AttributeFormat> DEFAULT_ATTR_FORMATS = Sets.immutableEnumSet(
+        AttributeFormat.BOOLEAN,
+        AttributeFormat.COLOR,
+        AttributeFormat.DIMENSION,
+        AttributeFormat.FLOAT,
+        AttributeFormat.FRACTION,
+        AttributeFormat.INTEGER,
+        AttributeFormat.REFERENCE,
+        AttributeFormat.STRING);
     private final PatternBasedFileFilter myFileFilter = new PatternBasedFileFilter();
 
     @NotNull protected final Map<ResourceType, Set<String>> myPublicResources = new EnumMap<>(ResourceType.class);
-    @NotNull protected ResourceVisibility myDefaultVisibility = ResourceVisibility.PRIVATE;
+    @NotNull private final ListMultimap<String, AarAttrResourceItem> myAttrs = ArrayListMultimap.create();
+    @NotNull private final ListMultimap<String, AarAttrResourceItem> myAttrCandidates = ArrayListMultimap.create();
+    @NotNull private final ListMultimap<String, AarStyleableResourceItem> myStyleables = ArrayListMultimap.create();
+    @NotNull private ResourceVisibility myDefaultVisibility = ResourceVisibility.PRIVATE;
     @NotNull private final Map<FolderConfiguration, AarConfiguration> myConfigCache = new HashMap<>();
     @NotNull private final ValueResourceXmlParser myParser = new ValueResourceXmlParser();
     @NotNull private final XmlTextExtractor myTextExtractor = new XmlTextExtractor();
@@ -562,7 +576,9 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         }
       }
 
+      processAttrsAndStyleables();
       populatePublicResourcesMap();
+      freezeResources();
     }
 
     @Override
@@ -682,10 +698,21 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     }
 
     private void addValueResourceItem(@NotNull AbstractAarValueResourceItem item) {
-      // For compatibility with resource merger code we add value resources first to a file-specific map,
-      // then move them to the global resource table. In case when there are multiple definitions of
-      // the same resource in a single XML file, this algorithm preserves only the last definition.
-      myValueFileResources.put(item.getType(), item.getName(), item);
+      ResourceType resourceType = item.getType();
+      // Add attr and styleable resources to intermediate maps to post-process them in the processAttrsAndStyleables
+      // method after all resources are loaded.
+      if (resourceType == ResourceType.ATTR) {
+        addAttr((AarAttrResourceItem)item, myAttrs);
+      }
+      else if (resourceType == ResourceType.STYLEABLE) {
+        myStyleables.put(item.getName(), (AarStyleableResourceItem)item);
+      }
+      else {
+        // For compatibility with resource merger code we add value resources first to a file-specific map,
+        // then move them to the global resource table. In case when there are multiple definitions of
+        // the same resource in a single XML file, this algorithm preserves only the last definition.
+        myValueFileResources.put(resourceType, item.getName(), item);
+      }
     }
 
     private void addValueFileResources() {
@@ -715,7 +742,9 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
                   String resourceName = idValue.substring(NEW_ID_PREFIX.length());
                   ResourceVisibility visibility = getVisibility(ResourceType.ID, resourceName);
                   AarValueResourceItem item = new AarValueResourceItem(ResourceType.ID, resourceName, sourceFile, visibility, null);
-                  addValueResourceItem(item);
+                  if (!resourceAlreadyDefined(item)) { // Don't create duplicate ID resources.
+                    addValueResourceItem(item);
+                  }
                 }
               }
             }
@@ -871,18 +900,19 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
     private AarPluralsResourceItem createPluralsItem(@NotNull String name, @NotNull AarSourceFile sourceFile)
         throws IOException, XmlPullParserException {
       ResourceNamespace.Resolver namespaceResolver = myParser.getNamespaceResolver();
-      List<String> quantities = new ArrayList<>();
-      List<String> values = new ArrayList<>();
+      EnumMap<Arity, String> values = new EnumMap<>(Arity.class);
       forSubTags(TAG_ITEM, () -> {
-        String quantity = myParser.getAttributeValue(null, ATTR_QUANTITY);
-        if (quantity != null) {
-          quantities.add(quantity);
-          String text = myTextExtractor.extractText(myParser, false);
-          values.add(text);
+        String quantityValue = myParser.getAttributeValue(null, ATTR_QUANTITY);
+        if (quantityValue != null) {
+          Arity quantity = Arity.getEnum(quantityValue);
+          if (quantity != null) {
+            String text = myTextExtractor.extractText(myParser, false);
+            values.put(quantity, text);
+          }
         }
       });
       ResourceVisibility visibility = getVisibility(ResourceType.PLURALS, name);
-      AarPluralsResourceItem item = new AarPluralsResourceItem(name, sourceFile, visibility, quantities, values);
+      AarPluralsResourceItem item = new AarPluralsResourceItem(name, sourceFile, visibility, values);
       item.setNamespaceResolver(namespaceResolver);
       return item;
     }
@@ -892,8 +922,8 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         @NotNull ResourceType type, @NotNull String name, @NotNull AarSourceFile sourceFile, boolean withRowXml)
         throws IOException, XmlPullParserException {
       ResourceNamespace.Resolver namespaceResolver = myParser.getNamespaceResolver();
-      String text = myTextExtractor.extractText(myParser, withRowXml);
-      String rawXml = myTextExtractor.getRawXml();
+      String text = type == ResourceType.ID ? null : myTextExtractor.extractText(myParser, withRowXml);
+      String rawXml = type == ResourceType.ID ? null : myTextExtractor.getRawXml();
       assert withRowXml || rawXml == null; // Text extractor doesn't extract raw XML unless asked to do it.
       ResourceVisibility visibility = getVisibility(type, name);
       AarValueResourceItem item = rawXml == null ?
@@ -939,10 +969,14 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
         if (attrName != null) {
           try {
             AarAttrResourceItem attr = createAttrItem(attrName, sourceFile);
-            attrs.add(attr);
-            // Don't create top-level attr resources in a foreign workspace or without any data.
-            if (attr.getNamespace().equals(myNamespace) && !attr.getFormats().isEmpty()) {
-              addValueResourceItem(attr);
+            // Mimic behavior of AAPT2 and put an attr reference inside a styleable resource.
+            attrs.add(attr.getFormats().isEmpty() ? attr : attr.createReference());
+
+            // Don't create top-level attr resources in a foreign namespace, or for attr references in the res-auto namespace.
+            // The second condition is determined by the fact that the attr in the res-auto namespace may have an explicit definition
+            // outside of this resource repository.
+            if (attr.getNamespace().equals(myNamespace) && (myNamespace != ResourceNamespace.RES_AUTO || !attr.getFormats().isEmpty())) {
+              addAttr(attr, myAttrCandidates);
             }
           }
           catch (XmlSyntaxException e) {
@@ -950,11 +984,78 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
           }
         }
       });
-      // AAPT2 always treats styleable resources as public.
+      // AAPT2 treats all styleable resources as public.
       // See https://android.googlesource.com/platform/frameworks/base/+/master/tools/aapt2/ResourceParser.cpp#1539
       AarStyleableResourceItem item = new AarStyleableResourceItem(name, sourceFile, ResourceVisibility.PUBLIC, attrs);
       item.setNamespaceResolver(namespaceResolver);
       return item;
+    }
+
+    private void addAttr(@NotNull AarAttrResourceItem attr, @NotNull ListMultimap<String, AarAttrResourceItem> map) {
+      List<AarAttrResourceItem> attrs = map.get(attr.getName());
+      int i = findResourceWithSameNameAndConfiguration(attr, attrs);
+      if (i >= 0) {
+        // Found a matching attr definition.
+        AarAttrResourceItem existing = attrs.get(i);
+        if (existing.getFormats().isEmpty() && !attr.getFormats().isEmpty()) {
+          attrs.set(i, attr); // Use the new attr since it contains more information than the existing one.
+        }
+      }
+      else {
+        attrs.add(attr);
+      }
+    }
+
+    /**
+     * Adds attr definitions from {@link #myAttrs}, and attr definition candidates from {@link #myAttrCandidates}
+     * if they don't match the attr definitions present in {@link #myAttrs}.
+     */
+    private void processAttrsAndStyleables() {
+      for (AarAttrResourceItem attr : myAttrs.values()) {
+        addAttrWithAdjustedFormats(attr);
+      }
+
+      for (AarAttrResourceItem attr : myAttrCandidates.values()) {
+        List<AarAttrResourceItem> attrs = myAttrs.get(attr.getName());
+        int i = findResourceWithSameNameAndConfiguration(attr, attrs);
+        if (i < 0) {
+          addAttrWithAdjustedFormats(attr);
+        }
+      }
+
+      // Resolve attribute references where it can be done without loosing any data to reduce resource memory footprint.
+      for (AarStyleableResourceItem styleable : myStyleables.values()) {
+        addResourceItem(resolveAttrReferences(styleable));
+      }
+    }
+
+    private void addAttrWithAdjustedFormats(@NotNull AarAttrResourceItem attr) {
+      if (attr.getFormats().isEmpty()) {
+        attr = new AarAttrResourceItem(attr.getName(), attr.getSourceFile(), attr.getVisibility(), attr.getDescription(),
+                                       attr.getGroupName(), DEFAULT_ATTR_FORMATS, Collections.emptyMap(), Collections.emptyMap());
+      }
+      addResourceItem(attr);
+    }
+
+    /**
+     * Checks if resource with the same name, type and configuration has already been defined.
+     *
+     * @param resource the resource to check
+     * @return true if a matching resource already exists
+     */
+    private boolean resourceAlreadyDefined(@NotNull ResourceItem resource) {
+      List<ResourceItem> items = getResources(resource.getNamespace(), resource.getType(), resource.getName());
+      return findResourceWithSameNameAndConfiguration(resource, items) >= 0;
+    }
+
+    private int findResourceWithSameNameAndConfiguration(@NotNull ResourceItem resource, @NotNull List<? extends ResourceItem> items) {
+      for (int i = 0; i < items.size(); i++) {
+        ResourceItem item = items.get(i);
+        if (item.getConfiguration().equals(resource.getConfiguration())) {
+          return i;
+        }
+      }
+      return -1;
     }
 
     @NotNull
@@ -1040,7 +1141,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
 
     @NotNull
     private String getRelativePath(@NotNull Path file) {
-      return myResourceDirectory.relativize(file).toString().replace(File.separatorChar, '/');
+      return portableFileName(myResourceDirectory.relativize(file).toString());
     }
 
     @NotNull
@@ -1162,15 +1263,16 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   private static class XmlTextExtractor {
     @NotNull private final StringBuilder text = new StringBuilder();
     @NotNull private final StringBuilder rawXml = new StringBuilder();
+    @NotNull private final Deque<Boolean> textInclusionState = new ArrayDeque<>();
     private boolean nontrivialRawXml;
 
     @NotNull
     String extractText(@NotNull XmlPullParser parser, boolean withRawXml) throws IOException, XmlPullParserException {
       text.setLength(0);
       rawXml.setLength(0);
+      textInclusionState.clear();
       nontrivialRawXml = false;
 
-      int xliffDepth = 0;
       int elementDepth = parser.getDepth();
       int event;
       loop:
@@ -1180,17 +1282,20 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
           case XmlPullParser.START_TAG: {
             String tagName = parser.getName();
             if (XLIFF_G_TAG.equals(tagName) && isXliffNamespace(parser.getNamespace())) {
-              xliffDepth++;
+              boolean includeNestedText = getTextInclusionState();
               String example = parser.getAttributeValue(null, ATTR_EXAMPLE);
               if (example != null) {
                 text.append('(').append(example).append(')');
+                includeNestedText = false;
               }
               else {
                 String id = parser.getAttributeValue(null, ATTR_ID);
-                if (id != null) {
+                if (id != null && !id.equals("id")) {
                   text.append('$').append('{').append(id).append('}');
+                  includeNestedText = false;
                 }
               }
+              textInclusionState.addLast(includeNestedText);
             }
             if (withRawXml) {
               nontrivialRawXml = true;
@@ -1230,7 +1335,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
               rawXml.append(tagName).append('>');
             }
             if (XLIFF_G_TAG.equals(tagName) && isXliffNamespace(parser.getNamespace())) {
-              xliffDepth--;
+              textInclusionState.removeLast();
             }
             break;
           }
@@ -1238,7 +1343,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
           case XmlPullParser.ENTITY_REF:
           case XmlPullParser.TEXT: {
             String textPiece = parser.getText();
-            if (xliffDepth == 0) {
+            if (getTextInclusionState()) {
               text.append(textPiece);
             }
             if (withRawXml) {
@@ -1249,7 +1354,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
 
           case XmlPullParser.CDSECT: {
             String textPiece = parser.getText();
-            if (xliffDepth == 0) {
+            if (getTextInclusionState()) {
               text.append(textPiece);
             }
             if (withRawXml) {
@@ -1264,6 +1369,10 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
       String result = ValueXmlHelper.unescapeResourceString(text.toString(), false, true);
       assert result != null;
       return result;
+    }
+
+    private boolean getTextInclusionState() {
+      return textInclusionState.isEmpty() || textInclusionState.getLast();
     }
 
     @Nullable

@@ -225,7 +225,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
     String urlStart = "http://dontcare/fonts/" + folderName + "/v6/";
     FontFamily family = new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, fontName, urlStart + "some.ttf", "",
                                        Collections.singletonList(
-                                         new MutableFontDetail(weight, width, italics, urlStart + "other.ttf", "", false)));
+                                         new MutableFontDetail(weight, width, italics, urlStart + "other.ttf", "", false, false)));
     return family.getFonts().get(0);
   }
 

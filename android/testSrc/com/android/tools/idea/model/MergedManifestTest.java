@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.annotations.NonNull;
+import static com.android.resources.ScreenSize.LARGE;
+import static com.android.resources.ScreenSize.NORMAL;
+import static com.android.resources.ScreenSize.XLARGE;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
@@ -27,20 +33,14 @@ import com.android.tools.lint.checks.PermissionHolder;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.resources.ScreenSize.*;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("javadoc")
 public class MergedManifestTest extends AndroidTestCase {
@@ -215,14 +215,13 @@ public class MergedManifestTest extends AndroidTestCase {
     assertNull(info.getApplicationLabel());
   }
 
-  private MergedManifest getMergedManifest(String manifestContents) throws Exception {
+  private MergedManifest getMergedManifest(String manifestContents) {
     String path = "AndroidManifest.xml";
 
     final VirtualFile manifest = myFixture.findFileInTempDir(path);
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-
         if (manifest != null) {
           try {
             manifest.delete(this);
@@ -294,7 +293,7 @@ public class MergedManifestTest extends AndroidTestCase {
   private static class TestAndroidTarget implements IAndroidTarget {
     private final int mApiLevel;
 
-    public TestAndroidTarget(int apiLevel) {
+    TestAndroidTarget(int apiLevel) {
       mApiLevel = apiLevel;
     }
 
@@ -334,11 +333,13 @@ public class MergedManifestTest extends AndroidTestCase {
     }
 
     @Override
+    @NotNull
     public List<OptionalLibrary> getOptionalLibraries() {
       return Collections.emptyList();
     }
 
     @Override
+    @NotNull
     public List<OptionalLibrary> getAdditionalLibraries() {
       return Collections.emptyList();
     }
@@ -349,13 +350,9 @@ public class MergedManifestTest extends AndroidTestCase {
     }
 
     @Override
+    @NotNull
     public String getPath(int pathId) {
-      return null;
-    }
-
-    @Override
-    public File getFile(int pathId) {
-      return null;
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -383,8 +380,8 @@ public class MergedManifestTest extends AndroidTestCase {
       return 0;
     }
 
-    @NotNull
     @Override
+    @NotNull
     public File[] getSkins() {
       return null;
     }
@@ -394,8 +391,8 @@ public class MergedManifestTest extends AndroidTestCase {
       return null;
     }
 
-    @NonNull
     @Override
+    @NotNull
     public AndroidVersion getVersion() {
       return new AndroidVersion(mApiLevel, null);
     }
@@ -430,8 +427,8 @@ public class MergedManifestTest extends AndroidTestCase {
       return null;
     }
 
-    @NotNull
     @Override
+    @NotNull
     public List<String> getBootClasspath() {
       return new ArrayList<>();
     }

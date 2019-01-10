@@ -63,7 +63,6 @@ iml_module(
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:KotlinTest[test]",
-        "//tools/idea/.idea/libraries:layoutlib[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -96,6 +95,7 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/naveditor:intellij.android.naveditor[module, test]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
     ],
 )
 
@@ -797,8 +797,9 @@ config_setting(
 # sanity test
 java_test(
     name = "DebugOnEmulatorTest",
+    size = "enormous",
     data = COMMON_DATA + glob([
-        "testData/SimpleLocalApplication/**",
+        "testData/SimpleApplication/**",
     ]) + [
         "//prebuilts/studio/sdk:platforms/android-23",
     ] + select({

@@ -32,6 +32,7 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
 
     return listOf(
       ProjectStructureItemGroup("main",
+                                ProjectPerspectiveConfigurable(context),
                                 IdeSdksConfigurable(null, project),
                                 VariablesConfigurable(project, context)),
       ProjectStructureItemGroup("modules",

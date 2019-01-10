@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.whatsnew.assistant
 
-import com.android.repository.Revision
 import com.android.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.io.FileUtil
 import junit.framework.TestCase
@@ -157,19 +155,6 @@ class WhatsNewAssistantBundleCreatorTest : AndroidTestCase() {
       TestCase.assertEquals(100, bundle.version)
       TestCase.assertEquals("Test What's New from Class Resource", bundle.name)
     }
-  }
-
-  /**
-   * Test that a WNA bundle file exists for the current Android Studio version.
-   * When version is updated, the bundle must also be updated to ensure there is
-   * a fallback to a local file when it cannot be downloaded
-   */
-  @Test
-  fun testConfigExistsForCurrentVersion() {
-    val revision = Revision.parseRevision(ApplicationInfo.getInstance().strictVersion)
-    val version =  String.format("%d.%d.%d", revision.major, revision.minor, revision.micro)
-    val bundleCreator = WhatsNewAssistantBundleCreator()
-    TestCase.assertNotNull(bundleCreator.javaClass.getResource("/$version.xml"))
   }
 
   @Test

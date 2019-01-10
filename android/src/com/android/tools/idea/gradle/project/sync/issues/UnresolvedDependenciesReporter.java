@@ -93,7 +93,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
     return new OpenFileHyperlink(buildFile.getPath(), module.getName(), lineNumber, -1);
   }
 
-  @Nullable
+  @NotNull
   @Override
   protected Object getDeduplicationKey(@NotNull SyncIssue issue) {
     return issue;

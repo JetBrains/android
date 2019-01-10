@@ -263,6 +263,7 @@ open class AddActionDialog(
     selectItem(dialog.myPopExitComboBox, { it.value }, ATTR_POP_EXIT_ANIM, AUTO_URI, existingAction)
     dialog.mySingleTopCheckBox.isSelected = existingAction.singleTop == true
     dialog.myIdTextField.text = existingAction.id
+    dialog.myIdTextField.isEnabled = false
   }
 
   private fun <T, U> selectItem(

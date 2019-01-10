@@ -47,7 +47,7 @@ public class FontFamilyParserTest extends UsefulTestCase {
     QueryParser.ParseResult result = FontFamilyParser.parseFontFamily(createXmlFile(xml));
     assertThat(result).isInstanceOf(FontFamilyParser.CompoundFontResult.class);
     FontFamilyParser.CompoundFontResult compoundResult = (FontFamilyParser.CompoundFontResult)result;
-    assertThat(compoundResult.getFonts().keySet()).containsExactly("@font/a_bee_zee_regular", "@font/a_bee_zee_italics");
+    assertThat(compoundResult.getFonts().keySet()).containsExactly("@font/a_bee_zee_regular", "@font/a_bee_zee_italics").inOrder();
     MutableFontDetail regular = compoundResult.getFonts().get("@font/a_bee_zee_regular");
     MutableFontDetail italics = compoundResult.getFonts().get("@font/a_bee_zee_italics");
 
@@ -138,7 +138,7 @@ public class FontFamilyParserTest extends UsefulTestCase {
     assertThat(downloadableResult.getAuthority()).isEqualTo("com.google.android.gms.fonts");
 
     Multimap<String, MutableFontDetail> fonts = downloadableResult.getFonts();
-    assertThat(fonts.keys()).containsExactly("Aladin", "Roboto", "Roboto");
+    assertThat(fonts.keys()).containsExactly("Roboto", "Roboto", "Aladin").inOrder();
     assertThat(fonts).hasSize(3);
 
     MutableFontDetail aladin = fonts.get("Aladin").iterator().next();

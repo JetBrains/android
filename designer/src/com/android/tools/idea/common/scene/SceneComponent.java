@@ -555,6 +555,10 @@ public class SceneComponent {
     else {
       setDrawState(DrawState.NORMAL);
     }
+
+    synchronized (myTargets) {
+      myTargets.forEach(it -> it.componentSelectionChanged(selected));
+    }
   }
 
   public void setDragging(boolean dragging) {

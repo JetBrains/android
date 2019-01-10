@@ -51,7 +51,9 @@ import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.android.tools.idea.gradle.structure.navigation.PsProductFlavorNavigationPath
 import com.google.common.util.concurrent.Futures.immediateFuture
+import icons.StudioIcons.Misc.PRODUCT_FLAVOR
 import java.io.File
+import javax.swing.Icon
 
 data class PsProductFlavorKey(val dimension: String, val name: String)
 
@@ -105,6 +107,7 @@ open class PsProductFlavor(
   var testInstrumentationRunnerArguments by ProductFlavorDescriptors.testInstrumentationRunnerArguments
 
   override val isDeclared: Boolean get() = parsedModel != null
+  override val icon: Icon = PRODUCT_FLAVOR
 
   fun rename(newName: String) {
     val oldName = name

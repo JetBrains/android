@@ -430,6 +430,8 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       if (!isPropertiesElementOrMap(element)) {
         return null;
       }
+      // isPropertiesElementOrMap should always return false when is not an instance of GradlePropertiesDslElement.
+      //noinspection ConstantConditions
       properties = (GradlePropertiesDslElement)element;
     }
 
@@ -491,6 +493,11 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       if (resolveWithOrder) {
         elementTrace.push(element);
       }
+
+      // Don't resolve up the parents for BuildScript elements.
+      if (element instanceof BuildScriptDslElement) {
+        return null;
+      }
       element = element.getParent();
     }
 
@@ -519,6 +526,16 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     if (propertyElement != null) {
       return propertyElement;
     }
+
+    // Ensure we check the buildscript as well.
+    BuildScriptDslElement bsDslElement = dslFile.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
+    if (bsDslElement != null) {
+      GradleDslElement bsElement = resolveReferenceOnElement(bsDslElement, referenceText, false, true, -1);
+      if (bsElement != null) {
+        return bsElement;
+      }
+    }
+
 
     if (dslFile.getParentModuleDslFile() == null) {
       return null; // This is the root project build.gradle file and there is no further path to look up.

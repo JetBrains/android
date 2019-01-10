@@ -352,6 +352,7 @@ enum class TestFileName(val path: String) {
   BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS("buildScriptModel/removeRepositoriesMultipleBlocks"),
   BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK("buildScriptModel/extPropertiesFromBuildscriptBlock"),
   BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB("buildScriptModel/extPropertiesFromBuildscriptBlock_sub"),
+  BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK("buildScriptModel/extPropertiesNotVisibleFromBuildscriptBlock"),
   REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH("referenceResolution/resolveOtherProjectPath"),
   REFERENCE_RESOLUTION_RESOLVE_OTHER_PROJECT_PATH_SUB("referenceResolution/resolveOtherProjectPath_sub"),
   REFERENCE_RESOLUTION_RESOLVE_PARENT("referenceResolution/resolveParent"),

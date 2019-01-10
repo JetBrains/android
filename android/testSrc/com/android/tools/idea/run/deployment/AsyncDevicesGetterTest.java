@@ -21,33 +21,46 @@ import static org.junit.Assert.assertSame;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import java.io.File;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public final class AsyncDevicesGetterTest {
+  private Disposable myDisposable;
+  private ConnectionTimeService myService;
+  private AsyncDevicesGetter myGetter;
   private VirtualDevice myVirtualDevice;
 
   private IDevice myConnectedDevice;
   private Collection<IDevice> myConnectedDevices;
 
-  private Clock myClock;
-  private ConnectionTimeService myService;
-
   @Before
-  public void newVirtualDevice() {
-    myVirtualDevice = VirtualDevice.newDisconnectedVirtualDevice(new AvdInfo(
+  public void setUp() {
+    myDisposable = Mockito.mock(Disposable.class);
+
+    Clock clock = Mockito.mock(Clock.class);
+    Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
+
+    myService = new ConnectionTimeService(clock);
+    myGetter = new AsyncDevicesGetter(myDisposable, myService);
+
+    AvdInfo avdInfo = new AvdInfo(
       "Pixel_2_XL_API_27",
       new File("/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_27.ini"),
       "/usr/local/google/home/juancnuno/.android/avd/Pixel_2_XL_API_27.avd",
       Mockito.mock(ISystemImage.class),
-      null));
+      null);
+
+    myVirtualDevice = VirtualDevice.newDisconnectedDeviceBuilder(avdInfo).build(null, myService);
   }
 
   @Before
@@ -58,20 +71,25 @@ public final class AsyncDevicesGetterTest {
     myConnectedDevices.add(myConnectedDevice);
   }
 
-  @Before
-  public void newService() {
-    myClock = Mockito.mock(Clock.class);
-    myService = new ConnectionTimeService(myClock);
+  @After
+  public void disposeOfDisposable() {
+    Disposer.dispose(myDisposable);
   }
 
   @Test
   public void newVirtualDeviceIfItsConnectedAvdNamesAreEqual() {
     Mockito.when(myConnectedDevice.getAvdName()).thenReturn("Pixel_2_XL_API_27");
-    Mockito.when(myClock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
-    Object device = AsyncDevicesGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices, myService);
-    assertEquals(VirtualDevice.newConnectedVirtualDevice(myVirtualDevice, myService, myConnectedDevice), device);
+    Device actualDevice = myGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices);
 
+    Object expectedDevice = new VirtualDevice.Builder()
+      .setName("Pixel 2 XL API 27")
+      .setKey("Pixel_2_XL_API_27")
+      .setAndroidDevice(actualDevice.getAndroidDevice())
+      .setConnected(true)
+      .build(null, myService);
+
+    assertEquals(expectedDevice, actualDevice);
     assertEquals(Collections.emptyList(), myConnectedDevices);
   }
 
@@ -79,7 +97,9 @@ public final class AsyncDevicesGetterTest {
   public void newVirtualDeviceIfItsConnected() {
     Mockito.when(myConnectedDevice.getAvdName()).thenReturn("Pixel_2_XL_API_28");
 
-    assertSame(myVirtualDevice, AsyncDevicesGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices, myService));
+    Object actualDevice = myGetter.newVirtualDeviceIfItsConnected(myVirtualDevice, myConnectedDevices);
+
+    assertSame(myVirtualDevice, actualDevice);
     assertEquals(Collections.singletonList(myConnectedDevice), myConnectedDevices);
   }
 }

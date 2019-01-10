@@ -3,13 +3,26 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.layoutlib",
-    srcs = ["src"],
     bundle_data = [
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/layoutlib:data/fonts",
         "//prebuilts/studio/layoutlib:buildprop",
     ],
     iml_files = ["intellij.android.layoutlib.iml"],
+    visibility = ["//visibility:public"],
+    exports = ["//prebuilts/studio/layoutlib:data/layoutlib"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/layoutlib:data/layoutlib",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.layoutlib-loader",
+    srcs = ["src"],
+    iml_files = ["intellij.android.layoutlib-loader.iml"],
     resources = ["resources"],
     # do not sort: must match IML order
     test_runtime_deps = [
@@ -19,7 +32,6 @@ iml_module(
         "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
     ],
     visibility = ["//visibility:public"],
-    exports = ["//tools/idea/.idea/libraries:layoutlib"],
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/platform/usageView:intellij.platform.usageView",
@@ -39,12 +51,12 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/.idea/libraries:layoutlib",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/idea/.idea/libraries:jetbrains-annotations-java5",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/idea/platform/platform-api:intellij.platform.ide[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/idea/.idea/libraries:ASM",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
     ],
 )

@@ -20,8 +20,9 @@ import com.android.tools.idea.gradle.structure.model.android.PsMutableCollection
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.annotations.VisibleForTesting
 
-open class PsVariables constructor(
+open class PsVariables (
   override val model: PsModel,
+  override val name: String,
   override val title: String,
   private val parentScope: PsVariablesScope?
 ) : PsMutableCollectionBase<PsVariable, String, PsModel>(model), PsVariablesScope {
@@ -48,8 +49,6 @@ open class PsVariables constructor(
   override fun removeExisting(key: String) {
     getContainer(parent)!!.findProperty(key).delete()
   }
-
-  override val name: String get() = model.name
 
   override fun <ValueT : Any> getAvailableVariablesFor(
     property: ModelPropertyContext<ValueT>
@@ -109,6 +108,7 @@ open class PsVariables constructor(
     when (from) {
       is PsProject -> from.parsedModel.projectBuildModel?.ext()
       is PsModule -> from.parsedModel?.ext()
+      is PsBuildScript -> from.parsedModel?.ext()
       else -> throw IllegalStateException()
     }
 }

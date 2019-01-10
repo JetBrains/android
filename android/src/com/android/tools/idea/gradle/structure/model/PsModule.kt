@@ -56,7 +56,7 @@ abstract class PsModule protected constructor(
     get() = myParsedDependencies ?: PsParsedDependencies(parsedModel).also { myParsedDependencies = it }
 
   val variables: PsVariablesScope
-    get() = myVariables ?: PsVariables(this, "Module: $name", parentModule?.variables ?: parent.variables).also { myVariables = it }
+    get() = myVariables ?: PsVariables(this, name, "Module: $name", parentModule?.variables ?: parent.variables).also { myVariables = it }
 
   override val isDeclared: Boolean get() = parsedModel != null
 
@@ -296,27 +296,8 @@ abstract class PsModule protected constructor(
   protected open fun populateRepositories(repositories: MutableList<ArtifactRepository>) {
     repositories.addAll(
       parsedModel?.repositories()?.repositories().orEmpty().mapNotNull { repositoryModel ->
-        when (repositoryModel.type) {
-          RepositoryModel.RepositoryType.JCENTER_DEFAULT -> JCenterRepository
-          RepositoryModel.RepositoryType.MAVEN_CENTRAL -> MavenCentralRepository
-          RepositoryModel.RepositoryType.MAVEN -> maybeCreateLocalMavenRepository(repositoryModel as MavenRepositoryModel)
-          RepositoryModel.RepositoryType.GOOGLE_DEFAULT -> GoogleRepository
-          RepositoryModel.RepositoryType.FLAT_DIR -> null
-        }
+        repositoryModel.toArtifactRepository()
       })
-  }
-
-  private fun maybeCreateLocalMavenRepository(mavenRepositoryModel: MavenRepositoryModel): LocalMavenRepository? {
-    val repositoryUrl = mavenRepositoryModel.url().forceString()
-    val parsedRepositoryUrl = Urls.parse(repositoryUrl, false)
-    if (parsedRepositoryUrl != null && parsedRepositoryUrl.isInLocalFileSystem) {
-      val repositoryPath = parsedRepositoryUrl.path
-      val repositoryRootFile = File(repositoryPath)
-      if (repositoryRootFile.isAbsolute) {
-        return LocalMavenRepository(repositoryRootFile, mavenRepositoryModel.name().forceString())
-      }
-    }
-    return null
   }
 
   interface ModuleChangedListener : EventListener {
@@ -340,3 +321,27 @@ abstract class PsModule protected constructor(
 
 fun PsModule.relativeFile(file: File) = rootDir?.let { file.relativeToOrSelf(it) } ?: file
 fun PsModule.resolveFile(file: File) = rootDir?.resolve(file) ?: file
+
+fun RepositoryModel.toArtifactRepository(): ArtifactRepository? {
+  return when (type) {
+    RepositoryModel.RepositoryType.JCENTER_DEFAULT -> JCenterRepository
+    RepositoryModel.RepositoryType.MAVEN_CENTRAL -> MavenCentralRepository
+    RepositoryModel.RepositoryType.MAVEN -> maybeCreateLocalMavenRepository(
+      this as MavenRepositoryModel)
+    RepositoryModel.RepositoryType.GOOGLE_DEFAULT -> GoogleRepository
+    RepositoryModel.RepositoryType.FLAT_DIR -> null
+  }
+}
+
+private fun maybeCreateLocalMavenRepository(mavenRepositoryModel: MavenRepositoryModel): LocalMavenRepository? {
+  val repositoryUrl = mavenRepositoryModel.url().forceString()
+  val parsedRepositoryUrl = Urls.parse(repositoryUrl, false)
+  if (parsedRepositoryUrl != null && parsedRepositoryUrl.isInLocalFileSystem) {
+    val repositoryPath = parsedRepositoryUrl.path
+    val repositoryRootFile = File(repositoryPath)
+    if (repositoryRootFile.isAbsolute) {
+      return LocalMavenRepository(repositoryRootFile, mavenRepositoryModel.name().forceString())
+    }
+  }
+  return null
+}

@@ -17,18 +17,31 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
-import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.idea.common.property2.impl.model.BooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
-import icons.StudioIcons
 import javax.swing.JCheckBox
 
 /**
  * A standard control for editing a boolean property.
  */
-class PropertyCheckBox(private val propertyModel: BooleanPropertyEditorModel) : JCheckBox() {
+class PropertyCheckBox(model: BooleanPropertyEditorModel) : PropertyTextFieldWithLeftButton(model, CustomCheckBox(model)) {
+
+  private val checkBox = leftComponent as CustomCheckBox
+
+  @VisibleForTesting
+  var state: Boolean
+    get() = checkBox.state
+    set(value) { checkBox.state = value }
+
+  override fun updateFromModel() {
+    super.updateFromModel()
+    checkBox.updateFromModel()
+  }
+}
+
+private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorModel) : JCheckBox() {
   private var stateChangeFromModel = false
 
   @VisibleForTesting
@@ -37,13 +50,11 @@ class PropertyCheckBox(private val propertyModel: BooleanPropertyEditorModel) : 
     set(value) { model.isSelected = value }
 
   init {
-    icon = StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_CENTER
     state = toStateValue(propertyModel.value)
     registerKeyAction({ propertyModel.f1KeyPressed() }, KeyStrokes.f1, "help")
     registerKeyAction({ propertyModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
     registerKeyAction({ propertyModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
 
-    propertyModel.addListener(ValueChangedListener { handleValueChanged() })
     addFocusListener(EditorFocusListener(this, propertyModel))
     model.addChangeListener {
       if (!stateChangeFromModel) {
@@ -53,17 +64,13 @@ class PropertyCheckBox(private val propertyModel: BooleanPropertyEditorModel) : 
     PropertyTextField.addBorderAtTextFieldBorderSize(this)
   }
 
-  private fun handleValueChanged() {
+  fun updateFromModel() {
     stateChangeFromModel = true
     try {
       state = toStateValue(propertyModel.value)
     }
     finally {
       stateChangeFromModel = false
-    }
-    isVisible = propertyModel.visible
-    if (propertyModel.focusRequest && !isFocusOwner) {
-      requestFocusInWindow()
     }
   }
 

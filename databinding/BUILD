@@ -44,6 +44,7 @@ iml_module(
     tags = [
         "no_test_mac",
         "no_test_mac_psq",  # b/113099009
+        "no_test_windows",
     ],
     test_class = "com.android.tools.idea.databinding.AndroidDataBindingTestSuite",
     test_data = [

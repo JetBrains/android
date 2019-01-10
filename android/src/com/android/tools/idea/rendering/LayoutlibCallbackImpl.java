@@ -60,7 +60,6 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
@@ -154,6 +153,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   /** Directory name for the gradle build-cache. Exploded AARs will end up there when using build cache */
   public static final String BUILD_CACHE = "build-cache";
 
+  @NotNull private final AndroidFacet myFacet;
   @NotNull private final Module myModule;
   @NotNull private final ResourceIdManager myIdManager;
   @NotNull final private LayoutLibrary myLayoutLib;
@@ -166,7 +166,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
-  @Nullable private ResourceResolver myResourceResolver;
   @Nullable private final ActionBarHandler myActionBarHandler;
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final DownloadableFontCacheService myFontCacheService;
@@ -214,6 +213,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myIdManager = ResourceIdManager.get(module);
+    myFacet = facet;
     myModule = module;
     myLogger = logger;
     myCredential = credential;
@@ -392,20 +392,18 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             // This is a font-family XML. Now check if it defines a downloadable font. If it is,
             // this is a special case where we generate a synthetic font-family XML file that points
             // to the cached fonts downloaded by the DownloadableFontCacheService.
-            if (myProjectFonts == null && myResourceResolver != null) {
-              myProjectFonts = new ProjectFonts(myResourceResolver);
+            if (myProjectFonts == null) {
+              myProjectFonts = new ProjectFonts(myFacet);
             }
 
-            if (myProjectFonts != null) {
-              FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
-              String fontFamilyXml = myFontCacheService.toXml(family);
-              if (fontFamilyXml == null) {
-                myFontCacheService.download(family);
-                return null;
-              }
-
-              return getParserFromText(fileName, fontFamilyXml);
+            FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
+            String fontFamilyXml = myFontCacheService.toXml(family);
+            if (fontFamilyXml == null) {
+              myFontCacheService.download(family);
+              return null;
             }
+
+            return getParserFromText(fileName, fontFamilyXml);
           }
 
           String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
@@ -849,17 +847,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   /**
-   * Sets the {@link ResourceResolver} to be used when looking up resources
-   *
-   * @param resolver the resolver to use
-   */
-  public void setResourceResolver(@Nullable ResourceResolver resolver) {
-    myResourceResolver = resolver;
-  }
-
-  /**
    * Load and parse the R class such that resource references in the layout rendering can refer
-   * to local resources properly
+   * to local resources properly.
+   *
+   * <p>This only needs to be done if the build system compiles code of the given module against R.java files generated with final fields,
+   * which will cause the chosen numeric resource ids to be inlined into the consuming code. In this case we treat the R class bytecode as
+   * the source of truth for mapping resources to numeric ids.
    */
   public void loadAndParseRClass() {
     myClassLoader.loadAndParseRClassSilently();

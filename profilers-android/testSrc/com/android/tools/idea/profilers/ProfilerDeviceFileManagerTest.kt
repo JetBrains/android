@@ -49,7 +49,7 @@ class ProfilerDeviceFileManagerTest {
       newFile("dev/perfa.jar")
     }
 
-    val hostFile = ProfilerHostFile.Builder("perfa.jar")
+    val hostFile = ProfilerHostFileBuilder("perfa.jar")
       .setReleaseDir("release")
       .setDevDir("dev")
       .setExecutable(false)
@@ -86,7 +86,7 @@ class ProfilerDeviceFileManagerTest {
       }
     }
 
-    val hostFile = ProfilerHostFile.Builder("perfd")
+    val hostFile = ProfilerHostFileBuilder("perfd")
       .setReleaseDir("release")
       .setDevDir("dev")
       .setExecutable(true)
@@ -133,7 +133,7 @@ class ProfilerDeviceFileManagerTest {
       }
     }
 
-    val hostFile = ProfilerHostFile.Builder("simpleperf")
+    val hostFile = ProfilerHostFileBuilder("simpleperf")
       .setReleaseDir("release")
       .setDevDir("dev")
       .setExecutable(true)

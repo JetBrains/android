@@ -7,7 +7,10 @@ iml_module(
     srcs = ["src"],
     exclude = ["testSrc/com/android/tools/profilers/performance/DataSeriesPerformanceTest.kt"],
     iml_files = ["intellij.android.profilers.iml"],
-    tags = ["no_test_mac_psq"],  # b/113099009
+    tags = [
+        "no_test_mac_psq",
+        "no_test_windows",
+    ],  # b/113099009
     test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
     # do not sort: must match IML order
     test_runtime_deps = [

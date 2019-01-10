@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.android.testResolve
+import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsNull.nullValue
@@ -28,7 +29,7 @@ import org.junit.Assume.assumeThat
 
 class PsProjectImplTest : DependencyTestCase() {
 
-  val changedModules = mutableSetOf<String>()
+  private val changedModules = mutableSetOf<String>()
 
   fun testModuleOrder() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
@@ -172,15 +173,14 @@ class PsProjectImplTest : DependencyTestCase() {
     project.testResolve()  // A removed module should not reappear unless it is in the middle of a hierarchy.
     assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
 
-    // Reset chnaged module set and assert that the change handler has been auto-subscribed to the notifications from the new module.
+    // Reset changed module set and assert that the change handler has been auto-subscribed to the notifications from the new module.
     changedModules.clear()
-    val nested2DeppModule = project.findModuleByGradlePath(":nested2:deep") as PsAndroidModule
-    nested2DeppModule.findBuildType("debug")!!.applicationIdSuffix = newSuffix2.asParsed()
+    val nested2DeepModule = project.findModuleByGradlePath(":nested2:deep") as PsAndroidModule
+    nested2DeepModule.findBuildType("debug")!!.applicationIdSuffix = newSuffix2.asParsed()
     assertThat(changedModules.contains(":nested2:deep"), equalTo(true))
   }
 
   fun testApplyRunAndReparse_cancel() {
-    val newSuffix = "testApplyRunAndReparse"
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val project = PsProjectImpl(myFixture.project).also { it.testResolve() }
@@ -201,6 +201,42 @@ class PsProjectImplTest : DependencyTestCase() {
     }
     // The model is not reloaded if change cancelled, even when some real changes have been made.
     assertThat(project.findModuleByGradlePath(":nested2:deep")?.isDeclared, equalTo(true))
+  }
+
+  fun testAgpVersion() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    var project = PsProjectImpl(myFixture.project)
+
+    assertThat(project.androidGradlePluginVersion, equalTo(BuildEnvironment.getInstance().gradlePluginVersion.asParsed()))
+
+    project.androidGradlePluginVersion = "1.23".asParsed()
+    project.applyChanges()
+
+    project = PsProjectImpl(myFixture.project)
+    assertThat(project.androidGradlePluginVersion, equalTo("1.23".asParsed()))
+  }
+
+  fun testAgpVersion_missing() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    var project = PsProjectImpl(myFixture.project)
+
+    assertThat(project.androidGradlePluginVersion, equalTo(BuildEnvironment.getInstance().gradlePluginVersion.asParsed()))
+
+    val existingAgpDependency =
+      project
+        .parsedModel
+        .projectBuildModel
+        ?.buildscript()
+        ?.dependencies()
+        ?.artifacts("classpath")
+        ?.first { it.compactNotation().startsWith("com.android.tools.build:gradle:") }!!
+    // Remove it and make sure the property can still be configured.
+    project.parsedModel.projectBuildModel?.buildscript()?.dependencies()?.remove(existingAgpDependency)
+    project.androidGradlePluginVersion = "1.23".asParsed()
+    project.applyChanges()
+
+    project = PsProjectImpl(myFixture.project)
+    assertThat(project.androidGradlePluginVersion, equalTo("1.23".asParsed()))
   }
 
   private fun PsProject.testSubscribeToNotifications() {

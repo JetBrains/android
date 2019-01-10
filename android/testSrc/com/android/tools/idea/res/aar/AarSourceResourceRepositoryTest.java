@@ -110,18 +110,34 @@ public class AarSourceResourceRepositoryTest extends TestCase {
     assertThat(attributes.size()).isEqualTo(1);
     attr = attributes.get(0);
     assertThat(attr.getName()).isEqualTo("some_attr");
-    assertThat(attr.getFormats()).isEmpty();
+    assertThat(attr.getFormats()).containsExactly(AttributeFormat.COLOR);
 
     items = repository.getResources(RES_AUTO, ResourceType.ATTR, "some_attr");
     assertThat(items.size()).isEqualTo(1);
     attr = (AttrResourceValue)items.get(0).getResourceValue();
     assertThat(attr.getName()).isEqualTo("some_attr");
     assertThat(attr.getFormats()).containsExactly(AttributeFormat.COLOR);
+
+    items = repository.getResources(RES_AUTO, ResourceType.ATTR, "app_attr1");
+    assertThat(items).isEmpty();
+
+    items = repository.getResources(RES_AUTO, ResourceType.ATTR, "app_attr2");
+    assertThat(items.size()).isEqualTo(1);
+    attr = (AttrResourceValue)items.get(0).getResourceValue();
+    assertThat(attr.getName()).isEqualTo("app_attr2");
+    assertThat(attr.getFormats()).containsExactly(AttributeFormat.BOOLEAN,
+                                                  AttributeFormat.COLOR,
+                                                  AttributeFormat.DIMENSION,
+                                                  AttributeFormat.FLOAT,
+                                                  AttributeFormat.FRACTION,
+                                                  AttributeFormat.INTEGER,
+                                                  AttributeFormat.REFERENCE,
+                                                  AttributeFormat.STRING);
   }
 
   public void testMultipleValues_partOfResourceDirectories() {
     AarSourceResourceRepository repository =
-      ResourcesTestsUtil.getTestAarRepositoryWithResourceFolders("my_aar_lib", "values/strings.xml", "values-fr/strings.xml");
+        ResourcesTestsUtil.getTestAarRepositoryWithResourceFolders("my_aar_lib", "values/strings.xml", "values-fr/strings.xml");
     List<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.STRING, "hello");
     assertNotNull(items);
     List<String> helloVariants = ContainerUtil.map(

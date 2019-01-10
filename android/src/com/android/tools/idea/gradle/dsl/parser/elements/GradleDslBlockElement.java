@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 
@@ -24,7 +25,7 @@ import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APP
  * Base class for all the {@link GradleDslElement}s that represent blocks like android, productFlavors, buildTypes etc.
  */
 public class GradleDslBlockElement extends GradlePropertiesDslElement {
-  protected GradleDslBlockElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
+  protected GradleDslBlockElement(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
   }
 
