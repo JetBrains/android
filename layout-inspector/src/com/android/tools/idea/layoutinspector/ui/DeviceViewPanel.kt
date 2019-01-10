@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.sampledata.videosSampleData
 import com.android.tools.idea.layoutinspector.sampledata.youtubeSampleData
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.components.JBCheckBox
+import java.awt.BasicStroke
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
@@ -55,9 +56,9 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
   private var angle = 0.0
 
   init {
-    layoutInspector.modelChangeListeners.add { _, _ ->
-      repaint()
-    }
+    layoutInspector.modelChangeListeners.add(this::modelChanged)
+    layoutInspector.layoutInspectorModel.selectionListeners.add(this::selectionChanged)
+
     addMouseWheelListener { e ->
       angle += e.preciseWheelRotation * 0.01
       repaint()
@@ -103,12 +104,29 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
       g2.drawImage(bufferedImage, view.x, view.y, null)
     }
     if (showBordersCheckBox.isSelected) {
-      g2.color = Color.BLUE
+      if (view == layoutInspector.layoutInspectorModel.selection) {
+        g2.color = Color.RED
+        g2.stroke = BasicStroke(3f)
+      }
+      else {
+        g2.color = Color.BLUE
+        g2.stroke = BasicStroke(1f)
+      }
       g2.drawRect(view.x, view.y, view.width, view.height)
       g2.color = Color.BLACK
       g2.font = g2.font.deriveFont(20f)
       g2.drawString(view.type, view.x + 5, view.y + 25)
     }
     view.children.forEach { draw(it, g, depth + 1) }
+  }
+
+  private fun modelChanged(old: InspectorModel, new: InspectorModel) {
+    old.selectionListeners.remove(this::selectionChanged)
+    new.selectionListeners.add(this::selectionChanged)
+    repaint()
+  }
+
+  private fun selectionChanged(old: InspectorView?, new: InspectorView?) {
+    repaint()
   }
 }
