@@ -19,7 +19,7 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.databinding.DataBindingProjectComponent;
+import com.android.tools.idea.databinding.DataBindingModuleComponent;
 import com.android.tools.idea.lang.databinding.DataBindingCompletionUtil;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
@@ -431,7 +431,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
     }
 
     Module module = facet.getModule();
-    DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
+    DataBindingModuleComponent dataBindingComponent = module.getComponent(DataBindingModuleComponent.class);
     if (dataBindingComponent == null) {
       return;
     }
@@ -445,7 +445,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       .map(LookupElement::getLookupString)
       .collect(Collectors.toSet());
 
-    dataBindingComponent.getBindingAdapterAttributes(module).forEach((dataBindingAttribute) -> {
+    dataBindingComponent.getBindingAdapterAttributes().forEach((dataBindingAttribute) -> {
       if (!prefix.isEmpty()) {
         dataBindingAttribute = StringUtil.trimStart(dataBindingAttribute, prefix + ":");
       }
