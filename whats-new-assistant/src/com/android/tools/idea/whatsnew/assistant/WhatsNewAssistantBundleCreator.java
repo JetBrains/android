@@ -220,6 +220,12 @@ public class WhatsNewAssistantBundleCreator implements AssistantBundleCreator {
       URLConnection connection = myConnectionOpener.openConnection(sourceUrl, -1);
       byteChannel = Channels.newChannel(connection.getInputStream());
     }
+    catch (FileNotFoundException e) {
+      // This occurs when the remote file can't be found, which as far as I know is only when no
+      // web config has been provided yet, so INFO severity is fine to avoid spamming devs/users
+      getLog().info("Remote WNA config file not found", e);
+      return false;
+    }
     catch (Exception e) {
       getLog().warn(e);
       return false;
