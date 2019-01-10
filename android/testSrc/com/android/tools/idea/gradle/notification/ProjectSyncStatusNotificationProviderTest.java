@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.IndexingSensitiveNotificationPanel;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -38,8 +43,12 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleSyncSummary mySyncSummary;
+  @Mock private GradleExperimentalSettings myGradleExperimentalSettings;
 
   private ProjectSyncStatusNotificationProvider myNotificationProvider;
+  private VirtualFile myFile;
+  @SuppressWarnings("FieldCanBeLocal")
+  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
@@ -52,6 +61,11 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(true);
 
     myNotificationProvider = new ProjectSyncStatusNotificationProvider(getProject(), myProjectInfo, mySyncState);
+    myFile = VfsUtil.findFileByIoFile(createTempFile("build.gradle", "whatever"), true);
+
+    myIdeComponents = new IdeComponents(myProject);
+    myGradleExperimentalSettings = new GradleExperimentalSettings();
+    myIdeComponents.replaceApplicationService(GradleExperimentalSettings.class, myGradleExperimentalSettings);
   }
 
   public void testNotificationPanelTypeWithProjectNotBuiltWithGradle() {
@@ -59,13 +73,23 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
+    assertNull(type.create(myProject, myFile, myProjectInfo));
   }
 
   public void testNotificationPanelTypeWithSyncNotificationsDisabled() {
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(false);
+    GradleExperimentalSettings.getInstance().PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP = 0;
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = type.create(myProject, myFile, myProjectInfo);
+    // Since Project Structure notification isn't really a sync notification, we will show it here if the flag is enabled.
+    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+    }
+    else {
+      assertNull(panel);
+    }
   }
 
   public void testNotificationPanelTypeWithSyncInProgress() {
@@ -80,15 +104,30 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.FAILED, type);
-    assertInstanceOf(type.create(myProject), IndexingSensitiveNotificationPanel.class);
+    assertInstanceOf(type.create(myProject, myFile, myProjectInfo), IndexingSensitiveNotificationPanel.class);
   }
 
   public void testNotificationPanelTypeWithSyncErrors() {
     when(mySyncSummary.hasSyncErrors()).thenReturn(true);
+    GradleExperimentalSettings.getInstance().PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP = 0;
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
-    assertNull(type.create(myProject));
+
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = type.create(myProject, myFile, myProjectInfo);
+    if (StudioFlags.NEW_PSD_ENABLED.get()) {
+      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+    }
+    else {
+      assertNull(panel);
+    }
+
+    // The reshow timeout should always be too large comparing to the potential time difference between statements below,
+    // e.g. dozens of days.
+    GradleExperimentalSettings.getInstance().PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP = System.currentTimeMillis();
+    type = myNotificationProvider.notificationPanelType();
+    assertEquals(Type.NONE, type);
+    assertNull(type.create(myProject, myFile, myProjectInfo));
   }
 
   public void testNotificationPanelTypeWithSyncNeeded() {
@@ -96,7 +135,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.SYNC_NEEDED, type);
-    assertInstanceOf(type.create(myProject), IndexingSensitiveNotificationPanel.class);
+    assertInstanceOf(type.create(myProject, myFile, myProjectInfo), IndexingSensitiveNotificationPanel.class);
   }
 
   public void testIndexingSensitiveNotificationPanel() {
