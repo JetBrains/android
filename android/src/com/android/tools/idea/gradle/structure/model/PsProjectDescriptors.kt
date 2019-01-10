@@ -19,13 +19,29 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.structure.model.helpers.androidGradlePluginVersionValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
+import com.android.tools.idea.gradle.structure.model.meta.Annotated
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.KnownValues
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
+import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.ResolvedValue
 import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.ValueAnnotation
 import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
+import com.android.tools.idea.gradle.structure.model.meta.annotateWithError
+import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.asString
+import com.android.tools.idea.gradle.structure.model.meta.emptyKnownValues
+import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.property
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import kotlin.reflect.KProperty
 
 object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildModel> {
   private const val AGP_GROUP_ID_NAME = "com.android.tools.build:gradle"
@@ -69,6 +85,58 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
       knownValuesGetter = ::androidGradlePluginVersionValues,
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
     )
+  }
+
+  val gradleVersion: SimpleProperty<PsProject, String> = run {
+    object : ModelSimpleProperty<PsProject, String> {
+
+      override fun bindContext(model: PsProject): ModelPropertyContext<String> =
+        object : ModelPropertyContext<String> {
+          override fun parse(value: String): Annotated<ParsedValue<String>> = when {
+            value.isBlank() -> ParsedValue.NotSet.annotateWithError("Required.")
+            else -> ParsedValue.Set.Parsed(value, DslText.Literal).annotated()
+          }
+
+          override fun parseEditorText(text: String): Annotated<ParsedValue<String>> = parse(text)
+
+          override fun format(value: String): String = value
+
+          override fun getKnownValues(): ListenableFuture<KnownValues<String>> =
+            @Suppress("UnstableApiUsage")
+            Futures.immediateFuture(emptyKnownValues())
+        }
+
+      override val description: String = "Gradle Version"
+
+      override fun bind(model: PsProject): ModelPropertyCore<String> =
+        object : ModelPropertyCore<String> {
+          override fun getParsedValue(): Annotated<ParsedValue<String>> =
+            model
+              .getGradleVersionValue(notApplied = true)
+              ?.let { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
+            ?: ParsedValue.NotSet.annotated()
+
+          override fun setParsedValue(value: ParsedValue<String>) {
+            value.maybeLiteralValue?.let { model.setGradleVersionValue(it) }
+          }
+
+          override val isModified: Boolean?
+            get() =
+              model.getGradleVersionValue(true) != model.getGradleVersionValue(false)
+
+          override fun getResolvedValue(): ResolvedValue<String> = ResolvedValue.NotResolved()
+
+          override val description: String = "Gradle Version"
+          override val defaultValueGetter: (() -> String?)? = null
+          override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
+      }
+
+      override fun getValue(thisRef: PsProject, property: KProperty<*>): ParsedValue<String> =
+        bind(thisRef).getParsedValue().value
+
+      override fun setValue(thisRef: PsProject, property: KProperty<*>, value: ParsedValue<String>) =
+        bind(thisRef).setParsedValue(value)
+    }
   }
 
   override fun enumerateModels(model: PsProject): Collection<PsModel> = model.modules

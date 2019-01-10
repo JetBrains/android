@@ -66,5 +66,6 @@ class ProjectPerspectiveConfigurable(private val context: PsContext)
 fun projectPropertiesModel() =
   PropertiesUiModel(
     listOf(
-      uiProperty(PsProjectDescriptors.androidGradlePluginVersion, ::simplePropertyEditor)))
+      uiProperty(PsProjectDescriptors.androidGradlePluginVersion, ::simplePropertyEditor),
+      uiProperty(PsProjectDescriptors.gradleVersion, ::simplePropertyEditor)))
 
