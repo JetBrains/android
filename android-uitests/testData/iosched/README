@@ -1,0 +1,34 @@
+This is a slightly modified version of the Google I/O 2018 Android App (https://github.com/google/iosched), at commit d8bc48b20c132b519879eda3a8e9af120519e159, used as an Android Studio UI test.
+
+Changes made to build with Android Studio 3.5 Canary1:
+--- a/build.gradle
++++ b/build.gradle
+@@ -32,7 +32,7 @@ buildscript {
+         targetSdkVersion = 28
+ 
+         // App dependencies
+-        androidGradlePluginVersion = '3.2.0-beta04'
++        androidGradlePluginVersion = '3.2.0'
+         appcompatVersion = '1.0.0-beta01'
+         browserVersion = '1.0.0-beta01'
+         constraintLayoutVersion = '1.1.2'
+@@ -55,14 +55,14 @@ buildscript {
+         gsonVersion = "2.8.1"
+         hamcrestVersion = '1.3'
+         junitVersion = '4.12'
+-        kotlinVersion = '1.2.50'
++        kotlinVersion = '1.2.51'
+         ktxVersion = "1.0.0-beta01"
+         leakCanaryVersion = "1.5.4"
+	 
+--- a/mobile/src/main/res/values/styles.xml
++++ b/mobile/src/main/res/values/styles.xml
+@@ -113,7 +113,7 @@
+         <item name="textAllCaps">false</item>
+     </style>
+ 
+-    <style name="TextAppearance.IOSched.BottomNavigationView" parent="@style/TextAppearance.MaterialComponents.BottomNavigationView.Colored">
++    <style name="TextAppearance.IOSched.BottomNavigationView" parent="@style/Widget.MaterialComponents.BottomNavigationView.Colored">
+         <item name="android:fontFamily">@font/google_sans</item>
+         <item name="android:textColor">@color/bottom_nav_item</item>
+     </style>
