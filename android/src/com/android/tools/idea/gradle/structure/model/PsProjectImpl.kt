@@ -34,7 +34,7 @@ class PsProjectImpl(
   override val ideProject: Project,
   override val repositorySearchFactory: RepositorySearchFactory = CachingRepositorySearchFactory()
 ) : PsChildModel(), PsProject {
-  override val descriptor by PsProject.Descriptors
+  override val descriptor by PsProjectDescriptors
   override var parsedModel: ProjectBuildModel = GradleModelProvider.get().getProjectModel(ideProject); private set
   @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
   final override val buildScriptVariables: PsVariables
@@ -52,7 +52,7 @@ class PsProjectImpl(
 
   override val modules: PsModelCollection<PsModule> get() = moduleCollection
   override val modelCount: Int get() = moduleCollection.size
-  override var androidGradlePluginVersion by PsProject.Descriptors.androidGradlePluginVersion
+  override var androidGradlePluginVersion by PsProjectDescriptors.androidGradlePluginVersion
   init {
     // TODO(b/77695733): Ensure that getProjectBuildModel() is indeed not null.
     buildScriptVariables = PsVariables(buildScript, "$name (build script)", "Build Script: $name", null)
