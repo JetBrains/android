@@ -34,5 +34,6 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
+    <orderEntry type="module" module-name="intellij.android.resources-aar" />
   </component>
 </module>

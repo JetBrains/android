@@ -22,7 +22,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.util.toPathString
 import com.android.projectmodel.SelectiveResourceFolder
 import com.android.tools.idea.projectsystem.FilenameConstants
-import com.android.tools.idea.res.aar.AarSourceResourceRepository
+import com.android.tools.idea.resources.aar.AarSourceResourceRepository
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.LibraryOrderEntry
