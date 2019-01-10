@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiMode
 import com.android.tools.idea.gradle.structure.configurables.ui.project.ProjectPropertiesConfigPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
-import com.android.tools.idea.gradle.structure.model.PsProject
+import com.android.tools.idea.gradle.structure.model.PsProjectDescriptors
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
@@ -66,5 +66,5 @@ class ProjectPerspectiveConfigurable(private val context: PsContext)
 fun projectPropertiesModel() =
   PropertiesUiModel(
     listOf(
-      uiProperty(PsProject.Descriptors.androidGradlePluginVersion, ::simplePropertyEditor)))
+      uiProperty(PsProjectDescriptors.androidGradlePluginVersion, ::simplePropertyEditor)))
 
