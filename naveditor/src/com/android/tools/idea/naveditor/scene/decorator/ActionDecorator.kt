@@ -25,7 +25,6 @@ import com.android.tools.idea.naveditor.model.effectiveDestination
 import com.android.tools.idea.naveditor.model.getActionType
 import com.android.tools.idea.naveditor.model.getEffectiveSource
 import com.android.tools.idea.naveditor.model.popUpTo
-import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColors.ACTION
 import com.android.tools.idea.naveditor.scene.NavColors.HIGHLIGHTED_ACTION
 import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
@@ -50,7 +49,7 @@ object ActionDecorator : NavBaseDecorator() {
       ActionType.NONE -> return
       ActionType.GLOBAL, ActionType.EXIT -> {
         @SwingCoordinate val drawRect = Coordinates.getSwingRectDip(view, component.fillDrawRect2D(0, null))
-        list.add(DrawHorizontalAction(DRAW_ACTION_LEVEL, drawRect, color, isPopAction))
+        list.add(DrawHorizontalAction(drawRect, color, isPopAction))
       }
       else -> {
         val scene = component.scene

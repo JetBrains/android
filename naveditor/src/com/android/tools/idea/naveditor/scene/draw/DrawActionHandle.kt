@@ -19,6 +19,7 @@ import com.android.tools.idea.common.scene.LerpFloat
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCircle
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawCommand.TARGET_LEVEL
 import com.android.tools.idea.common.scene.draw.DrawFilledCircle
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
@@ -30,8 +31,7 @@ import com.android.tools.idea.naveditor.scene.HANDLE_STROKE
 import java.awt.Color
 import java.awt.geom.Point2D
 
-data class DrawActionHandle(private val level: Int,
-                            private val center: Point2D.Float,
+data class DrawActionHandle(private val center: Point2D.Float,
                             private val initialOuterRadius: Float,
                             private val finalOuterRadius: Float,
                             private val initialInnerRadius: Float,
@@ -39,24 +39,20 @@ data class DrawActionHandle(private val level: Int,
                             private val duration: Int,
                             private val outerColor: Color,
                             private val innerColor: Color
-) : CompositeDrawCommand() {
+) : CompositeDrawCommand(TARGET_LEVEL) {
   private constructor(tokens: Array<String>)
-    : this(tokens[0].toInt(),
-           stringToPoint2D(tokens[1]),
+    : this(stringToPoint2D(tokens[0]),
+           tokens[1].toFloat(),
            tokens[2].toFloat(),
            tokens[3].toFloat(),
            tokens[4].toFloat(),
-           tokens[5].toFloat(),
-           tokens[6].toInt(),
-           stringToColor(tokens[7]),
-           stringToColor(tokens[8]))
+           tokens[5].toInt(),
+           stringToColor(tokens[6]),
+           stringToColor(tokens[7]))
 
-  constructor(serialized: String) : this(parse(serialized, 9))
-
-  override fun getLevel(): Int = level
+  constructor(s: String) : this(parse(s, 8))
 
   override fun serialize(): String = buildString(javaClass.simpleName,
-                                                 level,
                                                  point2DToString(center),
                                                  initialOuterRadius,
                                                  finalOuterRadius,

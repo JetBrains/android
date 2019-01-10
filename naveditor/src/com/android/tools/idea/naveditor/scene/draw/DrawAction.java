@@ -21,7 +21,6 @@ import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getArrowP
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getCurvePoints;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getDestinationDirection;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getRegularActionIconRect;
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_LEVEL;
 import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
 
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -58,11 +57,6 @@ public class DrawAction extends DrawCommandBase {
 
   public DrawAction(@NotNull String serialized) {
     this(DrawCommandSerializationHelperKt.parse(serialized, 4));
-  }
-
-  @Override
-  public int getLevel() {
-    return DRAW_ACTION_LEVEL;
   }
 
   @Override
@@ -109,7 +103,7 @@ public class DrawAction extends DrawCommandBase {
     Rectangle2D.Float arrowRectangle = NavActionHelperKt.getArrowRectangle(sceneView, arrowPoint, direction);
 
 
-    list.add(new DrawArrow(DRAW_ACTION_LEVEL, arrowDirection, arrowRectangle, color));
+    list.add(new DrawArrow(0, arrowDirection, arrowRectangle, color));
 
     if (isPopAction) {
       Rectangle2D.Float iconRectangle = getRegularActionIconRect(source, dest, sceneContext);

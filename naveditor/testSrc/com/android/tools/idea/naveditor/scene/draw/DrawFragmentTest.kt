@@ -18,7 +18,6 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.intellij.ui.JBColor
 import java.awt.Color
@@ -41,7 +40,7 @@ class DrawFragmentTest : NavTestCase() {
 
     assertEquals(drawFragment.commands.size, 2)
     assertEquals(drawFragment.commands[0], DrawRectangle(0, RECTANGLE, FRAME_COLOR, REGULAR_FRAME_THICKNESS))
-    assertDrawCommandsEqual(DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, IMAGE_RECT), drawFragment.commands[1])
+    assertDrawCommandsEqual(DrawPlaceholder(IMAGE_RECT), drawFragment.commands[1])
   }
 
   fun testDrawHighlightedFragment() {
@@ -49,7 +48,7 @@ class DrawFragmentTest : NavTestCase() {
 
     assertEquals(drawFragment.commands.size, 3)
     assertEquals(drawFragment.commands[0], DrawRectangle(0, RECTANGLE, FRAME_COLOR, REGULAR_FRAME_THICKNESS))
-    assertDrawCommandsEqual(DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, IMAGE_RECT), drawFragment.commands[1])
+    assertDrawCommandsEqual(DrawPlaceholder(IMAGE_RECT), drawFragment.commands[1])
     assertEquals(drawFragment.commands[2], DrawRoundRectangle(2, HIGHLIGHT_RECT, HIGHLIGHT_COLOR, HIGHLIGHTED_FRAME_THICKNESS))
   }
 

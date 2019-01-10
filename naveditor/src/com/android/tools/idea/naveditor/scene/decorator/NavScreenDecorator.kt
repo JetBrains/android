@@ -24,7 +24,6 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.naveditor.model.className
-import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
