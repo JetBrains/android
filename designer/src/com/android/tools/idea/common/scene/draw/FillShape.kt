@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,30 @@
 package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.scene.AnimatedValue
+import com.android.tools.idea.common.scene.ConstantValue
 import com.android.tools.idea.common.scene.SceneContext
+import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.geom.RoundRectangle2D
+import java.awt.Shape
 
-data class DrawFilledRoundRectangle(
-  private val level: Int,
-  @SwingCoordinate private val rectangle: RoundRectangle2D.Float,
-  @SwingCoordinate private val color: Color
-) : DrawCommandBase() {
+class FillShape(@VisibleForTesting @SwingCoordinate val shape: AnimatedValue<Shape>,
+                @VisibleForTesting val color: Color,
+                level: Int = 0) : DrawCommandBase(level) {
+  constructor(shape: Shape, color: Color, level: Int = 0) : this(ConstantValue<Shape>(shape), color, level)
 
-  private constructor(sp: Array<String>)
-    : this(sp[0].toInt(), stringToRoundRect2D(sp[1]), stringToColor(sp[2]))
-
-  constructor(s: String) : this(parse(s, 3))
-
-  override fun getLevel(): Int = level
-
-  override fun serialize(): String = buildString(javaClass.simpleName, level, roundRect2DToString(rectangle), colorToString(color))
+  override fun serialize() = ""
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
-    g.color = color
     g.setRenderingHints(HQ_RENDERING_HINTS)
-    g.fill(rectangle)
+    g.color = color
+
+    val time = sceneContext.time
+    g.fill(shape.getValue(time))
+
+    if (!shape.isComplete(time)) {
+      sceneContext.repaint()
+    }
   }
 }

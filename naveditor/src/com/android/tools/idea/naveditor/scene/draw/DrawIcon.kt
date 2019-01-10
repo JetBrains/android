@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
+import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorOrNullToString
 import com.android.tools.idea.common.scene.draw.parse
@@ -27,7 +28,6 @@ import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColorOrNull
 import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.common.util.iconToImage
-import com.android.tools.idea.naveditor.scene.setRenderingHints
 import icons.StudioIcons.NavEditor.Surface.DEEPLINK
 import icons.StudioIcons.NavEditor.Surface.POP_ACTION
 import icons.StudioIcons.NavEditor.Surface.START_DESTINATION
@@ -75,7 +75,7 @@ data class DrawIcon(@SwingCoordinate private val rectangle: Rectangle2D.Float,
   }
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
-    setRenderingHints(g)
+    g.setRenderingHints(HQ_RENDERING_HINTS)
     g.drawImage(image, rectangle.x.toInt(), rectangle.y.toInt(), null)
   }
 }
