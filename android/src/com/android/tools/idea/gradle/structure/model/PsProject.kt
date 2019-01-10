@@ -33,6 +33,8 @@ interface PsProject : PsModel {
   val modules: PsModelCollection<PsModule>
   val modelCount: Int
   var androidGradlePluginVersion: ParsedValue<String>
+  var gradleVersion: ParsedValue<String>
+
   fun getBuildScriptArtifactRepositories(): Collection<ArtifactRepository>
 
   fun findModuleByName(moduleName: String): PsModule?
@@ -44,4 +46,6 @@ interface PsProject : PsModel {
 
   fun onModuleChanged(disposable: Disposable, handler: (PsModule) -> Unit)
 
+  fun getGradleVersionValue(notApplied: Boolean): String?
+  fun setGradleVersionValue(value: String)
 }
