@@ -17,8 +17,8 @@ package com.android.tools.idea.res;
 
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
+import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
-import com.android.tools.idea.res.aar.ProtoXmlPullParser;
 import com.android.utils.XmlUtils;
 import com.google.common.io.ByteStreams;
 import com.intellij.openapi.vfs.VirtualFile;
