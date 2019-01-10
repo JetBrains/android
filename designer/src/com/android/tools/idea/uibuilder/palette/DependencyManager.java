@@ -129,7 +129,7 @@ public class DependencyManager implements Disposable {
   private boolean checkForNewMissingDependencies() {
     Set<String> missing = Collections.emptySet();
 
-    if (myModule != null && !myModule.isDisposed()) {
+    if (myModule != null && !myModule.isDisposed() && !myProject.isDisposed()) {
       AndroidModuleSystem moduleSystem = ProjectSystemService.getInstance(myProject).getProjectSystem().getModuleSystem(myModule);
       missing = myPalette.getGradleCoordinateIds().stream()
         .map(id -> GradleCoordinate.parseCoordinateString(id + ":+"))
