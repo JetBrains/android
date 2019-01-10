@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommandBase
@@ -24,6 +23,7 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.point2DToString
 import com.android.tools.idea.common.scene.draw.stringToPoint2D
 import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import java.awt.BasicStroke
 import java.awt.Graphics2D
@@ -33,7 +33,7 @@ import java.awt.geom.Point2D
 
 val LINE_TO_MOUSE_STROKE: Stroke = BasicStroke(JBUI.scale(3.0f))
 
-data class DrawLineToMouse(@SwingCoordinate private val center: Point2D.Float) : DrawCommandBase() {
+data class DrawLineToMouse(@VisibleForTesting @SwingCoordinate val center: Point2D.Float) : DrawCommandBase() {
   private constructor(tokens: Array<String>) : this(stringToPoint2D(tokens[0]))
 
   @VisibleForTesting
