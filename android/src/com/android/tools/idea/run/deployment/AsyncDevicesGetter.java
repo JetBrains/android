@@ -19,10 +19,11 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
 import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -68,10 +69,8 @@ class AsyncDevicesGetter {
   }
 
   @NotNull
-  List<Device> get(@NotNull Module module) {
-    Project project = module.getProject();
-
-    initChecker(module);
+  List<Device> get(@NotNull Project project) {
+    initChecker(project);
     initService(project);
 
     assert myService != null;
@@ -103,7 +102,28 @@ class AsyncDevicesGetter {
     return devices;
   }
 
-  private void initChecker(@NotNull Module module) {
+  private void initChecker(@NotNull Project project) {
+    RunnerAndConfigurationSettings configurationAndSettings = RunManager.getInstance(project).getSelectedConfiguration();
+
+    if (configurationAndSettings == null) {
+      myChecker = null;
+      return;
+    }
+
+    Object configuration = configurationAndSettings.getConfiguration();
+
+    if (!(configuration instanceof ModuleBasedConfiguration)) {
+      myChecker = null;
+      return;
+    }
+
+    Module module = ((ModuleBasedConfiguration)configuration).getConfigurationModule().getModule();
+
+    if (module == null) {
+      myChecker = null;
+      return;
+    }
+
     AndroidFacet facet = AndroidFacet.getInstance(module);
 
     if (facet == null) {
@@ -111,14 +131,7 @@ class AsyncDevicesGetter {
       return;
     }
 
-    Object configuration = RunManager.getInstance(module.getProject()).getSelectedConfiguration();
-
-    if (!(configuration instanceof AndroidRunConfigurationBase)) {
-      myChecker = LaunchCompatibilityCheckerImpl.create(facet, null, null);
-      return;
-    }
-
-    myChecker = LaunchCompatibilityCheckerImpl.create(facet, null, (AndroidRunConfigurationBase)configuration);
+    myChecker = LaunchCompatibilityCheckerImpl.create(facet, null, null);
   }
 
   private void initService(@NotNull Project project) {
