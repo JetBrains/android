@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector
+package com.android.tools.idea.layoutinspector.properties
 
-import com.android.tools.idea.layoutinspector.ui.InspectorPanel
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowFactory
+import com.android.tools.adtui.workbench.AutoHide
+import com.android.tools.adtui.workbench.Side
+import com.android.tools.adtui.workbench.Split
+import com.android.tools.adtui.workbench.ToolWindowDefinition
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.intellij.icons.AllIcons
 
-class LayoutInspectorToolWindowFactory : ToolWindowFactory {
-  val TOOL_WINDOW_ID = "Layout Inspector"
-
-  override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val contentManager = toolWindow.contentManager
-    contentManager.addContent(contentManager.factory.createContent(InspectorPanel(project), "", true))
-  }
+class LayoutInspectorPropertiesPanelDefinition : ToolWindowDefinition<LayoutInspector>(
+  "Properties", AllIcons.Toolwindows.ToolWindowStructure, "PROPERTIES", Side.RIGHT, Split.TOP, AutoHide.DOCKED,
+  { LayoutInspectorPropertiesPanel() }
+) {
 }
