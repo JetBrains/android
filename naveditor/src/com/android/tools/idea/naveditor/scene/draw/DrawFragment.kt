@@ -19,8 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
-import com.android.tools.idea.common.scene.draw.DrawRectangle
-import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
+import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorOrNullToString
 import com.android.tools.idea.common.scene.draw.parse
@@ -31,8 +30,8 @@ import com.android.tools.idea.naveditor.scene.FRAGMENT_BORDER_SPACING
 import com.android.tools.idea.naveditor.scene.NavColors
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.createDrawImageCommand
-import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_FRAME_THICKNESS
-import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_THICKNESS
+import com.android.tools.idea.naveditor.scene.decorator.HIGHLIGHTED_FRAME_STROKE
+import com.android.tools.idea.naveditor.scene.decorator.REGULAR_FRAME_STROKE
 import com.android.tools.idea.naveditor.scene.growRectangle
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
@@ -52,7 +51,7 @@ class DrawFragment(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2
 
   override fun buildCommands(): List<DrawCommand> {
     val list = mutableListOf<DrawCommand>()
-    list.add(DrawRectangle(0, rectangle, NavColors.FRAME, REGULAR_FRAME_THICKNESS))
+    list.add(DrawShape(rectangle, NavColors.FRAME, REGULAR_FRAME_STROKE))
 
     @SwingCoordinate val imageRectangle = Rectangle2D.Float()
     imageRectangle.setRect(rectangle)
@@ -67,7 +66,7 @@ class DrawFragment(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2
 
       growRectangle(roundRectangle, 2 * spacing, 2 * spacing)
 
-      list.add(DrawRoundRectangle(2, roundRectangle, highlightColor, HIGHLIGHTED_FRAME_THICKNESS))
+      list.add(DrawShape(roundRectangle, highlightColor, HIGHLIGHTED_FRAME_STROKE))
     }
 
     return list

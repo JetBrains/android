@@ -20,7 +20,7 @@ import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getArrowP
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getCurvePoints;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getDestinationDirection;
 import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getRegularActionIconRect;
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
+import static com.android.tools.idea.uibuilder.surface.ScreenViewLayer.HQ_RENDERING_HINTS;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -31,11 +31,9 @@ import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.DrawCommandBase;
 import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.scene.ConnectionDirection;
 import com.android.tools.idea.naveditor.scene.CurvePoints;
 import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.GeneralPath;
@@ -66,7 +64,7 @@ public class DrawAction extends DrawCommandBase {
 
   @Override
   protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
-    setRenderingHints(g);
+    g.setRenderingHints(HQ_RENDERING_HINTS);
     draw(g, myColor, mySource, myDest, sceneContext);
   }
 

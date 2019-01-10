@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.common.scene
 
-class LerpInt : LerpValue<Int> {
-  constructor(start: Int, end: Int, duration: Int) : super(start, end, duration)
-  constructor(value: Int) : super(value)
-
-  override fun interpolate(fraction: Float): Int {
-    return start + ((end - start) * fraction).toInt()
-  }
+abstract class AnimatedValue<out T> {
+  abstract fun isComplete(time: Long): Boolean
+  abstract fun getValue(time: Long): T
 }

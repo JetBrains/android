@@ -16,7 +16,7 @@ package com.android.tools.idea.common.scene
 /**
  * [LerpValue] Represents a linear interpolation between two values.
  */
-abstract class LerpValue<T>(val start: T, val end: T, val duration: Int) {
+abstract class LerpValue<T>(val start: T, val end: T, val duration: Int) : AnimatedValue<T>() {
   private var startTime = -1L
 
   constructor(value: T) : this(value, value, 0)
@@ -25,7 +25,7 @@ abstract class LerpValue<T>(val start: T, val end: T, val duration: Int) {
    * Gets the interpolated value at the specified time. The start
    * time is measured from the first time getValue is called.
    */
-  fun getValue(time: Long): T {
+  override fun getValue(time: Long): T {
     if (startTime == -1L) {
       startTime = time
     }
@@ -37,12 +37,7 @@ abstract class LerpValue<T>(val start: T, val end: T, val duration: Int) {
     }
   }
 
-  fun isComplete(time: Long) = time >= startTime + duration
+  override fun isComplete(time: Long) = time >= startTime + duration
 
-  abstract fun interpolate(fraction: Float): T
-
-  override fun equals(other: Any?): Boolean {
-    val otherLerp = other as? LerpValue<T> ?: return false
-    return start == otherLerp.start && end == otherLerp.end && duration == otherLerp.duration
-  }
+  protected abstract fun interpolate(fraction: Float): T
 }

@@ -21,7 +21,7 @@ import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawArrow
 import com.android.tools.idea.common.scene.draw.DrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
-import com.android.tools.idea.common.scene.draw.DrawLine
+import com.android.tools.idea.common.scene.draw.DrawShape
 import com.android.tools.idea.common.scene.draw.buildString
 import com.android.tools.idea.common.scene.draw.colorToString
 import com.android.tools.idea.common.scene.draw.parse
@@ -33,7 +33,7 @@ import com.android.tools.idea.naveditor.scene.NavSceneManager.ACTION_ARROW_PARAL
 import com.android.tools.idea.naveditor.scene.NavSceneManager.ACTION_ARROW_PERPENDICULAR
 import com.android.tools.idea.naveditor.scene.getHorizontalActionIconRect
 import java.awt.Color
-import java.awt.geom.Point2D
+import java.awt.geom.Line2D
 import java.awt.geom.Rectangle2D
 
 data class DrawHorizontalAction(@SwingCoordinate private val rectangle: Rectangle2D.Float,
@@ -52,11 +52,13 @@ data class DrawHorizontalAction(@SwingCoordinate private val rectangle: Rectangl
     val arrowWidth = ACTION_ARROW_PARALLEL * scale
     val lineLength = Math.max(0f, rectangle.width - arrowWidth)
 
-    val p1 = Point2D.Float(rectangle.x, rectangle.centerY.toFloat())
-    val p2 = Point2D.Float(p1.x + lineLength, p1.y)
-    val drawLine = DrawLine(0, p1, p2, color, ACTION_STROKE)
+    val x1 = rectangle.x
+    val x2 = x1 + lineLength
+    val y = rectangle.centerY.toFloat()
 
-    val arrowRect = Rectangle2D.Float(p2.x, rectangle.y, arrowWidth, rectangle.height)
+    val drawLine = DrawShape(Line2D.Float(x1, y, x2, y), color, ACTION_STROKE)
+
+    val arrowRect = Rectangle2D.Float(x2, rectangle.y, arrowWidth, rectangle.height)
     val drawArrow = DrawArrow(1, ArrowDirection.RIGHT, arrowRect, color)
 
     val list = mutableListOf(drawLine, drawArrow)

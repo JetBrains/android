@@ -16,37 +16,33 @@
 package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.scene.AnimatedValue
+import com.android.tools.idea.common.scene.ConstantValue
 import com.android.tools.idea.common.scene.SceneContext
-import java.awt.BasicStroke
+import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Graphics2D
-import java.awt.geom.RoundRectangle2D
+import java.awt.Shape
+import java.awt.Stroke
 
-data class DrawRoundRectangle(
-  private val level: Int,
-  @SwingCoordinate private val rectangle: RoundRectangle2D.Float,
-  @SwingCoordinate private val color: Color,
-  @SwingCoordinate private val brushThickness: Float
-) : DrawCommandBase() {
+class DrawShape(@VisibleForTesting @SwingCoordinate val shape: AnimatedValue<Shape>,
+                @VisibleForTesting val color: Color,
+                @VisibleForTesting val stroke: Stroke,
+                level: Int = 0) : DrawCommandBase(level) {
+  constructor(shape: Shape, color: Color, stroke: Stroke, level: Int = 0) : this(ConstantValue<Shape>(shape), color, stroke, level)
 
-  private constructor(sp: Array<String>) : this(
-    sp[0].toInt(), stringToRoundRect2D(sp[1]),
-    stringToColor(sp[2]), sp[3].toFloat()
-  )
-
-  constructor(s: String) : this(parse(s, 4))
-
-  override fun getLevel(): Int = level
-
-  override fun serialize(): String = buildString(
-    javaClass.simpleName, level, roundRect2DToString(rectangle),
-    colorToString(color), brushThickness
-  )
+  override fun serialize() = ""
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)
     g.color = color
-    g.stroke = BasicStroke(brushThickness)
-    g.draw(rectangle)
+    g.stroke = stroke
+
+    val time = sceneContext.time
+    g.draw(shape.getValue(time))
+
+    if (!shape.isComplete(time)) {
+      sceneContext.repaint()
+    }
   }
 }
