@@ -44,10 +44,10 @@ import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.res.aar.AarResourceItem
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
+import com.android.tools.idea.resources.aar.AarResourceItem
 import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
 import com.android.tools.idea.uibuilder.property2.support.EmptyBrowseActionIconButton
 import com.android.tools.idea.uibuilder.property2.support.HelpActions

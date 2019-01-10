@@ -9,6 +9,7 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
@@ -81,7 +82,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     public final long timestamp;
     public final long length;
 
-    public ClassModificationTimestamp(long timestamp, long length) {
+    ClassModificationTimestamp(long timestamp, long length) {
       this.timestamp = timestamp;
       this.length = length;
     }
@@ -382,7 +383,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     PathString manifestFile = library.getManifestFile();
     if (manifestFile != null) {
       try {
-        return AndroidManifestUtils.getPackageNameFromManifestFile(manifestFile);
+        return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifestFile);
       }
       catch (IOException ignore) {
         // Ignore to return null.
