@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
 import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
 import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
@@ -28,9 +28,9 @@ import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.model.NavCoordinate
-import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.regularFont
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import java.awt.Color
 import java.awt.Font
@@ -47,15 +47,13 @@ data class DrawNestedGraph(private val rectangle: Rectangle2D.Float,
                            private val frameColor: Color,
                            private val frameThickness: Float,
                            private val text: String,
-                           private val textColor: Color) : CompositeDrawCommand() {
+                           private val textColor: Color) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 6))
 
   private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), tokens[1].toFloat(),
                                                     stringToColor(tokens[2]), tokens[3].toFloat(),
                                                     tokens[4], stringToColor(tokens[5]))
-
-  override fun getLevel() = DRAW_FRAME_LEVEL
 
   override fun serialize() = buildString(javaClass.simpleName, rect2DToString(rectangle), scale, colorToString(frameColor),
                                          frameThickness.toString(), text, colorToString(textColor))

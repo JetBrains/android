@@ -24,7 +24,6 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.model.NavCoordinate
-import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_BACKGROUND
 import com.android.tools.idea.naveditor.scene.NavColors.PLACEHOLDER_TEXT
 import com.android.tools.idea.naveditor.scene.RefinableImage
@@ -55,10 +54,6 @@ class DrawNavScreen(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle
   private constructor(tokens: Array<String>) : this(stringToRect2D(tokens[0]), RefinableImage())
 
   constructor(serialized: String) : this(parse(serialized, 1))
-
-  override fun getLevel(): Int {
-    return DRAW_NAV_SCREEN_LEVEL
-  }
 
   override fun serialize(): String {
     return buildString(javaClass.simpleName, rect2DToString(rectangle))

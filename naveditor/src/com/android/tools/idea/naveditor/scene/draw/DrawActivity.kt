@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.draw.CompositeDrawCommand
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawCommand.COMPONENT_LEVEL
 import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
 import com.android.tools.idea.common.scene.draw.DrawRectangle
 import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
@@ -29,7 +30,6 @@ import com.android.tools.idea.common.scene.draw.rect2DToString
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.common.scene.draw.stringToRect2D
 import com.android.tools.idea.naveditor.model.NavCoordinate
-import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColors.ACTIVITY_BORDER
 import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.RefinableImage
@@ -54,7 +54,7 @@ class DrawActivity(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2
                    @VisibleForTesting val frameColor: Color,
                    @VisibleForTesting val frameThickness: Float,
                    @VisibleForTesting val textColor: Color,
-                   @VisibleForTesting val image: RefinableImage? = null) : CompositeDrawCommand() {
+                   @VisibleForTesting val image: RefinableImage? = null) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 6))
 
@@ -62,12 +62,9 @@ class DrawActivity(@VisibleForTesting @SwingCoordinate val rectangle: Rectangle2
                                                     tokens[2].toFloat(), stringToColor(tokens[3]),
                                                     tokens[4].toFloat(), stringToColor(tokens[5]))
 
-  override fun getLevel() = DRAW_FRAME_LEVEL
-
   override fun serialize() = buildString(javaClass.simpleName, rect2DToString(rectangle),
                                          rect2DToString(imageRectangle), scale,
-                                         colorToString(frameColor), frameThickness,
-                                         colorToString(textColor))
+                                         colorToString(frameColor), frameThickness, colorToString(textColor))
 
   override fun buildCommands(): List<DrawCommand> {
     val list = mutableListOf<DrawCommand>()
