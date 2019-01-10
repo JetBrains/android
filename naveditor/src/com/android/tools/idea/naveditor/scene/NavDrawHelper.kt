@@ -34,17 +34,6 @@ import java.awt.geom.RoundRectangle2D
 const val DEFAULT_FONT_NAME = "Default"
 private val DEFAULT_FONT_SIZE = JBUI.scale(12)
 
-const val DRAW_BACKGROUND_LEVEL = 0
-const val DRAW_FRAME_LEVEL = DRAW_BACKGROUND_LEVEL + 1
-const val DRAW_ACTION_LEVEL = DRAW_FRAME_LEVEL + 1
-const val DRAW_SCREEN_LABEL_LEVEL = DRAW_ACTION_LEVEL + 1
-const val DRAW_ICON_LEVEL = DRAW_SCREEN_LABEL_LEVEL + 1
-const val DRAW_NAV_SCREEN_LEVEL = DRAW_ICON_LEVEL + 1
-const val DRAW_ACTIVITY_BORDER_LEVEL = DRAW_ICON_LEVEL + 1
-const val DRAW_ACTION_HANDLE_BACKGROUND_LEVEL = DRAW_ACTIVITY_BORDER_LEVEL + 1
-const val DRAW_ACTION_HANDLE_LEVEL = DRAW_ACTION_HANDLE_BACKGROUND_LEVEL + 1
-const val DRAW_ACTION_HANDLE_DRAG_LEVEL = DRAW_ACTION_HANDLE_LEVEL + 1
-
 @JvmField
 @NavCoordinate
 val INNER_RADIUS_SMALL = JBUI.scale(5f)
@@ -115,7 +104,7 @@ fun growRectangle(rectangle: RoundRectangle2D.Float, growX: Float, growY: Float)
 
 fun createDrawImageCommand(rectangle: Rectangle2D.Float, image: RefinableImage?): DrawCommand {
   return if (image == null) {
-    DrawPlaceholder(DRAW_NAV_SCREEN_LEVEL, rectangle)
+    DrawPlaceholder(rectangle)
   }
   else {
     DrawNavScreen(rectangle, image)

@@ -22,21 +22,12 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.model.uiName
-import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
 import com.android.tools.idea.naveditor.scene.HEADER_HEIGHT
-import com.android.tools.idea.naveditor.scene.HEADER_ICON_SIZE
-import com.android.tools.idea.naveditor.scene.HEADER_TEXT_HEIGHT
-import com.android.tools.idea.naveditor.scene.HEADER_TEXT_PADDING
-import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.draw.DrawHeader
-import com.android.tools.idea.naveditor.scene.draw.DrawIcon
-import com.android.tools.idea.naveditor.scene.scaledFont
-import java.awt.Font
 import java.awt.geom.Rectangle2D
 
 /**
