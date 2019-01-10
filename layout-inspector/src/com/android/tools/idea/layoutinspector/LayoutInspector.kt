@@ -20,6 +20,7 @@ import kotlin.properties.Delegates
 
 class LayoutInspector(layoutInspectorModel: InspectorModel) {
   val modelChangeListeners = mutableListOf<(InspectorModel, InspectorModel) -> Unit>()
+
   var layoutInspectorModel: InspectorModel by Delegates.observable(layoutInspectorModel) { _, old, new ->
     modelChangeListeners.forEach { it(old, new) }
   }

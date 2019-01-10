@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
+import kotlin.properties.Delegates
+
 class InspectorModel(var root: InspectorView) {
-  var selection: InspectorView? = null
+  val selectionListeners = mutableListOf<(InspectorView?, InspectorView?) -> Unit>()
+
+  var selection: InspectorView? by Delegates.observable(null as InspectorView?) { _, old, new ->
+    selectionListeners.forEach { it(old, new) }
+  }
 }
