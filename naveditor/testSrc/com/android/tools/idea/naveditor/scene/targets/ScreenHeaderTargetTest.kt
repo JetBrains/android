@@ -21,6 +21,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.scene.draw.DrawHeader
 import com.android.tools.idea.naveditor.scene.draw.DrawIcon
 
 class ScreenHeaderTargetTest : NavTestCase() {
@@ -78,6 +79,7 @@ class ScreenHeaderTargetTest : NavTestCase() {
   }
 
   private fun checkDrawIcon(displayList: DisplayList, iconType: DrawIcon.IconType, expected: Boolean) {
-    assertEquals(if (expected) 1 else 0, displayList.commands.filterIsInstance<DrawIcon>().count { it.iconType == iconType })
+    val drawHeader = displayList.commands[0] as DrawHeader
+    assertEquals(if (expected) 1 else 0, drawHeader.commands.filterIsInstance<DrawIcon>().count { it.iconType == iconType })
   }
 }
