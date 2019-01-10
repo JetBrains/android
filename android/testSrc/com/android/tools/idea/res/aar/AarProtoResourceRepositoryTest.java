@@ -486,7 +486,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     switch (value1.getResourceType()) {
       case COLOR:
       case DRAWABLE:
-        if (v1.startsWith("#") && v2.startsWith("#") && v1.equalsIgnoreCase(v2)) {
+        if (v1.startsWith("#") && v1.equalsIgnoreCase(v2)) {
           return true; // Hexadecimal representations of the same color may differ by case.
         }
         break;
@@ -584,7 +584,7 @@ public class AarProtoResourceRepositoryTest extends AndroidTestCase {
     if (normalizeNumericValue(v1).equals(normalizeNumericValue(v2))) {
       return true;
     }
-    if (v1.startsWith("#") && v1.startsWith("#") && v1.equalsIgnoreCase(v2)) {
+    if (v1.startsWith("#") && v1.equalsIgnoreCase(v2)) {
       return true;
     }
     return areEquivalentStrings(v1, v2);
