@@ -95,6 +95,7 @@ public class TemplateManager {
   private final Object CATEGORY_TABLE_LOCK = new Object();
 
   /** Table mapping (Category, Template Name) -> Template File */
+  @GuardedBy("CATEGORY_TABLE_LOCK")
   private Table<String, String, File> myCategoryTable;
 
   /**
@@ -728,14 +729,7 @@ public class TemplateManager {
     try {
       File templateFile = new File(templateRoot, TEMPLATE_XML_NAME);
       if (templateFile.isFile()) {
-        String xml = Files.toString(templateFile, Charsets.UTF_8);
-        Document doc;
-        if (userDefinedTemplate) {
-          doc = XmlUtils.parseDocument(xml, true);
-        }
-        else {
-          doc = XmlUtils.parseDocumentSilently(xml, true);
-        }
+        Document doc = XmlUtils.parseUtfXmlFile(templateFile, true);
         if (doc != null && doc.getDocumentElement() != null) {
           TemplateMetadata metadata = new TemplateMetadata(doc);
           myTemplateMap.put(templateRoot, metadata);
@@ -744,7 +738,9 @@ public class TemplateManager {
       }
     }
     catch (Exception e) {
-      LOG.warn(e);
+      if (userDefinedTemplate) {
+        LOG.warn(e);
+      }
     }
 
     return null;
