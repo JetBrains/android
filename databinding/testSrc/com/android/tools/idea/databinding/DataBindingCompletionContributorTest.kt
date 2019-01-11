@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding
 
 import com.android.SdkConstants
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.facet.FacetManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
@@ -365,5 +366,122 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
             android:onClick="@{member::d}"/>
       </layout>
     """.trimIndent())
+  }
+
+  @Test
+  fun testDataBindingCompletion_repeatedInvocationsIncludeAllSuggestions() {
+    fixture.addClass("""
+      package p1.p2;
+
+      import android.view.View;
+
+      public class ModelWithBindableMethodsJava {
+        public static void doSomethingStatic(View view) {}
+        private static void doPrivateStatic(View view) {}
+        private void doPrivate(View view) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <variable name="member" type="ModelWithBindableMethodsJava" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{member::d<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.complete(CompletionType.BASIC, 2)
+    fixture.assertPreferredCompletionItems(0, "doPrivate",  "doPrivateStatic", "doSomethingStatic")
+  }
+
+  @Test
+  fun testDataBindingCompletion_testListenerBindingExpression() {
+    fixture.addClass("""
+      package p1.p2;
+
+      import android.view.View;
+
+      public class ModelWithBindableMethodsJava {
+        public void doSomething(View view) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <variable name="member" type="ModelWithBindableMethodsJava" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{() -> member.d<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.completeBasic()
+
+    fixture.checkResult("""
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <variable name="member" type="ModelWithBindableMethodsJava" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{() -> member.doSomething()}"/>
+      </layout>
+    """.trimIndent())
+  }
+
+  @Test
+  fun testDataBindingCompletion_multipleLookupItems() {
+    fixture.addClass("""
+      package p1.p2;
+
+      import android.view.View;
+
+      public class ModelWithBindableMethodsJava {
+        public static void function_a(View view) {}
+        public static void function_b(View view) {}
+      }
+    """.trimIndent())
+
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <variable name="member" type="ModelWithBindableMethodsJava" />
+        </data>
+        <TextView
+            android:id="@+id/c_0_0"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:onClick="@{() -> member.fu<caret>}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.complete(CompletionType.BASIC, 2)
+    fixture.assertPreferredCompletionItems(0, "function_a()", "function_b()")
   }
 }
