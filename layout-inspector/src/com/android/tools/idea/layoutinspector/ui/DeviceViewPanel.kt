@@ -29,7 +29,11 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Rectangle
 import java.awt.RenderingHints
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.util.LinkedList
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
@@ -54,6 +58,13 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
   )
 
   private var angle = 0.0
+  private val hitRects = ArrayList<Pair<Rectangle, InspectorView>>()
+
+  private val mouseListener = object: MouseAdapter() {
+    override fun mouseClicked(e: MouseEvent) {
+      layoutInspector.layoutInspectorModel.selection = hitRects.findLast { it.first.contains((e.x - 20) * 2, (e.y - 20) * 2) }?.second
+    }
+  }
 
   init {
     layoutInspector.modelChangeListeners.add(this::modelChanged)
@@ -61,6 +72,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
 
     addMouseWheelListener { e ->
       angle += e.preciseWheelRotation * 0.01
+      rebuildRects()
       repaint()
     }
 
@@ -82,29 +94,50 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
     topPanel.add(sampleDataSelector, BorderLayout.WEST)
     topPanel.add(showBordersCheckBox, BorderLayout.CENTER)
     add(topPanel, BorderLayout.NORTH)
-    add(object: JPanel() {
+    val panel = object : JPanel() {
       override fun paint(g: Graphics) {
         (g as? Graphics2D)?.setRenderingHints(HQ_RENDERING_HINTS)
         g.color = Color.LIGHT_GRAY
         g.fillRect(0, 0, width, height)
-        (g as? Graphics2D)?.translate(20, 0)
+        (g as? Graphics2D)?.translate(20, 20)
         (g as? Graphics2D)?.scale(.5, .5)
         draw(layoutInspector.layoutInspectorModel.root, g, 0)
       }
-    }, BorderLayout.CENTER)
+    }
+    add(panel, BorderLayout.CENTER)
+    panel.addMouseListener(mouseListener)
+    rebuildRects()
+  }
+
+  private fun rebuildRects() {
+    hitRects.clear()
+    val queue = LinkedList<Pair<InspectorView, Int>>()
+    queue.add(layoutInspector.layoutInspectorModel.root to 0)
+    while (!queue.isEmpty()) {
+      val item = queue.remove()
+      val view = item.first
+      val rect = Rectangle(((view.x * cos(angle)) + (sin(angle) * item.second) * LAYER_SPACING).toInt(),
+                           (view.y + (sin(angle * 0.1) * item.second * LAYER_SPACING)).toInt(),
+                           (view.width * cos(angle)).toInt(), view.height)
+      hitRects.add(rect to view)
+      queue.addAll(view.children.map { it to item.second + 1 })
+    }
   }
 
   private fun draw(view: InspectorView, g: Graphics, depth: Int) {
     val g2 = g.create() as Graphics2D
     val bufferedImage = view.image
 
-    g2.translate((sin(angle) * depth * LAYER_SPACING).toInt(), 0)
+    g2.translate((sin(angle) * depth * LAYER_SPACING).toInt(), (sin(angle * 0.1) * depth * LAYER_SPACING).toInt())
     g2.scale(cos(angle), 1.0)
     if (bufferedImage != null) {
       g2.drawImage(bufferedImage, view.x, view.y, null)
     }
     if (showBordersCheckBox.isSelected) {
       if (view == layoutInspector.layoutInspectorModel.selection) {
+        g2.color = Color.BLACK
+        g2.font = g2.font.deriveFont(20f)
+        g2.drawString(view.type, view.x + 5, view.y + 25)
         g2.color = Color.RED
         g2.stroke = BasicStroke(3f)
       }
@@ -113,9 +146,6 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
         g2.stroke = BasicStroke(1f)
       }
       g2.drawRect(view.x, view.y, view.width, view.height)
-      g2.color = Color.BLACK
-      g2.font = g2.font.deriveFont(20f)
-      g2.drawString(view.type, view.x + 5, view.y + 25)
     }
     view.children.forEach { draw(it, g, depth + 1) }
   }
@@ -123,6 +153,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
   private fun modelChanged(old: InspectorModel, new: InspectorModel) {
     old.selectionListeners.remove(this::selectionChanged)
     new.selectionListeners.add(this::selectionChanged)
+    rebuildRects()
     repaint()
   }
 
