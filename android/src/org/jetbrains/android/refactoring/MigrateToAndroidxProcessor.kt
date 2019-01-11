@@ -29,6 +29,7 @@ import com.android.tools.idea.templates.RepositoryUrlManager
 import com.google.common.collect.Range
 import com.google.common.collect.RangeMap
 import com.google.common.collect.TreeRangeMap
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_ANDROIDX
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.CommandProcessor
@@ -280,7 +281,7 @@ open class MigrateToAndroidxProcessor(val project: Project,
 
     if (callSyncAfterMigration && usages.any { it is MigrateToAppCompatUsageInfo.GradleUsageInfo }) {
       // If we modified gradle entries, request sync.
-      syncBeforeFinishingRefactoring(myProject)
+      syncBeforeFinishingRefactoring(myProject, TRIGGER_REFACTOR_MIGRATE_TO_ANDROIDX)
     }
   }
 

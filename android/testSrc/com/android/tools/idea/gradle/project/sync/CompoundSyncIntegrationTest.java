@@ -91,7 +91,7 @@ public class CompoundSyncIntegrationTest extends SingleVariantSyncIntegrationTes
     assertSourcesNotGenerated("app");
 
     // Invoke sync with source generation
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(getProject(), GradleSyncStats.Trigger.TRIGGER_UNKNOWN);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(getProject(), GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED);
 
     // All required sync phases were run and verified
     assertTrue(syncStarted.get());

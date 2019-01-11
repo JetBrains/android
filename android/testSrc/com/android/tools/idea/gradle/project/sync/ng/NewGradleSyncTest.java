@@ -15,6 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -29,15 +42,10 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import java.io.File;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
-import java.io.File;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link NewGradleSync}.
@@ -77,7 +85,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   }
 
   public void testSyncFromCachedModels() throws Exception {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
 
     Project project = getProject();
@@ -95,7 +103,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   }
 
   public void testFailedSyncFromCachedModels() throws Exception {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
 
     Project project = getProject();
@@ -129,7 +137,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   }
 
   public void testSyncFromCachedModelsWithoutBuildFileChecksums() {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
 
     Project project = getProject();
@@ -149,7 +157,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   }
 
   public void testSyncFromCachedModelsWithoutModelsCache() {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
 
     Project project = getProject();
@@ -169,7 +177,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   }
 
   public void testSyncFromCachedModelsWithoutBuildFileOutdatedChecksums() {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.useCachedGradleModels = true;
 
     Project project = getProject();
@@ -192,7 +200,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
   public void testSyncWithSuccessfulSync() {
     // Simulate successful sync.
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
 
     myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
@@ -207,7 +215,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
   public void testSyncWithFailedSync() {
     // Simulate failed sync.
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
 
     myCallback.setRejected(new Throwable("Test error"));
     when(myCallbackFactory.create()).thenReturn(myCallback);
@@ -221,7 +229,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   }
 
   public void testCreateSyncTaskWithModalExecutionMode() {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.runInBackground = false;
 
     Task task = myGradleSync.createSyncTask(request, null);
@@ -229,7 +237,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
   }
 
   public void testCreateSyncTaskWithBackgroundExecutionMode() {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.runInBackground = true;
 
     Task task = myGradleSync.createSyncTask(request, null);
@@ -238,7 +246,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
   public void testSyncWithVariantOnlySuccessfulSync() {
     // Simulate successful sync.
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.variantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
 
     myCallback.setDone(mock(VariantOnlyProjectModels.class), mock(ExternalSystemTaskId.class));
@@ -254,7 +262,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
 
   public void testSyncWithVariantOnlyFailedSync() {
     // Simulate failed sync.
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.variantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
 
     myCallback.setRejected(new Throwable("Test error"));
@@ -274,7 +282,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
       when(myCallbackFactory.create()).thenReturn(myCallback);
 
       doAnswer(invocation -> {
@@ -303,7 +311,7 @@ public class NewGradleSyncTest extends IdeaTestCase {
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
       request.variantOnlySyncOptions = new VariantOnlySyncOptions(new File(""), "", "", null, true);
       when(myCallbackFactory.create()).thenReturn(myCallback);
 

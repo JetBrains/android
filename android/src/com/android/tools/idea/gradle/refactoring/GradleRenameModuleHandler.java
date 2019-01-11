@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.refactoring;
 
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.parser.GradleSettingsFile.getModuleGradlePath;
+import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MODULE_RENAMED;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -48,18 +54,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.rename.RenameHandler;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.tools.idea.gradle.parser.GradleSettingsFile.getModuleGradlePath;
-import static com.android.tools.idea.gradle.util.GradleProjects.isGradleProjectModule;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Replaces {@link com.intellij.ide.projectView.impl.RenameModuleHandler}. When renaming the module, the class will:
@@ -243,7 +242,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
   }
 
   private static void requestSync(@NotNull Project project) {
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_REFACTOR_MODULE_RENAMED);
   }
 
   private static String getNewPath(@NotNull String oldPath, @NotNull String newName) {

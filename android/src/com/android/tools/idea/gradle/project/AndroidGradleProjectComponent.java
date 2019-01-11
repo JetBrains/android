@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN;
+import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.JpsBuildContext;
@@ -26,6 +31,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.ide.SaveAndSyncHandler;
@@ -39,18 +45,13 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
-import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
 
 public class AndroidGradleProjectComponent implements ProjectComponent {
   @NotNull private final Project myProject;
@@ -166,16 +167,17 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
       }
     }
 
+    GradleSyncStats.Trigger trigger = myGradleProjectInfo.isNewProject() ? TRIGGER_PROJECT_NEW : TRIGGER_PROJECT_REOPEN;
     if (myGradleProjectInfo.isBuildWithGradle()) {
       configureGradleProject();
       if (myAndroidProjectInfo.isLegacyIdeaAndroidProject() || !myGradleProjectInfo.hasGradleFacets()) {
         // Request sync since it was not done when importing
-        myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED);
+        myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, trigger);
         checkSupported = false;
       }
     }
     else if (myIdeInfo.isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
-      myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED);
+      myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, trigger);
       checkSupported = false;
     }
     // Do not check for supported modules if sync was requested, this will be done once sync is successful

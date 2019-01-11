@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.sdk;
 
+import static com.android.tools.idea.gradle.util.GradleProjects.isBuildWithGradle;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_SDK_PATH_CHANGED;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -23,15 +28,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
-
-import static com.android.tools.idea.gradle.util.GradleProjects.isBuildWithGradle;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import org.jetbrains.annotations.NotNull;
 
 public class GradleAndroidSdkEventListener implements IdeSdks.AndroidSdkEventListener {
   private static Logger LOG = Logger.getInstance(GradleAndroidSdkEventListener.class);
@@ -69,7 +68,7 @@ public class GradleAndroidSdkEventListener implements IdeSdks.AndroidSdkEventLis
     }
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_SDK_PATH_CHANGED);
     }
   }
 

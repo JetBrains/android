@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
@@ -31,20 +35,15 @@ import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewBundle;
 import com.intellij.usageView.UsageViewDescriptor;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.BiConsumer;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.BiConsumer;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
   @NotNull private final Collection<Module> myModules;
@@ -137,7 +136,7 @@ public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
     }
 
     if (xmlChanged.get() || buildFileChanged.get()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST);
     }
   }
 
