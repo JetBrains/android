@@ -23,11 +23,13 @@ import com.android.tools.idea.naveditor.scene.TestableThumbnailManager
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_BASIC
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.io.ZipUtil
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import java.io.File
@@ -77,6 +79,7 @@ abstract class NavTestCase : AndroidTestCase() {
 
   override fun tearDown() {
     try {
+      UIUtil.dispatchAllInvocationEvents ()
       Disposer.dispose(myRootDisposable)
       deleteManifest()
     }
