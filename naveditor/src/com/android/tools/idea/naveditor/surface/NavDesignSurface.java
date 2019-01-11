@@ -596,8 +596,8 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  public void zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
-    super.zoom(type, x, y);
+  public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
+    boolean scaled = super.zoom(type, x, y);
 
     if (type == ZoomType.FIT || type == ZoomType.FIT_INTO) {
       // The navigation design surface differs from the other design surfaces in that there are
@@ -610,6 +610,7 @@ public class NavDesignSurface extends DesignSurface {
 
       viewport.setViewPosition(new Point((size.width - bounds.width) / 2, (size.height - bounds.height) / 2));
     }
+    return scaled;
   }
 
   @NotNull
