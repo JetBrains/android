@@ -10,7 +10,7 @@
     <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.platform.debugger" />
-    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="com.android.tools.ddms:ddmlib:26.1.2" level="project" />
     <orderEntry type="library" name="com.android.tools:annotations:26.1.2" level="project" />
