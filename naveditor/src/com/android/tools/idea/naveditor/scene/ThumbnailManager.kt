@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit
 
 private val KEY = Key.create<ThumbnailManager>(ThumbnailManager::class.java.name)
 
-data class RefinableImage(val image: BufferedImage? = null, val refined: CompletableFuture<RefinableImage>? = null) {
+data class RefinableImage(val image: BufferedImage? = null, val refined: CompletableFuture<RefinableImage?>? = null) {
   val lastCompleted
     get() = generateSequence(this) { if (it.refined?.isDone == true) it.refined.get() else null }.last()
 
@@ -61,7 +61,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet)
 
   @GuardedBy("disposalLock")
-  private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<RefinableImage>>()
+  private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<RefinableImage?>>()
 
   @GuardedBy("disposalLock")
   private var myDisposed: Boolean = false
@@ -69,7 +69,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   private val disposalLock = Any()
 
   override fun onDispose() {
-    lateinit var futures: Array<CompletableFuture<RefinableImage>>
+    lateinit var futures: Array<CompletableFuture<RefinableImage?>>
     synchronized(disposalLock) {
       myDisposed = true
       futures = myPendingFutures.values.toTypedArray()
@@ -110,10 +110,10 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     xmlFile: XmlFile,
     configuration: Configuration,
     dimensions: Dimension
-  ): CompletableFuture<RefinableImage> {
+  ): CompletableFuture<RefinableImage?> {
     val file = xmlFile.virtualFile
-    val result = CompletableFuture<RefinableImage>()
-
+    val result = CompletableFuture<RefinableImage?>()
+    // First check to see if we're already disposed/being disposed. If not, register the result as a pending result for the given file.
     synchronized(disposalLock) {
       if (myDisposed) {
         return CompletableFuture.completedFuture(null)
@@ -122,13 +122,13 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
       if (inProgress != null) {
         return inProgress
       }
-      myPendingFutures.put(file, result)
+      myPendingFutures[file] = result
     }
 
-    val fullFuture = getFullImage(configuration, xmlFile)
-
-    fullFuture.thenAccept { full ->
-      try {
+    // This async pipeline will eventually set "result". First get the full-sized image.
+    getFullImage(configuration, xmlFile)
+      // Scale the image to the desired size
+      .thenApply { full ->
         if (full == null) {
           RefinableImage()
         }
@@ -136,10 +136,10 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
           synchronized(disposalLock) {
             // We might have been disposed while waiting to run
             if (myDisposed) {
-              result.complete(null)
-              return@thenAccept
+              return@thenApply null
             }
           }
+          // This does the high-quality scaling asynchronously
           val scaledFuture = scaleImage(full, dimensions).thenApply { scaled ->
             val dimensionMap: MutableMap<Dimension, SoftReference<BufferedImage>?> =
               myScaledImages[xmlFile.virtualFile, configuration]
@@ -148,26 +148,32 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
               }
             dimensionMap[dimensions] = SoftReference(scaled)
             scaled
-          }
-          result.complete(RefinableImage(previewScaleImage(full, dimensions), scaledFuture.thenApply { RefinableImage(it) }))
+          }.thenApply { RefinableImage(it) }
+          // This stage of the top-level async pipeline returns a quickly-scaled version of the fullsize image, and the future for the high-
+          // quality scaled version.
+          return@thenApply RefinableImage(previewScaleImage(full, dimensions), scaledFuture)
         }
       }
-      catch (t: Throwable) {
-        result.completeExceptionally(t)
-      }
-      finally {
+      // Now we have to handle the result. Either complete the originally-returned "result" future normally or exceptionally.
+      .handle { image, exception ->
+        if (exception != null) {
+          result.completeExceptionally(exception)
+        }
+        else {
+          result.complete(image)
+        }
         synchronized(disposalLock) {
           myPendingFutures.remove(file)
         }
       }
-    }
+
     return result
   }
 
   private fun getFullImage(
     configuration: Configuration,
     xmlFile: XmlFile
-  ) : CompletableFuture<BufferedImage?> {
+  ): CompletableFuture<BufferedImage?> {
     val file = xmlFile.virtualFile
     val fullSize = myImages[file, configuration]?.get()
     return if (fullSize != null &&
