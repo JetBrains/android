@@ -61,92 +61,49 @@ public class DataBindingCompletionContributor extends CompletionContributor {
       protected void addCompletions(@NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
-        PsiElement position = parameters.getOriginalPosition();
         // During first invocation, only suggest valid options. During subsequent invocations, also suggest invalid options
         // such as private members or instance methods on class objects.
-        boolean fullCompletion = parameters.getInvocationCount() > 1;
+        boolean onlyValidCompletions = parameters.getInvocationCount() <= 1;
+
+        PsiElement position = parameters.getOriginalPosition();
         if (position == null) {
           position = parameters.getPosition();
         }
+
         PsiElement parent = position.getParent();
-        PsiReference[] references = parent.getReferences();
-        boolean usingGrandparent = false;
-        if (references.length == 0) {
+        if (parent.getReferences().length == 0) {
           // try to replace parent
           PsiElement grandParent = parent.getParent();
+          PsiDbExpr ownerExpr;
           if (grandParent instanceof PsiDbCallExpr) {
-            ((PsiDbCallExpr)grandParent).getRefExpr();
+            // TODO(b/122895499): add tests for this branch
+            ownerExpr = ((PsiDbCallExpr)grandParent).getRefExpr();
+            result.addAllElements(populateFieldReferenceCompletions(ownerExpr, onlyValidCompletions));
+            result.addAllElements(populateMethodReferenceCompletions(ownerExpr, onlyValidCompletions));
           }
-
-          if (grandParent instanceof PsiDbRefExpr) {
-            PsiDbExpr ownerExpr = ((PsiDbRefExpr)grandParent).getExpr();
+          else if (grandParent instanceof PsiDbRefExpr) {
+            ownerExpr = ((PsiDbRefExpr)grandParent).getExpr();
             if (ownerExpr == null) {
               autoCompleteVariablesAndUnqualifiedFunctions(getFile(grandParent), result);
               return;
             }
-            parent = ownerExpr;
-          } else {
-            if (grandParent instanceof DbFile) {
-              autoCompleteVariablesAndUnqualifiedFunctions((DbFile)grandParent, result);
-              // TODO: add completions for packages and java.lang classes.
-            } else if (grandParent instanceof PsiDbFunctionRefExpr) {
-              result.addAllElements(populateMethodReferenceCompletions(grandParent));
-            } else {
-              // grandparent not recognized. don't know how to provide completions.
-            }
-            return;
+            result.addAllElements(populateFieldReferenceCompletions(ownerExpr, onlyValidCompletions));
+            result.addAllElements(populateMethodReferenceCompletions(ownerExpr, onlyValidCompletions));
           }
-          references = parent.getReferences();
-          usingGrandparent = true;
+          else if (grandParent instanceof DbFile) {
+            // TODO(b/122895499): add tests for this branch
+            autoCompleteVariablesAndUnqualifiedFunctions((DbFile)grandParent, result);
+            // TODO: add completions for packages and java.lang classes.
+          }
+          else if (grandParent instanceof PsiDbFunctionRefExpr) {
+            result.addAllElements(
+              populateMethodReferenceCompletionsForMethodBinding(((PsiDbFunctionRefExpr)grandParent).getExpr(), onlyValidCompletions));
+          }
         }
-        for (PsiReference reference : references) {
-          if (reference instanceof ResolvesToModelClass) {
-            ResolvesToModelClass ref = (ResolvesToModelClass)reference;
-            boolean staticRef = ref.isStatic();
-            PsiModelClass resolvedType = ref.getResolvedType();
-            if (resolvedType == null) {
-              return;
-            }
-            for (ModelField modelField : resolvedType.getDeclaredFields()) {
-              PsiModelField psiModelField = (PsiModelField)modelField;
-              if (!fullCompletion && (!psiModelField.isPublic() || staticRef && !psiModelField.isStatic())) {
-                continue;
-              }
-              if (usingGrandparent) {
-                result.addElement(LookupElementBuilder.create(psiModelField.getPsiField()));
-              } else {
-                result.addElement(LookupElementBuilder.create(psiModelField.getPsiField(),
-                                                              parent.getText() + "." + psiModelField.getName()));
-              }
-            }
-            for (ModelMethod modelMethod : resolvedType.getDeclaredMethods()) {
-              PsiModelMethod psiModelMethod = (PsiModelMethod)modelMethod;
-              if (!fullCompletion && !psiModelMethod.isPublic()) {
-                continue;
-              }
-              if (psiModelMethod.isVoid()) {
-                continue;
-              }
-              PsiMethod psiMethod = psiModelMethod.getPsiMethod();
-              if (psiMethod.isConstructor()) {
-                continue;
-              }
-              if (!fullCompletion && staticRef && !psiModelMethod.isStatic()) {
-                continue;
-              }
-              String name = psiModelMethod.getName() + "()";
-              if (BrUtil.isGetter(psiMethod)) {
-                name = StringUtil.decapitalize(psiModelMethod.getName().substring(3));
-              } else if (BrUtil.isBooleanGetter(psiMethod)) {
-                name = StringUtil.decapitalize(psiModelMethod.getName().substring(2));
-              }
-              if (usingGrandparent) {
-                result.addElement(LookupElementBuilder.create(psiMethod, name));
-              } else {
-                result.addElement(LookupElementBuilder.create(psiMethod, parent.getText() + "." + name));
-              }
-            }
-          }
+        else {
+          // TODO(b/122895499): add tests for this branch
+          result.addAllElements(populateFieldReferenceCompletions(parent, onlyValidCompletions));
+          result.addAllElements(populateMethodReferenceCompletions(parent, onlyValidCompletions));
         }
       }
     });
@@ -182,12 +139,48 @@ public class DataBindingCompletionContributor extends CompletionContributor {
   }
 
   /**
-   * Given a method binding expression, in the form of obj::method, return an immutable list of {@link LookupElement} with methods of the
-   * given object.
+   * Given a data binding expression, return a list of {@link LookupElement} which are the field references of the given expression.
+   * If onlyValidCompletions is false, private and mismatched context fields are also suggested.
    */
-  private List<LookupElement> populateMethodReferenceCompletions(@NotNull PsiElement referenceExpression) {
+  private List<LookupElement> populateFieldReferenceCompletions(@NotNull PsiElement referenceExpression, Boolean onlyValidCompletions) {
     ImmutableList.Builder<LookupElement> resultBuilder = new ImmutableList.Builder<>();
-    PsiReference[] childReferences = referenceExpression.getFirstChild().getReferences();
+    PsiReference[] childReferences = referenceExpression.getReferences();
+    for (PsiReference reference : childReferences) {
+      ResolvesToModelClass ref = (ResolvesToModelClass)reference;
+      PsiModelClass resolvedType = ref.getResolvedType();
+      if (resolvedType != null) {
+        for (ModelField modelField : resolvedType.getDeclaredFields()) {
+          PsiModelField psiModelField = (PsiModelField)modelField;
+          if (onlyValidCompletions) {
+            if (!psiModelField.isPublic() || ref.isStatic() && !psiModelField.isStatic()) {
+              continue;
+            }
+          }
+          resultBuilder.add(LookupElementBuilder.create(psiModelField.getPsiField()));
+        }
+      }
+    }
+    return resultBuilder.build();
+  }
+
+  private List<LookupElement> populateMethodReferenceCompletions(@NotNull PsiElement referenceExpression, Boolean onlyValidCompletion) {
+    return populateMethodReferenceCompletions(referenceExpression, onlyValidCompletion, true);
+  }
+
+  private List<LookupElement> populateMethodReferenceCompletionsForMethodBinding(@NotNull PsiElement referenceExpression,
+                                                                                 Boolean onlyValidCompletion) {
+    return populateMethodReferenceCompletions(referenceExpression, onlyValidCompletion, false);
+  }
+
+  /**
+   * Given a data binding expression, return a list of {@link LookupElement} which are method references of the given expression.
+   * If onlyValidCompletions is false, private and mismatched context fields are also suggested.
+   */
+  private List<LookupElement> populateMethodReferenceCompletions(@NotNull PsiElement referenceExpression,
+                                                                 Boolean onlyValidCompletions,
+                                                                 Boolean completeBrackets) {
+    ImmutableList.Builder<LookupElement> resultBuilder = new ImmutableList.Builder<>();
+    PsiReference[] childReferences = referenceExpression.getReferences();
     for (PsiReference reference : childReferences) {
       if (reference instanceof ResolvesToModelClass) {
         ResolvesToModelClass ref = (ResolvesToModelClass)reference;
@@ -197,16 +190,25 @@ public class DataBindingCompletionContributor extends CompletionContributor {
         }
         for (ModelMethod modelMethod : resolvedType.getDeclaredMethods()) {
           PsiModelMethod psiModelMethod = (PsiModelMethod)modelMethod;
-          if (!psiModelMethod.isPublic()) {
-            continue;
-          }
           PsiMethod psiMethod = psiModelMethod.getPsiMethod();
           if (psiMethod.isConstructor()) {
             continue;
-          } else if (ref.isStatic() != psiModelMethod.isStatic()) {
-            continue;
+          }
+          if (onlyValidCompletions) {
+            if (ref.isStatic() != psiModelMethod.isStatic() || !psiModelMethod.isPublic()) {
+              continue;
+            }
           }
           String name = psiModelMethod.getName();
+          if (completeBrackets) {
+            name += "()";
+            if (BrUtil.isGetter(psiMethod)) {
+              name = StringUtil.decapitalize(psiModelMethod.getName().substring(3));
+            }
+            else if (BrUtil.isBooleanGetter(psiMethod)) {
+              name = StringUtil.decapitalize(psiModelMethod.getName().substring(2));
+            }
+          }
           resultBuilder.add(LookupElementBuilder.create(psiMethod, name));
         }
       }
