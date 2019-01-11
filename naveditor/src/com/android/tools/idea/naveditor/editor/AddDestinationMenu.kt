@@ -177,7 +177,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   lateinit var searchField: SearchTextField
 
   override val mainPanel: JPanel
-    get() = createSelectionPanel()
+    get() {
+      creatingInProgress = false
+      return createSelectionPanel()
+    }
 
   @VisibleForTesting
   lateinit var blankDestinationButton: ActionButtonWithText
@@ -283,7 +286,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(
       object : Task.Backgroundable(surface.project, "Get Available Destinations") {
         override fun run(indicator: ProgressIndicator) {
-          val dests = ApplicationManager.getApplication().runReadAction(Computable { destinations } )
+          val dests = ApplicationManager.getApplication().runReadAction(Computable { destinations })
           maxIconWidth = dests.map { it.thumbnail.getWidth(null) }.max() ?: 0
           val listModel = application.runReadAction(Computable {
             FilteringListModel<Destination>(CollectionListModel<Destination>(destinations))
