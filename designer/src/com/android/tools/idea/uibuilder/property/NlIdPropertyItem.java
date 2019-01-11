@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.SdkConstants;
+import static com.android.SdkConstants.ANDROID_ID_PREFIX;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ID_PREFIX;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -32,19 +37,18 @@ import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.xml.XmlName;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.util.List;
+import java.util.function.Supplier;
+import javax.swing.AbstractAction;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.util.List;
-import java.util.function.Supplier;
-
-import static com.android.SdkConstants.*;
 
 public class NlIdPropertyItem extends NlPropertyItem {
 
@@ -61,8 +65,8 @@ public class NlIdPropertyItem extends NlPropertyItem {
   // TODO move this static field to a PropertiesComponent setting (need a UI to reset)
   private static int ourRefactoringChoice = REFACTOR_ASK;
 
-  private Supplier<DialogBuilder> myDialogSupplier;
-  private Supplier<RenameProcessor> myRenameProcessorSupplier;
+  private Supplier<? extends DialogBuilder> myDialogSupplier;
+  private Supplier<? extends RenameProcessor> myRenameProcessorSupplier;
 
   protected NlIdPropertyItem(@NotNull XmlName name,
                              @Nullable AttributeDefinition attributeDefinition,
@@ -78,7 +82,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
   }
 
   /**
-   * Like {@link LintUtils#stripIdPrefix(String)} but doesn't return "" for a null id
+   * Like {@link com.android.tools.lint.detector.api.LintUtils#stripIdPrefix(String)} but doesn't return "" for a null id
    */
   private static String stripIdPrefix(@Nullable String id) {
     if (id != null) {
@@ -114,7 +118,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
         && tag != null
         && tag.isValid()) {
       // Offer rename refactoring?
-      XmlAttribute attribute = tag.getAttribute(SdkConstants.ATTR_ID, SdkConstants.ANDROID_URI);
+      XmlAttribute attribute = tag.getAttribute(ATTR_ID, ANDROID_URI);
       if (attribute != null) {
         Module module = getModel().getModule();
         Project project = module.getProject();
@@ -194,7 +198,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
   }
 
   @TestOnly
-  void setDialogSupplier(@NotNull Supplier<DialogBuilder> dialogSupplier) {
+  void setDialogSupplier(@NotNull Supplier<? extends DialogBuilder> dialogSupplier) {
     myDialogSupplier = dialogSupplier;
   }
 
@@ -208,7 +212,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
   }
 
   @TestOnly
-  void setRenameProcessSupplier(@NotNull Supplier<RenameProcessor> renameProcessorSupplier) {
+  void setRenameProcessSupplier(@NotNull Supplier<? extends RenameProcessor> renameProcessorSupplier) {
     myRenameProcessorSupplier = renameProcessorSupplier;
   }
 
