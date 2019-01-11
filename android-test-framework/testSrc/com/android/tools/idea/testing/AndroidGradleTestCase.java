@@ -15,6 +15,31 @@
  */
 package com.android.tools.idea.testing;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
+import static com.android.utils.TraceUtils.getCurrentStack;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.util.io.FileUtil.copyDir;
+import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs;
+import static java.util.concurrent.TimeUnit.MINUTES;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -63,35 +88,16 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-
-import static com.android.SdkConstants.*;
-import static com.android.testutils.TestUtils.getSdk;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
-import static com.android.utils.TraceUtils.getCurrentStack;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static com.intellij.testFramework.PlatformTestCase.synchronizeTempDirVfs;
-import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
  * Base class for unit tests that operate on Gradle projects
@@ -553,7 +559,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @NotNull
   private SyncListener requestSync() throws Exception {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.generateSourcesOnSuccess = false;
     return requestSync(request);
   }

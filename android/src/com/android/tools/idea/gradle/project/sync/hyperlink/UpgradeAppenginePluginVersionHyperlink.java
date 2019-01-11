@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_APPENGINE_VERSION_UPGRADED;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
@@ -26,9 +29,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 /**
  * https://code.google.com/p/android/issues/detail?id=80441
@@ -58,6 +58,6 @@ public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlin
     myDependency.version().setValue(latest.toString());
     runWriteCommandAction(project, myBuildModel::applyChanges);
 
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_APPENGINE_VERSION_UPGRADED);
   }
 }

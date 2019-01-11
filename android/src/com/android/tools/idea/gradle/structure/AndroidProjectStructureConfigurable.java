@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_MODULE_REMOVED;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
@@ -29,7 +32,6 @@ import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.stats.UsageTrackerUtils;
-import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.structure.services.DeveloperService;
 import com.android.tools.idea.structure.services.DeveloperServices;
 import com.android.tools.idea.structure.services.ServiceCategory;
@@ -43,7 +45,15 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.CommonBundle;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonShortcuts;
+import com.intellij.openapi.actionSystem.CustomShortcutSet;
+import com.intellij.openapi.actionSystem.DataKey;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.RunResult;
@@ -81,19 +91,31 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.util.*;
-import java.util.List;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
@@ -294,7 +316,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
     }
 
     if (!myProject.isDefault() && (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES)) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PSD_CHANGES);
     }
   }
 
@@ -793,7 +815,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
       myConfigurables.remove(configurable);
       mySidePanel.reset();
 
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PSD_MODULE_REMOVED);
     }
 
     @NotNull
