@@ -19,21 +19,23 @@ import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.treeStructure.Tree
 import java.util.Enumeration
-import javax.swing.JComponent
 import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeNode
+import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 
-class LayoutInspectorTreePanel() : ToolContent<LayoutInspector> {
+class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
   private val tree = Tree()
+  private val contentPane = JBScrollPane(tree)
 
   init {
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
     tree.addTreeSelectionListener { e ->
-      (e.newLeadSelectionPath.lastPathComponent as MyTreeNode?)?.let {
+      (e.newLeadSelectionPath?.lastPathComponent as MyTreeNode?)?.let {
         layoutInspector?.layoutInspectorModel?.selection = it.root
       }
     }
@@ -44,19 +46,27 @@ class LayoutInspectorTreePanel() : ToolContent<LayoutInspector> {
     layoutInspector = toolContext
     layoutInspector?.modelChangeListeners?.add(this::modelChanged)
     if (toolContext != null) {
-      modelChanged(null, toolContext.layoutInspectorModel)
+      modelChanged(toolContext.layoutInspectorModel, toolContext.layoutInspectorModel)
     }
   }
 
-  override fun getComponent(): JComponent {
-    return tree
-  }
+  override fun getComponent() = contentPane
 
   override fun dispose() {
   }
 
-  fun modelChanged(old: InspectorModel?, new: InspectorModel) {
+  fun modelChanged(old: InspectorModel, new: InspectorModel) {
     tree.model = DefaultTreeModel(MyTreeNode(new.root, null))
+    old.selectionListeners.remove(this::selectionChanged)
+    new.selectionListeners.add(this::selectionChanged)
+  }
+
+  fun selectionChanged(old: InspectorView?, new: InspectorView?) {
+    if (new == null) {
+      tree.clearSelection()
+      return
+    }
+    tree.selectionPath = (tree.model.root as MyTreeNode).findPath(new)
   }
 
   private class MyTreeNode(val root: InspectorView, val _parent: MyTreeNode?) : TreeNode {
@@ -79,6 +89,28 @@ class LayoutInspectorTreePanel() : ToolContent<LayoutInspector> {
     override fun getAllowsChildren() = true
 
     override fun toString() = root.type
+
+    fun findPath(target: InspectorView) : TreePath? {
+      val nodes = mutableListOf<MyTreeNode>()
+      if (findPathInternal(target, nodes)) {
+        return TreePath(nodes.reversed().toTypedArray())
+      }
+      return null
+    }
+
+    fun findPathInternal(target: InspectorView, collector: MutableList<MyTreeNode>): Boolean {
+      if (root == target) {
+        collector.add(this)
+        return true
+      }
+      for (child in _children) {
+        if (child.findPathInternal(target, collector)) {
+          collector.add(this)
+          return true
+        }
+      }
+      return false
+    }
   }
 }
 
