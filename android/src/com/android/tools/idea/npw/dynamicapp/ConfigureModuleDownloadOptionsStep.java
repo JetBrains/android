@@ -61,6 +61,7 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
   private JCheckBox myFusingCheckBox;
   private ModuleDownloadConditions myDownloadConditionsForm;
   private JComboBox<DownloadInstallKind> myInstallationOptionCombo;
+  @SuppressWarnings("unused") private JBLabel myModuleDeliveryLabel;
 
   public ConfigureModuleDownloadOptionsStep(@NotNull DynamicFeatureModel model) {
     super(model, message("android.wizard.module.new.dynamic.download.options"));
