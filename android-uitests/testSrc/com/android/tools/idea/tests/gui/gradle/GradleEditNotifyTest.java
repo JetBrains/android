@@ -19,6 +19,8 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,10 +41,12 @@ public class GradleEditNotifyTest {
     // the build.gradle model is out of date
     // Regression test for https://code.google.com/p/android/issues/detail?id=75983
 
+    List<String> expectedNotifications = Arrays.asList("Configure project in Project Structure dialog.");
+
     guiTest.importSimpleApplication()
       .getEditor()
       .open("app/build.gradle").waitUntilErrorAnalysisFinishes()
-      .checkNoNotification()
+      .assertNotificationsContainExactly(expectedNotifications)
       .moveBetween("versionCode ", "")
       .enterText("1")
       .awaitNotification(
@@ -50,7 +54,7 @@ public class GradleEditNotifyTest {
       .performAction("Sync Now")
       .waitForGradleProjectSyncToFinish()
       .getEditor()
-      .checkNoNotification()
+      .assertNotificationsContainExactly(expectedNotifications)
       .invokeAction(BACK_SPACE)
       .awaitNotification(
         "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
