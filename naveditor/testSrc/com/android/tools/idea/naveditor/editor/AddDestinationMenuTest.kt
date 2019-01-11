@@ -302,9 +302,20 @@ class AddDestinationMenuTest : NavTestCase() {
       assertEquals("placeholder", component.id)
       assertNull(component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT))
       assertNull(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME))
+
       Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                          .setType(ADD_DESTINATION)
                                          .setDestinationInfo(NavDestinationInfo.newBuilder().setType(FRAGMENT)).build())
+
+      menu.mainPanel
+      gallery.dispatchEvent(MouseEvent(
+        gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
+        cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
+      val component2 = destination.component
+      assertNotNull(component2)
+      assertEquals(listOf(component2!!), surface.selectionModel.selection)
+      assertEquals("placeholder2", component2.id)
+      assertContainsElements(surface.model?.components?.get(0)?.children?.map { it.id }!!, "placeholder", "placeholder2")
     }
   }
 
