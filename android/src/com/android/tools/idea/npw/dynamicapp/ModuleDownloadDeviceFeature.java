@@ -21,6 +21,7 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObservableString;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.AndExpression;
@@ -28,6 +29,7 @@ import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.string.IsEmptyExpression;
 import com.android.tools.idea.observable.expressions.string.TrimExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
@@ -53,6 +55,8 @@ public class ModuleDownloadDeviceFeature {
   private JPanel myFeatureValueContainer;
   private TextFieldWithAutoCompletion<String> myFeatureValueTextField;
   private LinkLabel<Void> myRemoveFeatureLinkLabel;
+  private ObservableString deviceFeatureValueTrim;
+  private static final CharMatcher DISALLOWED_IN_DEVICE_VALUE = CharMatcher.anyOf("<&\"");
 
   @NotNull
   private final DeviceFeatureModel myModel;
@@ -83,13 +87,27 @@ public class ModuleDownloadDeviceFeature {
     // Invoke listeners when close button is pressed
     myRemoveFeatureLinkLabel.setListener((aSource, aLinkData) -> myListeners.forEach(x -> x.removeFeatureInvoked()), null);
 
+    deviceFeatureValueTrim = new TrimExpression(myModel.deviceFeatureValue());
     // isActive && device feature value is empty
     BooleanExpression isInvalidExpression =
-      new AndExpression(isActive, new IsEmptyExpression(new TrimExpression(myModel.deviceFeatureValue())));
+      new AndExpression(isActive, new IsEmptyExpression(deviceFeatureValueTrim));
     validator.registerValidator(isInvalidExpression, isInvalid -> isInvalid
                                                                   ? new Validator.Result(Validator.Severity.ERROR,
                                                                                          "Device feature value must be set")
                                                                   : Validator.Result.OK);
+
+    validator.registerValidator(deviceFeatureValueTrim, value -> {
+      int illegalCharIdx = DISALLOWED_IN_DEVICE_VALUE.indexIn(value);
+      if (illegalCharIdx < 0) {
+        return Validator.Result.OK;
+      }
+      else {
+        return new Validator.Result(Validator.Severity.ERROR, String.format("Illegal character '%c' in %s '%s'",
+                                                                            value.charAt(illegalCharIdx),
+                                                                            myModel.deviceFeatureType(),
+                                                                            myModel.deviceFeatureValue()));
+      }
+    });
   }
 
   @NotNull
