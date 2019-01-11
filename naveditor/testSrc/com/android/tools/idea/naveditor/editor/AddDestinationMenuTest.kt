@@ -100,16 +100,7 @@ class AddDestinationMenuTest : NavTestCase() {
     surface.setSize(1000, 1000)
     surface.model = model
     _menu = AddDestinationMenu(surface)
-    _panel = menu.mainPanel
-    // We kick off a worker thread to load the destinations and then update the list in the ui thread, so we have to wait and dispatch
-    // events until it's set.
-    while (true) {
-      if (!_menu!!.destinationsList.isEmpty) {
-        break
-      }
-      Thread.sleep(10L)
-      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    }
+    _panel = getMainMenuPanel()
   }
 
   fun testContent() {
@@ -288,7 +279,7 @@ class AddDestinationMenuTest : NavTestCase() {
   }
 
   fun testCreatePlaceholder() {
-    val gallery = menu.destinationsList
+    var gallery = menu.destinationsList
     val cell0Bounds = gallery.getCellBounds(1, 1)
     val destination = gallery.model.getElementAt(0) as Destination
     gallery.setSelectedValue(destination, false)
@@ -302,10 +293,38 @@ class AddDestinationMenuTest : NavTestCase() {
       assertEquals("placeholder", component.id)
       assertNull(component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT))
       assertNull(component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME))
+
       Mockito.verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                          .setType(ADD_DESTINATION)
                                          .setDestinationInfo(NavDestinationInfo.newBuilder().setType(FRAGMENT)).build())
+
+      getMainMenuPanel()
+      gallery = menu.destinationsList
+      val destination2 = gallery.model.getElementAt(0) as Destination
+      gallery.setSelectedValue(destination2, false)
+      gallery.dispatchEvent(MouseEvent(
+        gallery, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
+        cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
+      val component2 = destination2.component
+      assertNotNull(component2)
+      assertEquals(listOf(component2!!), surface.selectionModel.selection)
+      assertEquals("placeholder2", component2.id)
+      assertContainsElements(surface.model?.components?.get(0)?.children?.map { it.id }!!, "placeholder", "placeholder2")
     }
+  }
+
+  private fun getMainMenuPanel(): JPanel {
+    val res = menu.mainPanel
+    // We kick off a worker thread to load the destinations and then update the list in the ui thread, so we have to wait and dispatch
+    // events until it's set.
+    while (true) {
+      if (!_menu!!.destinationsList.isEmpty) {
+        break
+      }
+      Thread.sleep(10L)
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
+    return res
   }
 
   fun testAddDestination() {

@@ -169,7 +169,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     return psiClass.supers.any { it.qualifiedName == SdkConstants.FQCN_NAV_HOST_FRAGMENT }
   }
 
-  val destinationsList = JBList<Destination>()
+  @VisibleForTesting
+  lateinit var destinationsList: JBList<Destination>
 
   var maxIconWidth: Int = 0
 
@@ -177,7 +178,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   lateinit var searchField: SearchTextField
 
   override val mainPanel: JPanel
-    get() = createSelectionPanel()
+    get() {
+      creatingInProgress = false
+      return createSelectionPanel()
+    }
 
   @VisibleForTesting
   lateinit var blankDestinationButton: ActionButtonWithText
@@ -185,6 +189,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private var neverShown = true
 
   private fun createSelectionPanel(): JPanel {
+    destinationsList = JBList()
     val result = object : AdtSecondaryPanel(VerticalLayout(5)), DataProvider {
       override fun getData(dataId: String): Any? {
         return if (NewAndroidComponentAction.CREATED_FILES.`is`(dataId)) {
@@ -279,11 +284,10 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     })
     scrollable.add(destinationsList, BorderLayout.CENTER)
 
-
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(
       object : Task.Backgroundable(surface.project, "Get Available Destinations") {
         override fun run(indicator: ProgressIndicator) {
-          val dests = ApplicationManager.getApplication().runReadAction(Computable { destinations } )
+          val dests = ApplicationManager.getApplication().runReadAction(Computable { destinations })
           maxIconWidth = dests.map { it.thumbnail.getWidth(null) }.max() ?: 0
           val listModel = application.runReadAction(Computable {
             FilteringListModel<Destination>(CollectionListModel<Destination>(destinations))
@@ -304,7 +308,6 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
             destinationsList.setPaintBusy(false)
             destinationsList.emptyText.text = "No existing destinations"
           }
-
         }
       }, EmptyProgressIndicator())
 
