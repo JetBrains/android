@@ -29,6 +29,8 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.collect.Maps
 import com.google.common.collect.Table
 import com.google.common.collect.Tables
+import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
@@ -494,7 +496,7 @@ class MigrateToResourceNamespacesProcessor(
       progressIndicator.fraction = (index + 1) / totalFacets
     }
 
-    syncBeforeFinishingRefactoring(myProject)
+    syncBeforeFinishingRefactoring(myProject, TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES)
   }
 
   /**

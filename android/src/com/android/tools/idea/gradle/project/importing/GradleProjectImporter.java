@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
+import static com.android.tools.idea.util.ToolWindows.activateProjectView;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN;
+import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
+import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
+import static com.intellij.openapi.ui.Messages.showErrorDialog;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -23,6 +33,7 @@ import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
@@ -31,22 +42,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.containers.ContainerUtilRt;
+import java.io.File;
+import java.io.IOException;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Set;
-
-import static com.android.tools.idea.util.ToolWindows.activateProjectView;
-import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
-import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
-import static com.intellij.openapi.ui.Messages.showErrorDialog;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.util.ExceptionUtil.rethrowUnchecked;
 
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
@@ -209,12 +211,13 @@ public class GradleProjectImporter {
       newProject.save();
     }
 
-    myGradleSyncInvoker.requestProjectSync(newProject, createSyncRequestSettings(request), listener);
+    myGradleSyncInvoker.requestProjectSync(newProject, createSyncRequestSettings(request, openProject), listener);
   }
 
   @NotNull
-  private static GradleSyncInvoker.Request createSyncRequestSettings(@NotNull Request importProjectRequest) {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
+  private static GradleSyncInvoker.Request createSyncRequestSettings(@NotNull Request importProjectRequest, boolean openProject) {
+    GradleSyncStats.Trigger trigger = openProject ? TRIGGER_PROJECT_REOPEN : TRIGGER_PROJECT_NEW;
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
     request.generateSourcesOnSuccess = importProjectRequest.generateSourcesOnSuccess;
     request.useCachedGradleModels = false;
     return request;

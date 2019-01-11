@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues.processor;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REPOSITORY_ADDED;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -25,14 +27,11 @@ import com.intellij.refactoring.BaseRefactoringProcessor;
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import org.jetbrains.annotations.NotNull;
 
 public class AddRepoProcessor extends BaseRefactoringProcessor {
   public enum Repository {
@@ -137,7 +136,7 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
     projectBuildModel.applyChanges();
 
     if (myRequestSync) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_QF_REPOSITORY_ADDED);
     }
   }
 

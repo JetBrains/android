@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.importing;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -25,17 +34,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
+import java.io.File;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.mockito.Mock;
 import org.mockito.verification.VerificationMode;
-
-import java.io.File;
-import java.io.IOException;
-
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleProjectImporter}.
@@ -174,7 +178,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
   private void verifyGradleSyncInvocation(@NotNull GradleProjectImporter.Request importSettings,
                                           @Nullable GradleSyncListener syncListener) {
-    GradleSyncInvoker.Request syncRequest = GradleSyncInvoker.Request.projectLoaded();
+    GradleSyncInvoker.Request syncRequest = new GradleSyncInvoker.Request(TRIGGER_PROJECT_NEW);
 
     syncRequest.generateSourcesOnSuccess = importSettings.generateSourcesOnSuccess;
     syncRequest.runInBackground = true;

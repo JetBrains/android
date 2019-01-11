@@ -15,6 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
+import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
+import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC;
+import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isSingleVariantSync;
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_SVS_NOT_SUPPORTED;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
+import static java.lang.System.currentTimeMillis;
+import static java.util.Collections.emptyList;
+import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.output.AndroidGradleSyncTextConsoleView;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -47,6 +63,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.Function;
 import java.util.ArrayList;
+import java.util.List;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.UnsupportedVersionException;
@@ -54,23 +71,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
-
-import java.util.List;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
-import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
-import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
-import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC;
-import static com.android.tools.idea.gradle.project.sync.ng.NewGradleSync.isSingleVariantSync;
-import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.getOrCreateGradleExecutionSettings;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
-import static java.lang.System.currentTimeMillis;
-import static java.util.Collections.emptyList;
-import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 class SyncExecutor {
   @NotNull private final Project myProject;
@@ -212,7 +212,7 @@ class SyncExecutor {
         GradleSyncState.getInstance(myProject).syncEnded();
         generateFailureEvent(id);
         GradleSyncInvoker.getInstance()
-          .requestProjectSync(myProject, request != null ? request : GradleSyncInvoker.Request.projectModified(), listener);
+          .requestProjectSync(myProject, request != null ? request : new GradleSyncInvoker.Request(TRIGGER_SVS_NOT_SUPPORTED), listener);
       }
       else {
         myErrorHandlerManager.handleError(e);

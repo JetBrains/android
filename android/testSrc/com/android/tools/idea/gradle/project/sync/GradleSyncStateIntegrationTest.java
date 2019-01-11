@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -25,12 +35,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
-
-import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleSyncState}.
@@ -66,7 +70,7 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
     assertNotNull(libAndroidFacet);
     assertNotNull(libAndroidFacet.getConfiguration().getModel());
 
-    mySyncState.setSyncStartedTimeStamp(0, TRIGGER_PROJECT_MODIFIED);
+    mySyncState.setSyncStartedTimeStamp(0, TRIGGER_TEST_REQUESTED);
     mySyncState.invalidateLastSync("Error");
     assertTrue(mySyncState.lastSyncFailed());
 
@@ -95,7 +99,7 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
       verify(myGradleSyncListener, times(0)).sourceGenerationFinished(eq(getProject()));
 
       // Sync with source generation
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_MODIFIED, myGradleSyncListener);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_TEST_REQUESTED, myGradleSyncListener);
 
       verify(myGradleSyncListener).sourceGenerationFinished(eq(getProject()));
     }

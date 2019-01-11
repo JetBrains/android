@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.TextSearch;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.verification.VerificationMode;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AndroidPluginVersionUpdater}.
@@ -66,7 +72,7 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     myVersionUpdater.handleUpdateResult(result, true);
 
     verifyLastSyncInvalidated(times(1));
-    verifyProjectSyncRequested(never());
+    verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);
     verifyTextSearch(times(1));
   }
 
@@ -77,7 +83,7 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     myVersionUpdater.handleUpdateResult(result, true);
 
     verifyLastSyncInvalidated(times(1));
-    verifyProjectSyncRequested(never());
+    verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);
     verifyTextSearch(never());
   }
 
@@ -88,7 +94,7 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     myVersionUpdater.handleUpdateResult(result, true);
 
     verifyLastSyncInvalidated(never());
-    verifyProjectSyncRequested(times(1));
+    verifyProjectSyncRequested(times(1), TRIGGER_AGP_VERSION_UPDATED);
     verifyTextSearch(never());
   }
 
@@ -99,7 +105,7 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     myVersionUpdater.handleUpdateResult(result, true);
 
     verifyLastSyncInvalidated(never());
-    verifyProjectSyncRequested(times(1));
+    verifyProjectSyncRequested(times(1), TRIGGER_AGP_VERSION_UPDATED);
     verifyTextSearch(never());
   }
 
@@ -108,7 +114,7 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     myVersionUpdater.handleUpdateResult(result, true);
 
     verifyLastSyncInvalidated(never());
-    verifyProjectSyncRequested(never());
+    verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);
     verifyTextSearch(never());
   }
 
@@ -116,8 +122,8 @@ public class AndroidPluginVersionUpdaterTest extends IdeaTestCase {
     verify(mySyncState, verificationMode).invalidateLastSync(any());
   }
 
-  private void verifyProjectSyncRequested(@NotNull VerificationMode verificationMode) {
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+  private void verifyProjectSyncRequested(@NotNull VerificationMode verificationMode, @NotNull GradleSyncStats.Trigger trigger) {
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
     request.cleanProject = true;
 
     verify(mySyncState, verificationMode).syncEnded();

@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_UPDATED;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
 import static com.intellij.openapi.util.text.StringUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
@@ -33,6 +35,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.base.Objects;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -228,7 +231,7 @@ public class GradleDependencyManager {
         addDependencies(buildModel, module, missing, nameMapper);
 
         if (performSync) {
-          requestProjectSync(project, callback);
+          requestProjectSync(project, callback, TRIGGER_GRADLEDEPENDENCY_ADDED);
         }
       }
     }.execute();
@@ -264,18 +267,18 @@ public class GradleDependencyManager {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
         updateDependencies(buildModel, module, coordinates);
-        requestProjectSync(project, callback);
+        requestProjectSync(project, callback, TRIGGER_GRADLEDEPENDENCY_UPDATED);
       }
     }.execute();
   }
 
-  private static void requestProjectSync(@NotNull Project project, @Nullable Runnable callback) {
+  private static void requestProjectSync(@NotNull Project project, @Nullable Runnable callback, @NotNull GradleSyncStats.Trigger trigger) {
     if (callback != null) {
       // Note: This callback mechanism fires after the Gradle build is done rather than the sync.
       // This is needed since the designer cannot display correctly with source generation.
       GradleBuildInvoker.getInstance(project).add(new GradleCompletionTask(project, callback));
     }
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
     request.generateSourcesOnSuccess = true;
     GradleSyncInvoker.getInstance().requestProjectSync(project, request);
   }

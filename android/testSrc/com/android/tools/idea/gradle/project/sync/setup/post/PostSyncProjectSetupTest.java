@@ -15,6 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.getMaxJavaLanguageLevel;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_CACHED_SETUP_FAILED;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -47,19 +60,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
+import java.util.LinkedList;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
-
-import java.util.LinkedList;
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.getMaxJavaLanguageLevel;
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link PostSyncProjectSetup}.
@@ -155,7 +160,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     mySetup.setUpProject(request, myProgressIndicator, myTaskId);
 
     verify(mySyncState, times(1)).syncSkipped(lastSyncTimestamp);
-    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_LOADED);
+    verify(mySyncInvoker, times(1)).requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_PROJECT_CACHED_SETUP_FAILED);
     verify(myProjectSetup, never()).setUpProject(myProgressIndicator, true);
 
     verify(myGradleProjectInfo, times(1)).setNewProject(false);

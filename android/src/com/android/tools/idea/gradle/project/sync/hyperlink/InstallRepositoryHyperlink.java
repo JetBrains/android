@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REPOSITORY_INSTALLED;
+
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -22,12 +25,8 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
-
-import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import org.jetbrains.annotations.NotNull;
 
 public class InstallRepositoryHyperlink extends NotificationHyperlink {
   @NotNull private final SdkMavenRepository myRepository;
@@ -48,7 +47,7 @@ public class InstallRepositoryHyperlink extends NotificationHyperlink {
     if (dialog != null) {
       dialog.setTitle("Install Missing Components");
       if (dialog.showAndGet()) {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_REPOSITORY_INSTALLED);
       }
     }
   }

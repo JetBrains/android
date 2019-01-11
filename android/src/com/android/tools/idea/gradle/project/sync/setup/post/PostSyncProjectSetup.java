@@ -15,11 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
+import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.removeSyncContextDataFrom;
+import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.setSingleVariantSyncState;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_CACHED_SETUP_FAILED;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static java.lang.System.currentTimeMillis;
+
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.*;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
+import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
+import com.android.tools.idea.gradle.project.RunConfigurationChecker;
+import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.output.AndroidGradleSyncTextConsoleView;
@@ -72,23 +87,18 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.Key;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
-
-import java.util.*;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
-import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.removeSyncContextDataFrom;
-import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.setSingleVariantSyncState;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static java.lang.System.currentTimeMillis;
 
 public class PostSyncProjectSetup {
   @NotNull private final Project myProject;
@@ -325,7 +335,7 @@ public class PostSyncProjectSetup {
     }
     mySyncState.syncSkipped(syncTimestamp);
     // TODO add a new trigger for this?
-    mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED);
+    mySyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_CACHED_SETUP_FAILED);
   }
 
   private void failTestsIfSyncIssuesPresent() {

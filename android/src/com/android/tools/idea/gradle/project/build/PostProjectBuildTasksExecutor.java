@@ -15,6 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
+import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
+import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
+import static com.android.tools.idea.gradle.util.GradleProjects.isSyncRequestedDuringBuild;
+import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_BUILD_SYNC_NEEDED_AFTER_BUILD;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_WHILE_BUILDING;
+import static com.intellij.util.ThreeState.YES;
+
 import com.android.ide.common.blame.Message;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -43,21 +55,16 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
-import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
-import static com.android.tools.idea.gradle.util.GradleProjects.*;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
-import static com.intellij.util.ThreeState.YES;
 
 /**
  * After a build is complete, this class will execute the following tasks:
@@ -169,7 +176,7 @@ public class PostProjectBuildTasksExecutor {
       myProject.putUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY, System.currentTimeMillis());
 
       if (isSyncNeeded(buildMode, errorCount)) {
-        GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+        GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_BUILD_SYNC_NEEDED_AFTER_BUILD);
         request.generateSourcesOnSuccess = false;
         // Start sync once other events have finished (b/76017112).
         runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSync(myProject, request));
@@ -179,7 +186,7 @@ public class PostProjectBuildTasksExecutor {
         setSyncRequestedDuringBuild(myProject, null);
         // Sync was invoked while the project was built. Now that the build is finished, request a full sync after previous events have
         // finished (b/76017112).
-        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_USER_REQUEST));
+        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_USER_REQUEST_WHILE_BUILDING));
       }
     }
   }

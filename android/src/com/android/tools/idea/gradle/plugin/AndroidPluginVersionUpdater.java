@@ -15,6 +15,20 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
+import static com.android.tools.idea.gradle.util.BuildFileProcessor.getCompositeBuildFolderPaths;
+import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
+import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
+import static com.android.utils.FileUtils.toSystemDependentPath;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.ThreeState.NO;
+import static com.intellij.util.ThreeState.UNSURE;
+import static com.intellij.util.ThreeState.YES;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
@@ -30,23 +44,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.ThreeState;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink.searchInBuildFiles;
-import static com.android.tools.idea.gradle.util.BuildFileProcessor.getCompositeBuildFolderPaths;
-import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
-import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
-import static com.android.utils.FileUtils.toSystemDependentPath;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ThreeState.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidPluginVersionUpdater {
   @NotNull private final Project myProject;
@@ -136,8 +138,7 @@ public class AndroidPluginVersionUpdater {
         mySyncState.syncEnded();
       }
 
-      // TODO add a trigger when the plug-in version changed (right now let as something changed in the project)
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED);
       request.cleanProject = true;
       mySyncInvoker.requestProjectSync(myProject, request);
     }
