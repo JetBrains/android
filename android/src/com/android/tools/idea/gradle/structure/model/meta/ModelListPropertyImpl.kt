@@ -98,7 +98,7 @@ class ModelListPropertyImpl<ModelT, out ResolvedT, ParsedT, ValueT : Any>(
     val parsedModel = modelDescriptor.getParsed(model)
     val parsedGradleValue: List<ResolvedPropertyModel>? = parsedModel?.parsedPropertyGetter().asResolvedPropertiesList()
     val parsed = parsedGradleValue?.mapNotNull { it.getter() }
-    val dslText: Annotated<DslText>? = parsedModel?.parsedPropertyGetter()?.dslText()
+    val dslText: Annotated<DslText>? = parsedModel?.parsedPropertyGetter()?.dslText(effectiveValueIsNull = parsed == null)
     return makeAnnotatedParsedValue(parsed, dslText)
   }
 
