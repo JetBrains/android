@@ -23,50 +23,20 @@ import static com.android.SdkConstants.NEW_ID_PREFIX;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.PropertiesManager;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogBuilder;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.refactoring.rename.RenameProcessor;
-import com.intellij.ui.components.JBCheckBox;
-import com.intellij.usageView.UsageInfo;
 import com.intellij.util.xml.XmlName;
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
 import java.util.List;
-import java.util.function.Supplier;
-import javax.swing.AbstractAction;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 public class NlIdPropertyItem extends NlPropertyItem {
-
-  @VisibleForTesting
-  static final int NO_EXIT_CODE = DialogWrapper.NEXT_USER_EXIT_CODE;
-  @VisibleForTesting
-  static final int PREVIEW_EXIT_CODE = DialogWrapper.NEXT_USER_EXIT_CODE + 1;
-
-  private static final int REFACTOR_ASK = 0;
-  private static final int REFACTOR_NO = 1;
-  private static final int REFACTOR_YES = 2;
-  private static final int REFACTOR_PREVIEW = 3;
-
-  // TODO move this static field to a PropertiesComponent setting (need a UI to reset)
-  private static int ourRefactoringChoice = REFACTOR_ASK;
-
-  private Supplier<? extends DialogBuilder> myDialogSupplier;
-  private Supplier<? extends RenameProcessor> myRenameProcessorSupplier;
 
   protected NlIdPropertyItem(@NotNull XmlName name,
                              @Nullable AttributeDefinition attributeDefinition,
@@ -109,8 +79,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
     XmlTag tag = getTag();
     String newValue = !StringUtil.isEmpty(newId) && !newId.startsWith(ANDROID_ID_PREFIX) ? NEW_ID_PREFIX + newId : newId;
 
-    if (ourRefactoringChoice != REFACTOR_NO
-        && oldId != null
+    if (oldId != null
         && !oldId.isEmpty()
         && !newId.isEmpty()
         && newValue != null
@@ -124,103 +93,13 @@ public class NlIdPropertyItem extends NlPropertyItem {
         Project project = module.getProject();
         XmlAttributeValue valueElement = attribute.getValueElement();
         if (valueElement != null && valueElement.isValid()) {
-          // Exact replace only, no comment/text occurrence changes since it is non-interactive
-          ValueResourceElementWrapper wrapper = new ValueResourceElementWrapper(valueElement);
-          RenameProcessor processor = createRenameProcessor(project, wrapper, newValue);
-          // Do a quick usage search to see if we need to ask about renaming
-          UsageInfo[] usages = processor.findUsages();
-          if (usages.length > 0) {
-            int choice = ourRefactoringChoice;
-            if (choice == REFACTOR_ASK) {
-              DialogBuilder builder = createDialogBuilder(project);
-              builder.setTitle("Update Usages?");
-              JPanel panel = new JPanel(new BorderLayout()); // UGH!
-              JLabel label = new JLabel("<html>" +
-                                        "Update usages as well?<br>" +
-                                        "This will update all XML references and Java R field references.<br>" +
-                                        "<br>" +
-                                        "</html>");
-              panel.add(label, BorderLayout.CENTER);
-              JBCheckBox checkBox = new JBCheckBox("Don't ask again during this session");
-              panel.add(checkBox, BorderLayout.SOUTH);
-              builder.setCenterPanel(panel);
-              builder.setDimensionServiceKey("idPropertyDimension");
-              builder.removeAllActions();
-
-              DialogBuilder.CustomizableAction yesAction = builder.addOkAction();
-              yesAction.setText(Messages.YES_BUTTON);
-
-              builder.addActionDescriptor(dialogWrapper -> new AbstractAction(Messages.NO_BUTTON) {
-                @Override
-                public void actionPerformed(ActionEvent actionEvent) {
-                  dialogWrapper.close(NO_EXIT_CODE);
-                }
-              });
-
-              builder.addActionDescriptor(dialogWrapper -> new AbstractAction("Preview") {
-                @Override
-                public void actionPerformed(ActionEvent actionEvent) {
-                  dialogWrapper.close(PREVIEW_EXIT_CODE);
-                }
-              });
-
-              builder.addCancelAction();
-              int exitCode = builder.show();
-
-              choice = exitCode == DialogWrapper.OK_EXIT_CODE ? REFACTOR_YES :
-                       exitCode == NO_EXIT_CODE ? REFACTOR_NO :
-                       exitCode == PREVIEW_EXIT_CODE ? REFACTOR_PREVIEW : ourRefactoringChoice;
-
-              //noinspection AssignmentToStaticFieldFromInstanceMethod
-              ourRefactoringChoice = checkBox.isSelected() ? choice : REFACTOR_ASK;
-
-              if (exitCode == DialogWrapper.CANCEL_EXIT_CODE) {
-                return;
-              }
-            }
-
-            if (choice == REFACTOR_YES) {
-              processor.setPreviewUsages(false);
-              processor.run();
-              return;
-            }
-            else if (choice == PREVIEW_EXIT_CODE) {
-              processor.setPreviewUsages(true);
-              processor.run();
-              return;
-            }
-          }
+          NeleIdRenameProcessor processor = new NeleIdRenameProcessor(project, valueElement, newValue);
+          processor.run();
+          return;
         }
       }
     }
 
     super.setValue(newValue);
-  }
-
-  @TestOnly
-  void setDialogSupplier(@NotNull Supplier<? extends DialogBuilder> dialogSupplier) {
-    myDialogSupplier = dialogSupplier;
-  }
-
-  @TestOnly
-  static void clearRefactoringChoice() {
-    ourRefactoringChoice = REFACTOR_ASK;
-  }
-
-  private DialogBuilder createDialogBuilder(@NotNull Project project) {
-    return myDialogSupplier != null ? myDialogSupplier.get() : new DialogBuilder(project);
-  }
-
-  @TestOnly
-  void setRenameProcessSupplier(@NotNull Supplier<? extends RenameProcessor> renameProcessorSupplier) {
-    myRenameProcessorSupplier = renameProcessorSupplier;
-  }
-
-  private RenameProcessor createRenameProcessor(@NotNull Project project,
-                                                @NotNull ValueResourceElementWrapper wrapper,
-                                                @NotNull String newValue) {
-    return myRenameProcessorSupplier != null
-           ? myRenameProcessorSupplier.get()
-           : new RenameProcessor(project, wrapper, newValue, false, false);
   }
 }
