@@ -74,7 +74,7 @@ fun ResolvedPropertyModel.setLanguageLevel(value: LanguageLevel) =
   setValue(LanguageLevelUtil.convertToGradleString(value, getValue(GradlePropertyModel.STRING_TYPE)))
 
 fun ResolvedPropertyModel.clear() = unresolvedModel.delete()
-fun ResolvedPropertyModel.dslText(): Annotated<DslText>? {
+fun ResolvedPropertyModel.dslText(effectiveValueIsNull: Boolean): Annotated<DslText>? {
   val text = getRawValue(GradlePropertyModel.OBJECT_TYPE)?.toString()
   return when {
     text == null && unresolvedModel.valueType == GradlePropertyModel.ValueType.NONE -> null
@@ -83,8 +83,9 @@ fun ResolvedPropertyModel.dslText(): Annotated<DslText>? {
         "The raw value of property '${unresolvedModel.fullyQualifiedName}' is null while its type is: ${unresolvedModel.valueType}")
     unresolvedModel.valueType == ValueType.REFERENCE && dependencies.isEmpty() -> DslText.Reference(text).annotateWithError(
       "Unresolved reference: $text")
-    unresolvedModel.valueType == ValueType.UNKNOWN -> DslText.OtherUnparsedDslText(text).annotated()
     unresolvedModel.valueType == ValueType.REFERENCE -> DslText.Reference(text).annotated()
+    unresolvedModel.valueType == ValueType.UNKNOWN || (dependencies.isEmpty() && effectiveValueIsNull)
+    -> DslText.OtherUnparsedDslText(text).annotated()
     dependencies.isEmpty() ||
     unresolvedModel.valueType == ValueType.MAP ||
     unresolvedModel.valueType == ValueType.LIST -> DslText.Literal.annotated()
@@ -105,8 +106,10 @@ fun ResolvedPropertyModel.setDslText(value: DslText) =
 
 internal fun <T : Any> ResolvedPropertyModel?.getParsedValue(
   getter: ResolvedPropertyModel.() -> T?
-): Annotated<ParsedValue<T>> =
-  makeAnnotatedParsedValue(this?.getter(), this?.dslText())
+): Annotated<ParsedValue<T>> {
+  val value = this?.getter()
+  return makeAnnotatedParsedValue(value, this?.dslText(effectiveValueIsNull = value == null))
+}
 
 internal fun <T : Any> ResolvedPropertyModel.setParsedValue(
   setter: ResolvedPropertyModel.(T) -> Unit,
