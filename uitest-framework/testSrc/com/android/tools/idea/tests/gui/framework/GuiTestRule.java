@@ -37,6 +37,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.platform.templates.github.ZipUtil;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
 import org.fest.swing.core.Robot;
@@ -78,6 +79,7 @@ public class GuiTestRule implements TestRule {
 
   /** Hack to solve focus issue when running with no window manager */
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
+  private static final String SRC_ZIP_NAME = "src.zip";
 
   private IdeFrameFixture myIdeFrameFixture;
   @Nullable private String myTestDirectory;
@@ -345,7 +347,14 @@ public class GuiTestRule implements TestRule {
     if (projectPath.isDirectory()) {
       FileUtilRt.delete(projectPath);
     }
-    FileUtil.copyDir(masterProjectPath, projectPath);
+    // If masterProjectPatch contains a src.zip file, unzip the file to projectPath.
+    // Otherwise, copy the whole directory to projectPath
+    File srcZip = new File(masterProjectPath, SRC_ZIP_NAME);
+    if (srcZip.exists() && srcZip.isFile()) {
+      ZipUtil.unzip(null, projectPath, srcZip, null, null, true);
+    } else {
+      FileUtil.copyDir(masterProjectPath, projectPath);
+    }
     return projectPath;
   }
 
