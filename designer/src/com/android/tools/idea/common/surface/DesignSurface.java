@@ -81,8 +81,8 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
+import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
@@ -202,9 +202,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     add(myScrollPane);
 
     // TODO: Do this as part of the layout/validate operation instead
-    addComponentListener(new ComponentListener() {
+    addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent componentEvent) {
+        boolean scaled = false;
         if (isShowing() && getWidth() > 0 && getHeight() > 0
             && (!contentResizeSkipped() || getFitScale(false) > myScale)) {
           // We skip the resize only if the flag is set to true
@@ -213,24 +214,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           // same but if the user clicked "zoom to fit" while the issue panel was open,
           // we zoom to fit when the panel is closed so the content retake the optimal
           // space.
-          zoomToFit();
+          scaled = zoomToFit();
+
+          // zoomToFit may decide to do nothing.
+          // If that is the case we still need to be sure the design is positioned correctly.
+          // For example NlDesignSurface need to center the design image.
         }
-        else {
+        if (!scaled) {
           layoutContent();
           updateScrolledAreaSize();
         }
-      }
-
-      @Override
-      public void componentMoved(ComponentEvent componentEvent) {
-      }
-
-      @Override
-      public void componentShown(ComponentEvent componentEvent) {
-      }
-
-      @Override
-      public void componentHidden(ComponentEvent componentEvent) {
       }
     });
 
@@ -581,8 +574,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    *
    * @see #zoom(ZoomType, int, int)
    */
-  public void zoom(@NotNull ZoomType type) {
-    zoom(type, -1, -1);
+  public boolean zoom(@NotNull ZoomType type) {
+    return zoom(type, -1, -1);
   }
 
   /**
@@ -598,8 +591,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param type Type of zoom to execute
    * @param x    Coordinate where the zoom will be centered
    * @param y    Coordinate where the zoom will be centered
+   * @return     True if the scaling was changed, false if this was a noop.
    */
-  public void zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
+  public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
     SceneView view = getCurrentSceneView();
     if (type == ZoomType.IN && (x < 0 || y < 0)
         && view != null && !getSelectionModel().isEmpty()) {
@@ -612,42 +606,43 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         }
       }
     }
+    boolean scaled;
     switch (type) {
       case IN: {
         double currentScale = myScale * getScreenScalingFactor();
         int current = (int)(currentScale * 100);
         double scale = (ZoomType.zoomIn(current) / 100.0) / getScreenScalingFactor();
-        setScale(scale, x, y);
-        repaint();
+        scaled = setScale(scale, x, y);
         break;
       }
       case OUT: {
         double currentScale = myScale * getScreenScalingFactor();
         int current = (int)(currentScale * 100);
         double scale = (ZoomType.zoomOut(current) / 100.0) / getScreenScalingFactor();
-        setScale(scale, x, y);
-        repaint();
+        scaled = setScale(scale, x, y);
         break;
       }
       case ACTUAL:
-        setScale(1d / getScreenScalingFactor());
-        repaint();
+        scaled = setScale(1d / getScreenScalingFactor());
         myCurrentZoomType = type;
         break;
       case FIT:
       case FIT_INTO:
         if (getCurrentSceneView() == null) {
-          return;
+          return false;
         }
 
-        setScale(getFitScale(type == ZoomType.FIT_INTO));
-        repaint();
+        scaled = setScale(getFitScale(type == ZoomType.FIT_INTO));
         myCurrentZoomType = type;
         break;
       default:
       case SCREEN:
         throw new UnsupportedOperationException("Not yet implemented: " + type);
     }
+    if (scaled) {
+      repaint();
+    }
+    return scaled;
   }
 
   /**
@@ -688,20 +683,20 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   protected abstract Dimension getPreferredContentSize(int availableWidth, int availableHeight);
 
-  public void zoomActual() {
-    zoom(ZoomType.ACTUAL);
+  public boolean zoomActual() {
+    return zoom(ZoomType.ACTUAL);
   }
 
-  public void zoomIn() {
-    zoom(ZoomType.IN);
+  public boolean zoomIn() {
+    return zoom(ZoomType.IN);
   }
 
-  public void zoomOut() {
-    zoom(ZoomType.OUT);
+  public boolean zoomOut() {
+    return zoom(ZoomType.OUT);
   }
 
-  public void zoomToFit() {
-    zoom(ZoomType.FIT);
+  public boolean zoomToFit() {
+    return zoom(ZoomType.FIT);
   }
 
   public double getScale() {
@@ -751,9 +746,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    *
    * @param scale The scale factor. Can be any value but it will be capped between -1 and 10
    *              (value below 0 means zoom to fit)
+   * @return      True if the scaling was changed, false if this was a noop.
    */
-  private void setScale(double scale) {
-    setScale(scale, -1, -1);
+  private boolean setScale(double scale) {
+    return setScale(scale, -1, -1);
   }
 
   /**
@@ -770,12 +766,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    *              (value below 0 means zoom to fit)
    * @param x     The X coordinate to center the scale to (in the Viewport's view coordinate system)
    * @param y     The Y coordinate to center the scale to (in the Viewport's view coordinate system)
+   * @return      True if the scaling was changed, false if this was a noop.
    */
   @VisibleForTesting(visibility = Visibility.PROTECTED)
-  public void setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
+  public boolean setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
     double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
     if (Math.abs(newScale - myScale) < 0.005) {
-      return;
+      return false;
     }
     myCurrentZoomType = null;
 
@@ -806,6 +803,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     notifyScaleChanged();
+    return true;
   }
 
   /**
