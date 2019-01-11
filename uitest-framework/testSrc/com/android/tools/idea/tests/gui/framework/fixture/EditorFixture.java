@@ -58,6 +58,7 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.ui.tabs.impl.JBEditorTabs;
 import com.intellij.ui.tabs.impl.TabLabel;
+import java.util.ArrayList;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
@@ -503,13 +504,19 @@ public class EditorFixture {
   }
 
   @NotNull
-  public EditorFixture checkNoNotification() {
+  public EditorFixture assertNoNotification() {
+    return assertNotificationsContainExactly(new ArrayList<>(0));
+  }
+
+  @NotNull
+  public EditorFixture assertNotificationsContainExactly(@NotNull Collection<String> expectedNotifications) {
     Collection<EditorNotificationPanel> notificationPanels = robot.finder().findAll(Matchers.byType(EditorNotificationPanel.class));
     if (!notificationPanels.isEmpty()) {
-      String notifications = notificationPanels.stream()
+      String unexpectedNotifications = notificationPanels.stream()
         .map(p -> p.getIntentionAction().getText())
+        .filter(text -> !expectedNotifications.contains(text))
         .collect(Collectors.joining(", "));
-      throw new AssertionError("unwanted notifications: " + notifications);
+      throw new AssertionError("unwanted notifications: " + unexpectedNotifications);
     }
     return this;
   }
