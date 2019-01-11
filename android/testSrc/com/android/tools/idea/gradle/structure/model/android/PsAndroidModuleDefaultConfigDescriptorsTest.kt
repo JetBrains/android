@@ -144,8 +144,13 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(module, notNullValue())
       val defaultConfig = module.defaultConfig
 
+      val versionCode = PsAndroidModuleDefaultConfigDescriptors.versionCode.bind(defaultConfig).getValue()
       val resConfigs = PsAndroidModuleDefaultConfigDescriptors.resConfigs.bind(defaultConfig).getValue()
       assertThat(resConfigs.resolved.asTestValue()?.toSet(), equalTo(setOf("en", "fr")))
+
+      assertThat(versionCode.resolved.asTestValue(), equalTo(1))
+      assertThat(versionCode.parsedValue.value,
+                 equalTo<ParsedValue<Int>>(ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText("1.1"))))
       // TODO(b/111779356): Uncommented when fixed.
       // assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(setOf("en", "fr")))
     }

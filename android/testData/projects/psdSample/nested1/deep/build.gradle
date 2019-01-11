@@ -4,6 +4,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         resConfigs (["en", "fr"])
+        versionCode = 1.1
     }
 }
 
