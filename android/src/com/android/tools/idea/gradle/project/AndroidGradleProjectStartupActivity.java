@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +38,9 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
       // This code path should only be executed when:
       // 1. Opening an existing project from the list of "recent projects" in the "Welcome" page
       // 2. Reopening the IDE and automatically reloading the current open project
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
+      GradleSyncStats.Trigger trigger =
+        gradleProjectInfo.isNewProject() ? TRIGGER_PROJECT_NEW : TRIGGER_PROJECT_REOPEN;
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
       request.useCachedGradleModels = true;
 
       GradleSyncInvoker.getInstance().requestProjectSync(project, request);

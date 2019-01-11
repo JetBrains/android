@@ -27,7 +27,7 @@ import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.util.androidFacet
-import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED
 import com.intellij.ide.file.BatchFileChangeListener
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.impl.stores.BatchUpdateListener
@@ -206,7 +206,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     // this tests the correct event handling when build is triggered during sync (e.g., source generation)
     setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
     val syncState = GradleSyncState.getInstance(project)
-    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED))
     syncState.setupStarted()
 
     val buildContext = BuildContext(project, listOf(":app:something"), BuildMode.DEFAULT_BUILD_MODE)
@@ -243,7 +243,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
 
     setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
     val syncState = GradleSyncState.getInstance(project)
-    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED))
 
     // Perform "setup" by marking the module as namespaced:
     syncState.setupStarted()
@@ -283,7 +283,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     assertEquals(1, currentBatchUpdateLevel)
     assertEquals(1, currentBatchFileUpdateLevel)
 
-    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED))
     // No change
     assertEquals(1, currentBatchUpdateLevel)
     assertEquals(1, currentBatchFileUpdateLevel)
@@ -330,7 +330,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     assertEquals(1, currentBatchUpdateLevel)
     assertEquals(1, currentBatchFileUpdateLevel)
 
-    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED))
     // No change
     assertEquals(1, currentBatchUpdateLevel)
     assertEquals(1, currentBatchFileUpdateLevel)
@@ -349,7 +349,7 @@ class IndexingSuspenderTest : IdeaTestCase() {
     setUpIndexingSpecificExpectations(batchUpdateCount = 1, batchFileUpdateCount = 1)
 
     val syncState = GradleSyncState.getInstance(project)
-    syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_USER_REQUEST))
+    syncState.syncStarted(true, GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED))
     syncState.setupStarted()
 
     assertEquals(1, currentBatchUpdateLevel)

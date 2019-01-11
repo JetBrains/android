@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_PLATFORM_INSTALLED;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -23,12 +25,9 @@ import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.List;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import org.jetbrains.annotations.NotNull;
 
 public class InstallPlatformHyperlink extends NotificationHyperlink {
   @NotNull private final AndroidVersion[] myAndroidVersions;
@@ -50,7 +49,7 @@ public class InstallPlatformHyperlink extends NotificationHyperlink {
     }
     ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
     if (dialog != null && dialog.showAndGet()) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_PLATFORM_INSTALLED);
     }
   }
 }

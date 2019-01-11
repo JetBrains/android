@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.mock.MockModule;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
-
 import java.util.Collections;
-
-import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link AndroidGradleProjectStartupActivity}.
@@ -70,7 +75,7 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
     Project project = getProject();
     myStartupActivity.runActivity(project);
 
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectLoaded();
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN);
     request.useCachedGradleModels = true;
 
     verify(mySyncInvoker, times(1)).requestProjectSync(project, request);

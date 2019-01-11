@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_JDK_CHANGED_TO_CURRENT;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 public class UseCurrentlyRunningJdkHyperlink extends NotificationHyperlink {
   @Nullable
@@ -46,6 +45,6 @@ public class UseCurrentlyRunningJdkHyperlink extends NotificationHyperlink {
     ApplicationManager.getApplication().runWriteAction(() -> {
       IdeSdks.getInstance().setJdkPath(new File(System.getProperties().getProperty("java.home")));
     });
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_JDK_CHANGED_TO_CURRENT);
   }
 }

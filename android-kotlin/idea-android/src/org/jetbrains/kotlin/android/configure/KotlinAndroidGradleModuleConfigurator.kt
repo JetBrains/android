@@ -9,6 +9,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_LANGUAGE_KOTLIN_CONFIGURED
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
@@ -18,7 +19,6 @@ import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.roots.ExternalLibraryDescriptor
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiFile
-
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.idea.configuration.AndroidGradle
 import org.jetbrains.kotlin.idea.configuration.GradleBuildScriptManipulator
@@ -97,7 +97,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     override fun configure(project: Project, excludeModules: Collection<Module>) {
         super.configure(project, excludeModules)
         // Sync after changing build scripts
-        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request.projectModified())
+        GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_LANGUAGE_KOTLIN_CONFIGURED))
     }
 
     private fun addDependency(manipulator: GradleBuildScriptManipulator<*>, groupId: String, artifactId: String, version: String) {
