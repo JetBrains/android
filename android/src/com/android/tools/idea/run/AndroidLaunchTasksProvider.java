@@ -172,8 +172,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     }
     else {
       // Use new deployment if it is enabled and supported.
-      if ((StudioFlags.UNIFIED_DEPLOYMENT.get() || StudioFlags.JVMTI_REFRESH.get())
-          && device.getVersion().getApiLevel() >= AbstractDeployTask.MIN_API_VERSION) {
+      if (StudioFlags.UNIFIED_DEPLOYMENT.get() || StudioFlags.JVMTI_REFRESH.get()) {
 
         // Add packages to the deployment, filtering out any dynamic features that are disabled.
         ImmutableMap.Builder<String, List<File>> packages = ImmutableMap.builder();
