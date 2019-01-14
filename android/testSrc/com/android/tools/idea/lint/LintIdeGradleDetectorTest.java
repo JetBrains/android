@@ -130,6 +130,11 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testDeprecatedConfigurationUse() throws Exception {
+    AndroidLintGradleDeprecatedConfigurationInspection inspection = new AndroidLintGradleDeprecatedConfigurationInspection();
+    doTest(inspection, null);
+  }
+
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
     myFixture.enableInspections(inspection);
