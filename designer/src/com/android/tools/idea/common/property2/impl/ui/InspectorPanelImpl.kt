@@ -46,7 +46,8 @@ typealias ComponentBounds = com.intellij.openapi.util.Pair<Component, Rectangle>
  * Implementation of [InspectorPanel].
  */
 class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Disposable) :
-    AdtSecondaryPanel(InspectorLayoutManager()), Disposable, ValueChangedListener {
+  AdtSecondaryPanel(InspectorLayoutManager()), Disposable, ValueChangedListener {
+
   private val expandableLabelHandler = ExpandableLabelHandler(this)
 
   init {
@@ -83,6 +84,15 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
     repaint()
   }
 
+  override fun getToolTipText(event: MouseEvent): String? {
+    val point = SwingUtilities.convertPoint(event.component, event.point, this)
+    if (!contains(point)) {
+      return null
+    }
+    val component = getComponentAt(point.x, point.y) as? CollapsibleLabel ?: return null
+    return PropertyTooltip.setToolTip(this, event, component.model.editorModel?.property, forValue = false, text = "")
+  }
+
   /**
    * Handles expansion of property labels.
    *
@@ -90,7 +100,8 @@ class InspectorPanelImpl(val model: InspectorPanelModel, parentDisposable: Dispo
    * that are too wide, but remove the ellipsis when the text is expanded.
    */
   private class ExpandableLabelHandler(component: InspectorPanelImpl) :
-      AbstractExpandableItemsHandler<CollapsibleLabel, JPanel>(component) {
+    AbstractExpandableItemsHandler<CollapsibleLabel, JPanel>(component) {
+
     private val mousePreprocessor: MousePreprocessor
     private val renderer: JLabel
     private var expandedLabel: CollapsibleLabel? = null

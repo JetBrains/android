@@ -61,7 +61,6 @@ class CollapsibleLabel(val model: CollapsibleLabelModel) : JBLabel(model.name) {
     actionPanel?.isVisible = isVisible
     text = if (model.showEllipses) valueWithTrailingEllipsis else valueWithoutEllipsis
     icon = model.icon
-    toolTipText = model.tooltip
     installMouseListener(model.expandable)
     revalidateParent?.revalidate()
     revalidateParent?.repaint()
