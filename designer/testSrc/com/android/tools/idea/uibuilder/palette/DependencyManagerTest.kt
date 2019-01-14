@@ -46,10 +46,11 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.concurrency.Promise
 import org.mockito.Mockito.mock
 import java.io.File
 import java.util.ArrayDeque
-import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 import javax.xml.ws.Holder
 
 class DependencyManagerTest : AndroidTestCase() {
@@ -58,7 +59,7 @@ class DependencyManagerTest : AndroidTestCase() {
   private var disposable: Disposable? = null
   private var dependencyManager: DependencyManager? = null
   private var dependencyUpdateCount = 0
-  private val syncListeners = ArrayDeque<Future<*>>()
+  private val syncListeners = ArrayDeque<Promise<Boolean>>()
 
   @Throws(Exception::class)
   override fun setUp() {
@@ -126,7 +127,7 @@ class DependencyManagerTest : AndroidTestCase() {
 
     dependencyManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
     simulateProjectSync()
-    assertEquals(1, dependencyUpdateCount)
+    assertThat(dependencyUpdateCount).isAtLeast(1)
   }
 
   fun testDisposeStopsProjectSyncListening() {
@@ -156,7 +157,8 @@ class DependencyManagerTest : AndroidTestCase() {
     }
     simulateProjectSync()
     assertFalse(dependencyManager!!.useAndroidXDependencies())
-    assertEquals(1, dependencyUpdateCount)
+    assertThat(dependencyUpdateCount).isAtLeast(1)
+    dependencyUpdateCount = 0
 
     ApplicationManager.getApplication().runWriteAction {
       propertiesDoc.setText("android.useAndroidX=true")
@@ -164,7 +166,7 @@ class DependencyManagerTest : AndroidTestCase() {
     }
     simulateProjectSync()
     assertTrue(dependencyManager!!.useAndroidXDependencies())
-    assertEquals(2, dependencyUpdateCount)
+    assertThat(dependencyUpdateCount).isAtLeast(1)
   }
 
   fun testNoNotificationOnProjectSyncBeforeSetPalette() {
@@ -179,7 +181,7 @@ class DependencyManagerTest : AndroidTestCase() {
     val tempProject = ProjectManagerEx.getInstanceEx().createProject(null, foo.path)!!
     val localDependencyManager: DependencyManager
 
-    val future = try {
+    val promise = try {
       val tempModule = WriteCommandAction.runWriteCommandAction(tempProject, Computable<Module> {
         ModuleManager.getInstance(tempProject).newModule(bar.path, StdModuleTypes.JAVA.id)
       })
@@ -194,7 +196,7 @@ class DependencyManagerTest : AndroidTestCase() {
     }
 
     // Test: The following lines should not yield project already disposed exceptions:
-    future.get()
+    promise.blockingGet(10, TimeUnit.SECONDS)
     UIUtil.dispatchAllInvocationEvents()
 
     // Cleanup:
@@ -208,7 +210,7 @@ class DependencyManagerTest : AndroidTestCase() {
 
   private fun waitAndDispatchAll() {
     while (syncListeners.isNotEmpty()) {
-      syncListeners.remove().get()
+      syncListeners.remove().blockingGet(10, TimeUnit.SECONDS)
     }
     UIUtil.dispatchAllInvocationEvents()
   }
