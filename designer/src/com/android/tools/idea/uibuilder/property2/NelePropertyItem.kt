@@ -167,7 +167,7 @@ open class NelePropertyItem(
     }
 
   override val helpSupport = object : HelpSupport {
-    // TODO: b/121259587 Implement help
+    override val help = HelpActions.help
     override val secondaryHelp = HelpActions.secondaryHelp
     override fun browse() { browseToValue() }
   }
@@ -273,7 +273,7 @@ open class NelePropertyItem(
     get() = model.facet.module.project
 
   protected val firstTag: XmlTag?
-    get() = firstComponent?.tag
+    get() = firstComponent?.backend?.getTag()
 
   private val nlModel: NlModel?
     get() = firstComponent?.model
