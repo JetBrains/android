@@ -212,7 +212,7 @@
         <properties>
           <font style="0"/>
           <label value="Use AndroidX artifacts"/>
-          <selected value="true"/>
+          <selected value="false"/>
           <text value="Use AndroidX artifacts"/>
         </properties>
       </component>
