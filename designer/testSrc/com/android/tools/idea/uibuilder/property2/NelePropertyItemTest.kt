@@ -92,7 +92,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(property.value).isEqualTo("@string/demo")
     assertThat(property.isReference).isTrue()
     assertThat(property.resolvedValue).isEqualTo("Demo String")
-    assertThat(property.tooltipForName).isEqualTo("android:text:\nText to display.")
+    assertThat(property.tooltipForName).isEqualTo(EXPECTED_TEXT_TOOLTIP)
     assertThat(property.editingSupport.validation("Some")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.libraryName).isEmpty()
     assertThat(property.components).hasSize(1)
@@ -128,7 +128,7 @@ class NelePropertyItemTest : PropertyTestCase() {
     assertThat(design.rawValue).isEqualTo("@string/design")
     assertThat(design.isReference).isTrue()
     assertThat(design.resolvedValue).isEqualTo("Design Demo")
-    assertThat(design.tooltipForName).isEqualTo("tools:text:\nText to display.")
+    assertThat(design.tooltipForName).isEqualTo("<html><b>tools:text:</b><br/>Text to display.</html>")
     assertThat(property.editingSupport.validation("Some")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(design.libraryName).isEmpty()
     assertThat(design.components).hasSize(1)
@@ -413,13 +413,6 @@ class NelePropertyItemTest : PropertyTestCase() {
 
     src.value = "@drawable/non-existent-drawable"
     assertThat(src.colorButton?.getActionIcon(false)).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
-  }
-
-  fun testFilterRawAttributeComment() {
-    val comment = "Here is a\n" +
-                  "        comment with an\n" +
-                  "        odd formatting."
-    assertThat(NelePropertyItem.filterRawAttributeComment(comment)).isEqualTo("Here is a comment with an odd formatting.")
   }
 
   fun testBrowse() {

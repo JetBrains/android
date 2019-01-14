@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
+import com.android.SdkConstants
 import com.android.SdkConstants.ANDROIDX_PKG_PREFIX
 import com.android.SdkConstants.ANDROID_PKG_PREFIX
 import com.android.SdkConstants.ANDROID_VIEW_PKG
@@ -24,8 +25,10 @@ import com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_LAYOUT_PARAMS
 import com.android.annotations.VisibleForTesting
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.google.common.html.HtmlEscapers
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -51,7 +54,7 @@ object HelpActions {
 
   private fun getHelpUrl(componentName: String, property: NelePropertyItem): String? {
     val dotLayoutParams = when {
-      componentName.equals(CLASS_VIEWGROUP) && property.name.startsWith(ATTR_LAYOUT_MARGIN) -> ".MarginLayoutParams"
+      componentName == CLASS_VIEWGROUP && property.name.startsWith(ATTR_LAYOUT_MARGIN) -> ".MarginLayoutParams"
       property.name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX) -> DOT_LAYOUT_PARAMS
       else -> ""
     }
@@ -71,4 +74,36 @@ object HelpActions {
       // Do not try to map a class that we know will not be documented on developer.android.com.
       else -> null
     }
+
+  fun createHelpText(property: NelePropertyItem): String {
+    val sb = StringBuilder(100)
+    sb.append("<html><b>")
+    sb.append(findNamespacePrefix(property))
+    sb.append(property.name)
+    sb.append(":</b><br/>")
+    val value = property.definition?.getDescription(null) ?: return ""
+    if (value.isNotEmpty()) {
+      sb.append(filterRawAttributeComment(value))
+    }
+    sb.append("</html>")
+    return sb.toString()
+  }
+
+  private fun findNamespacePrefix(property: NelePropertyItem): String {
+    val resolver = property.namespaceResolver
+    // TODO: This should not be required, but it is for as long as getNamespaceResolver returns TOOLS_ONLY:
+    if (resolver == ResourceNamespace.Resolver.TOOLS_ONLY && property.namespace == SdkConstants.ANDROID_URI) {
+      return SdkConstants.PREFIX_ANDROID
+    }
+    val prefix = resolver.uriToPrefix(property.namespace) ?: return ""
+    return "$prefix:"
+  }
+
+  private val lineEndingRegex = Regex("\n *")
+
+  // TODO: b/121033944 Give access to links and format code sections as well.
+  @VisibleForTesting
+  fun filterRawAttributeComment(comment: String): String {
+    return HtmlEscapers.htmlEscaper().escape(comment.replace(lineEndingRegex, " "))
+  }
 }
