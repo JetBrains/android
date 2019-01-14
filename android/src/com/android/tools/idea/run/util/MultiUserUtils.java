@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.run.util;
 
+import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.MultiLineReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * {@link MultiUserUtils} provides utility methods related to
- * This class should eventually be moved into {@link com.android.ddmlib.IDevice} itself.
+ * This class should eventually be moved into {@link IDevice} itself.
  */
 public class MultiUserUtils {
   public static final int PRIMARY_USERID = 0;
@@ -76,38 +79,16 @@ public class MultiUserUtils {
       return false;
     }
 
-    CountDownLatch latch = new CountDownLatch(1);
-    CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
+    PmListUserReceiver receiver = new PmListUserReceiver();
     try {
-      device.executeShellCommand("pm list users", receiver);
+      device.executeShellCommand("pm list users", receiver, timeout, units);
     }
     catch (Exception e) {
-      return defaultValue;
-    }
-
-    try {
-      latch.await(timeout, units);
-    }
-    catch (InterruptedException e) {
       Logger.getInstance(MultiUserUtils.class).warn("Timed out waiting for output from `pm list users`, returning " + defaultValue);
       return defaultValue;
     }
 
-    // Output is of the form:
-    // <some devices have error messages here, e.g. WARNING: linker: libdvm.so has text relocations
-    // Users:
-    //    UserInfo{0:Foo:13} running
-    //    UserInfo{11:Sample Managed Profile:30} running
-
-    String[] lines = receiver.getOutput().trim().split("\n");
-    int numUsers = 0;
-    for (String line : lines) {
-      if (line.contains("UserInfo{")) {
-        numUsers++;
-      }
-    }
-
-    return numUsers > 1;
+    return receiver.getNumUsers() > 1;
   }
 
   public static int getUserIdFromAmParameters(@NotNull String amFlags) {
@@ -129,6 +110,38 @@ public class MultiUserUtils {
     }
     catch (NumberFormatException e) {
       return PRIMARY_USERID;
+    }
+  }
+
+  /**
+   * A {@link com.android.ddmlib.IShellOutputReceiver} responsible for dealing with the output of the "pm list users" shell command.
+   */
+  @VisibleForTesting
+  static final class PmListUserReceiver extends MultiLineReceiver {
+
+    private int myNumUsers = 0;
+
+    @Override
+    public void processNewLines(@NonNull String[] lines) {
+      // Output is of the form:
+      // <some devices have error messages here, e.g. WARNING: linker: libdvm.so has text relocations
+      // Users:
+      //    UserInfo{0:Foo:13} running
+      //    UserInfo{11:Sample Managed Profile:30} running
+      for (String line : lines) {
+        if (line.contains("UserInfo{")) {
+          myNumUsers++;
+        }
+      }
+    }
+
+    @Override
+    public boolean isCancelled() {
+      return false;
+    }
+
+    private int getNumUsers() {
+      return myNumUsers;
     }
   }
 }
