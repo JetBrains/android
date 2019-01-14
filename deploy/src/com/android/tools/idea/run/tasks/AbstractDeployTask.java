@@ -20,11 +20,11 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Deployer;
+import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.tasks.TaskRunner;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.deployer.DeployerException;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -67,7 +67,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull
   @Override
   public String getFailureReason() {
-    return myErrorHandler != null ? myErrorHandler.getFormattedErrorString() : LaunchTask.super.getFailureReason();
+    return myErrorHandler != null ? myErrorHandler.getErrorString() : LaunchTask.super.getFailureReason();
   }
 
   @NotNull
@@ -79,7 +79,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull
   @Override
   public String getError() {
-    return getFailureReason();
+    return myErrorHandler != null ? myErrorHandler.getNotificationErrorString() : LaunchTask.super.getFailureReason();
   }
 
   @Nullable
@@ -107,7 +107,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
       List<File> apkFiles = entry.getValue();
       try {
         perform(device, deployer, applicationId, apkFiles);
-      } catch (DeployerException e) {
+      }
+      catch (DeployerException e) {
         myErrorHandler = new DeploymentErrorHandler(getDescription(), e);
         return false;
       }
