@@ -15,22 +15,56 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
+import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_FONT_FAMILY
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
 import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
 import com.android.SdkConstants.ATTR_SRC
+import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.FQCN_IMAGE_VIEW
 import com.android.SdkConstants.FQCN_TEXT_VIEW
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.property2.EXPECTED_TEXT_TOOLTIP
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class HelpActionsTest {
+
+  @JvmField
+  @Rule
+  val projectRule = AndroidProjectRule.withSdk()
+
+  @JvmField
+  @Rule
+  val edtRule = EdtRule()
+
+  @RunsInEdt
+  @Test
+  fun testTooltipForTextProperty() {
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
+    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
+    assertThat(property.tooltipForName).isEqualTo(EXPECTED_TEXT_TOOLTIP)
+  }
+
+  @Test
+  fun testFilterRawAttributeComment() {
+    val comment = "Here is a\n" +
+                  "        comment with an\n" +
+                  "        odd formatting."
+    assertThat(HelpActions.filterRawAttributeComment(comment)).isEqualTo("Here is a comment with an odd formatting.")
+  }
 
   @Test
   fun testToHelpUrl() {
