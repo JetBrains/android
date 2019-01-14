@@ -29,13 +29,24 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.google.common.html.HtmlEscapers
+import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.util.text.nullize
 
 const val DEFAULT_ANDROID_REFERENCE_PREFIX = "https://developer.android.com/reference/"
 
 object HelpActions {
+
+  val help = object : AnAction() {
+    override fun actionPerformed(event: AnActionEvent) {
+      val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
+      val tag = property.components.first().backend.getTag()
+      val documentation = createHelpText(property).nullize() ?: return
+      DocumentationManager.getInstance(property.project).showJavaDocInfo(tag, tag, true, null, documentation)
+    }
+  }
 
   val secondaryHelp = object : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {

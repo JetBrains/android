@@ -26,19 +26,28 @@ import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.FQCN_IMAGE_VIEW
 import com.android.SdkConstants.FQCN_TEXT_VIEW
+import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.EXPECTED_TEXT_TOOLTIP
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.documentation.DocumentationManager
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentMatchers.eq
+import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 class HelpActionsTest {
 
@@ -56,6 +65,20 @@ class HelpActionsTest {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
     assertThat(property.tooltipForName).isEqualTo(EXPECTED_TEXT_TOOLTIP)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testHelp() {
+    val manager = projectRule.mockProjectService(DocumentationManager::class.java)
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = FRAME_LAYOUT)
+    @Suppress("DEPRECATION")
+    val tag = util.components[0].tag
+    util.loadProperties()
+    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM.name, util.properties[ANDROID_URI, ATTR_TEXT])
+    val event = AnActionEvent.createFromDataContext("", null, context)
+    HelpActions.help.actionPerformed(event)
+    verify(manager).showJavaDocInfo(eq(tag), eq(tag), eq(true), isNull(), eq(EXPECTED_TEXT_TOOLTIP))
   }
 
   @Test
