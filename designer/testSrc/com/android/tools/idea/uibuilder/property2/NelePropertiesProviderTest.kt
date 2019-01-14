@@ -48,11 +48,15 @@ private const val ATTR_LEGEND = "legend"
 private const val ATTR_LABEL_POS = "labelPosition"
 
 internal const val EXPECTED_ID_TOOLTIP =
-  "android:id:\n" +
+  "<html><b>android:id:</b><br/>" +
   "Supply an identifier name for this view, to later retrieve it with {@link android.view.View#findViewById View.findViewById()} or " +
   "{@link android.app.Activity#findViewById Activity.findViewById()}. This must be a resource reference; typically you set this using " +
-  "the <code>@+</code> syntax to create a new ID resources. For example: <code>android:id=\"@+id/my_id\"</code> which allows you to " +
-  "later retrieve the view with <code>findViewById(R.id.my_id)</code>."
+  "the &lt;code&gt;@+&lt;/code&gt; syntax to create a new ID resources. " +
+  "For example: &lt;code&gt;android:id=&quot;@+id/my_id&quot;&lt;/code&gt; which allows you to " +
+  "later retrieve the view with &lt;code&gt;findViewById(R.id.my_id)&lt;/code&gt;.</html>"
+
+internal const val EXPECTED_TEXT_TOOLTIP =
+  "<html><b>android:text:</b><br/>Text to display.</html>"
 
 private fun PropertiesTable<NelePropertyItem>.contains(namespace: String, name: String): Boolean {
   return this.getOrNull(namespace, name) != null
@@ -152,7 +156,7 @@ class NelePropertiesProviderTest : PropertyTestCase() {
     val id = properties[ANDROID_URI, ATTR_ID]
     val legend = properties[AUTO_URI, ATTR_LEGEND]
     assertThat(id.tooltipForName.trim()).isEqualTo(EXPECTED_ID_TOOLTIP.trim())
-    assertThat(legend.tooltipForName).isEqualTo("legend")
+    assertThat(legend.tooltipForName).isEqualTo("<html><b>legend:</b><br/>Help Text</html>")
   }
 
   fun testComponentName() {
@@ -180,6 +184,7 @@ class NelePropertiesProviderTest : PropertyTestCase() {
     val attrsSrc = """<?xml version="1.0" encoding="utf-8"?>
       <resources>
         <declare-styleable name="PieChart">
+          <!-- Help Text -->
           <attr name="legend" format="boolean" />
           <attr name="labelPosition" format="enum">
             <enum name="left" value="0"/>

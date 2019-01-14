@@ -20,26 +20,28 @@ import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_BORDER_COLOR
 import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_FILL_COLOR
 import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_TEXT_COLOR
 import com.android.tools.idea.common.property2.api.PropertyItem
+import com.google.common.html.HtmlEscapers
 import com.intellij.ide.IdeTooltip
 import com.intellij.ide.IdeTooltipManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.xml.CommonXmlStrings.HTML_END
+import com.intellij.xml.CommonXmlStrings.HTML_START
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Point
 import java.awt.event.MouseEvent
-import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JTextArea
 import javax.swing.SwingConstants
 
 private const val ICON_SPACING = 6
-private const val MAX_COLUMN_WIDTH = 50 // Measured in 'em'
+private const val TIP_WIDTH_START = "<div WIDTH=600>"
+private const val TIP_WIDTH_END = "</div>"
 
 /**
  * Implementation of custom tool tips for displaying errors and warnings.
@@ -118,7 +120,7 @@ class PropertyTooltip(val component: JComponent, point: Point) : IdeTooltip(comp
 
 private class TooltipComponent: JPanel(BorderLayout()) {
   private val iconLabel = JBLabel()
-  private val textArea = JTextArea(0, 40)
+  private val textLabel = JBLabel()
 
   var icon: Icon?
     get() = iconLabel.icon
@@ -128,59 +130,30 @@ private class TooltipComponent: JPanel(BorderLayout()) {
     }
 
   var text: String
-    get() = textArea.text
+    get() = textLabel.text
     set(value) {
-      val forceUpdate = textArea.text != value
-      textArea.text = value
-      if (forceUpdate) {
-        updateRowsAndColumns(value)
-      }
+      textLabel.text = formatText(value)
     }
 
   init {
     background = UIUtil.TRANSPARENT_COLOR
-    textArea.border = JBUI.Borders.empty()
-    textArea.background = UIUtil.TRANSPARENT_COLOR
-    textArea.lineWrap = true
-    textArea.wrapStyleWord = true
-    textArea.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+    textLabel.border = JBUI.Borders.empty()
+    textLabel.background = UIUtil.TRANSPARENT_COLOR
+    textLabel.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     iconLabel.border = JBUI.Borders.emptyRight(ICON_SPACING)
     iconLabel.verticalAlignment = SwingConstants.TOP
     add(iconLabel, BorderLayout.WEST)
-    add(textArea, BorderLayout.CENTER)
+    add(textLabel, BorderLayout.CENTER)
   }
 
-  private fun updateRowsAndColumns(value: String) {
-    val lines = value.lines()
-    val fm = textArea.getFontMetrics(textArea.font)
-    val em = fm.charWidth('m')
-    val maxLineLength = lines.map { fm.stringWidth(it) }.max()
-    val columns = if (maxLineLength != null) maxLineLength / em else Int.MAX_VALUE
-    if (columns > MAX_COLUMN_WIDTH) {
-      textArea.columns = MAX_COLUMN_WIDTH
-      textArea.rows = 0
-      forcePreferredSizeUpdate()
+  private fun formatText(value: String): String {
+    val content: String
+    if (value.startsWith(HTML_START) && value.endsWith(HTML_END)) {
+      content = value.removePrefix(HTML_START).removeSuffix(HTML_END)
     }
     else {
-      textArea.columns = columns + 1
-      textArea.rows = lines.size
+      content = HtmlEscapers.htmlEscaper().escape(value)
     }
-  }
-
-  // Hack
-  // The lines are too wide, and word wrap is needed.
-  // We will specify the number of columns but not the number of rows.
-  // Unfortunately the correct number of rows is not computed correctly in JTextArea before
-  // the first paint.
-  // That makes these tooltips show up with 1 row the first time it is displayed.
-  // To fix this: make a dummy paint when the text is replaced to force the internals of the
-  // UI to compute the correct number of rows.
-  private fun forcePreferredSizeUpdate() {
-    val buffer = UIUtil.createImage(1, 1, BufferedImage.TYPE_INT_RGB)
-    val graphics = buffer.createGraphics()
-    val size = textArea.preferredSize
-    textArea.setBounds(0, 0, size.width, size.height)
-    textArea.paint(graphics)
-    graphics.dispose()
+    return "$HTML_START$TIP_WIDTH_START$content$TIP_WIDTH_END$HTML_END"
   }
 }
