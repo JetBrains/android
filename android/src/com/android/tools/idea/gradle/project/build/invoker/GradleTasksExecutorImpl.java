@@ -82,7 +82,6 @@ import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
@@ -372,14 +371,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
             buildMessages.add(msg);
           }
           GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError, model.get());
-          for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
-            task.execute(result);
-          }
-        }
-
-        if (!getProject().isDisposed()) {
-          GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), Collections.emptyList(), buildError,
-                                                                     model.get());
           for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
             task.execute(result);
           }
