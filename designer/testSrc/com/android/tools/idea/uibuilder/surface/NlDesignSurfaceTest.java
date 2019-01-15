@@ -28,7 +28,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.surface.ZoomType;
+import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
@@ -41,7 +41,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
-import java.awt.Dimension;
 import java.awt.Point;
 import java.util.stream.Collectors;
 import javax.swing.JViewport;
@@ -555,7 +554,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setSize(1000, 1000);
     mySurface.doLayout();
 
-    mySurface.zoomIn();
+    mySurface.zoom(ZoomType.IN);
     assertTrue(mySurface.canZoomOut());
     assertTrue(mySurface.canZoomIn());
     mySurface.setScale(mySurface.getMinScale(), -1, -1);
