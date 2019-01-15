@@ -184,6 +184,7 @@ public final class LinearLayoutTest {
 
     GuiTestFileUtils.writeAndReloadDocument(myProjectPath.resolve(myLayoutPath), layout);
     NlEditorFixture layoutEditor = myGuiTest.ideFrame().getEditor().open(myLayoutPath.toString()).getLayoutEditor(true);
+    layoutEditor.getAllComponents().get(0).click(); // Make sure the Linear layout has focus
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
     layoutEditor.getComponentToolbar().getButtonByIcon(StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_VERT).click();
     assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
