@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
-import com.google.common.truth.SubjectFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,18 +24,13 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class VersionRangeSubject extends Subject<VersionRangeSubject, VersionRange> {
   @NotNull
-  public static SubjectFactory<VersionRangeSubject, VersionRange> versionRange() {
-    return new SubjectFactory<VersionRangeSubject, VersionRange>() {
-      @Override
-      public VersionRangeSubject getSubject(FailureStrategy failureStrategy, VersionRange versionRange) {
-        return new VersionRangeSubject(failureStrategy, versionRange);
-      }
-    };
+  public static Subject.Factory<VersionRangeSubject, VersionRange> versionRange() {
+    return VersionRangeSubject::new;
   }
 
-  private VersionRangeSubject(FailureStrategy failureStrategy,
-                                @Nullable VersionRange versionRange) {
-    super(failureStrategy, versionRange);
+  private VersionRangeSubject(FailureMetadata failureMetadata,
+                              @Nullable VersionRange versionRange) {
+    super(failureMetadata, versionRange);
   }
 
   @NotNull
