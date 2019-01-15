@@ -41,19 +41,29 @@ const val OTHER_HEADER = "Other"
  *    "Project", "Library", "AppCompat", "Android"
  * where "Project" are the user defined styles.
  */
-open class StyleEnumSupport(val property: NelePropertyItem) : EnumSupport {
+open class StyleEnumSupport(val property: NelePropertyItem) : CachedEnumSupport {
   protected val facet = property.model.facet
   protected val resolver = property.resolver
   protected val derivedStyles = DerivedStyleFinder(facet, resolver)
+  private var lastResult: List<EnumValue>? = null
 
   override val values: List<EnumValue>
     get() {
-      val tagName = property.tagName
-      if (tagName.isEmpty()) return emptyList()
-      val baseStyles = getWidgetBaseStyles(tagName)
-      val styles = derivedStyles.find(baseStyles, { true }, { style -> style.name })
-      return convertStyles(styles)
+      return lastResult ?: cache(generate())
     }
+
+  private fun cache(values: List<EnumValue>): List<EnumValue> {
+    lastResult = values
+    return values
+  }
+
+  protected open fun generate(): List<EnumValue> {
+    val tagName = property.tagName
+    if (tagName.isEmpty()) return emptyList()
+    val baseStyles = getWidgetBaseStyles(tagName)
+    val styles = derivedStyles.find(baseStyles, { true }, { style -> style.name })
+    return convertStyles(styles)
+  }
 
   protected open fun displayName(style: StyleResourceValue) = style.name
 
