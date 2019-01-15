@@ -64,7 +64,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NelePropertyItem>
 
   public MotionLayoutAttributesView(@NotNull MotionLayoutAttributesModel model) {
     super(MOTION_VIEW_NAME, model);
-    NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider();
+    NeleEnumSupportProvider enumSupportProvider = new NeleEnumSupportProvider(model);
     NeleTwoStateBooleanControlTypeProvider controlTypeProvider = new NeleTwoStateBooleanControlTypeProvider(enumSupportProvider);
     EditorProvider<NelePropertyItem> editorProvider = EditorProvider.Companion.create(enumSupportProvider, controlTypeProvider);
     TableUIProvider tableUIProvider = TableUIProvider.Companion.create(NelePropertyItem.class, controlTypeProvider, editorProvider);
