@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.surface
 
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditorPanel
@@ -143,9 +144,9 @@ class NavDesignSurfaceTest : NavTestCase() {
     LayoutTestCase.assertFalse(surface.isSkipContentResize)
     surface.zoomToFit()
     LayoutTestCase.assertFalse(surface.isSkipContentResize)
-    surface.zoomActual()
+    surface.zoom(ZoomType.ACTUAL)
     LayoutTestCase.assertTrue(surface.isSkipContentResize)
-    surface.zoomIn()
+    surface.zoom(ZoomType.IN)
     LayoutTestCase.assertTrue(surface.isSkipContentResize)
     surface.zoomToFit()
     LayoutTestCase.assertFalse(surface.isSkipContentResize)

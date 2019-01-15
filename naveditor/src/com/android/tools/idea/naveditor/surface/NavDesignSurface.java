@@ -49,7 +49,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.surface.ZoomType;
+import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
