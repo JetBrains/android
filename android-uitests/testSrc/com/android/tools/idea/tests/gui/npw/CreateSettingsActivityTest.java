@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,11 @@ import org.junit.runner.RunWith;
 public class CreateSettingsActivityTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+
+  @After
+  public void tearDown() {
+    NPW_DYNAMIC_APPS.clearOverride();
+  }
 
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
