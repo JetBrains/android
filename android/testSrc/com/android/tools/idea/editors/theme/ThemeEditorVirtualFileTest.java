@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.theme;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -43,7 +42,7 @@ public class ThemeEditorVirtualFileTest extends AndroidTestCase {
     }
     finally {
       if (otherProject != null) {
-        ((ProjectManagerImpl)projectManager).forceCloseProject(otherProject, true);
+        projectManager.forceCloseProject(otherProject, true);
       }
     }
   }
