@@ -16,28 +16,21 @@
 package com.android.tools.idea.testing;
 
 import com.google.common.truth.ComparableSubject;
-import com.google.common.truth.FailureStrategy;
-import com.google.common.truth.SubjectFactory;
+import com.google.common.truth.FailureMetadata;
+import com.google.common.truth.Subject;
 
 import javax.annotation.Nullable;
 import java.io.File;
 
 /** Propositions for {@link File} subjects. */
 public class FileSubject extends ComparableSubject<FileSubject, File> {
-  private static final SubjectFactory<FileSubject, File> FILE =
-    new SubjectFactory<FileSubject, File>() {
-      @Override
-      public FileSubject getSubject(FailureStrategy fs, File file) {
-        return new FileSubject(fs, file);
-      }
-    };
 
-  public static SubjectFactory<FileSubject, File> file() {
-    return FILE;
+  public static Subject.Factory<FileSubject, File> file() {
+    return FileSubject::new;
   }
 
-  public FileSubject(FailureStrategy failureStrategy, @Nullable File file) {
-    super(failureStrategy, file);
+  public FileSubject(FailureMetadata failureMetadata, @Nullable File file) {
+    super(failureMetadata, file);
   }
 
   /** Fails if the subject {@link File#exists exists}. */
