@@ -19,7 +19,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.uibuilder.structure.TreeSearchUtil;
 import com.android.xml.XmlBuilder;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -50,8 +49,8 @@ public final class LinearLayoutTest {
   private Path myLayoutPath;
 
   @Before
-  public void setUp() {
-    WizardUtils.createNewProject(myGuiTest, "Empty Activity");
+  public void setUp() throws IOException {
+    myGuiTest.importSimpleApplication();
     myProjectPath = myGuiTest.getProjectPath().toPath();
 
     FileSystem fileSystem = FileSystems.getDefault();
@@ -163,9 +162,7 @@ public final class LinearLayoutTest {
 
     JTreeFixture treeFixture = editor.getComponentTree();
 
-    treeFixture.replaceCellReader((tree, value) -> {
-      return TreeSearchUtil.toString((NlComponent)value);
-    });
+    treeFixture.replaceCellReader((tree, value) -> TreeSearchUtil.toString((NlComponent)value));
 
     return treeFixture;
   }
