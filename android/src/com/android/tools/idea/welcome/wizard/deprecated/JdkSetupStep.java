@@ -18,6 +18,7 @@ package com.android.tools.idea.welcome.wizard.deprecated;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
+import static com.android.tools.idea.wizard.WizardConstants.KEY_JDK_LOCATION;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFile;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
@@ -37,11 +38,14 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class JdkSetupStep extends FirstRunWizardStep {
   @NotNull private String myUserSelectedJdkPath = "";
+  @NotNull private final ChangeListener myListener;
   private JPanel myRootPanel;
   private JRadioButton myUseEmbeddedJdkRadioButton;
   private JRadioButton myOtherRadioButton;
@@ -51,32 +55,30 @@ public class JdkSetupStep extends FirstRunWizardStep {
   public JdkSetupStep() {
     super("Select default JDK Location");
 
-    myUseJavaHomeEnvironmentVariableRadioButton.addChangeListener(event -> {
-      if (myUseJavaHomeEnvironmentVariableRadioButton.isSelected()) {
-        String javaHome = getJdkFromJavaHome();
-        if (javaHome == null) {
-          javaHome = "";
+    myListener = new ChangeListener() {
+      @Override
+      public void stateChanged(ChangeEvent event) {
+        String text = "";
+        boolean enableButton = false;
+        if (myUseJavaHomeEnvironmentVariableRadioButton.isSelected()) {
+          text = nullToEmpty(getJdkFromJavaHome());
         }
-        setJdkFieldText(javaHome, false/* button disabled */);
+        else if (myUseEmbeddedJdkRadioButton.isSelected()) {
+          text = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath();
+        }
+        else if (myOtherRadioButton.isSelected()) {
+          text = myUserSelectedJdkPath;
+          enableButton = true;
+          myJdkLocationTextField.getTextField().requestFocus();
+        }
+        setJdkFieldText(text, enableButton);
       }
-    });
+    };
 
-    myUseEmbeddedJdkRadioButton.addChangeListener(event -> {
-      if (myUseEmbeddedJdkRadioButton.isSelected()) {
-        String embeddedJdkPath = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath();
-        setJdkFieldText(embeddedJdkPath, false /* button disabled */);
-      }
-    });
-
-    myOtherRadioButton.addChangeListener( event -> {
-      if (myOtherRadioButton.isSelected()) {
-        setJdkFieldText(myUserSelectedJdkPath, true /* button enabled */);
-        myJdkLocationTextField.getTextField().requestFocus();
-      }
-    });
-
+    myUseJavaHomeEnvironmentVariableRadioButton.addChangeListener(myListener);
+    myUseEmbeddedJdkRadioButton.addChangeListener(myListener);
+    myOtherRadioButton.addChangeListener(myListener);
     myJdkLocationTextField.getButton().addActionListener(e -> chooseJdkLocation());
-
     setComponent(myRootPanel);
   }
 
@@ -84,6 +86,7 @@ public class JdkSetupStep extends FirstRunWizardStep {
     myJdkLocationTextField.setText(path);
     myJdkLocationTextField.setEditable(false);
     myJdkLocationTextField.getButton().setEnabled(enableButton);
+    myState.put(KEY_JDK_LOCATION, path);
     updateIsValidPath();
   }
 
@@ -160,7 +163,8 @@ public class JdkSetupStep extends FirstRunWizardStep {
 
   @Override
   public void init() {
-
+    // Apply default selection
+    myListener.stateChanged(null);
   }
 
   @Nullable
