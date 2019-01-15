@@ -20,7 +20,10 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property2.api.*
 import com.android.tools.idea.uibuilder.model.viewHandler
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.google.common.collect.HashBasedTable
+import com.google.common.collect.Table
 import org.jetbrains.android.dom.AndroidDomUtil
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -31,16 +34,34 @@ private const val TEXT_APPEARANCE_SUFFIX = "TextAppearance"
 /**
  * Given a [NelePropertyItem] compute the [EnumSupport] of the attribute if applicable.
  */
-class NeleEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
+class NeleEnumSupportProvider(model: NelePropertiesModel) : EnumSupportProvider<NelePropertyItem> {
+  private val cachedEnumSupport: Table<String, String, CachedEnumSupport> = HashBasedTable.create()
+
+  init {
+    model.addListener(object: PropertiesModelListener<NelePropertyItem> {
+      override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
+        cachedEnumSupport.clear()
+      }
+
+      override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
+        cachedEnumSupport.clear()
+      }
+    })
+  }
 
   /**
    * Return the [EnumSupport] for the given [actual] property or null if not applicable.
    */
   override fun invoke(actual: NelePropertyItem): EnumSupport? {
     val property = (actual as? NeleNewPropertyItem)?.delegate ?: actual
-    return provideEnumSupportFromViewHandler(property.name, property.components) ?:
+    val support = cachedEnumSupport.get(property.namespace, property.name) ?:
+        provideEnumSupportFromViewHandler(property.name, property.components) ?:
         getDropDownValuesFromSpecialCases(property) ?:
         property.definition?.let { provideEnumSupportFromAttributeDefinition(it) }
+    if (support is CachedEnumSupport) {
+      cachedEnumSupport.put(property.namespace, property.name, support)
+    }
+    return support
   }
 
   private val textSizeEnumSupport: EnumSupport by lazy {
