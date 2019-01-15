@@ -779,6 +779,8 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
   return null
 }
 
+private val RESOURCE_PROTOCOLS = arrayOf("apk", "jar", "file")
+
 /**
  * Converts a file resource path from [String] to [PathString]. The supported formats:
  * - file path, e.g. "/foo/bar/res/layout/my_layout.xml"
@@ -789,20 +791,14 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
  * @return the converted resource path, or null if the `resourcePath` doesn't point to a file resource
  */
 fun toFileResourcePathString(resourcePath: String): PathString? {
-  if (resourcePath.startsWith("apk:")) {
-    var prefixLength = "apk:".length
-    if (resourcePath.startsWith("//", prefixLength)) {
-      prefixLength += "//".length
+  for (protocol in RESOURCE_PROTOCOLS) {
+    if (resourcePath.startsWith(protocol) && resourcePath.length > protocol.length && resourcePath[protocol.length] == ':') {
+      var prefixLength = protocol.length + 1
+      if (resourcePath.startsWith("//", prefixLength)) {
+        prefixLength += "//".length
+      }
+      return PathString(protocol, resourcePath.substring(prefixLength))
     }
-    return PathString("apk", resourcePath.substring(prefixLength))
-  }
-
-  if (resourcePath.startsWith("file:")) {
-    var prefixLength = "file:".length
-    if (resourcePath.startsWith("//", prefixLength)) {
-      prefixLength += "//".length
-    }
-    return PathString(resourcePath.substring(prefixLength))
   }
 
   val file = File(resourcePath)
