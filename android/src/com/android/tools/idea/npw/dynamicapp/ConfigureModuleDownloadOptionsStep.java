@@ -36,6 +36,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
 import java.util.Optional;
 import javax.swing.DefaultComboBoxModel;
@@ -57,15 +58,18 @@ public class ConfigureModuleDownloadOptionsStep extends ModelWizardStep<DynamicF
 
   private JPanel myRootPanel;
   @SuppressWarnings("unused") private JBLabel myFeatureTitleLabel;
+  @SuppressWarnings("unused") private JBLabel myModuleDeliveryLabel;
   private JTextField myFeatureTitle;
   private JCheckBox myFusingCheckBox;
   private ModuleDownloadConditions myDownloadConditionsForm;
   private JComboBox<DownloadInstallKind> myInstallationOptionCombo;
-  @SuppressWarnings("unused") private JBLabel myModuleDeliveryLabel;
+  private HyperlinkLabel myHeaderLabel;
 
   public ConfigureModuleDownloadOptionsStep(@NotNull DynamicFeatureModel model) {
     super(model, message("android.wizard.module.new.dynamic.download.options"));
 
+    myHeaderLabel.setHyperlinkTarget("https://developer.android.com/reference/com/google/android/play/core/splitinstall/SplitInstallManager");
+    myHeaderLabel.setHtmlText("<html>Dynamic modules can be included at install time or downloaded on-demand via the <a>SplitInstallManager API</a></html>");
     myInstallationOptionCombo.setModel(new DefaultComboBoxModel<>(DownloadInstallKind.values()));
     myDownloadConditionsForm.setModel(model.deviceFeatures());
     myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myRootPanel));
