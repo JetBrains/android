@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.Fact;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
@@ -30,8 +31,8 @@ import static com.google.common.truth.Truth.assertThat;
 public abstract class DependenciesSubject<T  extends ExportableOrderEntry> extends Subject<DependenciesSubject<T>, Module> {
   @NotNull private final Map<DependencyScope, Map<String, T>> myDependenciesByNameAndScope = new HashMap<>();
 
-  protected DependenciesSubject(FailureStrategy failureStrategy, @Nullable Module subject) {
-    super(failureStrategy, subject);
+  protected DependenciesSubject(FailureMetadata failureMetadata, @Nullable Module subject) {
+    super(failureMetadata, subject);
     if (subject != null) {
       //noinspection AbstractMethodCallInConstructor
       collectDependencies(subject);
@@ -57,7 +58,7 @@ public abstract class DependenciesSubject<T  extends ExportableOrderEntry> exten
       fail("has a dependency with name matching '" + dependencyNameRegex + "' in scope(s): " + Arrays.toString(scopes));
     }
     if (matchingDependency.isExported() != isExported) {
-      failureStrategy.fail("Not true that " + matchingDependency.getPresentableName() + " has exported set to " + isExported);
+      failWithoutActual(Fact.simpleFact("Not true that " + matchingDependency.getPresentableName() + " has exported set to " + isExported));
     }
   }
 
@@ -101,7 +102,7 @@ public abstract class DependenciesSubject<T  extends ExportableOrderEntry> exten
     }
     else {
       if (dependency.isExported() != isExported) {
-        failureStrategy.fail("Not true that " + dependencyName + " has exported set to " + isExported);
+        failWithoutActual(Fact.simpleFact("Not true that " + dependencyName + " has exported set to " + isExported));
       }
     }
   }
