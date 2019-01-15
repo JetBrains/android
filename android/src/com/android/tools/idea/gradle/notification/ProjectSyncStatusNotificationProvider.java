@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.ide.util.PropertiesComponent;
@@ -60,11 +61,13 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
+
 /**
  * Notifies users that a Gradle project "sync" is either being in progress or failed.
  */
 public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel>
-  implements DumbAware {
+    implements DumbAware {
 
   private static final long PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS = TimeUnit.DAYS.toMillis(30);
 
@@ -190,7 +193,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                         " have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
           return new StaleGradleModelNotificationPanel(project, this, text);
         }
-      },;
+      };
 
       @Nullable
       abstract NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo);
@@ -251,7 +254,11 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   private static class StaleGradleModelNotificationPanel extends IndexingSensitiveNotificationPanel {
     StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
       super(project, type, text);
-
+      if (GradleProjects.containsExternalCppProjects(project)) {
+        // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true,
+        // which would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
+        project.putUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY, true);
+      }
       createActionLabel("Sync Now",
                         () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_STALE_CHANGES));
     }
