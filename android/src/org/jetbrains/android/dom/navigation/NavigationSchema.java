@@ -201,7 +201,6 @@ public class NavigationSchema implements Disposable {
     PsiClass dereference() {
       PsiClass result = myPointer == null ? null : myPointer.getElement();
       if (result == null) {
-        NavigationSchema.this.myTypeCache.remove(myClassName);
         result = NavigationSchema.this.getClass(myClassName);
         if (result != null) {
           myPointer = SmartPointerManager.getInstance(result.getProject()).createSmartPsiElementPointer(result);
