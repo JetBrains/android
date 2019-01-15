@@ -40,7 +40,7 @@ public class AndroidExtractColorActionTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    TemplateManagerImpl.setTemplateTesting(getProject(), getTestRootDisposable());
+    TemplateManagerImpl.setTemplateTesting(getTestRootDisposable());
   }
 
   public void testFromLayout() throws IOException {
