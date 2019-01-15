@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.common.actions
+package com.android.tools.adtui.actions
 
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.ZoomType
+import com.android.tools.adtui.ZOOMABLE_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CustomShortcutSet
-import java.awt.event.InputEvent
-import java.awt.event.KeyEvent
-import javax.swing.KeyStroke
 
-class ZoomToFitAction(surface: DesignSurface) : SetZoomAction(surface, ZoomType.FIT) {
+object ZoomOutAction : SetZoomAction(ZoomType.OUT) {
   // TODO: register shortcuts
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    e.presentation.isEnabled = mySurface.canZoomToFit()
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    event.presentation.isEnabled = event.getData(ZOOMABLE_KEY)?.canZoomOut() ?: false
   }
 }
