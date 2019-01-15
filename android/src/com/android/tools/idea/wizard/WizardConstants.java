@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout;
-import com.intellij.ui.JBColor;
-import com.intellij.util.ui.JBUI;
-
-import java.awt.*;
-import java.util.List;
-
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+
+import com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.util.List;
 
 /**
  * Constants for template based wizards.
@@ -67,6 +67,7 @@ public class WizardConstants {
   @SuppressWarnings("unchecked") public static final Key<List<String>> INSTALL_REQUESTS_KEY =
     createKey("packagesToInstall", WIZARD, (Class<List<String>>)(Class)List.class);
   public static final Key<String> KEY_SDK_INSTALL_LOCATION = createKey("download.sdk.location", WIZARD, String.class);
+  public static final Key<String> KEY_JDK_LOCATION = createKey("wizard.jdk.location", WIZARD, String.class);
   // TODO: change this an IntProperty, see com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep#checkForUpgrades
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
 
