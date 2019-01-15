@@ -234,7 +234,7 @@ class DeclaredAttributesInspectorBuilderTest {
   }
 
   private fun createBuilder(model: NelePropertiesModel): DeclaredAttributesInspectorBuilder {
-    val enumSupportProvider = NeleEnumSupportProvider()
+    val enumSupportProvider = NeleEnumSupportProvider(model)
     return DeclaredAttributesInspectorBuilder(model, enumSupportProvider)
   }
 

@@ -34,6 +34,7 @@ import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEdito
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertiesProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
@@ -52,7 +53,7 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
 
   val properties: PropertiesTable<NelePropertyItem> = PropertiesTableImpl(_properties)
 
-  val editorProvider = FakeEditorProviderImpl()
+  val editorProvider = FakeEditorProviderImpl(model)
 
   val inspector = FakeInspectorPanel()
 
@@ -179,8 +180,8 @@ class FakeInspectorPanel : InspectorPanel {
   }
 }
 
-class FakeEditorProviderImpl: EditorProvider<NelePropertyItem> {
-  private val enumSupportProvider = NeleEnumSupportProvider()
+class FakeEditorProviderImpl(model: NelePropertiesModel): EditorProvider<NelePropertyItem> {
+  private val enumSupportProvider = NeleEnumSupportProvider(model)
   private val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
 
   override fun createEditor(property: NelePropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
