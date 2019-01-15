@@ -15,18 +15,30 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.ZOOMABLE_KEY
+import com.android.tools.adtui.Zoomable
+import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.adtui.actions.ZoomInAction
+import com.android.tools.adtui.actions.ZoomLabelAction
+import com.android.tools.adtui.actions.ZoomOutAction
+import com.android.tools.adtui.actions.ZoomToFitAction
+import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.android.tools.idea.layoutinspector.sampledata.chromeSampleData
 import com.android.tools.idea.layoutinspector.sampledata.videosSampleData
 import com.android.tools.idea.layoutinspector.sampledata.youtubeSampleData
-import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.components.JBCheckBox
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import java.awt.BasicStroke
 import java.awt.BorderLayout
 import java.awt.Color
-import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
@@ -34,9 +46,9 @@ import java.awt.RenderingHints
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.LinkedList
-import javax.swing.JLabel
+import javax.swing.BorderFactory
+import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.ListCellRenderer
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -45,10 +57,43 @@ private const val LAYER_SPACING = 150
 /**
  * Panel that shows the device screen in the layout inspector.
  */
-class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(BorderLayout()) {
-  private val showBordersCheckBox = JBCheckBox("Show borders")
-  private val sampleDataSelector = ComboBox<Pair<String, InspectorModel>>(
-    arrayOf("Chrome" to chromeSampleData, "Videos" to videosSampleData, "Youtube" to youtubeSampleData))
+class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(BorderLayout()), Zoomable, DataProvider {
+
+  override var scale: Double = 1.0
+
+  override val screenScalingFactor: Float
+    get() = 1f
+
+  override fun zoom(type: ZoomType): Boolean {
+    when (type) {
+      ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> scale = 0.5
+      ZoomType.ACTUAL -> scale = 1.0
+      ZoomType.IN -> scale += 0.1
+      ZoomType.OUT -> scale -= 0.1
+    }
+    repaint()
+    return true
+  }
+
+  override fun canZoomIn() = true
+
+  override fun canZoomOut() = true
+
+  override fun canZoomToFit() = true
+
+  private var drawBorders = false
+
+  private val showBordersCheckBox = object : CheckboxAction("Show borders") {
+    override fun isSelected(e: AnActionEvent): Boolean {
+      return drawBorders
+    }
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      drawBorders = state
+      repaint()
+    }
+  }
+  private val sampleDataSelector = DropDownAction("Sample Data", "Sample Data", null)
 
   private val HQ_RENDERING_HINTS = mapOf(
     RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
@@ -60,13 +105,24 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
   private var angle = 0.0
   private val hitRects = ArrayList<Pair<Rectangle, InspectorView>>()
 
-  private val mouseListener = object: MouseAdapter() {
+  private val mouseListener = object : MouseAdapter() {
     override fun mouseClicked(e: MouseEvent) {
-      layoutInspector.layoutInspectorModel.selection = hitRects.findLast { it.first.contains((e.x - 20) * 2, (e.y - 20) * 2) }?.second
+      layoutInspector.layoutInspectorModel.selection = hitRects.findLast {
+        it.first.contains(e.x / scale, e.y / scale)
+      }?.second
     }
   }
 
   init {
+    for ((name, data) in arrayOf("Chrome" to chromeSampleData, "Videos" to videosSampleData, "Youtube" to youtubeSampleData)) {
+      sampleDataSelector.addAction(object : AnAction(name) {
+        override fun actionPerformed(e: AnActionEvent) {
+          layoutInspector.layoutInspectorModel = data
+          repaint()
+        }
+      })
+    }
+
     layoutInspector.modelChangeListeners.add(this::modelChanged)
     layoutInspector.layoutInspectorModel.selectionListeners.add(this::selectionChanged)
 
@@ -76,37 +132,52 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
       repaint()
     }
 
-    showBordersCheckBox.addActionListener {
-      repaint()
-    }
-    sampleDataSelector.addActionListener {
-      layoutInspector.layoutInspectorModel = sampleDataSelector.getItemAt(sampleDataSelector.selectedIndex).second
-      repaint()
-    }
-    showBordersCheckBox.preferredSize = Dimension(50, 20)
-    showBordersCheckBox.size = Dimension(50, 20)
-    showBordersCheckBox.minimumSize = Dimension(50, 20)
-    val renderer = JLabel()
-    sampleDataSelector.renderer = ListCellRenderer<Pair<String, InspectorModel>> { _, value, _, _, _ ->
-      renderer.apply { text = value.first }
-    }
-    val topPanel = JPanel(BorderLayout())
-    topPanel.add(sampleDataSelector, BorderLayout.WEST)
-    topPanel.add(showBordersCheckBox, BorderLayout.CENTER)
-    add(topPanel, BorderLayout.NORTH)
+    add(createToolbar(), BorderLayout.NORTH)
+
     val panel = object : JPanel() {
       override fun paint(g: Graphics) {
+        super.paint(g)
         (g as? Graphics2D)?.setRenderingHints(HQ_RENDERING_HINTS)
-        g.color = Color.LIGHT_GRAY
-        g.fillRect(0, 0, width, height)
-        (g as? Graphics2D)?.translate(20, 20)
-        (g as? Graphics2D)?.scale(.5, .5)
+        (g as? Graphics2D)?.scale(scale, scale)
         draw(layoutInspector.layoutInspectorModel.root, g, 0)
       }
     }
-    add(panel, BorderLayout.CENTER)
+    val borderPanel = JPanel(BorderLayout())
+    borderPanel.add(panel, BorderLayout.CENTER)
+    borderPanel.border = BorderFactory.createEmptyBorder(20, 20, 20, 20)
+    add(borderPanel, BorderLayout.CENTER)
     panel.addMouseListener(mouseListener)
     rebuildRects()
+  }
+
+  override fun getData(dataId: String): Any? {
+    if (ZOOMABLE_KEY.`is`(dataId)) {
+      return this
+    }
+    return null
+  }
+
+  private fun createToolbar(): JComponent {
+    val panel = AdtPrimaryPanel(BorderLayout())
+    panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)
+
+    val leftPanel = AdtPrimaryPanel(BorderLayout())
+    val leftGroup = DefaultActionGroup()
+    leftGroup.add(sampleDataSelector)
+    leftGroup.add(showBordersCheckBox)
+    leftPanel.add(ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true).component,
+                  BorderLayout.CENTER)
+    panel.add(leftPanel, BorderLayout.CENTER)
+
+    val rightGroup = DefaultActionGroup()
+    rightGroup.add(ZoomOutAction)
+    rightGroup.add(ZoomLabelAction)
+    rightGroup.add(ZoomInAction)
+    rightGroup.add(ZoomToFitAction)
+    val toolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorRight", rightGroup, true)
+    toolbar.setTargetComponent(this)
+    panel.add(toolbar.component, BorderLayout.EAST)
+    return panel
   }
 
   private fun rebuildRects() {
@@ -133,7 +204,7 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
     if (bufferedImage != null) {
       g2.drawImage(bufferedImage, view.x, view.y, null)
     }
-    if (showBordersCheckBox.isSelected) {
+    if (drawBorders) {
       if (view == layoutInspector.layoutInspectorModel.selection) {
         g2.color = Color.BLACK
         g2.font = g2.font.deriveFont(20f)
