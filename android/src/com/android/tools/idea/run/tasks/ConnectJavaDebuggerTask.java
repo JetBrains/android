@@ -43,6 +43,9 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
@@ -200,13 +203,18 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
         if (myWillBeDestroyed) {
           Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger terminating, so terminating process: " + pkgName);
-          // Note: client.kill() doesn't work when the debugger is attached, we explicitly stop by package id..
-          try {
-            device.executeShellCommand("am force-stop " + pkgName, new NullOutputReceiver());
-          }
-          catch (Exception e) {
-            // don't care..
-          }
+          ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Stopping Application...") {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+              // Note: client.kill() doesn't work when the debugger is attached, we explicitly stop by package id.
+              try {
+                device.executeShellCommand("am force-stop " + pkgName, new NullOutputReceiver());
+              }
+              catch (Exception e) {
+                // don't care..
+              }
+            }
+          });
         }
         else {
           Logger.getInstance(ConnectJavaDebuggerTask.class).info("Debugger detaching, leaving process alive: " + pkgName);
