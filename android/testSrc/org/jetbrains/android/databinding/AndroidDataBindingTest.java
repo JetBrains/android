@@ -74,7 +74,7 @@ public class AndroidDataBindingTest extends AndroidTestCase {
    * Tests symbol resolution in the scenario described in https://issuetracker.google.com/65467760.
    */
   public void testPropertyResolution() {
-    PsiReferenceProvider.disableTargetChecks(getTestRootDisposable());
+    PsiReferenceProvider.disableUnderlyingElementChecks(getTestRootDisposable());
     copyClass("p1.p2.ClassWithBindableProperty");
     myFixture.configureByFile("res/layout/data_binding_property_reference.xml");
     PsiElement element = myFixture.getElementAtCaret();
