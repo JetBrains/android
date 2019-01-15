@@ -17,11 +17,11 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
+import com.android.tools.adtui.actions.ZoomInAction
+import com.android.tools.adtui.actions.ZoomOutAction
+import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.actions.GotoComponentAction
-import com.android.tools.idea.common.actions.ZoomInAction
-import com.android.tools.idea.common.actions.ZoomOutAction
-import com.android.tools.idea.common.actions.ZoomToFitAction
 import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
