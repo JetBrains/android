@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.targets.PlatformTarget;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -32,6 +33,9 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -44,17 +48,29 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   private static final Logger LOG = Logger.getInstance(StudioEmbeddedRenderTarget.class);
   private static final String ONLY_FOR_RENDERING_ERROR = "This target is only for rendering";
 
-  private static final String[] EMBEDDED_PATHS = {
-    // Bundled path
+  // Possible paths of the embedded "layoutlib" directory.
+  private static final String[] EMBEDDED_LAYOUTLIB_PATHS = {
+    // Bundled path.
     "/plugins/android/lib/layoutlib/",
-    // Development path
+    // Development path.
     "/../../prebuilts/studio/layoutlib/",
-    // IDEA path
+    // IDEA path.
     "/community/android/tools-base/layoutlib/",
-    // IDEA community path
+    // IDEA community path.
     "/android/tools-base/layoutlib/"
   };
-  private final String myBasePath;
+  // Possible paths of framework_res.jar relative to the "layoutlib" directory.
+  private static final String[] EMBEDDED_FRAMEWORK_RES_JAR_PATHS = {
+    // Bundled path.
+    "data/framework_res.jar",
+    // Path when running in IntelliJ.
+    "../../../bazel-genfiles/tools/adt/idea/resources-aar/framework_res.jar",
+  };
+  // Path of framework_res.jar relative to the runfiles directory when running in Bazel.
+  private static final String EMBEDDED_FRAMEWORK_RES_JAR_BAZEL_PATH = "tools/adt/idea/resources-aar/framework_res.jar";
+
+  @Nullable private final String myBasePath;
+  @Nullable private final String myFrameworkResPath;
 
   private static StudioEmbeddedRenderTarget ourStudioEmbeddedTarget;
   private static boolean ourDisableEmbeddedTargetForTesting = false;
@@ -98,6 +114,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
 
   private StudioEmbeddedRenderTarget() {
     myBasePath = getEmbeddedLayoutLibPath();
+    myFrameworkResPath = getEmbeddedFrameworkResPath(myBasePath);
   }
 
   /**
@@ -108,7 +125,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
 
     StringBuilder notFoundPaths = new StringBuilder();
-    for (String path : EMBEDDED_PATHS) {
+    for (String path : EMBEDDED_LAYOUTLIB_PATHS) {
       String jarPath = homePath + path;
       VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(jarPath));
 
@@ -125,6 +142,29 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     }
 
     LOG.error("Unable to find embedded layoutlib in paths:\n" + notFoundPaths.toString());
+    return null;
+  }
+
+  /**
+   * Returns the URL for the embedded layoutlib distribution.
+   * @param basePath
+   */
+  @Nullable
+  private static String getEmbeddedFrameworkResPath(@Nullable String basePath) {
+    if (basePath == null) {
+      return null;
+    }
+
+    for (String relativePath : EMBEDDED_FRAMEWORK_RES_JAR_PATHS) {
+      Path path = Paths.get(basePath, relativePath).normalize();
+      if (Files.exists(path)) {
+        return path.toString();
+      }
+    }
+    Path path = Paths.get(EMBEDDED_FRAMEWORK_RES_JAR_BAZEL_PATH).toAbsolutePath().normalize();
+    if (Files.exists(path)) {
+      return path.toString();
+    }
     return null;
   }
 
@@ -175,11 +215,11 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     switch (pathId) {
       case DATA:
         return getLocation() + SdkConstants.OS_PLATFORM_DATA_FOLDER;
-      case ATTRIBUTES:
-        return getLocation() + SdkConstants.OS_PLATFORM_ATTRS_XML;
-      case MANIFEST_ATTRIBUTES:
-        return getLocation() + SdkConstants.OS_PLATFORM_ATTRS_MANIFEST_XML;
       case RESOURCES:
+        if (StudioFlags.ALLOW_FRAMEWORK_RES_JAR.get()) {
+          Preconditions.checkState(myFrameworkResPath != null, "Embedded framework_res.jar not found");
+          return myFrameworkResPath;
+        }
         return getLocation() + SdkConstants.OS_PLATFORM_RESOURCES_FOLDER;
       case FONTS:
         return getLocation() + SdkConstants.OS_PLATFORM_FONTS_FOLDER;

@@ -52,17 +52,18 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
   static {
     symlinkToIdeaHome(
         "prebuilts/tools/common/offline-m2",
-        "tools/adt/idea/adt-ui/lib/libwebp",
-        "tools/adt/idea/android/annotations",
-        "tools/adt/idea/artwork/resources/device-art-resources",
-        "tools/adt/idea/android/testData",
-        "tools/adt/idea/android/lib",
-        "tools/base/templates",
-        "tools/idea/build.txt",
-        "tools/idea/java",
         "prebuilts/studio/jdk",
         "prebuilts/studio/layoutlib",
-        "prebuilts/studio/sdk");
+        "prebuilts/studio/sdk",
+        "tools/adt/idea/adt-ui/lib/libwebp",
+        "tools/adt/idea/android/annotations",
+        "tools/adt/idea/android/lib",
+        "tools/adt/idea/artwork/resources/device-art-resources",
+        "tools/adt/idea/android/testData",
+        "tools/adt/idea/resources-aar/framework_res.jar",
+        "tools/base/templates",
+        "tools/idea/build.txt",
+        "tools/idea/java");
 
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");

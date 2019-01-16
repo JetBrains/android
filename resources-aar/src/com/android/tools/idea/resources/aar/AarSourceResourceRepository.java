@@ -124,7 +124,7 @@ import org.xmlpull.v1.XmlPullParserException;
 public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   private static final Logger LOG = Logger.getInstance(AarSourceResourceRepository.class);
 
-  @NotNull protected final Path myResourceDirectory;
+  @NotNull protected final Path myResourceDirectoryOrFile;
   protected boolean myLoadedFromCache;
   /**
    * Protocol used for constructing {@link PathString}s returned by the {@link AarFileResourceItem#getSource()} method.
@@ -147,13 +147,13 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
 
   protected AarSourceResourceRepository(@NotNull Loader loader) {
     super(loader.myNamespace, loader.myLibraryName);
-    myResourceDirectory = loader.myResourceDirectoryOrFile;
+    myResourceDirectoryOrFile = loader.myResourceDirectoryOrFile;
     mySourceFileProtocol = loader.getSourceFileProtocol();
     myResourcePathPrefix = loader.getResourcePathPrefix();
     myResourceUrlPrefix = loader.getResourceUrlPrefix();
 
     myManifestPackageName = NullableLazyValue.createValue(() -> {
-      Path manifest = myResourceDirectory.resolveSibling(FN_ANDROID_MANIFEST_XML);
+      Path manifest = myResourceDirectoryOrFile.resolveSibling(FN_ANDROID_MANIFEST_XML);
       if (Files.notExists(manifest)) {
         return null;
       }
@@ -213,7 +213,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   @Override
   @NotNull
   Path getOrigin() {
-    return myResourceDirectory;
+    return myResourceDirectoryOrFile;
   }
 
   @VisibleForTesting
@@ -481,7 +481,7 @@ public class AarSourceResourceRepository extends AbstractAarResourceRepository {
   @Override
   @NotNull
   public String toString() {
-    return getClass().getSimpleName() + '@' + Integer.toHexString(System.identityHashCode(this)) + " for " + myResourceDirectory;
+    return getClass().getSimpleName() + '@' + Integer.toHexString(System.identityHashCode(this)) + " for " + myResourceDirectoryOrFile;
   }
 
   protected static class Loader implements ResourceFileFilter {

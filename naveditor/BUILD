@@ -46,12 +46,14 @@ iml_module(
     iml_files = ["intellij.android.naveditor.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.naveditor.NavEditorTestSuite",
+    # keep sorted
     test_data = [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
         "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
+        "//tools/adt/idea/resources-aar:framework_res",
         "//tools/adt/idea/android:test_deps.zip",
         "//prebuilts/studio/sdk:platforms/latest",
     ] + glob(["testData/**"]),
