@@ -27,7 +27,7 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.resources.aar.AarSourceResourceRepository;
+import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;

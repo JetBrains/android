@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static java.io.File.separatorChar;
 
+import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
@@ -27,7 +28,7 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.TestResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.resources.aar.AarSourceResourceRepository;
+import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -332,8 +333,8 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       return getFullTable().get(namespace, type);
     }
 
+    @NonNull
     @Override
-    @NotNull
     public ResourceNamespace getNamespace() {
       return myDelegate.getNamespace();
     }
