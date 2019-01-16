@@ -58,6 +58,7 @@ iml_module(
     iml_files = ["intellij.android.designer.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.DesignerTestSuite",
+    # keep sorted
     test_data = [
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:buildprop",
@@ -73,6 +74,7 @@ iml_module(
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
+        "//tools/adt/idea/resources-aar:framework_res",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo.zip",
         "//tools/base/templates",

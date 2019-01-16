@@ -31,12 +31,12 @@ class FrameworkResourceRepositoryManager {
     @JvmStatic fun getInstance() = ServiceManager.getService(FrameworkResourceRepositoryManager::class.java)!!
   }
 
-  private data class Key(val resFolder: File, val needLocales: Boolean)
+  private data class Key(val resFolderOrJar: File, val needLocales: Boolean)
 
   private val cache: LoadingCache<Key, FrameworkResourceRepository> = CacheBuilder.newBuilder()
     .softValues()
     .build(CacheLoader.from { key ->
-      FrameworkResourceRepository.create(key!!.resFolder.toPath(), key.needLocales, true, PooledThreadExecutor.INSTANCE)
+      FrameworkResourceRepository.create(key!!.resFolderOrJar.toPath(), key.needLocales, true, PooledThreadExecutor.INSTANCE)
     })
 
   /**
@@ -44,11 +44,11 @@ class FrameworkResourceRepositoryManager {
    * information is needed, which makes computing the repository much slower. Even if `needLocales` is false, a repository with locale
    * information may be returned if it has been computed earlier and is available.
    */
-  fun getFrameworkResources(resFolder: File, needLocales: Boolean): FrameworkResourceRepository {
+  fun getFrameworkResources(resFolderOrJar: File, needLocales: Boolean): FrameworkResourceRepository {
     return if (needLocales) {
-      cache.get(Key(resFolder, true)).also { cache.invalidate(Key(resFolder, false)) }
+      cache.get(Key(resFolderOrJar, true)).also { cache.invalidate(Key(resFolderOrJar, false)) }
     } else {
-      cache.getIfPresent(Key(resFolder, true)) ?: cache.get(Key(resFolder, false))
+      cache.getIfPresent(Key(resFolderOrJar, true)) ?: cache.get(Key(resFolderOrJar, false))
     }
   }
 }

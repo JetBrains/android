@@ -3,10 +3,12 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.layoutlib",
+    # keep sorted
     bundle_data = [
-        "//prebuilts/studio/layoutlib:data/res",
-        "//prebuilts/studio/layoutlib:data/fonts",
         "//prebuilts/studio/layoutlib:buildprop",
+        "//prebuilts/studio/layoutlib:data/fonts",
+        "//prebuilts/studio/layoutlib:data/res",
+        "//tools/adt/idea/resources-aar:framework_res",
     ],
     iml_files = ["intellij.android.layoutlib.iml"],
     visibility = ["//visibility:public"],

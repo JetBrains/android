@@ -22,7 +22,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
-import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -48,7 +47,7 @@ import java.util.stream.Stream;
  * Finds an asset in all the asset directories and returns the input stream.
  */
 public class AssetRepositoryImpl extends AssetRepository implements Disposable {
-  private static File myFrameworkResDir;
+  private static File myFrameworkResDirOrJar;
   private AndroidFacet myFacet;
 
   public AssetRepositoryImpl(@NotNull AndroidFacet facet) {
@@ -122,7 +121,7 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
   public InputStream openNonAsset(int cookie, @NotNull String path, int mode) throws IOException {
     assert myFacet != null;
 
-    if (path.startsWith("apk:")) {
+    if (path.startsWith("apk:") || path.startsWith("jar:")) {
       return new ByteArrayInputStream(FileResourceReader.readBytes(path));
     }
 
@@ -195,7 +194,7 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);
 
-    Stream<VirtualFile> frameworkDirs = Stream.of(getSdkResFolder(facet))
+    Stream<VirtualFile> frameworkDirs = Stream.of(getSdkResDirOrJar(facet))
       .filter(Objects::nonNull)
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);
@@ -210,18 +209,17 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
   }
 
   @Nullable
-  private static File getSdkResFolder(@NotNull AndroidFacet facet) {
-    if (myFrameworkResDir == null) {
+  private static File getSdkResDirOrJar(@NotNull AndroidFacet facet) {
+    if (myFrameworkResDirOrJar == null) {
       ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
       IAndroidTarget target = manager.getHighestApiTarget();
       if (target == null) {
         return null;
       }
       CompatibilityRenderTarget compatibilityTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
-      String sdkPlatformPath = Files.simplifyPath(compatibilityTarget.getLocation());
-      myFrameworkResDir = new File(sdkPlatformPath + "/data/res");
+      myFrameworkResDirOrJar = compatibilityTarget.getFile(IAndroidTarget.RESOURCES);
     }
-    return myFrameworkResDir;
+    return myFrameworkResDirOrJar;
   }
 
   @Override

@@ -30,6 +30,7 @@ class KotlinAndroidTestSuite : IdeaTestSuiteBase() {
         "prebuilts/studio/layoutlib",
         "tools/adt/idea/android/annotations",
         "tools/adt/idea/android/lib",
+        "tools/adt/idea/resources-aar/framework_res.jar",
         "tools/idea/build.txt")
 
       IdeaTestSuiteBase.symlinkToIdeaHome(
