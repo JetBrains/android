@@ -29,18 +29,14 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.openapi.application.PathManager;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
@@ -65,7 +60,6 @@ import org.jetbrains.annotations.Nullable;
 public class FrameworkResourceRepositoryTest extends AndroidTestCase {
   /** Enables printing of repository statistics. */
   private static final boolean PRINT_STATS = false;
-  private static final String FRAMEWORK_RES_JAR_PATH = "tools/adt/idea/resources-aar/framework_res.jar";
 
   private Path myResourceFolder;
 
@@ -89,25 +83,6 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     return Paths.get(compatibilityTarget.getLocation(), "data", "res").normalize();
   }
 
-  /**
-   * Returns the resource folder of the Android framework resources used by LayoutLib.
-   */
-  @NotNull
-  private static Path getFrameworkResJar() {
-    Path rootPath = Paths.get(PathManager.getHomePath()).getParent().getParent();
-    // For running from Bazel.
-    Path path = rootPath.resolve(FRAMEWORK_RES_JAR_PATH).normalize();
-    if (Files.exists(path)) {
-      return path;
-    }
-    // For running from IntelliJ.
-    path = rootPath.resolve("bazel-genfiles/" + FRAMEWORK_RES_JAR_PATH);
-    if (Files.exists(path)) {
-      return path;
-    }
-    throw new AssertionFailedError("Could not find " + FRAMEWORK_RES_JAR_PATH);
-  }
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -124,29 +99,31 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     }
   }
 
-  public void testLoadingFromSourcesAndCache() {
+  public void testLoading() throws Exception {
     for (boolean withLocaleResources : new boolean[] {true, false}) {
-      // Create persistent cache.
-      FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, true, MoreExecutors.directExecutor());
-
-      long loadTimeFromSources = 0;
-      long loadTimeFromCache = 0;
+      long loadTimeWithoutCache = 0;
+      long loadTimeWithCache = 0;
       // Test loading without cache.
       int count = PRINT_STATS ? 100 : 1;
+      if (PRINT_STATS) {
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < count; ++i) {
+          FrameworkResourceRepository.create(myResourceFolder.toFile(), withLocaleResources, false, null);
+        }
+        loadTimeWithoutCache += System.currentTimeMillis() - start;
+      }
+
+      FrameworkResourceRepository fromSourceFiles =
+          FrameworkResourceRepository.create(myResourceFolder.toFile(), withLocaleResources, true, MoreExecutors.directExecutor());
+      assertFalse(fromSourceFiles.isLoadedFromCache());
+      checkContents(fromSourceFiles);
+
       // Test loading from cache.
       for (int i = 0; i < count; ++i) {
         long start = System.currentTimeMillis();
-        FrameworkResourceRepository fromSourceFiles =
-            FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, false, null);
-        loadTimeFromSources += System.currentTimeMillis() - start;
-        if (i == 0) {
-          assertFalse(fromSourceFiles.isLoadedFromCache());
-          checkContents(fromSourceFiles);
-        }
-        start = System.currentTimeMillis();
         FrameworkResourceRepository fromCache =
-            FrameworkResourceRepository.create(myResourceFolder, withLocaleResources, true, null);
-        loadTimeFromCache += System.currentTimeMillis() - start;
+            FrameworkResourceRepository.create(myResourceFolder.toFile(), withLocaleResources, true, null);
+        loadTimeWithCache += System.currentTimeMillis() - start;
         if (i == 0) {
           assertTrue(fromCache.isLoadedFromCache());
           compareContents(fromSourceFiles, fromCache);
@@ -156,42 +133,8 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
 
       if (PRINT_STATS) {
         String type = withLocaleResources ? "Load time" : "Load time without locale resources";
-        System.out.println(type + " without cache: " + loadTimeFromSources / (count * 1000.)
-                           + " sec, with cache " + loadTimeFromCache / (count * 1000.) + " sec");
-      }
-    }
-  }
-
-  public void testLoadingFromSourcesAndJar() {
-    Path frameworkResJar = getFrameworkResJar();
-    for (boolean withLocaleResources : new boolean[] {true, false}) {
-      long loadTimeFromSources = 0;
-      long loadTimeFromJar = 0;
-      // Test loading without cache.
-      int count = PRINT_STATS ? 100 : 1;
-      // Test loading from cache.
-      for (int i = 0; i < count; ++i) {
-        long start = System.currentTimeMillis();
-        FrameworkResourceRepository fromSourceFiles = FrameworkResourceRepository.create(myResourceFolder, withLocaleResources);
-        loadTimeFromSources += System.currentTimeMillis() - start;
-        if (i == 0) {
-          assertFalse(fromSourceFiles.isLoadedFromCache());
-          checkContents(fromSourceFiles);
-        }
-        start = System.currentTimeMillis();
-        FrameworkResourceRepository fromJar = FrameworkResourceRepository.create(frameworkResJar, withLocaleResources);
-        loadTimeFromJar += System.currentTimeMillis() - start;
-        if (i == 0) {
-          assertFalse(fromJar.isLoadedFromCache());
-          compareContents(fromSourceFiles, fromJar);
-          checkContents(fromJar);
-        }
-      }
-
-      if (PRINT_STATS) {
-        String type = withLocaleResources ? "Load time" : "Load time without locale resources";
-        System.out.println(type + " from source files: " + loadTimeFromSources / (count * 1000.)
-                           + " sec, from framework_res.jar file " + loadTimeFromJar / (count * 1000.) + " sec");
+        System.out.println(type + " without cache: " + loadTimeWithoutCache / (count * 1000.)
+                           + " sec, with cache " + loadTimeWithCache / (count * 1000.) + " sec");
       }
     }
   }
@@ -258,16 +201,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
     if (!Objects.equals(item1.getLibraryName(), item2.getLibraryName())) {
       return false;
     }
-    if (item1.isFileBased() != item2.isFileBased()) {
-      return false;
-    }
-    if (item1.isFileBased() && !areEquivalentSources(item1.getSource(), item2.getSource())) {
-      return false;
-    }
-    if (!areEquivalentSources(item1.getOriginalSource(), item2.getOriginalSource())) {
-      return false;
-    }
-    return true;
+    return Objects.equals(item1.getSource(), item2.getSource());
   }
 
   private static boolean areEquivalentResourceValues(@Nullable ResourceValue value1, @Nullable ResourceValue value2) {
@@ -393,50 +327,11 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
 
     String v1 = value1.getValue();
     String v2 = value2.getValue();
-    if (value1 instanceof AarFileResourceItem && value2 instanceof AarFileResourceItem) {
-      PathString path1 = ResourceHelper.toFileResourcePathString(v1);
-      PathString path2 = ResourceHelper.toFileResourcePathString(v2);
-      if (!areEquivalentSources(path1, path2)) {
-        return false;
-      }
-    } else if ((value1 instanceof AarFileResourceItem) != (value2 instanceof AarFileResourceItem)) {
-      return false;
-    } else if (!Objects.equals(v1, v2)) {
+    if (!Objects.equals(v1, v2)) {
       return false;
     }
 
     return true;
-  }
-
-  private static boolean areEquivalentSources(@Nullable PathString path1, @Nullable PathString path2) {
-    if (Objects.equals(path1, path2)) {
-      return true;
-    }
-    if (path1 != null && path2 != null) {
-      URI filesystemUri1 = path1.getFilesystemUri();
-      URI filesystemUri2 = path2.getFilesystemUri();
-      URI nonFileUri = filesystemUri2;
-      if (filesystemUri2.getScheme().equals("file") && !filesystemUri1.getScheme().equals("file")) {
-        PathString temp = path1;
-        path1 = path2;
-        path2 = temp;
-        nonFileUri = path1.getFilesystemUri();
-      }
-      String portablePath1 = path1.getPortablePath();
-      String portablePath2 = path2.getPortablePath();
-      if (nonFileUri.getScheme().equals("jar")) {
-        int offset1 = indexOfEnd(portablePath1, "/res/");
-        int offset2 = indexOfEnd(portablePath2, "/framework_res.jar!/");
-        return portablePath1.length() - offset1 == portablePath2.length() - offset2 &&
-               portablePath1.regionMatches(offset1, portablePath2, offset2, portablePath1.length() - offset1);
-      }
-    }
-    return false;
-  }
-
-  private static int indexOfEnd(@NotNull String stringToSearch, @NotNull String toSearchFor) {
-    int index = stringToSearch.indexOf(toSearchFor);
-    return index < 0 ? index : index + toSearchFor.length();
   }
 
   private static void checkContents(@NotNull ResourceRepository repository) {
