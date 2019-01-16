@@ -60,6 +60,8 @@ public class BaseLineToggleViewAction extends ToggleViewAction {
       SceneComponent c = editor.getScene().getSceneComponent(selectedComponent);
       if (c != null) {
         c.setShowBaseline(selected);
+        // Update scene since the visibilities of vertical and baseline Targets are changed.
+        c.getScene().getSceneManager().update();
       }
     }
   }
