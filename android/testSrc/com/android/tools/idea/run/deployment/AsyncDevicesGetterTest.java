@@ -16,12 +16,18 @@
 package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import java.io.File;
 import java.time.Clock;
@@ -29,12 +35,19 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public final class AsyncDevicesGetterTest {
+  @Rule
+  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
+
   private Disposable myDisposable;
   private ConnectionTimeService myService;
   private AsyncDevicesGetter myGetter;
@@ -74,6 +87,26 @@ public final class AsyncDevicesGetterTest {
   @After
   public void disposeOfDisposable() {
     Disposer.dispose(myDisposable);
+  }
+
+  @Test
+  public void initChecker() {
+    RunConfigurationModule configurationModule = Mockito.mock(RunConfigurationModule.class);
+    Mockito.when(configurationModule.getModule()).thenReturn(myRule.getModule());
+
+    ModuleBasedConfiguration configuration = Mockito.mock(ModuleBasedConfiguration.class);
+    Mockito.when(configuration.getConfigurationModule()).thenReturn(configurationModule);
+
+    RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
+    Mockito.when(configurationAndSettings.getConfiguration()).thenReturn(configuration);
+
+    myGetter.initChecker(configurationAndSettings, AsyncDevicesGetterTest::newAndroidFacet);
+    assertNull(myGetter.getChecker());
+  }
+
+  @NotNull
+  private static AndroidFacet newAndroidFacet(@NotNull Module module) {
+    return new AndroidFacet(module, "Android", Mockito.mock(AndroidFacetConfiguration.class));
   }
 
   @Test
