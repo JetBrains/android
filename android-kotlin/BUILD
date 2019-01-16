@@ -161,13 +161,15 @@ iml_module(
     iml_files = ["intellij.android.kotlin.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
+    # keep sorted
     test_data = [
+        ":testData",
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
         "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/resources-aar:framework_res",
         "//tools/idea:platform-build-info",
-        ":testData",
     ],
     # do not sort: must match IML order
     test_runtime_deps = [

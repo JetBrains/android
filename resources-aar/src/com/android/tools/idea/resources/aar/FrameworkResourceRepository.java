@@ -177,7 +177,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     try (Base128OutputStream stream = new Base128OutputStream(header)) {
       stream.write(CACHE_FILE_HEADER);
       stream.writeString(CACHE_FILE_FORMAT_VERSION);
-      stream.writeString(myResourceDirectory.toString());
+      stream.writeString(myResourceDirectoryOrFile.toString());
       stream.writeString(getResourcesVersion());
       stream.writeBoolean(myWithLocaleResources);
     }
@@ -189,13 +189,13 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
   @NotNull
   private Path getCacheFile() {
-    return getCacheFile(myResourceDirectory, myWithLocaleResources);
+    return getCacheFile(myResourceDirectoryOrFile, myWithLocaleResources);
   }
 
   @NotNull
   private String getResourcesVersion() {
     try {
-      return new String(Files.readAllBytes(myResourceDirectory.resolve("version")), StandardCharsets.UTF_8).trim();
+      return new String(Files.readAllBytes(myResourceDirectoryOrFile.resolve("version")), StandardCharsets.UTF_8).trim();
     }
     catch (IOException e) {
       return "";
@@ -254,7 +254,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     @NotNull
     protected String getResourcePathPrefix() {
       if (myLoadFromJar) {
-        return myResourceDirectoryOrFile.toString() + URLUtil.JAR_SEPARATOR;
+        return myResourceDirectoryOrFile.toString() + URLUtil.JAR_SEPARATOR + "res/";
       }
       else {
         return myResourceDirectoryOrFile.toString() + File.separatorChar;
@@ -265,7 +265,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     @NotNull
     protected String getResourceUrlPrefix() {
       if (myLoadFromJar) {
-        return JAR_PROTOCOL + "://" + portableFileName(myResourceDirectoryOrFile.toString()) + URLUtil.JAR_SEPARATOR;
+        return JAR_PROTOCOL + "://" + portableFileName(myResourceDirectoryOrFile.toString()) + URLUtil.JAR_SEPARATOR + "res/";
       }
       else {
         return portableFileName(myResourceDirectoryOrFile.toString()) + '/';

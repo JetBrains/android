@@ -15,17 +15,23 @@
  */
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.DOT_JAR;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
+import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
+
+import com.android.ide.common.util.PathString;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.rendering.TestRenderingUtils;
+import com.android.tools.idea.util.FileExtensions;
 import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationSession;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -34,15 +40,12 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.ColorIcon;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
+import javax.swing.Icon;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidColorAnnotatorTest extends AndroidTestCase {
   @Override
@@ -125,26 +128,33 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
     IAndroidTarget target = configuration.getTarget();
     assertThat(target).isNotNull();
     String resPath = target.getPath(IAndroidTarget.RESOURCES);
-    checkAnnotationImage(annotation, resPath + "/drawable-ldpi/ic_lock_lock_alpha.png");
+    PathString imagePath = resPath.endsWith(DOT_JAR) ?
+                           new PathString(JAR_PROTOCOL, resPath + JAR_SEPARATOR + "res/drawable-ldpi/ic_lock_lock_alpha.png") :
+                           new PathString(resPath + "/drawable-ldpi/ic_lock_lock_alpha.png");
+    checkAnnotationImage(annotation, imagePath);
   }
 
-  private void checkAnnotationImage(Annotation first, String imagePath) throws IOException {
-    GutterIconRenderer renderer = first.getGutterIconRenderer();
+  private void checkAnnotationImage(@NotNull Annotation annotation, @NotNull String expectedImage) throws IOException {
+    File expected = new File(expectedImage);
+    if (!expected.isAbsolute()) {
+      expected = new File(getTestDataPath(), expectedImage);
+    }
+    checkAnnotationImage(annotation, new PathString(expected));
+  }
+
+  private void checkAnnotationImage(@NotNull Annotation annotation, @NotNull PathString expectedImage) throws IOException {
+    GutterIconRenderer renderer = annotation.getGutterIconRenderer();
     assertThat(renderer).isNotNull();
     Icon icon = renderer.getIcon();
     BufferedImage image = TestRenderingUtils.getImageFromIcon(icon);
 
-    File expected = new File(imagePath);
-    if (!expected.isAbsolute()) {
-      expected = new File(getTestDataPath(), imagePath);
-    }
     // Go through the same process as the real annotator, to handle retina correctly.
-    VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(expected);
+    VirtualFile file = FileExtensions.toVirtualFile(expectedImage);
     BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(GutterIconCache.getInstance().getIcon(file, null, myFacet));
-    ImageDiffUtil.assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.0); // 5% difference allowed
+    ImageDiffUtil.assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.); // 5% difference allowed.
   }
 
-  private static void checkAnnotationColor(Annotation annotation, Color expectedColor) {
+  private static void checkAnnotationColor(@NotNull Annotation annotation, @NotNull Color expectedColor) {
     GutterIconRenderer renderer = annotation.getGutterIconRenderer();
     assertThat(renderer).isNotNull();
     Icon icon = renderer.getIcon();
@@ -155,14 +165,14 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
   }
 
   @NotNull
-  private Annotation findAnnotation(String path, String target, Class<? extends PsiElement> elementClass) {
-    PsiFile psiFile = getPsiFile(path);
+  private Annotation findAnnotation(@NotNull String path, @NotNull String target, @NotNull Class<? extends PsiElement> elementClass) {
     int caretOffset = target.indexOf('|');
-    if (caretOffset != -1) {
+    if (caretOffset >= 0) {
       target = target.substring(0, caretOffset) + target.substring(caretOffset + 1);
     } else {
       caretOffset = 0;
     }
+    PsiFile psiFile = getPsiFile(path);
     String source = psiFile.getText();
     int dot = source.indexOf(target);
     assertThat(dot).isNotEqualTo(-1);
@@ -177,7 +187,7 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
   }
 
   @NotNull
-  private PsiFile getPsiFile(String path) {
+  private PsiFile getPsiFile(@NotNull String path) {
     VirtualFile virtualFile = myFixture.findFileInTempDir(path);
     assertThat(virtualFile).isNotNull();
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
