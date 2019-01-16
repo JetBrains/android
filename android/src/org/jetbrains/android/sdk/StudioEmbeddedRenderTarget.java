@@ -16,6 +16,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
+import com.android.internal.util.Preconditions;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -128,7 +129,9 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   }
 
   @Override
+  @NotNull
   public String getLocation() {
+    Preconditions.checkState(myBasePath != null, "Embedded layoutlib not found");
     return myBasePath;
   }
 
