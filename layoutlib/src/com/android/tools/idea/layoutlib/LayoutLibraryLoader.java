@@ -29,12 +29,11 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
 
 /**
  * Loads a {@link LayoutLibrary}
@@ -42,12 +41,15 @@ import java.util.Map;
 public class LayoutLibraryLoader {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.LayoutLibraryLoader");
 
+  private static final Map<IAndroidTarget, LayoutLibrary> ourLibraryCache =
+    ContainerUtil.createWeakKeySoftValueMap();
+
   private LayoutLibraryLoader() {
   }
 
   @Nullable
-  public static LayoutLibrary load(@NotNull IAndroidTarget target,
-                                   @NotNull Map<String, Map<String, Integer>> enumMap) throws RenderingException, IOException {
+  private static LayoutLibrary loadImpl(@NotNull IAndroidTarget target,
+                                   @NotNull Map<String, Map<String, Integer>> enumMap) throws RenderingException {
     final String fontFolderPath = FileUtil.toSystemIndependentName((target.getPath(IAndroidTarget.FONTS)));
     final VirtualFile fontFolder = LocalFileSystem.getInstance().findFileByPath(fontFolderPath);
     if (fontFolder == null || !fontFolder.isDirectory()) {
@@ -86,5 +88,20 @@ public class LayoutLibraryLoader {
     } else {
       return null;
     }
+  }
+
+  @Nullable
+  public static synchronized LayoutLibrary load(@NotNull IAndroidTarget target,
+                                   @NotNull Map<String, Map<String, Integer>> enumMap) throws RenderingException {
+    LayoutLibrary library = ourLibraryCache.get(target);
+    if (library == null) {
+      library = loadImpl(target, enumMap);
+
+      if (library != null) {
+        ourLibraryCache.put(target, library);
+      }
+    }
+
+    return library;
   }
 }
