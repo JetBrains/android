@@ -323,8 +323,9 @@ public class MergedManifestTest extends AndroidTestCase {
     }
 
     @Override
+    @NotNull
     public String getLocation() {
-      return null;
+      throw new UnsupportedOperationException();
     }
 
     @Override
