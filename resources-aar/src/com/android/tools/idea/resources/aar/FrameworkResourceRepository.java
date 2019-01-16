@@ -15,22 +15,18 @@
  */
 package com.android.tools.idea.resources.aar;
 
-import static com.android.SdkConstants.DOT_JAR;
-import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
-
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
-import com.android.utils.SdkUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.io.URLUtil;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -44,82 +40,76 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 
 /**
- * Repository of resources of the Android framework. Most client code should use
- * the ResourceRepositoryManager.getFrameworkResources method to obtain framework resources.
+ * Repository of resources of the Android framework.
  *
- * <p>The repository can be loaded either from a res directory containing XML files, or from
- * framework_res.jar file, or from a binary cache file located under the directory returned by
- * the {@link PathManager#getSystemPath()} method. This binary cache file can be created as
- * a side effect of loading the repository from a res directory.
+ * <p>For performance the repository, when possible, is loaded from a binary cache file located
+ * under the directory returned by the {@link PathManager#getSystemPath()} method.
+ * Loading from a cache file is 7-8 times faster than reading XML files.
  *
- * <p>Loading from framework_res.jar or a binary cache file is 3-4 times faster than loading
- * from res directory.
+ * <p>For safety we don't assume any compatibility of cache file format between different versions
+ * of the Android plugin. For the built-in framework resources used by LayoutLib this also guarantees
+ * freshness of the cache when the Android plugin is updated.
  *
- * @see FrameworkResJarCreator
+ * <p>See ResourceRepositoryManager.getFrameworkResources.
  */
 public final class FrameworkResourceRepository extends AarSourceResourceRepository {
   private static final ResourceNamespace ANDROID_NAMESPACE = ResourceNamespace.ANDROID;
   private static final String CACHE_DIRECTORY = "caches/framework_resources";
   private static final byte[] CACHE_FILE_HEADER = "Framework resource cache".getBytes(StandardCharsets.UTF_8);
   private static final String CACHE_FILE_FORMAT_VERSION = "6";
-  static final String ENTRY_NAME_WITH_LOCALES = "resources.bin";
-  static final String ENTRY_NAME_WITHOUT_LOCALES = "resources_light.bin";
 
   private static final Logger LOG = Logger.getInstance(FrameworkResourceRepository.class);
 
   private final boolean myWithLocaleResources;
+  private Future myCacheCreatedFuture;
 
-  private FrameworkResourceRepository(@NotNull MyLoader loader) {
-    super(loader);
-    myWithLocaleResources = loader.myWithLocaleResources;
-  }
-
-  /**
-   * Creates an Android framework resource repository without using a persistent cache.
-   *
-   * @param resFolderOrJar the folder or a jar file containing resources of the Android framework
-   * @return the created resource repository
-   */
-  @NotNull
-  public static FrameworkResourceRepository create(@NotNull Path resFolderOrJar, boolean withLocaleResources) {
-    return create(resFolderOrJar, withLocaleResources, false, null);
+  private FrameworkResourceRepository(@NotNull Path resFolder, boolean withLocaleResources) {
+    super(resFolder, ANDROID_NAMESPACE, null, null);
+    myWithLocaleResources = withLocaleResources;
   }
 
   /**
    * Creates an Android framework resource repository.
    *
-   * @param resFolderOrJar the folder or a jar file containing resources of the Android framework
+   * @param resFolder the folder containing resources of the Android framework
    * @param withLocaleResources whether to include locale-specific resources or not
    * @param usePersistentCache whether the repository should attempt loading from
    *     a persistent cache and create the cache if it does not exist
    * @return the created resource repository
    */
   @NotNull
-  public static FrameworkResourceRepository create(@NotNull Path resFolderOrJar, boolean withLocaleResources, boolean usePersistentCache,
+  public static FrameworkResourceRepository create(@NotNull File resFolder, boolean withLocaleResources, boolean usePersistentCache,
                                                    @Nullable Executor cacheCreationExecutor) {
-    MyLoader loader = new MyLoader(resFolderOrJar, withLocaleResources);
-    FrameworkResourceRepository repository = new FrameworkResourceRepository(loader);
+    LOG.debug("Creating FrameworkResourceRepository for " + resFolder);
 
+    FrameworkResourceRepository repository = new FrameworkResourceRepository(resFolder.toPath(), withLocaleResources);
     // Try to load from file cache first. Loading from cache is significantly faster than reading resource files.
     if (usePersistentCache && repository.loadFromPersistentCache()) {
       return repository;
     }
 
-    loader.loadRepositoryContents(repository);
+    LOG.debug("Loading FrameworkResourceRepository from sources in " + resFolder);
+    repository.load();
 
     if (usePersistentCache && cacheCreationExecutor != null) {
-      cacheCreationExecutor.execute(() -> repository.createPersistentCache());
+      repository.myCacheCreatedFuture = CompletableFuture.runAsync(() -> repository.createPersistentCache(), cacheCreationExecutor);
     }
     return repository;
+  }
+
+  private void load() {
+    Loader loader = new MyLoader();
+    loader.load(ImmutableList.of(myResourceDirectory), true);
   }
 
   @Override
@@ -140,6 +130,14 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     String dirHash = Hashing.md5().hashUnencodedChars(resourceDir.toString()).toString();
     String filename = String.format("%s%s.bin", dirHash, withLocaleResources ? "_L" : "");
     return Paths.get(PathManager.getSystemPath(), CACHE_DIRECTORY, filename);
+  }
+
+  /**
+   * Waits until the asynchronous creation of the persistent cache finishes, either successfully or not.
+   */
+  @VisibleForTesting
+  void waitUntilPersistentCacheCreated() throws ExecutionException, InterruptedException {
+    myCacheCreatedFuture.get();
   }
 
   @Override
@@ -202,82 +200,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
     }
   }
 
-  private static class MyLoader extends Loader {
-    private final boolean myLoadFromJar;
-    private final boolean myWithLocaleResources;
-
-    MyLoader(@NotNull Path resourceDirectoryOrFile, boolean withLocaleResources) {
-      super(resourceDirectoryOrFile, null, ANDROID_NAMESPACE, null);
-      myLoadFromJar = SdkUtils.endsWithIgnoreCase(resourceDirectoryOrFile.getFileName().toString(), DOT_JAR);
-      myWithLocaleResources = withLocaleResources;
-    }
-
-    @Override
-    protected void loadRepositoryContents(@NotNull AarSourceResourceRepository repository) {
-      if (myLoadFromJar) {
-        loadFromJar(repository);
-      }
-      else {
-        super.loadRepositoryContents(repository);
-      }
-    }
-
-    private void loadFromJar(@NotNull AarSourceResourceRepository repository) {
-      try (ZipFile zipFile = new ZipFile(myResourceDirectoryOrFile.toFile())) {
-        String entryName = myWithLocaleResources ? ENTRY_NAME_WITH_LOCALES : ENTRY_NAME_WITHOUT_LOCALES;
-        ZipEntry zipEntry = zipFile.getEntry(entryName);
-        if (zipEntry == null) {
-          throw new IOException("\"" + entryName + "\" not found in " + myResourceDirectoryOrFile.toString());
-        }
-
-        try (Base128InputStream stream = new Base128InputStream(zipFile.getInputStream(zipEntry))) {
-          repository.loadFromStream(stream);
-        }
-      }
-      catch (Exception e) {
-        LOG.error("Failed to load resources from " + myResourceDirectoryOrFile.toString(), e);
-      }
-    }
-
-    @Override
-    @NotNull
-    protected String getSourceFileProtocol() {
-      if (myLoadFromJar) {
-        return JAR_PROTOCOL;
-      }
-      else {
-        return "file";
-      }
-    }
-
-    @Override
-    @NotNull
-    protected String getResourcePathPrefix() {
-      if (myLoadFromJar) {
-        return myResourceDirectoryOrFile.toString() + URLUtil.JAR_SEPARATOR;
-      }
-      else {
-        return myResourceDirectoryOrFile.toString() + File.separatorChar;
-      }
-    }
-
-    @Override
-    @NotNull
-    protected String getResourceUrlPrefix() {
-      if (myLoadFromJar) {
-        return JAR_PROTOCOL + "://" + portableFileName(myResourceDirectoryOrFile.toString()) + URLUtil.JAR_SEPARATOR;
-      }
-      else {
-        return portableFileName(myResourceDirectoryOrFile.toString()) + '/';
-      }
-    }
-
-    @Override
-    @Nullable
-    protected Set<String> loadIdsFromRTxt() {
-      return null; // Framework resources don't contain R.txt file.
-    }
-
+  private class MyLoader extends Loader {
     @Override
     public boolean isIgnored(@NotNull Path fileOrDirectory, @NotNull BasicFileAttributes attrs) {
       if (super.isIgnored(fileOrDirectory, attrs)) {
@@ -309,7 +232,7 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
     @Override
     protected void loadPublicResourceNames() {
-      Path valuesFolder = myResourceDirectoryOrFile.resolve(SdkConstants.FD_RES_VALUES);
+      Path valuesFolder = myResourceDirectory.resolve(SdkConstants.FD_RES_VALUES);
       Path publicXmlFile = valuesFolder.resolve("public.xml");
 
       try (InputStream stream = new BufferedInputStream(Files.newInputStream(publicXmlFile))) {

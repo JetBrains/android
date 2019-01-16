@@ -349,7 +349,6 @@ filegroup(
         ":deploy-artifacts",
         ":nosyncbuilder-artifacts",
         ":profiler-artifacts",
-        "//tools/adt/idea/resources-aar:framework_res.jar",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
