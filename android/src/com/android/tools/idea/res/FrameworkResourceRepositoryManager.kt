@@ -36,7 +36,7 @@ class FrameworkResourceRepositoryManager {
   private val cache: LoadingCache<Key, FrameworkResourceRepository> = CacheBuilder.newBuilder()
     .softValues()
     .build(CacheLoader.from { key ->
-      FrameworkResourceRepository.create(key!!.resFolder, key.needLocales, true, PooledThreadExecutor.INSTANCE)
+      FrameworkResourceRepository.create(key!!.resFolder.toPath(), key.needLocales, true, PooledThreadExecutor.INSTANCE)
     })
 
   /**
