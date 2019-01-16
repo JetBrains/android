@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.res;
 
-import static com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY;
-
-import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
+import com.android.tools.idea.res.aar.ProtoXmlPullParser;
 import com.android.tools.idea.util.FileExtensions;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.nio.file.Paths;
 import org.jetbrains.android.AndroidTestCase;
 import org.xmlpull.v1.XmlPullParser;
+
+import java.nio.file.Paths;
+
+import static com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY;
 
 /**
  * Tests for {@link FileResourceReader}.

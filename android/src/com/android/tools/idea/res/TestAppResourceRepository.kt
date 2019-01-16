@@ -20,7 +20,8 @@ import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.resources.aar.AarResourceRepository
+import com.android.tools.idea.res.aar.AarResourceRepository
+import com.android.tools.idea.res.aar.AarResourceRepositoryCache
 import com.android.tools.idea.util.androidFacet
 import org.jetbrains.android.facet.AndroidFacet
 

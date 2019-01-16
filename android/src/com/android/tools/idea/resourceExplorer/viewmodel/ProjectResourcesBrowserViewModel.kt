@@ -20,13 +20,13 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.aar.AarResourceRepository
 import com.android.tools.idea.resourceExplorer.ImageCache
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.android.tools.idea.resourceExplorer.model.DesignAssetSet
 import com.android.tools.idea.resourceExplorer.model.FilterOptions
 import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManager
 import com.android.tools.idea.resourceExplorer.rendering.AssetPreviewManagerImpl
-import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -168,7 +168,8 @@ class ProjectResourcesBrowserViewModel(
   }
 }
 
-private fun createResourceSection(libraryName: String, resourceItems: List<ResourceItem>): ResourceSection {
+private fun createResourceSection(libraryName: String,
+                                  resourceItems: List<ResourceItem>): ResourceSection {
   val designAssets = resourceItems
     .mapNotNull { DesignAsset.fromResourceItem(it) }
     .groupBy(DesignAsset::name)
@@ -178,7 +179,7 @@ private fun createResourceSection(libraryName: String, resourceItems: List<Resou
 
 data class ResourceSection(
   val libraryName: String = "",
-  val assets: List<DesignAssetSet>)
+                           val assets: List<DesignAssetSet>)
 
 private fun userReadableLibraryName(lib: AarResourceRepository) =
   lib.libraryName?.let {

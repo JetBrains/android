@@ -65,7 +65,8 @@ import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.rendering.GutterIconCache
-import com.android.tools.idea.resources.aar.AarResourceRepository
+import com.android.tools.idea.res.aar.AarResourceRepository
+import com.android.tools.idea.res.aar.FrameworkResourceRepository
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.computeResourcePrefix
@@ -73,6 +74,7 @@ import com.android.tools.lint.detector.api.getBaseName
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.google.common.base.Preconditions
 import com.google.common.collect.Iterables
+import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -876,7 +878,7 @@ fun getCompletionFromTypes(
   val appResources = repoManager.appResources
   val frameworkResources = repoManager.getFrameworkResources(false)
 
-  val resources = ArrayList<String>(500)
+  val resources = Lists.newArrayListWithCapacity<String>(500)
   for (type in types) {
     // If type == ResourceType.COLOR, we want to include file resources (i.e. color state lists) only in the case where
     // color was present in completionTypes, and not if we added it because of the presence of ResourceType.DRAWABLES.
@@ -1112,7 +1114,7 @@ fun ResourceRepository.getResourceItems(
   //                   We need to make all repositories support it.
   return when {
     this is AarResourceRepository -> {
-      // Resources in AarResourceRepository know their visibility.
+      // Resources in AarProtoResourceRepository know their visibility.
       val items = getResources(namespace, type) { item ->
         (item as ResourceItemWithVisibility).visibility >= minVisibility
       }
@@ -1164,7 +1166,7 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
 private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
   val repoManager = ResourceRepositoryManager.getInstance(facet)
   return if (namespace == ResourceNamespace.ANDROID) {
-    val repo = repoManager.getFrameworkResources(false) ?: return false
+    val repo = repoManager.getFrameworkResources(false) as FrameworkResourceRepository
     val items = repo.getResources(ResourceNamespace.ANDROID, type, name)
     items.isNotEmpty() && (items[0] as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
   }
