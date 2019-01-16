@@ -17,15 +17,21 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants
 import com.android.builder.model.AndroidProject
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.highlightedAs
+import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.util.toVirtualFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -1074,5 +1080,68 @@ class TestRClassesTest : AndroidGradleTestCase() {
 
     myFixture.configureFromExistingVirtualFile(normalClass)
     myFixture.checkHighlighting()
+  }
+}
+
+
+/**
+ * Tests for resources registered as generated with Gradle.
+ */
+class GeneratedResourcesTest : AndroidGradleTestCase() {
+
+  override fun setUp() {
+    super.setUp()
+    StudioFlags.IN_MEMORY_R_CLASSES.override(true)
+  }
+
+  override fun tearDown() {
+    try {
+      StudioFlags.IN_MEMORY_R_CLASSES.clearOverride()
+    }
+    finally {
+      super.tearDown()
+    }
+  }
+
+  /**
+   * Regression test for b/120750247.
+   */
+  fun testGeneratedRawResource() {
+    val projectRoot = prepareProjectForImport(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
+
+    File(projectRoot, "app/build.gradle").appendText(
+      """
+      android {
+        String resGeneratePath = "${"$"}{buildDir}/generated/my_generated_resources/res"
+        def generateResTask = tasks.create(name: 'generateMyResources').doLast {
+            def rawDir = "${"$"}{resGeneratePath}/raw"
+            mkdir(rawDir)
+            file("${"$"}{rawDir}/sample_raw_resource").write("sample text")
+        }
+
+        def resDir = files(resGeneratePath).builtBy(generateResTask)
+
+        applicationVariants.all { variant ->
+            variant.registerGeneratedResFolders(resDir)
+        }
+      }
+      """.trimIndent())
+
+    requestSyncAndWait()
+    generateSources()
+    VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot.toVirtualFile(refresh = true))
+
+    val appResources = ResourceRepositoryManager.getAppResources(myModules.appModule)!!
+    assertThat(appResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isNotEmpty()
+
+    myFixture.openFileInEditor(
+      project.guessProjectDir()!!
+        .findFileByRelativePath("app/src/main/java/com/example/projectwithappandlib/app/MainActivity.java")!!)
+
+    myFixture.moveCaret("int id = |item.getItemId();")
+    myFixture.type("R.raw.")
+    myFixture.completeBasic()
+
+    assertThat(myFixture.lookupElementStrings).containsExactly("sample_raw_resource", "class")
   }
 }
