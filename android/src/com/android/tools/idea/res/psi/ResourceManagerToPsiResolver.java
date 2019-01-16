@@ -28,7 +28,7 @@ import com.android.tools.idea.res.ResolvableResourceItem;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
-import com.android.tools.idea.resources.aar.AarResourceItem;
+import com.android.tools.idea.res.aar.AarResourceItem;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementResolveResult;

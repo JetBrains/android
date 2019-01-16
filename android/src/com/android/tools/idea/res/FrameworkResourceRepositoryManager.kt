@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.res
 
-import com.android.tools.idea.resources.aar.FrameworkResourceRepository
+import com.android.tools.idea.res.aar.FrameworkResourceRepository
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.intellij.openapi.components.ServiceManager
-import org.jetbrains.ide.PooledThreadExecutor
 import java.io.File
 
 /**
@@ -36,7 +35,7 @@ class FrameworkResourceRepositoryManager {
   private val cache: LoadingCache<Key, FrameworkResourceRepository> = CacheBuilder.newBuilder()
     .softValues()
     .build(CacheLoader.from { key ->
-      FrameworkResourceRepository.create(key!!.resFolder, key.needLocales, true, PooledThreadExecutor.INSTANCE)
+      FrameworkResourceRepository.create(key!!.resFolder, key.needLocales, true)
     })
 
   /**

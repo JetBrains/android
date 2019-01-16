@@ -17,11 +17,11 @@ package com.android.tools.idea.res
 
 import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.projectsystem.LightResourceClassService
+import com.android.tools.idea.res.aar.AarResourceRepositoryCache
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.concurrency.getAndUnwrap
 import com.android.utils.concurrency.retainAll
@@ -260,7 +260,7 @@ class ProjectLightResourceClassService(
     }
     return aarPackageNamesCache.getAndUnwrap(aarLibrary) {
       val fromManifest = try {
-        aarLibrary.manifestFile?.let(AndroidManifestPackageNameUtils::getPackageNameFromManifestFile) ?: ""
+        aarLibrary.manifestFile?.let(AndroidManifestUtils::getPackageNameFromManifestFile) ?: ""
       }
       catch (e: IOException) {
         null
