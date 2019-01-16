@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 package com.android.tools.idea.navigator.nodes.android;
+
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
@@ -31,26 +35,24 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import javax.swing.Icon;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-
 /**
  * {@link AndroidSourceTypeNode} is a virtual node in the package view of an Android module under which all sources
  * corresponding to a particular {@link AndroidSourceType} are grouped together.
  */
 public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> implements FolderGroupNode {
+  @NotNull private static final String GENERATED_SUFFIX = " (generated)";
+
   @NotNull private final AndroidSourceType mySourceType;
   @NotNull private final Set<VirtualFile> mySourceRoots;
   @NotNull protected final AndroidProjectViewPane myProjectViewPane;
@@ -146,18 +148,22 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   @Override
   protected void update(@NotNull PresentationData presentation) {
     presentation.addText(mySourceType.getName(), REGULAR_ATTRIBUTES);
+    if (mySourceType.isGenerated()) {
+      presentation.addText(GENERATED_SUFFIX, GRAY_ATTRIBUTES);
+    }
 
     Icon icon = mySourceType.getIcon();
     if (icon != null) {
       presentation.setIcon(icon);
     }
-    presentation.setPresentableText(mySourceType.getName());
+
+    presentation.setPresentableText(this.toTestString(null));
   }
 
   @Override
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    return mySourceType.getName();
+    return mySourceType.isGenerated() ? mySourceType.getName() + GENERATED_SUFFIX : mySourceType.getName();
   }
 
   @Override
