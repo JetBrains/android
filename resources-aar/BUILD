@@ -47,7 +47,6 @@ iml_module(
     test_tags = [
         "cpu:3",
         "block-network",
-        "no_test_mac",
         "no_test_windows",
     ],
     visibility = ["//visibility:public"],
