@@ -231,6 +231,9 @@ public class NewProjectTest {
       .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
 
+    // Make sure it works even if NPW has androidx enabled by default
+    actualXml = actualXml.replace("androidx.constraintlayout.widget", "android.support.constraint");
+
     @Language("XML")
     String expectedXml =
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
