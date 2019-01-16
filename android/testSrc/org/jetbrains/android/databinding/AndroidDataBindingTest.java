@@ -18,7 +18,11 @@ package org.jetbrains.android.databinding;
 import com.android.SdkConstants;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiParameterList;
+import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistryImpl;
 import org.jetbrains.android.AndroidTestCase;
 
 /**
@@ -74,7 +78,7 @@ public class AndroidDataBindingTest extends AndroidTestCase {
    * Tests symbol resolution in the scenario described in https://issuetracker.google.com/65467760.
    */
   public void testPropertyResolution() {
-    PsiReferenceProvider.disableUnderlyingElementChecks(getTestRootDisposable());
+    ReferenceProvidersRegistryImpl.disableUnderlyingElementChecks(getTestRootDisposable());
     copyClass("p1.p2.ClassWithBindableProperty");
     myFixture.configureByFile("res/layout/data_binding_property_reference.xml");
     PsiElement element = myFixture.getElementAtCaret();
