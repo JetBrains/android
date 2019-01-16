@@ -21,9 +21,12 @@ import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
+import com.intellij.ide.wizard.CommitStepException
 import com.intellij.testFramework.IdeaTestCase
+import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidBundle
 import org.junit.Assert.assertArrayEquals
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -75,6 +78,77 @@ class KeystoreStepTest : IdeaTestCase() {
 
     assertEquals(false, keystoreStep.myExportKeyPathLabel.isVisible)
     assertEquals(false, keystoreStep.myExportKeyPathField.isVisible)
+  }
+
+  fun testEnableEncryptedKeyCheckboxNotSelected_NextSucceeds() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    val testKeyStorePath = "/test/path/to/keystore"
+    val testKeyAlias = "testkey"
+    val testKeyStorePassword = "123456"
+    val testKeyPassword = "qwerty"
+
+    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
+    settings.KEY_STORE_PATH = testKeyStorePath
+    settings.KEY_ALIAS = testKeyAlias
+    settings.REMEMBER_PASSWORDS = false
+    settings.EXPORT_PRIVATE_KEY = false
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
+
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep.keyStorePasswordField.text = testKeyStorePassword
+    keystoreStep.keyPasswordField.text = testKeyPassword
+    keystoreStep._init()
+    keystoreStep.commitForNext()
+  }
+
+  fun testEnableEncryptedKeyCheckboxSelectedWithoutExportPath_NextFails() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    val testKeyStorePath = "/test/path/to/keystore"
+    val testKeyAlias = "testkey"
+    val testKeyStorePassword = "123456"
+    val testKeyPassword = "qwerty"
+
+    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
+    settings.KEY_STORE_PATH = testKeyStorePath
+    settings.KEY_ALIAS = testKeyAlias
+    settings.REMEMBER_PASSWORDS = false
+    settings.EXPORT_PRIVATE_KEY = true
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
+
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep.keyStorePasswordField.text = testKeyStorePassword
+    keystoreStep.keyPasswordField.text = testKeyPassword
+    keystoreStep.myExportKeyPathField.text = ""
+    keystoreStep._init()
+    assertThrows(CommitStepException::class.java,
+                 AndroidBundle.message("android.apk.sign.gradle.missing.destination", wizard.targetType),
+                 ThrowableRunnable<RuntimeException> { keystoreStep.commitForNext() })
+  }
+
+  fun testEnableEncryptedKeyCheckboxSelectedWithExportPath_NextSucceeds() {
+    val wizard = setupWizardHelper()
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
+    val testKeyStorePath = "/test/path/to/keystore"
+    val testKeyAlias = "testkey"
+    val testKeyStorePassword = "123456"
+    val testKeyPassword = "qwerty"
+    val testExportKeyPath = "test"
+    File(testExportKeyPath).mkdir()
+
+    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
+    settings.KEY_STORE_PATH = testKeyStorePath
+    settings.KEY_ALIAS = testKeyAlias
+    settings.REMEMBER_PASSWORDS = false
+    settings.EXPORT_PRIVATE_KEY = true
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
+
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep.keyStorePasswordField.text = testKeyStorePassword
+    keystoreStep.keyPasswordField.text = testKeyPassword
+    keystoreStep.myExportKeyPathField.text = testExportKeyPath
+    keystoreStep._init()
   }
 
   fun testModuelDropDownEnabledByDefault() {

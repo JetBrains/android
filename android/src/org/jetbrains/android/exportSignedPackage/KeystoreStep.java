@@ -361,16 +361,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       loadKeyAndSaveToWizard(keyStore, keyAlias, keyPassword);
     }
 
-    final String keyFolder = myExportKeyPathField.getText().trim();
-    if (keyFolder.isEmpty()) {
-      throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.missing.destination", myWizard.getTargetType()));
-    }
-
-    File f = new File(keyFolder);
-    if (!f.isDirectory() || !f.canWrite()) {
-      throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.invalid.destination"));
-    }
-
     final Project project = myWizard.getProject();
     final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(project);
 
@@ -384,6 +374,18 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       final boolean exportPrivateKey = myExportKeysCheckBox.isSelected();
       settings.EXPORT_PRIVATE_KEY = exportPrivateKey;
       myWizard.setExportPrivateKey(exportPrivateKey);
+      if (exportPrivateKey) {
+        final String keyFolder = myExportKeyPathField.getText().trim();
+        if (keyFolder.isEmpty()) {
+          throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.missing.destination", myWizard.getTargetType()));
+        }
+
+        File f = new File(keyFolder);
+        if (!f.isDirectory() || !f.canWrite()) {
+          throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.invalid.destination"));
+        }
+        myWizard.setExportKeyPath(keyFolder);
+      }
     }
 
     final String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
@@ -393,7 +395,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     updateSavedPassword(KeyPasswordRequestor.class, keyPasswordKey, rememberPasswords ? new String(keyPassword) : null);
 
     myWizard.setFacet(getSelectedFacet());
-    myWizard.setExportKeyPath(keyFolder);
   }
 
   private KeyStore loadKeyStore(File keystoreFile) throws CommitStepException {
