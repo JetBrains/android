@@ -136,6 +136,7 @@ iml_module(
         "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
+        "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module]",
     ],
 )
 
@@ -283,6 +284,7 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module, test]",
     ],
 )
 
