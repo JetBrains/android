@@ -27,21 +27,25 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * Keeps track of which of the dependencies for all the components on a palette are currently
@@ -201,9 +205,16 @@ public class DependencyManager implements Disposable {
     void onDependenciesChanged();
   }
 
-  private static Future<?> ensureRunningOnBackgroundThread(@NotNull Runnable runnable) {
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      return ApplicationManager.getApplication().executeOnPooledThread(runnable);
+  private Future<?> ensureRunningOnBackgroundThread(@NotNull Runnable runnable) {
+    Application application = ApplicationManager.getApplication();
+    if (application.isDispatchThread()) {
+      // The runnable cannot safely be run after the project is disposed.
+      // In order to avoid that we will cancel the task when the DependencyManager
+      // is disposed.
+      CompletableFuture<?> future = CompletableFuture.runAsync(runnable, PooledThreadExecutor.INSTANCE);
+      Disposable taskCanceller = () -> future.cancel(true);
+      Disposer.register(this, taskCanceller);
+      return future.whenComplete((r, e) -> Disposer.dispose(taskCanceller));
     }
     else {
       runnable.run();
