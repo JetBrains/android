@@ -61,6 +61,7 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.resources.ResourceVisibility
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.DataBindingUtil
 import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -86,7 +87,6 @@ import com.intellij.openapi.roots.JdkOrderEntry
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -102,6 +102,8 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlText
 import com.intellij.psi.xml.XmlTokenType
 import com.intellij.ui.ColorUtil
+import com.intellij.util.io.URLUtil.FILE_PROTOCOL
+import com.intellij.util.io.URLUtil.JAR_PROTOCOL
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
@@ -622,7 +624,7 @@ private fun RenderResources.resolveStateList(resourceValue: ResourceValue, proje
     return resolveStateList(resValue, project, depth + 1)
   }
   else {
-    val virtualFile = LocalFileSystem.getInstance().findFileByPath(value) ?: return null
+    val virtualFile = toFileResourcePathString(value)?.toVirtualFile() ?: return null
     val psiFile = (AndroidPsiUtils.getPsiFileSafely(project, virtualFile) as? XmlFile) ?: return null
     return runReadAction {
       val rootTag = psiFile.rootTag
@@ -779,7 +781,7 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
   return null
 }
 
-private val RESOURCE_PROTOCOLS = arrayOf("apk", "jar", "file")
+private val RESOURCE_PROTOCOLS = arrayOf(ApkFileSystem.PROTOCOL, JAR_PROTOCOL, FILE_PROTOCOL)
 
 /**
  * Converts a file resource path from [String] to [PathString]. The supported formats:
@@ -811,9 +813,9 @@ fun toFileResourcePathString(resourcePath: String): PathString? {
  * "file:" or "apk:" scheme prefix, the method returns true without doing any I/O.
  * Otherwise, the local file system is checked for existence of the file.
  */
-fun isFileResource(candidatePath: String): Boolean {
-  return candidatePath.startsWith("file:") || candidatePath.startsWith("apk:") || File(candidatePath).isFile
-}
+fun isFileResource(candidatePath: String): Boolean =
+  candidatePath.startsWith("file:") || candidatePath.startsWith("apk:") || candidatePath.startsWith("jar:") ||
+  File(candidatePath).isFile
 
 /**
  * Returns the given resource name, and possibly prepends a project-configured prefix to the name
