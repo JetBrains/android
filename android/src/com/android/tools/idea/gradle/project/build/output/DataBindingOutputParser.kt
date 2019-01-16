@@ -28,71 +28,147 @@ import java.util.function.Consumer
 import com.android.tools.idea.gradle.output.parser.androidPlugin.DataBindingOutputParser as PluginDataBindingOutputParser
 
 private const val DATABINDING_GROUP = "Data Binding compiler"
-private const val ERROR_LOG_HEADER = "Found data binding error(s):"
-private const val ERROR_LOG_PREFIX = "[databinding] "
 
 /**
- * Parser for data binding output errors, which look something like this:
- *
- * ```
- * Found data binding error(s):
- *
- * [databinding] { ... json encoded error ... }
- * [databinding] { ... json encoded error ... }
- * ```
- *
- * JSON structures are defined in `ScopedException` in the databinding compiler codebase.
+ * Parser for data binding output errors. This class supports parsing both JSON data binding
+ * formats and a legacy hand-crafted format
  */
 class DataBindingOutputParser : BuildOutputParser {
-  /**
-   * JSON parser, shared across parsing calls to take advantage of the caching it does.
-   */
-  private val gson = Gson()
+
+  private val jsonFormatter = JsonDataBindingOutputParser()
+  private val legacyFormatter = LegacyDataBindingOutputParser()
 
   override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in MessageEvent>): Boolean {
-    if (line.contains(ERROR_LOG_HEADER)) {
-      // Consume useless log header so other parsers don't waste time on it
-      return true
-    }
-
-    val errorPrefix = line.indexOf(ERROR_LOG_PREFIX)
-    if (errorPrefix >= 0) {
-      val errorStart = errorPrefix + ERROR_LOG_PREFIX.length
-      return parseErrorIn(line.substring(errorStart), reader, messageConsumer)
-    }
-    return false
+    return jsonFormatter.parse(line, reader, messageConsumer) || legacyFormatter.parse(line, reader, messageConsumer)
   }
 
-  private fun parseErrorIn(output: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in MessageEvent>): Boolean {
-    try {
-      val msg = gson.fromJson<EncodedMessage>(output, EncodedMessage::class.java)
-      val summary = msg.message.substringBefore('\n')
-      if (msg.locations.isEmpty()) {
-        messageConsumer.accept(MessageEventImpl(reader.buildId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message))
-      }
-      else {
-        val sourceFile = File(msg.filePath)
-        val location = msg.locations.first()
-        val filePosition = FilePosition(sourceFile, location.startLine, location.startCol, location.endLine, location.endCol)
-        messageConsumer.accept(
-          FileMessageEventImpl(reader.buildId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message, filePosition))
-      }
-      return true
+  /**
+   * Parser for data binding JSON output errors, which look something like this:
+   *
+   * ```
+   * Found data binding error(s):
+   *
+   * [databinding] { ... json encoded error ... }
+   * [databinding] { ... json encoded error ... }
+   * ```
+   *
+   * JSON structures are defined in `ScopedException` in the databinding compiler codebase.
+   */
+  private class JsonDataBindingOutputParser : BuildOutputParser {
+    companion object {
+      private const val ERROR_LOG_HEADER = "Found data binding error(s):"
+      private const val ERROR_LOG_PREFIX = "[databinding] "
     }
-    catch (ignored: Exception) {
+
+    /**
+     * JSON parser, shared across parsing calls to take advantage of the caching it does.
+     */
+    private val gson = Gson()
+
+    override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in MessageEvent>): Boolean {
+      if (line.contains(ERROR_LOG_HEADER)) {
+        // Consume useless log header so other parsers don't waste time on it
+        return true
+      }
+
+      val errorPrefix = line.indexOf(ERROR_LOG_PREFIX)
+      if (errorPrefix >= 0) {
+        val errorStart = errorPrefix + ERROR_LOG_PREFIX.length
+        return parseErrorIn(line.substring(errorStart), reader, messageConsumer)
+      }
       return false
     }
+
+    private fun parseErrorIn(output: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in MessageEvent>): Boolean {
+      try {
+        val msg = gson.fromJson<EncodedMessage>(output, EncodedMessage::class.java)
+        val summary = msg.message.substringBefore('\n')
+        if (msg.locations.isEmpty()) {
+          messageConsumer.accept(MessageEventImpl(reader.buildId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message))
+        }
+        else {
+          val sourceFile = File(msg.filePath)
+          val location = msg.locations.first()
+          val filePosition = FilePosition(sourceFile, location.startLine, location.startCol, location.endLine, location.endCol)
+          messageConsumer.accept(
+            FileMessageEventImpl(reader.buildId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, summary, msg.message, filePosition))
+        }
+        return true
+      }
+      catch (ignored: Exception) {
+        return false
+      }
+    }
+
+    private data class EncodedMessage(
+      @SerializedName("msg") val message: String,
+      @SerializedName("file") val filePath: String,
+      @SerializedName("pos") val locations: List<FileLocation>
+    )
+
+    private data class FileLocation(
+      @SerializedName("line0") val startLine: Int,
+      @SerializedName("col0") val startCol: Int,
+      @SerializedName("line1") val endLine: Int,
+      @SerializedName("col1") val endCol: Int)
   }
 
-  private data class EncodedMessage(
-    @SerializedName("msg") val message: String,
-    @SerializedName("file") val filePath: String,
-    @SerializedName("pos") val locations: List<FileLocation>
-  )
+  /**
+   * Parser for legacy data binding output errors, which look something like this:
+   *
+   * ```
+   * Found data binding errors.
+   * **** data binding error ****msg:... file:... loc:... ****\ data binding error ****\n" +
+   * **** data binding error ****msg:... file:... loc:... ****\ data binding error ****\n" +
+   * ```
+   *
+   * where `msg` is the user-readable error message, `file` is a path to the problematic file,
+   * and `loc` refers to the start and end positions surrounding the error
+   */
+  private class LegacyDataBindingOutputParser : BuildOutputParser {
+    companion object {
+      private const val ERROR_LOG_HEADER = "Found data binding errors."
 
-  private data class FileLocation(
-    @SerializedName("line0") val startLine: Int,
-    @SerializedName("col0") val startCol: Int,
-    @SerializedName("line1") val endLine: Int,
-    @SerializedName("col1") val endCol: Int)
+      private val ERROR_LOG_REGEX = Regex("""\*\*\*\*/ data binding error \*\*\*\*(.+)\*\*\*\*\\ data binding error \*\*\*\*""")
+      private val ERROR_MESSAGE_REGEX = Regex("msg:(.+) file:(.+) loc:(.+) ")
+      /**
+       * Location looks something like: loc:36:28 - 36:32
+       */
+      private val LOCATION_REGEX = Regex("""(\d+):(\d+) - (\d+):(\d+)""")
+    }
+
+    override fun parse(line: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in MessageEvent>): Boolean {
+      if (line.contains(ERROR_LOG_HEADER)) {
+        // Consume useless log header so other parsers don't waste time on it
+        return true
+      }
+
+      val match = ERROR_LOG_REGEX.matchEntire(line.trim()) ?: return false
+      val message = match.groupValues[1]
+      return parseErrorIn(message, reader, messageConsumer)
+    }
+
+    private fun parseErrorIn(output: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in MessageEvent>): Boolean {
+      try {
+        val messageMatch = ERROR_MESSAGE_REGEX.matchEntire(output) ?: return false
+        val msg = messageMatch.groupValues[1]
+        val file = messageMatch.groupValues[2]
+        val loc = messageMatch.groupValues[3]
+
+        val locMatch = LOCATION_REGEX.matchEntire(loc) ?: return false
+        val startLine = locMatch.groupValues[1].toInt()
+        val startCol = locMatch.groupValues[2].toInt()
+        val endLine = locMatch.groupValues[3].toInt()
+        val endCol = locMatch.groupValues[4].toInt()
+
+        val sourceFile = File(file)
+        val filePosition = FilePosition(sourceFile, startLine, startCol, endLine, endCol)
+        messageConsumer.accept(FileMessageEventImpl(reader.buildId, MessageEvent.Kind.ERROR, DATABINDING_GROUP, msg, null, filePosition))
+        return true
+      }
+      catch (ignored: Exception) {
+        return false
+      }
+    }
+  }
 }
