@@ -27,6 +27,7 @@ iml_module(
     test_class = "com.android.tools.idea.resources.aar.ResourcesAarTestSuite",
     # keep sorted
     test_data = [
+        ":framework_res",
         "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:kotlin-plugin-for-studio",
@@ -67,4 +68,28 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf[test]",
         "//tools/idea/.idea/libraries:truth[test]",
     ],
+)
+
+java_binary(
+    name = "framework-res-jar-creator",
+    main_class = "com.android.tools.idea.resources.aar.FrameworkResJarCreator",
+    runtime_deps = [":intellij.android.resources-aar_runtime"],
+)
+
+genrule(
+    name = "framework_res",
+    srcs = [
+        "//prebuilts/studio/layoutlib:data/res",
+        "//prebuilts/studio/layoutlib:data/res/version",
+    ],
+    outs = ["framework_res.jar"],
+    cmd = ("$(JAVA) -classpath $(location :framework-res-jar-creator_deploy.jar) " +
+           "com.android.tools.idea.resources.aar.FrameworkResJarCreator " +
+           "$(location //prebuilts/studio/layoutlib:data/res/version)/.. $(OUTS)"),
+    toolchains = ["//prebuilts/studio/jdk:jdk_runtime"],
+    tools = [
+        ":framework-res-jar-creator",
+        ":framework-res-jar-creator_deploy.jar",
+    ],
+    visibility = ["//visibility:public"],
 )
