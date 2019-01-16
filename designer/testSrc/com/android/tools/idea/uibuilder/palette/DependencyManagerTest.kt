@@ -185,6 +185,7 @@ class DependencyManagerTest : AndroidTestCase() {
       })
 
       localDependencyManager = DependencyManager(tempProject)
+      Disposer.register(tempProject, localDependencyManager)
       localDependencyManager.setPalette(palette!!, tempModule)
     }
     finally {
@@ -194,11 +195,8 @@ class DependencyManagerTest : AndroidTestCase() {
     }
 
     // Test: The following lines should not yield project already disposed exceptions:
-    future.get()
     UIUtil.dispatchAllInvocationEvents()
-
-    // Cleanup:
-    Disposer.dispose(localDependencyManager)
+    assertThat(future.isDone).isTrue()
   }
 
   private fun simulateProjectSync() {
