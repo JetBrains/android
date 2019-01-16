@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -70,7 +71,7 @@ class AsyncDevicesGetter {
 
   @NotNull
   List<Device> get(@NotNull Project project) {
-    initChecker(project);
+    initChecker(RunManager.getInstance(project).getSelectedConfiguration(), AndroidFacet::getInstance);
     initService(project);
 
     assert myService != null;
@@ -102,9 +103,9 @@ class AsyncDevicesGetter {
     return devices;
   }
 
-  private void initChecker(@NotNull Project project) {
-    RunnerAndConfigurationSettings configurationAndSettings = RunManager.getInstance(project).getSelectedConfiguration();
-
+  @VisibleForTesting
+  final void initChecker(@Nullable RunnerAndConfigurationSettings configurationAndSettings,
+                         @NotNull Function<Module, AndroidFacet> facetGetter) {
     if (configurationAndSettings == null) {
       myChecker = null;
       return;
@@ -124,9 +125,16 @@ class AsyncDevicesGetter {
       return;
     }
 
-    AndroidFacet facet = AndroidFacet.getInstance(module);
+    AndroidFacet facet = facetGetter.apply(module);
 
     if (facet == null) {
+      myChecker = null;
+      return;
+    }
+
+    Object platform = facet.getConfiguration().getAndroidPlatform();
+
+    if (platform == null) {
       myChecker = null;
       return;
     }
@@ -156,5 +164,10 @@ class AsyncDevicesGetter {
 
     assert !virtualDevice.isConnected();
     return virtualDevice;
+  }
+
+  @VisibleForTesting
+  final Object getChecker() {
+    return myChecker;
   }
 }
