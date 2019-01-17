@@ -15,47 +15,45 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.ATTR_LAYOUT_BELOW;
-import static com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF;
-import static com.android.SdkConstants.CHECK_BOX;
-import static com.android.SdkConstants.RELATIVE_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.common.SyncNlModel;
-import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor;
-import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor.RefactoringChoice;
-import com.intellij.refactoring.BaseRefactoringProcessor;
+import com.intellij.openapi.ui.DialogBuilder;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.refactoring.rename.RenameProcessor;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.usageView.UsageInfo;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+
+import javax.swing.*;
+import java.awt.*;
+
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.property.NlIdPropertyItem.clearRefactoringChoice;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.*;
 
 public class NlIdPropertyItemTest extends PropertyTestCase {
   private NlIdPropertyItem myItem;
+  private DialogBuilder myBuilder;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     clearSnapshots();
-    NeleIdRenameProcessor.setChoiceForNextRename(RefactoringChoice.ASK);
-    myItem = (NlIdPropertyItem)createFrom(myTextView, ATTR_ID);
-  }
+    clearRefactoringChoice();
 
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      NeleIdRenameProcessor.setChoiceForNextRename(RefactoringChoice.ASK);
-    }
-    finally {
-      super.tearDown();
-    }
+    DialogBuilder.CustomizableAction addAction = mock(DialogBuilder.CustomizableAction.class);
+    myBuilder = mock(DialogBuilder.class);
+    when(myBuilder.addOkAction()).thenReturn(addAction);
+    myItem = (NlIdPropertyItem)createFrom(myTextView, ATTR_ID);
+    myItem.setDialogSupplier(() -> myBuilder);
   }
 
   public void testSetValueChangeReferences() {
-    NeleIdRenameProcessor.setChoiceForNextRename(RefactoringChoice.ASK);
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.YES);
-    BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("label"));
+    when(myBuilder.show()).thenReturn(DialogWrapper.OK_EXIT_CODE);
+    myItem.setValue("label");
 
     assertThat(myTextView.getId()).isEqualTo("label");
     assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@+id/label");
@@ -64,8 +62,8 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetAndroidValueChangeReferences() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.YES);
-    BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("@android:id/text2"));
+    when(myBuilder.show()).thenReturn(DialogWrapper.OK_EXIT_CODE);
+    myItem.setValue("@android:id/text2");
 
     assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@android:id/text2");
     assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@android:id/text2");
@@ -73,27 +71,42 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetValueDoNotChangeReferences() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.NO);
-    BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("label"));
+    when(myBuilder.show()).thenReturn(NlIdPropertyItem.NO_EXIT_CODE);
+    myItem.setValue("label");
 
     assertThat(myTextView.getId()).isEqualTo("label");
     assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/textView");
     assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/textView");
+
+    // Change id again (verify no dialog shown since there are no references)
+    verify(myBuilder, times(1)).show();
+    myItem.setValue("text");
+    verify(myBuilder, times(1)).show();
   }
 
   public void testSetValueAndYesToChangeReferencesAndDoNotCheckAgain() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.YES);
-    BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("other"));
+    doAnswer(invocation -> {
+      ArgumentCaptor<JPanel> panel = ArgumentCaptor.forClass(JPanel.class);
+      verify(myBuilder).setCenterPanel(panel.capture());
+      for (Component component : panel.getValue().getComponents()) {
+        if (component instanceof JBCheckBox) {
+          ((JBCheckBox)component).setSelected(true);
+        }
+      }
+      return DialogWrapper.OK_EXIT_CODE;
+    }).when(myBuilder).show();
 
+    myItem.setValue("other");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(myTextView.getId()).isEqualTo("other");
     assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/other");
     assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/other");
 
     // Set id again, this time expect references to be changed without showing a dialog
-    NeleIdRenameProcessor.setChoiceForNextRename(RefactoringChoice.YES);
-    NeleIdRenameProcessor.setDialogProvider((project) -> { throw new RuntimeException("Unexpected invocation"); });
-    BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("last"));
+    verify(myBuilder, times(1)).show();
+    myItem.setValue("last");
+    UIUtil.dispatchAllInvocationEvents();
+    verify(myBuilder, times(1)).show();
 
     assertThat(myTextView.getId()).isEqualTo("last");
     assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/last");
@@ -101,32 +114,67 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetValueAndYesWillNotEnablePreviewBeforeRun() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.YES);
-    BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("label"));
+    RenameProcessor renameProcessor;
+    renameProcessor = mock(RenameProcessor.class);
+    when(renameProcessor.findUsages()).thenReturn(new UsageInfo[]{mock(UsageInfo.class)});
+    myItem.setRenameProcessSupplier(() -> renameProcessor);
 
-    assertThat(myTextView.getId()).isEqualTo("label");
-    assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/label");
-    assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/label");
+    when(myBuilder.show()).thenReturn(DialogWrapper.OK_EXIT_CODE);
+    myItem.setValue("label");
+
+    InOrder inOrder = inOrder(renameProcessor);
+    inOrder.verify(renameProcessor).findUsages();
+    inOrder.verify(renameProcessor).setPreviewUsages(false);
+    inOrder.verify(renameProcessor).run();
   }
 
   public void testSetValueAndPreviewWillEnablePreviewBeforeRun() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.PREVIEW);
-    try {
-      BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("label"));
-      throw new RuntimeException("Preview was not shown as expected as is emulating a click on the preview button");
-    }
-    catch (RuntimeException ex) {
-      assertThat(ex.getMessage()).startsWith("Unexpected preview in tests: @id/textView");
-    }
+    RenameProcessor renameProcessor;
+    renameProcessor = mock(RenameProcessor.class);
+    when(renameProcessor.findUsages()).thenReturn(new UsageInfo[]{mock(UsageInfo.class)});
+    myItem.setRenameProcessSupplier(() -> renameProcessor);
+
+    when(myBuilder.show()).thenReturn(NlIdPropertyItem.PREVIEW_EXIT_CODE);
+    myItem.setValue("label");
+
+    InOrder inOrder = inOrder(renameProcessor);
+    inOrder.verify(renameProcessor).findUsages();
+    inOrder.verify(renameProcessor).setPreviewUsages(true);
+    inOrder.verify(renameProcessor).run();
+  }
+
+  public void testSetValueAndNoWillChangeTheValueButRenameProcessWillNotRun() {
+    RenameProcessor renameProcessor;
+    renameProcessor = mock(RenameProcessor.class);
+    when(renameProcessor.findUsages()).thenReturn(new UsageInfo[]{mock(UsageInfo.class)});
+    myItem.setRenameProcessSupplier(() -> renameProcessor);
+
+    when(myBuilder.show()).thenReturn(NlIdPropertyItem.NO_EXIT_CODE);
+    myItem.setValue("label");
+
+    InOrder inOrder = inOrder(renameProcessor);
+    inOrder.verify(renameProcessor).findUsages();
+    inOrder.verifyNoMoreInteractions();
+
+    assertEquals("label", myItem.getValue());
   }
 
   public void testSetValueAndCancelNotExecuteRenameProcess() {
-    NeleIdRenameProcessor.setDialogProvider((project) -> RefactoringChoice.CANCEL);
-    BaseRefactoringProcessor.runWithDisabledPreview(() -> myItem.setValue("label"));
+    String expected = myItem.getValue();
 
-    assertThat(myTextView.getId()).isEqualTo("textView");
-    assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/textView");
-    assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/textView");
+    RenameProcessor renameProcessor;
+    renameProcessor = mock(RenameProcessor.class);
+    when(renameProcessor.findUsages()).thenReturn(new UsageInfo[]{mock(UsageInfo.class)});
+    myItem.setRenameProcessSupplier(() -> renameProcessor);
+
+    when(myBuilder.show()).thenReturn(DialogWrapper.CANCEL_EXIT_CODE);
+    myItem.setValue("label");
+
+    InOrder inOrder = inOrder(renameProcessor);
+    inOrder.verify(renameProcessor).findUsages();
+    inOrder.verifyNoMoreInteractions();
+
+    assertEquals(expected, myItem.getValue());
   }
 
   @Override
