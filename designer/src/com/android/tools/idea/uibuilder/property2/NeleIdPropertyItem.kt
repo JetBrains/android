@@ -18,33 +18,47 @@ package com.android.tools.idea.uibuilder.property2
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.NEW_ID_PREFIX
+import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
 import com.android.tools.lint.detector.api.stripIdPrefix
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogBuilder
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
+import com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE
+import com.intellij.openapi.ui.Messages
 import com.intellij.psi.xml.XmlAttributeValue
+import com.intellij.refactoring.rename.RenameProcessor
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.attrs.AttributeDefinition
+import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper
+import org.jetbrains.annotations.TestOnly
+import java.awt.BorderLayout
+import java.awt.event.ActionEvent
+import javax.swing.AbstractAction
+import javax.swing.JLabel
+import javax.swing.JPanel
+
+@VisibleForTesting
+const val NO_EXIT_CODE = DialogWrapper.NEXT_USER_EXIT_CODE
+
+@VisibleForTesting
+const val PREVIEW_EXIT_CODE = DialogWrapper.NEXT_USER_EXIT_CODE + 1
 
 class NeleIdPropertyItem(model: NelePropertiesModel, definition: AttributeDefinition?, componentName: String, optionalValue: Any?,
                          components: List<NlComponent>) :
   NelePropertyItem(ANDROID_URI, ATTR_ID, NelePropertyType.ID, definition, componentName, "", model, optionalValue,
                    listOf(components.first())) {
 
-
-  // TODO(b/120919869): The snapshot value in NlComponent may be stale.
-  // The snapshot stored in an NlComponent can get stale when something else
-  // modifies the XML attributes directly i.e. not through an NlComponent.
-  // The RenameProcessor used here is one example.
-  // Workaround for now: read the attribute directly from the XmlAttribute.
-  @Suppress("DEPRECATION")
-  override val rawValue: String?
-    get() = components.first().tag.getAttributeValue(ATTR_ID, ANDROID_URI)
+  private var tempValue: String? = null
 
   override var value: String?
-    get() = stripIdPrefix(super.value)
+    get() = stripIdPrefix(tempValue ?: super.value)
     set(value) {
+      tempValue = null
       val oldId = stripIdPrefix(super.value)
       val newId = stripIdPrefix(value)
       val newValue = toValue(newId)
@@ -56,6 +70,14 @@ class NeleIdPropertyItem(model: NelePropertiesModel, definition: AttributeDefini
         super.value = newValue
       }
     }
+
+  @set:TestOnly
+  var renameProcessorProvider: (Project, XmlAttributeValue, String) -> RenameProcessor =
+    { project, value, newValue -> RenameProcessor(project, ValueResourceElementWrapper(value), newValue, false, false) }
+
+  @set:TestOnly
+  var dialogProvider: (Project) -> DialogBuilder =
+    { project -> DialogBuilder(project) }
 
   private fun toValue(id: String): String? {
     return if (id.isNotEmpty() && !id.startsWith("@")) NEW_ID_PREFIX + id else id.nullize()
@@ -69,22 +91,102 @@ class NeleIdPropertyItem(model: NelePropertiesModel, definition: AttributeDefini
     return lintValidation() ?: EDITOR_NO_ERROR
   }
 
-  /**
-   * Refactor the id value.
-   *
-   * @return true if the rename refactoring made the requred changes, false if the value must be set
-   */
   private fun renameRefactoring(value: XmlAttributeValue?, oldId: String, newId: String, newValue: String?): Boolean {
-    if (oldId.isEmpty() || newId.isEmpty() || newValue == null || value == null || !value.isValid) {
+    if (oldId.isEmpty() || newId.isEmpty() ||
+        newValue == null || value == null || !value.isValid ||
+        choiceForNextRename == RefactoringChoice.NO) {
       return false
     }
 
     // Exact replace only
     val project = model.facet.module.project
-    val processor = NeleIdRenameProcessor(project, value, newValue)
+    val processor = renameProcessorProvider(project, value, newValue)
+
+    // Do a quick usage search to see if we need to ask about renaming
+    val usages = processor.findUsages()
+    if (usages.isEmpty()) {
+      return false
+    }
+    var choice = choiceForNextRename
+    if (choice == RefactoringChoice.ASK) {
+      choice = showRenameDialog(project)
+    }
+
+    when (choice) {
+      RefactoringChoice.YES -> processor.setPreviewUsages(false)
+      RefactoringChoice.PREVIEW -> processor.setPreviewUsages(true)
+      RefactoringChoice.CANCEL -> return true
+      else -> return false
+    }
     processor.run()
 
-    // The RenameProcessor will change the value of the ID here (may happen later if previewing first).
+    // TODO: Setup a proper notification for when the rename processor's write transaction is done.
+    // See: b/120919869
+    // There doesn't seem to be such a notification currently. The following events:
+    // -  The return from processor.run()
+    // -  The renaming end event on the message bus
+    // -  The model updates from the psi updates
+    // All seem to happen before the psi is updated with the new value.
+    // For now use this workaround by trusting that this new id eventually will be the real id.
+    tempValue = newId
     return true
+  }
+
+  private fun showRenameDialog(project: Project): RefactoringChoice {
+    val builder = dialogProvider(project)
+    builder.setTitle("Update Usages?")
+    val panel = JPanel(BorderLayout())
+    val label = JLabel("""
+      <html>Update usages as well?<br>
+          This will update all XML references and Java R field references.<br>
+          <br>
+      </html>""".trimIndent())
+    panel.add(label, BorderLayout.CENTER)
+    val checkBox = JBCheckBox("Don't ask again during this session")
+    panel.add(checkBox, BorderLayout.SOUTH)
+    builder.setCenterPanel(panel)
+    builder.setDimensionServiceKey("idPropertyDimension")
+    builder.removeAllActions()
+
+    val yesAction = builder.addOkAction()
+    yesAction.setText(Messages.YES_BUTTON)
+
+    builder.addActionDescriptor(DialogBuilder.ActionDescriptor { dialogWrapper ->
+                                  object : AbstractAction(Messages.NO_BUTTON) {
+                                    override fun actionPerformed(actionEvent: ActionEvent) {
+                                      dialogWrapper.close(NO_EXIT_CODE)
+                                    }
+                                  }
+                                })
+
+    builder.addActionDescriptor(DialogBuilder.ActionDescriptor { dialogWrapper ->
+                                  object : AbstractAction("Preview") {
+                                    override fun actionPerformed(actionEvent: ActionEvent) {
+                                      dialogWrapper.close(PREVIEW_EXIT_CODE)
+                                    }
+                                  }
+                                })
+
+    builder.addCancelAction()
+    val exitCode = builder.show()
+
+    val choice = when (exitCode) {
+      OK_EXIT_CODE -> RefactoringChoice.YES
+      NO_EXIT_CODE -> RefactoringChoice.NO
+      PREVIEW_EXIT_CODE -> RefactoringChoice.PREVIEW
+      CANCEL_EXIT_CODE -> RefactoringChoice.CANCEL
+      else -> choiceForNextRename
+    }
+    if (checkBox.isSelected && choice != RefactoringChoice.CANCEL) {
+      choiceForNextRename = choice
+    }
+    return choice
+  }
+
+  companion object {
+    // TODO move this static field to a PropertiesComponent setting (need a UI to reset)
+    enum class RefactoringChoice { ASK, NO, YES, PREVIEW, CANCEL }
+
+    var choiceForNextRename = RefactoringChoice.ASK
   }
 }

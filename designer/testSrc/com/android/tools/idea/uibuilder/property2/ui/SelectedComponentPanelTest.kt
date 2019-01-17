@@ -32,7 +32,7 @@ class SelectedComponentPanelTest {
 
   @JvmField
   @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  val projectRule = AndroidProjectRule.inMemory()
 
   @JvmField
   @Rule
@@ -42,13 +42,14 @@ class SelectedComponentPanelTest {
   fun testUpdates() {
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
     val property = util.makeIdProperty()
+    property.value = "textView33"
     val model = SelectedComponentModel(property, util.components, "What?")
     val panel = SelectedComponentPanel(model)
     val label = panel.getComponent(0) as JLabel
     val line = GenericInspectorLineModel()
     panel.lineModel = line
 
-    assertThat(label.text).isEqualTo("textview")
+    assertThat(label.text).isEqualTo("textView33")
 
     property.value = "textView17"
     line.refresh()
