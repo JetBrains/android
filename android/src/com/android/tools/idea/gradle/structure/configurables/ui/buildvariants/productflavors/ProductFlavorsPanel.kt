@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.renameWithDialog
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -183,6 +184,8 @@ class ProductFlavorsPanel(
   override fun PsUISettings.setLastEditedItem(value: String?) {
     LAST_EDITED_FLAVOR_OR_DIMENSION = value
   }
+
+  override val topConfigurable: PSDEvent.PSDTopTab = PSDEvent.PSDTopTab.PROJECT_STRUCTURE_DIALOG_TOP_TAB_FLAVORS
 }
 
 private fun removeTextFor(configurable: NamedConfigurable<*>?) = when (configurable) {

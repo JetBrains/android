@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ModelPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanel
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfig
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
@@ -39,4 +40,6 @@ class ModuleDefaultConfigConfigPanel(defaultConfig: PsAndroidModuleDefaultConfig
   override fun setHistory(history: History?) = Unit
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
   override fun queryPlace(place: Place) = Unit
+
+  override val topConfigurable: PSDEvent.PSDTopTab = PSDEvent.PSDTopTab.PROJECT_STRUCTURE_DIALOG_TOP_TAB_DEFAULT_CONFIG
 }
