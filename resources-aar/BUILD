@@ -82,9 +82,7 @@ genrule(
         "//prebuilts/studio/layoutlib:data/res/version",
     ],
     outs = ["framework_res.jar"],
-    cmd = ("$(JAVA) -classpath $(location :framework-res-jar-creator_deploy.jar) " +
-           "com.android.tools.idea.resources.aar.FrameworkResJarCreator " +
-           "$(location //prebuilts/studio/layoutlib:data/res/version)/.. $(OUTS)"),
+    cmd = "$(JAVA) -classpath $(location :framework-res-jar-creator_deploy.jar) " + "com.android.tools.idea.resources.aar.FrameworkResJarCreator " + "$(location //prebuilts/studio/layoutlib:data/res/version)/.. $(OUTS)",
     toolchains = ["//prebuilts/studio/jdk:jdk_runtime"],
     tools = [
         ":framework-res-jar-creator",
