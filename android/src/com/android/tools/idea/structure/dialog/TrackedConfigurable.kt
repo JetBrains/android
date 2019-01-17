@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.structure.dialog
 
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gradle.structure.configurables.ui.ModelPanel
+import com.android.tools.idea.stats.withProjectId
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PSDEvent
+import com.intellij.openapi.options.Configurable
+import com.intellij.openapi.project.Project
 
 /**
  * Identification of a configurable which is is supposed to be recorded in [PSDEvent].
@@ -31,3 +37,34 @@ interface TrackedConfigurable {
     topConfigurable?.let { builder.setTopTab(it) }
   }
 }
+
+fun Project.logUsageLeftNavigateTo(toSelect: Configurable) {
+  if (toSelect is TrackedConfigurable) {
+    val psdEvent = PSDEvent
+      .newBuilder()
+      .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
+    toSelect.applyTo(psdEvent)
+    UsageTracker.log(
+      AndroidStudioEvent
+        .newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+        .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
+        .setPsdEvent(psdEvent)
+        .withProjectId(this))
+  }
+}
+
+fun Project.logUsageTopNavigateTo(toSelect: ModelPanel<*>) {
+  val psdEvent = PSDEvent
+    .newBuilder()
+    .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
+  toSelect.applyTo(psdEvent)
+  UsageTracker.log(
+    AndroidStudioEvent
+      .newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+      .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_TOP_TAB_CLICK)
+      .setPsdEvent(psdEvent)
+      .withProjectId(this))
+}
+
