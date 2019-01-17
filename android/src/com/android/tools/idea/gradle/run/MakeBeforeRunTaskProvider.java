@@ -15,6 +15,22 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
+import static com.android.builder.model.AndroidProject.PROPERTY_APK_SELECT_CONFIG;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_ABI;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API_CODENAME;
+import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_DENSITY;
+import static com.android.builder.model.AndroidProject.PROPERTY_DEPLOY_AS_INSTANT_APP;
+import static com.android.builder.model.AndroidProject.PROPERTY_EXTRACT_INSTANT_APK;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.GradleProjects.getModulesToBuildFromSelection;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING;
+import static com.intellij.openapi.util.io.FileUtil.createTempFile;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+
 import com.android.builder.model.TestedTargetVariant;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
@@ -32,9 +48,18 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.util.*;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfigContext;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.PreferGradleMake;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
@@ -60,29 +85,31 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.ThreeState;
 import icons.AndroidIcons;
-import one.util.streamex.StreamEx;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import static com.android.builder.model.AndroidProject.*;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
-import static com.android.tools.idea.gradle.util.GradleProjects.getModulesToBuildFromSelection;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
-import static com.intellij.openapi.util.io.FileUtil.createTempFile;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import javax.swing.Icon;
+import one.util.streamex.StreamEx;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Provides the "Gradle-aware Make" task for Run Configurations, which
@@ -268,7 +295,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
 
     if (syncNeeded) {
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING);
       request.runInBackground = false;
       request.forceFullVariantsSync = forceFullVariantsSync;
 

@@ -38,6 +38,7 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -528,97 +529,109 @@ public class RenderService implements Disposable {
     }
 
     /**
-     * Builds a new {@link RenderTask}
+     * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
+     * can not be created.
      */
-    @Nullable
-    public RenderTask build() {
+    @NotNull
+    public CompletableFuture<RenderTask> build() {
       if (myLogger == null) {
         withLogger(myService.createLogger(myFacet));
       }
 
-      AndroidPlatform platform = getPlatform(myFacet, myLogger);
-      if (platform == null) {
-        return null;
-      }
-
-      IAndroidTarget target = myConfiguration.getTarget();
-      if (target == null) {
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
-        return null;
-      }
-
-      Module module = myFacet.getModule();
-      LayoutLibrary layoutLib;
-      try {
-        layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
-        if (layoutLib == null) {
-          String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, message));
+      return CompletableFuture.supplyAsync(() -> {
+        AndroidPlatform platform = getPlatform(myFacet, myLogger);
+        if (platform == null) {
           return null;
         }
-      }
-      catch (UnsupportedJavaRuntimeException e) {
-        RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
-        javaVersionProblem.getHtmlBuilder()
-                          .add(e.getPresentableMessage())
-                          .newline()
-                          .addLink("Install a supported JDK", JDK_INSTALL_URL);
-        myLogger.addMessage(javaVersionProblem);
-        return null;
-      }
-      catch (RenderingException e) {
-        String message = e.getPresentableMessage();
-        message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
-        return null;
-      }
-      catch (IOException e) {
-        final String message = e.getMessage();
-        myLogger.error(null, "I/O error: " + (message != null ? ": " + message : ""), e, null, null);
-        return null;
-      }
 
-      if (myPsiFile != null &&
-          TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile)) &&
-          !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
-        // This means that user is using an outdated version of layoutlib. A warning to update has already been
-        // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
-        myLogger
-          .addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
-                                                       "Update it using the SDK Manager"));
-
-        return null;
-      }
-
-      Device device = myConfiguration.getDevice();
-      if (device == null) {
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
-        return null;
-      }
-
-      try {
-        RenderTask task =
-          new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
-                         device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                         myParserFactory, isSecurityManagerEnabled, myDownscaleFactor);
-        if (myPsiFile instanceof XmlFile) {
-          task.setXmlFile((XmlFile)myPsiFile);
+        IAndroidTarget target = myConfiguration.getTarget();
+        if (target == null) {
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
+          return null;
         }
 
-        task.setDecorations(showDecorations);
-        if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
-          task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);
+        Module module = myFacet.getModule();
+        LayoutLibrary layoutLib;
+        try {
+          layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(module.getProject());
+          if (layoutLib == null) {
+            String message = AndroidBundle.message("android.layout.preview.cannot.load.library.error");
+            myLogger.addMessage(RenderProblem.createPlain(ERROR, message));
+            return null;
+          }
+        }
+        catch (UnsupportedJavaRuntimeException e) {
+          RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
+          javaVersionProblem.getHtmlBuilder()
+            .add(e.getPresentableMessage())
+            .newline()
+            .addLink("Install a supported JDK", JDK_INSTALL_URL);
+          myLogger.addMessage(javaVersionProblem);
+          return null;
+        }
+        catch (RenderingException e) {
+          String message = e.getPresentableMessage();
+          message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
+          return null;
+        }
+        catch (IOException e) {
+          final String message = e.getMessage();
+          myLogger.error(null, "I/O error: " + (message != null ? ": " + message : ""), e, null, null);
+          return null;
         }
 
-        return task;
-      } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
-        // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
-        if (!module.isDisposed()) {
-          throw e;
-        }
-      }
+        if (myPsiFile != null &&
+            TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile)) &&
+            !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
+          // This means that user is using an outdated version of layoutlib. A warning to update has already been
+          // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
+          myLogger
+            .addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
+                                                         "Update it using the SDK Manager"));
 
-      return null;
+          return null;
+        }
+
+        Device device = myConfiguration.getDevice();
+        if (device == null) {
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
+          return null;
+        }
+
+        try {
+          RenderTask task =
+            new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
+                           device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
+                           myParserFactory, isSecurityManagerEnabled, myDownscaleFactor);
+          if (myPsiFile instanceof XmlFile) {
+            task.setXmlFile((XmlFile)myPsiFile);
+          }
+
+          task.setDecorations(showDecorations);
+          if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
+            task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);
+          }
+
+          return task;
+        } catch (IllegalStateException | IncorrectOperationException | AssertionError e) {
+          // Ignore the exception if it was generated when the facet is being disposed (project is being closed)
+          if (!module.isDisposed()) {
+            throw e;
+          }
+        }
+
+        return null;
+      });
+    }
+
+    /**
+     * Builds a new {@link RenderTask}.
+     * @deprecated Use {@link RenderTaskBuilder#build}
+     */
+    @Nullable
+    public RenderTask buildSynchronously() {
+      return Futures.getUnchecked(build());
     }
   }
 }

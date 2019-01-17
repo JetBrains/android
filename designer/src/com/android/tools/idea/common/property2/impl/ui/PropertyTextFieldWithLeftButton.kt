@@ -17,16 +17,19 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.adtui.stdui.registerAnActionKey
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.TextFieldWithLeftButtonEditorModel
+import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.common.property2.impl.support.ImageFocusListener
 import com.intellij.ide.DataManager
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -44,10 +47,12 @@ private const val ICON_LEFT_BORDER = 2
  * The [leftButton] can optionally be a custom component e.g. a checkbox.
  */
 open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWithLeftButtonEditorModel,
-                                           component: JComponent? = null): AdtSecondaryPanel(BorderLayout()) {
+                                           component: JComponent? = null) : AdtSecondaryPanel(BorderLayout()), DataProvider {
   protected val leftComponent = component ?: IconWithFocusBorder()
   protected val leftButton = leftComponent as? IconWithFocusBorder
   protected val textField = PropertyTextField(editorModel)
+  protected open val buttonAction: AnAction?
+    get() = editorModel.buttonAction
 
   init {
     border = DarculaTextBorder()
@@ -57,16 +62,16 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     textField.isOpaque = false
     super.add(leftComponent, BorderLayout.WEST)
     super.add(textField, BorderLayout.CENTER)
-    leftButton?.registerKeyAction({ buttonPressed(null) }, KeyStrokes.space, "space")
-    leftButton?.registerKeyAction({ buttonPressed(null) }, KeyStrokes.enter, "enter")
-    leftButton?.registerKeyAction({ editorModel.f1KeyPressed() }, KeyStrokes.f1, "help")
-    leftButton?.registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
-    leftButton?.registerKeyAction({ editorModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
+    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.space, "space")
+    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.enter, "enter")
+    if (leftButton != null) {
+      HelpSupportBinding.registerHelpKeyActions(leftButton, { editorModel.property })
+    }
 
     editorModel.addListener(ValueChangedListener { updateFromModel() })
     leftButton?.addMouseListener(object: MouseAdapter() {
       override fun mousePressed(event: MouseEvent) {
-        buttonPressed(event)
+        buttonClicked(event)
       }
     })
     leftButton?.addFocusListener(ImageFocusListener(leftButton) { setFromModel() })
@@ -89,32 +94,37 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     isVisible = editorModel.visible
     leftButton?.icon = editorModel.getLeftButtonIcon(leftButton?.hasFocus() == true)
     toolTipText = editorModel.tooltip
-    if (editorModel.focusRequest && !leftComponent.isFocusOwner) {
-      leftComponent.requestFocusInWindow()
-    }
   }
 
-  open fun buttonPressed(mouseEvent: MouseEvent?) {
-    var action = editorModel.buttonAction ?: return
-    var event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, DataManager.getInstance().getDataContext(this))
+  private fun buttonClicked(mouseEvent: MouseEvent) {
+    var action = buttonAction ?: return
+    val context = DataManager.getInstance().getDataContext(leftComponent)
+    var event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, context)
     if (action is ActionGroup) {
       action = action.getChildren(event).firstOrNull() ?: return
-      event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, DataManager.getInstance().getDataContext(this))
+      event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, context)
     }
     action.actionPerformed(event)
     editorModel.refresh()
+  }
+
+  override fun getData(dataId: String): Any? {
+    return editorModel.getData(dataId)
   }
 }
 
 /**
  * A component to show an icon with a focus border.
  */
-class IconWithFocusBorder : JBLabel() {
-
+class IconWithFocusBorder : JBLabel(), DataProvider {
   override fun paintComponent(g: Graphics) {
     super.paintComponent(g)
     if (hasFocus() && g is Graphics2D) {
       DarculaUIUtil.paintFocusBorder(g, width, height, 0f, true)
     }
+  }
+
+  override fun getData(dataId: String): Any? {
+    return (parent as? DataProvider)?.getData(dataId)
   }
 }

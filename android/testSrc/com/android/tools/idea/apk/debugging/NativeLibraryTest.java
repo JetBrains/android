@@ -200,27 +200,65 @@ public class NativeLibraryTest extends IdeaTestCase {
     Project project = getProject();
     VirtualFile libFolder = createFolderInProjectRoot(project, "lib");
 
-    DebuggableSharedObjectFile soFile1 = new DebuggableSharedObjectFile(createFile(libFolder, "lib1.so"));
-    myLibrary.debuggableSharedObjectFilesByAbi.put(X86, soFile1);
-
-    DebuggableSharedObjectFile soFile2 = new DebuggableSharedObjectFile(createFile(libFolder, "lib2.so"));
-    myLibrary.debuggableSharedObjectFilesByAbi.put(ARMEABI, soFile2);
-
+    // Local paths.
     String javaFolderPath = createFolderAndGetPath("java");
-    soFile1.debugSymbolPaths.add(javaFolderPath);
-
-    String remotePath = "remotePath";
-    String kotlinFolderPath = createFolderAndGetPath("kotlin");
-    soFile1.debugSymbolPaths.add(remotePath);
-    myLibrary.pathMappings.put(remotePath, kotlinFolderPath);
-
     String cppFolderPath = createFolderAndGetPath("cpp");
-    soFile2.debugSymbolPaths.add(cppFolderPath);
+    String locallyMappedPath = createFolderAndGetPath("localMappedPath");
+    String locallyMappedPath2 = createFolderAndGetPath("localMappedPath2");
 
+    // lib1.so: An .so file with absolute local paths.
+    {
+      DebuggableSharedObjectFile soFile1 = new DebuggableSharedObjectFile(createFile(libFolder, "lib1.so"));
+      myLibrary.debuggableSharedObjectFilesByAbi.put(X86, soFile1);
+
+      // Absolute, locally-existing paths.
+      soFile1.debugSymbolPaths.add(javaFolderPath);
+      soFile1.debugSymbolPaths.add(cppFolderPath);
+    }
+
+    // lib2.so: An .so file with relative paths that are not mapped.
+    {
+      DebuggableSharedObjectFile soFile2 = new DebuggableSharedObjectFile(createFile(libFolder, "lib2.so"));
+      myLibrary.debuggableSharedObjectFilesByAbi.put(ARMEABI, soFile2);
+
+      // Relative paths. Unmapped.
+      soFile2.debugSymbolPaths.add("remotePath1");
+      soFile2.debugSymbolPaths.add("./remotePath2");
+      soFile2.debugSymbolPaths.add("../remotePath3");
+      soFile2.debugSymbolPaths.add("../../remotePath4");
+    }
+
+    // lib3.so: An .so file with an absolute path that does not exist in the local system, and is not mapped.
+    {
+      DebuggableSharedObjectFile soFile3 = new DebuggableSharedObjectFile(createFile(libFolder, "lib3.so"));
+      myLibrary.debuggableSharedObjectFilesByAbi.put(ARMEABI, soFile3);
+
+      // Absolute, non-existing path. Unmapped.
+      soFile3.debugSymbolPaths.add("/a/non-existing/folder/on/local/drive/remotePath");
+    }
+
+    // lib4.so: An .so file with relative and absolute paths that are mapped.
+    {
+      DebuggableSharedObjectFile soFile4 = new DebuggableSharedObjectFile(createFile(libFolder, "lib4.so"));
+      myLibrary.debuggableSharedObjectFilesByAbi.put(ARMEABI, soFile4);
+
+      // Relative path. Mapped.
+      String remotePath = "../relativeRemotePath";
+      soFile4.debugSymbolPaths.add(remotePath);
+      myLibrary.pathMappings.put(remotePath, locallyMappedPath);
+
+      // Absolute, non-existing path. Mapped.
+      String remotePath2 = "/another/non-existing/folder/on/local/drive/remotePath";
+      soFile4.debugSymbolPaths.add(remotePath2);
+      myLibrary.pathMappings.put(remotePath2, locallyMappedPath2);
+    }
+
+    // Recalculate the source folder paths.
     List<String> sourceFolderPaths = myLibrary.getSourceFolderPaths();
-    assertThat(sourceFolderPaths).containsExactly(javaFolderPath, kotlinFolderPath, cppFolderPath);
+    assertThat(sourceFolderPaths).containsExactly(javaFolderPath, cppFolderPath, locallyMappedPath, locallyMappedPath2);
 
-    assertSame(sourceFolderPaths, myLibrary.getSourceFolderPaths()); // verify we return the same instance once calculated.
+    // Verify we return the same instance once calculated.
+    assertSame(sourceFolderPaths, myLibrary.getSourceFolderPaths());
   }
 
   @NotNull

@@ -79,5 +79,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
+        "//tools/adt/idea/observable:intellij.android.observable[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
     ],
 )

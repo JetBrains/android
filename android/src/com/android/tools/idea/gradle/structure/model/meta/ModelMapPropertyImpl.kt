@@ -112,7 +112,7 @@ class ModelMapPropertyImpl<ModelT, ResolvedT, ParsedT, ValueT : Any>(
           it.value.getter()?.let { v -> it.key to v }
         }
         ?.toMap()
-    val dslText: Annotated<DslText>? = parsedProperty?.dslText()
+    val dslText: Annotated<DslText>? = parsedProperty?.dslText(effectiveValueIsNull = parsed == null)
     return makeAnnotatedParsedValue(parsed, dslText)
   }
 

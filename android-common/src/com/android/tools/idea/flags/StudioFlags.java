@@ -239,7 +239,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_SHOW_ONLY_SELECTION = Flag.create(
     NELE, "show.only.selection", "Show only selection boundaries when mouse is not hovered in layout",
     "Enable this flag to show selection boundaries without other decoration when mouse is not hovered in layout",
-    false);
+    true);
 
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
@@ -280,7 +280,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
     NELE, "drag.placeholder", "Dragging widgets with Placeholders",
     "New architecture for dragging widgets in Layout Editor",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_RENDER_HIGH_QUALITY_SHADOW = Flag.create(
     NELE, "high.quality.shadow", "Enable the high quality shadows",
@@ -451,6 +451,14 @@ public final class StudioFlags {
     "Resolve references using resource repositories",
     "Use ResourceRepository to resolve references, not ResourceManager.",
     false);
+
+  public static final Flag<Boolean> RUN_DOM_EXTENDER = Flag.create(
+    EDITOR,
+    "run.dom.extender",
+    "Run DOM extender",
+    "When disabled AndroidDomExtender does nothing, simulating a situation where DOM extensions have not been " +
+    "computed yet.",
+    true);
 
   private static final FlagGroup ANALYZER = new FlagGroup(FLAGS, "analyzer", "Apk/Bundle Analyzer");
   public static final Flag<Boolean> ENABLE_APP_SIZE_OPTIMIZER = Flag.create(

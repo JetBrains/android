@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_SYNC_ACTION;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -24,10 +30,6 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link SyncProjectAction}.
@@ -59,7 +61,7 @@ public class SyncProjectActionTest extends IdeaTestCase {
     myAction.doPerform(myEvent, project);
 
     assertTrue(myPresentation.isEnabled());
-    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST);
+    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_SYNC_ACTION);
     verify(buildVariantView).projectImportStarted();
   }
 

@@ -136,6 +136,7 @@ iml_module(
         "//tools/idea/.idea/libraries:kotlin-gradle-plugin-model",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
+        "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module]",
     ],
 )
 
@@ -283,7 +284,7 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
+        "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module, test]",
     ],
 )
 
@@ -348,8 +349,9 @@ filegroup(
         ":deploy-artifacts",
         ":nosyncbuilder-artifacts",
         ":profiler-artifacts",
-        "//tools/analytics-library/protos/src/main/proto:studio.proto",
+        "//tools/adt/idea/resources-aar:framework_res.jar",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
+        "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/base/tracer:trace_agent",

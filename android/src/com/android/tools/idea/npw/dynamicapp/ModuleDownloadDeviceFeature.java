@@ -21,6 +21,7 @@ import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObservableString;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.AndExpression;
@@ -28,6 +29,7 @@ import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.string.IsEmptyExpression;
 import com.android.tools.idea.observable.expressions.string.TrimExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
@@ -53,6 +55,8 @@ public class ModuleDownloadDeviceFeature {
   private JPanel myFeatureValueContainer;
   private TextFieldWithAutoCompletion<String> myFeatureValueTextField;
   private LinkLabel<Void> myRemoveFeatureLinkLabel;
+  private ObservableString deviceFeatureValueTrim;
+  private static final CharMatcher DISALLOWED_IN_DEVICE_VALUE = CharMatcher.anyOf("<&\"");
 
   @NotNull
   private final DeviceFeatureModel myModel;
@@ -83,13 +87,27 @@ public class ModuleDownloadDeviceFeature {
     // Invoke listeners when close button is pressed
     myRemoveFeatureLinkLabel.setListener((aSource, aLinkData) -> myListeners.forEach(x -> x.removeFeatureInvoked()), null);
 
+    deviceFeatureValueTrim = new TrimExpression(myModel.deviceFeatureValue());
     // isActive && device feature value is empty
     BooleanExpression isInvalidExpression =
-      new AndExpression(isActive, new IsEmptyExpression(new TrimExpression(myModel.deviceFeatureValue())));
+      new AndExpression(isActive, new IsEmptyExpression(deviceFeatureValueTrim));
     validator.registerValidator(isInvalidExpression, isInvalid -> isInvalid
                                                                   ? new Validator.Result(Validator.Severity.ERROR,
                                                                                          "Device feature value must be set")
                                                                   : Validator.Result.OK);
+
+    validator.registerValidator(deviceFeatureValueTrim, value -> {
+      int illegalCharIdx = DISALLOWED_IN_DEVICE_VALUE.indexIn(value);
+      if (illegalCharIdx < 0) {
+        return Validator.Result.OK;
+      }
+      else {
+        return new Validator.Result(Validator.Severity.ERROR, String.format("Illegal character '%c' in %s '%s'",
+                                                                            value.charAt(illegalCharIdx),
+                                                                            myModel.deviceFeatureType(),
+                                                                            myModel.deviceFeatureValue()));
+      }
+    });
   }
 
   @NotNull
@@ -102,16 +120,16 @@ public class ModuleDownloadDeviceFeature {
           "0x00030001");
 
       case NAME:
-        // Note: From https://developer.android.com/guide/topics/manifest/uses-feature-element#features-reference
+        // Note: From https://developer.android.com/reference/android/content/pm/PackageManager
         return ImmutableList.of(
           "android.hardware.audio.low_latency",
           "android.hardware.audio.output",
           "android.hardware.audio.pro",
-          "android.hardware.microphone",
           "android.hardware.bluetooth",
           "android.hardware.bluetooth_le",
           "android.hardware.camera",
           "android.hardware.camera.any",
+          "android.hardware.camera.ar",
           "android.hardware.camera.autofocus",
           "android.hardware.camera.capability.manual_post_processing",
           "android.hardware.camera.capability.manual_sensor",
@@ -120,66 +138,90 @@ public class ModuleDownloadDeviceFeature {
           "android.hardware.camera.flash",
           "android.hardware.camera.front",
           "android.hardware.camera.level.full",
-          "android.hardware.type.automotive",
-          "android.hardware.type.television",
-          "android.hardware.type.watch",
+          "android.hardware.consumerir",
+          "android.hardware.ethernet",
+          "android.hardware.faketouch",
+          "android.hardware.faketouch.multitouch.distinct",
+          "android.hardware.faketouch.multitouch.jazzhand",
           "android.hardware.fingerprint",
           "android.hardware.gamepad",
-          "android.hardware.consumerir",
           "android.hardware.location",
           "android.hardware.location.gps",
           "android.hardware.location.network",
+          "android.hardware.microphone",
           "android.hardware.nfc",
           "android.hardware.nfc.hce",
+          "android.hardware.nfc.hcef",
           "android.hardware.opengles.aep",
+          "android.hardware.ram.low",
+          "android.hardware.ram.normal",
+          "android.hardware.screen.landscape",
+          "android.hardware.screen.portrait",
           "android.hardware.sensor.accelerometer",
           "android.hardware.sensor.ambient_temperature",
           "android.hardware.sensor.barometer",
           "android.hardware.sensor.compass",
           "android.hardware.sensor.gyroscope",
-          "android.hardware.sensor.hifi_sensors",
           "android.hardware.sensor.heartrate",
           "android.hardware.sensor.heartrate.ecg",
+          "android.hardware.sensor.hifi_sensors",
           "android.hardware.sensor.light",
           "android.hardware.sensor.proximity",
           "android.hardware.sensor.relative_humidity",
           "android.hardware.sensor.stepcounter",
           "android.hardware.sensor.stepdetector",
-          "android.hardware.screen.landscape",
-          "android.hardware.screen.portrait",
+          "android.hardware.strongbox_keystore",
           "android.hardware.telephony",
           "android.hardware.telephony.cdma",
+          "android.hardware.telephony.euicc",
           "android.hardware.telephony.gsm",
-          "android.hardware.faketouch",
-          "android.hardware.faketouch.multitouch.distinct",
-          "android.hardware.faketouch.multitouch.jazzhand",
+          "android.hardware.telephony.mbms",
           "android.hardware.touchscreen",
           "android.hardware.touchscreen.multitouch",
           "android.hardware.touchscreen.multitouch.distinct",
           "android.hardware.touchscreen.multitouch.jazzhand",
+          "android.hardware.type.automotive",
+          "android.hardware.type.embedded",
+          "android.hardware.type.pc",
+          "android.hardware.type.television",
+          "android.hardware.type.watch",
           "android.hardware.usb.accessory",
           "android.hardware.usb.host",
+          "android.hardware.vr.headtracking",
+          "android.hardware.vr.high_performance",
           "android.hardware.vulkan.compute",
           "android.hardware.vulkan.level",
           "android.hardware.vulkan.version",
           "android.hardware.wifi",
+          "android.hardware.wifi.aware",
           "android.hardware.wifi.direct",
+          "android.hardware.wifi.passpoint",
+          "android.hardware.wifi.rtt",
+          "android.software.activities_on_secondary_displays",
+          "android.software.app_widgets",
+          "android.software.autofill",
+          "android.software.backup",
+          "android.software.cant_save_state",
+          "android.software.companion_device_setup",
+          "android.software.connectionservice",
+          "android.software.device_admin",
+          "android.software.freeform_window_management",
+          "android.software.home_screen",
+          "android.software.input_methods",
+          "android.software.leanback",
+          "android.software.leanback_only",
+          "android.software.live_tv",
+          "android.software.live_wallpaper",
+          "android.software.managed_users",
+          "android.software.midi",
+          "android.software.picture_in_picture",
+          "android.software.print",
+          "android.software.securely_removes_users",
           "android.software.sip",
           "android.software.sip.voip",
-          "android.software.webview",
-          "android.software.input_methods",
-          "android.software.backup",
-          "android.software.device_admin",
-          "android.software.managed_users",
-          "android.software.securely_removes_users",
           "android.software.verified_boot",
-          "android.software.midi",
-          "android.software.print",
-          "android.software.leanback",
-          "android.software.live_tv",
-          "android.software.app_widgets",
-          "android.software.home_screen",
-          "android.software.live_wallpaper"
+          "android.software.vr.mode",
+          "android.software.webview"
         );
       default:
         throw new IllegalArgumentException();

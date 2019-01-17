@@ -17,10 +17,10 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
-import com.android.tools.adtui.stdui.registerKeyAction
 import com.android.tools.idea.common.property2.impl.model.BooleanPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
+import com.intellij.openapi.actionSystem.DataProvider
 import javax.swing.JCheckBox
 
 /**
@@ -41,7 +41,7 @@ class PropertyCheckBox(model: BooleanPropertyEditorModel) : PropertyTextFieldWit
   }
 }
 
-private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorModel) : JCheckBox() {
+private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorModel) : JCheckBox(), DataProvider {
   private var stateChangeFromModel = false
 
   @VisibleForTesting
@@ -51,9 +51,7 @@ private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorMod
 
   init {
     state = toStateValue(propertyModel.value)
-    registerKeyAction({ propertyModel.f1KeyPressed() }, KeyStrokes.f1, "help")
-    registerKeyAction({ propertyModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
-    registerKeyAction({ propertyModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
+    HelpSupportBinding.registerHelpKeyActions(this, { propertyModel.property })
 
     addFocusListener(EditorFocusListener(this, propertyModel))
     model.addChangeListener {
@@ -76,6 +74,10 @@ private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorMod
 
   override fun getToolTipText(): String? {
     return propertyModel.tooltip
+  }
+
+  override fun getData(dataId: String): Any? {
+    return propertyModel.getData(dataId)
   }
 
   private fun toStateValue(value: String?) = value?.compareTo(SdkConstants.VALUE_TRUE, ignoreCase = true) == 0

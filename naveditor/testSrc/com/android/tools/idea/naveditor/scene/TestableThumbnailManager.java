@@ -20,7 +20,6 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -56,7 +55,7 @@ public class TestableThumbnailManager extends ThumbnailManager {
   protected RenderTask createTask(@NotNull AndroidFacet facet,
                                   @NotNull XmlFile file,
                                   @NotNull Configuration configuration,
-                                  RenderService renderService) {
-    return ReadAction.compute(() -> RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration));
+                                  @NotNull RenderService renderService) {
+    return RenderTestUtil.createRenderTask(facet, file.getVirtualFile(), configuration);
   }
 }

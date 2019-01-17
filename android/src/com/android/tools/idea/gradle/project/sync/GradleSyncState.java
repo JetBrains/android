@@ -58,7 +58,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisableSingleVariantSyncStep.PATH_IN_SETTINGS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.*;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_UNKNOWN;
@@ -209,10 +208,11 @@ public class GradleSyncState {
       mySyncInProgress = true;
     }
 
-    LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
+    String syncType = NewGradleSync.isSingleVariantSync(myProject) ? "single-variant" : "IDEA";
+    LOG.info(String.format("Started %1$s sync with Gradle for project '%2$s'.", syncType, myProject.getName()));
 
     setSyncStartedTimeStamp(System.currentTimeMillis(), request.trigger);
-    addInfoToEventLog("Gradle sync started");
+    addInfoToEventLog(String.format("Gradle sync started with %1$s sync", syncType));
 
     if (notifyUser) {
       notifyStateChanged();
@@ -368,16 +368,6 @@ public class GradleSyncState {
     mySummary.setSyncTimestamp(timestamp);
     enableNotifications();
     notifyStateChanged();
-    warnIfSingleVariantSyncIsEnabled();
-  }
-
-  private void warnIfSingleVariantSyncIsEnabled() {
-    if (NewGradleSync.isSingleVariantSync(myProject)) {
-      String msg = "Syncing only active variant\n" +
-                   "You can disable this experimental feature from\n"
-                   + PATH_IN_SETTINGS;
-      addInfoToEventLog(msg);
-    }
   }
 
   private void stopSyncInProgress() {

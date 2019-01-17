@@ -15,6 +15,21 @@
  */
 package com.android.tools.idea.gradle;
 
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE;
+import static com.android.tools.idea.gradle.util.GradleProjects.getAndroidModel;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ADD_LIBRARY_DEPENDENCY;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ADD_MODULE_DEPENDENCY;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_LANGUAGE_LEVEL_CHANGED;
+import static com.intellij.openapi.roots.libraries.LibraryUtil.findLibrary;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.splitPath;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
@@ -44,6 +59,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
@@ -60,26 +76,17 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.concurrency.AsyncPromise;
 import org.jetbrains.concurrency.Promise;
 import org.jetbrains.concurrency.Promises;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*;
-import static com.android.tools.idea.gradle.util.GradleProjects.getAndroidModel;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
-import static com.intellij.openapi.roots.libraries.LibraryUtil.findLibrary;
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.openapi.util.io.FileUtil.splitPath;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModifier {
   @NotNull
@@ -109,7 +116,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
           registerUndoAction(project);
         }
       }.execute();
-      return requestProjectSync(project);
+      return requestProjectSync(project, TRIGGER_MODIFIER_ADD_MODULE_DEPENDENCY);
     }
 
     if ((buildModel == null) ^ (gradlePath == null)) {
@@ -178,7 +185,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       }
     }.execute();
 
-    return requestProjectSync(project);
+    return requestProjectSync(project, TRIGGER_MODIFIER_ADD_LIBRARY_DEPENDENCY);
   }
 
   @Nullable
@@ -218,7 +225,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       }
     }.execute();
 
-    return requestProjectSync(project);
+    return requestProjectSync(project, TRIGGER_MODIFIER_LANGUAGE_LEVEL_CHANGED);
   }
 
   @NotNull
@@ -267,9 +274,9 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   }
 
   @NotNull
-  private static Promise<Void> requestProjectSync(@NotNull Project project) {
+  private static Promise<Void> requestProjectSync(@NotNull Project project, @NotNull GradleSyncStats.Trigger trigger) {
     AsyncPromise<Void> promise = new AsyncPromise<>();
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(trigger);
     request.generateSourcesOnSuccess = false;
 
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener() {
@@ -291,12 +298,12 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     UndoManager.getInstance(project).undoableActionPerformed(new BasicUndoableAction() {
       @Override
       public void undo() throws UnexpectedUndoException {
-        requestProjectSync(project);
+        requestProjectSync(project, TRIGGER_MODIFIER_ACTION_UNDONE);
       }
 
       @Override
       public void redo() throws UnexpectedUndoException {
-        requestProjectSync(project);
+        requestProjectSync(project, TRIGGER_MODIFIER_ACTION_REDONE);
       }
     });
   }

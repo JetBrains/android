@@ -16,32 +16,31 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.concurrency.Promise;
 
 /**
  * Keeps track of which of the dependencies for all the components on a palette are currently
@@ -62,7 +61,7 @@ public class DependencyManager implements Disposable {
   private boolean myUseAndroidXDependencies;
   private boolean myRegisteredForDependencyUpdates;
   private boolean myNotifyAlways;
-  private Consumer<Future<?>> mySyncTopicConsumer;
+  private Consumer<Promise<Boolean>> mySyncTopicConsumer;
 
   public DependencyManager(@NotNull Project project) {
     myProject = project;
@@ -76,15 +75,11 @@ public class DependencyManager implements Disposable {
     myListeners.add(listener);
   }
 
-  public Future<?> setPalette(@NotNull Palette palette, @NotNull Module module) {
+  public Promise<Boolean> setPalette(@NotNull Palette palette, @NotNull Module module) {
     myPalette = palette;
     myModule = module;
-    // These computations are quite expensive, run them on a background thread to avoid blocking the UI.
-    return ensureRunningOnBackgroundThread(() -> {
-      checkForRelevantDependencyChanges();
-      registerDependencyUpdates();
-      invokeLaterIfNeeded(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
-    });
+
+    return notifyOnDependencyChanges(true);
   }
 
   public boolean useAndroidXDependencies() {
@@ -100,7 +95,7 @@ public class DependencyManager implements Disposable {
   }
 
   @TestOnly
-  public void setSyncTopicListener(@NotNull Consumer<Future<?>> listener) {
+  public void setSyncTopicListener(@NotNull Consumer<Promise<Boolean>> listener) {
     mySyncTopicConsumer = listener;
   }
 
@@ -113,7 +108,39 @@ public class DependencyManager implements Disposable {
   public void dispose() {
   }
 
-  private synchronized boolean checkForRelevantDependencyChanges() {
+  private synchronized Promise<Boolean> notifyOnDependencyChanges(boolean doRegisterForDependencyUpdates) {
+    // checkForRelevantDependencyChanges can be quite expensive, run this on a background thread,
+    // however the DependencyChangeListeners must be called from the UI thread as they update the UI.
+    return ReadAction
+      .nonBlocking(() -> checkForRelevantDependencyChanges())
+      .expireWhen(() -> myProject.isDisposed())
+      .submit(AppExecutorUtil.getAppExecutorService())
+      .onSuccess((changes) -> {
+        if (changes) {
+          ApplicationManager.getApplication().invokeLater(() -> doNotifyDependencyChanges());
+        }
+        if (doRegisterForDependencyUpdates) {
+          registerForDependencyUpdates();
+        }
+      });
+  }
+
+  private synchronized void registerForDependencyUpdates() {
+    if (myRegisteredForDependencyUpdates || myProject.isDisposed()) {
+      return;
+    }
+    myRegisteredForDependencyUpdates = true;
+    myProject.getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
+      notifyOnDependencyChanges(false);
+      mySyncTopicConsumer.accept(notifyOnDependencyChanges(false));
+    });
+  }
+
+  private void doNotifyDependencyChanges() {
+    myListeners.forEach(listener -> listener.onDependenciesChanged());
+  }
+
+  private boolean checkForRelevantDependencyChanges() {
     return checkForNewMissingDependencies() | checkForNewAndroidXDependencies();
   }
 
@@ -127,42 +154,25 @@ public class DependencyManager implements Disposable {
   }
 
   private boolean checkForNewMissingDependencies() {
-    Set<String> missing = Collections.emptySet();
-
-    if (myModule != null && !myModule.isDisposed()) {
-      AndroidModuleSystem moduleSystem = ProjectSystemService.getInstance(myProject).getProjectSystem().getModuleSystem(myModule);
-      missing = myPalette.getGradleCoordinateIds().stream()
-        .map(id -> GradleCoordinate.parseCoordinateString(id + ":+"))
-        .filter(Objects::nonNull)
-        .filter(coordinate -> moduleSystem.getRegisteredDependency(coordinate) == null)
-        .map(coordinate -> coordinate.getId())
-        .filter(Objects::nonNull)
-        .collect(Collectors.toSet());
-
-      if (myMissingLibraries.equals(missing)) {
-        return false;
-      }
+    if (myModule == null) {
+      return false;
     }
 
+    AndroidModuleSystem moduleSystem = ProjectSystemService.getInstance(myProject).getProjectSystem().getModuleSystem(myModule);
+    Set<String> missing = myPalette.getGradleCoordinateIds().stream()
+      .map(id -> GradleCoordinate.parseCoordinateString(id + ":+"))
+      .filter(Objects::nonNull)
+      .filter(coordinate -> moduleSystem.getRegisteredDependency(coordinate) == null)
+      .map(coordinate -> coordinate.getId())
+      .filter(Objects::nonNull)
+      .collect(Collectors.toSet());
+
+    if (myMissingLibraries.equals(missing)) {
+      return false;
+    }
     myMissingLibraries.clear();
     myMissingLibraries.addAll(missing);
     return true;
-  }
-
-  private synchronized void registerDependencyUpdates() {
-    if (myRegisteredForDependencyUpdates || myProject.isDisposed()) {
-      return;
-    }
-    myRegisteredForDependencyUpdates = true;
-    myProject.getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-      // checkForRelevantDependencyChanges can be quite expensive, run this on a background thread,
-      // however the DependencyChangeListeners must be called from the UI thread as they update the UI.
-      mySyncTopicConsumer.accept(ensureRunningOnBackgroundThread(() -> {
-        if ((result == ProjectSystemSyncManager.SyncResult.SUCCESS && checkForRelevantDependencyChanges()) || myNotifyAlways) {
-          invokeLaterIfNeeded(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
-        }
-      }));
-    });
   }
 
   public void ensureLibraryIsIncluded(@NotNull Palette.Item item) {
@@ -199,15 +209,5 @@ public class DependencyManager implements Disposable {
 
   public interface DependencyChangeListener {
     void onDependenciesChanged();
-  }
-
-  private static Future<?> ensureRunningOnBackgroundThread(@NotNull Runnable runnable) {
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      return ApplicationManager.getApplication().executeOnPooledThread(runnable);
-    }
-    else {
-      runnable.run();
-      return Futures.immediateFuture(null);
-    }
   }
 }

@@ -1032,6 +1032,15 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "note2Area"));
     assertTrue(resources.getModificationCount() > generation2);
 
+    // Check replacing @+id with a normal string.
+    long generation3 = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      tag.setAttribute(ATTR_ID, ANDROID_URI, "notId");
+    });
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "note23Area"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "notId"));
+    assertTrue(resources.getModificationCount() > generation3);
+
     // Shouldn't have done any full file rescans during the above edits.
     ensureIncremental();
   }
@@ -1092,6 +1101,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceValue idValue = idItem.getResourceValue();
     assertNotNull(idValue);
     assertEquals("", idValue.getValue());
+
+    // Check replacing @+id with a normal string.
+    long generation3 = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String attrValue = "@+id/note23Area";
+      int offset = document.getText().indexOf(attrValue);
+      document.replaceString(offset, offset + attrValue.length(), "notId");
+      documentManager.commitDocument(document);
+    });
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "note23Area"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "notId"));
+    assertTrue(resources.getModificationCount() > generation3);
 
     // Shouldn't have done any full file rescans during the above edits.
     ensureIncremental();

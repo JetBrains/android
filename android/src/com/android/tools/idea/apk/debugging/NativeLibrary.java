@@ -212,15 +212,15 @@ public class NativeLibrary {
     for (DebuggableSharedObjectFile sharedObjectFile : debuggableSharedObjectFilesByAbi.values()) {
       for (String debugSymbolPath : sharedObjectFile.debugSymbolPaths) {
         File path = new File(debugSymbolPath);
-        if (path.exists()) {
+        if (path.toPath().isAbsolute() && path.exists()) {
           sourceFolderPaths.add(debugSymbolPath);
           continue;
         }
-        // path is not local. Check for path mapping.
+        // path is not absolute or not local. Check for path mapping.
         String mappedPath = pathMappings.get(debugSymbolPath);
         if (isNotEmpty(mappedPath)) {
           path = new File(mappedPath);
-          if (path.exists()) {
+          if (path.toPath().isAbsolute() && path.exists()) {
             sourceFolderPaths.add(mappedPath);
           }
         }

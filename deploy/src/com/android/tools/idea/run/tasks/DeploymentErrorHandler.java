@@ -41,21 +41,29 @@ class DeploymentErrorHandler {
   static final String RERUN_OPTION = "<a href='" + RERUN_LINK + "'>Rerun</a>";
 
   @NotNull
-  private final String myFormattedErrorString;
+  private final String myErrorString;
+  @NotNull
+  private final String myNotificationErrorString;
   @Nullable
   private final NotificationListener myNotificationListener;
   @NotNull
   private final DeployerException myException;
 
   DeploymentErrorHandler(@NotNull String description, @NotNull DeployerException exception) {
-    myFormattedErrorString = formatDeploymentErrors(description, exception);
+    myErrorString = getErrorString(description, exception);
+    myNotificationErrorString = getNotificationErrorString(myErrorString, exception);
     myNotificationListener = new DeploymentErrorNotificationListener();
     myException = exception;
   }
 
   @NotNull
-  String getFormattedErrorString() {
-    return myFormattedErrorString;
+  String getErrorString() {
+    return myErrorString;
+  }
+
+  @NotNull
+  String getNotificationErrorString() {
+    return myNotificationErrorString;
   }
 
   @Nullable
@@ -63,14 +71,20 @@ class DeploymentErrorHandler {
     return myNotificationListener;
   }
 
+  /**
+   * Returns an error string that's suitable for logging.
+   */
   @NotNull
-  private String formatDeploymentErrors(@NotNull String description, @NotNull DeployerException exception) {
-    StringBuilder builder = new StringBuilder();
-    builder.append(description);
-    builder.append(" failed.\n");
+  private static String getErrorString(@NotNull String description, @NotNull DeployerException exception) {
+    return String.format("%s failed.\n%s\n", description, DeployerErrorMessagePresenter.createInstance().present(exception));
+  }
 
-    builder.append(DeployerErrorMessagePresenter.createInstance().present(exception));
-    builder.append("\n");
+  /**
+   * Returns an error string with suggested hyper links, and is suitable for UI notifications.
+   */
+  @NotNull
+  private static String getNotificationErrorString(@NotNull String errorString, @NotNull DeployerException exception) {
+    StringBuilder builder = new StringBuilder(errorString);
 
     // TODO(b/117673388): Add "Learn More" hyperlink when we finally have the webpage up.
     if (DeployerException.Error.CANNOT_SWAP_RESOURCE.equals(exception.getError())) {

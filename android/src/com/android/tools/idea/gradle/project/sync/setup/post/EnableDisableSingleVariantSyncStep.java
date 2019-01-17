@@ -37,8 +37,6 @@ import static com.android.tools.idea.gradle.project.sync.setup.post.EnableDisabl
 
 // Update the eligibility of single-variant sync for current project.
 public class EnableDisableSingleVariantSyncStep {
-  public static final String PATH_IN_SETTINGS = "File → Settings → Experimental → Gradle → Only sync the active variant";
-
   public static void setSingleVariantSyncState(@NotNull Project project) {
     EligibilityState state = isEligibleForSingleVariantSync(project);
     PropertiesComponent.getInstance(project).setValue(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC, !state.equals(ELIGIBLE));

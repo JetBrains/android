@@ -15,17 +15,20 @@
  */
 package com.android.tools.profilers.cpu.art;
 
-import com.android.tools.perflib.vmtrace.*;
+import com.android.tools.perflib.vmtrace.MethodInfo;
+import com.android.tools.perflib.vmtrace.TraceAction;
+import com.android.tools.perflib.vmtrace.VmTraceHandler;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ArtTraceHandler implements VmTraceHandler {
   private static final String MAIN_THREAD_NAME = "main";
@@ -117,7 +120,7 @@ public class ArtTraceHandler implements VmTraceHandler {
       CpuThreadInfo info = new CpuThreadInfo(id, name, name.equals(MAIN_THREAD_NAME));
 
       long topLevelGlobalStart = topLevelCall.getStartGlobal() + myStartTimeUs;
-      adjustNodesTimeAndDepth(topLevelCall, topLevelGlobalStart, 0);
+      adjustNodesTimeAndDepth(topLevelCall, topLevelGlobalStart);
 
       threadsGraph.put(info, topLevelCall);
     }
@@ -128,18 +131,26 @@ public class ArtTraceHandler implements VmTraceHandler {
   /**
    * Adjusts global and thread time from relative to absolute time and the depth of nodes.
    */
-  private void adjustNodesTimeAndDepth(CaptureNode node, long topLevelStart, int depth) {
-    node.setStartGlobal(myStartTimeUs + node.getStartGlobal());
-    node.setEndGlobal(myStartTimeUs + node.getEndGlobal());
-    node.setDepth(depth);
-    // Timestamps of ClockType.THREAD are stored in a different way: the first event on the thread is considered as the base
-    // and the subsequent events timestamps are stored in 32 bits relative to that base. We sum this timestamps to topLevelStart,
-    // so the first entry timestamp (represented as 0) is aligned (in wall clock time) with the top-level call start timestamp.
-    node.setStartThread(topLevelStart + node.getStartThread());
-    node.setEndThread(topLevelStart + node.getEndThread());
+  private void adjustNodesTimeAndDepth(CaptureNode node, long topLevelStart) {
+    Deque<CaptureNode> stack = new ArrayDeque<>();
+    stack.push(node);
 
-    for (CaptureNode callee : node.getChildren()) {
-      adjustNodesTimeAndDepth(callee, topLevelStart, depth + 1);
+    while (!stack.isEmpty()) {
+      CaptureNode current = stack.pop();
+
+      current.setStartGlobal(myStartTimeUs + current.getStartGlobal());
+      current.setEndGlobal(myStartTimeUs + current.getEndGlobal());
+      CaptureNode parent = current.getParent();
+      current.setDepth(parent == null ? 0 : parent.getDepth() + 1);
+      // Timestamps of ClockType.THREAD are stored in a different way: the first event on the thread is considered as the base
+      // and the subsequent events timestamps are stored in 32 bits relative to that base. We sum this timestamps to topLevelStart,
+      // so the first entry timestamp (represented as 0) is aligned (in wall clock time) with the top-level call start timestamp.
+      current.setStartThread(topLevelStart + current.getStartThread());
+      current.setEndThread(topLevelStart + current.getEndThread());
+
+      for (CaptureNode callee : current.getChildren()) {
+        stack.push(callee);
+      }
     }
   }
 

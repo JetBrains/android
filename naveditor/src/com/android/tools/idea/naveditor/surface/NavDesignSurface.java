@@ -29,6 +29,7 @@ import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEven
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
@@ -135,6 +136,10 @@ public class NavDesignSurface extends DesignSurface {
 
   private static final WeakHashMap<AndroidFacet, SoftReference<ConfigurationManager>> ourConfigurationManagers = new WeakHashMap<>();
   private static final Set<Project> PROJECTS_WITH_LISTENERS = ContainerUtil.createWeakSet();
+
+  private static final List<GradleCoordinate> NAVIGATION_DEPENDENCIES = ImmutableList.of(
+    GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+"),
+    GoogleMavenArtifactId.NAVIGATION_UI.getCoordinate("+"));
 
   @TestOnly
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
@@ -328,7 +333,7 @@ public class NavDesignSurface extends DesignSurface {
     ApplicationManager.getApplication().invokeAndWait(
       () -> didAdd.set(DependencyManagementUtil.addDependencies(
         // TODO: check for and add androidx dependency when it's released
-        facet.getModule(), ImmutableList.of(GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+")), true, false).isEmpty()));
+        facet.getModule(), NAVIGATION_DEPENDENCIES, true, false).isEmpty()));
     return didAdd.get();
   }
 
@@ -591,8 +596,8 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  public void zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
-    super.zoom(type, x, y);
+  public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
+    boolean scaled = super.zoom(type, x, y);
 
     if (type == ZoomType.FIT || type == ZoomType.FIT_INTO) {
       // The navigation design surface differs from the other design surfaces in that there are
@@ -605,6 +610,7 @@ public class NavDesignSurface extends DesignSurface {
 
       viewport.setViewPosition(new Point((size.width - bounds.width) / 2, (size.height - bounds.height) / 2));
     }
+    return scaled;
   }
 
   @NotNull

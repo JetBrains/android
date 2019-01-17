@@ -314,6 +314,13 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       return new DexFileViewer(myProject, new Path[]{p}, myBaseFile.getParent());
     }
 
+    // Attempting to view these kinds of files is going to trigger the Kotlin metadata decompilers, which all assume the .class files
+    // accompanying them can be found next to them. But in our case the class files have been dexed, so the Kotlin compiler backend is going
+    // to attempt code generation, and that will fail with some rather cryptic errors.
+    if (p.toString().endsWith("kotlin_builtins") || p.toString().endsWith("kotlin_metadata")) {
+      return new EmptyPanel();
+    }
+
     VirtualFile file = createVirtualFile(n.getData().getArchive(), p);
     Optional<FileEditorProvider> providers = getFileEditorProviders(file);
     if (!providers.isPresent()) {

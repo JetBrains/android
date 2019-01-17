@@ -25,6 +25,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 import com.intellij.util.ui.JBUI
+import java.awt.Dimension
 
 class ProjectPropertiesConfigPanel(project: PsProject, context: PsContext) :
   ConfigPanel<PsProject>(
@@ -39,6 +40,8 @@ class ProjectPropertiesConfigPanel(project: PsProject, context: PsContext) :
   init {
     uiComponent.border = JBUI.Borders.empty(8, 12, 8, 12)
     (uiComponent.components[0] as? JBScrollPane)?.border = JBUI.Borders.empty()
+    uiComponent.minimumSize = Dimension(500, 300)
+    uiComponent.preferredSize = Dimension(600, 400)
   }
 
   override val title = "Properties"

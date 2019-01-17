@@ -167,7 +167,7 @@ class AllAttributesInspectorBuilderTest {
   }
 
   private fun createBuilder(model: NelePropertiesModel): AllAttributesInspectorBuilder {
-    val enumSupportProvider = NeleEnumSupportProvider()
+    val enumSupportProvider = NeleEnumSupportProvider(model)
     val controlTypeProvider = NeleControlTypeProvider(enumSupportProvider)
     val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
     return AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider)

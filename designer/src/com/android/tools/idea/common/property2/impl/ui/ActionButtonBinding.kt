@@ -16,7 +16,8 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.adtui.stdui.registerActionKey
+import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.support.ImageFocusListener
@@ -25,6 +26,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
@@ -39,7 +41,7 @@ import javax.swing.JComponent
  * The editor component is wrapped in panel with a possible icon to the right displaying of the editor.
  */
 class ActionButtonBinding(private val model: PropertyEditorModel,
-                          private val editor: JComponent) : CellPanel() {
+                          private val editor: JComponent) : CellPanel(), DataProvider {
   private val boundImage = JBLabel()
   private val button
     get() = model.property.browseButton
@@ -49,8 +51,8 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
     add(boundImage, BorderLayout.EAST)
     updateFromModel()
 
-    boundImage.registerKeyAction({ buttonPressed(null) }, KeyStrokes.space, "space")
-    boundImage.registerKeyAction({ buttonPressed(null) }, KeyStrokes.enter, "enter")
+    boundImage.registerActionKey({ buttonPressed(null) }, KeyStrokes.space, "space")
+    boundImage.registerActionKey({ buttonPressed(null) }, KeyStrokes.enter, "enter")
     model.addListener(ValueChangedListener { updateFromModel() })
 
     boundImage.addMouseListener(object: MouseAdapter() {
@@ -71,6 +73,13 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
     isVisible = model.visible
   }
 
+  override fun getData(dataId: String): Any? {
+    if (HelpSupport.PROPERTY_ITEM.`is`(dataId)) {
+      return model.property
+    }
+    return null
+  }
+
   private fun buttonPressed(mouseEvent: MouseEvent?) {
     val action = button?.action ?: return
     if (action is ActionGroup) {
@@ -79,7 +88,8 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
       popupMenu.component.show(this, location.x, location.y)
     }
     else {
-      val event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN, DataManager.getInstance().getDataContext(this))
+      val event = AnActionEvent.createFromAnAction(action, mouseEvent, ActionPlaces.UNKNOWN,
+                                                   DataManager.getInstance().getDataContext(editor))
       action.actionPerformed(event)
       model.refresh()
     }

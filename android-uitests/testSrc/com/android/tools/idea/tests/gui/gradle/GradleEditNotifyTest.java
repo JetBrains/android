@@ -42,7 +42,6 @@ public class GradleEditNotifyTest {
     guiTest.importSimpleApplication()
       .getEditor()
       .open("app/build.gradle").waitUntilErrorAnalysisFinishes()
-      .checkNoNotification()
       .moveBetween("versionCode ", "")
       .enterText("1")
       .awaitNotification(
@@ -50,7 +49,6 @@ public class GradleEditNotifyTest {
       .performAction("Sync Now")
       .waitForGradleProjectSyncToFinish()
       .getEditor()
-      .checkNoNotification()
       .invokeAction(BACK_SPACE)
       .awaitNotification(
         "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");

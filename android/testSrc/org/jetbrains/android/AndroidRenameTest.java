@@ -419,6 +419,16 @@ public class AndroidRenameTest extends AndroidTestCase {
     checkRJava();
   }
 
+  public void testIdDeclarationToNormalString() throws Throwable {
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout6.xml", "res/layout/layout6.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    copyRJavaToGeneratedSources();
+    checkAndRename("nonId");
+    myFixture.checkResultByFile(BASE_PATH + "layout_id_to_nonId_after.xml");
+    checkRJava();
+  }
+
   public void testConstraintReferencedIds() throws Throwable {
     createManifest();
     VirtualFile file =
@@ -803,7 +813,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout15.xml", "res/layout/layout15.xml");
     myFixture.configureFromExistingVirtualFile(file);
     copyRJavaToGeneratedSources();
-    checkAndRename("newname");
+    checkAndRename("@+id/newname");
     myFixture.checkResultByFile(BASE_PATH + "layout15_after.xml");
   }
 

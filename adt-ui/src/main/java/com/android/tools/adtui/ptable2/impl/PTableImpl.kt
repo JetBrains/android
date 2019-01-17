@@ -589,11 +589,22 @@ class PTableImpl(override val tableModel: PTableModel,
   private inner class PTableKeyListener : KeyAdapter() {
 
     override fun keyTyped(event: KeyEvent) {
-      val table = this@PTableImpl
-      val row = table.selectedRow
-      if (table.isEditing || row == -1 || event.keyChar == '\t' || event.keyCode == KeyEvent.VK_ESCAPE) {
+      val row = selectedRow
+      if (isEditing || row == -1 || event.keyChar == '\t' || event.keyCode == KeyEvent.VK_ESCAPE) {
         return
       }
+      autoStartEditingAndForwardKeyEventToEditor(row, event)
+    }
+
+    override fun keyPressed(event: KeyEvent) {
+      val row = selectedRow
+      if (isEditing || row == -1 || event.keyCode != KeyEvent.VK_DOWN || !event.isAltDown) {
+        return
+      }
+      autoStartEditingAndForwardKeyEventToEditor(row, event)
+    }
+
+    private fun autoStartEditingAndForwardKeyEventToEditor(row: Int, event: KeyEvent) {
       val focusRequest = {
         ApplicationManager.getApplication()?.invokeLater {
           IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
@@ -605,6 +616,7 @@ class PTableImpl(override val tableModel: PTableModel,
           }
         }
       }
+      val table = this@PTableImpl
       if (!table.startEditing(row, 0, focusRequest)) {
         table.startEditing(row, 1, focusRequest)
       }

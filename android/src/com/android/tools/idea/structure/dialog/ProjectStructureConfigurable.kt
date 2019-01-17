@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiSta
 import com.android.tools.idea.stats.withProjectId
 import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PSD_CHANGES
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.util.PropertiesComponent
@@ -271,7 +271,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       myShowing = false
     }
     if (needsSync) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED)
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PSD_CHANGES)
     }
   }
 

@@ -18,35 +18,27 @@ package com.android.tools.idea.profilers;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellOutputReceiver;
 import com.android.ddmlib.NullOutputReceiver;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.runtimePipeline.DeployableFile;
+import com.android.tools.idea.runtimePipeline.DeployableFileManager;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
-import com.google.common.base.Charsets;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public final class ProfilerDeviceFileManager {
+public final class ProfilerDeviceFileManager extends DeployableFileManager {
   private static class HostFiles {
     @NotNull static final DeployableFile PERFD = new ProfilerHostFileBuilder("perfd")
       .setReleaseDir("plugins/android/resources/perfd")
@@ -73,7 +65,7 @@ public final class ProfilerDeviceFileManager {
       .build();
   }
 
-  static final String DEVICE_DIR = "/data/local/tmp/perfd/";
+  private static final String DEVICE_SUB_DIR = "perfd/";
 
   private static int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
 
@@ -81,10 +73,14 @@ public final class ProfilerDeviceFileManager {
   private static final String AGENT_CONFIG_FILE = "agent.config";
   private static final int DEVICE_PORT = 12389;
 
-  @NotNull private final IDevice myDevice;
-
   public ProfilerDeviceFileManager(@NotNull IDevice device) {
-    myDevice = device;
+    super(device);
+  }
+
+  @Override
+  @NotNull
+  protected String getDeviceSubDir() {
+    return DEVICE_SUB_DIR;
   }
 
   public void copyProfilerFilesToDevice()
@@ -97,88 +93,28 @@ public final class ProfilerDeviceFileManager {
       copyFileToDevice(HostFiles.PERFA_OKHTTP);
       copyFileToDevice(HostFiles.JVMTI_AGENT);
       // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
+      // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
       copyFileToDevice(HostFiles.SIMPLEPERF);
     }
     pushAgentConfig(myDevice, true);
   }
 
+  /**
+   * Exposes superclass method for ProfilerDeviceFileManagerTest, to keep the superclass method protected
+   */
+  @VisibleForTesting
+  void copyHostFileToDevice(@NotNull DeployableFile hostFile) throws AdbCommandRejectedException, IOException {
+    copyFileToDevice(hostFile);
+  }
+
   @NotNull
   public static String getPerfdPath() {
-    return DEVICE_DIR + "perfd";
+    return DEVICE_BASE_DIR + DEVICE_SUB_DIR + "perfd";
   }
 
   @NotNull
   public static String getAgentConfigPath() {
-    return DEVICE_DIR + AGENT_CONFIG_FILE;
-  }
-
-  private static Logger getLogger() {
-    return Logger.getInstance(ProfilerDeviceFileManager.class);
-  }
-
-  /**
-   * Copies a file from host (where Studio is running) to the device.
-   * If executable, then the abi is taken into account.
-   */
-  @VisibleForTesting
-  void copyFileToDevice(@NotNull DeployableFile hostFile)
-    throws AdbCommandRejectedException, IOException {
-    final File dir = hostFile.getDir();
-
-    if (!hostFile.isExecutable()) {
-      File file = new File(dir, hostFile.getFileName());
-      pushFileToDevice(file, hostFile.getFileName(), hostFile.isExecutable());
-      return;
-    }
-
-    if (!hostFile.isAbiDependent()) {
-      Abi abi = getBestAbi(hostFile);
-      File file = new File(dir, abi + "/" + hostFile.getFileName());
-      pushFileToDevice(file, hostFile.getFileName(), true);
-    }
-    else {
-      String format = hostFile.getOnDeviceAbiFileNameFormat();
-      assert format != null;
-      for (Abi abi : getBestAbis(hostFile)) {
-        File file = new File(dir, abi + "/" + hostFile.getFileName());
-        pushFileToDevice(file, String.format(format, abi.getCpuArch()), true);
-      }
-    }
-  }
-
-  private void pushFileToDevice(File file, String fileName, boolean executable)
-    throws AdbCommandRejectedException, IOException {
-    try {
-      // TODO: Handle the case where we don't have file for this platform.
-      // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
-      if (file == null) {
-        throw new RuntimeException(String.format("File %s could not be found for device: %s", fileName, myDevice));
-      }
-      /*
-       * If copying the agent fails, we will attach the previous version of the agent
-       * Hence we first delete old agent before copying new one
-       */
-      getLogger().info(String.format("Pushing %s to %s...", fileName, DEVICE_DIR));
-      myDevice.executeShellCommand("rm -f " + DEVICE_DIR + fileName, new NullOutputReceiver());
-      myDevice.executeShellCommand("mkdir -p " + DEVICE_DIR, new NullOutputReceiver());
-      myDevice.pushFile(file.getAbsolutePath(), DEVICE_DIR + fileName);
-
-      if (executable) {
-        /*
-         * In older devices, chmod letter usage isn't fully supported but CTS tests have been added for it since.
-         * Hence we first try the letter scheme which is guaranteed in newer devices, and fall back to the octal scheme only if necessary.
-         */
-        ChmodOutputListener chmodListener = new ChmodOutputListener();
-        myDevice.executeShellCommand("chmod +x " + DEVICE_DIR + fileName, chmodListener);
-        if (chmodListener.hasErrors()) {
-          myDevice.executeShellCommand("chmod 777 " + DEVICE_DIR + fileName, new NullOutputReceiver());
-        }
-      }
-      getLogger().info(String.format("Successfully pushed %s to %s.", fileName, DEVICE_DIR));
-    }
-    catch (TimeoutException | SyncException | ShellCommandUnresponsiveException e) {
-      throw new RuntimeException(e);
-    }
+    return DEVICE_BASE_DIR + DEVICE_SUB_DIR + AGENT_CONFIG_FILE;
   }
 
   /**
@@ -238,62 +174,7 @@ public final class ProfilerDeviceFileManager {
     File configFile = FileUtil.createTempFile(AGENT_CONFIG_FILE, null, true);
     OutputStream oStream = new FileOutputStream(configFile);
     agentConfig.writeTo(oStream);
-    device.executeShellCommand("rm -f " + DEVICE_DIR + AGENT_CONFIG_FILE, new NullOutputReceiver());
-    device.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + AGENT_CONFIG_FILE);
-  }
-
-  @NotNull
-  private Abi getBestAbi(@NotNull DeployableFile hostFile) {
-    return getBestAbis(hostFile).get(0);
-  }
-
-  @NotNull
-  private List<Abi> getBestAbis(@NotNull DeployableFile hostFile) {
-    final File dir = hostFile.getDir();
-    List<Abi> supportedAbis = myDevice.getAbis()
-                                      .stream()
-                                      .map(abi -> Abi.getEnum(abi))
-                                      .filter(abi -> new File(dir, abi + "/" + hostFile.getFileName()).exists())
-                                      .collect(Collectors.toList());
-
-    List<Abi> bestAbis = new ArrayList<>();
-    Set<String> seenCpuArch = new HashSet<>();
-    for (Abi abi : supportedAbis) {
-      if (!seenCpuArch.contains(abi.getCpuArch())) {
-        seenCpuArch.add(abi.getCpuArch());
-        bestAbis.add(abi);
-      }
-    }
-    return bestAbis;
-  }
-
-  private static class ChmodOutputListener implements IShellOutputReceiver {
-    /**
-     * When chmod fails to modify permissions, the following "Bad mode" error string is output.
-     * This listener checks if the string is present to validate if chmod was successful.
-     */
-    private static final String BAD_MODE = "Bad mode";
-
-    private boolean myHasErrors;
-
-    @Override
-    public void addOutput(byte[] data, int offset, int length) {
-      String s = new String(data, Charsets.UTF_8);
-      myHasErrors = s.contains(BAD_MODE);
-    }
-
-    @Override
-    public void flush() {
-
-    }
-
-    @Override
-    public boolean isCancelled() {
-      return false;
-    }
-
-    private boolean hasErrors() {
-      return myHasErrors;
-    }
+    device.executeShellCommand("rm -f " + DEVICE_BASE_DIR + DEVICE_SUB_DIR + AGENT_CONFIG_FILE, new NullOutputReceiver());
+    device.pushFile(configFile.getAbsolutePath(), DEVICE_BASE_DIR + DEVICE_SUB_DIR + AGENT_CONFIG_FILE);
   }
 }

@@ -16,13 +16,38 @@
 
 package com.android.tools.idea.gradle.structure;
 
+import static com.android.SdkConstants.FD_NDK;
+import static com.android.SdkConstants.NDK_DIR_PROPERTY;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
+import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
+import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.fileChooser.FileChooser.chooseFile;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
+import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.util.ui.UIUtil.getLabelBackground;
+import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
+
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.PathValidationResult;
-import com.android.tools.idea.sdk.*;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.android.tools.idea.sdk.StudioDownloader;
+import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -53,15 +78,9 @@ import com.intellij.ui.navigation.Place;
 import com.intellij.util.Function;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -69,26 +88,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-
-import static com.android.SdkConstants.FD_NDK;
-import static com.android.SdkConstants.NDK_DIR_PROPERTY;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
-import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.fileChooser.FileChooser.chooseFile;
-import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
-import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
-import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.util.ui.UIUtil.getLabelBackground;
-import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Allows the user set global Android SDK and JDK locations that are used for Gradle-based Android projects.
@@ -109,27 +118,35 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @NotNull private final BiMap<String, Component> myComponentsById = HashBiMap.create();
 
   // These paths are system-dependent.
+  @NotNull private String myUserSelectedJdkHomePath = "";
   @Nullable private String myOriginalNdkHomePath;
   @Nullable private String myOriginalSdkHomePath;
   @Nullable private String myOriginalJdkHomePath;
-  @Nullable private String myUserSelectedJdkHomePath;
-  private boolean myOriginalUseEmbeddedJdk;
+  @Nullable private JdkLocationType myOriginalJdkLocationType;
 
   private HyperlinkLabel myNdkDownloadHyperlinkLabel;
   private HyperlinkLabel myNdkResetHyperlinkLabel;
   private TextFieldWithBrowseButton mySdkLocationTextField;
   private TextFieldWithBrowseButton myNdkLocationTextField;
   private TextFieldWithBrowseButton myJdkLocationTextField;
-  private JCheckBox myUseEmbeddedJdkCheckBox;
   private JPanel myWholePanel;
   private JPanel myNdkDownloadPanel;
   @SuppressWarnings("unused") private AsyncProcessIcon myNdkCheckProcessIcon;
+  private JRadioButton myUseJavaHomeEnvironmentVariableRadioButton;
+  private JRadioButton myUseEmbeddedJdkRadioButton;
+  private JRadioButton myOtherRadioButton;
 
   private DetailsComponent myDetailsComponent;
   private History myHistory;
 
   private String mySelectedComponentId;
   private boolean mySdkLoadingRequested = false;
+
+  private enum JdkLocationType {
+    JAVA_HOME,
+    EMBEDDED,
+    USER_DEFINED
+  }
 
   public IdeSdksConfigurable(@Nullable Configurable host, @Nullable Project project) {
     myHost = host;
@@ -165,25 +182,38 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     installValidationListener(myJdkLocationTextField.getTextField());
     installValidationListener(myNdkLocationTextField.getTextField());
 
-    myUseEmbeddedJdkCheckBox.addChangeListener(e -> {
-      boolean useEmbeddedJdk = useEmbeddedJdk();
-      updateJdkTextField(useEmbeddedJdk);
-
-      File embeddedJdkPath = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath();
-      String path = embeddedJdkPath != null ? embeddedJdkPath.getPath() : "";
-      if (!useEmbeddedJdk) {
-        // If the user-selected path is the same as the "embedded JDK" path, ignore it because there is no user-selected path yet.
-        if (path.equals(myUserSelectedJdkHomePath)) {
-          myUserSelectedJdkHomePath = "";
+    myUseJavaHomeEnvironmentVariableRadioButton.addChangeListener(event -> {
+      if (myUseJavaHomeEnvironmentVariableRadioButton.isSelected()) {
+        String javaHome = getJdkFromJavaHome();
+        if (javaHome == null) {
+          javaHome = "";
         }
-        path = myUserSelectedJdkHomePath;
+        setJdkFieldText(javaHome, false/* button disabled */);
       }
-      myJdkLocationTextField.getTextField().setText(path);
+    });
+
+    myUseEmbeddedJdkRadioButton.addChangeListener(event -> {
+      if (myUseEmbeddedJdkRadioButton.isSelected()) {
+        String embeddedJdkPath = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath();
+        setJdkFieldText(embeddedJdkPath, false /* button disabled */);
+      }
+    });
+
+    myOtherRadioButton.addChangeListener( event -> {
+      if (myOtherRadioButton.isSelected()) {
+        setJdkFieldText(myUserSelectedJdkHomePath, true /* button enabled */);
+        myJdkLocationTextField.getTextField().requestFocus();
+      }
     });
 
     addHistoryUpdater("mySdkLocationTextField", mySdkLocationTextField.getTextField(), historyUpdater);
     addHistoryUpdater("myJdkLocationTextField", myJdkLocationTextField.getTextField(), historyUpdater);
     addHistoryUpdater("myNdkLocationTextField", myNdkLocationTextField.getTextField(), historyUpdater);
+  }
+
+  private void setJdkFieldText(@NotNull String path, boolean enableButton) {
+    myJdkLocationTextField.setText(path);
+    updateJdkTextField(enableButton);
   }
 
   private void maybeLoadSdks(@Nullable Project project) {
@@ -226,25 +256,34 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     myOriginalSdkHomePath = getIdeAndroidSdkPath();
     myOriginalNdkHomePath = getIdeNdkPath();
     myOriginalJdkHomePath = getIdeJdkPath();
-    myOriginalUseEmbeddedJdk = IdeSdks.getInstance().isUsingEmbeddedJdk();
-
     mySdkLocationTextField.setText(myOriginalSdkHomePath);
     myNdkLocationTextField.setText(myOriginalNdkHomePath);
 
-    String jdkPath = myOriginalUseEmbeddedJdk ? EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath() : myOriginalJdkHomePath;
-    myJdkLocationTextField.setText(jdkPath);
+    myJdkLocationTextField.setText(myOriginalJdkHomePath);
     myUserSelectedJdkHomePath = myOriginalJdkHomePath;
-    updateJdkTextField(myOriginalUseEmbeddedJdk);
 
-    myUseEmbeddedJdkCheckBox.setSelected(myOriginalUseEmbeddedJdk);
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    if (ideSdks.isUsingJavaHomeJdk()) {
+      myOriginalJdkLocationType = JdkLocationType.JAVA_HOME;
+      myUseJavaHomeEnvironmentVariableRadioButton.setSelected(true);
+    }
+    else if (ideSdks.isUsingEmbeddedJdk()) {
+      myOriginalJdkLocationType = JdkLocationType.EMBEDDED;
+      myUseEmbeddedJdkRadioButton.setSelected(true);
+    }
+    else {
+      myOriginalJdkLocationType = JdkLocationType.USER_DEFINED;
+      myOtherRadioButton.setSelected(true);
+    }
+    updateJdkTextField(myOriginalJdkLocationType == JdkLocationType.USER_DEFINED);
   }
 
-  private void updateJdkTextField(boolean useEmbeddedJdk) {
-    Color background = useEmbeddedJdk ? getLabelBackground() : getTextFieldBackground();
+  private void updateJdkTextField(boolean enableButton) {
+    Color background = enableButton ? getTextFieldBackground() : getLabelBackground();
     JTextField textField = myJdkLocationTextField.getTextField();
     textField.setBackground(background);
-    textField.setEditable(!useEmbeddedJdk);
-    myJdkLocationTextField.getButton().setEnabled(!useEmbeddedJdk);
+    textField.setEditable(false);
+    myJdkLocationTextField.getButton().setEnabled(enableButton);
   }
 
   @Override
@@ -252,13 +291,17 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     if (!isModified()) {
       return;
     }
+    File validJdkLocation = validateJdkPath(getJdkLocation());
+    if (validJdkLocation == null) {
+      throw new ConfigurationException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
+    }
     ApplicationManager.getApplication().runWriteAction(() -> {
       // Setting the Sdk path will trigger the project sync. Set the Ndk path and Jdk path before the Sdk path to get the changes to them
       // to take effect during the sync.
       saveAndroidNdkPath();
 
       IdeSdks ideSdks = IdeSdks.getInstance();
-      ideSdks.setJdkPath(useEmbeddedJdk() ? EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath() : getJdkLocation());
+      ideSdks.setJdkPath(getJdkLocation());
       ideSdks.setAndroidSdkPath(getSdkLocation(), myProject);
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -465,7 +508,17 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     return !Objects.equals(myOriginalSdkHomePath, getSdkLocation().getPath()) ||
            !Objects.equals(myOriginalNdkHomePath, getNdkLocation().getPath()) ||
            !Objects.equals(myOriginalJdkHomePath, getJdkLocation().getPath()) ||
-           myOriginalUseEmbeddedJdk != useEmbeddedJdk();
+           myOriginalJdkLocationType != getCurrentJdkLocationType();
+  }
+
+  private JdkLocationType getCurrentJdkLocationType() {
+    if (myUseJavaHomeEnvironmentVariableRadioButton.isSelected()) {
+      return JdkLocationType.JAVA_HOME;
+    }
+    if (myUseEmbeddedJdkRadioButton.isSelected()) {
+      return JdkLocationType.EMBEDDED;
+    }
+    return JdkLocationType.USER_DEFINED;
   }
 
   /**
@@ -572,7 +625,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       throw new ConfigurationException(msg);
     }
 
-    if (!useEmbeddedJdk()) {
+    if (!myUseEmbeddedJdkRadioButton.isSelected()) {
       File validJdkLocation = validateJdkPath(getJdkLocation());
       if (validJdkLocation == null) {
         throw new ConfigurationException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
@@ -691,10 +744,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   private File getJdkLocation() {
     String jdkLocation = myJdkLocationTextField.getText();
     return toSystemDependentPath(jdkLocation);
-  }
-
-  private boolean useEmbeddedJdk() {
-    return myUseEmbeddedJdkCheckBox.isSelected();
   }
 
   /**

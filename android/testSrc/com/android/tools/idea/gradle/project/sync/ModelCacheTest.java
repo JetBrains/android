@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.project.Project;
+import java.util.Collections;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import java.util.Collections;
-
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ModelCacheTest extends AndroidGradleTestCase {
   private IdeComponents myIdeComponents;
@@ -57,7 +56,7 @@ public class ModelCacheTest extends AndroidGradleTestCase {
     when(dataNodeCaches.getCachedProjectData()).thenReturn(cache);
     when(dataNodeCaches.isCacheMissingModels(cache)).thenReturn(true);
 
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
     request.generateSourcesOnSuccess = false;
     request.useCachedGradleModels = true;
 

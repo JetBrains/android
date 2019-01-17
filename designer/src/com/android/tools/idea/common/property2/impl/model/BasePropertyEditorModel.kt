@@ -17,6 +17,7 @@ package com.android.tools.idea.common.property2.impl.model
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.*
+import com.intellij.openapi.actionSystem.DataProvider
 import kotlin.properties.Delegates
 
 /**
@@ -28,7 +29,7 @@ import kotlin.properties.Delegates
  * @property visible Controls the visibility of the editor
  * @property hasFocus Shows if an editor has focus. Setting this to true will cause focus to be requested to the editor.
  */
-abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : PropertyEditorModel {
+abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : PropertyEditorModel, DataProvider {
   private val valueChangeListeners = mutableListOf<ValueChangedListener>()
 
   override var property: PropertyItem by Delegates.observable(initialProperty) { _, _, _ -> fireValueChanged()}
@@ -81,18 +82,6 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
 
   override var lineModel: InspectorLineModel? = null
 
-  open fun f1KeyPressed() {
-    (property as? HelpSupport)?.help()
-  }
-
-  open fun shiftF1KeyPressed() {
-    (property as? HelpSupport)?.secondaryHelp()
-  }
-
-  open fun browseButtonPressed() {
-    (property as? HelpSupport)?.browse()
-  }
-
   override fun cancelEditing(): Boolean {
     refresh()
     return true
@@ -111,6 +100,16 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
    * may have changed outside of the control of the editor.
    */
   open fun updateValueFromProperty() {
+  }
+
+  /**
+   * UI components can delegate to this base model for help support.
+   */
+  override fun getData(dataId: String): Any? {
+    if (HelpSupport.PROPERTY_ITEM.`is`(dataId)) {
+      return property
+    }
+    return null
   }
 
   open fun focusGained() {

@@ -15,16 +15,70 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_AFTER;
+import static com.android.SdkConstants.ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE;
+import static com.android.SdkConstants.ATTR_CHECKED_BUTTON;
+import static com.android.SdkConstants.ATTR_CHECKED_CHIP;
+import static com.android.SdkConstants.ATTR_FONT_FAMILY;
+import static com.android.SdkConstants.ATTR_HIDE_MOTION_SPEC;
+import static com.android.SdkConstants.ATTR_ICON;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LABEL;
+import static com.android.SdkConstants.ATTR_LABEL_FOR;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ABOVE;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_TOP;
+import static com.android.SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_BEHAVIOR;
+import static com.android.SdkConstants.ATTR_LAYOUT_BELOW;
+import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_END_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_MANAGER;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_LEFT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF;
+import static com.android.SdkConstants.ATTR_LISTITEM;
+import static com.android.SdkConstants.ATTR_MENU;
+import static com.android.SdkConstants.ATTR_ON_CLICK;
+import static com.android.SdkConstants.ATTR_SHOW_MOTION_SPEC;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.ATTR_THEME;
+import static com.android.SdkConstants.ATTR_TITLE;
+import static com.android.SdkConstants.COORDINATOR_LAYOUT;
+import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.VALUE_FALSE;
+import static com.android.SdkConstants.VALUE_TRUE;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.support.AndroidxName;
-import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.module.Module;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -32,14 +86,41 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.xml.*;
+import com.intellij.util.xml.Converter;
+import com.intellij.util.xml.DomElement;
+import com.intellij.util.xml.GenericAttributeValue;
+import com.intellij.util.xml.ResolvingConverter;
+import com.intellij.util.xml.XmlName;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
-import org.jetbrains.android.dom.converters.*;
+import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
+import org.jetbrains.android.dom.converters.CompositeConverter;
+import org.jetbrains.android.dom.converters.DimensionConverter;
+import org.jetbrains.android.dom.converters.FlagConverter;
+import org.jetbrains.android.dom.converters.FragmentClassConverter;
+import org.jetbrains.android.dom.converters.IntegerConverter;
+import org.jetbrains.android.dom.converters.OnClickConverter;
+import org.jetbrains.android.dom.converters.PackageClassConverter;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.converters.StaticEnumConverter;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
-import org.jetbrains.android.dom.manifest.*;
+import org.jetbrains.android.dom.manifest.Action;
+import org.jetbrains.android.dom.manifest.Activity;
+import org.jetbrains.android.dom.manifest.Application;
+import org.jetbrains.android.dom.manifest.Category;
+import org.jetbrains.android.dom.manifest.IntentFilter;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.manifest.Provider;
+import org.jetbrains.android.dom.manifest.Receiver;
+import org.jetbrains.android.dom.manifest.Service;
 import org.jetbrains.android.dom.menu.MenuItem;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.resources.ResourceValue;
@@ -50,17 +131,15 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 import org.jetbrains.annotations.TestOnly;
-
-import static com.android.SdkConstants.*;
 
 /**
  * @author Eugene.Kudelevsky
  */
 @SuppressWarnings({"EnumSwitchStatementWhichMissesCases"})
 public class AndroidDomUtil {
+  private static final Logger LOG = Logger.getInstance(AndroidDomUtil.class);
+
   private static final AndroidxName RECYCLER_VIEW_LAYOUT_MANAGER_NAME =
       AndroidxName.of("android.support.v7.widget.", "RecyclerView.LayoutManager");
   private static final AndroidxName RECYCLER_VIEW_PACKAGE_NAME =
@@ -339,6 +418,8 @@ public class AndroidDomUtil {
 
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull AndroidFacet facet, @NotNull XmlAttribute attribute) {
+    checkThreading();
+
     String localName = attribute.getLocalName();
 
     ResourceNamespace namespace = null;
@@ -374,18 +455,6 @@ public class AndroidDomUtil {
             return definition;
           }
         }
-      }
-    }
-
-    Module module = facet.getModule();
-    DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
-    if (dataBindingComponent != null) {
-      String attributeName = attribute.getName();
-      if (dataBindingComponent.getBindingAdapterAttributes(module).anyMatch(name -> name.equals(attributeName))) {
-        if (namespace == null) {
-          namespace = ResourceNamespace.RES_AUTO;
-        }
-        return new AttributeDefinition(namespace, localName);
       }
     }
 
@@ -499,5 +568,20 @@ public class AndroidDomUtil {
     Project project = aClass.getProject();
     PsiClass baseClass = JavaPsiFacade.getInstance(project).findClass(baseClassQName, aClass.getResolveScope());
     return baseClass != null && aClass.isInheritor(baseClass, true);
+  }
+
+  private static final boolean CHECK_THREADING = false;
+
+  public static void checkThreading() {
+    if (!CHECK_THREADING) {
+      return;
+    }
+
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      LOG.error("Android DOM operations on the UI thread.");
+    }
+    else if (Thread.currentThread().getName().startsWith("JobScheduler FJ pool")) {
+      LOG.error("Android DOM operations on FJ pool.");
+    }
   }
 }

@@ -123,13 +123,9 @@
       <add-to-group group-id="FileMenu" anchor="before" relative-to-action="FileMainSettingsGroup"/>
     </group>
 
-    <group id="GradleFileGroup">
-      <separator/>
-      <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC"/>
-      <action id="Android.ReImportGradleProject" class="com.android.tools.idea.gradle.actions.ReImportGradleProjectAction"/>
-      <add-to-group group-id="FileMenu" anchor="before" relative-to-action="SaveAll"/>
-      <separator/>
-    </group>
+    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
+      <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
+    </action>
 
     <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip" text="Export to Zip File...">
       <add-to-group group-id="ExportImportGroup" anchor="last"/>
@@ -326,6 +322,7 @@
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$MaintenanceActivity"/>
     <cachesInvalidator implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$CacheInvalidator"/>
     <cachesInvalidator implementation="com.android.tools.idea.gradle.project.sync.idea.data.IdeaSyncCachesInvalidator"/>
+    <cachesInvalidator implementation="com.android.tools.idea.gradle.project.metrics.CacheInvalidatorMetricCollector"/>
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$PopulateCachesActivity"/>
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.project.sync.idea.notification.GradleNotificationExtension"/>
@@ -372,7 +369,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleVersions"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleProjectSettingsFinder"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleLocalCache"/>
-    <applicationService serviceImplementation="com.android.tools.idea.res.aar.AarResourceRepositoryCache"/>
+    <applicationService serviceImplementation="com.android.tools.idea.res.AarResourceRepositoryCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledApkCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.InstalledPatchCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.DeploymentApplicationService" />
@@ -1398,6 +1395,9 @@
   <module-components>
     <component>
       <implementation-class>com.android.tools.idea.model.MergedManifest</implementation-class>
+    </component>
+    <component>
+      <implementation-class>com.android.tools.idea.databinding.DataBindingModuleComponent</implementation-class>
     </component>
   </module-components>
 </idea-plugin>
