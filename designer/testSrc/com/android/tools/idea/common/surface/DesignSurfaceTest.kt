@@ -24,7 +24,6 @@ import com.android.tools.idea.common.model.SelectionModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
-import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
@@ -86,9 +85,25 @@ class DesignSurfaceTest: LayoutTestCase() {
     surface.removeModel(model2)
     assertEquals(1, surface.models.size)
   }
+
+  fun testScale() {
+    val surface = TestDesignSurface(myModule.project, myModule.project)
+    surface.setScale(0.66, -1, -1)
+    assertFalse(surface.setScale(0.663, -1, -1))
+    assertFalse(surface.setScale(0.664, -1, -1))
+    assertTrue(surface.setScale(0.665, -1, -1))
+
+    surface.sceneScalingFactor = 2f
+
+    surface.setScale(0.33, -1, -1)
+    assertFalse(surface.setScale(0.332, -1, -1))
+    assertTrue(surface.setScale(0.335, -1, -1))
+  }
 }
 
 private class TestDesignSurface(project: Project, disposible: Disposable): DesignSurface(project, SelectionModel(), disposible) {
+
+  private var factor: Float = 1f
 
   override fun getComponentRegistrar() = Consumer<NlComponent> {}
 
@@ -96,7 +111,11 @@ private class TestDesignSurface(project: Project, disposible: Disposable): Desig
     throw UnsupportedOperationException("Action handler not implemented for TestDesignSurface")
   }
 
-  override fun getSceneScalingFactor() = 1f
+  fun setSceneScalingFactor(factor: Float) {
+    this.factor = factor
+  }
+
+  override fun getSceneScalingFactor() = factor
 
   override fun createActionManager() = object: ActionManager<DesignSurface>(this) {
     override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) = Unit
