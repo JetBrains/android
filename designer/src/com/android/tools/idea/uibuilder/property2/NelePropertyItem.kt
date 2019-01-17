@@ -353,6 +353,9 @@ open class NelePropertyItem(
         frameworkRepository?.getPublicResources(ResourceNamespace.ANDROID, type)?.mapTo(values, toName)
       }
     }
+    if (type == NelePropertyType.FONT) {
+      values.addAll(AndroidDomUtil.AVAILABLE_FAMILIES)
+    }
     return values
   }
 
