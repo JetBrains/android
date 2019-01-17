@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.databinding
 
 import com.android.testutils.JarTestSuiteRunner
+import com.android.testutils.TestUtils.getWorkspaceFile
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
@@ -24,7 +25,23 @@ import org.junit.runner.RunWith
 class LangDataBindingTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
-      symlinkToIdeaHome("tools/adt/idea/android-lang-databinding/testData")
+      symlinkToIdeaHome(
+        "prebuilts/studio/jdk",
+        "prebuilts/studio/sdk",
+        "tools/adt/idea/android/annotations",
+        "tools/adt/idea/android-lang-databinding/testData",
+        "tools/base/templates",
+        "tools/idea/java") // For the mock JDK.
+
+      IdeaTestSuiteBase.setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository")
+      IdeaTestSuiteBase.setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo")
+      IdeaTestSuiteBase.setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository")
+
+      // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
+      System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").absolutePath)
+
+      // Run Kotlin in-process for easier control over its JVM args.
+      System.setProperty("kotlin.compiler.execution.strategy", "in-process")
     }
   }
 }
