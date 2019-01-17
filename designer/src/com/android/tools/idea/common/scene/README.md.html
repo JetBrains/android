@@ -18,7 +18,7 @@
 
 **Design Doc of Placeholder**
 
-*Last updated: August 8th 2018*
+*Last updated: Jan 17th 2019*
 
 Overview
 =====
@@ -35,27 +35,45 @@ We also has `CommonDragTarget` which takes responsibilities to update component 
 How It Works
 =====
 
-When user starts dragging a component, we create a `CommonDragTarget` which traces the mouse position and collect `Placeholder`s from
-`Scene`. `CommonDragTarget` snaps to the collected `Placeholder`s and update the proper positions of dragged component. Once mouse is
-released, `CommonDragTarget` finds the effect `Placeholder` and apply the callback of it to update the attributes.
+When user starts dragging a component, we create a `CommonDragTarget` which captures the mouse position and collect `Placeholder`s from
+`Scene`. `CommonDragTarget` snaps to the collected `Placeholder`s and updates the positions of the dragged component. Once the mouse is
+released, `CommonDragTarget` finds the chosen `Placeholder` and applies the callback of it to update the attributes.
 
 Implement a `Placeholder`
 =====
 
 For creating a new Placeholder, simply extends the `Placeholder` interface and custom the part you need.
 
-There are 4 functions for overriding:
-- `val region: Region`
-- `fun snap(left: Int, top: Int, right: Int, bottom: Int): Boolean`
-- `fun updateAttributes(SceneComponent): Boolean`
-- (optional) `val nextComponent: SceneComponent?`
+This interface contains 6 overridable functions:
 
+(optional) `val associatedComponent: SceneComponent = host`
+----
+When the mouse is hovered on a Placeholder, all other Placeholder which have the same container as hovered Placeholder would be
+highlighted.
+By default the associatedComponent is same as the host. One exception is the CoordinatorLayout, where anchor[1] Placeholders are created by
+CoordinatorLayout but their associatedComponent is the anchor. The reason why this exception exists is because when dragging a widget to an
+anchor Placeholder, the dragged component should be added to the CoordinatorLayout, but the user will interact with the anchor thus the
+visual effects should displayed at the anchor position.<br>
+(Note: Anchor is used to place floating views relative to other arbitrary content panes in Coordinator Layout.)
+
+(optional) `val dominate = true`
+----
+Determine if this Placeholder is visual visible and has higher priority than other Placeholder which are in the same level but not visible.
+For example, all anchor Placeholder are dominate in Coordinator Layout. But the non-anchor Placeholder which add component to Coordinator
+Layout without anchor is not dominate.
+Non-dominated Placeholder can be treated as an background placeholder.
 
 `val region: Region`
 -----
 For describing the receivable area. `CommonDragTarget` renders this region as well.
-It also has `level` attribute, which is used to determine the priority when regions are overlapped.
-For now all region is a rectangle.
+It also has `level` property, which is used to determine the priority when regions are overlap each other. The higher level has higher
+priority. For now all region is a rectangle.
+
+(optional) `fun findNextSibling(appliedComponent: SceneComponent, newParent: SceneComponent): SceneComponent?`
+-----
+If the dragged widget has to be inserted to specific position in Xml tree, return the next sibling of the inserted component.
+By default the component would keep the same position as before, or append to the end of file if it is a new Widget in such View Group.
+For example, LinearPlaceholder overrides this value since Linear Layout needs to change the order of its Widgets.
 
 `fun snap(left: Int, top: Int, right: Int, bottom: Int): Boolean`
 -----
@@ -64,12 +82,6 @@ The arguments describe the expected area of dragged widget. `snap` function chec
 `fun updateAttributes(SceneComponent): Boolean`
 -----
 Callback for updating specified attributes when this `Placeholder` is applied.
-
-(optional) `val nextComponent: SceneComponent?`
------
-If the applied widget has to be inserted to specified position in Xml file, override this value to the next `SceneComponent` of it.
-By default this value is `null`, which means the applied widget will be inserted to the end of it parent.
-
 
 After having a custom `Placeholder`, override `getPlaceholders(SceneComponent)` function in associated `ViewHandler` to provide them.<br>
 The `CommonDragTarget` will collect and interact with them automatically.
