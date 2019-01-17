@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding
+package com.android.tools.idea.lang.databinding
 
 import com.android.SdkConstants
+import com.android.tools.idea.databinding.DataBindingMode
+import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.facet.FacetManager
@@ -36,7 +38,8 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
+    fun modes() = listOf(DataBindingMode.SUPPORT,
+                         DataBindingMode.ANDROIDX)
   }
 
   @get:Rule
@@ -48,7 +51,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
 
   @Before
   fun setUp() {
-    fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT + "/databinding"
+    fixture.testDataPath = "${getTestDataPath()}/projects/common"
     fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
     val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
     ModuleDataBinding.getInstance(androidFacet!!).setMode(dataBindingMode)
@@ -57,7 +60,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   @Test
   fun testDataBindingCompletion_caretInMethodReference() {
     fixture.addClass("""
-      package p1.p2;
+      package test.langdb;
 
       import android.view.View;
 
@@ -70,7 +73,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
           <variable name="member" type="ModelWithBindableMethodsJava" />
         </data>
         <TextView
@@ -89,7 +92,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
           <variable name="member" type="ModelWithBindableMethodsJava" />
         </data>
         <TextView
@@ -105,7 +108,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   @Test
   fun testDataBindingCompletion_caretInStaticMethodReference() {
     fixture.addClass("""
-      package p1.p2;
+      package test.langdb;
 
       import android.view.View;
 
@@ -118,7 +121,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
@@ -136,7 +139,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
@@ -151,7 +154,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   @Test
   fun testDataBindingCompletion_excludeNonPublicMethods() {
     fixture.addClass("""
-      package p1.p2;
+      package test.langdb;
 
       import android.view.View;
 
@@ -164,7 +167,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
@@ -182,7 +185,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
@@ -197,7 +200,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   @Test
   fun testDataBindingCompletion_excludeConstructors() {
     fixture.addClass("""
-      package p1.p2;
+      package test.langdb;
 
       import android.view.View;
 
@@ -208,7 +211,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
@@ -226,7 +229,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
@@ -244,7 +247,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
@@ -262,7 +265,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
@@ -277,7 +280,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   @Test
   fun testDataBindingCompletion_completeInstanceMethodInStaticContext() {
     fixture.addClass("""
-      package p1.p2;
+      package test.langdb;
 
       import android.view.View;
 
@@ -290,7 +293,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
@@ -308,7 +311,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
         </data>
         <TextView
             android:id="@+id/c_0_0"
@@ -323,7 +326,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   @Test
   fun testDataBindingCompletion_completeStaticMethodInNonStaticContext() {
     fixture.addClass("""
-      package p1.p2;
+      package test.langdb;
 
       import android.view.View;
 
@@ -336,7 +339,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
           <variable name="member" type="ModelWithBindableMethodsJava" />
         </data>
         <TextView
@@ -355,7 +358,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
           <variable name="member" type="ModelWithBindableMethodsJava" />
         </data>
         <TextView
@@ -371,7 +374,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   @Test
   fun testDataBindingCompletion_repeatedInvocationsIncludeAllSuggestions() {
     fixture.addClass("""
-      package p1.p2;
+      package test.langdb;
 
       import android.view.View;
 
@@ -386,7 +389,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
           <variable name="member" type="ModelWithBindableMethodsJava" />
         </data>
         <TextView
@@ -406,7 +409,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   @Test
   fun testDataBindingCompletion_testListenerBindingExpression() {
     fixture.addClass("""
-      package p1.p2;
+      package test.langdb;
 
       import android.view.View;
 
@@ -419,7 +422,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
           <variable name="member" type="ModelWithBindableMethodsJava" />
         </data>
         <TextView
@@ -438,7 +441,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
           <variable name="member" type="ModelWithBindableMethodsJava" />
         </data>
         <TextView
@@ -454,7 +457,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
   @Test
   fun testDataBindingCompletion_multipleLookupItems() {
     fixture.addClass("""
-      package p1.p2;
+      package test.langdb;
 
       import android.view.View;
 
@@ -468,7 +471,7 @@ class DataBindingCodeCompletionTest(private val dataBindingMode: DataBindingMode
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
-          <import type="p1.p2.ModelWithBindableMethodsJava"/>
+          <import type="test.langdb.ModelWithBindableMethodsJava"/>
           <variable name="member" type="ModelWithBindableMethodsJava" />
         </data>
         <TextView
