@@ -71,7 +71,7 @@ public class DynamicFeatureModel extends WizardModel {
     new OptionalValueProperty<>(DownloadInstallKind.ON_DEMAND_ONLY);
   @NotNull private final BoolProperty myFeatureFusing = new BoolValueProperty(true);
   @NotNull private final BoolProperty myInstantModule = new BoolValueProperty(false);
-  @NotNull private final BoolProperty myConditionalMinSdk = new BoolValueProperty(true);
+  @NotNull private final BoolProperty myConditionalMinSdk = new BoolValueProperty(false);
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myConditionalMinSdkInfo = new OptionalValueProperty<>();
   @NotNull private final ObservableList<DeviceFeatureModel> myDeviceFeatures = new ObservableList<>();
 
