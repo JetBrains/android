@@ -414,9 +414,11 @@ public class StudioIcons {
   }
 
   public static class Misc {
+    public static final Icon BUILD_TYPE = load("/studio/icons/misc/build-type.svg"); // 16x16
     public static final Icon GRADLE_VARIABLE = load("/studio/icons/misc/gradle-variable.svg"); // 16x16
     public static final Icon PRODUCT_FLAVOR_DIMENSION = load("/studio/icons/misc/product-flavor-dimension.svg"); // 16x16
     public static final Icon PRODUCT_FLAVOR = load("/studio/icons/misc/product-flavor.svg"); // 16x16
+    public static final Icon SIGNING_CONFIG = load("/studio/icons/misc/signing-config.svg"); // 16x16
   }
 
   public static class NavEditor {
@@ -520,7 +522,6 @@ public class StudioIcons {
 
   public static class Shell {
     public static class Filetree {
-      public static final Icon ANDROID_BUILD_ARTIFACT = load("/studio/icons/shell/filetree/android-build-artifact.svg"); // 16x16
       public static final Icon ANDROID_FILE = load("/studio/icons/shell/filetree/android-file.svg"); // 16x16
       public static final Icon ANDROID_MODULE = load("/studio/icons/shell/filetree/android-module.svg"); // 16x16
       public static final Icon ANDROID_PROJECT = load("/studio/icons/shell/filetree/android-project.svg"); // 16x16
