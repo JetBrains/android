@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.renameWithDialog
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -108,4 +109,6 @@ class BuildTypesPanel(
   override fun PsUISettings.setLastEditedItem(value: String?) {
     LAST_EDITED_BUILD_TYPE = value
   }
+
+  override val topConfigurable: PSDEvent.PSDTopTab = PSDEvent.PSDTopTab.PROJECT_STRUCTURE_DIALOG_TOP_TAB_BUILD_TYPES
 }

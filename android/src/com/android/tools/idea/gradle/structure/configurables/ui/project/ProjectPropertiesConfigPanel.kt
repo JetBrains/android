@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.configurables.projectPropertiesMo
 import com.android.tools.idea.gradle.structure.configurables.ui.ModelPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanel
 import com.android.tools.idea.gradle.structure.model.PsProject
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.navigation.History
@@ -48,4 +49,6 @@ class ProjectPropertiesConfigPanel(project: PsProject, context: PsContext) :
   override fun setHistory(history: History?) = Unit
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = ActionCallback.DONE
   override fun queryPlace(place: Place) = Unit
+  // Currently there are no other tabs in the project perspective and they are not tracked.
+  override val topConfigurable: PSDEvent.PSDTopTab? = null
 }
