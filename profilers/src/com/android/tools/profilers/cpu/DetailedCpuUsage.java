@@ -38,16 +38,13 @@ public class DetailedCpuUsage extends CpuUsage {
     DataSeries<Long> others;
     DataSeries<Long> threads;
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      long streamId = profilers.getSession().getStreamId();
-      int pid = profilers.getSession().getPid();
       others = new UnifiedEventDataSeries(
         profilers.getClient().getProfilerClient(),
-        streamId,
-        pid,
+        profilers.getSession(),
         Common.Event.Kind.CPU_USAGE,
-        pid,
+        profilers.getSession().getPid(),
         events -> extractData(events.stream().map(event -> event.getCpuUsage()).collect(Collectors.toList()), true));
-      threads = new CpuThreadCountDataSeries(profilers.getClient().getProfilerClient(), streamId, pid);
+      threads = new CpuThreadCountDataSeries(profilers.getClient().getProfilerClient(), profilers.getSession());
     }
     else {
       others =

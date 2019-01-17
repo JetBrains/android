@@ -38,29 +38,25 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
   public static final int DEFAULT_GROUP_ID = Common.Event.EventGroupIds.INVALID_VALUE;
 
   @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myClient;
-  private final long myStreamId;
-  private final int myPid;
+  @NotNull private final Common.Session mySession;
   @NotNull private final Common.Event.Kind myKind;
   private final int myGroupId;
   @NotNull private final Function<List<Common.Event>, Stream<SeriesData<Long>>> myDataExtractor;
 
   /**
    * @param client        the grpc client to request data from.
-   * @param streamId
-   * @param pid
+   * @param session       the session to query.
    * @param kind          the data kind ot query.
    * @param groupId       the group id within the data kind to query. If the data don't have group distinction, use {@link DEFAULT_GROUP_ID}.
    * @param dataExtractor the function to extract data from a list of events to build the list of series data as a stream.
    */
   public UnifiedEventDataSeries(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub client,
-                                long streamId,
-                                int pid,
+                                @NotNull Common.Session session,
                                 @NotNull Common.Event.Kind kind,
                                 int groupId,
                                 @NotNull Function<List<Common.Event>, Stream<SeriesData<Long>>> dataExtractor) {
     myClient = client;
-    myStreamId = streamId;
-    myPid = pid;
+    mySession = session;
     myKind = kind;
     myGroupId = groupId;
     myDataExtractor = dataExtractor;
@@ -73,13 +69,12 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
     long maxNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMax()) + TimeUnit.SECONDS.toNanos(1);
 
     Profiler.GetEventGroupsRequest request = Profiler.GetEventGroupsRequest.newBuilder()
-      .setStreamId(myStreamId)
-      .setPid(myPid)
-      .setKind(myKind)
-      .setGroupId(myGroupId)
-      .setFromTimestamp(minNs)
-      .setToTimestamp(maxNs)
-      .build();
+                                                                           .setSessionId(mySession.getSessionId())
+                                                                           .setKind(myKind)
+                                                                           .setGroupId(myGroupId)
+                                                                           .setFromTimestamp(minNs)
+                                                                           .setToTimestamp(maxNs)
+                                                                           .build();
     Profiler.GetEventGroupsResponse response = myClient.getEventGroups(request);
     // We don't expect more than one data group in our numeric data series. This is to avoid having to sort the data from multiple groups
     // after they are added to the list. We can re-evaluate if the need arises.

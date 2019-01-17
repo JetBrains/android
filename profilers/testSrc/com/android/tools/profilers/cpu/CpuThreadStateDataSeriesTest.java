@@ -64,7 +64,7 @@ public class CpuThreadStateDataSeriesTest {
   @Before
   public void setUp() {
     if (myIsUnifiedPipeline) {
-      myProfilerService.populateThreads(ProfilersTestData.SESSION_DATA.getStreamId());
+      myProfilerService.populateThreads(ProfilersTestData.SESSION_DATA.getDeviceId());
     }
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
@@ -159,9 +159,7 @@ public class CpuThreadStateDataSeriesTest {
   private DataSeries<CpuProfilerStage.ThreadState> createThreadSeries(int tid) {
     return myIsUnifiedPipeline
            ? new CpuThreadStateDataSeries(myProfilerStage.getStudioProfilers().getClient().getProfilerClient(),
-                                          ProfilersTestData.SESSION_DATA.getStreamId(),
-                                          ProfilersTestData.SESSION_DATA.getPid(),
-                                          tid)
+                                          ProfilersTestData.SESSION_DATA, tid)
            : new LegacyCpuThreadStateDataSeries(myProfilerStage.getStudioProfilers().getClient().getCpuClient(),
                                                 ProfilersTestData.SESSION_DATA, tid);
   }
