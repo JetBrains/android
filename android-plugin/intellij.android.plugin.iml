@@ -16,6 +16,7 @@
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
+    <orderEntry type="module" module-name="intellij.android.runtimePipeline" />
     <orderEntry type="module" module-name="android-layout-inspector" />
     <orderEntry type="module" module-name="assistant" />
     <orderEntry type="module" module-name="connection-assistant" />
