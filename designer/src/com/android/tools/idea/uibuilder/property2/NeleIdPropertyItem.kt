@@ -71,6 +71,10 @@ class NeleIdPropertyItem(model: NelePropertiesModel, definition: AttributeDefini
       }
     }
 
+  // The base implementation does not generate a meaningful tip for the value. Remove it here.
+  override val tooltipForValue: String
+    get() = ""
+
   @set:TestOnly
   var renameProcessorProvider: (Project, XmlAttributeValue, String) -> RenameProcessor =
     { project, value, newValue -> RenameProcessor(project, ValueResourceElementWrapper(value), newValue, false, false) }
