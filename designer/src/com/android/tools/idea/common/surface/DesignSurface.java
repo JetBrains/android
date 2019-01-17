@@ -771,7 +771,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @VisibleForTesting(visibility = Visibility.PROTECTED)
   public boolean setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
     double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
-    if (Math.abs(newScale - myScale) < 0.005) {
+    if (Math.abs(newScale - myScale) < 0.005 / getScreenScalingFactor()) {
       return false;
     }
     myCurrentZoomType = null;
