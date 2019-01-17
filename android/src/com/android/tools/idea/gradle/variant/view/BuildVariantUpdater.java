@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_FULL_SYNC;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
+import static com.intellij.util.ThreeState.YES;
+
 import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
@@ -44,19 +51,11 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
-import static com.intellij.util.ThreeState.YES;
 
 /**
  * Updates the contents/settings of a module when a build variant changes.
@@ -303,7 +302,7 @@ public class BuildVariantUpdater {
 
   private static void requestFullGradleSync(@NotNull Project project,
                                             @NotNull Runnable variantSelectionChangeListeners) {
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED,
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_VARIANT_SELECTION_FULL_SYNC,
                                                                           getSyncListener(variantSelectionChangeListeners));
   }
 

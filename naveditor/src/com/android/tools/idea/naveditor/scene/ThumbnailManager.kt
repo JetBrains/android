@@ -241,7 +241,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
                                 renderService: RenderService): RenderTask? {
     val task = renderService.taskBuilder(facet, configuration)
       .withPsiFile(file)
-      .build()
+      .buildSynchronously()
     task?.setDecorations(false)
     return task
   }

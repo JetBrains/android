@@ -28,6 +28,7 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -155,14 +156,14 @@ public class RenderTestUtil {
                                                @NotNull Configuration configuration,
                                                @NotNull RenderLogger logger) {
     Module module = facet.getModule();
-    PsiFile psiFile = PsiManager.getInstance(module.getProject()).findFile(file);
+    PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
     assertNotNull(psiFile);
     RenderService renderService = RenderService.getInstance(module.getProject());
     final RenderTask task = renderService.taskBuilder(facet, configuration)
                                          .withLogger(logger)
                                          .withPsiFile(psiFile)
                                          .disableSecurityManager()
-                                         .build();
+                                         .buildSynchronously();
     assertNotNull(task);
     return task;
   }

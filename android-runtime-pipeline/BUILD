@@ -10,5 +10,7 @@ iml_module(
     deps = [
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/idea/platform/util:intellij.platform.util[module]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
     ],
 )

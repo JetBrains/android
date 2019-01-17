@@ -16,12 +16,14 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.stdui.CommonTextField
-import com.android.tools.adtui.stdui.registerKeyAction
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
+import com.intellij.openapi.actionSystem.DataProvider
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -29,15 +31,14 @@ import javax.swing.JComponent
 /**
  * A standard control for editing a text property.
  */
-class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel) {
+class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel),
+                                                                     DataProvider {
   init {
-    registerKeyAction({ enter() }, KeyStrokes.enter, "enter")
-    registerKeyAction({ tab() }, KeyStrokes.tab, "tab")
-    registerKeyAction({ backTab() }, KeyStrokes.backtab, "backTab")
-    registerKeyAction({ escape() }, KeyStrokes.escape, "escape")
-    registerKeyAction({ editorModel.f1KeyPressed() }, KeyStrokes.f1, "help")
-    registerKeyAction({ editorModel.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
-    registerKeyAction({ editorModel.browseButtonPressed() }, KeyStrokes.browse, "browse")
+    registerActionKey({ enter() }, KeyStrokes.enter, "enter")
+    registerActionKey({ tab() }, KeyStrokes.tab, "tab")
+    registerActionKey({ backTab() }, KeyStrokes.backtab, "backTab")
+    registerActionKey({ escape() }, KeyStrokes.escape, "escape")
+    HelpSupportBinding.registerHelpKeyActions(this, { editorModel.property })
     addFocusListener(TextEditorFocusListener(this, this, editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
@@ -53,6 +54,10 @@ class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextF
 
   override fun getToolTipText(event: MouseEvent): String? {
     return PropertyTooltip.setToolTip(this, event, editorModel.property, forValue = true, text = text.orEmpty())
+  }
+
+  override fun getData(dataId: String): Any? {
+    return editorModel.getData(dataId)
   }
 
   private fun enter() {

@@ -16,25 +16,26 @@
 package com.android.tools.idea.uibuilder.property2.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.adtui.stdui.registerKeyAction
-import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
+import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.uibuilder.property2.model.ToggleButtonPropertyEditorModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.ToggleActionButton
 import java.awt.BorderLayout
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
  * Button with icon that is either pressed (on) or unchanged (off).
  */
-class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : JPanel(BorderLayout()) {
+class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : JPanel(BorderLayout()), DataProvider {
 
   init {
     val action = ButtonAction(model)
@@ -42,9 +43,7 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : J
     val button = ActionButton(action, presentation, ActionPlaces.UNKNOWN, NAVBAR_MINIMUM_BUTTON_SIZE)
     add(button, BorderLayout.CENTER)
     button.isFocusable = true
-    button.registerKeyAction({ model.f1KeyPressed() }, KeyStrokes.f1, "help")
-    button.registerKeyAction({ model.shiftF1KeyPressed() }, KeyStrokes.shiftF1, "help2")
-    button.registerKeyAction({ model.browseButtonPressed() }, KeyStrokes.browse, "browse")
+    HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     button.addFocusListener(EditorFocusListener(this, model))
 
     model.addListener(ValueChangedListener {
@@ -56,6 +55,10 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : J
         button.requestFocusInWindow()
       }
     })
+  }
+
+  override fun getData(dataId: String): Any? {
+    return model.getData(dataId)
   }
 
   private class ButtonAction(private val model: ToggleButtonPropertyEditorModel) : ToggleActionButton(model.description, model.icon) {

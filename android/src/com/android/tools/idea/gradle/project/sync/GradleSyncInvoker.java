@@ -15,6 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
+import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
+import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
@@ -26,7 +39,6 @@ import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.IndexingSuspender;
@@ -48,28 +60,11 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
+import java.util.List;
+import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.List;
-import java.util.Objects;
-
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
-import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.*;
-import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
-import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
-import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
@@ -292,19 +287,10 @@ public class GradleSyncInvoker {
     // Perform a variant-only sync if not null.
     @Nullable public VariantOnlySyncOptions variantOnlySyncOptions;
 
+    @VisibleForTesting
     @NotNull
-    public static Request projectLoaded() {
-      return new Request(TRIGGER_PROJECT_LOADED);
-    }
-
-    @NotNull
-    public static Request projectModified() {
-      return new Request(TRIGGER_PROJECT_MODIFIED);
-    }
-
-    @NotNull
-    public static Request userRequest() {
-      return new Request(TRIGGER_USER_REQUEST);
+    public static Request testRequest() {
+      return new Request(TRIGGER_TEST_REQUESTED);
     }
 
     public Request(@NotNull GradleSyncStats.Trigger trigger) {

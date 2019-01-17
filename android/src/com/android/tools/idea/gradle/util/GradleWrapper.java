@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.util.PropertiesFiles;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -214,6 +215,18 @@ public final class GradleWrapper {
       Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
       if (m.matches()) {
         return m.group(1);
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public String getGradleFullVersion() throws IOException {
+    String url = getProperties().getProperty(DISTRIBUTION_URL_PROPERTY);
+    if (url != null) {
+      Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
+      if (m.matches()) {
+        return m.group(1) + Strings.nullToEmpty(m.group(2));
       }
     }
     return null;

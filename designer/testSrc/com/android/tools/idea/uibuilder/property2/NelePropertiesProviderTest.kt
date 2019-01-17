@@ -15,7 +15,25 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ELEVATION
+import com.android.SdkConstants.ATTR_FONT_FAMILY
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_PADDING
+import com.android.SdkConstants.ATTR_SCALE_TYPE
+import com.android.SdkConstants.ATTR_SRC
+import com.android.SdkConstants.ATTR_SRC_COMPAT
+import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.ATTR_TEXT_ALIGNMENT
+import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.CLASS_VIEW
+import com.android.SdkConstants.FQCN_IMAGE_VIEW
+import com.android.SdkConstants.IMAGE_VIEW
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.VIEW
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property2.api.PropertiesTable
 import com.android.tools.idea.uibuilder.property2.testutils.APPCOMPAT_IMAGE_VIEW
@@ -135,6 +153,16 @@ class NelePropertiesProviderTest : PropertyTestCase() {
     val legend = properties[AUTO_URI, ATTR_LEGEND]
     assertThat(id.tooltipForName.trim()).isEqualTo(EXPECTED_ID_TOOLTIP.trim())
     assertThat(legend.tooltipForName).isEqualTo("legend")
+  }
+
+  fun testComponentName() {
+    setUpAppCompat()
+    val provider = NelePropertiesProvider(myFacet)
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val properties = provider.getProperties(model, null, createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW)))
+    assertThat(properties[ResourceNamespace.TODO().xmlNamespaceUri, ATTR_SRC_COMPAT].componentName).isEqualTo(APPCOMPAT_IMAGE_VIEW)
+    assertThat(properties[ANDROID_URI, ATTR_SCALE_TYPE].componentName).isEqualTo(FQCN_IMAGE_VIEW)
+    assertThat(properties[ANDROID_URI, ATTR_VISIBILITY].componentName).isEqualTo(CLASS_VIEW)
   }
 
   private fun setUpAppCompat() {

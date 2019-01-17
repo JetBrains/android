@@ -318,7 +318,7 @@ class ResourceFolderDataBindingTest : AndroidTestCase() {
     assertNotNull(idAttr)
     updateXml(
       range = (idAttr as XmlAttribute).valueElement!!.valueTextRange,
-      xml = "new_id"
+      xml = "@+id/new_id"
     )
     assertViewsWithIds(
       "newId" to "android.widget.LinearLayout"

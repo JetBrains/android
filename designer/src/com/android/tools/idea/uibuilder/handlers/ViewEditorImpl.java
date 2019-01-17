@@ -55,6 +55,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
 
@@ -169,14 +170,14 @@ public class ViewEditorImpl extends ViewEditor {
     RenderService renderService = RenderService.getInstance(module.getProject());
     final RenderTask task = renderService.taskBuilder(model.getFacet(), getConfiguration())
       .withPsiFile(xmlFile)
-      .build();
+      .buildSynchronously();
     if (task == null) {
       return CompletableFuture.completedFuture(Collections.emptyMap());
     }
 
     // Measure unweighted bounds
     return task.measureChildren(parentTag, filter)
-      .whenCompleteAsync((map, ex) -> task.dispose())
+      .whenCompleteAsync((map, ex) -> task.dispose(), PooledThreadExecutor.INSTANCE)
       .thenApply(map -> {
         if (map == null) {
           return Collections.emptyMap();

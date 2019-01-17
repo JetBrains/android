@@ -17,8 +17,14 @@ package org.jetbrains.android.inspections;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.intellij.codeInspection.*;
+import com.android.tools.idea.databinding.DataBindingModuleComponent;
+import com.intellij.codeInspection.InspectionManager;
+import com.intellij.codeInspection.LocalInspectionTool;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.XmlRecursiveElementVisitor;
@@ -27,7 +33,13 @@ import com.intellij.psi.xml.XmlChildRole;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomFileDescription;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.dom.AndroidAnyAttributeDescriptor;
+import org.jetbrains.android.dom.AndroidDomExtender;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.AndroidXmlTagDescriptor;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
@@ -37,11 +49,6 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
 
 public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
   private static volatile Set<ResourceFolderType> ourSupportedResourceTypes;
@@ -71,12 +78,24 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
     if (!(file instanceof XmlFile)) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
+
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
+
+    if (!AndroidDomExtender.areExtensionsKnown()) {
+      return ProblemDescriptor.EMPTY_ARRAY;
+    }
+
     if (isMyFile(facet, (XmlFile)file)) {
-      MyVisitor visitor = new MyVisitor(manager, isOnTheFly);
+      Module module = facet.getModule();
+      // Support attributes defined by @BindingAdapter annotations.
+      DataBindingModuleComponent dataBindingComponent = module.getComponent(DataBindingModuleComponent.class);
+      Set<String> bindingAdapterAttributes = dataBindingComponent != null
+                                             ? dataBindingComponent.getBindingAdapterAttributes()
+                                             : Collections.emptySet();
+      MyVisitor visitor = new MyVisitor(manager, bindingAdapterAttributes, isOnTheFly);
       file.accept(visitor);
       return visitor.myResult.toArray(ProblemDescriptor.EMPTY_ARRAY);
     }
@@ -110,11 +129,13 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
 
   private static class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
+    private final Set<String> myBindingAdapterAttributes;
     private final boolean myOnTheFly;
     final List<ProblemDescriptor> myResult = new ArrayList<>();
 
-    private MyVisitor(InspectionManager inspectionManager, boolean onTheFly) {
+    private MyVisitor(InspectionManager inspectionManager, Set<String> bindingAdapterAttributes, boolean onTheFly) {
       myInspectionManager = inspectionManager;
+      myBindingAdapterAttributes = bindingAdapterAttributes;
       myOnTheFly = onTheFly;
     }
 
@@ -129,6 +150,12 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
           if (tag != null &&
               tag.getDescriptor() instanceof AndroidXmlTagDescriptor &&
               attribute.getDescriptor() instanceof AndroidAnyAttributeDescriptor) {
+
+            if (myBindingAdapterAttributes.contains(attribute.getName())) {
+              // Attribute is defined by @BindingAdapter annotation.
+              return;
+            }
+
             final ASTNode node = attribute.getNode();
             assert node != null;
             ASTNode nameNode = XmlChildRole.ATTRIBUTE_NAME_FINDER.findChild(node);

@@ -232,7 +232,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
                                    .withLogger(logger)
                                    .withPsiFile(psiFile)
                                    .disableSecurityManager()
-                                   .build();
+                                   .buildSynchronously();
     assertNotNull(task);
     RenderResult render = RenderTestUtil.renderOnSeparateThread(task);
     assertNotNull(render);

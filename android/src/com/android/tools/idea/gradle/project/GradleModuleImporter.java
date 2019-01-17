@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.google.common.base.Predicates.in;
+import static com.google.common.base.Predicates.not;
+import static com.google.common.base.Predicates.notNull;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_IMPORT_MODULES_COPIED;
+import static com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -22,8 +31,17 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.*;
-import com.google.common.collect.*;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -31,18 +49,15 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-
-import static com.google.common.base.Predicates.*;
-import static com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Creates new project module from source files with Gradle configuration.
@@ -294,7 +309,7 @@ public final class GradleModuleImporter extends ModuleImporter {
       assert gradleSettingsFile != null : "File should have been created";
       gradleSettingsFile.addModule(name, targetFile);
     }
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_IMPORT_MODULES_COPIED);
     request.generateSourcesOnSuccess = false;
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
   }

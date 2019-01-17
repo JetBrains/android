@@ -62,7 +62,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
-import com.android.tools.idea.res.aar.AarResourceRepository;
+import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;

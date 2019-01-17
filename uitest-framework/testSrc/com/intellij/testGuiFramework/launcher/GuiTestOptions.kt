@@ -18,7 +18,7 @@ package com.intellij.testGuiFramework.launcher
 import java.io.File
 
 enum class RestartPolicy {
-  IDE_ERROR, TEST_FAILURE, EACH_TEST;
+  IDE_ERROR_OR_JUNIT_TIMEOUT, TEST_FAILURE, EACH_TEST;
 }
 
 object GuiTestOptions {
@@ -43,7 +43,7 @@ object GuiTestOptions {
   fun getVmOptionsFilePath(): String = getSystemProperty(REMOTE_IDE_VM_OPTIONS_PATH_KEY, File(File(getRemoteIdePath()).parent, "studio64.vmoptions").canonicalPath)
   fun isRunningOnRelease(): Boolean = getSystemProperty(IS_RUNNING_ON_RELEASE, false)
   fun isStandaloneMode(): Boolean = getSystemProperty(STANDALONE_MODE, false)
-  fun getRestartPolicy(): RestartPolicy = RestartPolicy.valueOf(getSystemProperty(RESTART_POLICY, "IDE_ERROR"))
+  fun getRestartPolicy(): RestartPolicy = RestartPolicy.valueOf(getSystemProperty(RESTART_POLICY, "IDE_ERROR_OR_JUNIT_TIMEOUT"))
 
   inline fun <reified ReturnType> getSystemProperty(key: String, defaultValue: ReturnType): ReturnType {
     val value = System.getProperty(key) ?: return defaultValue

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INTEGRATION_DEPRECATED_SET;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
@@ -22,14 +25,10 @@ import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import org.jetbrains.annotations.NotNull;
 
 public class NdkIntegrationDeprecatedErrorHandler extends BaseSyncErrorHandler {
   private static final String NDK_INTEGRATION_DEPRECATED = "NDK integration is deprecated in the current plugin.";
@@ -82,7 +81,7 @@ public class NdkIntegrationDeprecatedErrorHandler extends BaseSyncErrorHandler {
         return;
       }
 
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_NDK_INTEGRATION_DEPRECATED_SET);
     }
   }
 }

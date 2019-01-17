@@ -20,6 +20,8 @@ import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -40,7 +42,6 @@ import java.awt.DefaultFocusTraversalPolicy
 import java.awt.Dimension
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.awt.event.MouseEvent
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -68,23 +69,25 @@ class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : PropertyTex
     leftButton?.requestFocus()
   }
 
-  override fun buttonPressed(mouseEvent: MouseEvent?) {
-    val restoreFocusTo: JComponent = tableParent ?: leftButton!!
-    val panel = FlagPropertyPanel(editorModel, restoreFocusTo, windowHeight)
+  override val buttonAction = object : AnAction() {
+    override fun actionPerformed(e: AnActionEvent) {
+      val restoreFocusTo: JComponent = tableParent ?: leftButton!!
+      val panel = FlagPropertyPanel(editorModel, restoreFocusTo, windowHeight)
 
-    val balloon = JBPopupFactory.getInstance()
-      .createBalloonBuilder(panel)
-      .setShadow(true)
-      .setHideOnAction(false)
-      .setBlockClicksThroughBalloon(true)
-      .setAnimationCycle(200)
-      .setFillColor(secondaryPanelBackground)
-      .createBalloon() as BalloonImpl
+      val balloon = JBPopupFactory.getInstance()
+        .createBalloonBuilder(panel)
+        .setShadow(true)
+        .setHideOnAction(false)
+        .setBlockClicksThroughBalloon(true)
+        .setAnimationCycle(200)
+        .setFillColor(secondaryPanelBackground)
+        .createBalloon() as BalloonImpl
 
-    panel.balloon = balloon
-    balloon.show(RelativePoint.getCenterOf(this), Balloon.Position.below)
-    balloon.setHideListener { panel.hideBalloonAndRestoreFocusOnEditor() }
-    ApplicationManager.getApplication().invokeLater { panel.searchField.requestFocus() }
+      panel.balloon = balloon
+      balloon.show(RelativePoint.getCenterOf(leftComponent), Balloon.Position.below)
+      balloon.setHideListener { panel.hideBalloonAndRestoreFocusOnEditor() }
+      ApplicationManager.getApplication().invokeLater { panel.searchField.requestFocus() }
+    }
   }
 
   /**

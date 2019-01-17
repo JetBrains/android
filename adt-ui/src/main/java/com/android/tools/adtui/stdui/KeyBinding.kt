@@ -20,12 +20,12 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import java.awt.event.ActionEvent
-import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 
-fun JComponent.registerKeyAction(action: () -> Unit, keyStroke: KeyStroke, name: String, condition: Int = JComponent.WHEN_FOCUSED) {
+fun JComponent.registerActionKey(action: () -> Unit, keyStroke: KeyStroke, name: String, condition: Int = JComponent.WHEN_FOCUSED) {
   val actionObject = object: AbstractAction() {
     override fun actionPerformed(e: ActionEvent?) {
       action()
@@ -35,13 +35,16 @@ fun JComponent.registerKeyAction(action: () -> Unit, keyStroke: KeyStroke, name:
   this.actionMap.put(name, actionObject)
 }
 
-fun JComponent.registerKeyAction(action: AnAction, keyStroke: KeyStroke, name: String, condition: Int = JComponent.WHEN_FOCUSED) {
+fun JComponent.registerAnActionKey(getAction: () -> AnAction?, keyStroke: KeyStroke, name: String,
+                                   condition: Int = JComponent.WHEN_FOCUSED) {
   this.getInputMap(condition).put(keyStroke, name)
   this.actionMap.put(name, object : AbstractAction() {
     override fun actionPerformed(event: ActionEvent) {
-      val dataContext = DataManager.getInstance().getDataContext(this@registerKeyAction)
-      val inputEvent = event.source as? InputEvent
-      action.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ToolWindowContentUi.POPUP_PLACE, dataContext))
+      val dataContext = DataManager.getInstance().getDataContext(this@registerAnActionKey)
+      val inputEvent = KeyEvent(this@registerAnActionKey, KeyEvent.KEY_PRESSED, event.`when`, keyStroke.modifiers, keyStroke.keyCode,
+                                keyStroke.keyChar)
+      val action = getAction()
+      action?.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ToolWindowContentUi.POPUP_PLACE, dataContext))
     }
   })
 }

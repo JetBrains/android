@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
+import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.tools.idea.sdk.VersionCheck.MIN_TOOLS_REV;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_SDK_VERSION_INSTALLED;
+import static com.intellij.notification.NotificationType.INFORMATION;
+
 import com.android.repository.Revision;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -29,16 +34,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.List;
-
-import static com.android.SdkConstants.FD_TOOLS;
-import static com.android.tools.idea.sdk.VersionCheck.MIN_TOOLS_REV;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
-import static com.intellij.notification.NotificationType.INFORMATION;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SdkToolsVersionSetupStep extends ProjectSetupStep {
   @NotNull private final IdeSdks myIdeSdks;
@@ -98,7 +97,7 @@ public class SdkToolsVersionSetupStep extends ProjectSetupStep {
       requested.add(FD_TOOLS);
       ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(project, requested);
       if (dialog != null && dialog.showAndGet()) {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_SDK_VERSION_INSTALLED);
       }
     }
 

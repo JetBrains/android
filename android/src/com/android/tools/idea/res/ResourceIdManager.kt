@@ -35,7 +35,7 @@ import com.android.resources.ResourceType.STRING
 import com.android.resources.ResourceType.STYLE
 import com.android.resources.ResourceType.STYLEABLE
 import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier
-import com.android.tools.idea.res.aar.AarSourceResourceRepository
+import com.android.tools.idea.resources.aar.AarSourceResourceRepository
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
 import gnu.trove.TIntObjectHashMap
@@ -142,10 +142,10 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
     assert(resource.resourceType == ResourceType.ID)
 
     return ResourceRepositoryManager.getInstance(facet)
-      .libraryResources
-      .asSequence()
-      .filterIsInstance(AarSourceResourceRepository::class.java)
-      .any { resource.name in it.idsFromRTxt.orEmpty() }
+        .libraryResources
+        .asSequence()
+        .filterIsInstance(AarSourceResourceRepository::class.java)
+        .any { resource.name in it.idsFromRTxt.orEmpty() }
   }
 
   @Synchronized

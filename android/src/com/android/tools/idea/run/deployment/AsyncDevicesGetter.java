@@ -19,10 +19,11 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
 import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -33,6 +34,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -68,10 +70,8 @@ class AsyncDevicesGetter {
   }
 
   @NotNull
-  List<Device> get(@NotNull Module module) {
-    Project project = module.getProject();
-
-    initChecker(module);
+  List<Device> get(@NotNull Project project) {
+    initChecker(RunManager.getInstance(project).getSelectedConfiguration(), AndroidFacet::getInstance);
     initService(project);
 
     assert myService != null;
@@ -103,22 +103,43 @@ class AsyncDevicesGetter {
     return devices;
   }
 
-  private void initChecker(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
+  @VisibleForTesting
+  final void initChecker(@Nullable RunnerAndConfigurationSettings configurationAndSettings,
+                         @NotNull Function<Module, AndroidFacet> facetGetter) {
+    if (configurationAndSettings == null) {
+      myChecker = null;
+      return;
+    }
+
+    Object configuration = configurationAndSettings.getConfiguration();
+
+    if (!(configuration instanceof ModuleBasedConfiguration)) {
+      myChecker = null;
+      return;
+    }
+
+    Module module = ((ModuleBasedConfiguration)configuration).getConfigurationModule().getModule();
+
+    if (module == null) {
+      myChecker = null;
+      return;
+    }
+
+    AndroidFacet facet = facetGetter.apply(module);
 
     if (facet == null) {
       myChecker = null;
       return;
     }
 
-    Object configuration = RunManager.getInstance(module.getProject()).getSelectedConfiguration();
+    Object platform = facet.getConfiguration().getAndroidPlatform();
 
-    if (!(configuration instanceof AndroidRunConfigurationBase)) {
-      myChecker = LaunchCompatibilityCheckerImpl.create(facet, null, null);
+    if (platform == null) {
+      myChecker = null;
       return;
     }
 
-    myChecker = LaunchCompatibilityCheckerImpl.create(facet, null, (AndroidRunConfigurationBase)configuration);
+    myChecker = LaunchCompatibilityCheckerImpl.create(facet, null, null);
   }
 
   private void initService(@NotNull Project project) {
@@ -143,5 +164,10 @@ class AsyncDevicesGetter {
 
     assert !virtualDevice.isConnected();
     return virtualDevice;
+  }
+
+  @VisibleForTesting
+  final Object getChecker() {
+    return myChecker;
   }
 }

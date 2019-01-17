@@ -134,6 +134,7 @@ public class CompatibilityRenderTarget implements IAndroidTarget {
   // Remainder: Just delegate
 
   @Override
+  @NotNull
   public String getLocation() {
     return myDelegate.getLocation();
   }

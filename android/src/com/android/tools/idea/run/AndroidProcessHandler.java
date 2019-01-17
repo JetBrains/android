@@ -36,6 +36,9 @@ import com.intellij.execution.KillableProcess;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
@@ -191,8 +194,19 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
   @Override
   protected void destroyProcessImpl() {
     notifyProcessTerminated(0);
-    killProcesses();
-    cleanup();
+    // Kill processes in another thread, as we run the "am force-stop" shell command and it might take a while. Show a progress indicator in
+    // the meanwhile. This way we prevent the UI from freezing if the kill command runs slowly. Make sure to clean up afterwards.
+    ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Stopping Application...") {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        killProcesses();
+      }
+
+      @Override
+      public void onSuccess() {
+        cleanup();
+      }
+    });
   }
 
   private void killProcesses() {
@@ -343,19 +357,32 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
     if (bridge == null) {
       return;
     }
+   killProcessAsync();
+  }
 
-    ExecutionTarget activeTarget = ExecutionTargetManager.getInstance(myProject).getActiveTarget();
-    if (activeTarget == DefaultExecutionTarget.INSTANCE || !(activeTarget instanceof AndroidExecutionTarget)) {
-      killProcesses();
-      return;
-    }
+  /**
+   * Kill processes by running the "am force-stop" shell command, which might take a while to run. For that reason, make sure the kill
+   * commands are executed in another (pooled) thread to prevent them from freezing the UI. Show a progress indicator meanwhile.
+   * TODO(b/122820269): Figure out a nice way to prevent the pooled thread from leaking and testing it's executed properly.
+   */
+  private void killProcessAsync() {
+    ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Stopping Application...") {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
 
-    IDevice targetDevice = ((AndroidExecutionTarget)activeTarget).getIDevice();
-    if (targetDevice == null) {
-      return;
-    }
+        ExecutionTarget activeTarget = ExecutionTargetManager.getInstance(myProject).getActiveTarget();
+        if (activeTarget == DefaultExecutionTarget.INSTANCE || !(activeTarget instanceof AndroidExecutionTarget)) {
+          killProcesses();
+          return;
+        }
 
-    killProcess(targetDevice);
+        IDevice targetDevice = ((AndroidExecutionTarget)activeTarget).getIDevice();
+        if (targetDevice == null) {
+          return;
+        }
+        killProcess(targetDevice);
+      }
+    });
   }
 
   private AndroidDebugBridge getBridgeForKill() {

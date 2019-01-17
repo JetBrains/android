@@ -19,18 +19,12 @@ package org.jetbrains.kotlin.android.quickfix
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
 import java.io.File
 
 
 abstract class AbstractAndroidLintQuickfixTest : KotlinAndroidTestCase() {
-
-    override fun setUp() {
-        AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap()
-        super.setUp()
-    }
 
     fun doTest(path: String) {
         val fileText = FileUtil.loadFile(File(testDataPath, path), true)

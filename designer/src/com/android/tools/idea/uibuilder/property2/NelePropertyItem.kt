@@ -44,12 +44,13 @@ import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.res.aar.AarResourceItem
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
+import com.android.tools.idea.resources.aar.AarResourceItem
 import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
 import com.android.tools.idea.uibuilder.property2.support.EmptyBrowseActionIconButton
+import com.android.tools.idea.uibuilder.property2.support.HelpActions
 import com.android.tools.idea.uibuilder.property2.support.IdEnumSupport
 import com.android.tools.idea.uibuilder.property2.support.OpenResourceManagerAction
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
@@ -87,17 +88,22 @@ import javax.swing.Icon
  * the current [Configuration]. If the user changes the current
  * configuration the properties panel should be updated with
  * potentially different resolved values.
+ *
+ * The [componentName] if present is the name of the View component
+ * that this property was defined on. If it is not present the
+ * origin of the property is unknown.
  */
 open class NelePropertyItem(
   override val namespace: String,
   override val name: String,
   val type: NelePropertyType,
   val definition: AttributeDefinition?,
+  val componentName: String,
   val libraryName: String,
   val model: NelePropertiesModel,
   val optionalValue: Any?,
   val components: List<NlComponent>
-) : PropertyItem, HelpSupport {
+) : PropertyItem {
 
   override var value: String?
     get() {
@@ -162,21 +168,19 @@ open class NelePropertyItem(
       }
     }
 
+  override val helpSupport = object : HelpSupport {
+    // TODO: b/121259587 Implement help
+    override val secondaryHelp = HelpActions.secondaryHelp
+    override fun browse() { browseToValue() }
+  }
+
   override val editingSupport = object : EditingSupport {
     override val completion = { getCompletionValues() }
     override val validation = { text: String? -> validate(text) }
     override val execution = { runnable: Runnable -> ApplicationManager.getApplication().executeOnPooledThread(runnable) }
   }
 
-  // TODO: b/121259587 Implement help
-  override fun help() {
-  }
-
-  // TODO: b/121259587 Implement secondaryHelp
-  override fun secondaryHelp() {
-  }
-
-  override fun browse() {
+  private fun browseToValue() {
     val tag = firstTag ?: return
     val attribute = tag.getAttribute(name, namespace) ?: return
     val attributeValue = attribute.valueElement ?: return
@@ -190,7 +194,7 @@ open class NelePropertyItem(
 
   override val designProperty: NelePropertyItem
     get() = if (namespace == TOOLS_URI) this else
-      NelePropertyItem(TOOLS_URI, name, type, definition, libraryName, model, optionalValue, components)
+      NelePropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, optionalValue, components)
 
   override fun equals(other: Any?) =
     when (other) {
@@ -202,6 +206,14 @@ open class NelePropertyItem(
 
   protected fun resolveValue(value: String?): String? {
     return resolveValue(asResourceValue(value)) ?: value
+  }
+
+  fun resolveValueAsColor(value: String?): Color? {
+    if (value != null && !isReferenceValue(value)) {
+      return parseColor(value)
+    }
+    val resValue = asResourceValue(value) ?: return null
+    return resolver?.resolveColor(resValue, project)
   }
 
   private fun asResourceValue(value: String?): ResourceValue? {
@@ -450,7 +462,7 @@ open class NelePropertyItem(
     }
 
     override val action: AnAction?
-      get() = OpenResourceManagerAction(this@NelePropertyItem)
+      get() = OpenResourceManagerAction
   }
 
   // endregion
@@ -494,19 +506,11 @@ open class NelePropertyItem(
       get() {
         val value = rawValue
         if (isColor(value)) {
-          return ColorSelectionAction(this@NelePropertyItem, resolveValueAsColor(value))
+          return ColorSelectionAction
         }
         else {
-          return OpenResourceManagerAction(this@NelePropertyItem)
+          return OpenResourceManagerAction
         }
-      }
-
-      private fun resolveValueAsColor(value: String?): Color? {
-        if (value != null && !isReferenceValue(value)) {
-          return parseColor(value)
-        }
-        val resValue = asResourceValue(value) ?: return null
-        return resolver?.resolveColor(resValue, project)
       }
 
       private fun resolveValueAsIcon(value: String?): Icon? {

@@ -201,7 +201,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       List<NlComponent> selection = scene.getSelection();
       for (SceneComponent child : children) {
         child.buildDisplayList(time, list, sceneContext);
-        if (sceneContext.showOnlySelection()) {
+        if (sceneContext.showOnlySelection() && !child.isSelected()) {
           continue;
         }
         if ((showAllConstraints && scene.getRoot() == component) || selection.contains(child.getNlComponent())) {

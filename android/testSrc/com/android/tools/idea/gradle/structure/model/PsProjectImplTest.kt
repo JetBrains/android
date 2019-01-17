@@ -20,8 +20,11 @@ import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.asParsed
 import com.android.tools.idea.gradle.structure.model.android.testResolve
+import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.testing.BuildEnvironment
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.util.PropertiesFiles.savePropertiesToFile
+import org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY
 import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsNull.nullValue
 import org.junit.Assert.assertThat
@@ -237,6 +240,31 @@ class PsProjectImplTest : DependencyTestCase() {
 
     project = PsProjectImpl(myFixture.project)
     assertThat(project.androidGradlePluginVersion, equalTo("1.23".asParsed()))
+  }
+
+  fun testGradleVersion() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+    var project = PsProjectImpl(myFixture.project)
+
+    run {
+      // Change file: to https: to workaround GradleWrapper not making changes to a local distribution.
+      val wrapper = GradleWrapper.find(project.ideProject)!!
+      val properties = wrapper.properties
+      val property = properties.getProperty(DISTRIBUTION_URL_PROPERTY).orEmpty()
+      properties.setProperty(DISTRIBUTION_URL_PROPERTY, property.replace("file:", "https:"))
+      savePropertiesToFile(properties, wrapper.propertiesFilePath, null)
+    }
+
+    assertThat(
+      project.gradleVersion,
+      equalTo(GradleWrapper.find(project.ideProject)?.gradleFullVersion?.asParsed()))
+
+    project.gradleVersion = "1.1".asParsed()
+    project.applyChanges()
+
+    project = PsProjectImpl(myFixture.project)
+    assertThat(project.gradleVersion, equalTo("1.1".asParsed()))
+    assertThat(GradleWrapper.find(project.ideProject)?.gradleFullVersion, equalTo("1.1"))
   }
 
   private fun PsProject.testSubscribeToNotifications() {

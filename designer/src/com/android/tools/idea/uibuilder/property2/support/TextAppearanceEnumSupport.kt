@@ -58,16 +58,15 @@ class TextAppearanceEnumSupport(property: NelePropertyItem): StyleEnumSupport(pr
     private val accepted = setOf(SMALL, MEDIUM, LARGE, BODY1, BODY2, DISPLAY1, DISPLAY2, DISPLAY3, DISPLAY4)
   }
 
-  override val values: List<EnumValue>
-    get() {
-      val base = findBaseStyle(ResourceNamespace.ANDROID, TEXT_APPEARANCE) ?: return emptyList()
-      val appcompat = findBaseStyle(appcompatNamespace, TEXT_APPEARANCE_APPCOMPAT)
-      val includeMaterialStyles = appcompat == null
-      val filter = { style: StyleResourceValue -> styleFilter(style, includeMaterialStyles) }
-      val sortOrder = { style: StyleResourceValue -> displayName(style) }
-      val styles = derivedStyles.find(base, filter, sortOrder)
-      return convertStyles(styles)
-    }
+  override fun generate(): List<EnumValue> {
+    val base = findBaseStyle(ResourceNamespace.ANDROID, TEXT_APPEARANCE) ?: return emptyList()
+    val appcompat = findBaseStyle(appcompatNamespace, TEXT_APPEARANCE_APPCOMPAT)
+    val includeMaterialStyles = appcompat == null
+    val filter = { style: StyleResourceValue -> styleFilter(style, includeMaterialStyles) }
+    val sortOrder = { style: StyleResourceValue -> displayName(style) }
+    val styles = derivedStyles.find(base, filter, sortOrder)
+    return convertStyles(styles)
+  }
 
   private fun styleFilter(style: StyleResourceValue, includeMaterialStyles: Boolean): Boolean {
     if (style.isUserDefined) return true

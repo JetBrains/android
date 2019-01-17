@@ -15,6 +15,23 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.testing.TestProjectPaths.CIRCULAR_MODULE_DEPS;
+import static com.android.tools.idea.testing.TestProjectPaths.SHARED_TEST_FOLDER;
+import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_MULTIDEPENDENCIES;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
+import static com.android.utils.FileUtils.join;
+import static com.android.utils.FileUtils.toSystemDependentPath;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.TEST;
+import static com.intellij.openapi.util.io.FileUtil.appendToFile;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -31,25 +48,11 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import java.io.File;
+import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import java.io.File;
-import java.util.concurrent.CountDownLatch;
-
-import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.testing.TestProjectPaths.*;
-import static com.android.utils.FileUtils.join;
-import static com.android.utils.FileUtils.toSystemDependentPath;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.TEST;
-import static com.intellij.openapi.util.io.FileUtil.appendToFile;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
@@ -152,7 +155,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     GradleSyncState.subscribe(getProject(), postSetupListener);
 
     runWriteCommandAction(getProject(), () -> {
-      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
       request.generateSourcesOnSuccess = false;
       GradleSyncInvoker.getInstance().requestProjectSync(getProject(), request);
     });

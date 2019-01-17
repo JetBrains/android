@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_LAYOUT_BELOW
+import com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem.Companion.RefactoringChoice
@@ -36,7 +39,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.inOrder
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import javax.swing.JPanel
 
 @RunsInEdt
@@ -64,7 +71,7 @@ class NeleIdPropertyItemTest {
   fun testSetValueChangeReferences() {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    property.dialogProvider = { _ -> makeDialogBuilder(OK_EXIT_CODE) }
+    property.dialogProvider = { makeDialogBuilder(OK_EXIT_CODE) }
     property.value = "label"
     assertThat(property.components[0].id).isEqualTo("label")
     assertThat(property.components[0].getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@+id/label")
@@ -77,7 +84,7 @@ class NeleIdPropertyItemTest {
   fun testSetAndroidValueChangeReferences() {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    property.dialogProvider = { _ -> makeDialogBuilder(OK_EXIT_CODE) }
+    property.dialogProvider = { makeDialogBuilder(OK_EXIT_CODE) }
     property.value = "@android:id/text2"
     assertThat(property.components[0].getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@android:id/text2")
     assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@android:id/text2")
@@ -89,7 +96,7 @@ class NeleIdPropertyItemTest {
   fun testSetValueDoNotChangeReferences() {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    property.dialogProvider = { _ -> makeDialogBuilder(NO_EXIT_CODE) }
+    property.dialogProvider = { makeDialogBuilder(NO_EXIT_CODE) }
     property.value = "label"
     UIUtil.dispatchAllInvocationEvents()
 
@@ -99,7 +106,7 @@ class NeleIdPropertyItemTest {
     assertThat(util.findSiblingById("checkBox2")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/textView")
 
     // Change id again (make sure dialog is not shown)
-    property.dialogProvider = { _ -> throw RuntimeException("Dialog created unexpectedly") }
+    property.dialogProvider = { throw RuntimeException("Dialog created unexpectedly") }
     property.value = "text"
     UIUtil.dispatchAllInvocationEvents()
   }
@@ -108,7 +115,7 @@ class NeleIdPropertyItemTest {
   fun testSetValueAndYesToChangeReferencesAndDoNotCheckAgain() {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    property.dialogProvider = { _ -> makeDialogBuilder(OK_EXIT_CODE, true) }
+    property.dialogProvider = { makeDialogBuilder(OK_EXIT_CODE, true) }
     property.value = "other"
     UIUtil.dispatchAllInvocationEvents()
     assertThat(property.components[0].getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@+id/other")
@@ -117,7 +124,7 @@ class NeleIdPropertyItemTest {
     assertThat(util.findSiblingById("checkBox2")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/other")
 
     // Set id again, this time expect references to be changed without showing a dialog
-    property.dialogProvider = { _ -> throw RuntimeException("Dialog created unexpectedly") }
+    property.dialogProvider = { throw RuntimeException("Dialog created unexpectedly") }
     property.value = "last"
     UIUtil.dispatchAllInvocationEvents()
 
@@ -133,7 +140,7 @@ class NeleIdPropertyItemTest {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
     `when`(processor.findUsages()).thenReturn(arrayOf(mock(UsageInfo::class.java)))
-    property.dialogProvider = { _ -> makeDialogBuilder(OK_EXIT_CODE) }
+    property.dialogProvider = { makeDialogBuilder(OK_EXIT_CODE) }
     property.renameProcessorProvider = { _, _, _ -> processor }
     property.value = "label"
 
@@ -149,7 +156,7 @@ class NeleIdPropertyItemTest {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
     `when`(processor.findUsages()).thenReturn(arrayOf(mock(UsageInfo::class.java)))
-    property.dialogProvider = { _ -> makeDialogBuilder(PREVIEW_EXIT_CODE) }
+    property.dialogProvider = { makeDialogBuilder(PREVIEW_EXIT_CODE) }
     property.renameProcessorProvider = { _, _, _ -> processor }
     property.value = "label"
 
@@ -165,7 +172,7 @@ class NeleIdPropertyItemTest {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
     `when`(processor.findUsages()).thenReturn(arrayOf(mock(UsageInfo::class.java)))
-    property.dialogProvider = { _ -> makeDialogBuilder(NO_EXIT_CODE) }
+    property.dialogProvider = { makeDialogBuilder(NO_EXIT_CODE) }
     property.renameProcessorProvider = { _, _, _ -> processor }
     property.value = "label"
 
@@ -182,7 +189,7 @@ class NeleIdPropertyItemTest {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
     `when`(processor.findUsages()).thenReturn(arrayOf(mock(UsageInfo::class.java)))
-    property.dialogProvider = { _ -> makeDialogBuilder(CANCEL_EXIT_CODE) }
+    property.dialogProvider = { makeDialogBuilder(CANCEL_EXIT_CODE) }
     property.renameProcessorProvider = { _, _, _ -> processor }
     property.value = "label"
 
@@ -209,7 +216,7 @@ class NeleIdPropertyItemTest {
     val dialogBuilder = mock(DialogBuilder::class.java)
     `when`(dialogBuilder.addOkAction()).thenReturn(addAction)
     if (doNotCheckAgain) {
-      doAnswer { _ ->
+      doAnswer {
         val panel = ArgumentCaptor.forClass(JPanel::class.java)
         verify(dialogBuilder).setCenterPanel(panel.capture())
         for (component in panel.value.components) {

@@ -18,7 +18,6 @@ package com.android.tools.idea.res;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.tools.idea.res.aar.AarResourceRepository;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -46,7 +45,7 @@ public class ResourceClassRegistry implements ProjectComponent {
    *
    * <p>Note that the {@link ResourceClassRegistry} is a project-level component, so the same R class may be generated in different ways
    * depending on the repository used. In non-namespaced project, the repository is the full {@link AppResourceRepository} of the module
-   * in question. In namespaced projects the repository is a {@link AarResourceRepository} of just
+   * in question. In namespaced projects the repository is a {@link com.android.tools.idea.resources.aar.AarResourceRepository} of just
    * the AAR contents.
    */
   public void addLibrary(@NotNull ResourceRepository repo,

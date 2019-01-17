@@ -172,5 +172,6 @@
     <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" />
+    <orderEntry type="module" module-name="intellij.android.resources-aar" />
   </component>
 </module>
