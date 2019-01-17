@@ -54,6 +54,19 @@ fun Project.logUsageLeftNavigateTo(toSelect: Configurable) {
   }
 }
 
+fun Project.logUsagePsdAction(eventKind: AndroidStudioEvent.EventKind) {
+    val psdEvent = PSDEvent
+      .newBuilder()
+      .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
+    UsageTracker.log(
+      AndroidStudioEvent
+        .newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+        .setKind(eventKind)
+        .setPsdEvent(psdEvent)
+        .withProjectId(this))
+}
+
 fun Project.logUsageTopNavigateTo(toSelect: ModelPanel<*>) {
   val psdEvent = PSDEvent
     .newBuilder()

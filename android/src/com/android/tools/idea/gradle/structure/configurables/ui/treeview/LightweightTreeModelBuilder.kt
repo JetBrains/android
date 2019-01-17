@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview
 
+import com.android.tools.idea.gradle.structure.model.PsProject
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import javax.swing.tree.DefaultTreeModel
@@ -34,10 +35,6 @@ interface ShadowedTreeNode : MutableTreeNode, Disposable {
   val shadowNode: ShadowNode
 }
 val ShadowedTreeNode.childNodes: Sequence<ShadowedTreeNode> get() = children().asSequence().map { it as ShadowedTreeNode }
-
-object FakeShadowNode: ShadowNode {
-  override fun createNode(): ShadowedTreeNode = throw UnsupportedOperationException()
-}
 
 /**
  * Initializes [node] which children of [from] and subscribes to change notifications from [from].
