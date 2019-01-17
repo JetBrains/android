@@ -90,7 +90,7 @@ class EventsTest : DatabaseTest<EventsTable>() {
   companion object {
     protected val TEST_APP_ID = 5678
     private val ACTION_ID = 1234
-    private val MAIN_SESSION = Common.Session.newBuilder().setSessionId(1L).setStreamId(1234).build()
+    private val MAIN_SESSION = Common.Session.newBuilder().setSessionId(1L).setDeviceId(1234).build()
     private val NO_END_SYSTEM_DATA = EventProfiler.SystemData
       .newBuilder()
       .setPid(TEST_APP_ID)

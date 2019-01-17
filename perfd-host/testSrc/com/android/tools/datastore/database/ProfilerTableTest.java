@@ -35,13 +35,11 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
   private static final DeviceId FAKE_DEVICE_ID = DeviceId.of(1);
 
   @Override
-  @NotNull
   protected ProfilerTable createTable() {
     return new ProfilerTable();
   }
 
   @Override
-  @NotNull
   protected List<Consumer<ProfilerTable>> getTableQueryMethodsForVerification() {
     List<Consumer<ProfilerTable>> methodCalls = new ArrayList<>();
     methodCalls.add((table) -> assertThat(table.getDeviceLastKnownTime(DeviceId.of(-1))).isEqualTo(Long.MIN_VALUE));
@@ -95,7 +93,7 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
       Common.Session session = Common.Session
         .newBuilder()
         .setSessionId(10 + i)
-        .setStreamId(20 + i)
+        .setDeviceId(20 + i)
         .setPid(30 + i)
         .setStartTimestamp(startTime)
         .setEndTimestamp(Long.MAX_VALUE)
@@ -133,7 +131,7 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
       Common.Session session = Common.Session
         .newBuilder()
         .setSessionId(10 + i)
-        .setStreamId(20 + i)
+        .setDeviceId(20 + i)
         .setPid(30 + i)
         .setStartTimestamp(startTime)
         .setEndTimestamp(Long.MAX_VALUE)
@@ -160,7 +158,7 @@ public class ProfilerTableTest extends DatabaseTest<ProfilerTable> {
       Common.Session session = Common.Session
         .newBuilder()
         .setSessionId(10 + i)
-        .setStreamId(20 + i)
+        .setDeviceId(20 + i)
         .setPid(30 + i)
         .setStartTimestamp(startTime)
         .setEndTimestamp(Long.MAX_VALUE)

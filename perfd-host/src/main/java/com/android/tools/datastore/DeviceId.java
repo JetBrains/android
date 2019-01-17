@@ -33,12 +33,9 @@ public final class DeviceId {
     return ourInstances.computeIfAbsent(deviceId, id -> new DeviceId(id));
   }
 
-  /**
-   * Only used by the legacy pipeline where we use set device ID to Session's streamId field.
-   */
   @NotNull
   public static DeviceId fromSession(@NotNull Common.Session session) {
-    return of(session.getStreamId());
+    return of(session.getDeviceId());
   }
 
   private DeviceId(long deviceId) {
