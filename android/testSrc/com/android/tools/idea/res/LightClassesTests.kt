@@ -22,13 +22,10 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.highlightedAs
-import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -38,11 +35,9 @@ import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.uast.getContainingClass
 import java.io.File
 
 /**
@@ -57,8 +52,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     super.setUp()
     StudioFlags.IN_MEMORY_R_CLASSES.override(true)
     // No need to copy R.java into gen!
-
-    myModule.createImlFile()
   }
 
   override fun tearDown() {
@@ -68,16 +61,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     finally {
       super.tearDown()
     }
-  }
-
-  /**
-   * Creates the iml file for a module on disk. This is necessary for correct Kotlin resolution of light classes.
-   *
-   * @see AndroidResolveScopeEnlarger
-   */
-  protected fun Module.createImlFile() {
-    createFile(LocalFileSystem.getInstance().findFileByPath("/")!!, moduleFilePath)
-    assertNotNull(moduleFile)
   }
 
   protected fun resolveReferenceUnderCaret(): PsiElement? {
@@ -450,7 +433,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       super.setUp()
 
       val libModule = getAdditionalModuleByName("unrelatedLib")!!
-      libModule.createImlFile()
 
       runWriteCommandAction(project) {
         libModule
