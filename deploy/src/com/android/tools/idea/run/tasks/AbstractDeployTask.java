@@ -67,7 +67,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull
   @Override
   public String getFailureReason() {
-    return myErrorHandler != null ? myErrorHandler.getErrorString() : LaunchTask.super.getFailureReason();
+    return myErrorHandler != null ? myErrorHandler.getConsoleErrorString() : LaunchTask.super.getFailureReason();
   }
 
   @NotNull
