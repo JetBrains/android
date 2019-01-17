@@ -96,6 +96,7 @@ class NewProjectDescriptor {
         .setSourceLanguage("Java")
         .enterPackageName(myPkg)
         .selectMinimumSdkApi(myMinSdk)
+        .setUseAndroidX(true)
         .wizard()
         .clickFinish();
     }

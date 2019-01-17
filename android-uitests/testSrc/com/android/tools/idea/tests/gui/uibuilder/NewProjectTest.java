@@ -221,7 +221,7 @@ public class NewProjectTest {
       .open("app/build.gradle")
       .getCurrentFileContents();
 
-    assertThat(contents).contains("implementation \'com.android.support:recyclerview-v7:");
+    assertThat(contents).contains("implementation \'androidx.recyclerview:recyclerview:");
   }
 
   @Test
@@ -231,13 +231,10 @@ public class NewProjectTest {
       .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
 
-    // Make sure it works even if NPW has androidx enabled by default
-    actualXml = actualXml.replace("androidx.constraintlayout.widget", "android.support.constraint");
-
     @Language("XML")
     String expectedXml =
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-      "<android.support.constraint.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+      "<androidx.constraintlayout.widget.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
       "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
       "    android:layout_width=\"match_parent\"\n" +
@@ -253,7 +250,7 @@ public class NewProjectTest {
       "        app:layout_constraintRight_toRightOf=\"parent\"\n" +
       "        app:layout_constraintTop_toTopOf=\"parent\" />\n" +
       "\n" +
-      "</android.support.constraint.ConstraintLayout>";
+      "</androidx.constraintlayout.widget.ConstraintLayout>";
 
     assertThat(actualXml).isEqualTo(expectedXml);
   }
