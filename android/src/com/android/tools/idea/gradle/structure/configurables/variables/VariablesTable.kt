@@ -36,6 +36,8 @@ import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
+import com.android.tools.idea.structure.dialog.logUsagePsdAction
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.Disposable
@@ -223,6 +225,7 @@ class VariablesTable private constructor(
         Messages.getQuestionIcon()
       ) == Messages.YES) {
       variableNodes.map { it.variable }.forEach { it.delete() }
+      project.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_REMOVE)
     }
   }
 
@@ -252,6 +255,12 @@ class VariablesTable private constructor(
       val selectedRow = tree.getRowForPath(TreePath(emptyNode.path))
       selectionModel.setSelectionInterval(selectedRow, selectedRow)
       editCellAt(emptyNodeRow, 0, NewVariableEvent(emptyNode))
+      project.logUsagePsdAction(
+        when (type) {
+          ValueType.LIST -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_LIST
+          ValueType.MAP -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_MAP
+          else -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_SIMPLE
+        })
     }
   }
 
@@ -453,6 +462,10 @@ class VariablesTable private constructor(
     }
 
     override fun Annotated<ParsedValue<Any>>.toModelValue(): Any = this
+
+    override fun valueEdited() {
+      project.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_MODIFY_VALUE)
+    }
   }
 
   private fun selectCell(row: Int, column: Int) {
@@ -521,7 +534,10 @@ class VariablesTable private constructor(
   fun addVariableAvailable(): Boolean = getSelectedNodes<VariablesBaseNode>().isNotEmpty()
   fun removeVariableAvailable(): Boolean = getSelectedNodes<BaseVariableNode>().isNotEmpty()
 
-  class VariablesTableModel internal constructor(internal val root: VariablesBaseNode) : DefaultTreeModel(root), TreeTableModel {
+  class VariablesTableModel internal constructor(
+    private val project: PsProject,
+    internal val root: VariablesBaseNode
+  ) : DefaultTreeModel(root), TreeTableModel {
     private var tableTree: JTree? = null
 
     override fun getColumnCount(): Int = 2
@@ -582,6 +598,7 @@ class VariablesTable private constructor(
           node is BaseVariableNode && column == NAME -> {
             node.setName(aValue)
             nodeChanged(node)
+            project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_RENAME)
           }
 
         }
@@ -741,8 +758,8 @@ class NewVariableEvent(source: Any) : EventObject(source)
 /**
  * Creates a tree model from a tree of shadow nodes which is auto-updated on changes made to the shadow tree.
  */
-internal fun createTreeModel(root: ShadowNode, parentDisposable: Disposable): VariablesTable.VariablesTableModel =
-  VariablesTable.VariablesTableModel(VariablesBaseNode(root).also { Disposer.register(parentDisposable, it) })
+internal fun createTreeModel(root: ProjectShadowNode, parentDisposable: Disposable): VariablesTable.VariablesTableModel =
+  VariablesTable.VariablesTableModel(root.project, VariablesBaseNode(root).also { Disposer.register(parentDisposable, it) })
     .also { it.initializeNode(it.root, from = root) }
 
 internal data class ProjectShadowNode(val project: PsProject) : ShadowNode {

@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.renameWithDialog
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsBuildType
+import com.android.tools.idea.structure.dialog.logUsagePsdAction
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -54,6 +56,7 @@ class BuildTypesPanel(
             "Remove Build Type",
             Messages.getQuestionIcon()
           ) == Messages.YES) {
+          module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_BUILTYPES_REMOVE)
           val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
           module.removeBuildType(selectedNode.getModel() ?: return)
           selectNode(nodeToSelectAfter)
@@ -76,6 +79,7 @@ class BuildTypesPanel(
           selectedConfigurable?.displayName,
           nameValidator
         ) { newName, alsoRenameReferences ->
+          module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_BUILTYPES_RENAME)
           (selectedNode.getModel<PsBuildType>() ?: return@renameWithDialog).rename(newName)
         }
       }
@@ -95,6 +99,7 @@ class BuildTypesPanel(
                   "",
                   nameValidator)
             if (newName != null) {
+              module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_BUILTYPES_ADD)
               val buildType = module.addNewBuildType(newName)
               val node = treeModel.rootNode.findChildFor(buildType)
               tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
