@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
@@ -56,7 +57,8 @@ import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
+@VisibleForTesting(visibility = Visibility.PACKAGE)
+public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
   private static final Key<Instant> SELECTION_TIME = new Key<>("DeviceAndSnapshotComboBoxAction.selectionTime");
 
@@ -111,7 +113,7 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   @VisibleForTesting
-  List<Device> getDevices() {
+  public List<Device> getDevices() {
     return myDevices;
   }
 
@@ -185,7 +187,7 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   @Override
   protected ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
-    return new ComboBoxButton(presentation) {
+    ComboBoxButton button = new ComboBoxButton(presentation) {
       @Override
       protected JBPopup createPopup(@NotNull Runnable runnable) {
         DataContext context = getDataContext();
@@ -201,6 +203,9 @@ final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
         return popup;
       }
     };
+
+    button.setName("deviceAndSnapshotComboBoxButton");
+    return button;
   }
 
   @NotNull
