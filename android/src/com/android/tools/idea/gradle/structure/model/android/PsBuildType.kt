@@ -48,7 +48,9 @@ import com.android.tools.idea.gradle.structure.model.meta.mapProperty
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
 import com.android.tools.idea.gradle.structure.navigation.PsBuildTypeNavigationPath
+import icons.StudioIcons.Misc.BUILD_TYPE
 import java.io.File
+import javax.swing.Icon
 
 private const val DEBUG_BUILD_TYPE_NAME = "debug"
 
@@ -86,6 +88,7 @@ open class PsBuildType(
   var manifestPlaceholders by BuildTypeDescriptors.manifestPlaceholders
 
   override val isDeclared: Boolean get() = parsedModel != null
+  override val icon: Icon = BUILD_TYPE
 
   fun ensureDeclared() {
     if (parsedModel == null) {
