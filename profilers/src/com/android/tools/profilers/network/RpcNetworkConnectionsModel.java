@@ -51,15 +51,13 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
     long queryStartTimeNs = TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin());
     long queryEndTimeNs = TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax());
     Profiler.GetEventGroupsRequest request = Profiler.GetEventGroupsRequest.newBuilder()
-      .setStreamId(mySession.getStreamId())
-      .setPid(mySession.getPid())
+      .setSessionId(mySession.getSessionId())
       .setKind(Common.Event.Kind.NETWORK_HTTP_CONNECTION)
       .build();
     Profiler.GetEventGroupsResponse response = myProfilerService.getEventGroups(request);
 
     Profiler.GetEventGroupsRequest threadRequest = Profiler.GetEventGroupsRequest.newBuilder()
-      .setStreamId(mySession.getStreamId())
-      .setPid(mySession.getPid())
+      .setSessionId(mySession.getSessionId())
       .setKind(Common.Event.Kind.NETWORK_HTTP_THREAD)
       .build();
     Map<Long, List<Common.Event>> connectionThreadMap = myProfilerService.getEventGroups(threadRequest)

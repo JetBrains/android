@@ -4,7 +4,7 @@
     <GrpcCall FunctionCalled="profiler.proto.EnergyService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyStartRequest">
         <Message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 </Message>
@@ -12,7 +12,7 @@
         <functionCalled>profiler.proto.EnergyService/StartMonitoringApp</functionCalled>
         <message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 </message>
@@ -76,7 +76,7 @@
     <GrpcCall FunctionCalled="profiler.proto.EnergyService/GetEvents" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyRequest">
         <Message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 </Message>
@@ -84,7 +84,7 @@
         <functionCalled>profiler.proto.EnergyService/GetEvents</functionCalled>
         <message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 </message>
@@ -98,7 +98,7 @@
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetData" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataRequest">
         <Message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 </Message>
@@ -106,7 +106,7 @@
         <functionCalled>profiler.proto.NetworkService/GetData</functionCalled>
         <message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 </message>
@@ -120,7 +120,7 @@
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest">
         <Message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 </Message>
@@ -128,7 +128,7 @@
         <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
         <message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 </message>
@@ -158,7 +158,7 @@
     <GrpcCall FunctionCalled="profiler.proto.EnergyService/GetEvents" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyRequest">
         <Message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 end_timestamp: 1000000000
@@ -167,7 +167,7 @@ end_timestamp: 1000000000
         <functionCalled>profiler.proto.EnergyService/GetEvents</functionCalled>
         <message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 end_timestamp: 1000000000
@@ -182,7 +182,7 @@ end_timestamp: 1000000000
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetData" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataRequest">
         <Message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 end_timestamp: 1000000000
@@ -191,7 +191,7 @@ end_timestamp: 1000000000
         <functionCalled>profiler.proto.NetworkService/GetData</functionCalled>
         <message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 end_timestamp: 1000000000
@@ -206,7 +206,7 @@ end_timestamp: 1000000000
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetData" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuDataRequest">
         <Message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 end_timestamp: 1000000000
@@ -215,7 +215,7 @@ end_timestamp: 1000000000
         <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
         <message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 end_timestamp: 1000000000
@@ -230,7 +230,7 @@ end_timestamp: 1000000000
     <GrpcCall FunctionCalled="profiler.proto.EnergyService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyStopRequest">
         <Message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 </Message>
@@ -238,7 +238,7 @@ end_timestamp: 1000000000
         <functionCalled>profiler.proto.EnergyService/StopMonitoringApp</functionCalled>
         <message>session {
   session_id: 4321
-  stream_id: 1234
+  device_id: 1234
   pid: 5678
 }
 </message>
