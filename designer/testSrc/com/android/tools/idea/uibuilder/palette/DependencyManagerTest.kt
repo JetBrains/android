@@ -112,8 +112,9 @@ class DependencyManagerTest : AndroidTestCase() {
     assertThat(dependencyManager!!.needsLibraryLoad(cardView)).isTrue()
 
     dependencyManager!!.ensureLibraryIsIncluded(floatingActionButton)
+    waitAndDispatchAll()
     dependencyManager!!.ensureLibraryIsIncluded(cardView)
-    simulateProjectSync()
+    waitAndDispatchAll()
 
     assertThat(dependencyManager!!.needsLibraryLoad(floatingActionButton)).isFalse()
     assertThat(dependencyManager!!.needsLibraryLoad(recyclerView)).isTrue()
@@ -125,7 +126,7 @@ class DependencyManagerTest : AndroidTestCase() {
     assertEquals(0, dependencyUpdateCount)
 
     dependencyManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
-    simulateProjectSync()
+    waitAndDispatchAll()
     assertEquals(1, dependencyUpdateCount)
   }
 
@@ -133,7 +134,7 @@ class DependencyManagerTest : AndroidTestCase() {
     Disposer.dispose(disposable!!)
 
     dependencyManager!!.ensureLibraryIsIncluded(findItem(FLOATING_ACTION_BUTTON.defaultName()))
-    simulateProjectSync()
+    waitAndDispatchAll()
     assertEquals(0, dependencyUpdateCount)
   }
 
