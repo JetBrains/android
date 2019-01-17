@@ -23,6 +23,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistryImpl;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 
 import java.util.Arrays;
@@ -35,6 +36,7 @@ public class DataBindingAdapterAttributesTest extends AndroidGradleTestCase {
    * has been defined.
    */
   public void testCompletionAndInspections() throws Exception {
+    ReferenceProvidersRegistryImpl.disableUnderlyingElementChecks(getTestRootDisposable());
     loadProject(PROJECT_WITH_DATA_BINDING);
 
     myFixture.enableInspections(AndroidUnknownAttributeInspection.class);

@@ -18,6 +18,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistryImpl;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.PsiTestUtil;
@@ -51,6 +52,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
+    ReferenceProvidersRegistryImpl.disableUnderlyingElementChecks(getTestRootDisposable());
   }
 
   @Override
