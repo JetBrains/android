@@ -16,7 +16,10 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.fd.InstantRunUtils;
+import com.android.tools.idea.run.ui.ApplyChangesAction;
+import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.google.common.base.MoreObjects;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -39,14 +42,23 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
     throws ExecutionException {
     boolean showRunContent = env.getRunProfile() instanceof AndroidTestRunConfiguration;
     RunnerAndConfigurationSettings runnerAndConfigurationSettings = env.getRunnerAndConfigurationSettings();
+
+    boolean isSwap = MoreObjects.firstNonNull(env.getCopyableUserData(CodeSwapAction.KEY), Boolean.FALSE) ||
+                     MoreObjects.firstNonNull(env.getCopyableUserData(ApplyChangesAction.KEY), Boolean.FALSE);
+
     if (runnerAndConfigurationSettings != null) {
-      runnerAndConfigurationSettings.setActivateToolWindowBeforeRun(showRunContent);
+      runnerAndConfigurationSettings.setActivateToolWindowBeforeRun(!isSwap && showRunContent);
     }
 
     FileDocumentManager.getInstance().saveAllDocuments();
     ExecutionResult result = state.execute(env.getExecutor(), this);
     RunContentDescriptor descriptor = DefaultProgramRunnerKt.showRunContent(result, env);
     if (descriptor != null) {
+      if (isSwap) {
+        // Don't show the tool window when we're applying (code) changes.
+        descriptor.setActivateToolWindowWhenAdded(false);
+      }
+
       ProcessHandler processHandler = descriptor.getProcessHandler();
       assert processHandler != null;
 
