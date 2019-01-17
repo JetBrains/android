@@ -15,46 +15,27 @@
  */
 package com.android.tools.profilers.sessions;
 
-import static com.android.tools.profilers.StudioProfilers.buildSessionName;
-
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Common.Device;
-import com.android.tools.profiler.proto.Common.Event;
-import com.android.tools.profiler.proto.Common.SessionData;
+import com.android.tools.profiler.proto.Common.*;
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.Profiler.BeginSession;
-import com.android.tools.profiler.proto.Profiler.BeginSessionRequest;
-import com.android.tools.profiler.proto.Profiler.BeginSessionResponse;
-import com.android.tools.profiler.proto.Profiler.Command;
-import com.android.tools.profiler.proto.Profiler.DeleteSessionRequest;
-import com.android.tools.profiler.proto.Profiler.EndSession;
-import com.android.tools.profiler.proto.Profiler.EndSessionRequest;
-import com.android.tools.profiler.proto.Profiler.EndSessionResponse;
-import com.android.tools.profiler.proto.Profiler.EventGroup;
-import com.android.tools.profiler.proto.Profiler.ExecuteRequest;
-import com.android.tools.profiler.proto.Profiler.GetEventGroupsRequest;
-import com.android.tools.profiler.proto.Profiler.GetEventGroupsResponse;
-import com.android.tools.profiler.proto.Profiler.GetSessionsRequest;
-import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
+import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.profilers.StudioProfilers.buildSessionName;
 
 /**
  * A wrapper class for keeping track of the list of sessions that the profilers have seen, along with their associated artifacts (e.g.
@@ -103,10 +84,16 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   @NotNull private Common.Session mySelectedSession;
 
   /**
-   * The session that is actively being profiled. Note that there can only be one profiling session at a time, but it does not have to be
-   * the one that is currently selected (e.g. Users can profile in the background while exploring other sessions history).
+   * The session that is actively being profiled. Note that there can only be one profiling session at a time, but it does not have to the
+   * one that is currently selected (e.g. Users can profile in the background while exploring other sessions history).
    */
   @NotNull private Common.Session myProfilingSession;
+
+  /**
+   * Each session is associated with a stream. The session manager provides access to this id so each profiler can issue commands
+   * to the events pipeline.
+   */
+  private long myProfilingSessionStreamId;
 
   /**
    * A cache of the view ranges that were used by each session before it was unselected. Note that the key represents a Session's id.
@@ -216,7 +203,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   /**
-   * Update or add to the list of {@link SessionItem} based on the queried {@link EventGroup}.
+   * Update or add to the list of {@link SessionItem} based on the queried {@link EventGroups}.
    */
   private void updateSessionItemsByGroup(List<EventGroup> groups) {
     List<SessionArtifact> sessionArtifacts = new ArrayList<>();
@@ -269,20 +256,21 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   private SessionItem processSessionStarted(Event event) {
     SessionData.SessionStarted sessionData = event.getSession().getSessionStarted();
     Common.Session session = Common.Session.newBuilder()
-      .setSessionId(sessionData.getSessionId())
-      .setPid(sessionData.getPid())
-      .setStartTimestamp(event.getTimestamp())
-      .setEndTimestamp(Long.MAX_VALUE)
-      .setStreamId(sessionData.getStreamId())
-      .build();
+                                           .setSessionId(event.getSessionId())
+                                           .setPid(sessionData.getPid())
+                                           .setStartTimestamp(event.getTimestamp())
+                                           .setEndTimestamp(Long.MAX_VALUE)
+                                           .setDeviceId(myProfilingSessionStreamId)
+                                           .build();
     Common.SessionMetaData metadata = Common.SessionMetaData.newBuilder()
-      .setSessionId(session.getSessionId())
-      .setType(Common.SessionMetaData.SessionType.forNumber(sessionData.getType().getNumber()))
-      .setStartTimestampEpochMs(sessionData.getStartTimestampEpochMs())
-      .setJvmtiEnabled(sessionData.getJvmtiEnabled())
-      .setSessionName(sessionData.getSessionName())
-      .setLiveAllocationEnabled(sessionData.getLiveAllocationEnabled())
-      .build();
+                                                            .setSessionId(session.getSessionId())
+                                                            .setType(Common.SessionMetaData.SessionType
+                                                                       .forNumber(sessionData.getType().getNumber()))
+                                                            .setStartTimestampEpochMs(sessionData.getStartTimestampEpochMs())
+                                                            .setJvmtiEnabled(sessionData.getJvmtiEnabled())
+                                                            .setSessionName(sessionData.getSessionName())
+                                                            .setLiveAllocationEnabled(sessionData.getLiveAllocationEnabled())
+                                                            .build();
     SessionItem sessionItem = new SessionItem(myProfilers, session, metadata);
     mySessionItems.put(session.getSessionId(), sessionItem);
     mySessionMetaDatas.put(session.getSessionId(), metadata);
@@ -340,45 +328,49 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       assert streamId != 0;
+      myProfilingSessionStreamId = streamId;
       BeginSession.Builder requestBuilder = BeginSession.newBuilder()
-        .setPid(process.getPid())
-        .setSessionName(buildSessionName(device, process))
-        .setRequestTimeEpochMs(System.currentTimeMillis());
+                                                        .setPid(process.getPid())
+                                                        .setSessionName(buildSessionName(device, process))
+                                                        .setRequestTimeEpochMs(System.currentTimeMillis());
       // Attach agent for advanced profiling if JVMTI is enabled
       if (device.getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
         // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
         // of re-attaching an agent. See ProfilerService::AttachAgent on the Perfd side for more details.
-        requestBuilder.setJvmtiConfig(
-          BeginSession.JvmtiConfig.newBuilder()
-            .setAttachAgent(true)
-            .setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch()))
-            .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled())
-            .build());
+        requestBuilder.setJvmtiConfig(BeginSession.JvmtiConfig.newBuilder()
+                                                              .setAttachAgent(true)
+                                                              .setAgentLibFileName(
+                                                                String.format("libperfa_%s.so", process.getAbiCpuArch()))
+                                                              .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig()
+                                                                                                   .isLiveAllocationsEnabled())
+                                                              .build());
       }
 
       Command command = Command.newBuilder()
-        .setStreamId(streamId)
-        .setBeginSession(requestBuilder)
-        .setType(Command.CommandType.BEGIN_SESSION)
-        .build();
+                               .setStreamId(streamId)
+                               .setBeginSession(requestBuilder)
+                               .setType(Command.CommandType.BEGIN_SESSION)
+                               .build();
       myProfilers.getClient().getProfilerClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
     }
     else {
       BeginSessionRequest.Builder requestBuilder = BeginSessionRequest.newBuilder()
-        .setDeviceId(device.getDeviceId())
-        .setPid(process.getPid())
-        .setSessionName(buildSessionName(device, process))
-        .setRequestTimeEpochMs(System.currentTimeMillis());
+                                                                      .setDeviceId(device.getDeviceId())
+                                                                      .setPid(process.getPid())
+                                                                      .setSessionName(buildSessionName(device, process))
+                                                                      .setRequestTimeEpochMs(System.currentTimeMillis());
       // Attach agent for advanced profiling if JVMTI is enabled
       if (device.getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
         // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
         // of re-attaching an agent. See ProfilerService::AttachAgent on the Perfd side for more details.
-        requestBuilder.setJvmtiConfig(
-          BeginSessionRequest.JvmtiConfig.newBuilder()
-            .setAttachAgent(true)
-            .setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch()))
-            .setLiveAllocationEnabled(myProfilers.getIdeServices().getFeatureConfig().isLiveAllocationsEnabled())
-            .build());
+        requestBuilder.setJvmtiConfig(BeginSessionRequest.JvmtiConfig.newBuilder()
+                                                                     .setAttachAgent(true)
+                                                                     .setAgentLibFileName(
+                                                                       String.format("libperfa_%s.so", process.getAbiCpuArch()))
+                                                                     .setLiveAllocationEnabled(
+                                                                       myProfilers.getIdeServices().getFeatureConfig()
+                                                                                  .isLiveAllocationsEnabled())
+                                                                     .build());
       }
 
       BeginSessionResponse response = myProfilers.getClient().getProfilerClient().beginSession(requestBuilder.build());
@@ -403,19 +395,19 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       Command command = Command.newBuilder()
-        .setStreamId(profilingSession.getStreamId())
-        .setEndSession(EndSession.newBuilder().setSessionId(profilingSession.getSessionId()))
-        .setType(Command.CommandType.END_SESSION)
-        .build();
+                               .setStreamId(myProfilingSessionStreamId)
+                               .setEndSession(EndSession.newBuilder().setSessionId(profilingSession.getSessionId()))
+                               .setType(Command.CommandType.END_SESSION)
+                               .build();
       myProfilers.getClient().getProfilerClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
     }
     else {
-      // In legacy pipeline BeginSession uses device ID as stream ID.
-      EndSessionResponse response = myProfilers.getClient().getProfilerClient().endSession(
-        EndSessionRequest.newBuilder()
-          .setDeviceId(profilingSession.getStreamId())
-          .setSessionId(profilingSession.getSessionId())
-          .build());
+      EndSessionResponse response = myProfilers.getClient().getProfilerClient().endSession(EndSessionRequest.newBuilder()
+                                                                                                            .setDeviceId(profilingSession
+                                                                                                                           .getDeviceId())
+                                                                                                            .setSessionId(profilingSession
+                                                                                                                            .getSessionId())
+                                                                                                            .build());
       Common.Session session = response.getSession();
       updateSessionItems(Collections.singletonList(session));
       if (selectedSessionIsProfilingSession) {
@@ -530,10 +522,12 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       if (sessionItem == null) {
         // The event pipeline does not need to request metadata as it comes back in the session started event.
         if (!myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-          Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient().getSessionMetaData(
-            Profiler.GetSessionMetaDataRequest.newBuilder()
-              .setSessionId(session.getSessionId())
-              .build());
+          Profiler.GetSessionMetaDataResponse response = myProfilers.getClient().getProfilerClient()
+                                                                    .getSessionMetaData(Profiler.GetSessionMetaDataRequest.newBuilder()
+                                                                                                                          .setSessionId(
+                                                                                                                            session
+                                                                                                                              .getSessionId())
+                                                                                                                          .build());
           Common.SessionMetaData metadata = response.getData();
           sessionItem = new SessionItem(myProfilers, session, metadata);
 

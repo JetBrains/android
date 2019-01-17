@@ -66,7 +66,6 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       createTable("Profiler_Devices", "DeviceId INTEGER", "LastKnownTime INTEGER", "Data BLOB");
       createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "Name STRING NOT NULL", "State INTEGER",
                   "StartTime INTEGER", "Arch STRING NOT NULL", "AgentStatus INTEGER");
-      // In the legacy pipeline we set the device ID to the stream ID of a Session.
       createTable("Profiler_Sessions", "SessionId INTEGER", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER",
                   "EndTime INTEGER", "StartTimeEpochMs INTEGER", "NAME TEXT", "JvmtiEnabled INTEGER", "LiveAllocationEnabled INTEGER",
                   "TypeId INTEGER");
@@ -210,7 +209,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       ResultSet results = executeQuery(ProfilerStatements.SELECT_SESSION_BY_ID, sessionId);
       if (results.next()) {
         builder.setSessionId(results.getLong(1))
-               .setStreamId(results.getLong(2))
+               .setDeviceId(results.getLong(2))
                .setPid(results.getInt(3))
                .setStartTimestamp(results.getLong(4))
                .setEndTimestamp((results.getLong(5)));
@@ -264,7 +263,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
       while (results.next()) {
         responseBuilder.addSessions(
           Common.Session
-            .newBuilder().setSessionId(results.getLong(1)).setStreamId(results.getLong(2)).setPid(results.getInt(3))
+            .newBuilder().setSessionId(results.getLong(1)).setDeviceId(results.getLong(2)).setPid(results.getInt(3))
             .setStartTimestamp(results.getLong(4)).setEndTimestamp((results.getLong(5)))
             .build());
       }
@@ -322,7 +321,7 @@ public class ProfilerTable extends DataStoreTable<ProfilerTable.ProfilerStatemen
                                     Common.SessionMetaData.SessionType sessionType) {
     // Note - this is not being called from multiple threads at the moment.
     // If we ever need to call getSessions and insertOrUpdateSession synchronously, we should protect the logic below.
-    execute(ProfilerStatements.INSERT_SESSION, session.getSessionId(), session.getStreamId(), session.getPid(),
+    execute(ProfilerStatements.INSERT_SESSION, session.getSessionId(), session.getDeviceId(), session.getPid(),
             session.getStartTimestamp(), session.getEndTimestamp(), startTimeUtc, name, jvmtiEnabled, liveAllocationEnabled,
             sessionType.getNumber());
   }

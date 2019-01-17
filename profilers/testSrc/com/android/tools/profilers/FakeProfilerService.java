@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.datastore.DataStoreService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentStatusRequest;
 import com.android.tools.profiler.proto.Common.AgentData;
@@ -191,18 +190,19 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     // The event pipeline expects devices are connected via streams. So when a new devices is added we create a stream connected event.
     // likewise when a device is taken offline we create a stream disconnected event.
     if (device.getState() == Common.Device.State.ONLINE) {
-      addEventToEventGroup(DataStoreService.DATASTORE_RESERVED_STREAM_ID, device.getDeviceId(), Common.Event.newBuilder()
+      addEventToEventGroup(device.getDeviceId(), device.getDeviceId(), Common.Event.newBuilder()
         .setTimestamp(myCommandTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.STREAM)
-        .setStream(Common.StreamData.newBuilder().setStreamConnected(Common.StreamData.StreamConnected.newBuilder().setStream(
-          Common.Stream.newBuilder()
-            .setType(Common.Stream.Type.DEVICE)
-            .setStreamId(device.getDeviceId())
-            .setDevice(device))))
+        .setStream(Common.StreamData.newBuilder()
+                     .setStreamConnected(Common.StreamData.StreamConnected.newBuilder()
+                                           .setStream(Common.Stream.newBuilder()
+                                                        .setType(Common.Stream.Type.DEVICE)
+                                                        .setStreamId(device.getDeviceId())
+                                                        .setDevice(device))))
         .build());
     }
     if (device.getState() == Common.Device.State.OFFLINE || device.getState() == Common.Device.State.DISCONNECTED) {
-      addEventToEventGroup(DataStoreService.DATASTORE_RESERVED_STREAM_ID, device.getDeviceId(), Common.Event.newBuilder()
+      addEventToEventGroup(device.getDeviceId(), device.getDeviceId(), Common.Event.newBuilder()
         .setTimestamp(myCommandTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.STREAM)
         .setIsEnded(true)
@@ -235,26 +235,23 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   public void addSession(Common.Session session, Common.SessionMetaData metadata) {
     mySessions.put(session.getSessionId(), session);
     mySessionMetaDatas.put(session.getSessionId(), metadata);
-    addEventToEventGroup(session.getStreamId(), session.getSessionId(), Common.Event.newBuilder()
+    addEventToEventGroup(session.getDeviceId(), session.getSessionId(), Common.Event.newBuilder()
       .setGroupId(session.getSessionId())
-      .setPid(session.getPid())
+      .setSessionId(session.getSessionId())
       .setKind(Common.Event.Kind.SESSION)
       .setTimestamp(session.getStartTimestamp())
-      .setSession(
-        Common.SessionData.newBuilder()
-          .setSessionStarted(
-            Common.SessionData.SessionStarted.newBuilder()
-              .setSessionId(session.getSessionId())
-              .setPid(session.getPid())
-              .setStartTimestampEpochMs(metadata.getStartTimestampEpochMs())
-              .setJvmtiEnabled(metadata.getJvmtiEnabled())
-              .setSessionName(metadata.getSessionName())
-              .setType(Common.SessionData.SessionStarted.SessionType.FULL)))
+      .setSession(Common.SessionData.newBuilder()
+                    .setSessionStarted(Common.SessionData.SessionStarted.newBuilder()
+                                         .setPid(session.getPid())
+                                         .setStartTimestampEpochMs(metadata.getStartTimestampEpochMs())
+                                         .setJvmtiEnabled(metadata.getJvmtiEnabled())
+                                         .setSessionName(metadata.getSessionName())
+                                         .setType(Common.SessionData.SessionStarted.SessionType.FULL)))
       .build());
     if (session.getEndTimestamp() != Long.MAX_VALUE) {
-      addEventToEventGroup(session.getStreamId(), session.getSessionId(), Common.Event.newBuilder()
+      addEventToEventGroup(session.getDeviceId(), session.getSessionId(), Common.Event.newBuilder()
         .setGroupId(session.getSessionId())
-        .setPid(session.getPid())
+        .setSessionId(session.getSessionId())
         .setKind(Common.Event.Kind.SESSION)
         .setIsEnded(true)
         .setTimestamp(session.getEndTimestamp())
@@ -330,7 +327,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     long sessionId = request.getDeviceId() ^ request.getPid();
     Common.Session session = Common.Session.newBuilder()
       .setSessionId(sessionId)
-      .setStreamId(request.getDeviceId())
+      .setDeviceId(request.getDeviceId())
       .setPid(request.getPid())
       .setStartTimestamp(myTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE)
@@ -455,7 +452,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
 
   /**
    * Helper method for populating thread data.
-   * <p>
+   *
    * Thread1 is alive from 1s to 8s, while thread2 is alive from 6s to 15s.
    */
   public void populateThreads(long streamId) {
@@ -511,12 +508,15 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     // This logic mirrors that logic of perfd-host. We do proper filtering of all events here so our test, behave as close to runtime as
     // possible.
     HashMap<Long, EventGroup.Builder> eventGroups = new HashMap<>();
-    for (long streamId : myStreamEvents.keySet()) {
-      if (request.getStreamId() != EMPTY_REQUEST_VALUE && streamId != request.getStreamId()) {
+    for (long stream : myStreamEvents.keySet()) {
+      if (request.getStreamId() != EMPTY_REQUEST_VALUE && stream != request.getStreamId()) {
         continue;
       }
-      for (EventGroup.Builder eventGroup : myStreamEvents.get(streamId)) {
+      for (EventGroup.Builder eventGroup : myStreamEvents.get(stream)) {
         for (Common.Event event : eventGroup.getEventsList()) {
+          if (request.getSessionId() != event.getSessionId() && request.getSessionId() != EMPTY_REQUEST_VALUE) {
+            continue;
+          }
           if (request.getGroupId() != EMPTY_REQUEST_VALUE && request.getGroupId() != event.getGroupId()) {
             continue;
           }

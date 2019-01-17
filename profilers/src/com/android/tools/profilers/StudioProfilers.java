@@ -190,8 +190,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       setStage(new StudioMonitorStage(this));
       if (SessionsManager.isSessionAlive(mySelectedSession)) {
         // The session is live - move the timeline to the current time.
-        TimeResponse timeResponse = myClient.getProfilerClient().getCurrentTime(
-          TimeRequest.newBuilder().setStreamId(mySelectedSession.getStreamId()).build());
+        TimeResponse timeResponse = myClient.getProfilerClient()
+                                            .getCurrentTime(
+                                              TimeRequest.newBuilder().setStreamId(mySelectedSession.getDeviceId()).build());
 
         myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
         if (startupCpuProfilingStarted()) {
@@ -312,7 +313,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (isUnifiedPipelineEnabled) {
       // Get all streams of all types.
       GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
-        .setStreamId(-1)  // DataStoreService.DATASTORE_RESERVED_STREAM_ID
         .setKind(Event.Kind.STREAM)
         .build();
       GetEventGroupsResponse response = client.getProfilerClient().getEventGroups(request);
@@ -647,16 +647,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       return agentData;
     }
     if (!myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      // In legacy pipeline we don't have streams so we set device ID to session's stream ID.
       AgentStatusRequest statusRequest =
-        AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getStreamId()).build();
+        AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getDeviceId()).build();
       return myClient.getProfilerClient().getAgentStatus(statusRequest);
     }
     // Get agent data for requested session.
     GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
       .setKind(Event.Kind.AGENT)
-      .setStreamId(session.getStreamId())
-      .setPid(session.getPid())
+      .setSessionId(session.getSessionId())
       .build();
     GetEventGroupsResponse response = myClient.getProfilerClient().getEventGroups(request);
     for (EventGroup group : response.getGroupsList()) {

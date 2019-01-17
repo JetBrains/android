@@ -56,7 +56,7 @@ import org.mockito.Mockito;
  * {@link ProfilerService#startPolling(Stream, Channel)} instead of the old {@link ProfilerService#startMonitoring(Channel)} API.
  */
 public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
-  private static final long STREAM_ID = 1234;
+  private static final long DEVICE_ID = 1234;
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
@@ -75,7 +75,7 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
   public void setUp() {
     myChannel = myService.getChannel();
     // Stream id is analogous to device id.
-    Stream stream = Stream.newBuilder().setType(Stream.Type.DEVICE).setStreamId(STREAM_ID).build();
+    Stream stream = Stream.newBuilder().setType(Stream.Type.DEVICE).setStreamId(DEVICE_ID).build();
     myProfilerService.startPolling(stream, myChannel);
   }
 
@@ -87,14 +87,14 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
   @Test
   public void testGetTimes() {
     StreamObserver<TimeResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getCurrentTime(TimeRequest.newBuilder().setStreamId(STREAM_ID).build(), observer);
+    myProfilerService.getCurrentTime(TimeRequest.newBuilder().setStreamId(DEVICE_ID).build(), observer);
     validateResponse(observer, TimeResponse.getDefaultInstance());
   }
 
   @Test
   public void testGetVersion() {
     StreamObserver<VersionResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getVersion(VersionRequest.newBuilder().setStreamId(STREAM_ID).build(), observer);
+    myProfilerService.getVersion(VersionRequest.newBuilder().setStreamId(DEVICE_ID).build(), observer);
     validateResponse(observer, VersionResponse.getDefaultInstance());
   }
 
@@ -104,26 +104,16 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
     getPollTicker().run();
     // Get events from poller to validate we have a connection.
     StreamObserver<GetEventGroupsResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getEventGroups(
-      GetEventGroupsRequest.newBuilder()
-        .setKind(Event.Kind.STREAM)
-        .setStreamId(DataStoreService.DATASTORE_RESERVED_STREAM_ID)
-        .build(),
-      observer);
+    myProfilerService.getEventGroups(GetEventGroupsRequest.newBuilder().setKind(Event.Kind.STREAM).build(), observer);
     EventGroup expectedGroup = EventGroup.newBuilder()
-      .setGroupId(STREAM_ID)
-      .addEvents(
-        Event.newBuilder()
-          .setGroupId(STREAM_ID)
-          .setKind(Event.Kind.STREAM)
-          .setStream(
-            Common.StreamData.newBuilder()
-              .setStreamConnected(
-                Common.StreamData.StreamConnected.newBuilder()
-                  .setStream(
-                    Common.Stream.newBuilder()
-                      .setStreamId(STREAM_ID)
-                      .setType(Stream.Type.DEVICE)))))
+      .setGroupId(DEVICE_ID)
+      .addEvents(Event.newBuilder()
+                   .setGroupId(DEVICE_ID)
+                   .setKind(Event.Kind.STREAM)
+                   .setStream(Common.StreamData.newBuilder()
+                              .setStreamConnected(Common.StreamData.StreamConnected.newBuilder()
+                                                    .setStream(Common.Stream.newBuilder()
+                                                                 .setStreamId(DEVICE_ID).setType(Stream.Type.DEVICE)))))
       .build();
 
     ArgumentCaptor<GetEventGroupsResponse> response = ArgumentCaptor.forClass(GetEventGroupsResponse.class);
@@ -137,20 +127,13 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
     myProfilerService.stopMonitoring(myChannel);
     Mockito.reset(observer);
     response = ArgumentCaptor.forClass(GetEventGroupsResponse.class);
-    myProfilerService.getEventGroups(
-      GetEventGroupsRequest.newBuilder()
-        .setKind(Event.Kind.STREAM)
-        .setStreamId(DataStoreService.DATASTORE_RESERVED_STREAM_ID)
-        .build(),
-      observer);
+    myProfilerService.getEventGroups(GetEventGroupsRequest.newBuilder().setKind(Event.Kind.STREAM).build(), observer);
     verify(observer, times(1)).onNext(response.capture());
-    expectedGroup = expectedGroup.toBuilder().addEvents(
-      Event.newBuilder()
-        .setGroupId(STREAM_ID)
-        .setKind(Event.Kind.STREAM)
-        .setIsEnded(true)
-        .setTimestamp(100))
-      .build();
+    expectedGroup = expectedGroup.toBuilder().addEvents(Event.newBuilder()
+                                                          .setGroupId(DEVICE_ID)
+                                                          .setKind(Event.Kind.STREAM)
+                                                          .setIsEnded(true)
+                                                          .setTimestamp(100)).build();
     assertThat(response.getValue().getGroupsCount()).isEqualTo(1);
 
     actualGroup = response.getValue().getGroups(0);
@@ -162,7 +145,7 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
   @Test
   public void executeRedirectsProperly() {
     StreamObserver<ExecuteResponse> observer = mock(StreamObserver.class);
-    Command sentCommand = Command.newBuilder().setStreamId(STREAM_ID).setType(Command.CommandType.BEGIN_SESSION).build();
+    Command sentCommand = Command.newBuilder().setStreamId(DEVICE_ID).setType(Command.CommandType.BEGIN_SESSION).build();
     myProfilerService.execute(
       ExecuteRequest.newBuilder().setCommand(sentCommand).build(),
       observer);
@@ -170,7 +153,7 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
     // Test executing a command on an invalid stream.
     myProfilerService.execute(
       ExecuteRequest.newBuilder()
-        .setCommand(Command.newBuilder().setStreamId(STREAM_ID).setType(Command.CommandType.BEGIN_SESSION)).build(),
+        .setCommand(Command.newBuilder().setStreamId(DEVICE_ID).setType(Command.CommandType.BEGIN_SESSION)).build(),
       observer);
     assertThat(sentCommand).isEqualTo(myFakeService.getLastCommandReceived());
   }
@@ -212,7 +195,7 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
       responseObserver.onNext(Event.newBuilder()
                                 .setKind(Event.Kind.PROCESS)
                                 .setTimestamp(100)
-                                .setPid(1)
+                                .setSessionId(1)
                                 .build());
       responseObserver.onCompleted();
     }

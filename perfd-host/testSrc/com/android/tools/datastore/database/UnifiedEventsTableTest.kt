@@ -18,6 +18,7 @@ package com.android.tools.datastore.database
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Profiler
 import com.google.common.truth.Truth.assertThat
+import org.junit.Ignore
 import org.junit.Test
 import java.util.function.Consumer
 
@@ -58,18 +59,17 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
       (Consumer { it.insertUnifiedEvent(1, events[0]) }),
       (Consumer {
         it.queryUnifiedEventGroups(
-          Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setStreamId(1).setPid(1).setToTimestamp(
-            10).build())
+          Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setSessionId(1).setToTimestamp(10).build())
       }),
       (Consumer { it.queryUnifiedEvents() }))
   }
 
-  private fun insertData(count: Int, incrementGroupId: Boolean): List<Common.Event> {
+  private fun insertData(count: Int, incrementSession: Boolean, incrementGroupId: Boolean): List<Common.Event> {
     val events = mutableListOf<Common.Event>()
     for (i in 0 until count) {
       val event = eventBuilder(Common.Event.Kind.SESSION,
                                false,
-                               1,
+                               if (!incrementSession) 1L else i + 1L,
                                if (!incrementGroupId) 1L else i + 1L,
                                i + 1L)
       events.add(event)
@@ -84,7 +84,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     val event = Common.Event.newBuilder().apply {
       kind = Common.Event.Kind.SESSION
       isEnded = false
-      pid = 1
+      sessionId = 1
       groupId = 1
       session = Common.SessionData.newBuilder().setSessionStarted(Common.SessionData.SessionStarted.newBuilder().setPid(1)).build()
     }.build()
@@ -104,7 +104,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
 
   @Test
   fun queryEvents() {
-    val events = insertData(2, true)
+    val events = insertData(2, true, true)
     // Validate we have data inserted
     val eventResult = table.queryUnifiedEvents()
     assertThat(eventResult).containsExactlyElementsIn(events)
@@ -112,9 +112,8 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
 
   @Test
   fun filterNoKind() {
-    insertData(5, true)
-    val result = table.queryUnifiedEventGroups(
-      Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.NONE).setStreamId(1).build())
+    insertData(5, false, true)
+    val result = table.queryUnifiedEventGroups(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.NONE).build())
     assertThat(result).isEmpty()
   }
 
@@ -146,7 +145,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
                    SESSION_1_1_2,
                    SESSION_1_1_3,
                    SESSION_1_1_4) // Expected due to +1
-    // SESSION_2_1_5 Groups that start after our to timestamp are also not expected.
+                // SESSION_2_1_5 Groups that start after our to timestamp are also not expected.
   }
 
   @Test
@@ -164,7 +163,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   @Test
   fun filterKindSession() {
     validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1).build(),
+                     .setSessionId(1).build(),
                    SESSION_1_1_1,
                    SESSION_1_1_2,
                    SESSION_1_1_3,
@@ -175,7 +174,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   @Test
   fun filterKindSessionFromTimestamp() {
     validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1)
+                     .setSessionId(1)
                      .setFromTimestamp(3).build(),
                    SESSION_1_1_2, // Expected due to -1
                    SESSION_1_1_3,
@@ -186,7 +185,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   @Test
   fun filterKindSessionToTimestamp() {
     validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1)
+                     .setSessionId(1)
                      .setToTimestamp(3).build(),
                    SESSION_1_1_1,
                    SESSION_1_1_2,
@@ -197,7 +196,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   @Test
   fun filterKindSessionFromTimestampToTimestamp() {
     validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1)
+                     .setSessionId(1)
                      .setFromTimestamp(3)
                      .setToTimestamp(4).build(),
                    SESSION_1_1_2,
@@ -208,7 +207,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   @Test
   fun filterKindGroupId() {
     validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1).setGroupId(1).build(),
+                     .setSessionId(1).setGroupId(1).build(),
                    SESSION_1_1_1,
                    SESSION_1_1_2,
                    SESSION_1_1_3,
@@ -218,8 +217,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   @Test
   fun filterKindGroupIdSessionFromTimestamp() {
     validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setStreamId(1)
-                     .setPid(1)
+                     .setSessionId(1)
                      .setGroupId(1)
                      .setFromTimestamp(3).build(),
                    SESSION_1_1_2, // Included from the -1.
@@ -230,8 +228,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   @Test
   fun filterKindGroupIdSessionToTimestamp() {
     validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setStreamId(1)
-                     .setPid(1)
+                     .setSessionId(1)
                      .setGroupId(2)
                      .setToTimestamp(8).build(),
                    SESSION_1_2_7)
@@ -240,7 +237,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   @Test
   fun filterKindGroupIdSessionFromTimestampToTimestamp() {
     validateFilter(Profiler.GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setPid(1)
+                     .setSessionId(1)
                      .setGroupId(1)
                      .setFromTimestamp(3)
                      .setToTimestamp(3).build(),
@@ -281,13 +278,13 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
 
   private fun eventBuilder(kind: Common.Event.Kind,
                            isEnded: Boolean,
-                           pid: Int,
+                           sessionId: Long,
                            eventId: Long,
                            timestamp: Long): Common.Event {
     return Common.Event.newBuilder()
       .setKind(kind)
       .setIsEnded(isEnded)
-      .setPid(pid)
+      .setSessionId(sessionId)
       .setGroupId(eventId)
       .setTimestamp(timestamp)
       .build()
