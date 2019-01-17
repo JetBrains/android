@@ -41,29 +41,41 @@ class DeploymentErrorHandler {
   static final String RERUN_OPTION = "<a href='" + RERUN_LINK + "'>Rerun</a>";
 
   @NotNull
-  private final String myErrorString;
-  @NotNull
-  private final String myNotificationErrorString;
+  private final String myBaseErrorString;
   @Nullable
   private final NotificationListener myNotificationListener;
   @NotNull
   private final DeployerException myException;
 
   DeploymentErrorHandler(@NotNull String description, @NotNull DeployerException exception) {
-    myErrorString = getErrorString(description, exception);
-    myNotificationErrorString = getNotificationErrorString(myErrorString, exception);
+    myBaseErrorString = getBaseErrorString(description, exception);
     myNotificationListener = new DeploymentErrorNotificationListener();
     myException = exception;
   }
 
+  /**
+   * Returns an error string with detailed failure reason, and is suitable for local logging.
+   */
   @NotNull
-  String getErrorString() {
-    return myErrorString;
+  String getConsoleErrorString() {
+    return String.format("%s%s", myBaseErrorString, myException.getReason());
   }
 
+  /**
+   * Returns an error string with suggested hyper links, and is suitable for UI notifications.
+   */
   @NotNull
   String getNotificationErrorString() {
-    return myNotificationErrorString;
+    StringBuilder builder = new StringBuilder(myBaseErrorString);
+
+    // TODO(b/117673388): Add "Learn More" hyperlink when we finally have the webpage up.
+    if (DeployerException.Error.CANNOT_SWAP_RESOURCE.equals(myException.getError())) {
+      builder.append(APPLY_CHANGES_OPTION);
+      builder.append(" | ");
+    }
+    builder.append(RERUN_OPTION);
+
+    return builder.toString();
   }
 
   @Nullable
@@ -75,25 +87,8 @@ class DeploymentErrorHandler {
    * Returns an error string that's suitable for logging.
    */
   @NotNull
-  private static String getErrorString(@NotNull String description, @NotNull DeployerException exception) {
+  private static String getBaseErrorString(@NotNull String description, @NotNull DeployerException exception) {
     return String.format("%s failed.\n%s\n", description, DeployerErrorMessagePresenter.createInstance().present(exception));
-  }
-
-  /**
-   * Returns an error string with suggested hyper links, and is suitable for UI notifications.
-   */
-  @NotNull
-  private static String getNotificationErrorString(@NotNull String errorString, @NotNull DeployerException exception) {
-    StringBuilder builder = new StringBuilder(errorString);
-
-    // TODO(b/117673388): Add "Learn More" hyperlink when we finally have the webpage up.
-    if (DeployerException.Error.CANNOT_SWAP_RESOURCE.equals(exception.getError())) {
-      builder.append(APPLY_CHANGES_OPTION);
-      builder.append(" | ");
-    }
-    builder.append(RERUN_OPTION);
-
-    return builder.toString();
   }
 
   public String getErrorId() {
