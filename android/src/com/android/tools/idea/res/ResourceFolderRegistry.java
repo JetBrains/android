@@ -59,7 +59,9 @@ public class ResourceFolderRegistry {
 
   @NotNull
   private static Cache<VirtualFile, ResourceFolderRepository> buildCache() {
-    return CacheBuilder.newBuilder().weakValues().build();
+    // We need soft references since the created ResourceFolderRepository may not be referenced from any module level repository
+    // right after it is created by the PopulateCachesTask below.
+    return CacheBuilder.newBuilder().softValues().build();
   }
 
   @NotNull
