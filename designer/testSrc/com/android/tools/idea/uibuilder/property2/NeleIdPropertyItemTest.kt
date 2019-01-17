@@ -201,6 +201,13 @@ class NeleIdPropertyItemTest {
   }
 
   @Test
+  fun testNoValueToolTip() {
+    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val property = util.makeIdProperty()
+    assertThat(property.tooltipForValue).isEqualTo("")
+  }
+
+  @Test
   fun testValidation() {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
