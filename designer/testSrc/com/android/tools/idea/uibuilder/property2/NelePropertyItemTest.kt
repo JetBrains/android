@@ -19,6 +19,7 @@ import com.android.SdkConstants.ABSOLUTE_LAYOUT
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
+import com.android.SdkConstants.ATTR_FONT_FAMILY
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
@@ -59,6 +60,7 @@ import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.TwoColorsIcon
 import icons.StudioIcons
 import org.intellij.lang.annotations.Language
+import org.jetbrains.android.dom.AndroidDomUtil
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -337,6 +339,17 @@ class NelePropertyItemTest : PropertyTestCase() {
     val toEndOf = createPropertyItem(ANDROID_URI, ATTR_LAYOUT_TO_END_OF, NelePropertyType.ID, listOf(components[0]), model)
     val values = toEndOf.editingSupport.completion()
     assertThat(values).containsExactly("@id/button1", "@id/text2", "@id/button2").inOrder()
+  }
+
+  fun testFontCompletion() {
+    myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf")
+    val model = NelePropertiesModel(testRootDisposable, myFacet)
+    val components = createTextView()
+    val font = createPropertyItem(ANDROID_URI, ATTR_FONT_FAMILY, NelePropertyType.FONT, components, model)
+    val values = font.editingSupport.completion()
+    val expected = mutableListOf("@font/customfont")
+    expected.addAll(AndroidDomUtil.AVAILABLE_FAMILIES)
+    assertThat(values).containsExactlyElementsIn(expected)
   }
 
   fun testParentTagCompletion() {
