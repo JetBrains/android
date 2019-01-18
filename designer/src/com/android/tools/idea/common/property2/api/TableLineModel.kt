@@ -34,9 +34,19 @@ interface TableLineModel: InspectorLineModel {
   val selectedItem: PTableItem?
 
   /**
+   * Returns the visible item count taking filtering into account.
+   */
+  val itemCount: Int
+
+  /**
    * Request focus in a specified item.
    */
   fun requestFocus(item: PTableItem)
+
+  /**
+   * Request focus in item with best filter match.
+   */
+  fun requestFocusInBestMatch()
 
   /**
    * Stop editing the any table item.

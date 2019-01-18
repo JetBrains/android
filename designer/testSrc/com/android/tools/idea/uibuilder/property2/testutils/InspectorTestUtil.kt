@@ -117,10 +117,15 @@ class FakeTableLine(override val tableModel: PTableModel,
                     override val isSearchable: Boolean) : FakeInspectorLine(LineType.TABLE), TableLineModel {
   override var selectedItem: PTableItem? = null
 
+  override val itemCount = tableModel.items.size
+
   override var filter: String = ""
 
   override fun requestFocus(item: PTableItem) {
     selectedItem = item
+  }
+
+  override fun requestFocusInBestMatch() {
   }
 
   override fun stopEditing() {
