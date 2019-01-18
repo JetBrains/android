@@ -154,6 +154,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     int uniqueId = runProfile instanceof RunConfigurationBase ? ((RunConfigurationBase)runProfile).getUniqueID() : -1;
     AndroidSessionInfo value = new AndroidSessionInfo(debugProcessHandler, debugDescriptor, uniqueId, currentLaunchInfo.executor.getId(),
                                                       currentLaunchInfo.executor.getActionName(),
+                                                      currentLaunchInfo.env.getExecutionTarget(),
                                                       InstantRunUtils.isInstantRunEnabled(currentLaunchInfo.env));
     debugProcessHandler.putUserData(AndroidSessionInfo.KEY, value);
     debugProcessHandler.putUserData(AndroidSessionInfo.ANDROID_DEBUG_CLIENT, client);

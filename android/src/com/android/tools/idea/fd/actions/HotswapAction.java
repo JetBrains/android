@@ -25,6 +25,8 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.actions.AndroidStudioGradleAction;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidSessionInfo;
+import com.intellij.execution.ExecutionTarget;
+import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
@@ -39,7 +41,6 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
-import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -76,13 +77,14 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
       return;
     }
 
-    AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
+    AndroidSessionInfo session = getAndroidSessionInfo(project, settings, ExecutionTargetManager.getInstance(project).getActiveTarget());
     if (session == null || session.getDevices().isEmpty()) {
       presentation.setText(String.format("Apply Changes: No active '%1$s' launch", settings.getName()));
       return;
     }
 
-    ProcessHandler processHandler = getActiveProcessHandler(project, settings);
+    ProcessHandler processHandler =
+      getActiveProcessHandler(project, settings, ExecutionTargetManager.getInstance(project).getActiveTarget());
     if (processHandler == null) {
       presentation.setText(String.format("Apply Changes: No active '%1$s' launch", settings.getName()));
       return;
@@ -152,7 +154,7 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
       // TODO: Figure out the debugger flow. For now always use the Run executor.
       executor = getExecutor(DefaultRunExecutor.EXECUTOR_ID);
     } else {
-      AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
+      AndroidSessionInfo session = getAndroidSessionInfo(project, settings, ExecutionTargetManager.getInstance(project).getActiveTarget());
       if (session == null) {
         InstantRunManager.LOG.warn("Hotswap Action could not locate an existing session for selected run config.");
         return;
@@ -177,12 +179,14 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
   }
 
   @Nullable
-  private static ProcessHandler getActiveProcessHandler(@Nullable Project project, @Nullable RunnerAndConfigurationSettings settings) {
+  private static ProcessHandler getActiveProcessHandler(@Nullable Project project,
+                                                        @Nullable RunnerAndConfigurationSettings settings,
+                                                        @NotNull ExecutionTarget executionTarget) {
     if (project == null || settings == null) {
       return null;
     }
 
-    AndroidSessionInfo session = getAndroidSessionInfo(project, settings);
+    AndroidSessionInfo session = getAndroidSessionInfo(project, settings, executionTarget);
     if (session == null) {
       return null;
     }
@@ -196,8 +200,11 @@ public class HotswapAction extends AndroidStudioGradleAction implements AnAction
   }
 
   @Nullable
-  private static AndroidSessionInfo getAndroidSessionInfo(Project project, RunnerAndConfigurationSettings settings) {
-    AndroidSessionInfo session = AndroidSessionInfo.findOldSession(project, null, settings.getConfiguration().getUniqueID());
+  private static AndroidSessionInfo getAndroidSessionInfo(@NotNull Project project,
+                                                          @NotNull RunnerAndConfigurationSettings settings,
+                                                          @NotNull ExecutionTarget executionTarget) {
+    AndroidSessionInfo session =
+      AndroidSessionInfo.findOldSession(project, null, settings.getConfiguration().getUniqueID(), executionTarget);
     if (session == null) {
       return null;
     }
