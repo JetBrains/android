@@ -17,7 +17,7 @@ package com.android.tools.idea.profilers;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.idea.runtimePipeline.IntellijLogService;
+import com.android.tools.idea.transport.IntellijLogService;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
