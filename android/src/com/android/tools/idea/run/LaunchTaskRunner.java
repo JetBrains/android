@@ -33,6 +33,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +47,7 @@ import java.util.concurrent.TimeoutException;
 
 public class LaunchTaskRunner extends Task.Backgroundable {
   @NotNull private final String myConfigName;
+  @Nullable private final String myExecutionTargetName; // Change to NotNull once everything is moved over to DeviceAndSnapshot
   @NotNull private final LaunchInfo myLaunchInfo;
   @NotNull private final ProcessHandler myProcessHandler;
   @NotNull private final DeviceFutures myDeviceFutures;
@@ -57,6 +59,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
 
   public LaunchTaskRunner(@NotNull Project project,
                           @NotNull String configName,
+                          @Nullable String executionTargetName,
                           @NotNull LaunchInfo launchInfo,
                           @NotNull ProcessHandler processHandler,
                           @NotNull DeviceFutures deviceFutures,
@@ -65,6 +68,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     super(project, "Launching " + configName);
 
     myConfigName = configName;
+    myExecutionTargetName = executionTargetName;
     myLaunchInfo = launchInfo;
     myProcessHandler = processHandler;
     myDeviceFutures = deviceFutures;
@@ -95,8 +99,18 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       AndroidProcessText.attach(myProcessHandler);
     }
 
+    StringBuilder launchString = new StringBuilder("\n");
     DateFormat dateFormat = new SimpleDateFormat("MM/dd HH:mm:ss");
-    consolePrinter.stdout("\n" + dateFormat.format(new Date()) + ": Launching " + myConfigName);
+    launchString.append(dateFormat.format(new Date()));
+    launchString.append(": Launching '");
+    launchString.append(myConfigName);
+    launchString.append("'");
+    if (!StringUtil.isEmpty(myExecutionTargetName)) {
+      launchString.append(" on ");
+      launchString.append(myExecutionTargetName);
+      launchString.append(".");
+    }
+    consolePrinter.stdout(launchString.toString());
 
     for (ListenableFuture<IDevice> deviceFuture : listenableDeviceFutures) {
       indicator.setText("Waiting for target device to come online");
