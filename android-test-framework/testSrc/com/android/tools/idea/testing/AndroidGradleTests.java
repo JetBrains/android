@@ -93,6 +93,7 @@ public class AndroidGradleTests {
       contents = updateBuildToolsVersion(contents);
       contents = updateCompileSdkVersion(contents);
       contents = updateTargetSdkVersion(contents);
+      contents = updateMinSdkVersion(contents);
       contents = updateLocalRepositories(contents, localRepositories);
 
       if (!contents.equals(contentsOrig)) {
@@ -136,6 +137,24 @@ public class AndroidGradleTests {
   @NotNull
   public static String updateTargetSdkVersion(@NotNull String contents) {
     return replaceRegexGroup(contents, "targetSdkVersion ([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+  }
+
+  @NotNull
+  public static String updateMinSdkVersion(@NotNull String contents) {
+    String regex = "minSdkVersion ([0-9]+)";
+    Pattern pattern = Pattern.compile(regex);
+    Matcher matcher = pattern.matcher(contents);
+    String minSdkVersion = BuildEnvironment.getInstance().getMinSdkVersion();
+    if (matcher.find()) {
+      try {
+        if (Integer.parseInt(matcher.group(1)) < Integer.parseInt(minSdkVersion)) {
+          contents = contents.substring(0, matcher.start(1)) + minSdkVersion + contents.substring(matcher.end(1));
+        }
+      }
+      catch (NumberFormatException ignore) {
+      }
+    }
+    return contents;
   }
 
   @NotNull
