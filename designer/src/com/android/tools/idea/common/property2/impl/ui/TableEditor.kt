@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
-import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.ptable2.PTable
 import com.android.tools.adtui.ptable2.PTableCellEditorProvider
 import com.android.tools.adtui.ptable2.PTableCellRendererProvider
 import com.android.tools.adtui.ptable2.PTableColumn
-import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
-
+import com.android.tools.adtui.ptable2.PTableGroupItem
+import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.idea.common.property2.api.PropertyItem
+import com.android.tools.idea.common.property2.impl.model.TableEditingRequest
 import com.android.tools.idea.common.property2.impl.model.TableLineModelImpl
+import com.android.tools.idea.common.property2.impl.model.TableRowEditListener
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
+import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
+import com.intellij.psi.codeStyle.NameUtil
+import com.intellij.util.text.Matcher
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
 import javax.swing.JTable
@@ -44,7 +48,15 @@ class TableEditor(val lineModel: TableLineModelImpl,
 
   init {
     component.rowHeight = computeRowHeight()
-    lineModel.addValueChangedListener(ValueChangedListener { handleValueChanged() })
+    lineModel.addValueChangedListener(object : TableRowEditListener {
+      override fun valueChanged() {
+        handleValueChanged()
+      }
+
+      override fun editRequest(type: TableEditingRequest, item: PTableItem?) {
+        handleEditRequest(type, item)
+      }
+    })
     component.selectionModel.addListSelectionListener {
       val model = lineModel.tableModel
       val index = component.selectedRow
@@ -57,8 +69,16 @@ class TableEditor(val lineModel: TableLineModelImpl,
   private fun handleValueChanged() {
     component.isVisible = lineModel.visible
     table.filter = lineModel.filter
-    if (lineModel.updateEditing) {
-      table.startEditing(lineModel.rowToEdit)
+    lineModel.itemCount = table.itemCount
+  }
+
+  private fun handleEditRequest(request: TableEditingRequest, item: PTableItem?) {
+    handleValueChanged()
+    when (request) {
+      TableEditingRequest.SPECIFIED_ITEM -> table.startEditing(findRowOf(item))
+      TableEditingRequest.STOP_EDITING -> table.startEditing(-1)
+      TableEditingRequest.BEST_MATCH -> table.startEditing(findRowOfBestMatch())
+      else -> {}
     }
   }
 
@@ -76,4 +96,49 @@ class TableEditor(val lineModel: TableLineModelImpl,
     val textField = PropertyTextField(TextFieldPropertyEditorModel(property, true))
     return Integer.max(textField.preferredSize.height, JBUI.scale(MINIMUM_ROW_HEIGHT))
   }
+
+  // TODO(b/123090421): Move this to TableLineModelImpl
+  private fun findRowOf(itemToEdit: PTableItem?): Int {
+    val count = table.itemCount
+    for (i in 0..(count-1)) {
+      val item = table.item(i)
+      if (item == itemToEdit) {
+        return i
+      }
+    }
+    return -1
+  }
+
+  // TODO(b/123090421): Move this to TableLineModelImpl
+  // TODO(b/123092243): Allow this to find items that are currently in a closed group item.
+  private fun findRowOfBestMatch(): Int {
+    if (lineModel.filter.isEmpty()) {
+      return -1
+    }
+    val matcher = NameUtil.buildMatcher("*${lineModel.filter}").build()
+    val count = table.itemCount
+    var best: PTableItem? = null
+    var bestRow = -1
+    for (row in 0..(count-1)) {
+      val item = table.item(row)
+      if (isMatch(matcher, item) && isBetter(item, best)) {
+        best = item
+        bestRow = row
+      }
+    }
+    return bestRow
+  }
+
+  private fun isMatch(matcher: Matcher, item: PTableItem): Boolean =
+    when (item) {
+      is PTableGroupItem -> matcher.matches(item.name)
+      else -> true
+    }
+
+  private fun isBetter(item: PTableItem, best: PTableItem?): Boolean =
+    when {
+      !lineModel.tableModel.isCellEditable(item, PTableColumn.VALUE) -> false
+      best == null -> true
+      else -> item.name.length < best.name.length
+    }
 }

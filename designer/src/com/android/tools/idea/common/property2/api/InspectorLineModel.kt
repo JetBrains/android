@@ -81,7 +81,6 @@ interface InspectorLineModel {
     get() = ""
     set(_) = error(ERROR_NOT_SEARCHABLE)
 
-
   /**
    * Return true, if this line should be shown for the specified search filter.
    *

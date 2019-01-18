@@ -48,7 +48,7 @@ class InspectorPanelModelTest {
     val textEditor = TestPropertyEditorModel(textProperty)
     val textAppEditor = TestPropertyEditorModel(textAppProperty)
     val someEditor = TestPropertyEditorModel(someProperty)
-    val otherEditor = TestPropertyEditorModel(otherProperty)
+    private val otherEditor = TestPropertyEditorModel(otherProperty)
 
     private val properties = PropertiesComponentMock()
 
@@ -99,7 +99,7 @@ class InspectorPanelModelTest {
     assertThat(inspector.textItem.visible).isTrue()
     assertThat(inspector.genericLine.visible).isFalse()
     assertThat(inspector.someItem.visible).isFalse()
-    assertThat(inspector.tableLineModel1.visible).isTrue()
+    assertThat(inspector.tableLineModel1.visible).isFalse()
     assertThat(inspector.tableLineModel1.filter).isEqualTo("tex")
     assertThat(inspector.tableLineModel2.visible).isFalse()
     assertThat(inspector.otherItem.visible).isFalse()
@@ -120,7 +120,7 @@ class InspectorPanelModelTest {
     assertThat(inspector.textItem.visible).isFalse()
     assertThat(inspector.genericLine.visible).isFalse()
     assertThat(inspector.someItem.visible).isTrue()
-    assertThat(inspector.tableLineModel1.visible).isTrue()
+    assertThat(inspector.tableLineModel1.visible).isFalse()
     assertThat(inspector.tableLineModel1.filter).isEqualTo("o")
     assertThat(inspector.tableLineModel2.visible).isFalse()
     assertThat(inspector.otherItem.visible).isFalse()
