@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.PropertyCellEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
@@ -101,13 +102,14 @@ private const val UNRESOLVED_VALUE = 1
  */
 class VariablesTable private constructor(
   private val project: Project,
+  private val context: PsContext,
   private val psProject: PsProject,
   private val variablesTreeModel: VariablesTableModel
 ) :
   TreeTable(variablesTreeModel) {
 
-  constructor (project: Project, psProject: PsProject, parentDisposable: Disposable) :
-    this(project, psProject, createTreeModel(ProjectShadowNode(psProject), parentDisposable))
+  constructor (project: Project, context: PsContext, psProject: PsProject, parentDisposable: Disposable) :
+    this(project, context, psProject, createTreeModel(ProjectShadowNode(psProject), parentDisposable))
 
   private val iconGap = JBUI.scale(2)
   private val editorInsets = JBUI.insets(1, 2)
@@ -446,7 +448,7 @@ class VariablesTable private constructor(
         is EmptyValueNode -> node.createVariable(ParsedValue.NotSet)
         else -> throw IllegalStateException()
       }
-      val uiProperty = uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor)
+      val uiProperty = uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor, psdUsageLogFieldId = null)
       val enterHandlingProxyCellEditor =
         object : TableCellEditor by this {
           override fun stopCellEditing(): Boolean {
@@ -456,7 +458,7 @@ class VariablesTable private constructor(
               .also { invokeLater { nextCell(ActionEvent(this, ActionEvent.ACTION_PERFORMED, null), editingRow, editingColumn) } }
           }
         }
-      val editor = uiProperty.createEditor(psProject, null, variable, enterHandlingProxyCellEditor)
+      val editor = uiProperty.createEditor(context, psProject, null, variable, enterHandlingProxyCellEditor)
       addTabKeySupportTo(editor.component)
       return editor
     }

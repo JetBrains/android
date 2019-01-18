@@ -58,7 +58,7 @@ open class ConfigPanel<in ModelT>(
   private fun initializeEditors() {
     setNumberOfProperties(propertiesModel.properties.size)
     for (property in propertiesModel.properties) {
-      val editor: ModelPropertyEditor<Any> = property.createEditor(project, module, model)
+      val editor: ModelPropertyEditor<Any> = property.createEditor(context, project, module, model)
       val labelComponent = editor.labelComponent
       addPropertyComponents(labelComponent, editor.component, editor.statusComponent)
       editors.add(editor)

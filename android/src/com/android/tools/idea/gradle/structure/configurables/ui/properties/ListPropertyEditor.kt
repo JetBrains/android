@@ -36,9 +36,10 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesScope: PsVariablesScope?
+  variablesScope: PsVariablesScope?,
+  logValueEdited: () -> Unit
 ) :
-  CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope),
+  CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope, logValueEdited),
   ModelPropertyEditor<List<ValueT>>, ModelPropertyEditorFactory<List<ValueT>, ModelPropertyT> {
 
   override fun updateProperty(): UpdatePropertyOutcome = throw UnsupportedOperationException()
@@ -102,6 +103,6 @@ class ListPropertyEditor<ValueT : Any, ModelPropertyT : ModelListPropertyCore<Va
     cellEditor: TableCellEditor?,
     isPropertyContext: Boolean
   ): ModelPropertyEditor<List<ValueT>> =
-    ListPropertyEditor(property, propertyContext, editor, variablesScope)
+    ListPropertyEditor(property, propertyContext, editor, variablesScope) { /* no usage logging */}
 }
 
