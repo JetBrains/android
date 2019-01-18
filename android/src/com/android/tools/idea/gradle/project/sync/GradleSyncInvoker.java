@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.clearStoredGradleJvmArgs;
@@ -24,13 +25,16 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+import static java.lang.System.currentTimeMillis;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
+import com.android.tools.idea.gradle.project.build.output.AndroidGradleSyncTextConsoleView;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
@@ -43,10 +47,20 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.project.IndexingSuspender;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
+import com.intellij.build.DefaultBuildDescriptor;
+import com.intellij.build.SyncViewManager;
+import com.intellij.build.events.EventResult;
+import com.intellij.build.events.Failure;
+import com.intellij.build.events.impl.FailureResultImpl;
+import com.intellij.build.events.impl.FinishBuildEventImpl;
+import com.intellij.build.events.impl.StartBuildEventImpl;
+import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -200,7 +214,7 @@ public class GradleSyncInvoker {
     }
 
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeProjectMessages());
-    PreSyncCheckResult checkResult = myPreSyncChecks.canSync(project);
+    PreSyncCheckResult checkResult = runPreSyncChecks(project);
     if (!checkResult.isSuccess()) {
       // User should have already warned that something is not right and sync cannot continue.
       String cause = nullToEmpty(checkResult.getFailureCause());
@@ -240,11 +254,21 @@ public class GradleSyncInvoker {
     gradleSync.sync(request, listener);
   }
 
+  @VisibleForTesting
+  @NotNull
+  PreSyncCheckResult runPreSyncChecks(@NotNull Project project) {
+    return myPreSyncChecks.canSync(project);
+  }
+
   private static void handlePreSyncCheckFailure(@NotNull Project project,
                                                 @NotNull String failureCause,
                                                 @Nullable GradleSyncListener syncListener,
                                                 @NotNull GradleSyncInvoker.Request request) {
     GradleSyncState syncState = GradleSyncState.getInstance(project);
+
+    // Create an external task so we can display messages associated to it in the build view
+    ExternalSystemTaskId taskId = createFailedPreCheckSyncTaskWithStartMessage(project);
+    syncState.setExternalSystemTaskId(taskId);
     if (syncState.syncStarted(true, request)) {
       if (syncListener != null) {
         syncListener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
@@ -254,6 +278,36 @@ public class GradleSyncInvoker {
         syncListener.syncFailed(project, failureCause);
       }
     }
+
+    // Let build view know there were issues
+    GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
+    List<Failure> failures = messages.showEvents(taskId);
+    EventResult result = new FailureResultImpl(failures);
+    FinishBuildEventImpl finishBuildEvent = new FinishBuildEventImpl(taskId, null, currentTimeMillis(), failureCause, result);
+    ServiceManager.getService(project, SyncViewManager.class).onEvent(finishBuildEvent);
+  }
+
+  /**
+   * Create a new {@link ExternalSystemTaskId} when sync cannot start due to pre check failures and add a StartBuildEvent to build view.
+   *
+   * @param project
+   * @return
+   */
+  @NotNull
+  public static ExternalSystemTaskId createFailedPreCheckSyncTaskWithStartMessage(@NotNull Project project) {
+    // Create taskId
+    ExternalSystemTaskId taskId = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
+
+    // Create StartBuildEvent
+    String workingDir = toCanonicalPath(getBaseDirPath(project).getPath());
+    DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Preparing for sync", workingDir, currentTimeMillis());
+    SyncViewManager syncManager = ServiceManager.getService(project, SyncViewManager.class);
+    syncManager.onEvent(new StartBuildEventImpl(buildDescriptor, "Running pre sync checks...").withContentDescriptorSupplier(
+      () -> {
+        AndroidGradleSyncTextConsoleView consoleView = new AndroidGradleSyncTextConsoleView(project);
+        return new RunContentDescriptor(consoleView, null, consoleView.getComponent(), "Gradle Sync");
+      }));
+    return taskId;
   }
 
   // See issue: https://code.google.com/p/android/issues/detail?id=64508
