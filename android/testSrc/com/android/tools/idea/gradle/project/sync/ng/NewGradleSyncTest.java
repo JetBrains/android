@@ -288,14 +288,13 @@ public class NewGradleSyncTest extends IdeaTestCase {
       doAnswer(invocation -> {
         myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
         return null;
-      }).when(mySyncExecutor).syncProject(any(), same(myCallback), any(), any(), any(), eq(true));
+      }).when(mySyncExecutor).syncProject(any(), same(myCallback), any(), any(), any(), any(), eq(true));
 
       myGradleSync.sync(request, mySyncListener);
 
-      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(null), any(), any(), eq(true));
+      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(null), any(), any(), any(), eq(true));
 
       verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(false));
-      verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));
       verify(myResultHandler, never()).onSyncFailed(same(myCallback), same(mySyncListener));
     }
     finally {
@@ -318,14 +317,13 @@ public class NewGradleSyncTest extends IdeaTestCase {
       doAnswer(invocation -> {
         myCallback.setDone(mock(VariantOnlyProjectModels.class), mock(ExternalSystemTaskId.class));
         return null;
-      }).when(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), anyBoolean());
+      }).when(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), any(), anyBoolean());
 
       myGradleSync.sync(request, mySyncListener);
 
-      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), anyBoolean());
+      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), any(), anyBoolean());
 
       verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(true));
-      verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));
       verify(myResultHandler, never()).onSyncFailed(same(myCallback), same(mySyncListener));
     }
     finally {
