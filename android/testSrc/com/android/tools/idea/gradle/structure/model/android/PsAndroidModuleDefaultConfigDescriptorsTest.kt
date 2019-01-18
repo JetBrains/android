@@ -87,8 +87,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
       assertThat(maxSdkVersion.resolved.asTestValue(), equalTo(26))
       assertThat(maxSdkVersion.parsedValue.asTestValue(), equalTo(26))
 
-      assertThat(minSdkVersion.resolved.asTestValue(), equalTo("9"))
-      assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("9"))
+      assertThat(minSdkVersion.resolved.asTestValue(), equalTo("14"))
+      assertThat(minSdkVersion.parsedValue.asTestValue(), equalTo("14"))
 
       assertThat(multiDexEnabled.resolved.asTestValue(), nullValue())
       assertThat(multiDexEnabled.parsedValue.asTestValue(), nullValue())
