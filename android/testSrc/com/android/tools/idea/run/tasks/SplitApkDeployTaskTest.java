@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStatsService;
@@ -56,6 +57,8 @@ public class SplitApkDeployTaskTest {
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE));
+    when(myEmbeddedDevice.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE));
     when(myEmbeddedDevice.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true);
     when(myContext.getApplicationId()).thenReturn(PACKAGE_NAME);
   }
@@ -82,6 +85,14 @@ public class SplitApkDeployTaskTest {
     answerInstallOptions(myDevice,
                          apks -> assertThat(apks).containsExactly(new File("foo.apk"), new File("bar.apk")),
                          installOptions -> assertThat(installOptions).containsExactly("-t", "-p", PACKAGE_NAME));
+    assertTrue(task.perform(myDevice, myLaunchStatus, myPrinter));
+  }
+
+  @Test
+  public void testDeployApi28() throws Throwable {
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.P));
+    SplitApkDeployTask task = new SplitApkDeployTask(myProject, myContext);
+    answerInstallOptions(myDevice, installOptions -> assertThat(installOptions).containsExactly("-t", "--full"));
     assertTrue(task.perform(myDevice, myLaunchStatus, myPrinter));
   }
 
