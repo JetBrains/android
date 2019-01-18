@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.common.property2.impl.model.util
 
+import com.android.tools.adtui.ptable2.PTableColumn
 import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
+import java.util.Objects
 
 class TestPTableModel(expanded: Boolean,
                       values: Map<String, String>,
@@ -36,12 +38,18 @@ class TestPTableModel(expanded: Boolean,
     }
   }
 
+  override fun isCellEditable(item: PTableItem, column: PTableColumn) =
+    column == PTableColumn.VALUE
+
   override fun refresh() {
     refreshCalled = true
   }
 }
 
-class TestTableItem(override val name: String, override val value: String?) : PTableItem
+class TestTableItem(override val name: String, override val value: String?) : PTableItem {
+  override fun hashCode(): Int = Objects.hash(name, value)
+  override fun equals(other: Any?): Boolean = other is TestTableItem && name == other.name && value == other.value
+}
 
 class TestGroupItem(override val name: String, items: Map<String, String>): PTableGroupItem {
   override val value: String? = null

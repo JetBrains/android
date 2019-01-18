@@ -90,15 +90,21 @@ class InspectorPanelModel {
     if (filter.isEmpty()) {
       return false
     }
-    // TODO: b/120919678 We should be able to jump to an editor in a table
-    val visibleLabels = lines.filter{ it.visible && it !is TableLineModel }
-    if (visibleLabels.size != 1) {
+    val visibleLabels = lines.filter{ it.visible && (it is CollapsibleLabelModel || it is TableLineModel) }
+    if (visibleLabels.count() != 1) {
       return false
     }
-    val label = visibleLabels[0] as? CollapsibleLabelModel
-    val editor = label?.editorModel ?: return false
-    editor.requestFocus()
-    return true
+    val label = visibleLabels[0]
+    if (label is CollapsibleLabelModel) {
+      val editor = label.editorModel ?: return false
+      editor.requestFocus()
+      return true
+    }
+    else if (label is TableLineModel) {
+      label.requestFocusInBestMatch()
+      return true
+    }
+    return false
   }
 
   private fun updateFiltering() {
@@ -126,7 +132,7 @@ class InspectorPanelModel {
 
   private fun applyFilterToTable(line: TableLineModel) {
     line.filter = filter
-    line.visible = filter.isNotEmpty()
+    line.visible = line.itemCount > 0
   }
 
   private fun restoreGroups() {
