@@ -84,6 +84,7 @@ public class RepositoryUrlManager {
 
   private final boolean myForceRepositoryChecksInTests;
   private GoogleMavenRepository myGoogleMavenRepository;
+  private GoogleMavenRepository myCachedGoogleMavenRepository;
 
   public static RepositoryUrlManager get() {
     return ServiceManager.getService(RepositoryUrlManager.class);
@@ -91,13 +92,14 @@ public class RepositoryUrlManager {
 
   @SuppressWarnings("unused") // registered as service
   RepositoryUrlManager() {
-    this(IdeGoogleMavenRepository.INSTANCE, false);
+    this(IdeGoogleMavenRepository.INSTANCE, OfflineIdeGoogleMavenRepository.INSTANCE, false);
   }
 
   @VisibleForTesting
-  public RepositoryUrlManager(GoogleMavenRepository repository, boolean forceRepositoryChecks) {
+  public RepositoryUrlManager(GoogleMavenRepository repository, GoogleMavenRepository localRepository, boolean forceRepositoryChecks) {
     myForceRepositoryChecksInTests = forceRepositoryChecks;
     myGoogleMavenRepository = repository;
+    myCachedGoogleMavenRepository = localRepository;
   }
 
   @Nullable
@@ -145,7 +147,18 @@ public class RepositoryUrlManager {
                                    @NotNull File sdkLocation,
                                    @NotNull FileOp fileOp) {
     // First check the Google maven repository, which has most versions.
-    GradleVersion version = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
+    GradleVersion version;
+
+    // This is a workaround for b/122113652. When callers invoke this method in the UI thread, it could block. For now, we avoid that
+    // by checking and using the local cached version when called from the dispatch thread.
+    if (!ApplicationManager.getApplication().isDispatchThread()) {
+      version = myGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
+    }
+    else {
+      LOG.warn("RepositoryUrlManager#getLibraryRevision called from the UI thread. Using local cache to avoid network requests");
+      version = myCachedGoogleMavenRepository.findVersion(groupId, artifactId, filter, includePreviews);
+    }
+
     if (version != null) {
       return version.toString();
     }

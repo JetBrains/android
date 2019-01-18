@@ -96,7 +96,7 @@ class GenerateShippedSyncTest : AndroidTestBase() {
     // keeping it exactly the same as they are resolved within the NPW flow.
     IdeComponents(null) {}.replaceApplicationService(
       RepositoryUrlManager::class.java,
-      RepositoryUrlManager(IdeGoogleMavenRepository, true))
+      RepositoryUrlManager(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, true))
 
     StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true)
 
