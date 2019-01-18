@@ -15,25 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.precheck;
 
+import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.SUCCESS;
+import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.failure;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+
 import com.android.annotations.Nullable;
-import com.android.tools.idea.project.messages.MessageType;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.SUCCESS;
-import static com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult.failure;
-import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import org.jetbrains.annotations.NotNull;
 
 // We only check jdk for Studio, because only Studio uses the same JDK for all modules and all Gradle invocations.
 // See https://code.google.com/p/android/issues/detail?id=172714
@@ -48,7 +47,8 @@ class JdkPreSyncCheck extends AndroidStudioSyncCheck {
                      "Please ensure JDK installation is valid and compatible with the current OS (" +
                       SystemInfo.getOsNameAndVersion() + ", " + SystemInfo.OS_ARCH + ").\n" +
                      "If you are using embedded JDK, please make sure to download Android Studio bundle compatible\n" +
-                     "with the current OS. For example, for x86 systems please choose a 32 bits download option.";
+                     "with the current OS. For example, for x86 systems please choose a 32 bits download option.\n" +
+                     "Selected JDK location is " + (jdk != null ? jdk.getHomePath() : "not set");
     }
     else if (!Jdks.getInstance().isApplicableJdk(jdk, JDK_1_8)) {
       errorMessage = "Please use JDK 8 or newer.";
