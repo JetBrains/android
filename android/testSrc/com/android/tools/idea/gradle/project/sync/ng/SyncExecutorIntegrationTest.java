@@ -385,7 +385,7 @@ public class SyncExecutorIntegrationTest extends AndroidGradleTestCase {
                                                  new SyncErrorHandlerManager(project), variantCollector);
 
     SyncListener syncListener = new SyncListener();
-    syncExecutor.syncProject(new MockProgressIndicator(), syncListener, null, null, null, true);
+    syncExecutor.syncProject(new MockProgressIndicator(), syncListener, null, null, null, null, true);
     syncListener.await();
 
     syncListener.propagateFailureIfAny();
