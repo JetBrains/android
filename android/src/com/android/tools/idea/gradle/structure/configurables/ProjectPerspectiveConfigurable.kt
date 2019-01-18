@@ -66,6 +66,8 @@ class ProjectPerspectiveConfigurable(private val context: PsContext)
 fun projectPropertiesModel() =
   PropertiesUiModel(
     listOf(
-      uiProperty(PsProjectDescriptors.androidGradlePluginVersion, ::simplePropertyEditor),
-      uiProperty(PsProjectDescriptors.gradleVersion, ::simplePropertyEditor)))
+      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
+      uiProperty(PsProjectDescriptors.androidGradlePluginVersion, ::simplePropertyEditor, null),
+      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
+      uiProperty(PsProjectDescriptors.gradleVersion, ::simplePropertyEditor, null)))
 

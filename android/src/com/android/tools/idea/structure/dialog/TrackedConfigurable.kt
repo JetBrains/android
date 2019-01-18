@@ -32,10 +32,12 @@ interface TrackedConfigurable {
   val leftConfigurable: PSDEvent.PSDLeftConfigurable? get() = null
   val topConfigurable: PSDEvent.PSDTopTab? get() = null
 
-  fun applyTo(builder: PSDEvent.Builder) {
+  fun copyIdFieldsTo(builder: PSDEvent.Builder) {
     leftConfigurable?.let { builder.setLeftConfigurable(it) }
     topConfigurable?.let { builder.setTopTab(it) }
   }
+
+  fun copyEditedFieldsTo(builder: PSDEvent.Builder) = Unit
 }
 
 fun Project.logUsageLeftNavigateTo(toSelect: Configurable) {
@@ -43,7 +45,7 @@ fun Project.logUsageLeftNavigateTo(toSelect: Configurable) {
     val psdEvent = PSDEvent
       .newBuilder()
       .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
-    toSelect.applyTo(psdEvent)
+    toSelect.copyIdFieldsTo(psdEvent)
     UsageTracker.log(
       AndroidStudioEvent
         .newBuilder()
@@ -71,7 +73,7 @@ fun Project.logUsageTopNavigateTo(toSelect: ModelPanel<*>) {
   val psdEvent = PSDEvent
     .newBuilder()
     .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
-  toSelect.applyTo(psdEvent)
+  toSelect.copyIdFieldsTo(psdEvent)
   UsageTracker.log(
     AndroidStudioEvent
       .newBuilder()
