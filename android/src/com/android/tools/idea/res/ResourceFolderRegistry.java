@@ -50,8 +50,8 @@ import java.util.concurrent.Future;
  * same directories when multiple modules need them. For every directory a namespaced and non-namespaced repository may be created, if
  * needed.
  *
- * <p>The repositories are stored using soft references, so can be garbage collected if there is memory pressure and there are no other
- * references. They are eventually strongly referenced from {@link MultiResourceRepository} as children of the module resources repository.
+ * <p>The repositories are stored using weak references, so can be garbage collected once no module uses them anymore. The repositories are
+ * strongly referenced from {@link MultiResourceRepository} as children of the module resources repository.
  */
 public class ResourceFolderRegistry {
   private final Cache<VirtualFile, ResourceFolderRepository> myNamespacedCache = buildCache();
@@ -59,9 +59,7 @@ public class ResourceFolderRegistry {
 
   @NotNull
   private static Cache<VirtualFile, ResourceFolderRepository> buildCache() {
-    // We need soft references since the created ResourceFolderRepository may not be referenced from any module level repository
-    // right after it is created by the PopulateCachesTask below.
-    return CacheBuilder.newBuilder().softValues().build();
+    return CacheBuilder.newBuilder().weakValues().build();
   }
 
   @NotNull
