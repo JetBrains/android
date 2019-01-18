@@ -15,22 +15,24 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.Graphics
+import java.awt.Rectangle
 
-import javax.swing.*
-import java.awt.*
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.image.ColorModel
 import java.awt.image.MemoryImageSource
+import javax.swing.JComponent
 
 private val KNOB_COLOR = Color.WHITE
 private const val KNOB_OUTER_RADIUS = 4
 private const val KNOB_INNER_RADIUS = 3
 
-class SaturationBrightnessComponent(private val myModel: ColorPickerModel) : JComponent(), ColorListener {
+class SaturationBrightnessComponent(private val myModel: ColorPickerModel) : JComponent(), ColorPickerListener {
   var brightness = 1f
     private set
   var hue = 1f
@@ -46,11 +48,15 @@ class SaturationBrightnessComponent(private val myModel: ColorPickerModel) : JCo
 
     val mouseAdapter = object : MouseAdapter() {
       override fun mousePressed(e: MouseEvent) {
-        handleMouseEvent(e)
+        handleMouseEvent(e, false)
       }
 
       override fun mouseDragged(e: MouseEvent) {
-        handleMouseEvent(e)
+        handleMouseEvent(e, false)
+      }
+
+      override fun mouseReleased(e: MouseEvent) {
+        handleMouseEvent(e, true)
       }
     }
     addMouseListener(mouseAdapter)
@@ -59,7 +65,7 @@ class SaturationBrightnessComponent(private val myModel: ColorPickerModel) : JCo
     myModel.addListener(this)
   }
 
-  private fun handleMouseEvent(e: MouseEvent) {
+  private fun handleMouseEvent(e: MouseEvent, commit: Boolean) {
     val x = Math.max(0, Math.min(e.x, size.width))
     val y = Math.max(0, Math.min(e.y, size.height))
 
@@ -67,7 +73,7 @@ class SaturationBrightnessComponent(private val myModel: ColorPickerModel) : JCo
     val brightness = 1.0f - y.toFloat() / size.height
 
     val argb = ahsbToArgb(alpha, hue, saturation, brightness)
-    myModel.setColor(Color(argb, true), this)
+    (if (commit) myModel::setColor else myModel::setPickingColor).invoke(Color(argb, true), this)
   }
 
   override fun getPreferredSize(): Dimension = JBUI.size(PICKER_PREFERRED_WIDTH, 150)
@@ -109,6 +115,8 @@ class SaturationBrightnessComponent(private val myModel: ColorPickerModel) : JCo
     alpha = a
     repaint()
   }
+
+  override fun pickingColorChanged(color: Color, source: Any?) = colorChanged(color, source)
 }
 
 private class SaturationBrightnessImageProducer(imageWidth: Int, imageHeight: Int, hue: Float)
