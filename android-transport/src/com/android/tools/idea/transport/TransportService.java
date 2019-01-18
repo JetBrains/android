@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.runtimePipeline;
+package com.android.tools.idea.transport;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.tools.datastore.DataStoreService;
@@ -41,13 +41,13 @@ import org.jetbrains.annotations.Nullable;
  * The service is application-level because devices/processes are accessible through multiple projects, and we want the pipeline to work
  * across projects as long as they share the same adb.
  */
-public class RuntimePipelineService {
+public class TransportService {
   private static Logger getLogger() {
-    return Logger.getInstance(RuntimePipelineService.class);
+    return Logger.getInstance(TransportService.class);
   }
 
-  public synchronized static RuntimePipelineService getInstance() {
-    return ServiceManager.getService(RuntimePipelineService.class);
+  public synchronized static TransportService getInstance() {
+    return ServiceManager.getService(TransportService.class);
   }
 
   private static final String DATASTORE_NAME = "DataStoreService";
@@ -56,7 +56,7 @@ public class RuntimePipelineService {
   @NotNull private final Set<Project> myProjects = new TreeSet<>();
   @Nullable private File myCurrentAdb;
 
-  private RuntimePipelineService() {
+  private TransportService() {
     // Hook up the listener for detecting project open and close events.
     MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
     connection.subscribe(ProjectLifecycleListener.TOPIC, new ProjectLifecycleListener() {
@@ -80,9 +80,9 @@ public class RuntimePipelineService {
   }
 
   @Nullable
-  public synchronized RuntimePipelineClient getClient(@NotNull Project project) {
+  public synchronized TransportClient getClient(@NotNull Project project) {
     if (registerProject(project)) {
-      return new RuntimePipelineClient(DATASTORE_NAME);
+      return new TransportClient(DATASTORE_NAME);
     }
     else {
       getLogger().warn("Unable to obtain pipeline client for the project.");
