@@ -17,11 +17,16 @@ package com.android.tools.idea.gradle.structure.configurables.android.modules
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.createTreeModel
-import com.android.tools.idea.gradle.structure.configurables.ui.*
+import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiModel
+import com.android.tools.idea.gradle.structure.configurables.ui.listPropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.mapPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePanel
+import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
 import com.android.tools.idea.gradle.structure.model.android.AndroidModuleDescriptors
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModuleDefaultConfigDescriptors
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 
@@ -40,31 +45,54 @@ class AndroidModuleRootConfigurable(
 fun androidModulePropertiesModel() =
   PropertiesUiModel(
     listOf(
-      uiProperty(AndroidModuleDescriptors.compileSdkVersion, ::simplePropertyEditor),
-      uiProperty(AndroidModuleDescriptors.buildToolsVersion, ::simplePropertyEditor),
-      uiProperty(AndroidModuleDescriptors.sourceCompatibility, ::simplePropertyEditor),
-      uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor)))
+      uiProperty(AndroidModuleDescriptors.compileSdkVersion, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_COMPILE_SDK_VERSION),
+      uiProperty(AndroidModuleDescriptors.buildToolsVersion, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_BUILD_TOLS_VERSION),
+      uiProperty(AndroidModuleDescriptors.sourceCompatibility, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_SOURCE_COMPATIBILITY),
+      uiProperty(AndroidModuleDescriptors.targetCompatibility, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_PROPERTIES_TARGET_COMPATIBILITY)))
 
 fun defaultConfigPropertiesModel(isLibrary: Boolean) =
   PropertiesUiModel(
     listOfNotNull(
-      if (!isLibrary) uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationId, ::simplePropertyEditor) else null,
-      if (!isLibrary) uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix, ::simplePropertyEditor) else null,
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion, ::simplePropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.minSdkVersion, ::simplePropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion, ::simplePropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.signingConfig, ::simplePropertyEditor),
-      if (isLibrary) uiProperty(PsAndroidModuleDefaultConfigDescriptors.consumerProGuardFiles, ::listPropertyEditor) else null,
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.proGuardFiles, ::listPropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders, ::mapPropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled, ::simplePropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.resConfigs, ::listPropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner, ::simplePropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunnerArguments, ::mapPropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest, ::simplePropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling, ::simplePropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testApplicationId, ::simplePropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionCode, ::simplePropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionName, ::simplePropertyEditor),
-      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix, ::simplePropertyEditor)))
-
+      if (!isLibrary) uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationId, ::simplePropertyEditor,
+                                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_APPLICATION_ID)
+      else null,
+      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
+      if (!isLibrary) uiProperty(PsAndroidModuleDefaultConfigDescriptors.applicationIdSuffix, ::simplePropertyEditor, null) else null,
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.targetSdkVersion, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_TARGET_SDK_VERSION),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.minSdkVersion, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_MIN_SDK_VERSION),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.maxSdkVersion, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_MAX_SDK_VERSION),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.signingConfig, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_SIGNING_CONFIG),
+      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
+      if (isLibrary) uiProperty(PsAndroidModuleDefaultConfigDescriptors.consumerProGuardFiles, ::listPropertyEditor, null) else null,
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.proGuardFiles, ::listPropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_PROGUARD_FILES),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.manifestPlaceholders, ::mapPropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_MANIFEST_PLACEHOLDERS),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.multiDexEnabled, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_MULTI_DEX_ENABLED),
+      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.resConfigs, ::listPropertyEditor, null),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunner, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_TEST_INSTRUMENTATION_RUNNER_CLASS_NAME),
+      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testInstrumentationRunnerArguments, ::mapPropertyEditor, null),
+      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testFunctionalTest, ::simplePropertyEditor, null),
+      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testHandleProfiling, ::simplePropertyEditor, null),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.testApplicationId, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_TEST_APPLICATION_ID),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionCode, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_VERSION_CODE),
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionName, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_DEFAULTCONFIG_VERSION_NAME),
+      // TODO(b/123013466): [New PSD] Analytics for new PSD missing fields.
+      uiProperty(PsAndroidModuleDefaultConfigDescriptors.versionNameSuffix, ::simplePropertyEditor, null)))

@@ -43,7 +43,7 @@ class VariablesConfigurable(private val project: Project, private val context: P
   override fun createComponent(): JComponent? {
     val panel = JPanel(BorderLayout())
     panel.border = BorderFactory.createEmptyBorder(20, 10, 20, 10)
-    val table = VariablesTable(project, context.project, this)
+    val table = VariablesTable(project, context, context.project, this)
     panel.add(
       ToolbarDecorator
         .createDecorator(table)
@@ -63,8 +63,11 @@ class VariablesConfigurable(private val project: Project, private val context: P
 
   override fun apply() = context.applyChanges()
 
-  override fun isModified(): Boolean = context.project.isModified
+  override fun copyEditedFieldsTo(builder: PSDEvent.Builder) {
+    builder.addAllModifiedFields(context.getEditedFieldsAndClear())
+  }
 
+  override fun isModified(): Boolean = context.project.isModified
 
   override fun reset() {
     super.reset()
