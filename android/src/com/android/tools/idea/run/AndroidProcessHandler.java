@@ -129,7 +129,7 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
 
       setMinDeviceApiLevel(device.getVersion());
       if (!addClientIfAvailable(device)) {
-        notifyTextAvailable("Client not ready yet..", ProcessOutputTypes.STDOUT);
+        print("Client not ready yet...\n");
       }
       LOG.info("Adding device " + device.getName() + " to monitor for launched app: " + myApplicationId);
       myDeviceAdded = System.currentTimeMillis();
@@ -152,8 +152,7 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
       return;
     }
     IDevice device = client.getDevice();
-    notifyTextAvailable("Connected to process " + client.getClientData().getPid() + " on device " + device.getName() + "\n",
-                        ProcessOutputTypes.STDOUT);
+    print("Connected to process %d on device '%s'.\n", client.getClientData().getPid(), device.getName());
 
     myLogcatOutputCapture.startCapture(device, client, this::notifyTextAvailable);
   }
@@ -319,8 +318,8 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
     }
   }
 
-  private void print(@NotNull String s) {
-    notifyTextAvailable(s + "\n", ProcessOutputTypes.STDOUT);
+  private void print(@NotNull String format, @NotNull Object... args) {
+    notifyTextAvailable(String.format(format, args), ProcessOutputTypes.STDOUT);
   }
 
   public void reset() {
@@ -525,7 +524,7 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
     @Override
     public void deviceDisconnected(@NotNull IDevice device) {
       synchronized (deviceClientLock) {
-        print("Device " + device.getName() + "disconnected, monitoring stopped.");
+        print("Device %s disconnected, monitoring stopped.\n", device.getName());
         stopMonitoring(device);
       }
     }
@@ -557,18 +556,18 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
           for (Client c : myClients) {
             if (device.equals(c.getDevice())) {
               stopMonitoring(device);
-              print("Application terminated.");
+              print("Application terminated.\n");
               return;
             }
           }
         }
 
         if ((System.currentTimeMillis() - myDeviceAdded) > TIMEOUT_MS) {
-          print("Timed out waiting for process to appear on " + device.getName());
+          print("Timed out waiting for process to appear on %s.\n", device.getName());
           stopMonitoring(device);
         }
         else {
-          print("Waiting for process to come online");
+          print("Waiting for process to come online...\n");
         }
       }
     }
@@ -596,7 +595,7 @@ public class AndroidProcessHandler extends ProcessHandler implements KillablePro
         }
 
         if (isMatchingClient(client) && !client.isValid()) {
-          print("Process " + client.getClientData().getPid() + " is not valid anymore!");
+          print("Process %d is not valid anymore!\n", client.getClientData().getPid());
           stopMonitoring(client.getDevice());
         }
       }
