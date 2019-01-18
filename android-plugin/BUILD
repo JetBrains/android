@@ -29,7 +29,7 @@ iml_module(
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
-        "//tools/adt/idea/android-runtime-pipeline:intellij.android.runtimePipeline[module]",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/adt/idea/android-layout-inspector[module]",
         "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/connection-assistant[module]",

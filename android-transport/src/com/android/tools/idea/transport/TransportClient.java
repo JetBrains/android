@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.runtimePipeline;
+package com.android.tools.idea.transport;
 
 /**
  * Wrapper that represents a client connected to a channel via the input |channelName|.
  */
-public class RuntimePipelineClient {
+public class TransportClient {
 
-  public RuntimePipelineClient(String channelName) {
+  public TransportClient(String channelName) {
   }
 
 }
