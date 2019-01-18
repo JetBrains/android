@@ -625,10 +625,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         break;
       case FIT:
       case FIT_INTO:
-        if (getCurrentSceneView() == null) {
-          return false;
-        }
-
         scaled = setScale(getFitScale(type == ZoomType.FIT_INTO));
         myCurrentZoomType = type;
         break;
