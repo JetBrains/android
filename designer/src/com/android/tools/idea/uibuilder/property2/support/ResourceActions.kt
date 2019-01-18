@@ -22,6 +22,7 @@ import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
+import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
@@ -31,7 +32,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import com.intellij.ui.picker.ColorListener
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
@@ -139,7 +139,7 @@ object ColorSelectionAction: AnAction("Select Color") {
       .addColorValuePanel().withFocus()
       .addSeparator()
       .addCustomComponent(MaterialColorPaletteProvider)
-      .addColorListener(ColorListener { color, _ -> property.value = colorToString(color) })
+      .addColorPickerListener(ColorPickerListener { color, _ -> property.value = colorToString(color) })
       .focusWhenDisplay(true)
       .setFocusCycleRoot(true)
       .addKeyAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, true), object : AbstractAction() {

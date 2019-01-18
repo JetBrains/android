@@ -356,7 +356,7 @@ public class AndroidAnnotatorUtil {
           .addColorValuePanel().withFocus()
           .addSeparator()
           .addCustomComponent(MaterialColorPaletteProvider.INSTANCE)
-          .addColorListener((color, source) -> setColorToAttribute(color))
+          .addColorPickerListener((color, source) -> setColorToAttribute(color))
           .focusWhenDisplay(true)
           .setFocusCycleRoot(true)
           .build();
