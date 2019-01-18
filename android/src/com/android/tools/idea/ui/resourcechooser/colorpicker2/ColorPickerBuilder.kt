@@ -55,7 +55,7 @@ class ColorPickerBuilder {
   private var focusCycleRoot = false
   private var focusedComponentIndex = -1
   private val actionMap = mutableMapOf<KeyStroke, Action>()
-  private val colorListeners = mutableListOf<ColorListener>()
+  private val colorListeners = mutableListOf<ColorPickerListener>()
 
   fun setOriginalColor(originalColor: Color?) = apply { this.originalColor = originalColor }
 
@@ -119,7 +119,7 @@ class ColorPickerBuilder {
 
   fun addKeyAction(keyStroke: KeyStroke, action: Action) = apply { actionMap[keyStroke] = action }
 
-  fun addColorListener(colorListener: ColorListener) = apply { colorListeners.add(colorListener) }
+  fun addColorPickerListener(listener: ColorPickerListener) = apply { colorListeners.add(listener) }
 
   fun build(): JPanel {
     if (componentsToBuild.isEmpty()) {

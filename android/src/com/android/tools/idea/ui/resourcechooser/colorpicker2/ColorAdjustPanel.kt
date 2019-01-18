@@ -17,11 +17,13 @@ package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.wm.WindowManager
-import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.JBUI
 import sun.security.util.SecurityConstants
-import java.awt.*
-import javax.swing.*
+import java.awt.Color
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
+import javax.swing.BoxLayout
+import javax.swing.JPanel
 import javax.swing.plaf.basic.BasicButtonUI
 import kotlin.math.abs
 
@@ -39,7 +41,7 @@ private val ALPHA_SLIDER_BORDER = JBUI.Borders.empty(8, 16, 0, 16)
 
 class ColorAdjustPanel(private val model: ColorPickerModel,
                        private val pipetteProvider: ColorPipetteProvider)
-  : JPanel(GridBagLayout()), ColorListener {
+  : JPanel(GridBagLayout()), ColorPickerListener {
 
   private val pipetteButton by lazy {
     val colorPipetteButton = ColorPipetteButton(model, pipetteProvider.createPipette(this@ColorAdjustPanel))
@@ -66,13 +68,13 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
     border = HUE_SLIDER_BORDER
     background = PICKER_BACKGROUND_COLOR
 
-    addListener {
+    addListener { it, commit ->
       val hue = it / 360f
       val hsbValues = Color.RGBtoHSB(model.color.red, model.color.green, model.color.blue, null)
       val rgb = Color.HSBtoRGB(hue, hsbValues[1], hsbValues[2])
       val argb = (model.color.alpha shl 24) or (rgb and 0x00FFFFFF)
       val newColor = Color(argb, true)
-      model.setColor(newColor, this@ColorAdjustPanel)
+      (if (commit) model::setColor else model::setPickingColor).invoke(newColor, this@ColorAdjustPanel)
     }
   }
 
@@ -81,8 +83,9 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
     border = ALPHA_SLIDER_BORDER
     background = PICKER_BACKGROUND_COLOR
 
-    addListener {
-      model.setColor(Color(model.color.red, model.color.green, model.color.blue, it), this@ColorAdjustPanel)
+    addListener { it, commit ->
+      val newColor = Color(model.color.red, model.color.green, model.color.blue, it)
+      (if (commit) model::setColor else model::setPickingColor).invoke(newColor, this@ColorAdjustPanel)
     }
   }
 
@@ -140,6 +143,8 @@ class ColorAdjustPanel(private val model: ColorPickerModel,
 
     repaint()
   }
+
+  override fun pickingColorChanged(color: Color, source: Any?) = colorChanged(color, source)
 }
 
 private fun canPickupColorFromDisplay(): Boolean {
