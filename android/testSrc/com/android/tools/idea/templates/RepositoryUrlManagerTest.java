@@ -101,7 +101,9 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFileOp = new MockFileOp();
-    myRepositoryUrlManager = new RepositoryUrlManager(new StubGoogleMavenRepository(OFFLINE_CACHE), true /* force repository checks */);
+    myRepositoryUrlManager = new RepositoryUrlManager(new StubGoogleMavenRepository(OFFLINE_CACHE),
+                                                      new StubGoogleMavenRepository(OFFLINE_CACHE),
+                                                      true /* force repository checks */);
     mySdkHandler = new AndroidSdkHandler(SDK_DIR, ANDROID_HOME, myFileOp);
     mySdk = Mockito.mock(AndroidSdkData.class);
     Mockito.when(mySdk.getLocation()).thenReturn(SDK_DIR);

@@ -295,7 +295,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     // keeping it exactly the same as they are resolved within the NPW flow.
     new IdeComponents(null, getTestRootDisposable()).replaceApplicationService(
       RepositoryUrlManager.class,
-      new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, true));
+      new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, OfflineIdeGoogleMavenRepository.INSTANCE, true));
   }
 
   @Override
