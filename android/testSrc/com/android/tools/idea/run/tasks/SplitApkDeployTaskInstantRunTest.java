@@ -17,6 +17,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.BuildSelection;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.run.ConsolePrinter;
@@ -59,6 +60,8 @@ public class SplitApkDeployTaskInstantRunTest {
   @Before
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE));
+    when(myEmbeddedDevice.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE));
     when(myEmbeddedDevice.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(true);
     when(myContext.getInstantRunBuildInfo()).thenReturn(myBuildInfo);
     when(myContext.getApplicationId()).thenReturn(PACKAGE_NAME);
@@ -79,6 +82,16 @@ public class SplitApkDeployTaskInstantRunTest {
     MyDeployContext deployContext = new MyDeployContext(myContext);
     SplitApkDeployTask task = new SplitApkDeployTask(myProject, deployContext);
     answerInstallOptions(myDevice, installOptions -> assertThat(installOptions).containsExactly("-t"));
+    assertTrue(task.perform(myDevice, myLaunchStatus, myPrinter));
+    assertTrue(deployContext.isNotified());
+  }
+
+  @Test
+  public void testDeployApi28() throws Throwable {
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.P));
+    MyDeployContext deployContext = new MyDeployContext(myContext);
+    SplitApkDeployTask task = new SplitApkDeployTask(myProject, deployContext);
+    answerInstallOptions(myDevice, installOptions -> assertThat(installOptions).containsExactly("-t", "--full"));
     assertTrue(task.perform(myDevice, myLaunchStatus, myPrinter));
     assertTrue(deployContext.isNotified());
   }
