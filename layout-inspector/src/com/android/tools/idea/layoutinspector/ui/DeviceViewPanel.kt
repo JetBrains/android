@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
+import java.awt.AlphaComposite
 import java.awt.BasicStroke
 import java.awt.BorderLayout
 import java.awt.Color
@@ -202,7 +203,12 @@ class DeviceViewPanel(private val layoutInspector: LayoutInspector) : JPanel(Bor
     g2.translate((sin(angle) * depth * LAYER_SPACING).toInt(), (sin(angle * 0.1) * depth * LAYER_SPACING).toInt())
     g2.scale(cos(angle), 1.0)
     if (bufferedImage != null) {
+      val composite = g2.composite
+      if (layoutInspector.layoutInspectorModel.selection != null && view != layoutInspector.layoutInspectorModel.selection) {
+        g2.composite = AlphaComposite.SrcOver.derive(0.6f)
+      }
       g2.drawImage(bufferedImage, view.x, view.y, null)
+      g2.composite = composite
     }
     if (drawBorders) {
       if (view == layoutInspector.layoutInspectorModel.selection) {
