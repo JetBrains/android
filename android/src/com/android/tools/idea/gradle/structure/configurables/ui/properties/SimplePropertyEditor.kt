@@ -62,7 +62,8 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   propertyContext: ModelPropertyContext<PropertyT>,
   variablesScope: PsVariablesScope?,
   private val extensions: List<EditorExtensionAction<PropertyT, ModelPropertyT>>,
-  cellEditor: TableCellEditor? = null
+  cellEditor: TableCellEditor? = null,
+  private val logValueEdited: () -> Unit = {}
 ) :
   PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesScope),
   ModelPropertyEditor<PropertyT>,
@@ -261,6 +262,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       val annotatedValue = getValue()
       if (annotatedValue.annotation is ValueAnnotation.Error) return UpdatePropertyOutcome.INVALID
       renderedComboBox.applyChanges(annotatedValue)
+      logValueEdited()
       return UpdatePropertyOutcome.UPDATED
     }
     return UpdatePropertyOutcome.NOT_CHANGED
@@ -293,7 +295,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       propertyContext,
       variablesScope,
       extensions.filter { isPropertyContext || it.availableInNonPropertyContext },
-      cellEditor)
+      cellEditor) { /* no usage tracking */ }
 
   init {
     reload()
