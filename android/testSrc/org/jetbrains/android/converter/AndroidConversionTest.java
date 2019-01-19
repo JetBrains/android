@@ -8,7 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileFilter;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.AndroidTestBase;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.io.IOException;
  */
 public class AndroidConversionTest extends PlatformTestCase {
   public void testConvert() throws IOException {
-    final String testDataPath = AndroidTestCase.getTestDataPath() + "/conversion/proguardOptions";
+    final String testDataPath = AndroidTestBase.getTestDataPath() + "/conversion/proguardOptions";
     final File testData = new File(testDataPath, "before");
     final File tempDir = FileUtil.createTempDirectory("project", null);
     FileUtil.copyDir(testData, tempDir);
