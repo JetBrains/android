@@ -58,7 +58,7 @@ public class CreateNewProjectWithCpp2Test {
 
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
     adbBuilder.installDefaultCommandHandlers()
-              .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, () -> new ActivityManagerCommandHandler(startCmdHandler))
+              .addShellHandler(new ActivityManagerCommandHandler(startCmdHandler))
               .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
 
     fakeAdbServer = adbBuilder.build();

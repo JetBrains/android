@@ -18,12 +18,12 @@ package com.android.tools.idea.tests.gui.debugger
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.shellcommandhandlers.GetPropCommandHandler
-import com.android.fakeadbserver.shellcommandhandlers.ShellCommandHandler
+import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler
 import com.google.common.base.Charsets
 import java.io.IOException
 import java.net.Socket
 
-class GetAbiListPropCommandHandler(private val abiList: List<String>) : ShellCommandHandler() {
+class GetAbiListPropCommandHandler(private val abiList: List<String>) : SimpleShellHandler("getprop") {
   init {
     if (abiList.isEmpty()) {
       throw IllegalArgumentException("abiList can not by an empty list")
@@ -35,7 +35,7 @@ class GetAbiListPropCommandHandler(private val abiList: List<String>) : ShellCom
     responseSocket: Socket,
     device: DeviceState,
     args: String?
-  ): Boolean {
+  ) {
     // Collect the base properties from the default getprop command handler:
     GetPropCommandHandler().invoke(fakeAdbServer, responseSocket, device, args)
 
@@ -45,6 +45,5 @@ class GetAbiListPropCommandHandler(private val abiList: List<String>) : ShellCom
     } catch (ignored: IOException) {
       // Unable to respond to client. Unable to do anything. Swallow exception and move on
     }
-    return false
   }
 }
