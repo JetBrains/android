@@ -21,7 +21,7 @@ import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
-import com.android.fakeadbserver.shellcommandhandlers.ShellCommandHandler;
+import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -82,8 +82,8 @@ public class FlavorsExecutionTest {
 
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
     adbBuilder.installDefaultCommandHandlers()
-              .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, () -> new ActivityManagerCommandHandler(startCmdHandler))
-              .setShellCommandHandler(LogcatCommandHandler.COMMAND, LogcatCommandHandler::new)
+              .addShellHandler(new ActivityManagerCommandHandler(startCmdHandler))
+              .addShellHandler(new LogcatCommandHandler())
               .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
 
     fakeAdbServer = adbBuilder.build();
@@ -174,20 +174,23 @@ public class FlavorsExecutionTest {
     fakeAdbServer.close();
   }
 
-  private static class LogcatCommandHandler extends ShellCommandHandler {
-    @NotNull public static final String COMMAND = "logcat";
+  private static class LogcatCommandHandler extends SimpleShellHandler {
+
+    private LogcatCommandHandler() {
+      super("logcat");
+    }
 
     @Override
-    public boolean invoke(@NotNull FakeAdbServer fakeAdbServer,
-                          @NotNull Socket responseSocket,
-                          @NotNull DeviceState device,
-                          @Nullable String args) {
+    public void invoke(@NotNull FakeAdbServer fakeAdbServer,
+                       @NotNull Socket responseSocket,
+                       @NotNull DeviceState device,
+                       @Nullable String args) {
       try {
         OutputStream output = responseSocket.getOutputStream();
 
         if (args == null) {
           CommandHandler.writeFail(output);
-          return false;
+          return;
         }
 
         CommandHandler.writeOkay(output);
@@ -205,8 +208,6 @@ public class FlavorsExecutionTest {
         // Unable to write to socket. Can't communicate anything with client. Just swallow
         // the exception and move on
       }
-
-      return false;
     }
   }
 }
