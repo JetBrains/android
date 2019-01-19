@@ -21,7 +21,7 @@ import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
-import com.android.fakeadbserver.shellcommandhandlers.ShellCommandHandler;
+import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -72,11 +72,8 @@ public class RunOnEmulatorTest {
 
     FakeAdbServer.Builder fakeAdbBuilder = new FakeAdbServer.Builder();
     fakeAdbBuilder.installDefaultCommandHandlers()
-      .setShellCommandHandler(
-        ActivityManagerCommandHandler.COMMAND,
-        () -> new ActivityManagerCommandHandler(procStarter)
-      )
-      .setShellCommandHandler(LsCommandHandler.COMMAND, LsCommandHandler::new)
+      .addShellHandler(new ActivityManagerCommandHandler(procStarter))
+      .addShellHandler(new LsCommandHandler())
       .setDeviceCommandHandler(
         JdwpCommandHandler.COMMAND,
         JdwpCommandHandler::new
@@ -146,17 +143,20 @@ public class RunOnEmulatorTest {
     fakeAdbServer.close();
   }
 
-  private static class LsCommandHandler extends ShellCommandHandler {
-    public static final String COMMAND = "ls";
+  private static class LsCommandHandler extends SimpleShellHandler {
+
+    public LsCommandHandler() {
+      super("ls");
+    }
 
     @Override
-    public boolean invoke(@NotNull FakeAdbServer fakeAdbServer, @NotNull Socket responseSocket, @NotNull DeviceState device, @Nullable String args) {
+    public void invoke(@NotNull FakeAdbServer fakeAdbServer, @NotNull Socket responseSocket, @NotNull DeviceState device, @Nullable String args) {
       try {
         OutputStream output = responseSocket.getOutputStream();
 
         if (args == null) {
           CommandHandler.writeFail(output);
-          return false;
+          return;
         }
 
         CommandHandler.writeOkay(output);
@@ -175,8 +175,6 @@ public class RunOnEmulatorTest {
         // Unable to send anything back to client. Can't do anything, so swallow the exception
         // and continue on...
       }
-
-      return false;
     }
   }
 }
