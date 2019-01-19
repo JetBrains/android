@@ -29,6 +29,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -127,6 +128,7 @@ public class AndroidStudioInitializer implements Runnable {
       UsageTracker.setIdeaIsInternal(true);
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
+    new GcPauseWatcher();
   }
 
   private static AndroidStudioEvent.IdeBrand getIdeBrand() {

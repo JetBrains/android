@@ -149,6 +149,10 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   /** Maximum freeze duration to record. Longer freeze durations are truncated to keep the size of the histogram bounded. */
   private static final long MAX_WRITE_LOCK_WAIT_TIME_MS = 30 * 60 * 1000;
 
+  private static final Map<GcPauseInfo.GcType, Histogram> myGcPauseInfo = new HashMap<>();
+  /** Maximum GC pause duration to record. Longer pause durations are truncated to keep the size of the histogram bounded. */
+  private static final long MAX_GC_PAUSE_TIME_MS = 30 * 60 * 1000;
+
   private static final long TOO_MANY_EXCEPTIONS_THRESHOLD = 10000;
 
   private final StudioReportDatabase myReportsDatabase = new StudioReportDatabase(new File(PathManager.getTempPath(), "reports.dmp"));
@@ -265,6 +269,26 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
 
   public static void recordWriteLockWaitTime(long durationMs) {
     myWriteLockWaitTimesMs.recordValueWithCount(Math.min(durationMs, MAX_WRITE_LOCK_WAIT_TIME_MS), 1);
+  }
+
+  public static void recordGcPauseTime(String gcName, long durationMs) {
+    GcPauseInfo.GcType gcType = getGcType(gcName);
+    myGcPauseInfo.computeIfAbsent(gcType, (unused) -> new Histogram(1))
+      .recordValueWithCount(Math.min(durationMs, MAX_GC_PAUSE_TIME_MS), 1);
+  }
+
+  private static GcPauseInfo.GcType getGcType (String name) {
+    switch (name) {
+      case "Copy": return GcPauseInfo.GcType.SERIAL_YOUNG;
+      case "MarkSweepCompact": return GcPauseInfo.GcType.SERIAL_OLD;
+      case "PS Scavenge": return GcPauseInfo.GcType.PARALLEL_YOUNG;
+      case "PS MarkSweep": return GcPauseInfo.GcType.PARALLEL_OLD;
+      case "ParNew": return GcPauseInfo.GcType.CMS_YOUNG;
+      case "ConcurrentMarkSweep": return GcPauseInfo.GcType.CMS_OLD;
+      case "G1 Young Generation": return GcPauseInfo.GcType.G1_YOUNG;
+      case "G1 Old Generation": return GcPauseInfo.GcType.G1_OLD;
+      default: return GcPauseInfo.GcType.UNKNOWN;
+    }
   }
 
   @Override
@@ -738,12 +762,18 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
               .setEventServiceTimeSamplePeriod(IdeEventQueue.EVENT_TIMING_INTERVAL)
               .setEventServiceTimeMs(HistogramUtil.toProto(myEventDurationsMs))
               .setWriteLockWaitTimeMs(HistogramUtil.toProto(myWriteLockWaitTimesMs));
+      for (Map.Entry<GcPauseInfo.GcType, Histogram> gcEntry : myGcPauseInfo.entrySet()) {
+        statsProto.addGcPauseInfo(GcPauseInfo.newBuilder()
+                                    .setCollectorType(gcEntry.getKey())
+                                    .setPauseTimesMs(HistogramUtil.toProto(gcEntry.getValue())));
+      }
       UsageTracker.log(AndroidStudioEvent.newBuilder()
                            .setCategory(EventCategory.STUDIO_UI)
                            .setKind(EventKind.STUDIO_PERFORMANCE_STATS)
                            .setStudioPerformanceStats(statsProto));
       myEventDurationsMs.reset();
       myWriteLockWaitTimesMs.reset();
+      myGcPauseInfo.clear();
     });
   }
 
