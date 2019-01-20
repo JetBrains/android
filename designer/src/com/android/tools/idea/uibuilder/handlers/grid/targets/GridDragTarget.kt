@@ -87,8 +87,6 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
     firstMouseY = y
     offsetX = x - myComponent.getDrawX(System.currentTimeMillis())
     offsetY = y - myComponent.getDrawY(System.currentTimeMillis())
-
-    myComponent.setModelUpdateAuthorized(true)
   }
 
   override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
@@ -101,7 +99,7 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
 
     val componentX = Math.max(parent.drawX, Math.min(dragX, parent.drawX + parent.drawWidth - myComponent.drawWidth))
     val componentY = Math.max(parent.drawY, Math.min(dragY, parent.drawY + parent.drawHeight - myComponent.drawHeight))
-    myComponent.setPosition(componentX, componentY, false)
+    myComponent.setPosition(componentX, componentY)
 
     val component = myComponent.nlComponent
     val attributes = component.startAttributeTransaction()
