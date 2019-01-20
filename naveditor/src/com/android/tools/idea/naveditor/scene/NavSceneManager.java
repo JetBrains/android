@@ -147,7 +147,7 @@ public class NavSceneManager extends SceneManager {
     switch (NavComponentHelperKt.getActionType(nlComponent, getRoot())) {
       case GLOBAL:
       case EXIT:
-        sceneComponent.setSize((int)ACTION_WIDTH, (int)ACTION_HEIGHT, false);
+        sceneComponent.setSize((int)ACTION_WIDTH, (int)ACTION_HEIGHT);
         return;
       default:
         break;
@@ -164,10 +164,10 @@ public class NavSceneManager extends SceneManager {
         case NAVIGATION:
           if (sceneComponent.getNlComponent() == getDesignSurface().getCurrentNavigation()) {
             // done in post
-            sceneComponent.setSize(-1, -1, false);
+            sceneComponent.setSize(-1, -1);
           }
           else {
-            sceneComponent.setSize(SUBNAV_WIDTH, SUBNAV_HEIGHT, false);
+            sceneComponent.setSize(SUBNAV_WIDTH, SUBNAV_HEIGHT);
           }
           break;
         case FRAGMENT:
@@ -196,7 +196,7 @@ public class NavSceneManager extends SceneManager {
             x = y;
             y = tmp;
           }
-          sceneComponent.setSize(x, y, true);
+          sceneComponent.setSize(x, y);
           break;
         default:
           // nothing
@@ -250,7 +250,7 @@ public class NavSceneManager extends SceneManager {
     }
 
     root.setPosition(rootBounds.x, rootBounds.y);
-    root.setSize(rootBounds.width, rootBounds.height, false);
+    root.setSize(rootBounds.width, rootBounds.height);
     surface.updateScrolledAreaSize();
 
     SceneView view = surface.getCurrentSceneView();

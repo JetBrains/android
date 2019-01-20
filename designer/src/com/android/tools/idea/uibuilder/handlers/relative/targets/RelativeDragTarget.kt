@@ -45,7 +45,6 @@ class RelativeDragTarget : DragBaseTarget() {
       return
     }
     super.mouseDown(x, y)
-    myComponent.setModelUpdateAuthorized(true)
   }
 
   override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
@@ -131,7 +130,7 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
     val newX = processHorizontalAttributes(attributes, x)
     val newY = processVerticalAttributes(attributes, y)
 
-    myComponent.setPosition(newX, newY, false)
+    myComponent.setPosition(newX, newY)
   }
 
   // TODO: remove this function if possible

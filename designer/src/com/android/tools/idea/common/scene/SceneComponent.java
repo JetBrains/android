@@ -69,7 +69,6 @@ public class SceneComponent {
   private boolean myIsToolLocked = false;
   private boolean myIsSelected = false;
   protected boolean myDragging = false;
-  private boolean myIsModelUpdateAuthorized = true;
 
   private AnimatedValue myAnimatedDrawX = new AnimatedValue();
   private AnimatedValue myAnimatedDrawY = new AnimatedValue();
@@ -397,27 +396,13 @@ public class SceneComponent {
    * @param dy Y coordinate in DP
    */
   public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy) {
-    setPosition(dx, dy, false);
-  }
-
-  /**
-   * Immediately set the position unless the update is coming from
-   * a model update and {@link #isModelUpdateAuthorized()} is false.
-   *
-   * @param dx          X coordinate in DP
-   * @param dy          Y coordinate in DP
-   * @param isFromModel Notify the that the given coordinates are coming from a model update
-   */
-  public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, boolean isFromModel) {
-    if (!isFromModel || myIsModelUpdateAuthorized) {
-      myAnimatedDrawX.setValue(dx);
-      myAnimatedDrawY.setValue(dy);
-      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
-        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
-      }
-      myScene.needsRebuildList();
+    myAnimatedDrawX.setValue(dx);
+    myAnimatedDrawY.setValue(dy);
+    if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+      NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
+      NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
     }
+    myScene.needsRebuildList();
   }
 
   /**
@@ -429,19 +414,16 @@ public class SceneComponent {
    * @param dx          The X position to animate the component to
    * @param dy          The Y position to animate the component to
    * @param time        The time when the animation begins
-   * @param isFromModel
    */
-  public void setPositionTarget(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, long time, boolean isFromModel) {
-    if (!isFromModel || myIsModelUpdateAuthorized) {
-      myAnimatedDrawX.setTarget(dx, time);
-      myAnimatedDrawY.setTarget(dy, time);
-      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
-        NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
-      }
-      else {
-        myScene.needsRebuildList();
-      }
+  public void setPositionTarget(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, long time) {
+    myAnimatedDrawX.setTarget(dx, time);
+    myAnimatedDrawY.setTarget(dy, time);
+    if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+      NlComponentHelperKt.setX(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dx));
+      NlComponentHelperKt.setY(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), dy));
+    }
+    else {
+      myScene.needsRebuildList();
     }
   }
 
@@ -449,16 +431,14 @@ public class SceneComponent {
    * Immediately set the size of this {@link SceneComponent} and of the underlying
    * {@link NlComponent}
    */
-  public void setSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height, boolean isFromModel) {
-    if (!isFromModel || myIsModelUpdateAuthorized) {
-      myAnimatedDrawWidth.setValue(width);
-      myAnimatedDrawHeight.setValue(height);
-      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
-        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
-      }
-      myScene.needsRebuildList();
+  public void setSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
+    myAnimatedDrawWidth.setValue(width);
+    myAnimatedDrawHeight.setValue(height);
+    if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+      NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
+      NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
     }
+    myScene.needsRebuildList();
   }
 
   /**
@@ -470,16 +450,13 @@ public class SceneComponent {
    * @param width       The width to animate the component to
    * @param height      The height to animate the component to
    * @param time        The time when the animation begins
-   * @param isFromModel
    */
-  public void setSizeTarget(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height, long time, boolean isFromModel) {
-    if (!isFromModel || myIsModelUpdateAuthorized) {
-      myAnimatedDrawWidth.setTarget(width, time);
-      myAnimatedDrawHeight.setTarget(height, time);
-      if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
-        NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
-        NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
-      }
+  public void setSizeTarget(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height, long time) {
+    myAnimatedDrawWidth.setTarget(width, time);
+    myAnimatedDrawHeight.setTarget(height, time);
+    if (NlComponentHelperKt.getHasNlComponentInfo(myNlComponent)) {
+      NlComponentHelperKt.setW(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), width));
+      NlComponentHelperKt.setH(myNlComponent, Coordinates.dpToPx(myScene.getDesignSurface(), height));
     }
   }
 
@@ -907,12 +884,5 @@ public class SceneComponent {
         addTarget(new CommonDragTarget(this));
       }
     }
-  }
-
-  /**
-   * @param modelUpdateAuthorized
-   */
-  public void setModelUpdateAuthorized(boolean modelUpdateAuthorized) {
-    myIsModelUpdateAuthorized = modelUpdateAuthorized;
   }
 }

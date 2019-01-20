@@ -372,16 +372,16 @@ public class LayoutlibSceneManager extends SceneManager {
       long time = System.currentTimeMillis();
       sceneComponent.setPositionTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
                                        Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)),
-                                       time, true);
+                                       time);
       sceneComponent.setSizeTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getW(component)),
                                    Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)),
-                                   time, true);
+                                   time);
     }
     else {
       sceneComponent.setPosition(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
-                                 Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)), true);
+                                 Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)));
       sceneComponent.setSize(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getW(component)),
-                             Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)), true);
+                             Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)));
     }
   }
 
