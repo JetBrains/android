@@ -84,7 +84,7 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
       return;
     }
 
-    myComponent.setPosition(dx, dy, false);
+    myComponent.setPosition(dx, dy);
     myChangedComponent = true;
 
     for (int i = 0; i < myChildOffsets.length; i++) {

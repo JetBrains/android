@@ -42,11 +42,11 @@ class ActionDecoratorTest : NavTestCase() {
 
     val f1 = model.surface.sceneManager?.scene?.getSceneComponent(model.find("f1"))!!
     f1.setPosition(50, 150)
-    f1.setSize(100, 200, false)
+    f1.setSize(100, 200)
 
     val f2 = model.surface.sceneManager?.scene?.getSceneComponent(model.find("f1"))!!
     f2.setPosition(50, 450)
-    f2.setSize(100, 200, false)
+    f2.setSize(100, 200)
 
     val f1_to_f2 = model.surface.sceneManager?.scene?.getSceneComponent(model.find("f1_to_f2"))!!
 
@@ -74,7 +74,7 @@ class ActionDecoratorTest : NavTestCase() {
 
     val f1 = model.surface.sceneManager?.scene?.getSceneComponent(model.find("f1"))!!
     f1.setPosition(50, 150)
-    f1.setSize(100, 200, false)
+    f1.setSize(100, 200)
 
     val f1_to_f1 = model.surface.sceneManager?.scene?.getSceneComponent(model.find("f1_to_f1"))!!
 

@@ -53,7 +53,7 @@ internal class CommonDragHandler(editor: ViewEditor,
   init {
     val dragged = components[0]
     val component = layout.scene.getSceneComponent(dragged) ?: TemporarySceneComponent(layout.scene, dragged).apply {
-      setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false)
+      setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h))
     }
 
     dragTarget = CommonDragTarget(component, fromToolWindow = true)
