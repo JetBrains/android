@@ -51,7 +51,7 @@ class NavScreenDecoratorTest : NavTestCase() {
 
     val sceneComponent = SceneComponent(model.surface.scene!!, model.find("f1")!!, mock(HitProvider::class.java))
     sceneComponent.setPosition(50, 150)
-    sceneComponent.setSize(100, 200, false)
+    sceneComponent.setSize(100, 200)
     val sceneView = model.surface.currentSceneView!!
 
     val displayList = DisplayList()
@@ -75,13 +75,13 @@ class NavScreenDecoratorTest : NavTestCase() {
 
     val sceneComponent1 = SceneComponent(model.surface.scene!!, model.find("f1")!!, mock(HitProvider::class.java))
     sceneComponent1.setPosition(50, 150)
-    sceneComponent1.setSize(100, 200, false)
+    sceneComponent1.setSize(100, 200)
     val sceneComponent2 = SceneComponent(model.surface.scene!!, model.find("f2")!!, mock(HitProvider::class.java))
     sceneComponent2.setPosition(5, 15)
-    sceneComponent2.setSize(10, 20, false)
+    sceneComponent2.setSize(10, 20)
     val sceneComponent3 = SceneComponent(model.surface.scene!!, model.find("f3")!!, mock(HitProvider::class.java))
     sceneComponent3.setPosition(500, 1500)
-    sceneComponent3.setSize(1000, 2000, false)
+    sceneComponent3.setSize(1000, 2000)
 
     val sceneView = model.surface.currentSceneView!!
     val displayList = DisplayList()
@@ -109,7 +109,7 @@ class NavScreenDecoratorTest : NavTestCase() {
 
     val sceneComponent = SceneComponent(model.surface.scene!!, model.find("f1")!!, mock(HitProvider::class.java))
     sceneComponent.setPosition(50, 150)
-    sceneComponent.setSize(100, 200, false)
+    sceneComponent.setSize(100, 200)
 
     val sceneView = model.surface.currentSceneView!!
     val displayList = DisplayList()
