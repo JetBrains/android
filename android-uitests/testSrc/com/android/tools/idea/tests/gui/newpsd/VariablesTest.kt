@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.clickNo
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.findMessageDialog
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectVariablesConfigurable
 import com.google.common.truth.Truth.assertThat
@@ -248,6 +249,12 @@ class VariablesTest {
         enterText("stringValue")
         tab()
         chooseList()
+        enterText("simpleVariable")
+        tab()
+        findMessageDialog("Error").run {
+          requireMessageContains("Duplicate variable name: simpleVariable")
+          clickOk()
+        }
         enterText("listVariable")
         tab()
         enterText("one")
@@ -255,9 +262,15 @@ class VariablesTest {
         enterText("two")
         tab()
         selectCell("simpleVariable")
-        // Assert current state to make sure renaming does not collapse nodes.
+        enterText("listVariable")
+        tab()
+        findMessageDialog("Error").run {
+          requireMessageContains("Duplicate variable name: listVariable")
+          clickOk()
+        }
         enterText("aVariable")
         tab()
+        // Assert current state to make sure renaming does not collapse nodes.
         assertThat(contents()).containsExactly(
           "PsdSimple (build script)" to "",
           "aVariable" to "stringValue",
