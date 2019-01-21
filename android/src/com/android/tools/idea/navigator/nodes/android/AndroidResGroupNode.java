@@ -22,6 +22,7 @@ import static com.intellij.util.PlatformIcons.PACKAGE_ICON;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.res.ResourceGroupVirtualDirectory;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -33,10 +34,12 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,29 +47,38 @@ import org.jetbrains.annotations.Nullable;
 /**
  * {@link AndroidResGroupNode} groups together all the configuration specific alternatives of a single resource.
  */
-public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implements FolderGroupNode, FileGroupNode, Comparable {
+public class AndroidResGroupNode extends ProjectViewNode<PsiDirectory>
+  implements FolderGroupNode, FileGroupNode, Comparable {
   @NotNull private final String myResName;
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final List<PsiFile> myFiles;
+  @NotNull private final PsiDirectory myFakePsiDirectory;
 
   AndroidResGroupNode(@NotNull Project project,
                       @NotNull AndroidFacet androidFacet,
                       @NotNull List<PsiFile> files,
                       @NotNull String resName,
                       @NotNull ViewSettings settings) {
-    super(project, files, settings);
+    super(project, wrapIntoDummyDir(project, files, resName), settings);
+    myName = resName;
     myResName = resName;
     myFacet = androidFacet;
-    myFiles = files;
+    myFakePsiDirectory = Objects.requireNonNull(getValue());
+  }
+
+  @NotNull
+  private static PsiDirectory wrapIntoDummyDir(@NotNull Project project,
+                                               @NotNull List<PsiFile> files,
+                                               @NotNull String resName) {
+    return PsiDirectoryFactory.getInstance(project).createDirectory(new ResourceGroupVirtualDirectory(resName, files));
   }
 
   @Override
   @NotNull
   public PsiDirectory[] getFolders() {
-    List<PsiFile> resFiles = getResFiles();
-    PsiDirectory[] folders = new PsiDirectory[resFiles.size()];
-    for (int i = 0; i < resFiles.size(); i++) {
-      folders[i] = resFiles.get(i).getParent();
+    PsiFile[] resFiles = getResFiles().getFiles();
+    PsiDirectory[] folders = new PsiDirectory[resFiles.length];
+    for (int i = 0; i < resFiles.length; i++) {
+      folders[i] = resFiles[i].getParent();
     }
     return folders;
   }
@@ -74,19 +86,19 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
   @Override
   @NotNull
   public PsiFile[] getFiles() {
-    return getResFiles().toArray(PsiFile.EMPTY_ARRAY);
+    return getResFiles().getFiles();
   }
 
   @NotNull
-  private List<PsiFile> getResFiles() {
-    List<PsiFile> files = getValue();
+  private PsiDirectory getResFiles() {
+    PsiDirectory files = getValue();
     assert files != null;
     return files;
   }
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    for (PsiFile psiFile : myFiles) {
+    for (PsiFile psiFile : myFakePsiDirectory.getFiles()) {
       if (psiFile.getVirtualFile().equals(file)) {
         return true;
       }
@@ -97,9 +109,9 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
   @Override
   @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
-    List<PsiFileNode> children = new ArrayList<>(myFiles.size());
+    List<PsiFileNode> children = new ArrayList<>(myFakePsiDirectory.getFiles().length);
     assert myProject != null;
-    for (PsiFile file : myFiles) {
+    for (PsiFile file : myFakePsiDirectory.getFiles()) {
       children.add(new AndroidResFileNode(myProject, file, getSettings(), myFacet));
     }
     return children;
@@ -144,8 +156,8 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
 
   @Override
   public void navigate(boolean requestFocus) {
-    if (!myFiles.isEmpty()) {
-      PsiFile fileToOpen = findFileToOpen(myFiles);
+    if (myFakePsiDirectory.getFiles().length > 0) {
+      PsiFile fileToOpen = findFileToOpen(myFakePsiDirectory.getFiles());
       if (fileToOpen != null) {
         assert myProject != null;
         new OpenFileDescriptor(myProject, fileToOpen.getVirtualFile()).navigate(requestFocus);
@@ -157,7 +169,7 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
    * Returns the best configuration of a particular resource given a set of multiple configurations of the same resource.
    */
   @Nullable
-  private static PsiFile findFileToOpen(@NotNull List<PsiFile> files) {
+  private static PsiFile findFileToOpen(@NotNull PsiFile[] files) {
     PsiFile bestFile = null;
     FolderConfiguration bestConfig = null;
 
@@ -181,8 +193,8 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
   protected void update(@NotNull PresentationData presentation) {
     presentation.setPresentableText(myResName);
     presentation.addText(myResName, REGULAR_ATTRIBUTES);
-    if (myFiles.size() > 1) {
-      presentation.addText(String.format(Locale.US, " (%1$d)", myFiles.size()), GRAY_ATTRIBUTES);
+    if (myFakePsiDirectory.getChildren().length > 1) {
+      presentation.addText(String.format(Locale.US, " (%1$d)", myFakePsiDirectory.getChildren().length), GRAY_ATTRIBUTES);
     }
     presentation.setIcon(PACKAGE_ICON);
   }
@@ -190,6 +202,6 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
   @Override
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    return myResName + " (" + myFiles.size() + ")";
+    return myResName + " (" + myFakePsiDirectory.getChildren().length + ")";
   }
 }
