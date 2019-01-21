@@ -71,6 +71,8 @@ class PsVariable(
   }
 
   fun setName(newName: String) {
+    if (newName == property?.name) return
+    if (scopePsVariables.getVariable(newName) != null) throw InvalidVariableName.duplicateVariable(newName)
     property!!.rename(newName)
     refreshCollection()
     parent.isModified = true

@@ -86,3 +86,8 @@ interface PsVariablesScope : PsKeyedModelCollection<String, PsVariable> {
   }
 }
 
+class InvalidVariableName(message: String) : IllegalArgumentException(message) {
+  companion object {
+    fun duplicateVariable(name: String) = InvalidVariableName("Duplicate variable name: $name")
+  }
+}
