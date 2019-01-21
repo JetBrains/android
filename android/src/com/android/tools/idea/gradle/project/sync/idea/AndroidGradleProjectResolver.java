@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.builder.model.*;
 import com.android.builder.model.level2.GlobalLibraryMap;
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
@@ -57,6 +58,7 @@ import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
@@ -86,6 +88,7 @@ import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static java.util.Collections.emptyList;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleConfigPath;
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 
 /**
  * Imports Android-Gradle projects into IDEA.
@@ -212,6 +215,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         String variantName = selectedVariant.getName();
         AndroidModuleModel model =
           new AndroidModuleModel(moduleName, moduleRootDirPath, androidProject, variantName, myDependenciesFactory);
+        populateKaptKotlinGeneratedSourceDir(gradleModule, model);
         ideModule.createChild(ANDROID_MODEL, model);
       }
     }
@@ -317,6 +321,24 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       projectDataNode.createChild(PROJECT_CLEANUP_MODEL, ProjectCleanupModel.getInstance());
     }
     super.populateProjectExtraModels(gradleProject, projectDataNode);
+  }
+
+  private void populateKaptKotlinGeneratedSourceDir(@NotNull IdeaModule gradleModule, @NotNull AndroidModuleModel androidModuleModel) {
+    KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
+    if (kaptGradleModel == null || !kaptGradleModel.isEnabled()) {
+      return;
+    }
+
+    for (KaptSourceSetModel sourceSetModel : kaptGradleModel.getSourceSets()) {
+      Variant variant = androidModuleModel.findVariantByName(sourceSetModel.getSourceSetName());
+      File kotlinGenSourceDir = sourceSetModel.getGeneratedKotlinSourcesDirFile();
+      if (variant != null && kotlinGenSourceDir != null) {
+        AndroidArtifact mainArtifact = variant.getMainArtifact();
+        if (mainArtifact instanceof IdeBaseArtifact) {
+          ((IdeBaseArtifact)mainArtifact).addGeneratedSourceFolder(kotlinGenSourceDir);
+        }
+      }
+    }
   }
 
   /**
