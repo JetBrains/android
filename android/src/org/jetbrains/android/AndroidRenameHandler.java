@@ -1,9 +1,25 @@
+/*
+ * Copyright (C) 2019 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android;
 
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.res.ResourceGroupVirtualDirectory;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -14,9 +30,11 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.xml.SchemaPrefix;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -52,6 +70,19 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   @Override
   public boolean isAvailableOnDataContext(@NotNull DataContext dataContext) {
     Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
+
+    PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(dataContext);
+    if (element instanceof SchemaPrefix) {
+      return false; // Leave renaming of namespace prefixes to the default XML handler.
+    }
+
+    if (element instanceof PsiDirectory) {
+      VirtualFile virtualFile = ((PsiDirectory)element).getVirtualFile();
+      if (virtualFile instanceof ResourceGroupVirtualDirectory) {
+        return true;
+      }
+    }
+
     if (editor == null) {
       return false;
     }
@@ -59,11 +90,6 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
     if (file == null) {
       return false;
-    }
-
-    PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(dataContext);
-    if (element instanceof SchemaPrefix) {
-      return false; // Leave renaming of namespace prefixes to the default XML handler.
     }
 
     if (AndroidUsagesTargetProvider.findValueResourceTagInContext(editor, file, true) != null) {
@@ -106,6 +132,46 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
   @Override
   public boolean isRenaming(@NotNull DataContext dataContext) {
     return isAvailableOnDataContext(dataContext);
+  }
+
+  @Override
+  public void invoke(@NotNull Project project, @NotNull PsiElement[] elements, DataContext dataContext) {
+    if (elements.length == 1 && elements[0] instanceof PsiDirectory) {
+      VirtualFile virtualFile = ((PsiDirectory)elements[0]).getVirtualFile();
+      if (!(virtualFile instanceof ResourceGroupVirtualDirectory)) {
+        return;
+      }
+      performResourceGroupRenaming((ResourceGroupVirtualDirectory)virtualFile, project, dataContext);
+      return;
+    }
+
+    final Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
+    if (editor == null) {
+      return;
+    }
+
+    final PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
+    if (file == null) {
+      return;
+    }
+
+    invoke(project, editor, file, dataContext);
+  }
+
+  private static void performResourceGroupRenaming(@NotNull ResourceGroupVirtualDirectory resourceGroup,
+                                                   @NotNull Project project,
+                                                   @NotNull DataContext dataContext) {
+    VirtualFile[] resourceFiles = resourceGroup.getResourceFiles();
+    if (resourceFiles.length == 0) {
+      return;
+    }
+    PsiFile firstFile = PsiManager.getInstance(project).findFile(resourceFiles[0]);
+    final AndroidFacet facet = firstFile != null ? AndroidFacet.getInstance(firstFile) : null;
+    if (facet != null) {
+      // Treat the tree node rename as if the user renamed the R field instead.
+      performResourceFieldRenaming(AndroidResourceUtil.findResourceFieldsForFileResource(firstFile, true),
+                                   project, dataContext, null);
+    }
   }
 
   @Override
@@ -155,24 +221,31 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
                                   new ResourceRenameDialog(project, new ValueResourceElementWrapper(attributeValue), null, editor));
   }
 
-  private static void performResourceReferenceRenaming(@NotNull Project project,
-                                                       @NotNull Editor editor,
-                                                       @NotNull DataContext dataContext,
-                                                       @NotNull PsiFile file,
-                                                       @NotNull ResourceUrl url) {
+  private static void performResourceReferenceRenaming(Project project,
+                                                       Editor editor,
+                                                       DataContext dataContext,
+                                                       PsiFile file,
+                                                       ResourceUrl url) {
     assert !url.isFramework();
 
-    AndroidFacet facet = AndroidFacet.getInstance(file);
+    final AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet != null) {
       // Treat the resource reference as if the user renamed the R field instead.
-      PsiField[] resourceFields = AndroidResourceUtil.findResourceFields(facet, url.type.getName(), url.name, false);
-      if (resourceFields.length == 1) {
-        PsiElement element = resourceFields[0];
-        if (StudioFlags.IN_MEMORY_R_CLASSES.get() && element instanceof AndroidLightField) {
-          element = new ResourceFieldElementWrapper((AndroidLightField)element);
-        }
-        RenameDialog.showRenameDialog(dataContext, new ResourceRenameDialog(project, element, null, editor));
+      performResourceFieldRenaming(AndroidResourceUtil.findResourceFields(facet, url.type.getName(), url.name, false),
+                                   project, dataContext, editor);
+    }
+  }
+
+  private static void performResourceFieldRenaming(@NotNull PsiField[] resourceFields,
+                                                   @NotNull Project project,
+                                                   @NotNull DataContext dataContext,
+                                                   @Nullable Editor editor) {
+    if (resourceFields.length == 1) {
+      PsiElement element = resourceFields[0];
+      if (StudioFlags.IN_MEMORY_R_CLASSES.get() && element instanceof AndroidLightField) {
+        element = new ResourceFieldElementWrapper((AndroidLightField)element);
       }
+      RenameDialog.showRenameDialog(dataContext, new ResourceRenameDialog(project, element, null, editor));
     }
   }
 
@@ -210,21 +283,6 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       }
     }
     return null;
-  }
-
-  @Override
-  public void invoke(@NotNull Project project, @NotNull PsiElement[] elements, @NotNull DataContext dataContext) {
-    Editor editor = CommonDataKeys.EDITOR.getData(dataContext);
-    if (editor == null) {
-      return;
-    }
-
-    PsiFile file = CommonDataKeys.PSI_FILE.getData(dataContext);
-    if (file == null) {
-      return;
-    }
-
-    invoke(project, editor, file, dataContext);
   }
 
   @Override
