@@ -476,28 +476,33 @@ public class RepositoryUrlManager {
         String revision = highest.getRevision();
         if (revision.endsWith("+")) {
           revision = revision.length() > 1 ? revision.substring(0, revision.length() - 1) : null;
-          boolean includePreviews = false;
           if (ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId()) ||
               ImportModule.CORE_KTX_GROUP_ID.equals(highest.getGroupId())) {
             if (revision == null) {
               revision = supportFilter;
             }
-            includePreviews = true;
           }
           String prefix = revision;
           Predicate<GradleVersion> filter = prefix != null ? version -> version.toString().startsWith(prefix) : null;
 
-          String version =
-            getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, includePreviews, sdk.getLocation(), fileOp);
-          if (version == null && filter != null) {
-            // No library found at the support lib version filter level, so look for any match.
-            version =
-              getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, includePreviews, sdk.getLocation(), fileOp);
+          String version = null;
+          // 1 - Latest specific (ie support lib version filter level) stable version
+          if (filter != null) {
+            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, false, sdk.getLocation(), fileOp);
           }
-          if (version == null && !includePreviews) {
-            // Still no library found, check preview versions.
+          // 2 - Latest specific (ie support lib version filter level) preview version
+          if (version == null && filter != null) {
+            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), filter, true, sdk.getLocation(), fileOp);
+          }
+          // 3 - Latest stable version
+          if (version == null) {
+            version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, false, sdk.getLocation(), fileOp);
+          }
+          // 4 - Latest preview version
+          if (version == null) {
             version = getLibraryRevision(highest.getGroupId(), highest.getArtifactId(), null, true, sdk.getLocation(), fileOp);
           }
+          // 5 - No version found
           if (version != null) {
             String libraryCoordinate = highest.getId() + ":" + version;
             GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
