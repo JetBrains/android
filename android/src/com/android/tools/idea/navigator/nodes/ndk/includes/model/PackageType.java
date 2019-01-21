@@ -60,7 +60,11 @@ public enum PackageType {
   //   Third Party
   //     SDL
   //     OpenSSL
-  ThirdParty("Third Party Packages");
+  ThirdParty("Third Party Packages"),
+  // These are include folders that look like they match the traditional pattern of externals/libname. For example,
+  //   Externals
+  //     curl
+  Externals("Externals");
 
   @NotNull
   public final String myDescription;
