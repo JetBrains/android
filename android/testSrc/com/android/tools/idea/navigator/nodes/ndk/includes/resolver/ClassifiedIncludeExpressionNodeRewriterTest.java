@@ -168,6 +168,26 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
   }
 
   @Test
+  public void testDolphinExample() {
+    List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
+      PATH_TO_NDK,
+      RealWorldExamples.DOLPHIN_EXAMPLE);
+    IncludeSet set = new IncludeSet();
+    set.addIncludesFromCompilerFlags(includes, ROOT_OF_RELATIVE_INCLUDE_PATHS);
+    List<? extends IncludeValue> dependencies = getRewrittenDependencies(set);
+    StringBuilder sb = new StringBuilder();
+    printDependencies(sb, dependencies, 0);
+    String result = sb.toString();
+    System.out.printf(result);
+    assertThat(dependencies).hasSize(3);
+    assertContainsInOrder(result,
+                          "NDK Components (/path/to/ndk-bundle)",
+                          "Externals (/a/b)",
+                          "    SFML (Externals, /a/b, /Externals/SFML/include/)",
+                          "    minizip (Externals, 2 include paths)");
+  }
+
+  @Test
   public void testCocosExternalRoot() throws IOException {
     List<String> includes = RealWorldExamples.getConcreteCompilerIncludeFlags(
       PATH_TO_NDK,
