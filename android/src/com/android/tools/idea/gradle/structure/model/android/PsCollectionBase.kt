@@ -83,7 +83,7 @@ abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel
   protected abstract fun removeExisting(key: TKey)
 
   fun addNew(key: TKey): TModel {
-    if (entries.containsKey(key)) throw IllegalArgumentException("Duplicate key: $key")
+    if (entries.containsKey(key)) onDuplicateKey(key)
     instantiateNew(key)
     val model = create(key).also { update(key, it) }
     entries += (key to model)
@@ -91,6 +91,8 @@ abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel
     notifyChanged()
     return model
   }
+
+  protected open fun onDuplicateKey(key: TKey): Nothing = throw IllegalArgumentException("Duplicate key: $key")
 
   fun remove(key: TKey) {
     if (!entries.containsKey(key)) throw IllegalArgumentException("Key not found: $key")
