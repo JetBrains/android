@@ -490,16 +490,18 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     ResourceFolderType type = manager.getFileResourceFolderType(file);
     if (type == null) return;
-    String name = file.getName();
+    String nameWithoutExtension = FileUtil.getNameWithoutExtension(file.getName());
+    String resourceName = AndroidCommonUtils.getResourceName( type.getName(), file.getName());
 
-    if (AndroidCommonUtils.getResourceName(type.getName(), name).equals(AndroidCommonUtils.getResourceName(type.getName(), newName))) {
+    if (AndroidCommonUtils.getResourceName(type.getName(), nameWithoutExtension).equals(AndroidCommonUtils.getResourceName(type.getName(), newName))) {
       return;
     }
 
-    Collection<PsiFile> resourceFiles = manager.findResourceFiles(ResourceNamespace.TODO(), type, AndroidCommonUtils.getResourceName(type.getName(), name), true, false);
+    Collection<PsiFile> resourceFiles = manager.findResourceFiles(ResourceNamespace.TODO(), type, resourceName, true, false);
     List<PsiFile> alternativeResources = new ArrayList<>();
     for (PsiFile resourceFile : resourceFiles) {
-      if (!resourceFile.getManager().areElementsEquivalent(file, resourceFile) && resourceFile.getName().equals(name)) {
+      String alternativeFileName = AndroidCommonUtils.getResourceName(type.getName(), resourceFile.getName());
+      if (!resourceFile.getManager().areElementsEquivalent(file, resourceFile) && alternativeFileName.equals(resourceName)) {
         alternativeResources.add(resourceFile);
       }
     }
@@ -511,7 +513,11 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       }
       if (r == 0) {
         for (PsiFile candidate : alternativeResources) {
-          allRenames.put(candidate, newName);
+          String extension = FileUtilRt.getExtension(candidate.getName());
+          if (!extension.isEmpty()) {
+            extension = "." + extension;
+          }
+          allRenames.put(candidate, FileUtil.getNameWithoutExtension(newName) + extension);
         }
       }
       else {

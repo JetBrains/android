@@ -839,6 +839,24 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values-en/dimens.xml", BASE_PATH + "dimens_after.xml", true);
   }
 
+  public void testRenameFileWithMultipleExtension() {
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layoutwithicon.xml", "res/layout/layoutwithicon.xml");
+    VirtualFile iconXml = myFixture.copyFileToProject(BASE_PATH + "icon.xml", "res/drawable-anydpi/icon.xml");
+    VirtualFile iconPng = myFixture.copyFileToProject(BASE_PATH + "icon.png", "res/drawable-mdpi/icon.png");
+    VirtualFile iconInValue = myFixture.copyFileToProject(BASE_PATH + "icon.xml", "res/value/icon.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    checkAndRename("icon_with_new_name.xml");
+    myFixture.checkResult("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                          "\n" +
+                          "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+                          "  <EditText android:id=\"@+id/anchor\"/>\n" +
+                          "  <ImageView android:src=\"@drawable/icon_with_new_name\"/>\n" +
+                          "</RelativeLayout>\n");
+    assertEquals("icon_with_new_name.xml", iconXml.getName());
+    assertEquals("icon_with_new_name.png", iconPng.getName());
+    assertEquals("icon.xml", iconInValue.getName());
+  }
+
   private void doMovePackageTest(String packageName, String newPackageName) throws Exception {
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
