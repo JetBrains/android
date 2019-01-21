@@ -38,7 +38,7 @@ final class VirtualDevicesWorkerDelegate extends SwingWorker<Collection<VirtualD
   @NotNull
   @Override
   protected Collection<VirtualDevice> doInBackground() {
-    return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true).stream()
+    return AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false).stream()
       .map(avdInfo -> VirtualDevice.newDisconnectedDeviceBuilder(avdInfo).build(myChecker, myService))
       .collect(Collectors.toList());
   }
