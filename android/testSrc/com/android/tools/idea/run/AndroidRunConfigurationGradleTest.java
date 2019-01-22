@@ -90,8 +90,13 @@ public class AndroidRunConfigurationGradleTest extends AndroidGradleTestCase {
   private static class MyPluginVersionUpgradeStep extends PluginVersionUpgradeStep {
 
     @Override
-    public boolean checkAndPerformUpgrade(@NotNull Project project,
-                                          @NotNull AndroidPluginInfo pluginInfo) {
+    public boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
+      // Returning {@code false} means "project is all good, no update needed".
+      return false;
+    }
+
+    @Override
+    public boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
       // Returning {@code false} means "project is all good, no update needed or performed".
       return false;
     }

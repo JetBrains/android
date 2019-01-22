@@ -48,7 +48,7 @@ public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeSte
   }
 
   @Override
-  public boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
+  public boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
     if (myUpgradeReminder.shouldRecommendUpgrade(project) && shouldRecommendUpgrade(pluginInfo)) {
       GradleVersion current = pluginInfo.getPluginVersion();
       assert current != null;
@@ -57,26 +57,44 @@ public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeSte
 
       AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
       if (updater.canDetectPluginVersionToUpdate(recommended)) {
-        Computable<Boolean> promptUserTask = () -> {
-          RecommendedPluginVersionUpgradeDialog updateDialog = myUpgradeDialogFactory.create(project, current, recommended);
-          return updateDialog.showAndGet();
-        };
-        boolean userAcceptsUpgrade;
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
-          userAcceptsUpgrade = promptUserTask.compute();
-        }
-        else {
-          userAcceptsUpgrade = invokeAndWaitIfNeeded(promptUserTask);
-        }
+        return true;
+      }
+    }
+    return false;
+  }
 
-        if (userAcceptsUpgrade) {
-          GradleVersion latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-          UpdateResult result = updater.updatePluginVersionAndSync(recommended, latestGradleVersion,
-                                                                   false /* do not invalidate last sync if update fails */);
-          if (result.versionUpdateSuccess()) {
-            // plugin version updated and a project sync was requested. No need to continue.
-            return true;
-          }
+  @Override
+  public boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
+    if (!checkUpgradable(project, pluginInfo)) {
+      return false;
+    }
+
+    GradleVersion current = pluginInfo.getPluginVersion();
+    assert current != null;
+    AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
+    GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
+
+    AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
+    if (updater.canDetectPluginVersionToUpdate(recommended)) {
+      Computable<Boolean> promptUserTask = () -> {
+        RecommendedPluginVersionUpgradeDialog updateDialog = myUpgradeDialogFactory.create(project, current, recommended);
+        return updateDialog.showAndGet();
+      };
+      boolean userAcceptsUpgrade;
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        userAcceptsUpgrade = promptUserTask.compute();
+      }
+      else {
+        userAcceptsUpgrade = invokeAndWaitIfNeeded(promptUserTask);
+      }
+
+      if (userAcceptsUpgrade) {
+        GradleVersion latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
+        UpdateResult result = updater.updatePluginVersionAndSync(recommended, latestGradleVersion,
+                                                                 false /* do not invalidate last sync if update fails */);
+        if (result.versionUpdateSuccess()) {
+          // plugin version updated and a project sync was requested. No need to continue.
+          return true;
         }
       }
     }
