@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import static com.android.SdkConstants.DOT_JAR;
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
@@ -135,11 +134,6 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     for (EditedStyleItem item : values) {
       String doc = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myModule, configuration);
       String filename = item.getAttrName();
-      //TODO(sprigogin): Remove the following statement and the myDrawable_unpacked_resources.ans file
-      //                 when unpacked built-in framework resources are removed.
-      if (filename.equals("myDrawable") && !mySdkPlatformRes.endsWith(DOT_JAR)) {
-        filename += "_unpacked_resources";
-      }
       compareWithGoldenFile(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + filename + ".ans");
     }
   }
