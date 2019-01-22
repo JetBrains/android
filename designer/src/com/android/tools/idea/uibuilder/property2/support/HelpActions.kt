@@ -43,7 +43,7 @@ object HelpActions {
     override fun actionPerformed(event: AnActionEvent) {
       val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
       val tag = property.components.first().backend.getTag()
-      val documentation = createHelpText(property).nullize() ?: return
+      val documentation = createHelpText(property, allowEmptyDescription = false).nullize() ?: return
       DocumentationManager.getInstance(property.project).showJavaDocInfo(tag, tag, true, null, documentation)
     }
   }
@@ -86,15 +86,27 @@ object HelpActions {
       else -> null
     }
 
-  fun createHelpText(property: NelePropertyItem): String {
+  /**
+   * Create help text consisting of the name and a description for the specified [property].
+   *
+   * If no description of the property is known the method returns just the name of the
+   * property if [allowEmptyDescription] otherwise the empty string is returned (no help).
+   */
+  fun createHelpText(property: NelePropertyItem, allowEmptyDescription: Boolean): String {
+    val description = filterRawAttributeComment(property.definition?.getDescription(null) ?: "")
+    if (description.isEmpty() && !allowEmptyDescription) {
+      return ""  // No help text available
+    }
     val sb = StringBuilder(100)
     sb.append("<html><b>")
     sb.append(findNamespacePrefix(property))
     sb.append(property.name)
-    sb.append(":</b><br/>")
-    val value = property.definition?.getDescription(null) ?: return ""
-    if (value.isNotEmpty()) {
-      sb.append(filterRawAttributeComment(value))
+    if (description.isEmpty()) {
+      sb.append("</b>")
+    }
+    else {
+      sb.append(":</b><br/>")
+      sb.append(description)
     }
     sb.append("</html>")
     return sb.toString()

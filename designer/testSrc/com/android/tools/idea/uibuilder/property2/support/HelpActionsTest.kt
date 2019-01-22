@@ -22,6 +22,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
 import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
 import com.android.SdkConstants.ATTR_SRC
 import com.android.SdkConstants.ATTR_TEXT
+import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.FQCN_IMAGE_VIEW
@@ -65,6 +66,15 @@ class HelpActionsTest {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
     assertThat(property.tooltipForName).isEqualTo(EXPECTED_TEXT_TOOLTIP)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testTooltipForCustomPropertyWithoutDocumentation() {
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
+    util.setUpCustomView()
+    val property = util.makeProperty(AUTO_URI, "legend", NelePropertyType.BOOLEAN)
+    assertThat(property.tooltipForName).isEqualTo("<html><b>app:legend</b></html>")
   }
 
   @RunsInEdt
