@@ -36,14 +36,24 @@ import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class ForcedPluginPreviewVersionUpgradeStep extends PluginVersionUpgradeStep {
+
   @Override
-  public boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
+  public boolean checkUpgradable(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
     AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
     GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
 
-    if (!shouldPreviewBeForcedToUpgradePluginVersion(recommended, pluginInfo.getPluginVersion())) {
+    return shouldPreviewBeForcedToUpgradePluginVersion(recommended, pluginInfo.getPluginVersion());
+  }
+
+  @Override
+  public boolean checkAndPerformUpgrade(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
+    if (!checkUpgradable(project, pluginInfo)) {
       return false;
     }
+
+    AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
+    GradleVersion recommended = GradleVersion.parse(pluginGeneration.getLatestKnownVersion());
+
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     syncState.syncEnded(); // Update the sync state before starting a new one.
 
