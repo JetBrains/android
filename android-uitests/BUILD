@@ -113,7 +113,6 @@ java_test(
     name = "ResolveXmlReferencesTest",
     size = "large",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
         "//tools/data-binding:data_binding_runtime.zip",
     ] + glob([
@@ -129,7 +128,6 @@ java_test(
     name = "NewProjectTest",
     size = "large",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NewProjectTest"],
@@ -142,7 +140,6 @@ java_test(
     name = "NewActivityTest",
     size = "large",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -159,7 +156,6 @@ java_test(
     data = COMMON_DATA + [
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/sdk:tools/support-annotations",
-        "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.1.0:aar",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -175,7 +171,6 @@ java_test(
     name = "ConstraintLayoutTest",
     size = "large",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -191,7 +186,6 @@ java_test(
     name = "GradleSyncTest",
     size = "large",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -206,7 +200,6 @@ java_test(
     name = "NewModuleTest",
     size = "large",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -223,7 +216,6 @@ java_test(
     name = "BuildTypesTest",
     size = "large",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -239,7 +231,6 @@ java_test(
     name = "LayoutInspectorTest",
     size = "large",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -259,7 +250,6 @@ java_test(
     name = "ConvertToWebpActionTest",
     size = "large",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/ImportLocalWebpProject/**",
@@ -273,7 +263,6 @@ java_test(
 java_test(
     name = "FilterIconTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -323,7 +312,6 @@ java_test(
 java_test(
     name = "CreateDefaultActivityTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -455,7 +443,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -477,7 +464,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -499,7 +485,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -521,7 +506,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -608,7 +592,6 @@ java_test(
     name = "CreateBasicKotlinProjectTest",
     size = "large",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     jvm_flags = [
@@ -627,7 +610,6 @@ java_test(
     name = "AddRemoveCppDependencyTest",
     size = "large",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     jvm_flags = [
@@ -646,7 +628,6 @@ java_test(
 java_test(
     name = "CreateNewProjectWithCpp1Test",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp1Test"],
@@ -663,7 +644,6 @@ java_test(
 java_test(
     name = "CreateNewProjectWithCpp2Test",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp2Test"],
@@ -680,7 +660,6 @@ java_test(
 java_test(
     name = "CreateNewProjectWithCpp3Test",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.CreateNewProjectWithCpp3Test"],
@@ -700,7 +679,6 @@ java_test(
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]) + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     jvm_flags = [
@@ -719,7 +697,6 @@ java_test(
 java_test(
     name = "CreateNewMobileProjectTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateNewMobileProjectTest"],
@@ -736,7 +713,6 @@ java_test(
 java_test(
     name = "GoogleApiIntegrationTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/SimpleApplication/**",
@@ -755,7 +731,6 @@ java_test(
 java_test(
     name = "CreateCppKotlinProjectTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/CppKotlin/**",
@@ -905,7 +880,6 @@ java_test(
 java_test(
     name = "JavaLibsDepTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.JavaLibsDepTest"],
@@ -922,7 +896,6 @@ java_test(
 java_test(
     name = "AndroidLibsDepTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AndroidLibsDepTest"],
@@ -939,7 +912,6 @@ java_test(
 java_test(
     name = "JavaDepTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.6.2:jar",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
@@ -957,7 +929,6 @@ java_test(
 java_test(
     name = "AndroidDepTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.6.2:jar",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
@@ -990,7 +961,6 @@ java_test(
 java_test(
     name = "PrivateResourceTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/PrivateResource/**",
@@ -1009,7 +979,6 @@ java_test(
 java_test(
     name = "ChangeLibModSettingsTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/PrivateResource/**",
@@ -1028,7 +997,6 @@ java_test(
 java_test(
     name = "NameWithSpaceTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.NameWithSpaceTest"],
@@ -1047,7 +1015,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:platforms/android-23",
         "//prebuilts/studio/sdk:platforms/android-24",
         "//prebuilts/studio/sdk:platforms/android-25",
@@ -1072,7 +1039,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:platforms/android-25",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
@@ -1095,7 +1061,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -1117,7 +1082,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -1139,7 +1103,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -1161,7 +1124,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -1182,7 +1144,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -1203,7 +1164,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -1225,7 +1185,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -1247,7 +1206,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
@@ -1333,7 +1291,6 @@ java_test(
 java_test(
     name = "LintCheckWithKotlinTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/KotlinInstrumentation/**",
@@ -1351,7 +1308,6 @@ java_test(
 java_test(
     name = "AddInstantModuleTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/SimpleOldInstantApp/**",
@@ -1369,7 +1325,6 @@ java_test(
 java_test(
     name = "AddFeatureModuleTest",
     data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
         "testData/SimpleOldInstantApp/**",
@@ -1474,7 +1429,6 @@ java_test(
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/resources-aar:framework_res",
     ] + glob([
