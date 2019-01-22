@@ -154,7 +154,6 @@ iml_module(
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib:buildprop",
         "//prebuilts/studio/layoutlib:data/fonts",
-        "//prebuilts/studio/layoutlib:data/res",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:docs",
