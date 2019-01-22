@@ -451,6 +451,53 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.getModificationCount() > generation);
   }
 
+  public void testRenameResourceBackedByPsiResourceItem() {
+    // We first do a normal rename which will also convert the ResourceItem into a PsiResourceItem
+    //  Rename drawable file.
+    VirtualFile file5 = myFixture.copyFileToProject(LAYOUT1, "res/drawable-xhdpi/foo2.png");
+    ResourceFolderRepository resources = createRepository();
+
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo2"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo3"));
+    ResourceItem item = getOnlyItem(resources, ResourceType.DRAWABLE, "foo2");
+    assertTrue(item.getResourceValue() instanceof DensityBasedResourceValue);
+    DensityBasedResourceValue rv = (DensityBasedResourceValue)item.getResourceValue();
+    assertNotNull(rv);
+    assertSame(Density.XHIGH, rv.getResourceDensity());
+
+    long generation = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      try {
+          file5.rename(this, "foo3.png");
+        }
+        catch (IOException e) {
+          fail(e.toString());
+        }
+    });
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo3"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo2"));
+    assertTrue(resources.getModificationCount() > generation);
+
+    // At this point the item2 is a PsiResourceItem so we try to rename a second time
+    // to check that the new name is propagated to the resources repositories.
+    ResourceItem item2 = getOnlyItem(resources, ResourceType.DRAWABLE, "foo3");
+    assertInstanceOf(item2, PsiResourceItem.class);
+    assertTrue(item2.getResourceValue() instanceof DensityBasedResourceValue);
+
+    long generation2 = resources.getModificationCount();
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      try {
+          file5.rename(this, "foo4.png");
+        }
+        catch (IOException e) {
+          fail(e.toString());
+      }
+    });
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo3"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo4"));
+    assertTrue(resources.getModificationCount() > generation2);
+  }
+
   public void testRenameValueFile() {
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
