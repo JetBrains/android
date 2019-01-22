@@ -33,7 +33,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.PropertyBasedDoNotAskOption;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.OnePixelDivider;
@@ -44,6 +44,9 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -56,8 +59,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
-  private static final String SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME = "show.do.not.ask.upgrade.gradle.plugin";
-
   @NotNull private final Project myProject;
   @NotNull private final GradleVersion myCurrentPluginVersion;
   @NotNull private final GradleVersion myRecommendedPluginVersion;
@@ -88,7 +89,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     myRecommendedPluginVersion = recommended;
     myUpgradeReminder = upgradeReminder;
     setTitle("Android Gradle Plugin Update Recommended");
-    myDoNotAskOption = new PropertyBasedDoNotAskOption(project, SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME) {
+    myDoNotAskOption = new PropertyBasedDoNotAskOption(project, TimeBasedUpgradeReminder.SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME) {
       @Override
       @NotNull
       public String getDoNotShowMessage() {
@@ -108,7 +109,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
         if (!toBeShown) {
           valueToSave = myCurrentPluginVersion.toString();
         }
-        PropertiesComponent.getInstance(myProject).setValue(SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME, valueToSave);
+        myUpgradeReminder.setDoNotAskAgainVersion(myProject, valueToSave);
       }
     };
     init();
@@ -221,7 +222,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   }
 
   private boolean shouldDisplayDialog() {
-    String value = PropertiesComponent.getInstance(myProject).getValue(SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME, "");
+    String value = myUpgradeReminder.getDoNotAskAgainVersion(myProject);
     boolean storedVersionMatching = isNotEmpty(value) && myCurrentPluginVersion.compareTo(value) == 0;
     return !storedVersionMatching;
   }
@@ -269,6 +270,10 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
       // This is the "Remind me tomorrow" button.
       myUpgradeReminder.storeLastUpgradeRecommendation(myProject);
       recordUpgradeDialogEvent(myProject, myCurrentPluginVersion, myRecommendedPluginVersion, REMIND_ME_TOMORROW);
+
+      // Schedule checking after 1 days.
+      PluginVersionUpgradeChecker.scheduleNextReminder(myProject, 1, TimeUnit.DAYS);
+
       close(CANCEL_EXIT_CODE);
     }
   }
