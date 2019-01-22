@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 public class PluginVersionUpgrade {
@@ -37,9 +38,17 @@ public class PluginVersionUpgrade {
   }
 
   @VisibleForTesting
-  PluginVersionUpgrade(@NotNull Project project, @NotNull PluginVersionUpgradeStep... upgradeSteps) {
+  public PluginVersionUpgrade(@NotNull Project project, @NotNull PluginVersionUpgradeStep... upgradeSteps) {
     myProject = project;
     myUpgradeSteps = upgradeSteps;
+  }
+
+  public boolean isUpgradable() {
+    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(myProject);
+    if (pluginInfo == null) {
+      return false;
+    }
+    return Arrays.stream(myUpgradeSteps).anyMatch(it -> it.checkUpgradable(myProject, pluginInfo));
   }
 
   /**

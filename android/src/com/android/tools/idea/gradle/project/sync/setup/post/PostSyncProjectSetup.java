@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibi
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.PluginVersionUpgradeChecker;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -84,6 +85,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Key;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
@@ -213,10 +215,15 @@ public class PostSyncProjectSetup {
       // Needed internally for development of Android support lib.
       boolean skipAgpUpgrade = SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false);
 
-      if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade && myPluginVersionUpgrade.checkAndPerformUpgrade()) {
-        // Plugin version was upgraded and a sync was triggered.
-        finishSuccessfulSync(taskId);
-        return;
+      if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade) {
+        if (StudioFlags.BALLOON_UPGRADE_NOTIFICATION.get()) {
+          PluginVersionUpgradeChecker.checkUpgrade(myProject);
+        }
+        else if (myPluginVersionUpgrade.checkAndPerformUpgrade()) {
+          // Plugin version was upgraded and a sync was triggered.
+          finishSuccessfulSync(taskId);
+          return;
+        }
       }
 
       new ProjectStructureUsageTracker(myProject).trackProjectStructure();
