@@ -40,6 +40,7 @@ import com.android.tools.idea.uibuilder.property2.testutils.APPCOMPAT_IMAGE_VIEW
 import com.android.tools.idea.uibuilder.property2.testutils.APPCOMPAT_TEXT_VIEW
 import com.android.tools.idea.uibuilder.property2.testutils.MockAppCompat
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
+import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
 import org.intellij.lang.annotations.Language
 
@@ -137,7 +138,7 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   }
 
   fun testCustomViewProperties() {
-    setUpCustomView()
+    SupportTestUtil.setUpCustomView(myFixture)
     val provider = NelePropertiesProvider(myFacet)
     val model = NelePropertiesModel(testRootDisposable, myFacet)
     val properties = provider.getProperties(model, null, createComponents(component(CUSTOM_TAG)))
@@ -149,7 +150,7 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   }
 
   fun testToolTip() {
-    setUpCustomView()
+    SupportTestUtil.setUpCustomView(myFixture)
     val provider = NelePropertiesProvider(myFacet)
     val model = NelePropertiesModel(testRootDisposable, myFacet)
     val properties = provider.getProperties(model, null, createComponents(component(CUSTOM_TAG)))
@@ -177,38 +178,5 @@ class NelePropertiesProviderTest : PropertyTestCase() {
     val builder = model("view.xml", component(VIEW))
     val nlModel = builder.build()
     return nlModel.components
-  }
-
-  private fun setUpCustomView() {
-    @Language("XML")
-    val attrsSrc = """<?xml version="1.0" encoding="utf-8"?>
-      <resources>
-        <declare-styleable name="PieChart">
-          <!-- Help Text -->
-          <attr name="legend" format="boolean" />
-          <attr name="labelPosition" format="enum">
-            <enum name="left" value="0"/>
-            <enum name="right" value="1"/>
-          </attr>
-        </declare-styleable>
-      </resources>
-      """.trimIndent()
-
-    @Language("JAVA")
-    val javaSrc = """
-      package com.example;
-
-      import android.content.Context;
-      import android.view.View;
-
-      public class PieChart extends View {
-          public PieChart(Context context) {
-              super(context);
-          }
-      }
-      """.trimIndent()
-
-    myFixture.addFileToProject("res/values/attrs.xml", attrsSrc)
-    myFixture.addFileToProject("src/com/example/PieChart.java", javaSrc)
   }
 }
