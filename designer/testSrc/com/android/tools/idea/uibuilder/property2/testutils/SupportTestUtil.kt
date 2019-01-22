@@ -37,13 +37,14 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.text.nullize
+import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.mockito.Mockito
 import java.util.stream.Collectors
 
-open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture, val components: List<NlComponent>) {
+open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixture, val components: List<NlComponent>) {
   val model = NelePropertiesModel(fixture.testRootDisposable, facet)
   val nlModel = components[0].model
   private val frameworkResourceManager = ModuleResourceManagers.getInstance(facet).frameworkResourceManager
@@ -87,6 +88,10 @@ open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture,
     return NeleIdPropertyItem(model, definition, "", null, components)
   }
 
+  fun setUpCustomView() {
+    setUpCustomView(fixture)
+  }
+
   fun findSiblingById(id: String): NlComponent? {
     return findChildById(components[0].parent!!, id)
   }
@@ -100,6 +105,39 @@ open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture,
   }
 
   companion object {
+
+    fun setUpCustomView(fixture: CodeInsightTestFixture) {
+      @Language("XML")
+      val attrsSrc = """<?xml version="1.0" encoding="utf-8"?>
+      <resources>
+        <declare-styleable name="PieChart">
+          <!-- Help Text -->
+          <attr name="legend" format="boolean" />
+          <attr name="labelPosition" format="enum">
+            <enum name="left" value="0"/>
+            <enum name="right" value="1"/>
+          </attr>
+        </declare-styleable>
+      </resources>
+      """.trimIndent()
+
+      @Language("JAVA")
+      val javaSrc = """
+      package com.example;
+
+      import android.content.Context;
+      import android.view.View;
+
+      public class PieChart extends View {
+          public PieChart(Context context) {
+              super(context);
+          }
+      }
+      """.trimIndent()
+
+      fixture.addFileToProject("res/values/attrs.xml", attrsSrc)
+      fixture.addFileToProject("src/com/example/PieChart.java", javaSrc)
+    }
 
     fun fromId(projectRule: AndroidProjectRule, text: String, id: String): SupportTestUtil {
       val facet = AndroidFacet.getInstance(projectRule.module)!!

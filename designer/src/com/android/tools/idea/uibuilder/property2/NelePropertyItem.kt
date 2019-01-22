@@ -291,7 +291,7 @@ open class NelePropertyItem(
   }
 
   private fun computeTooltipForName(): String {
-    return HelpActions.createHelpText(this)
+    return HelpActions.createHelpText(this, allowEmptyDescription = true)
   }
 
   private fun computeTooltipForValue(): String {
