@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.roomSql.refactoring
 
 import com.android.tools.idea.lang.roomSql.COMMENTS
 import com.android.tools.idea.lang.roomSql.IDENTIFIERS
+import com.android.tools.idea.lang.roomSql.RoomAnnotations
 import com.android.tools.idea.lang.roomSql.STRING_LITERALS
 import com.android.tools.idea.lang.roomSql.parser.RoomSqlLexer
 import com.android.tools.idea.lang.roomSql.psi.RoomNameElement
@@ -28,8 +29,10 @@ import com.intellij.lang.cacheBuilder.WordOccurrence
 import com.intellij.lang.cacheBuilder.WordsScanner
 import com.intellij.lang.findUsages.EmptyFindUsagesProvider
 import com.intellij.lang.findUsages.FindUsagesProvider
+import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -67,9 +70,23 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
   }
 
   override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<in PsiReference>) {
-    val (word, referenceTarget) = ReadAction.compute<Pair<String, PsiElement>?, Throwable> {
-      getNameDefinition(queryParameters.elementToSearch)?.let(this::chooseWordAndElement)
-    } ?: return
+    val element = queryParameters.elementToSearch
+
+    // Return early if possible: this method is called by various inspections on all kinds of PSI elements, in most cases we don't have to
+    // do anything which means we don't block a FJ thread by building a Room schema.
+    when (element) {
+      is PsiClass -> {
+        if (!element.definesSqlTable()) return
+      }
+      is PsiField -> {
+        val psiClass = element.containingClass ?: return
+        // A subclass can be annotated with `@Entity`, making fields into SQL column definitions.
+        if (psiClass.hasModifier(JvmModifier.FINAL) && !psiClass.definesSqlTable()) return
+      }
+      else -> return
+    }
+
+    val (word, referenceTarget) = runReadAction { getNameDefinition(element)?.let(this::chooseWordAndElement) } ?: return
 
     // Note: QueryExecutorBase is a strange API: the naive way to implement it is to somehow find the references and feed them to the
     // consumer. The "proper" way is to get the optimizer and schedule an index search for references to a given element that include a
@@ -80,6 +97,13 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     //   - We look for references to the right element: if a table/column name is overridden using annotations, the PSI references may not
     //     point to the class/field itself, but we still want to show these references in "find usages".
     queryParameters.optimizer.searchWord(word, queryParameters.scopeDeterminedByUser, false, referenceTarget)
+  }
+
+  private fun PsiClass.definesSqlTable(): Boolean {
+    return hasAnnotation(RoomAnnotations.ENTITY.oldName()) ||
+           hasAnnotation(RoomAnnotations.ENTITY.newName()) ||
+           hasAnnotation(RoomAnnotations.DATABASE_VIEW.oldName()) ||
+           hasAnnotation(RoomAnnotations.DATABASE_VIEW.newName())
   }
 
   private fun chooseWordAndElement(definition: SqlDefinition): Pair<String, PsiElement>? {
@@ -102,7 +126,6 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
   private fun getNameDefinition(element: PsiElement): SqlDefinition? {
     return when (element) {
       is PsiClass -> {
-        // TODO(b/119563792): Classes also define FTS columns.
         getSchema(element)?.findTable(element)
       }
       is PsiField -> {
