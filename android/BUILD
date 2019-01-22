@@ -285,6 +285,7 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module, test]",
+        "//tools/vendor/intellij/cidr:intellij.c[module, test]",
     ],
 )
 
@@ -1264,7 +1265,7 @@ maven_java_library(
 # ATTENTION: This file is generated from tools/buildSrc/base/dependencies.properties, see top of this file.
 maven_java_library(
     name = "org.jetbrains.kotlin_kotlin-reflect",
-    export_artifact = "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-reflect/1.3.11:jar",
+    export_artifact = "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-reflect/1.3.20:jar",
     visibility = ["//visibility:public"],
     exports = [":org.jetbrains.kotlin_kotlin-stdlib"],
 )
@@ -1272,7 +1273,7 @@ maven_java_library(
 # ATTENTION: This file is generated from tools/buildSrc/base/dependencies.properties, see top of this file.
 maven_java_library(
     name = "org.jetbrains.kotlin_kotlin-stdlib",
-    export_artifact = "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.3.11:jar",
+    export_artifact = "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.3.20:jar",
     visibility = ["//visibility:public"],
     exports = [":org.jetbrains_annotations"],
 )

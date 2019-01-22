@@ -112,5 +112,6 @@
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.resources-aar" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.c" scope="TEST" />
   </component>
 </module>
