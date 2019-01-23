@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.handlers.grid.targets
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
-import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneContext
@@ -77,7 +76,8 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
       list.add(DrawDraggableRegionCommand(b.left, b.top, b.right, b.bottom))
 
       if (selectedColumn != -1 && selectedRow != -1) {
-        list.add(DragCellCommand(b.columns[selectedColumn], b.rows[selectedRow], b.columns[selectedColumn + 1], b.rows[selectedRow + 1]))
+        val bounds = b.getBounds(selectedRow, selectedColumn) ?: return
+        list.add(DragCellCommand(bounds.x, bounds.y, bounds.width, bounds.height))
       }
     }
   }
@@ -112,8 +112,8 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
   private fun updateAttributes(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
     if (barrier == null) return
     val b = barrier as GridBarriers
-    selectedColumn = b.columns.slice(0 until b.columns.lastIndex).indexOfLast { x > it }
-    selectedRow = b.rows.slice(0 until b.rows.lastIndex).indexOfLast { y > it }
+    selectedColumn = b.getColumnAtX(x)
+    selectedRow = b.getRowAtY(y)
 
     if (selectedColumn != -1) {
       attributes.setAttribute(nameSpace, SdkConstants.ATTR_LAYOUT_COLUMN, selectedColumn.toString())
@@ -176,22 +176,22 @@ private class DrawDraggableRegionCommand(@AndroidDpCoordinate val x1: Int,
   override fun serialize() = "${javaClass.name}:($x1, $y1) - ($x2, $y2)"
 }
 
-private class DragCellCommand(@AndroidDpCoordinate val x1: Int,
-                              @AndroidDpCoordinate val y1: Int,
-                              @AndroidDpCoordinate val x2: Int,
-                              @AndroidDpCoordinate val y2: Int)
+private class DragCellCommand(@AndroidDpCoordinate val x: Int,
+                              @AndroidDpCoordinate val y: Int,
+                              @AndroidDpCoordinate val w: Int,
+                              @AndroidDpCoordinate val h: Int)
   : DrawCommand {
 
   override fun getLevel() = DrawCommand.CLIP_LEVEL
 
   override fun paint(g: Graphics2D, sceneContext: SceneContext) {
-    val swingX = sceneContext.getSwingXDip(x1.toFloat())
-    val swingY = sceneContext.getSwingYDip(y1.toFloat())
-    val width = sceneContext.getSwingDimensionDip((x2 - x1).toFloat())
-    val height = sceneContext.getSwingDimensionDip((y2 - y1).toFloat())
+    val swingX = sceneContext.getSwingXDip(x.toFloat())
+    val swingY = sceneContext.getSwingYDip(y.toFloat())
+    val width = sceneContext.getSwingDimensionDip(w.toFloat())
+    val height = sceneContext.getSwingDimensionDip(h.toFloat())
     g.color = sceneContext.colorSet.dragReceiverFrames
     g.fillRect(swingX, swingY, width, height)
   }
 
-  override fun serialize() = "${javaClass.name}: ($x1, $y1) - ($x2, $y2)"
+  override fun serialize() = "${javaClass.name},$x,$y,$w,$h"
 }
