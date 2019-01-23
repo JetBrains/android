@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
+import com.android.tools.idea.gradle.structure.configurables.ui.RenderedComboBox
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.variables.VARIABLES_VIEW
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture
+import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture
 import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.treeStructure.treetable.TreeTable
+import org.fest.swing.data.TableCell
 import org.fest.swing.driver.BasicJTableCellReader
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.JListFixture
@@ -184,5 +187,3 @@ fun ProjectStructureDialogFixture.selectVariablesConfigurable(): VariablesPerspe
 }
 
 fun MessagesFixture.clickNo() = click("No")
-
-fun VariablesPerspectiveConfigurableFixture.findMessageDialog(title: String) = MessagesFixture.findByTitle(robot(), title)
