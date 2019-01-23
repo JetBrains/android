@@ -17,12 +17,11 @@ package com.android.tools.idea.uibuilder.property2.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
-import java.awt.FlowLayout
 import com.android.tools.idea.uibuilder.property2.model.HorizontalEditorPanelModel
-import java.awt.event.KeyEvent
+import java.awt.FlowLayout
 import javax.swing.JComponent
-import javax.swing.KeyStroke
 
 /**
  * A panel for holding one or more editor components.
@@ -32,8 +31,8 @@ import javax.swing.KeyStroke
 class HorizontalEditorPanel(private val model: HorizontalEditorPanelModel): AdtSecondaryPanel(FlowLayout(FlowLayout.LEADING, 2, 2)) {
 
   init {
-    registerKeyboardAction({ model.prior() }, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerKeyboardAction({ model.next() }, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerKeyboardAction({ model.prior() }, KeyStrokes.left, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerKeyboardAction({ model.next() }, KeyStrokes.right, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     model.addListener(ValueChangedListener { updateFromModel() })
   }
 
