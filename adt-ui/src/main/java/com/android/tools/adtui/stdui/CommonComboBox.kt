@@ -38,11 +38,13 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : JComboB
     @Suppress("LeakingThis")
     super.setEditor(CommonComboBoxEditor(model, this))
     textField = editor.editorComponent as CommonTextField<*>
-    textField?.registerActionKey({ moveNext() }, KeyStrokes.down, "moveNext")
-    textField?.registerActionKey({ movePrevious() }, KeyStrokes.up, "movePrevious")
-    textField?.registerActionKey({ moveNextPage() }, KeyStrokes.pageDown, "moveNextPage")
-    textField?.registerActionKey({ movePreviousPage() }, KeyStrokes.pageUp, "movePreviousPage")
-    textField?.registerActionKey({ togglePopup() }, KeyStrokes.altDown, "toggle")
+    textField?.registerActionKey({ moveNext() }, KeyStrokes.DOWN, "moveNext")
+    textField?.registerActionKey({ movePrevious() }, KeyStrokes.UP, "movePrevious", { isPopupVisible })
+    textField?.registerActionKey({ moveNextPage() }, KeyStrokes.PAGE_DOWN, "moveNextPage", { isPopupVisible })
+    textField?.registerActionKey({ movePreviousPage() }, KeyStrokes.PAGE_UP, "movePreviousPage", { isPopupVisible })
+    textField?.registerActionKey({ togglePopup() }, KeyStrokes.ALT_DOWN, "toggle")
+    registerActionKey({}, KeyStrokes.PAGE_DOWN, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.PAGE_UP, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
     setFromModel()
 

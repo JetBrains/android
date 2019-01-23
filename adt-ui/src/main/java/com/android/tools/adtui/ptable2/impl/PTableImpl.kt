@@ -65,6 +65,7 @@ import kotlin.properties.Delegates
 
 private const val LEFT_FRACTION = 0.40
 private const val MAX_LABEL_WIDTH = 240
+private const val NOOP = "noop"
 
 /**
  * Implementation of a [PTable].
@@ -306,26 +307,28 @@ class PTableImpl(override val tableModel: PTableModel,
 
     // Disable the builtin actions from the TableUI by always returning false for isEnabled.
     // This will make sure the event is bubbled up to the parent component.
-    registerActionKey({}, KeyStrokes.enter, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.space, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.left, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.numericLeft, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.right, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerActionKey({}, KeyStrokes.numericRight, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.ENTER, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.SPACE, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.LEFT, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.NUM_LEFT, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.RIGHT, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.NUM_RIGHT, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.PAGE_UP, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.PAGE_DOWN, NOOP, { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
     // Setup the actions for when the table has focus i.e. we are not editing a property
-    registerActionKey({ smartEnter(toggleOnly = false) }, KeyStrokes.enter, "smartEnter")
-    registerActionKey({ smartEnter(toggleOnly = true) }, KeyStrokes.space, "toggleEditor")
-    registerActionKey({ modifyGroup(expand = false) }, KeyStrokes.left, "collapse")
-    registerActionKey({ modifyGroup(expand = false) }, KeyStrokes.numericLeft, "collapse")
-    registerActionKey({ modifyGroup(expand = true) }, KeyStrokes.right, "expand")
-    registerActionKey({ modifyGroup(expand = true) }, KeyStrokes.numericRight, "expand")
-    registerActionKey({ nextPage(moveUp = true) }, KeyStrokes.pageUp, "pageUp")
-    registerActionKey({ nextPage(moveUp = false) }, KeyStrokes.pageDown, "pageDown")
-    registerActionKey({ moveToFirstRow() }, KeyStrokes.home, "firstRow")
-    registerActionKey({ moveToLastRow() }, KeyStrokes.end, "lastRow")
-    registerActionKey({ moveToFirstRow() }, KeyStrokes.cmdHome, "firstRow")
-    registerActionKey({ moveToLastRow() }, KeyStrokes.cmdEnd, "lastRow")
+    registerActionKey({ smartEnter(toggleOnly = false) }, KeyStrokes.ENTER, "smartEnter")
+    registerActionKey({ smartEnter(toggleOnly = true) }, KeyStrokes.SPACE, "toggleEditor")
+    registerActionKey({ modifyGroup(expand = false) }, KeyStrokes.LEFT, "collapse")
+    registerActionKey({ modifyGroup(expand = false) }, KeyStrokes.NUM_LEFT, "collapse")
+    registerActionKey({ modifyGroup(expand = true) }, KeyStrokes.RIGHT, "expand")
+    registerActionKey({ modifyGroup(expand = true) }, KeyStrokes.NUM_RIGHT, "expand")
+    registerActionKey({ nextPage(moveUp = true) }, KeyStrokes.PAGE_UP, "pageUp")
+    registerActionKey({ nextPage(moveUp = false) }, KeyStrokes.PAGE_DOWN, "pageDown")
+    registerActionKey({ moveToFirstRow() }, KeyStrokes.HOME, "firstRow")
+    registerActionKey({ moveToLastRow() }, KeyStrokes.END, "lastRow")
+    registerActionKey({ moveToFirstRow() }, KeyStrokes.CMD_HOME, "firstRow")
+    registerActionKey({ moveToLastRow() }, KeyStrokes.CMD_END, "lastRow")
 
     // Disable auto start editing from JTable
     putClientProperty("JTable.autoStartsEdit", java.lang.Boolean.FALSE)
