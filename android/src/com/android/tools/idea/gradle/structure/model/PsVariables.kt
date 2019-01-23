@@ -101,8 +101,6 @@ open class PsVariables (
       addNew(name).also { it.convertToEmptyMap() }
     }
 
-  override fun onDuplicateKey(key: String): Nothing = throw InvalidVariableName.duplicateVariable(key)
-
   override fun removeVariable(name: String) = remove(name)
 
   @VisibleForTesting
