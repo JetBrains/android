@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.common.property2.impl.support
 
+import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.adtui.stdui.registerAnActionKey
 import com.android.tools.idea.common.property2.api.PropertyItem
-import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import javax.swing.JComponent
 
 /**
@@ -29,6 +29,6 @@ object HelpSupportBinding {
   fun registerHelpKeyActions(component: JComponent, getProperty: () -> PropertyItem?, condition: Int = JComponent.WHEN_FOCUSED) {
     component.registerAnActionKey({ getProperty()?.helpSupport?.help }, KeyStrokes.f1, "help", condition)
     component.registerAnActionKey({ getProperty()?.helpSupport?.secondaryHelp }, KeyStrokes.shiftF1, "help2", condition)
-    component.registerActionKey({ getProperty()?.helpSupport?.browse() }, KeyStrokes.browse, "browse")
+    component.registerActionKey({ getProperty()?.helpSupport?.browse() }, KeyStrokes.cmdBrowse, "browse")
   }
 }

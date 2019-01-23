@@ -17,11 +17,11 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
+import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil

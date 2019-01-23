@@ -16,10 +16,10 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.support.ImageFocusListener
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionGroup

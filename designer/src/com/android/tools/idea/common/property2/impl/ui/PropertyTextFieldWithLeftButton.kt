@@ -17,8 +17,8 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerAnActionKey
-import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.common.property2.impl.support.ImageFocusListener

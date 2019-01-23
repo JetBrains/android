@@ -24,9 +24,7 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.UIUtil
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
-import java.awt.event.KeyEvent
 import javax.swing.JComponent
-import javax.swing.KeyStroke
 import javax.swing.event.DocumentEvent
 
 const val OUTLINE_PROPERTY = "JComponent.outline"
@@ -49,15 +47,15 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     if (editorModel.editingSupport.completion != EDITOR_NO_COMPLETIONS) {
       @Suppress("LeakingThis")
       val myLookup = Lookup(this)
-      registerActionKey({ enterInLookup() }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter")
-      registerActionKey({ escapeInLookup() }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape")
-      registerActionKey({ myLookup.showLookup() }, KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, KeyEvent.CTRL_MASK), "showCompletions")
-      registerActionKey({ myLookup.selectNext() }, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "selectNext")
-      registerActionKey({ myLookup.selectPrevious() }, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "selectPrevious")
-      registerActionKey({ myLookup.selectNextPage() }, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), "selectNextPage")
-      registerActionKey({ myLookup.selectPreviousPage() }, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), "selectPreviousPage")
-      registerActionKey({ myLookup.selectFirst() }, KeyStroke.getKeyStroke(KeyEvent.VK_HOME, KeyEvent.CTRL_MASK), "selectFirst")
-      registerActionKey({ myLookup.selectLast() }, KeyStroke.getKeyStroke(KeyEvent.VK_END, KeyEvent.CTRL_MASK), "selectLast")
+      registerActionKey({ enterInLookup() }, KeyStrokes.enter, "enter")
+      registerActionKey({ escapeInLookup() }, KeyStrokes.escape, "escape")
+      registerActionKey({ myLookup.showLookup() }, KeyStrokes.ctrlSpace, "showCompletions")
+      registerActionKey({ myLookup.selectNext() }, KeyStrokes.down, "selectNext")
+      registerActionKey({ myLookup.selectPrevious() }, KeyStrokes.up, "selectPrevious")
+      registerActionKey({ myLookup.selectNextPage() }, KeyStrokes.pageDown, "selectNextPage")
+      registerActionKey({ myLookup.selectPreviousPage() }, KeyStrokes.pageUp, "selectPreviousPage")
+      registerActionKey({ myLookup.selectFirst() }, KeyStrokes.cmdHome, "selectFirst")
+      registerActionKey({ myLookup.selectLast() }, KeyStrokes.cmdEnd, "selectLast")
       super.addFocusListener(object: FocusAdapter() {
         override fun focusLost(event: FocusEvent) {
           myLookup.close()
