@@ -22,6 +22,8 @@ import com.android.tools.adtui.ptable2.PTableColumn
 import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.Gray
@@ -37,7 +39,6 @@ import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.Font
-import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.FocusAdapter
@@ -47,9 +48,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.EventObject
-import javax.swing.AbstractAction
 import javax.swing.JComponent
-import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.ListSelectionModel
 import javax.swing.RowFilter
@@ -304,43 +303,29 @@ class PTableImpl(override val tableModel: PTableModel,
   }
 
   private fun customizeKeyMaps() {
-    // Customize keymaps. See https://docs.oracle.com/javase/tutorial/uiswing/misc/keybinding.html for info on how this works, but the
-    // summary is that we set an input map mapping key bindings to a string, and an action map that maps those strings to specific actions.
-    val actionMap = actionMap
-    val focusedInputMap = getInputMap(JComponent.WHEN_FOCUSED)
-    val ancestorInputMap = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
-    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "smartEnter")
-    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0))
-    actionMap.put("smartEnter", MyEnterAction(false))
+    // Disable the builtin actions from the TableUI by always returning false for isEnabled.
+    // This will make sure the event is bubbled up to the parent component.
+    registerActionKey({}, KeyStrokes.enter, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.space, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.left, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.numericLeft, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.right, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.numericRight, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
-    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "toggleEditor")
-    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0))
-    actionMap.put("toggleEditor", MyEnterAction(true))
-
-    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0))
-    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_KP_RIGHT, 0))
-    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "expandCurrentRight")
-    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_KP_RIGHT, 0), "expandCurrentRight")
-    actionMap.put("expandCurrentRight", MyExpandCurrentAction(true))
-
-    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0))
-    ancestorInputMap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_KP_LEFT, 0))
-    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "collapseCurrentLeft")
-    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_KP_LEFT, 0), "collapseCurrentLeft")
-    actionMap.put("collapseCurrentLeft", MyExpandCurrentAction(false))
-
-    // Page Up & Page Down
-    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), "pageUp")
-    actionMap.put("pageUp", MyPageUpAction())
-    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), "pageDown")
-    actionMap.put("pageDown", MyPageDownAction())
-
-    // Home and End key
-    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), "home")
-    actionMap.put("home", MyHomeAction())
-    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0), "end")
-    actionMap.put("end", MyEndAction())
+    // Setup the actions for when the table has focus i.e. we are not editing a property
+    registerActionKey({ smartEnter(toggleOnly = false) }, KeyStrokes.enter, "smartEnter")
+    registerActionKey({ smartEnter(toggleOnly = true) }, KeyStrokes.space, "toggleEditor")
+    registerActionKey({ modifyGroup(expand = false) }, KeyStrokes.left, "collapse")
+    registerActionKey({ modifyGroup(expand = false) }, KeyStrokes.numericLeft, "collapse")
+    registerActionKey({ modifyGroup(expand = true) }, KeyStrokes.right, "expand")
+    registerActionKey({ modifyGroup(expand = true) }, KeyStrokes.numericRight, "expand")
+    registerActionKey({ nextPage(moveUp = true) }, KeyStrokes.pageUp, "pageUp")
+    registerActionKey({ nextPage(moveUp = false) }, KeyStrokes.pageDown, "pageDown")
+    registerActionKey({ moveToFirstRow() }, KeyStrokes.home, "firstRow")
+    registerActionKey({ moveToLastRow() }, KeyStrokes.end, "lastRow")
+    registerActionKey({ moveToFirstRow() }, KeyStrokes.cmdHome, "firstRow")
+    registerActionKey({ moveToLastRow() }, KeyStrokes.cmdEnd, "lastRow")
 
     // Disable auto start editing from JTable
     putClientProperty("JTable.autoStartsEdit", java.lang.Boolean.FALSE)
@@ -448,22 +433,19 @@ class PTableImpl(override val tableModel: PTableModel,
    *
    * If [toggleOnly] then don't launch a full editor, just perform a quick toggle.
    */
-  private inner class MyEnterAction(private val toggleOnly: Boolean) : AbstractAction() {
+  private fun smartEnter(toggleOnly: Boolean) {
+    val row = selectedRow
+    if (isEditing || row == -1) {
+      return
+    }
 
-    override fun actionPerformed(event: ActionEvent) {
-      val row = selectedRow
-      if (isEditing || row == -1) {
-        return
-      }
-
-      val item = item(row)
-      when {
-        model.isGroupItem(item) -> toggleAndSelect(row)
-        toggleOnly -> quickEdit(row, 1)
-        else -> {
-          if (!startEditing(row, 0) {}) {
-            startEditing(row, 1) {}
-          }
+    val item = item(row)
+    when {
+      model.isGroupItem(item) -> toggleAndSelect(row)
+      toggleOnly -> quickEdit(row, 1)
+      else -> {
+        if (!startEditing(row, 0) {}) {
+          startEditing(row, 1) {}
         }
       }
     }
@@ -472,93 +454,62 @@ class PTableImpl(override val tableModel: PTableModel,
   /**
    * Expand/Collapse items after right/left key press
    */
-  private inner class MyExpandCurrentAction(private val expand: Boolean) : AbstractAction() {
-
-    override fun actionPerformed(event: ActionEvent) {
-      val row = selectedRow
-      if (isEditing || row == -1) {
-        return
-      }
-
-      val index = convertRowIndexToModel(row)
-      if (expand) {
-        model.expand(index)
-      }
-      else {
-        model.collapse(index)
-      }
-      selectRow(row)
+  private fun modifyGroup(expand: Boolean) {
+    val row = selectedRow
+    if (isEditing || row == -1) {
+      return
     }
+
+    val index = convertRowIndexToModel(row)
+    if (expand) {
+      model.expand(index)
+    }
+    else {
+      model.collapse(index)
+    }
+    selectRow(row)
   }
 
   /**
-   * Scroll the selected row when pressing Page Up key
+   * Scroll the selected row up/down.
    */
-  private inner class MyPageUpAction : AbstractAction() {
-    override fun actionPerformed(e: ActionEvent) {
-      val selectedRow = selectedRow
-      if (isEditing || selectedRow == -1) {
-        return
-      }
+  private fun nextPage(moveUp: Boolean) {
+    val selectedRow = selectedRow
+    if (isEditing || selectedRow == -1) {
+      return
+    }
 
-      // PTable may be in a scrollable component, so we need to use visible height instead of getHeight()
-      val visibleHeight = visibleRect.getHeight().toInt()
-      val rowHeight = getRowHeight()
-      if (visibleHeight <= 0 || rowHeight <= 0) {
-        return
-      }
-      val movement = visibleHeight / rowHeight
+    // PTable may be in a scrollable component, so we need to use visible height instead of getHeight()
+    val visibleHeight = visibleRect.getHeight().toInt()
+    val rowHeight = getRowHeight()
+    if (visibleHeight <= 0 || rowHeight <= 0) {
+      return
+    }
+    val movement = visibleHeight / rowHeight
+    if (moveUp) {
       selectRow(Math.max(0, selectedRow - movement))
     }
-  }
-
-  /**
-   * Scroll the selected row when pressing Page Down key
-   */
-  private inner class MyPageDownAction : AbstractAction() {
-    override fun actionPerformed(e: ActionEvent) {
-      val selectedRow = selectedRow
-      if (isEditing || selectedRow == -1) {
-        return
-      }
-
-      // PTable may be in a scrollable component, so we need to use visible height instead of getHeight()
-      val visibleHeight = visibleRect.getHeight().toInt()
-      val rowHeight = getRowHeight()
-      if (visibleHeight <= 0 || rowHeight <= 0) {
-        return
-      }
-      val movement = visibleHeight / rowHeight
+    else {
       selectRow(Math.min(selectedRow + movement, rowCount - 1))
     }
   }
 
-  /**
-   * Scroll the selected row when pressing Page Up key
-   */
-  private inner class MyHomeAction : AbstractAction() {
-    override fun actionPerformed(e: ActionEvent) {
-      val selectedRow = selectedRow
-      if (isEditing || selectedRow == -1) {
-        return
-      }
-
-      selectRow(0)
+  private fun moveToFirstRow() {
+    val selectedRow = selectedRow
+    if (isEditing || selectedRow == -1) {
+      return
     }
+
+    selectRow(0)
   }
 
-  /**
-   * Scroll the selected row when pressing Page Down key
-   */
-  private inner class MyEndAction : AbstractAction() {
-    override fun actionPerformed(e: ActionEvent) {
-      val selectedRow = selectedRow
-      if (isEditing || selectedRow == -1) {
-        return
-      }
-
-      selectRow(rowCount - 1)
+  private fun moveToLastRow() {
+    val selectedRow = selectedRow
+    if (isEditing || selectedRow == -1) {
+      return
     }
+
+    selectRow(rowCount - 1)
   }
 
   // ========== Group Expansion on Mouse Click =================================
