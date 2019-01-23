@@ -43,6 +43,7 @@ class ToggleButtonPropertyEditor(val model: ToggleButtonPropertyEditorModel) : J
     val button = ActionButton(action, presentation, ActionPlaces.UNKNOWN, NAVBAR_MINIMUM_BUTTON_SIZE)
     add(button, BorderLayout.CENTER)
     button.isFocusable = true
+    isFocusable = false
     HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     button.addFocusListener(EditorFocusListener(this, model))
 
