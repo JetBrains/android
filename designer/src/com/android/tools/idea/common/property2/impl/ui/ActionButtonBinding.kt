@@ -51,8 +51,8 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
     add(boundImage, BorderLayout.EAST)
     updateFromModel()
 
-    boundImage.registerActionKey({ buttonPressed(null) }, KeyStrokes.space, "space")
-    boundImage.registerActionKey({ buttonPressed(null) }, KeyStrokes.enter, "enter")
+    boundImage.registerActionKey({ buttonPressed(null) }, KeyStrokes.SPACE, "space")
+    boundImage.registerActionKey({ buttonPressed(null) }, KeyStrokes.ENTER, "enter")
     model.addListener(ValueChangedListener { updateFromModel() })
 
     boundImage.addMouseListener(object: MouseAdapter() {

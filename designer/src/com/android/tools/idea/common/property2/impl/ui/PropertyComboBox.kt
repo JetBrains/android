@@ -67,15 +67,15 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   init {
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
-    registerActionKey({ model.enterKeyPressed() }, KeyStrokes.enter, "enter")
-    registerActionKey({ model.escapeKeyPressed() }, KeyStrokes.escape, "escape")
+    registerActionKey({ model.enterKeyPressed() }, KeyStrokes.ENTER, "enter")
+    registerActionKey({ model.escapeKeyPressed() }, KeyStrokes.ESCAPE, "escape")
     HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     if (asTableCellEditor) {
       putClientProperty("JComboBox.isTableCellEditor", true)
     }
 
-    textField.registerActionKey({ enter() }, KeyStrokes.enter, "enter")
-    textField.registerActionKey({ escape() }, KeyStrokes.escape, "escape")
+    textField.registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
+    textField.registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape")
 
     val focusListener = TextEditorFocusListener(textField, this, model)
     addFocusListener(focusListener)

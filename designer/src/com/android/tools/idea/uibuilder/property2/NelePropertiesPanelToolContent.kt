@@ -53,7 +53,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
     add(properties.component, BorderLayout.CENTER)
     properties.addView(componentView)
     properties.addView(motionEditorView)
-    registerActionKey({ toolWindow?.startFiltering("") }, KeyStrokes.cmdFind, "search", { true } , WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({ toolWindow?.startFiltering("") }, KeyStrokes.CMD_F, "search", { true }, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     registerAnActionKey({ showResolvedValueAction }, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
                         WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }

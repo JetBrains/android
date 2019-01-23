@@ -62,8 +62,8 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     textField.isOpaque = false
     super.add(leftComponent, BorderLayout.WEST)
     super.add(textField, BorderLayout.CENTER)
-    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.space, "space")
-    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.enter, "enter")
+    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.SPACE, "space")
+    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.ENTER, "enter")
     if (leftButton != null) {
       HelpSupportBinding.registerHelpKeyActions(leftButton, { editorModel.property })
     }

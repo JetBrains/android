@@ -61,7 +61,7 @@ class ToggleShowResolvedValueAction(val model: NelePropertiesModel) : AnAction("
 
   companion object {
     @JvmField
-    val SHORTCUT = KeyboardShortcut(KeyStrokes.cmdMinus, null)
+    val SHORTCUT = KeyboardShortcut(KeyStrokes.CMD_MINUS, null)
   }
 }
 
@@ -141,7 +141,7 @@ object ColorSelectionAction: AnAction("Select Color") {
       .addColorPickerListener(ColorPickerListener { color, _ -> property.value = colorToString(color) })
       .focusWhenDisplay(true)
       .setFocusCycleRoot(true)
-      .addKeyAction(KeyStrokes.escape, object : AbstractAction() {
+      .addKeyAction(KeyStrokes.ESCAPE, object : AbstractAction() {
         override fun actionPerformed(event: ActionEvent) {
           dialog.close()
           restoreFocus(restoreFocusTo)
