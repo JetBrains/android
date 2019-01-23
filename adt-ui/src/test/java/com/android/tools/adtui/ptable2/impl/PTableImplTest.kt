@@ -26,6 +26,7 @@ import com.android.tools.adtui.ptable2.item.Group
 import com.android.tools.adtui.ptable2.item.Item
 import com.android.tools.adtui.ptable2.item.PTableTestModel
 import com.android.tools.adtui.ptable2.item.createModel
+import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.testing.EdtApplicationRule
 import com.android.tools.adtui.testing.RunWithTestFocusManager
 import com.android.tools.adtui.testing.SwingFocusRule
@@ -44,6 +45,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
 import javax.swing.JTextField
+import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.UIManager
 import javax.swing.event.ChangeEvent
@@ -134,7 +136,7 @@ class PTableImplTest {
   fun testHomeNavigation() {
     table!!.model.expand(3)
     table!!.setRowSelectionInterval(4, 4)
-    dispatchAction("home")
+    dispatchAction(KeyStrokes.home)
     assertThat(table!!.selectedRow).isEqualTo(0)
   }
 
@@ -142,14 +144,21 @@ class PTableImplTest {
   fun testEndNavigation() {
     table!!.model.expand(4)
     table!!.setRowSelectionInterval(0, 0)
-    dispatchAction("end")
+    dispatchAction(KeyStrokes.end)
     assertThat(table!!.selectedRow).isEqualTo(7)
   }
 
   @Test
   fun testExpandAction() {
     table!!.setRowSelectionInterval(4, 4)
-    dispatchAction("expandCurrentRight")
+    dispatchAction(KeyStrokes.right)
+    assertThat(table!!.rowCount).isEqualTo(8)
+  }
+
+  @Test
+  fun testExpandActionWithNumericKeyboard() {
+    table!!.setRowSelectionInterval(4, 4)
+    dispatchAction(KeyStrokes.numericRight)
     assertThat(table!!.rowCount).isEqualTo(8)
   }
 
@@ -157,14 +166,22 @@ class PTableImplTest {
   fun testCollapseAction() {
     table!!.model.expand(4)
     table!!.setRowSelectionInterval(4, 4)
-    dispatchAction("collapseCurrentLeft")
+    dispatchAction(KeyStrokes.left)
+    assertThat(table!!.rowCount).isEqualTo(6)
+  }
+
+  @Test
+  fun testCollapseActionWithNumericKeyboard() {
+    table!!.model.expand(4)
+    table!!.setRowSelectionInterval(4, 4)
+    dispatchAction(KeyStrokes.numericLeft)
     assertThat(table!!.rowCount).isEqualTo(6)
   }
 
   @Test
   fun enterExpandsClosedGroup() {
     table!!.setRowSelectionInterval(4, 4)
-    dispatchAction("toggleEditor")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.rowCount).isEqualTo(8)
   }
 
@@ -172,14 +189,14 @@ class PTableImplTest {
   fun enterCollapsesOpenGroup() {
     table!!.model.expand(4)
     table!!.setRowSelectionInterval(4, 4)
-    dispatchAction("toggleEditor")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.rowCount).isEqualTo(6)
   }
 
   @Test
   fun toggleBooleanValue() {
     table!!.setRowSelectionInterval(3, 3)
-    dispatchAction("toggleEditor")
+    dispatchAction(KeyStrokes.space)
     assertThat(editorProvider!!.editor.toggleCount).isEqualTo(1)
     assertThat(table!!.editingRow).isEqualTo(3)
     assertThat(table!!.editingColumn).isEqualTo(1)
@@ -189,7 +206,7 @@ class PTableImplTest {
   @Test
   fun toggleNonBooleanValueIsNoop() {
     table!!.setRowSelectionInterval(0, 0)
-    dispatchAction("toggleEditor")
+    dispatchAction(KeyStrokes.space)
     assertThat(table!!.editingRow).isEqualTo(-1)
     assertThat(table!!.editingColumn).isEqualTo(-1)
     assertThat(model!!.editedItem).isNull()
@@ -198,7 +215,7 @@ class PTableImplTest {
   @Test
   fun smartEnterStartsEditingNameColumnFirst() {
     table!!.setRowSelectionInterval(5, 5)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.editingRow).isEqualTo(5)
     assertThat(table!!.editingColumn).isEqualTo(0)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
@@ -207,7 +224,7 @@ class PTableImplTest {
   @Test
   fun smartEnterStartsEditingValueIfNameIsNotEditable() {
     table!!.setRowSelectionInterval(0, 0)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(table!!.editingColumn).isEqualTo(1)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
@@ -216,7 +233,7 @@ class PTableImplTest {
   @Test
   fun smartEnterDoesNotToggleBooleanValue() {
     table!!.setRowSelectionInterval(3, 3)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
     assertThat(editorProvider!!.editor.toggleCount).isEqualTo(0)
     assertThat(table!!.editingRow).isEqualTo(3)
     assertThat(table!!.editingColumn).isEqualTo(1)
@@ -226,7 +243,7 @@ class PTableImplTest {
   @Test
   fun startNextEditor() {
     table!!.setRowSelectionInterval(0, 0)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(table!!.editingColumn).isEqualTo(1)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
@@ -239,7 +256,7 @@ class PTableImplTest {
   @Test
   fun startNextEditorSkipsNonEditableRows() {
     table!!.setRowSelectionInterval(1, 1)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.editingRow).isEqualTo(1)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[1])
     assertThat(table!!.startNextEditor()).isTrue()
@@ -252,7 +269,7 @@ class PTableImplTest {
   fun startNextEditorWhenAtEndOfTable() {
     table!!.model.expand(4)
     table!!.setRowSelectionInterval(7, 7)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.editingRow).isEqualTo(7)
     assertThat(table!!.editingColumn).isEqualTo(0)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
@@ -266,7 +283,7 @@ class PTableImplTest {
   fun startNextEditorWhenNextRowAllowsNameEditing() {
     table!!.model.expand(4)
     table!!.setRowSelectionInterval(6, 6)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.editingRow).isEqualTo(6)
     assertThat(model!!.editedItem).isEqualTo((model!!.items[4] as PTableGroupItem).children[1])
     assertThat(table!!.startNextEditor()).isTrue()
@@ -278,7 +295,7 @@ class PTableImplTest {
   @Test
   fun editingCanceled() {
     table!!.setRowSelectionInterval(0, 0)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
     table!!.editingCanceled(ChangeEvent(table!!))
@@ -294,7 +311,7 @@ class PTableImplTest {
     // setup to decline cell editing cancellation.
     // Check that this works.
     table!!.setRowSelectionInterval(1, 1)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.editingRow).isEqualTo(1)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[1])
     table!!.editingCanceled(ChangeEvent(table!!))
@@ -339,7 +356,7 @@ class PTableImplTest {
   @Test
   fun tableChangedWithEditingChangeSpec() {
     table!!.setRowSelectionInterval(0, 0)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
 
@@ -351,7 +368,7 @@ class PTableImplTest {
   @Test
   fun tableChangedWithEditingButWithoutChangeSpec() {
     table!!.setRowSelectionInterval(0, 0)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
     assertThat(table!!.editingRow).isEqualTo(0)
     assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
 
@@ -382,7 +399,7 @@ class PTableImplTest {
   @Test
   fun testDeleteLastLineWhenEditing() {
     table!!.setRowSelectionInterval(5, 5)
-    dispatchAction("smartEnter")
+    dispatchAction(KeyStrokes.enter)
 
     model!!.updateTo(true, Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")))
 
@@ -488,8 +505,9 @@ class PTableImplTest {
     return panel
   }
 
-  private fun dispatchAction(action: String) {
-    table!!.actionMap[action].actionPerformed(ActionEvent(table, 0, action))
+  private fun dispatchAction(key: KeyStroke) {
+    val action = table!!.getActionForKeyStroke(key)
+    action.actionPerformed(ActionEvent(table, 0, action.toString()))
   }
 
   private fun imitateFocusManagerIsDispatching(event: KeyEvent) {
