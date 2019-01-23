@@ -22,6 +22,7 @@ import com.android.ide.common.gradle.model.toAaptOptionsNamespacing
 import com.android.ide.common.gradle.model.toSourceProvider
 import com.android.ide.common.util.PathMap
 import com.android.ide.common.util.PathString
+import com.android.ide.common.util.toPathTreeMap
 import com.android.projectmodel.*
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.databinding.DataBindingMode
@@ -31,7 +32,6 @@ import com.android.tools.lint.detector.api.Desugaring
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import toPathTreeMap
 import java.io.File
 
 /**
