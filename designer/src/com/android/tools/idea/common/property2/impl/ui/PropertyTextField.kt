@@ -34,10 +34,10 @@ import javax.swing.JComponent
 class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel),
                                                                      DataProvider {
   init {
-    registerActionKey({ enter() }, KeyStrokes.enter, "enter")
-    registerActionKey({ tab() }, KeyStrokes.tab, "tab")
-    registerActionKey({ backTab() }, KeyStrokes.backtab, "backTab")
-    registerActionKey({ escape() }, KeyStrokes.escape, "escape")
+    registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
+    registerActionKey({ tab() }, KeyStrokes.TAB, "tab")
+    registerActionKey({ backTab() }, KeyStrokes.BACKTAB, "backTab")
+    registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape")
     HelpSupportBinding.registerHelpKeyActions(this, { editorModel.property })
     addFocusListener(TextEditorFocusListener(this, this, editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)

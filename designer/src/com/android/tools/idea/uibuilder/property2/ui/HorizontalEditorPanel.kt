@@ -31,8 +31,8 @@ import javax.swing.JComponent
 class HorizontalEditorPanel(private val model: HorizontalEditorPanelModel): AdtSecondaryPanel(FlowLayout(FlowLayout.LEADING, 2, 2)) {
 
   init {
-    registerKeyboardAction({ model.prior() }, KeyStrokes.left, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    registerKeyboardAction({ model.next() }, KeyStrokes.right, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerKeyboardAction({ model.prior() }, KeyStrokes.LEFT, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerKeyboardAction({ model.next() }, KeyStrokes.RIGHT, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     model.addListener(ValueChangedListener { updateFromModel() })
   }
 
