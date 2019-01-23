@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Shadowe
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.childNodes
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.initializeNode
 import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
-import com.android.tools.idea.gradle.structure.model.InvalidVariableName
 import com.android.tools.idea.gradle.structure.model.PsBuildScript
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
@@ -43,7 +42,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -195,7 +193,7 @@ class VariablesTable private constructor(
       }
     }
 
-  private inline fun <reified T : VariablesBaseNode> getSelectedNodes() =
+  private inline fun <reified T: VariablesBaseNode> getSelectedNodes() =
     selectedRows
       .map { tree.getPathForRow(it)?.lastPathComponent as? T }
       .filterNotNull()
@@ -584,42 +582,37 @@ class VariablesTable private constructor(
 
     override fun setValueAt(aValue: Any?, node: Any?, column: Int) {
       if (getValueAt(node, column) == (aValue as? Annotated<*>)?.value ?: aValue) return
-      try {
-        when (aValue) {
-          is String -> when {
-            node is EmptyVariableNode && column == NAME -> {
-              val parentNode = node.parent as? ShadowedTreeNode
-              val variable = node.createVariable(aValue)
-              val newNode =
-                parentNode
-                  ?.childNodes
-                  ?.find { (it.shadowNode as? VariableShadowNode)?.variable === variable }
-                  ?.let { newNode ->
-                    tableTree?.expandPath(TreePath(getPathToRoot(newNode)))
-                  }
-            }
-            node is EmptyNamedNode && column == NAME -> node.createVariable(aValue)
-            node is BaseVariableNode && column == NAME -> {
-              node.setName(aValue)
-              nodeChanged(node)
-              project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_RENAME)
-            }
 
+      when (aValue) {
+        is String -> when {
+          node is EmptyVariableNode && column == NAME -> {
+            val parentNode = node.parent as? ShadowedTreeNode
+            val variable = node.createVariable(aValue)
+            val newNode =
+              parentNode
+                ?.childNodes
+                ?.find { (it.shadowNode as? VariableShadowNode)?.variable === variable }
+                ?.let { newNode ->
+                  tableTree?.expandPath(TreePath(getPathToRoot(newNode)))
+                }
           }
-          is Annotated<*> -> when {
-            node is EmptyValueNode && column == UNRESOLVED_VALUE && aValue.value is ParsedValue.Set<Any> ->
-              node.createVariable(aValue.value)
-            node !is BaseVariableNode -> Unit
-            column == UNRESOLVED_VALUE && aValue.value is ParsedValue<Any> -> {
-              node.setValue(aValue.value)
-              nodeChanged(node)
-            }
+          node is EmptyNamedNode && column == NAME -> node.createVariable(aValue)
+          node is BaseVariableNode && column == NAME -> {
+            node.setName(aValue)
+            nodeChanged(node)
+            project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_RENAME)
+          }
+
+        }
+        is Annotated<*> -> when {
+          node is EmptyValueNode && column == UNRESOLVED_VALUE && aValue.value is ParsedValue.Set<Any> ->
+            node.createVariable(aValue.value)
+          node !is BaseVariableNode -> Unit
+          column == UNRESOLVED_VALUE && aValue.value is ParsedValue<Any> -> {
+            node.setValue(aValue.value)
+            nodeChanged(node)
           }
         }
-      }
-      catch (e: InvalidVariableName) {
-        Messages.showErrorDialog(e.message, "Error")
-        throw ProcessCanceledException(e)
       }
     }
 
@@ -792,7 +785,6 @@ internal data class RootModuleShadowNode(val scope: PsVariables) : ShadowNode {
 internal data class ModuleShadowNode(val module: PsModule) : ShadowNode {
   override fun getChildrenModels(): Collection<ShadowNode> =
     module.variables.map { VariableShadowNode(it) } + VariableEmptyShadowNode(module.variables)
-
   override fun createNode(): VariablesBaseNode = ModuleNode(this, module.variables)
   override fun onChange(disposable: Disposable, listener: () -> Unit) = module.variables.onChange(disposable, listener)
 }
