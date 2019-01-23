@@ -25,10 +25,18 @@ import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 
-fun JComponent.registerActionKey(action: () -> Unit, keyStroke: KeyStroke, name: String, condition: Int = JComponent.WHEN_FOCUSED) {
-  val actionObject = object: AbstractAction() {
-    override fun actionPerformed(e: ActionEvent?) {
+fun JComponent.registerActionKey(action: () -> Unit,
+                                 keyStroke: KeyStroke,
+                                 name: String,
+                                 enabled: () -> Boolean = { true },
+                                 condition: Int = JComponent.WHEN_FOCUSED) {
+  val actionObject = object : AbstractAction() {
+    override fun actionPerformed(event: ActionEvent?) {
       action()
+    }
+
+    override fun isEnabled(): Boolean {
+      return enabled()
     }
   }
   this.getInputMap(condition).put(keyStroke, name)
@@ -45,6 +53,10 @@ fun JComponent.registerAnActionKey(getAction: () -> AnAction?, keyStroke: KeyStr
                                 keyStroke.keyChar)
       val action = getAction()
       action?.actionPerformed(AnActionEvent.createFromAnAction(action, inputEvent, ToolWindowContentUi.POPUP_PLACE, dataContext))
+    }
+
+    override fun isEnabled(): Boolean {
+      return getAction()?.templatePresentation?.isEnabledAndVisible ?: false
     }
   })
 }
