@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.common.scene.target
 
-import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.AndroidDpCoordinate
-import com.android.tools.idea.common.scene.*
+import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
+import com.android.tools.idea.common.scene.Placeholder
+import com.android.tools.idea.common.scene.Region
+import com.android.tools.idea.common.scene.Scene
+import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
+import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintPlaceholder
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet
@@ -30,6 +35,7 @@ import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawTop
 import com.android.tools.idea.uibuilder.model.viewHandler
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
 import java.awt.Color
@@ -294,15 +300,16 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
     val ph = targetPlaceholder
     currentSnappedPlaceholder = ph
+
+    val targetSnapperX = targetSnapper.trySnapHorizontal(snappedX).orElse(snappedX)
+    val targetSnapperY = targetSnapper.trySnapVertical(snappedY).orElse(snappedY)
+
     // TODO: Makes Live Rendering works when dragging widget between different ViewGroups
     if (myComponent.scene.isLiveRenderingEnabled && ph is ConstraintPlaceholder && myComponent.parent == ph.host) {
       // For Live Rendering in ConstraintLayout. Live Rendering only works when component is dragged in the same ConstraintLayout
-      val primaryX = targetSnapper.trySnapHorizontal(snappedX).orElse(snappedX)
-      val primaryY = targetSnapper.trySnapVertical(snappedY).orElse(snappedY)
-
       draggedComponents.forEachIndexed { index, it -> when (index) {
-        0 -> it.setPosition(primaryX, primaryY)
-        else -> it.setPosition(primaryX + offsets[0].x - offsets[index].x, primaryY + offsets[0].y - offsets[index].y)
+        0 -> it.setPosition(targetSnapperX, targetSnapperY)
+        else -> it.setPosition(targetSnapperX + offsets[0].x - offsets[index].x, targetSnapperY + offsets[0].y - offsets[index].y)
       } }
 
       applyPlaceholder(ph, commit = false)
@@ -330,6 +337,10 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     draggedComponents.forEach { it.isDragging = false }
     val ph = snap(x, y)
     if (ph != null) {
+      // TODO: Makes Notch works when dragging from other layouts to Constraint Layout.
+      if (ToggleAutoConnectAction.isAutoconnectOn()) {
+        targetSnapper.applyNotches(draggedComponents[0].authoritativeNlComponent.startAttributeTransaction())
+      }
       applyPlaceholder(ph)
     }
     else {

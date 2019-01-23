@@ -17,9 +17,12 @@ package com.android.tools.idea.common.scene.target
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
+import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
-import com.intellij.testFramework.PlatformTestUtil
 
 class CommonDragTargetTest : SceneTest() {
 
@@ -169,6 +172,58 @@ class CommonDragTargetTest : SceneTest() {
     assertFalse(linearLayout.children.contains(textView2))
   }
 
+  fun testAutoConnectionOnInConstraintLayout() {
+    val constraintLayout = myScreen.get("@id/constraint").sceneComponent!!
+    val textView = myScreen.get("@id/textView").sceneComponent!!
+
+    val autoconnected = ToggleAutoConnectAction.isAutoconnectOn()
+    setAutoConnection(textView, true)
+
+    myInteraction.select(textView)
+    myInteraction.mouseDown("textView")
+    myInteraction.mouseRelease((constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
+                               (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat())
+
+    val nlComponent = textView.nlComponent
+    assertEquals(SdkConstants.ATTR_PARENT, nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF))
+    assertEquals(SdkConstants.ATTR_PARENT, nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF))
+    assertEquals(SdkConstants.ATTR_PARENT, nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF))
+    assertEquals(SdkConstants.ATTR_PARENT, nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF))
+
+    // Restore to original setting of auto-connect
+    setAutoConnection(textView, autoconnected)
+  }
+
+  fun testAutoConnectionOffInConstraintLayout() {
+    val constraintLayout = myScreen.get("@id/constraint").sceneComponent!!
+    val textView = myScreen.get("@id/textView").sceneComponent!!
+
+    val autoconnected = ToggleAutoConnectAction.isAutoconnectOn()
+    setAutoConnection(textView, false)
+
+    myInteraction.select(textView)
+    myInteraction.mouseDown("textView")
+    myInteraction.mouseRelease((constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
+                               (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat())
+
+    val nlComponent = textView.nlComponent
+    assertEquals("450dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
+    assertEquals("450dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+
+    // Restore to original setting of auto-connect
+    setAutoConnection(textView, autoconnected)
+  }
+
+  private fun setAutoConnection(component: SceneComponent, on: Boolean) {
+    if (ToggleAutoConnectAction.isAutoconnectOn() != on) {
+      ToggleAutoConnectAction().perform(ViewEditorImpl.getOrCreate(myScene),
+                                        component.nlComponent.viewGroupHandler!!,
+                                        component.parent!!.nlComponent,
+                                        listOf(),
+                                        0)
+    }
+  }
+
   override fun createModel(): ModelBuilder {
     return model("constraint.xml",
                  component(SdkConstants.CONSTRAINT_LAYOUT.newName())
@@ -192,21 +247,21 @@ class CommonDragTargetTest : SceneTest() {
                        .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "100dp")
                        .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "0dp"),
                      component(SdkConstants.LINEAR_LAYOUT)
-                       .withBounds(1000, 1000, 1000, 1000)
+                       .withBounds(1400, 1400, 600, 600)
                        .id("@id/linear")
-                       .width("500dp")
-                       .height("500dp")
+                       .width("300dp")
+                       .height("300dp")
                        .withAttribute(SdkConstants.ATTR_ORIENTATION, SdkConstants.VALUE_VERTICAL)
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "500dp")
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "500dp")
+                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "700dp")
+                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "700dp")
                        .children(
                          component(SdkConstants.BUTTON)
-                           .withBounds(1000, 1000, 200, 200)
+                           .withBounds(1400, 1400, 200, 200)
                            .id("@id/button")
                            .width("100dp")
                            .height("100dp"),
                          component(SdkConstants.BUTTON)
-                           .withBounds(1000, 1200, 200, 200)
+                           .withBounds(1400, 1600, 200, 200)
                            .id("@id/button2")
                            .width("100dp")
                            .height("100dp")
