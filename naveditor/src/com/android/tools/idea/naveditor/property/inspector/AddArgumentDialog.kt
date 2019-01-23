@@ -57,7 +57,7 @@ import javax.swing.JList
 open class AddArgumentDialog(private val existingComponent: NlComponent?, private val parent: NlComponent) : DialogWrapper(false) {
 
   private var customType: String? = null
-  private var selectedType: Type? = null
+  private var selectedType: Type = Type.values().first()
   private val defaultValueComboModel = MutableCollectionComboBoxModel<String>()
 
   @VisibleForTesting
