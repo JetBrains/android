@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.adtui.stdui.registerAnActionKey
 import com.android.tools.adtui.workbench.ToolContent
@@ -33,7 +33,6 @@ import java.awt.BorderLayout
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
-import javax.swing.KeyStroke
 
 /**
  * Create the models and views for the properties tool content.
@@ -54,8 +53,7 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
     add(properties.component, BorderLayout.CENTER)
     properties.addView(componentView)
     properties.addView(motionEditorView)
-    registerActionKey({ toolWindow?.startFiltering("") }, KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask()), "search",
-                      WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({ toolWindow?.startFiltering("") }, KeyStrokes.cmdFind, "search", WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     registerAnActionKey({ showResolvedValueAction }, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
                         WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
