@@ -57,14 +57,14 @@ public class SceneDragTest extends SceneTest {
 
   public void testDragRight() {
     myInteraction.mouseDown("button");
-    myInteraction.mouseRelease(800, 500);
+    myInteraction.mouseRelease(800, 400);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
                  "        tools:layout_editor_absoluteX=\"750dp\"\n" +
-                 "        tools:layout_editor_absoluteY=\"490dp\" />");
+                 "        tools:layout_editor_absoluteY=\"390dp\" />");
   }
 
   public void testDragTooSmall() {
