@@ -30,8 +30,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.TestProjectPaths;
-import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
@@ -42,7 +40,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -53,7 +50,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -62,7 +58,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
-import org.gradle.internal.impldep.com.google.common.io.Files;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -342,49 +337,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     doTestGeneratedSourceFiles(true, true);
   }
 
-  public void testGeneratedResources() throws Exception {
-    File projectRoot = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION);
-    Files.append(
-      "android {\n" +
-      "  String resGeneratePath = \"${buildDir}/generated/my_generated_resources/res\"\n" +
-      "    def generateResTask = tasks.create(name: 'generateMyResources').doLast {\n" +
-      "        def rawDir = \"${resGeneratePath}/raw\"\n" +
-      "        mkdir(rawDir)\n" +
-      "        file(\"${rawDir}/sample_raw_resource\").write(\"sample text\")\n" +
-      "    }\n" +
-      "\n" +
-      "    def resDir = files(resGeneratePath).builtBy(generateResTask)\n" +
-      "\n" +
-      "    applicationVariants.all { variant ->\n" +
-      "        variant.registerGeneratedResFolders(resDir)\n" +
-      "    }\n" +
-      "}",
-      new File(projectRoot, "app/build.gradle"),
-      StandardCharsets.UTF_8);
-    requestSyncAndWait();
-
-    Module appModule = myModules.getAppModule();
-    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
-    File generatedResourcesFolder = androidModel.getMainArtifact()
-      .getGeneratedResourceFolders()
-      .stream()
-      .filter(f -> f.getPath().contains("my_generated_resources"))
-      .findFirst()
-      .orElse(null);
-    assertThat(generatedResourcesFolder).named("my_generated_resources folder").isNotNull();
-    File resourceFile = FileUtils.join(generatedResourcesFolder, "res", "raw", "sample_raw_resource");
-    Files.createParentDirs(resourceFile);
-    Files.write("sample text", resourceFile, StandardCharsets.UTF_8);
-
-    LocalFileSystem.getInstance().refresh(false/* synchronously */);
-
-    myPane = createPane();
-    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
-
-    Set<List<String>> allNodes = getAllNodes(structure);
-    assertThat(allNodes).contains(Arrays.asList("app (Android)", "res (generated)", "raw", "sample_raw_resource"));
-  }
-
   // Test that the generated source files are displayed under app/generatedJava.
   private void doTestGeneratedSourceFiles(boolean preSyncValue, boolean postSyncValue) throws Exception {
     try {
@@ -420,10 +372,10 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
 
       Set<List<String>> allNodes = getAllNodes(structure);
-      assertThat(allNodes).contains(Arrays.asList("app (Android)", "java (generated)", "application", "BuildConfig"));
+      assertTrue(allNodes.contains(Arrays.asList("app (Android)", "generatedJava", "application", "BuildConfig")));
 
       // The R class should only be displayed if we're using R.java from aapt, not light PSI.
-      assertEquals(!postSyncValue, allNodes.contains(Arrays.asList("app (Android)", "java (generated)", "application", "R")));
+      assertEquals(!postSyncValue, allNodes.contains(Arrays.asList("app (Android)", "generatedJava", "application", "R")));
     }
     finally {
       StudioFlags.IN_MEMORY_R_CLASSES.clearOverride();
@@ -458,13 +410,13 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
   @Nullable
   private PsiDirectory getBaseFolder() {
-    VirtualFile folder = ProjectUtil.guessProjectDir(getProject());
+    VirtualFile folder = getProject().getBaseDir();
     assertNotNull("project basedir is null!", folder);
     return PsiManager.getInstance(getProject()).findDirectory(folder);
   }
 
   private class TestAndroidTreeStructure extends TestProjectTreeStructure {
-    private TestAndroidTreeStructure(Project project, Disposable parentDisposable) {
+    public TestAndroidTreeStructure(Project project, Disposable parentDisposable) {
       super(project, parentDisposable);
     }
 
