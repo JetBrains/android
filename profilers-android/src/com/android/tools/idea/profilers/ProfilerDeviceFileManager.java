@@ -26,6 +26,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.transport.DeployableFile;
 import com.android.tools.idea.transport.DeployableFileManager;
+import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -40,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ProfilerDeviceFileManager extends DeployableFileManager {
   private static class HostFiles {
-    @NotNull static final DeployableFile PERFD = new ProfilerHostFileBuilder("transport")
+    @NotNull static final DeployableFile TRANSPORT = new ProfilerHostFileBuilder("transport")
       .setReleaseDir("plugins/android/resources/transport")
       .setDevDir("../../bazel-bin/tools/base/transport/android")
       .setExecutable(true)
@@ -69,7 +70,6 @@ public final class ProfilerDeviceFileManager extends DeployableFileManager {
 
   private static int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
 
-  private static final String DEVICE_SOCKET_NAME = "AndroidStudioProfiler";
   private static final String AGENT_CONFIG_FILE = "agent.config";
   private static final int DEVICE_PORT = 12389;
 
@@ -87,7 +87,7 @@ public final class ProfilerDeviceFileManager extends DeployableFileManager {
     throws AdbCommandRejectedException, IOException, ShellCommandUnresponsiveException, SyncException, TimeoutException {
     // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
     // in AndroidStudioProperties.groovy to package in release.
-    copyFileToDevice(HostFiles.PERFD);
+    copyFileToDevice(HostFiles.TRANSPORT);
     if (isAtLeastO(myDevice)) {
       copyFileToDevice(HostFiles.PERFA);
       copyFileToDevice(HostFiles.PERFA_OKHTTP);
@@ -160,7 +160,7 @@ public final class ProfilerDeviceFileManager extends DeployableFileManager {
                            .build())
                        .setSocketType(socketType).setServiceAddress("127.0.0.1:" + DEVICE_PORT)
                        // Using "@" to indicate an abstract socket in unix.
-                       .setServiceSocketName("@" + DEVICE_SOCKET_NAME)
+                       .setServiceSocketName("@" + TransportDeviceManager.DEVICE_SOCKET_NAME)
                        .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
                        .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
                        .setAndroidFeatureLevel(device.getVersion().getFeatureLevel())
