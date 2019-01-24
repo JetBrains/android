@@ -7,10 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 
-/**
- * @author Vladislav.Soroka
- * @since 11/10/2015
- */
 public class AndroidStudioGradleInstallationManager extends GradleInstallationManager {
   @Nullable
   @Override
