@@ -69,7 +69,8 @@ public class SingleDeclaredLibraryDependencyDetails implements DependencyDetails
     }
     myVersionPropertyEditor =
       DeclaredLibraryDependencyUiProperties.INSTANCE.makeVersionUiProperty(myDependency)
-                                                    .createEditor(myDependency.getParent().getParent(),
+                                                    .createEditor(myContext,
+                                                                  myDependency.getParent().getParent(),
                                                                   myDependency.getParent(),
                                                                   Unit.INSTANCE,
                                                                   null);

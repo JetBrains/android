@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.res;
 
+import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
+import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
+import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.utils.XmlUtils;
 import com.google.common.io.ByteStreams;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,10 +58,11 @@ public class FileResourceReader {
   public static byte[] readBytes(@NotNull PathString resourcePath) throws IOException {
     String scheme = resourcePath.getFilesystemUri().getScheme();
     switch (scheme) {
-      case "file":
+      case FILE_PROTOCOL:
         return readFileBytes(resourcePath.getRawPath());
 
-      case "apk": {
+      case ApkFileSystem.PROTOCOL:
+      case JAR_PROTOCOL: {
         String path = resourcePath.getRawPath();
         int separatorPos = path.indexOf(JAR_SEPARATOR);
         int separatorEnd = separatorPos + JAR_SEPARATOR.length();
@@ -85,8 +89,11 @@ public class FileResourceReader {
    */
   @NotNull
   public static byte[] readBytes(@NotNull String resourcePath) throws IOException {
-    if (resourcePath.startsWith("apk:")) {
-      int prefixLength = "apk:".length();
+    if (resourcePath.startsWith("apk:") || resourcePath.startsWith("jar:")) {
+      int prefixLength = "apk:".length(); // "jar:" has the same length as "apk:".
+      if (resourcePath.startsWith("//", prefixLength)) {
+        prefixLength += "//".length();
+      }
       int separatorPos = resourcePath.lastIndexOf(JAR_SEPARATOR);
       if (separatorPos < prefixLength) {
         throw new IllegalArgumentException("Invalid resource path \"" + resourcePath + "\"");
@@ -121,13 +128,20 @@ public class FileResourceReader {
       if (entry == null) {
         throw new FileNotFoundException("Zip entry \"" + zipPath + ':' + zipEntryPath + "\" does not exist");
       }
-      long size = entry.getSize();
-      if (size > Integer.MAX_VALUE) {
+      long entrySize = entry.getSize();
+      if (entrySize > Integer.MAX_VALUE) {
         throw new IOException("Zip entry \"" + zipPath + ':' + zipEntryPath + "\" is too large");
       }
-      byte[] bytes = new byte[(int)size];
+      int size = (int)entrySize;
+      byte[] bytes = new byte[size];
       InputStream stream = zipFile.getInputStream(entry);
-      if (stream.read(bytes) != size) {
+      int offset = 0;
+      int n;
+      while ((n = stream.read(bytes, offset, size)) > 0) {
+        offset += n;
+        size -= n;
+      }
+      if (size != 0) {
         throw new IOException("Incomplete read from \"" + zipPath + ':' + zipEntryPath + "\"");
       }
       return bytes;

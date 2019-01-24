@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
+import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.PropertyCellEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
@@ -36,6 +37,8 @@ import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
+import com.android.tools.idea.structure.dialog.logUsagePsdAction
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.Disposable
@@ -99,13 +102,14 @@ private const val UNRESOLVED_VALUE = 1
  */
 class VariablesTable private constructor(
   private val project: Project,
+  private val context: PsContext,
   private val psProject: PsProject,
   private val variablesTreeModel: VariablesTableModel
 ) :
   TreeTable(variablesTreeModel) {
 
-  constructor (project: Project, psProject: PsProject, parentDisposable: Disposable) :
-    this(project, psProject, createTreeModel(ProjectShadowNode(psProject), parentDisposable))
+  constructor (project: Project, context: PsContext, psProject: PsProject, parentDisposable: Disposable) :
+    this(project, context, psProject, createTreeModel(ProjectShadowNode(psProject), parentDisposable))
 
   private val iconGap = JBUI.scale(2)
   private val editorInsets = JBUI.insets(1, 2)
@@ -223,6 +227,7 @@ class VariablesTable private constructor(
         Messages.getQuestionIcon()
       ) == Messages.YES) {
       variableNodes.map { it.variable }.forEach { it.delete() }
+      project.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_REMOVE)
     }
   }
 
@@ -252,6 +257,12 @@ class VariablesTable private constructor(
       val selectedRow = tree.getRowForPath(TreePath(emptyNode.path))
       selectionModel.setSelectionInterval(selectedRow, selectedRow)
       editCellAt(emptyNodeRow, 0, NewVariableEvent(emptyNode))
+      project.logUsagePsdAction(
+        when (type) {
+          ValueType.LIST -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_LIST
+          ValueType.MAP -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_MAP
+          else -> AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_ADD_SIMPLE
+        })
     }
   }
 
@@ -437,7 +448,7 @@ class VariablesTable private constructor(
         is EmptyValueNode -> node.createVariable(ParsedValue.NotSet)
         else -> throw IllegalStateException()
       }
-      val uiProperty = uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor)
+      val uiProperty = uiProperty(PsVariable.Descriptors.variableValue, ::simplePropertyEditor, psdUsageLogFieldId = null)
       val enterHandlingProxyCellEditor =
         object : TableCellEditor by this {
           override fun stopCellEditing(): Boolean {
@@ -447,12 +458,16 @@ class VariablesTable private constructor(
               .also { invokeLater { nextCell(ActionEvent(this, ActionEvent.ACTION_PERFORMED, null), editingRow, editingColumn) } }
           }
         }
-      val editor = uiProperty.createEditor(psProject, null, variable, enterHandlingProxyCellEditor)
+      val editor = uiProperty.createEditor(context, psProject, null, variable, enterHandlingProxyCellEditor)
       addTabKeySupportTo(editor.component)
       return editor
     }
 
     override fun Annotated<ParsedValue<Any>>.toModelValue(): Any = this
+
+    override fun valueEdited() {
+      project.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_MODIFY_VALUE)
+    }
   }
 
   private fun selectCell(row: Int, column: Int) {
@@ -521,7 +536,10 @@ class VariablesTable private constructor(
   fun addVariableAvailable(): Boolean = getSelectedNodes<VariablesBaseNode>().isNotEmpty()
   fun removeVariableAvailable(): Boolean = getSelectedNodes<BaseVariableNode>().isNotEmpty()
 
-  class VariablesTableModel internal constructor(internal val root: VariablesBaseNode) : DefaultTreeModel(root), TreeTableModel {
+  class VariablesTableModel internal constructor(
+    private val project: PsProject,
+    internal val root: VariablesBaseNode
+  ) : DefaultTreeModel(root), TreeTableModel {
     private var tableTree: JTree? = null
 
     override fun getColumnCount(): Int = 2
@@ -582,6 +600,7 @@ class VariablesTable private constructor(
           node is BaseVariableNode && column == NAME -> {
             node.setName(aValue)
             nodeChanged(node)
+            project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_VARIABLES_RENAME)
           }
 
         }
@@ -741,8 +760,8 @@ class NewVariableEvent(source: Any) : EventObject(source)
 /**
  * Creates a tree model from a tree of shadow nodes which is auto-updated on changes made to the shadow tree.
  */
-internal fun createTreeModel(root: ShadowNode, parentDisposable: Disposable): VariablesTable.VariablesTableModel =
-  VariablesTable.VariablesTableModel(VariablesBaseNode(root).also { Disposer.register(parentDisposable, it) })
+internal fun createTreeModel(root: ProjectShadowNode, parentDisposable: Disposable): VariablesTable.VariablesTableModel =
+  VariablesTable.VariablesTableModel(root.project, VariablesBaseNode(root).also { Disposer.register(parentDisposable, it) })
     .also { it.initializeNode(it.root, from = root) }
 
 internal data class ProjectShadowNode(val project: PsProject) : ShadowNode {

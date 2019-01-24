@@ -40,6 +40,7 @@ import com.android.tools.idea.uibuilder.property2.testutils.APPCOMPAT_IMAGE_VIEW
 import com.android.tools.idea.uibuilder.property2.testutils.APPCOMPAT_TEXT_VIEW
 import com.android.tools.idea.uibuilder.property2.testutils.MockAppCompat
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
+import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
 import org.intellij.lang.annotations.Language
 
@@ -48,11 +49,15 @@ private const val ATTR_LEGEND = "legend"
 private const val ATTR_LABEL_POS = "labelPosition"
 
 internal const val EXPECTED_ID_TOOLTIP =
-  "android:id:\n" +
+  "<html><b>android:id:</b><br/>" +
   "Supply an identifier name for this view, to later retrieve it with {@link android.view.View#findViewById View.findViewById()} or " +
   "{@link android.app.Activity#findViewById Activity.findViewById()}. This must be a resource reference; typically you set this using " +
-  "the <code>@+</code> syntax to create a new ID resources. For example: <code>android:id=\"@+id/my_id\"</code> which allows you to " +
-  "later retrieve the view with <code>findViewById(R.id.my_id)</code>."
+  "the &lt;code&gt;@+&lt;/code&gt; syntax to create a new ID resources. " +
+  "For example: &lt;code&gt;android:id=&quot;@+id/my_id&quot;&lt;/code&gt; which allows you to " +
+  "later retrieve the view with &lt;code&gt;findViewById(R.id.my_id)&lt;/code&gt;.</html>"
+
+internal const val EXPECTED_TEXT_TOOLTIP =
+  "<html><b>android:text:</b><br/>Text to display.</html>"
 
 private fun PropertiesTable<NelePropertyItem>.contains(namespace: String, name: String): Boolean {
   return this.getOrNull(namespace, name) != null
@@ -133,7 +138,7 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   }
 
   fun testCustomViewProperties() {
-    setUpCustomView()
+    SupportTestUtil.setUpCustomView(myFixture)
     val provider = NelePropertiesProvider(myFacet)
     val model = NelePropertiesModel(testRootDisposable, myFacet)
     val properties = provider.getProperties(model, null, createComponents(component(CUSTOM_TAG)))
@@ -145,14 +150,14 @@ class NelePropertiesProviderTest : PropertyTestCase() {
   }
 
   fun testToolTip() {
-    setUpCustomView()
+    SupportTestUtil.setUpCustomView(myFixture)
     val provider = NelePropertiesProvider(myFacet)
     val model = NelePropertiesModel(testRootDisposable, myFacet)
     val properties = provider.getProperties(model, null, createComponents(component(CUSTOM_TAG)))
     val id = properties[ANDROID_URI, ATTR_ID]
     val legend = properties[AUTO_URI, ATTR_LEGEND]
     assertThat(id.tooltipForName.trim()).isEqualTo(EXPECTED_ID_TOOLTIP.trim())
-    assertThat(legend.tooltipForName).isEqualTo("legend")
+    assertThat(legend.tooltipForName).isEqualTo("<html><b>legend:</b><br/>Help Text</html>")
   }
 
   fun testComponentName() {
@@ -173,37 +178,5 @@ class NelePropertiesProviderTest : PropertyTestCase() {
     val builder = model("view.xml", component(VIEW))
     val nlModel = builder.build()
     return nlModel.components
-  }
-
-  private fun setUpCustomView() {
-    @Language("XML")
-    val attrsSrc = """<?xml version="1.0" encoding="utf-8"?>
-      <resources>
-        <declare-styleable name="PieChart">
-          <attr name="legend" format="boolean" />
-          <attr name="labelPosition" format="enum">
-            <enum name="left" value="0"/>
-            <enum name="right" value="1"/>
-          </attr>
-        </declare-styleable>
-      </resources>
-      """.trimIndent()
-
-    @Language("JAVA")
-    val javaSrc = """
-      package com.example;
-
-      import android.content.Context;
-      import android.view.View;
-
-      public class PieChart extends View {
-          public PieChart(Context context) {
-              super(context);
-          }
-      }
-      """.trimIndent()
-
-    myFixture.addFileToProject("res/values/attrs.xml", attrsSrc)
-    myFixture.addFileToProject("src/com/example/PieChart.java", javaSrc)
   }
 }

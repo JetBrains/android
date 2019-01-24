@@ -21,30 +21,20 @@ import com.android.SdkConstants.ATTR_LAYOUT_BELOW
 import com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem.Companion.RefactoringChoice
+import com.android.tools.idea.testing.addManifest
+import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
+import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor.RefactoringChoice
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.ui.DialogBuilder
-import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
-import com.intellij.openapi.ui.DialogWrapper.OK_EXIT_CODE
-import com.intellij.refactoring.rename.RenameProcessor
+import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.components.JBCheckBox
-import com.intellij.usageView.UsageInfo
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.inOrder
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
-import javax.swing.JPanel
 
 @RunsInEdt
 class NeleIdPropertyItemTest {
@@ -54,24 +44,21 @@ class NeleIdPropertyItemTest {
   @JvmField @Rule
   val edtRule = EdtRule()
 
-  private var savedChoice = RefactoringChoice.ASK
-
   @Before
   fun setUp() {
-    savedChoice = NeleIdPropertyItem.choiceForNextRename
-    NeleIdPropertyItem.choiceForNextRename = RefactoringChoice.ASK
+    NeleIdRenameProcessor.choiceForNextRename = RefactoringChoice.ASK
   }
 
   @After
   fun tearDown() {
-    NeleIdPropertyItem.choiceForNextRename = savedChoice
+    NeleIdRenameProcessor.choiceForNextRename = RefactoringChoice.ASK
   }
 
   @Test
   fun testSetValueChangeReferences() {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    property.dialogProvider = { makeDialogBuilder(OK_EXIT_CODE) }
+    NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.YES }
     property.value = "label"
     assertThat(property.components[0].id).isEqualTo("label")
     assertThat(property.components[0].getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@+id/label")
@@ -84,7 +71,7 @@ class NeleIdPropertyItemTest {
   fun testSetAndroidValueChangeReferences() {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    property.dialogProvider = { makeDialogBuilder(OK_EXIT_CODE) }
+    NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.YES }
     property.value = "@android:id/text2"
     assertThat(property.components[0].getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@android:id/text2")
     assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@android:id/text2")
@@ -96,7 +83,7 @@ class NeleIdPropertyItemTest {
   fun testSetValueDoNotChangeReferences() {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    property.dialogProvider = { makeDialogBuilder(NO_EXIT_CODE) }
+    NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.NO }
     property.value = "label"
     UIUtil.dispatchAllInvocationEvents()
 
@@ -106,7 +93,7 @@ class NeleIdPropertyItemTest {
     assertThat(util.findSiblingById("checkBox2")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/textView")
 
     // Change id again (make sure dialog is not shown)
-    property.dialogProvider = { throw RuntimeException("Dialog created unexpectedly") }
+    NeleIdRenameProcessor.dialogProvider = { throw RuntimeException("Dialog created unexpectedly") }
     property.value = "text"
     UIUtil.dispatchAllInvocationEvents()
   }
@@ -115,7 +102,7 @@ class NeleIdPropertyItemTest {
   fun testSetValueAndYesToChangeReferencesAndDoNotCheckAgain() {
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    property.dialogProvider = { makeDialogBuilder(OK_EXIT_CODE, true) }
+    NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.YES }
     property.value = "other"
     UIUtil.dispatchAllInvocationEvents()
     assertThat(property.components[0].getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@+id/other")
@@ -124,7 +111,8 @@ class NeleIdPropertyItemTest {
     assertThat(util.findSiblingById("checkBox2")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/other")
 
     // Set id again, this time expect references to be changed without showing a dialog
-    property.dialogProvider = { throw RuntimeException("Dialog created unexpectedly") }
+    NeleIdRenameProcessor.choiceForNextRename = RefactoringChoice.YES
+    NeleIdRenameProcessor.dialogProvider = { throw RuntimeException("Dialog created unexpectedly") }
     property.value = "last"
     UIUtil.dispatchAllInvocationEvents()
 
@@ -136,68 +124,77 @@ class NeleIdPropertyItemTest {
 
   @Test
   fun testSetValueAndYesWillNotEnablePreviewBeforeRun() {
-    val processor = mock(RenameProcessor::class.java)
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    `when`(processor.findUsages()).thenReturn(arrayOf(mock(UsageInfo::class.java)))
-    property.dialogProvider = { makeDialogBuilder(OK_EXIT_CODE) }
-    property.renameProcessorProvider = { _, _, _ -> processor }
-    property.value = "label"
+    NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.YES }
+    BaseRefactoringProcessor.runWithDisabledPreview<RuntimeException> { property.value = "label" }
 
-    val inOrder = inOrder(processor)
-    inOrder.verify(processor).findUsages()
-    inOrder.verify(processor).setPreviewUsages(false)
-    inOrder.verify(processor).run()
+    assertThat(property.components[0].getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@+id/label")
+    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/label")
+    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/label")
+    assertThat(util.findSiblingById("checkBox2")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/label")
   }
 
   @Test
   fun testSetValueAndPreviewWillEnablePreviewBeforeRun() {
-    val processor = mock(RenameProcessor::class.java)
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    `when`(processor.findUsages()).thenReturn(arrayOf(mock(UsageInfo::class.java)))
-    property.dialogProvider = { makeDialogBuilder(PREVIEW_EXIT_CODE) }
-    property.renameProcessorProvider = { _, _, _ -> processor }
-    property.value = "label"
-
-    val inOrder = inOrder(processor)
-    inOrder.verify(processor).findUsages()
-    inOrder.verify(processor).setPreviewUsages(true)
-    inOrder.verify(processor).run()
+    NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.PREVIEW }
+    try {
+      BaseRefactoringProcessor.runWithDisabledPreview<RuntimeException> { property.value = "label" }
+      error("Preview was not shown as expected as is emulating a click on the preview button")
+    }
+    catch (ex: RuntimeException) {
+      assertThat(ex.message).startsWith("Unexpected preview in tests: @id/textView")
+    }
   }
 
   @Test
   fun testSetValueAndNoWillChangeTheValueButRenameProcessWillNotRun() {
-    val processor = mock(RenameProcessor::class.java)
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    `when`(processor.findUsages()).thenReturn(arrayOf(mock(UsageInfo::class.java)))
-    property.dialogProvider = { makeDialogBuilder(NO_EXIT_CODE) }
-    property.renameProcessorProvider = { _, _, _ -> processor }
-    property.value = "label"
+    NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.NO }
+    BaseRefactoringProcessor.runWithDisabledPreview<RuntimeException> { property.value = "label" }
 
-    val inOrder = inOrder(processor)
-    inOrder.verify(processor).findUsages()
-    inOrder.verifyNoMoreInteractions()
-
-    assertThat(property.components[0].id).isEqualTo("label")
+    assertThat(property.components[0].getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@+id/label")
+    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/textView")
+    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/textView")
+    assertThat(util.findSiblingById("checkBox2")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/textView")
   }
 
   @Test
   fun testSetValueAndCancelNotExecuteRenameProcess() {
-    val processor = mock(RenameProcessor::class.java)
     val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
     val property = util.makeIdProperty()
-    `when`(processor.findUsages()).thenReturn(arrayOf(mock(UsageInfo::class.java)))
-    property.dialogProvider = { makeDialogBuilder(CANCEL_EXIT_CODE) }
-    property.renameProcessorProvider = { _, _, _ -> processor }
-    property.value = "label"
+    NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.CANCEL }
+    BaseRefactoringProcessor.runWithDisabledPreview<RuntimeException> { property.value = "label" }
 
-    val inOrder = inOrder(processor)
-    inOrder.verify(processor).findUsages()
-    inOrder.verifyNoMoreInteractions()
+    assertThat(property.components[0].getAttribute(ANDROID_URI, ATTR_ID)).isEqualTo("@+id/textView")
+    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/textView")
+    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/textView")
+    assertThat(util.findSiblingById("checkBox2")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/textView")
+  }
 
-    assertThat(property.components[0].id).isEqualTo("textView")
+  @Test
+  fun testValueWithReferenceInJavaOnly() {
+    // Regression test for b/120617097
+    addManifest(projectRule.fixture)
+    val activityFile = projectRule.fixture.addFileToProject("src/MainActivity.java", testActivity)
+    projectRule.fixture.addFileToProject("gen/R.java", testRFile)
+    val util = SupportTestUtil.fromId(projectRule, testLayout, "checkBox1")
+    val property = util.makeIdProperty()
+    NeleIdRenameProcessor.dialogProvider = { RefactoringChoice.YES }
+    property.value = "checkBox30"
+
+    // Verify that the reference in the activity file was renamed
+    assertThat(activityFile.text).contains("findViewById(R.id.checkBox30)")
+  }
+
+  @Test
+  fun testNoValueToolTip() {
+    val util = SupportTestUtil.fromId(projectRule, testLayout, "textView")
+    val property = util.makeIdProperty()
+    assertThat(property.tooltipForValue).isEqualTo("")
   }
 
   @Test
@@ -209,28 +206,6 @@ class NeleIdPropertyItemTest {
     assertThat(property.editingSupport.validation("@id/hello")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.editingSupport.validation("@string/hello")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.editingSupport.validation("hello")).isEqualTo(EDITOR_NO_ERROR)
-  }
-
-  private fun makeDialogBuilder(exitCode: Int, doNotCheckAgain: Boolean = false): DialogBuilder {
-    val addAction = mock(DialogBuilder.CustomizableAction::class.java)
-    val dialogBuilder = mock(DialogBuilder::class.java)
-    `when`(dialogBuilder.addOkAction()).thenReturn(addAction)
-    if (doNotCheckAgain) {
-      doAnswer {
-        val panel = ArgumentCaptor.forClass(JPanel::class.java)
-        verify(dialogBuilder).setCenterPanel(panel.capture())
-        for (component in panel.value.components) {
-          if (component is JBCheckBox) {
-            component.isSelected = true
-          }
-        }
-        exitCode
-      }.`when`(dialogBuilder).show()
-    }
-    else {
-      `when`(dialogBuilder.show()).thenReturn(exitCode)
-    }
-    return dialogBuilder
   }
 
   @Language("XML")
@@ -247,14 +222,14 @@ class NeleIdPropertyItemTest {
         android:layout_alignParentStart="true" />
 
     <CheckBox
-        android:id="@id/checkBox1"
+        android:id="@+id/checkBox1"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_below="@id/textView"
         android:layout_toRightOf="@id/textView" />
 
     <CheckBox
-        android:id="@id/checkBox2"
+        android:id="@+id/checkBox2"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_below="@id/button1"
@@ -262,4 +237,39 @@ class NeleIdPropertyItemTest {
 
 </RelativeLayout>
 """
+
+  @Language("JAVA")
+  private val testActivity = """
+    package com.example;
+
+    import android.app.Activity;
+    import android.os.Bundle;
+    import android.widget.CheckBox;
+
+    public class MainActivity extends Activity {
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.a_layout);
+            CheckBox toolbar = findViewById(R.id.checkBox1);
+        }
+    }
+    """.trimIndent()
+
+  @Language("JAVA")
+  private val testRFile = """
+    package com.example;
+
+    public final class R {
+        public static final class id {
+            public static final int textView=0x7f030001;
+            public static final int checkBox1=0x7f030002;
+            public static final int checkBox2=0x7f030003;
+        }
+        public static final class layout {
+            public static final int a_layout=0x7f030005;
+        }
+    }
+    """.trimIndent()
 }

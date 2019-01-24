@@ -247,13 +247,13 @@ public class AndroidTargetData {
 
   @Nullable
   public synchronized ResourceRepository getFrameworkResources(boolean withLocale) {
-    File resFolder = myTarget.getFile(IAndroidTarget.RESOURCES);
-    if (!resFolder.isDirectory()) {
-      LOG.error(AndroidBundle.message("android.directory.cannot.be.found.error", resFolder.getPath()));
+    File resFolderOrJar = myTarget.getFile(IAndroidTarget.RESOURCES);
+    if (!resFolderOrJar.exists()) {
+      LOG.error(String.format("\"%s\" directory or file cannot be found", resFolderOrJar.getPath()));
       return null;
     }
 
-    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolder, withLocale);
+    return FrameworkResourceRepositoryManager.getInstance().getFrameworkResources(resFolderOrJar, withLocale);
   }
 
   /**

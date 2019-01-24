@@ -58,7 +58,7 @@ class LinearDragHandler extends DragHandler {
     }
     else {
       component = new TemporarySceneComponent(layout.getScene(), components.get(0));
-      component.setSize(editor.pxToDp(NlComponentHelperKt.getW(dragged)), editor.pxToDp(NlComponentHelperKt.getH(dragged)), false);
+      component.setSize(editor.pxToDp(NlComponentHelperKt.getW(dragged)), editor.pxToDp(NlComponentHelperKt.getH(dragged)));
     }
 
     if (dragTarget == null) {

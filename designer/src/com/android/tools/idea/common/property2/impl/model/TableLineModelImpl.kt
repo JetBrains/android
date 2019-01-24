@@ -33,35 +33,31 @@ class TableLineModelImpl(override val tableModel: PTableModel,
 
   override var selectedItem: PTableItem? = null
 
-  /** Flag for the UI to update the edited row */
-  var updateEditing = false
-    private set
-
-  /** Indicates to the UI which row to edit (-1 means stop editing) when updateEditing is true */
-  var rowToEdit = -1
-    private set
+  /** Updated by UI implementation  */
+  override var itemCount = 0
 
   override fun requestFocus() {
-    editingRequest(tableModel.items.firstOrNull())
+    val item = tableModel.items.firstOrNull() ?: return
+    fireEditRequest(TableEditingRequest.SPECIFIED_ITEM, item)
   }
 
   override fun requestFocus(item: PTableItem) {
-    editingRequest(item)
+    fireEditRequest(TableEditingRequest.SPECIFIED_ITEM, item)
+  }
+
+  override fun requestFocusInBestMatch() {
+    fireEditRequest(TableEditingRequest.BEST_MATCH)
   }
 
   override fun stopEditing() {
-    editingRequest(null)
+    fireEditRequest(TableEditingRequest.STOP_EDITING)
   }
 
   override fun refresh() {
     tableModel.refresh()
   }
 
-  private fun editingRequest(item: PTableItem?) {
-    updateEditing = true
-    rowToEdit = if (item != null) tableModel.items.indexOf(item) else -1
-    fireValueChanged()
-    updateEditing = false
-    rowToEdit = -1
+  private fun fireEditRequest(request: TableEditingRequest, item: PTableItem? = null) {
+    listeners.toTypedArray().filterIsInstance<TableRowEditListener>().forEach { it.editRequest(request, item) }
   }
 }

@@ -129,7 +129,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       myDetails.setContent(detailsContent)
       myUiState.lastEditedConfigurable = toSelect.displayName
 
-      logUsageLeftNavigateTo(toSelect)
+      myProject.logUsageLeftNavigateTo(toSelect)
     }
     mySelectedConfigurable = toSelect
 
@@ -466,31 +466,19 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
   private fun logUsageApply() {
     val duration = System.currentTimeMillis() - myOpenTimeMs
+    val psdEvent =
+      PSDEvent
+        .newBuilder()
+        .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
+        .setDurationMs(duration)
+    myConfigurables.keys.filterIsInstance<TrackedConfigurable>().forEach { it.copyEditedFieldsTo(psdEvent) }
     UsageTracker.log(
       AndroidStudioEvent
         .newBuilder()
         .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
         .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
-        .setPsdEvent(
-          PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002).setDurationMs(duration)
-        )
+        .setPsdEvent(psdEvent)
         .withProjectId(myProject))
-  }
-
-  private fun logUsageLeftNavigateTo(toSelect: Configurable) {
-    if (toSelect is TrackedConfigurable) {
-      val psdEvent = PSDEvent
-        .newBuilder()
-        .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
-      toSelect.applyTo(psdEvent)
-      UsageTracker.log(
-        AndroidStudioEvent
-          .newBuilder()
-          .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
-          .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
-          .setPsdEvent(psdEvent)
-          .withProjectId(myProject))
-    }
   }
 
   companion object {

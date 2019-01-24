@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import static com.android.tools.adtui.validation.ValidatorPanel.truncateMessage;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
 
 import com.android.resources.Density;
@@ -664,8 +665,8 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
     myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myForegroundLayerName, myBackgroundLayerName),
                                   "Background and foreground layers must have distinct names");
 
-    myValidatorPanel.registerValidator(myForegroundAssetValidityState, validity -> validity);
-    myValidatorPanel.registerValidator(myBackgroundAssetValidityState, validity -> validity);
+    myValidatorPanel.registerValidator(myForegroundAssetValidityState, validity -> truncateMessage(validity, 3));
+    myValidatorPanel.registerValidator(myBackgroundAssetValidityState, validity -> truncateMessage(validity, 3));
   }
 
   @NotNull

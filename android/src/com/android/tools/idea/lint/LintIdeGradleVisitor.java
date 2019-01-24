@@ -95,7 +95,7 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                     if (property != null && argumentList != null) {
                       String value = argumentList.getText();
                       for (GradleScanner detector : detectors) {
-                        detector.checkDslPropertyAssignment(context, property, value, parentName, parentParentName, argumentList, call);
+                        detector.checkDslPropertyAssignment(context, property, value, parentName, parentParentName, propertyRef, argumentList, call);
                       }
                     }
                   }
@@ -110,7 +110,7 @@ public class LintIdeGradleVisitor extends GradleVisitor {
                       if (rValue != null) {
                         String value = rValue.getText();
                         for (GradleScanner detector : detectors) {
-                          detector.checkDslPropertyAssignment(context, property, value, parentName, parentParentName, rValue, assignment);
+                          detector.checkDslPropertyAssignment(context, property, value, parentName, parentParentName, lValue, rValue, assignment);
                         }
 
                         // As of 0.11 you can't use assignment for these two properties. This is handled here rather

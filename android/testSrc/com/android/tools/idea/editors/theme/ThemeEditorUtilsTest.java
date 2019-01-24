@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.sdklib.IAndroidTarget.RESOURCES;
 import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -29,7 +33,6 @@ import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
-import com.google.common.io.Files;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -38,6 +41,9 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,13 +51,18 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Tests for {@link ThemeEditorUtils} and indirectly {@link com.android.tools.idea.javadoc.AndroidJavaDocRenderer}.
+ */
 public class ThemeEditorUtilsTest extends AndroidTestCase {
-  private String sdkPlatformPath;
   private static final Pattern OPERATION_PATTERN = Pattern.compile("\\$\\$([A-Z_]+)\\{\\{(.*?)\\}\\}");
+  private static final Pattern TEMPORARY_RENDER_FILE_PATTERN = Pattern.compile("'file:\\S+([/\\\\])render\\d*.png'");
+
+  private String mySdkPlatformPath;
+  private String mySdkPlatformRes;
 
   @Override
   protected boolean providesCustomManifest() {
@@ -59,9 +70,10 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   }
 
   private void compareWithGoldenFile(@NotNull String text, @NotNull String goldenFile) throws IOException {
-    final File file = new File(goldenFile);
-    String goldenText = FileUtils.readFileToString(file);
-    goldenText = goldenText.replace("$$ANDROID_SDK_PATH", sdkPlatformPath);
+    Path file = Paths.get(goldenFile);
+    String goldenText = new String(Files.readAllBytes(file), UTF_8);
+    goldenText = goldenText.replace("$$ANDROID_SDK_PATH", mySdkPlatformPath);
+    goldenText = goldenText.replace("$$ANDROID_SDK_RES", mySdkPlatformRes);
     Matcher matcher = OPERATION_PATTERN.matcher(goldenText);
     StringBuffer processedGoldenText = new StringBuffer();
 
@@ -87,10 +99,12 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     matcher.appendTail(processedGoldenText);
 
     // Add line breaks after "<BR/>" tags for results that are easier to read.
-    // Golden files are already have these line breaks, so there's no need to process them the same way.
+    // Golden files already have these line breaks, so there's no need to process them the same way.
     text = StringUtil.replace(text, "<BR/>", "<BR/>\n");
+    matcher = TEMPORARY_RENDER_FILE_PATTERN.matcher(text);
+    text = matcher.replaceAll("'file:/some/directory/render.png'");
 
-    assertEquals(String.format("Comparing to golden file %s failed", file.getCanonicalPath()), processedGoldenText.toString(), text);
+    assertEquals(String.format("Comparing to golden file %s failed", file.normalize()), processedGoldenText.toString(), text);
   }
 
   public void testGenerateToolTipText() throws IOException {
@@ -106,9 +120,10 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     IAndroidTarget androidTarget = configuration.getTarget();
     assertNotNull(androidTarget);
-    sdkPlatformPath = Files.simplifyPath(androidTarget.getLocation());
+    mySdkPlatformPath = Paths.get(androidTarget.getLocation()).normalize().toString();
+    mySdkPlatformRes = Paths.get(androidTarget.getPath(RESOURCES)).normalize().toString();
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
+    ConfiguredThemeEditorStyle theme = themeResolver.getTheme(ResourceReference.style(RES_AUTO, "AppTheme"));
     assertNotNull(theme);
 
     Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(theme);
@@ -118,7 +133,8 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     for (EditedStyleItem item : values) {
       String doc = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myModule, configuration);
-      compareWithGoldenFile(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + item.getAttrName() + ".ans");
+      String filename = item.getAttrName();
+      compareWithGoldenFile(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + filename + ".ans");
     }
   }
 
@@ -129,7 +145,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
 
     ThemeResolver themeResolver = new ThemeResolver(configuration);
-    ConfiguredThemeEditorStyle theme = themeResolver.getTheme("AppTheme");
+    ConfiguredThemeEditorStyle theme = themeResolver.getTheme(ResourceReference.style(RES_AUTO, "AppTheme"));
     assertNotNull(theme);
 
     Collection<EditedStyleItem> values = ThemeEditorTestUtils.getStyleLocalValues(theme);
@@ -146,7 +162,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   }
 
   public void testMinApiLevel() {
-    myFixture.copyFileToProject("themeEditor/manifestWithApi.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject("themeEditor/manifestWithApi.xml", FN_ANDROID_MANIFEST_XML);
     assertEquals(11, ThemeEditorUtils.getMinApiLevel(myModule));
   }
 
@@ -159,7 +175,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     List<ResourceItem> resources = repository.getResources(RES_AUTO, ResourceType.STYLE, "AppTheme");
     assertNotNull(resources);
     assertFalse(resources.isEmpty());
-    final XmlTag sourceXml = LocalResourceRepository.getItemTag(getProject(), resources.get(0));
+    XmlTag sourceXml = LocalResourceRepository.getItemTag(getProject(), resources.get(0));
     assertNotNull(sourceXml);
     new WriteCommandAction.Simple(myModule.getProject(), "Copy a theme") {
       @Override
@@ -183,7 +199,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myModule);
     assertNotNull(repository);
-    final List<ResourceItem> styleItems = repository.getResources(RES_AUTO, ResourceType.STYLE, "AppTheme");
+    List<ResourceItem> styleItems = repository.getResources(RES_AUTO, ResourceType.STYLE, "AppTheme");
     assertNotNull(styleItems);
     assertEquals(2, styleItems.size());
 
@@ -206,7 +222,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v21.xml", "res/values-v21/styles.xml");
 
-    final AtomicInteger visitedRepos = new AtomicInteger(0);
+    AtomicInteger visitedRepos = new AtomicInteger(0);
     // With only one source set, this should be called just once.
     ThemeEditorUtils.acceptResourceResolverVisitor(myFacet, (resources, moduleName, variantName, isSelected) -> {
       assertEquals("main", variantName);
@@ -217,7 +233,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static EditedStyleItem findAttribute(@NotNull final String name, @NotNull Collection<EditedStyleItem> attributes) {
+  private static EditedStyleItem findAttribute(@NotNull String name, @NotNull Collection<EditedStyleItem> attributes) {
     EditedStyleItem item = attributes.stream().filter(input -> {
       assert input != null;
       return name.equals(input.getQualifiedName());
@@ -231,11 +247,12 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     VirtualFile myFile = myFixture.copyFileToProject("themeEditor/styles_2.xml", "res/values/styles.xml");
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
     ThemeResolver res = new ThemeResolver(configuration);
-    assertEquals("X Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.X.Light.Y")));
-    assertEquals("X Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.X.Dark.Y")));
-    assertEquals("Material Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.Material.Light")));
-    assertEquals("Theme Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme("android:Theme")));
-    assertEquals("Theme Light", ThemeEditorUtils.simplifyThemeName(res.getTheme("Theme.Light")));
+    assertEquals("X Light", ThemeEditorUtils.simplifyThemeName(res.getTheme(ResourceReference.style(RES_AUTO, "Theme.X.Light.Y"))));
+    assertEquals("X Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme(ResourceReference.style(RES_AUTO, "Theme.X.Dark.Y"))));
+    assertEquals("Material Light",
+                 ThemeEditorUtils.simplifyThemeName(res.getTheme(ResourceReference.style(RES_AUTO, "Theme.Material.Light"))));
+    assertEquals("Theme Dark", ThemeEditorUtils.simplifyThemeName(res.getTheme(ResourceReference.style(ANDROID, "Theme"))));
+    assertEquals("Theme Light", ThemeEditorUtils.simplifyThemeName(res.getTheme(ResourceReference.style(RES_AUTO, "Theme.Light"))));
   }
 
   public void testGenerateWordEnumeration() {

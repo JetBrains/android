@@ -35,6 +35,33 @@ public class RealWorldExamples {
   public final static String[] COCOS_EXTERNAL_EXAMPLE = {
     "-I/usr/local/google/home/jomof/projects/Game/cocos2d/external/xxhash",
   };
+  public final static String[] DOLPHIN_EXAMPLE = { 
+    "--sysroot=/path/to/ndk-bundle/sysroot",
+    "-I../../../../../../../Externals/curl/include",
+    "-I../../../../../../../Externals/SFML/include",
+    "-I../../../../../../Core",
+    "-I../../../../../",
+    "-I../../../../../../../Externals/enet/include",
+    "-I../../../../../../../External/minizip",
+    "-I../../../../../../../Externals",
+    "-I../../../../../../../Externals/mbedtls/include",
+    "-I../../../../../../../Externals/libiconv-1.14/include",
+    "-ISource/Core",
+    "-isystem",
+    "../../../../../../Core/Common/Compat",
+    "-I../../../../../../../Externals/cubeb/include",
+    "-Iexports",
+    "-I../../../../../../../Externals/pugixml/.",
+    "-I../../../../../../../Externals/cpp-optparse/.",
+    "-I../../../../../../../Externals/minizip/.",
+    "-isystem",
+    "/path/to/ndk-bundle/sources/cxx-stl/llvm-libc++/include",
+    "-isystem",
+    "/path/to/ndk-bundle/sources/cxx-stl/llvm-libc++abi/include",
+    "-isystem",
+    "/path/to/ndk-bundle/sysroot/usr/include/aarch64-linux-android"
+  };
+
   public final static String[] CDEP_EXAMPLE = {
     "-I/usr/local/google/home/jomof/projects/cdep-android-studio-freetype-sample/build/cdep/exploded/com.github.jomof/mathfu/1.1.0-rev3/mathfu-headers.zip/include",
     "-I/usr/local/google/home/jomof/third_party/OpenCV/include",

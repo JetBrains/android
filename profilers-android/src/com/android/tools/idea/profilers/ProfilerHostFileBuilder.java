@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.runtimePipeline.DeployableFile;
+import com.android.tools.idea.transport.DeployableFile;
 import org.jetbrains.annotations.NotNull;
 
 public class ProfilerHostFileBuilder extends DeployableFile.Builder {

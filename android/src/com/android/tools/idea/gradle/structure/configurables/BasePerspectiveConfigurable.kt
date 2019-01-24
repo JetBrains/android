@@ -24,7 +24,11 @@ import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep
+import com.android.tools.idea.structure.dialog.TrackedConfigurable
+import com.android.tools.idea.structure.dialog.logUsagePsdAction
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -62,6 +66,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
     SearchableConfigurable,
     Disposable,
     Place.Navigator,
+    TrackedConfigurable,
     CrossModuleUiStateComponent {
 
   private enum class ModuleSelectorStyle { LIST_VIEW, DROP_DOWN }
@@ -290,6 +295,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
                 "Add Module",
                 Messages.getQuestionIcon()) == Messages.YES
           ) {
+            context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_ADD)
             var synced = false
             val chooseModuleTypeStep =
               ChooseModuleTypeStep.createWithDefaultGallery(context.project.ideProject) { synced = true }
@@ -325,6 +331,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
               "Remove Module",
               Messages.getQuestionIcon()
             ) == Messages.YES) {
+            context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_REMOVE)
             module.parent.removeModule(module.gradlePath!!)
           }
         }
@@ -351,6 +358,10 @@ abstract class BasePerspectiveConfigurable protected constructor(
   override fun isModified(): Boolean = context.project.isModified
 
   final override fun apply() = context.applyChanges()
+
+  override fun copyEditedFieldsTo(builder: PSDEvent.Builder) {
+    builder.addAllModifiedFields(context.getEditedFieldsAndClear())
+  }
 
   override fun setHistory(history: History?) = super<MasterDetailsComponent>.setHistory(history)
 

@@ -48,7 +48,7 @@ internal class RelativeDragHandler(editor: ViewEditor,
     if (components.size == 1) {
       val dragged = components[0]
       component = layout.scene.getSceneComponent(dragged) ?: TemporarySceneComponent(layout.scene, dragged).apply {
-        setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false)
+        setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h))
       }
 
       component.setTargetProvider { _ -> mutableListOf<Target>(dragTarget) }

@@ -31,7 +31,8 @@ public class NavEditorTestSuite extends IdeaTestSuiteBase {
       "prebuilts/studio/layoutlib",
       "tools/adt/idea/android/testData",
       "tools/adt/idea/designer/testData",
-      "tools/adt/idea/naveditor/testData"
+      "tools/adt/idea/naveditor/testData",
+      "tools/adt/idea/resources-aar/framework_res.jar"
     );
 
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");

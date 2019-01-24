@@ -66,7 +66,7 @@ public class ChangeManifestTest {
 
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
     adbBuilder.installDefaultCommandHandlers()
-      .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, () -> new ActivityManagerCommandHandler(myProcessStarter))
+      .addShellHandler(new ActivityManagerCommandHandler(myProcessStarter))
       .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
 
     fakeAdbServer = adbBuilder.build();

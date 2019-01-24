@@ -31,7 +31,7 @@ import org.junit.Test
 @RunsInEdt
 class NeleNewPropertyItemTest {
   @JvmField @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val projectRule = AndroidProjectRule.withSdk()
 
   @JvmField @Rule
   val edtRule = EdtRule()
@@ -89,7 +89,7 @@ class NeleNewPropertyItemTest {
     assertThat(property.value).isEqualTo("Hello")
     assertThat(property.resolvedValue).isEqualTo("Hello")
     assertThat(property.isReference).isFalse()
-    assertThat(property.tooltipForName).isEqualTo("android:text")
+    assertThat(property.tooltipForName).isEqualTo(EXPECTED_TEXT_TOOLTIP)
     assertThat(property.tooltipForValue).isEqualTo("")
   }
 
@@ -115,13 +115,17 @@ class NeleNewPropertyItemTest {
     val delegate = property.delegate!!
     assertThat(delegate.namespace).isEqualTo(ANDROID_URI)
     assertThat(delegate.name).isEqualTo(ATTR_GRAVITY)
-    assertThat(property.children.map { it.name }).containsExactly("top", "center", "bottom")
+    assertThat(property.children.map { it.name }).containsExactly(
+      "top", "center_vertical", "bottom", "start", "left", "center_horizontal", "right", "end",
+      "clip_horizontal", "clip_vertical", "center", "fill", "fill_horizontal", "fill_vertical")
 
     property.flag("center")?.value = "true"
     assertThat(property.value).isEqualTo("center")
     assertThat(property.resolvedValue).isEqualTo("center")
     assertThat(property.isReference).isFalse()
-    assertThat(property.tooltipForName).isEqualTo("android:gravity")
+    assertThat(property.tooltipForName).isEqualTo(
+      "<html><b>android:gravity:</b>" +
+      "<br/>Specifies how an object should position its content, on both the X and Y axes, within its own bounds.</html>")
     assertThat(property.tooltipForValue).isEqualTo("")
   }
 
@@ -174,7 +178,7 @@ class NeleNewPropertyItemTest {
     val property2 = util.makeProperty(ANDROID_URI, ATTR_TEXT_SIZE, NelePropertyType.DIMENSION)
     val property3 = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NelePropertyType.COLOR_STATE_LIST)
     val property4 = util.makeProperty(AUTO_URI, ATTR_SRC_COMPAT, NelePropertyType.DRAWABLE)
-    val property5 = util.makeFlagsProperty(ANDROID_URI, ATTR_GRAVITY, listOf("top", "center", "bottom"))
+    val property5 = util.makeProperty(ANDROID_URI, ATTR_GRAVITY, NelePropertyType.ENUM)
     val table: Table<String, String, NelePropertyItem> = HashBasedTable.create()
     add(table, property0)
     add(table, property1)

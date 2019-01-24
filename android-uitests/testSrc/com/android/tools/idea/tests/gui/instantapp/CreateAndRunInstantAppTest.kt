@@ -59,11 +59,11 @@ class CreateAndRunInstantAppTest {
 
     fakeAdbServer = FakeAdbServer.Builder()
       .installDefaultCommandHandlers()
-      .setShellCommandHandler(ActivityManagerCommandHandler.COMMAND, {
+      .addShellHandler(
         ActivityManagerCommandHandler(
           startCmdHandler
         )
-      })
+      )
       .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, {
         JdwpCommandHandler()
       })

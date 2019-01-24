@@ -4,7 +4,7 @@
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/StartMonitoringApp" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkStartRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </Message>
@@ -12,7 +12,7 @@
         <functionCalled>profiler.proto.NetworkService/StartMonitoringApp</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </message>
@@ -26,7 +26,7 @@
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetData" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkDataRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: -9223372036854775808
@@ -36,7 +36,7 @@ end_timestamp: 9223372036854775807
         <functionCalled>profiler.proto.NetworkService/GetData</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: -9223372036854775808
@@ -90,7 +90,7 @@ data {
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/GetHttpRange" Class="class com.android.tools.profiler.proto.NetworkProfiler$HttpRangeRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: -9223372036854775808
@@ -100,7 +100,7 @@ end_timestamp: 9223372036854775807
         <functionCalled>profiler.proto.NetworkService/GetHttpRange</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 start_timestamp: -9223372036854775808
@@ -204,7 +204,7 @@ type: ACCESSING_THREADS
     <GrpcCall FunctionCalled="profiler.proto.NetworkService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.NetworkProfiler$NetworkStopRequest">
         <Message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </Message>
@@ -212,7 +212,7 @@ type: ACCESSING_THREADS
         <functionCalled>profiler.proto.NetworkService/StopMonitoringApp</functionCalled>
         <message>session {
   session_id: 4321
-  device_id: 1234
+  stream_id: 1234
   pid: 5678
 }
 </message>

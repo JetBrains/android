@@ -44,7 +44,8 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   protected val editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesScope: PsVariablesScope?
+  variablesScope: PsVariablesScope?,
+  private val logValueEdited: () -> Unit
 ) : PropertyEditorBase<ModelPropertyT, ValueT>(property, propertyContext, variablesScope) {
 
   override val component: JPanel = JPanel(BorderLayout())
@@ -63,8 +64,14 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
     .also {
       component.add(
         ToolbarDecorator.createDecorator(it)
-          .setAddAction { addItem() }
-          .setRemoveAction { removeItem() }
+          .setAddAction {
+            addItem()
+            logValueEdited()
+          }
+          .setRemoveAction {
+            removeItem()
+            logValueEdited()
+          }
           .setPreferredSize(Dimension(450, it.rowHeight * 3))
           .setToolbarPosition(ActionToolbarPosition.RIGHT)
           .createPanel()

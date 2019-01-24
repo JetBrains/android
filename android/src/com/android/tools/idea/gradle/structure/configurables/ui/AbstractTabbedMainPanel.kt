@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.stats.withProjectId
+import com.android.tools.idea.structure.dialog.TrackedConfigurable
+import com.android.tools.idea.structure.dialog.logUsageTopNavigateTo
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBTabbedPane
@@ -44,11 +50,12 @@ abstract class AbstractTabbedMainPanel(
   }.also {
     add(it)
     it.addChangeListener {
-      if (topLevelAncestor != null) ensureSelectedTabComponentInstantiated()
+      if (topLevelAncestor != null) {
+        ensureSelectedTabComponentInstantiated()
+        context.project.ideProject.logUsageTopNavigateTo(getCurrentModelTab())
+      }
     }
   }
-
-
 
   private val tabPanels: MutableList<ModelPanel<*>> = mutableListOf()
 
@@ -57,6 +64,10 @@ abstract class AbstractTabbedMainPanel(
     tabPanels.add(panel)
     Disposer.register(this, panel)
   }
+
+  private fun getModelPanelAt(index: Int): ModelPanel<*> = index.takeIf { it >= 0 }.let { tabPanels[index] }
+
+  private fun getCurrentModelTab(): ModelPanel<*> = getModelPanelAt(tabbedPane.selectedIndex)
 
   private fun ensureSelectedTabComponentInstantiated() {
     val selectedIndex = tabbedPane.selectedIndex

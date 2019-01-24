@@ -52,7 +52,7 @@ class DataGeneratorManager(connection: Connection, performantDb: Boolean) {
     val random = Random(seed)
     val pid = random.nextInt()
     myProperties = GeneratorProperties.Builder(Common.Session.newBuilder()
-                                                 .setDeviceId(random.nextLong())
+                                                 .setStreamId(random.nextLong())
                                                  .setPid(pid)
                                                  .setSessionId(random.nextInt().toLong())
                                                  .build())

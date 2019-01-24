@@ -31,14 +31,15 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CpuThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
   @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myClient;
-  @NotNull private final Common.Session mySession;
+  private final long myStreamId;
+  private final int myPid;
   private final int myThreadId;
 
   public CpuThreadStateDataSeries(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub client,
-                                  @NotNull Common.Session session,
-                                  int threadId) {
+                                  long streamId, int pid, int threadId) {
     myClient = client;
-    mySession = session;
+    myStreamId = streamId;
+    myPid = pid;
     myThreadId = threadId;
   }
 
@@ -47,12 +48,14 @@ public class CpuThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thr
     List<SeriesData<CpuProfilerStage.ThreadState>> series = new ArrayList<>();
     long maxNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMax());
     // Query from the beginning because we need the last state of the thread before range min.
-    Profiler.GetEventGroupsResponse response = myClient.getEventGroups(Profiler.GetEventGroupsRequest.newBuilder()
-                                                                         .setSessionId(mySession.getSessionId())
-                                                                         .setKind(Common.Event.Kind.CPU_THREAD)
-                                                                         .setGroupId(myThreadId)
-                                                                         .setToTimestamp(maxNs)
-                                                                         .build());
+    Profiler.GetEventGroupsResponse response = myClient.getEventGroups(
+      Profiler.GetEventGroupsRequest.newBuilder()
+        .setStreamId(myStreamId)
+        .setPid(myPid)
+        .setKind(Common.Event.Kind.CPU_THREAD)
+        .setGroupId(myThreadId)
+        .setToTimestamp(maxNs)
+        .build());
     // We don't expect more than one data group for the given group ID.
     assert response.getGroupsCount() <= 1;
     if (response.getGroupsCount() == 1) {

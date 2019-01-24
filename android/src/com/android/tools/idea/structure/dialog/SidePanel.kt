@@ -20,6 +20,8 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.roots.ui.configuration.SidePanelSeparator
 import com.intellij.openapi.ui.popup.ListItemDescriptor
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.AbstractExpandableItemsHandler
+import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
@@ -104,9 +106,21 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
       isSelected: Boolean,
       cellHasFocus: Boolean
     ): Component {
+      val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+      updateCountLabel(isSelected, value)
       layout()
-      return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-        .also { updateCountLabel(isSelected, value) }
+      if (UIUtil.isClientPropertyTrue(list, ExpandableItemsHandler.EXPANDED_RENDERER)) {
+        val bounds = list.getCellBounds(index, index)
+        bounds.setSize(component.preferredSize.getWidth().toInt(), bounds.getHeight().toInt())
+        extraPanel?.let {
+          AbstractExpandableItemsHandler.setRelativeBounds(component, bounds, it, validationParent)
+          it.setSize(it.preferredSize.getWidth().toInt(), it.height)
+          UIUtil.putClientProperty(it, ExpandableItemsHandler.USE_RENDERER_BOUNDS, true)
+          return it
+        }
+      }
+
+      return component
     }
 
     override fun createItemComponent(): JComponent {
@@ -163,13 +177,14 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
     }
   }
 
+  val validationParent = CellRendererPane()
   val list: JBList<PlaceData> = JBList(listModel)
     .also {
       it.background = SIDE_PANEL_BACKGROUND
       it.border = EmptyBorder(5, 0, 0, 0)
       it.selectionMode = SINGLE_SELECTION
       it.cellRenderer = cellRenderer
-      it.add(CellRendererPane())
+      it.add(validationParent)
 
       it.addListSelectionListener { e ->
         if (e.valueIsAdjusting) return@addListSelectionListener

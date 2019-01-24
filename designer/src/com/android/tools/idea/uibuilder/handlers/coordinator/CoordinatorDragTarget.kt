@@ -123,7 +123,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
       snapTarget.setMouseHovered(true)
     }
     myComponent.isDragging = true
-    myComponent.setPosition(x - myOffsetX, y - myOffsetY, false)
+    myComponent.setPosition(x - myOffsetX, y - myOffsetY)
     myComponent.scene.repaint()
     myChangedComponent = true
   }

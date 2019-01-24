@@ -36,6 +36,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -394,14 +395,22 @@ public class LauncherIconGenerator extends IconGenerator {
 
     if (options.foregroundImage != null && options.foregroundImage.isDrawable()) {
       // Generate foreground drawable.
+      TransformedImageAsset image = options.foregroundImage;
       tasks.add(() -> {
         LauncherIconOptions iconOptions = options.clone();
         iconOptions.generateWebIcon = false;
         iconOptions.density = Density.ANYDPI;
         iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
 
-        String xmlDrawableText = options.foregroundImage.getTransformedDrawable();
-        assert xmlDrawableText != null;
+        if (!image.isDrawable()) {
+          getLog().error("Background image is not drawable!", new Throwable());
+        }
+        String xmlDrawableText = image.getTransformedDrawable();
+        if (xmlDrawableText == null) {
+          getLog().error("Transformed foreground drawable is null" + (image.isDrawable() ? " but the image is drawable" : ""),
+                         new Throwable());
+          xmlDrawableText = "<vector/>"; // Use an empty image. It will be recomputed again soon.
+        }
         iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
                                         new PathString(getIconPath(iconOptions, iconOptions.foregroundLayerName)),
@@ -412,14 +421,22 @@ public class LauncherIconGenerator extends IconGenerator {
 
     if (options.backgroundImage != null && options.backgroundImage.isDrawable()) {
       // Generate background drawable.
+      TransformedImageAsset image = options.backgroundImage;
       tasks.add(() -> {
         LauncherIconOptions iconOptions = options.clone();
         iconOptions.generateWebIcon = false;
         iconOptions.density = Density.ANYDPI;
         iconOptions.iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
 
-        String xmlDrawableText = options.backgroundImage.getTransformedDrawable();
-        assert xmlDrawableText != null;
+        if (!image.isDrawable()) {
+          getLog().error("Background image is not drawable!", new Throwable());
+        }
+        String xmlDrawableText = image.getTransformedDrawable();
+        if (xmlDrawableText == null) {
+          getLog().error("Transformed background drawable is null" + (image.isDrawable() ? " but the image is drawable" : ""),
+                         new Throwable());
+          xmlDrawableText = "<vector/>"; // Use an empty image. It will be recomputed again soon.
+        }
         iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
                                         new PathString(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
@@ -1165,6 +1182,11 @@ public class LauncherIconGenerator extends IconGenerator {
     return super.getIconPath(options, iconName);
   }
 
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(LauncherIconGenerator.class);
+  }
+
   /** Options specific to generating launcher icons. */
   public static class LauncherIconOptions extends Options implements Cloneable {
     /** The foreground layer name, used to generate resource paths. */
@@ -1266,7 +1288,7 @@ public class LauncherIconGenerator extends IconGenerator {
     @NotNull public BufferedImage background;
     @NotNull public BufferedImage foreground;
 
-    public Layers(@NotNull BufferedImage background, @NotNull BufferedImage foreground) {
+    Layers(@NotNull BufferedImage background, @NotNull BufferedImage foreground) {
       this.background = background;
       this.foreground = foreground;
     }

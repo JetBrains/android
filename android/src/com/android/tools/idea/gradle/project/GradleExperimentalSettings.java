@@ -32,7 +32,6 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
   public int MAX_MODULE_COUNT_FOR_SOURCE_GEN = 5;
   public boolean USE_L2_DEPENDENCIES_ON_SYNC = true;
   public boolean USE_SINGLE_VARIANT_SYNC = true;
-  public long PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP = 0;
 
   @NotNull
   public static GradleExperimentalSettings getInstance() {

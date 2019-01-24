@@ -85,8 +85,7 @@ enum class ColorFormat {
   }
 }
 
-class ColorValuePanel(private val model: ColorPickerModel)
-  : JPanel(GridBagLayout()), DocumentListener, ColorListener {
+class ColorValuePanel(private val model: ColorPickerModel) : JPanel(GridBagLayout()), DocumentListener, ColorPickerListener {
 
   /**
    * Used to update the color of picker when color text fields are edited.
@@ -247,6 +246,8 @@ class ColorValuePanel(private val model: ColorPickerModel)
     updateAlarm.cancelAllRequests()
     repaint()
   }
+
+  override fun pickingColorChanged(color: Color, source: Any?) = colorChanged(color, source)
 
   override fun colorChanged(color: Color, source: Any?) = updateTextField(color, source)
 
