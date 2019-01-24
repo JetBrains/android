@@ -61,8 +61,7 @@ public class GraphicGeneratorContext {
    * @return the cached or the newly created image
    */
   @NotNull
-  public final Future<BufferedImage> getFromCacheOrCreate(@NotNull Object key,
-                                                                    @NotNull Callable<? extends Future<BufferedImage>> creator) {
+  public final Future<BufferedImage> getFromCacheOrCreate(@NotNull Object key, @NotNull Callable<? extends Future<BufferedImage>> creator) {
     try {
       return myImageCache.get(key, creator);
     }
