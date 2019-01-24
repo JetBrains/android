@@ -27,7 +27,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
  * {@link AndroidGradleImportTaskNotificationListener} Listens for Gradle project import start/end events to apply android specific changes.
  *
  * @author Vladislav.Soroka
- * @since 10/17/13
  */
 public class AndroidGradleImportTaskNotificationListener extends ExternalSystemTaskNotificationListenerAdapter {
 
