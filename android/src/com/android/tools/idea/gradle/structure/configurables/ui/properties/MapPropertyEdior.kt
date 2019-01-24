@@ -35,8 +35,9 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
   property: ModelPropertyT,
   propertyContext: ModelPropertyContext<ValueT>,
   editor: PropertyEditorCoreFactory<ModelPropertyCore<ValueT>, ModelPropertyContext<ValueT>, ValueT>,
-  variablesScope: PsVariablesScope?
-) : CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope),
+  variablesScope: PsVariablesScope?,
+  private val logValueEdited: () -> Unit
+) : CollectionPropertyEditor<ModelPropertyT, ValueT>(property, propertyContext, editor, variablesScope, logValueEdited),
     ModelPropertyEditor<Map<String, ValueT>>, ModelPropertyEditorFactory<Map<String, ValueT>, ModelPropertyT> {
 
   init {
@@ -129,6 +130,7 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
           property.changeEntryKey(oldKey, newKey)
           currentRow = -1
           currentKey = null
+          logValueEdited()
         }
       }
     }
@@ -147,6 +149,6 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
     cellEditor: TableCellEditor?,
     isPropertyContext: Boolean
   ): ModelPropertyEditor<Map<String, ValueT>> =
-    MapPropertyEditor(property, propertyContext, editor, variablesScope)
+    MapPropertyEditor(property, propertyContext, editor, variablesScope) { /* no usage logging */ }
 }
 

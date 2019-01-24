@@ -38,7 +38,7 @@ abstract public class IncludeResolver {
   public static IncludeResolver getGlobalResolver(@Nullable File ndkPath) {
     IncludeResolver[] resolvers =
       new IncludeResolver[]{new NdkIncludeResolver(ndkPath), new CDepIncludeResolver(), new CocosIncludeResolver(),
-        thirdParty(), new PlainFolderIncludeResolver()};
+        thirdParty(), externals(), new PlainFolderIncludeResolver()};
     return new IncludeResolver() {
       @Override
       public SimpleIncludeValue resolve(@NotNull File includeFolder) {
@@ -59,6 +59,14 @@ abstract public class IncludeResolver {
   @NotNull
   static IncludeResolver thirdParty() {
     return new IndexedRegularExpressionIncludeResolver(PackageType.ThirdParty, "^(.*)(/third[_-]party/(.*?)/.*)$");
+  }
+
+  /**
+   * Generate an Externals resolver.
+   */
+  @NotNull
+  static IncludeResolver externals() {
+    return new IndexedRegularExpressionIncludeResolver(PackageType.Externals, "^(.*)(/(?:E|e)xternals?/(.*?)/.*)$");
   }
 
   @Nullable

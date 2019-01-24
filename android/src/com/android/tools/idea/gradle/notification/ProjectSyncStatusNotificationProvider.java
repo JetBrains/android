@@ -23,7 +23,6 @@ import static com.intellij.util.ThreeState.YES;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -31,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -138,13 +138,16 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @Nullable
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
           if (StudioFlags.NEW_PSD_ENABLED.get() &&
-              (System.currentTimeMillis() - GradleExperimentalSettings.getInstance().PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP >
-              PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS)) {
+              (System.currentTimeMillis() -
+               Long.parseLong(
+                 PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0")) >
+               PROJECT_STRUCTURE_NOTIFICATION_RESHOW_TIMEOUT_MS)) {
             if (!projectInfo.isBuildWithGradle()) {
               return null;
             }
 
-            if (!file.getName().equals(SdkConstants.FN_BUILD_GRADLE) && !file.getName().equals(SdkConstants.FN_BUILD_GRADLE_KTS)) {
+            // TODO: Add check for file.getName().equals(SdkConstants.FN_BUILD_GRADLE_KTS) when Kotlin support is added to PSD
+            if (!file.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
               return null;
             }
 
@@ -291,7 +294,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         }
       });
       createActionLabel("Hide notification", () -> {
-        GradleExperimentalSettings.getInstance().PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP = System.currentTimeMillis();
+        PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP",
+                                                   Long.toString(System.currentTimeMillis()));
         setVisible(false);
       });
     }

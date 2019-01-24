@@ -58,6 +58,7 @@ import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,15 +78,22 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Lists;
+import com.intellij.build.SyncViewManager;
+import com.intellij.build.events.BuildEvent;
+import com.intellij.build.events.FailureResult;
+import com.intellij.build.events.FinishBuildEvent;
+import com.intellij.build.events.StartBuildEvent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -115,6 +123,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.mockito.ArgumentCaptor;
 
 /**
  * Integration tests for 'Gradle Sync'.
@@ -607,6 +616,35 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     // Verify Ndk model doesn't contain any artifact.
     assertThat(getArtifacts()).isEmpty();
+  }
+
+  public void testWithPreSyncCheckFailure() throws Exception {
+    Project project = getProject();
+
+    // Force a pre sync error
+    String errorMessage = "This is a pre sync check error message";
+    PreSyncCheckResult result = PreSyncCheckResult.failure(errorMessage);
+    GradleSyncInvoker spyInvoker = spy(GradleSyncInvoker.getInstance());
+    when(spyInvoker.runPreSyncChecks(project)).thenReturn(result);
+    myIdeComponents.replaceApplicationService(GradleSyncInvoker.class, spyInvoker);
+
+    // Spy on SyncView manager to confirm it is displaying the error message
+    SyncViewManager spyViewManager = spy(ServiceManager.getService(project, SyncViewManager.class));
+    myIdeComponents.replaceProjectService(SyncViewManager.class, spyViewManager);
+
+    String syncError = loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
+    assertEquals(errorMessage, syncError);
+
+    // Make sure the error is processed in sync view
+    ArgumentCaptor<BuildEvent> buildEventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
+    verify(spyViewManager, times(2)).onEvent(buildEventCaptor.capture());
+    List<BuildEvent> buildEvents = buildEventCaptor.getAllValues();
+    assertSize(2, buildEvents);
+    assertThat(buildEvents.get(0)).isInstanceOf(StartBuildEvent.class);
+    assertThat(buildEvents.get(1)).isInstanceOf(FinishBuildEvent.class);
+    FinishBuildEvent finishEvent = (FinishBuildEvent)buildEvents.get(1);
+    assertThat(finishEvent.getResult()).isInstanceOf(FailureResult.class);
+    assertEquals(errorMessage, finishEvent.getMessage());
   }
 
   @NotNull

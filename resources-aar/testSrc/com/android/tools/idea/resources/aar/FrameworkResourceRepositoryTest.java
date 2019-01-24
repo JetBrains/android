@@ -426,7 +426,7 @@ public class FrameworkResourceRepositoryTest extends AndroidTestCase {
       String portablePath2 = path2.getPortablePath();
       if (nonFileUri.getScheme().equals("jar")) {
         int offset1 = indexOfEnd(portablePath1, "/res/");
-        int offset2 = indexOfEnd(portablePath2, "/framework_res.jar!/");
+        int offset2 = indexOfEnd(portablePath2, "/res/");
         return portablePath1.length() - offset1 == portablePath2.length() - offset2 &&
                portablePath1.regionMatches(offset1, portablePath2, offset2, portablePath1.length() - offset1);
       }

@@ -29,7 +29,9 @@ import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
+import icons.StudioIcons.Misc.SIGNING_CONFIG
 import java.io.File
+import javax.swing.Icon
 
 class PsSigningConfig(
   override val parent: PsAndroidModule,
@@ -47,7 +49,7 @@ class PsSigningConfig(
     this.parsedModel = parsedModel
   }
 
-  override val name get() = resolvedModel?.name ?:    parsedModel?.name() ?: ""
+  override val name get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
 
   var storeFile by SigningConfigDescriptors.storeFile
   var storePassword by SigningConfigDescriptors.storePassword
@@ -55,6 +57,7 @@ class PsSigningConfig(
   var keyPassword by SigningConfigDescriptors.keyPassword
 
   override val isDeclared: Boolean get() = parsedModel != null
+  override val icon: Icon = SIGNING_CONFIG
 
   fun ensureDeclared() {
     if (parsedModel == null) {

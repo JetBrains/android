@@ -244,7 +244,8 @@ public class NavigationSchemaTest extends AndroidTestCase {
                       true);
   }
 
-  public void testQuickValidateWithDelete() throws Exception {
+  // b/117295488
+  public void ignore_testQuickValidateWithDelete() throws Exception {
     @Language("JAVA")
     String content = "import androidx.navigation.*;\n" +
                      "@Navigator.Name(\"fragment_sub\")\n" +

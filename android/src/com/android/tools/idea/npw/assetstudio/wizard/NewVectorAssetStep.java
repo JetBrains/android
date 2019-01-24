@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import static com.android.tools.adtui.validation.ValidatorPanel.truncateMessage;
+
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -245,7 +247,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       myValidatorPanel.registerValidator(myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name)));
       myValidatorPanel.registerValidator(myWidth, new PositiveIntegerValidator("Width should be a positive value"));
       myValidatorPanel.registerValidator(myHeight, new PositiveIntegerValidator("Height should be a positive value"));
-      myValidatorPanel.registerValidator(myAssetValidityState, validity -> truncateMessage(validity));
+      myValidatorPanel.registerValidator(myAssetValidityState, validity -> truncateMessage(validity, 3));
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
         myActiveAssetBindings.bind(ObjectProperty.wrap(myActiveAsset.get().color()), myColor);
@@ -263,26 +265,6 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
     // Refresh the asset preview.
     renderPreviews();
-  }
-
-  /**
-   * Truncates the message if it contains too many lines.
-   */
-  @NotNull
-  private static Validator.Result truncateMessage(@NotNull Validator.Result validity) {
-    String message = validity.getMessage();
-    int lineCount = 0;
-    int lineOffset = 0;
-    int offset = 0;
-    while ((offset = message.indexOf('\n', offset)) >= 0) {
-      offset++;
-      if (++lineCount > 3) {
-        message = message.substring(0, lineOffset) + "...";
-        return new Validator.Result(validity.getSeverity(), message);
-      }
-      lineOffset = offset;
-    }
-    return validity;
   }
 
   @Override

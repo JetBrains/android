@@ -15,26 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import static com.android.tools.adtui.actions.ZoomShortcut.ZOOM_FIT;
+import static com.android.tools.adtui.actions.ZoomShortcut.ZOOM_IN;
+import static com.android.tools.adtui.actions.ZoomShortcut.ZOOM_OUT;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.DESIGN_MODE;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.NEXT_DEVICE;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.REFRESH_LAYOUT;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.SWITCH_ORIENTATION;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.TOGGLE_ISSUE_PANEL;
-import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_FIT;
-import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_IN;
-import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_OUT;
 
 import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.adtui.actions.ZoomInAction;
+import com.android.tools.adtui.actions.ZoomLabelAction;
+import com.android.tools.adtui.actions.ZoomOutAction;
+import com.android.tools.adtui.actions.ZoomToFitAction;
 import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
 import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.actions.NextDeviceAction;
 import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
-import com.android.tools.idea.common.actions.ZoomInAction;
-import com.android.tools.idea.common.actions.ZoomLabelAction;
-import com.android.tools.idea.common.actions.ZoomOutAction;
-import com.android.tools.idea.common.actions.ZoomToFitAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
@@ -102,10 +102,10 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(ZOOM_OUT.registerForAction(new ZoomOutAction(mySurface), mySurface, this));
-    group.add(new ZoomLabelAction(mySurface));
-    group.add(ZOOM_IN.registerForAction(new ZoomInAction(mySurface), mySurface, this));
-    group.add(ZOOM_FIT.registerForAction(new ZoomToFitAction(mySurface), mySurface, this));
+    group.add(ZOOM_OUT.registerForAction(ZoomOutAction.INSTANCE, mySurface, this));
+    group.add(ZoomLabelAction.INSTANCE);
+    group.add(ZOOM_IN.registerForAction(ZoomInAction.INSTANCE, mySurface, this));
+    group.add(ZOOM_FIT.registerForAction(ZoomToFitAction.INSTANCE, mySurface, this));
     group.addSeparator();
     group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
 

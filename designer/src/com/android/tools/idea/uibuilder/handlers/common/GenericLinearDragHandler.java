@@ -169,7 +169,7 @@ public class GenericLinearDragHandler extends DragHandler {
     myNumPositions = layout.getChildCount() + 1;
     NlComponent component = components.get(0);
     myComponent = new TemporarySceneComponent(layout.getScene(), component);
-    myComponent.setSize(editor.pxToDp(NlComponentHelperKt.getW(component)), editor.pxToDp(NlComponentHelperKt.getH(component)), false);
+    myComponent.setSize(editor.pxToDp(NlComponentHelperKt.getW(component)), editor.pxToDp(NlComponentHelperKt.getH(component)));
   }
 
   @Nullable

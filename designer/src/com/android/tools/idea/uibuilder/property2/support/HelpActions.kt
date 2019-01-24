@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
+import com.android.SdkConstants
 import com.android.SdkConstants.ANDROIDX_PKG_PREFIX
 import com.android.SdkConstants.ANDROID_PKG_PREFIX
 import com.android.SdkConstants.ANDROID_VIEW_PKG
@@ -24,15 +25,28 @@ import com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_LAYOUT_PARAMS
 import com.android.annotations.VisibleForTesting
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.google.common.html.HtmlEscapers
+import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.util.text.nullize
 
 const val DEFAULT_ANDROID_REFERENCE_PREFIX = "https://developer.android.com/reference/"
 
 object HelpActions {
+
+  val help = object : AnAction() {
+    override fun actionPerformed(event: AnActionEvent) {
+      val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
+      val tag = property.components.first().backend.getTag()
+      val documentation = createHelpText(property, allowEmptyDescription = false).nullize() ?: return
+      DocumentationManager.getInstance(property.project).showJavaDocInfo(tag, tag, true, null, documentation)
+    }
+  }
 
   val secondaryHelp = object : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
@@ -51,7 +65,7 @@ object HelpActions {
 
   private fun getHelpUrl(componentName: String, property: NelePropertyItem): String? {
     val dotLayoutParams = when {
-      componentName.equals(CLASS_VIEWGROUP) && property.name.startsWith(ATTR_LAYOUT_MARGIN) -> ".MarginLayoutParams"
+      componentName == CLASS_VIEWGROUP && property.name.startsWith(ATTR_LAYOUT_MARGIN) -> ".MarginLayoutParams"
       property.name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX) -> DOT_LAYOUT_PARAMS
       else -> ""
     }
@@ -71,4 +85,48 @@ object HelpActions {
       // Do not try to map a class that we know will not be documented on developer.android.com.
       else -> null
     }
+
+  /**
+   * Create help text consisting of the name and a description for the specified [property].
+   *
+   * If no description of the property is known the method returns just the name of the
+   * property if [allowEmptyDescription] otherwise the empty string is returned (no help).
+   */
+  fun createHelpText(property: NelePropertyItem, allowEmptyDescription: Boolean): String {
+    val description = filterRawAttributeComment(property.definition?.getDescription(null) ?: "")
+    if (description.isEmpty() && !allowEmptyDescription) {
+      return ""  // No help text available
+    }
+    val sb = StringBuilder(100)
+    sb.append("<html><b>")
+    sb.append(findNamespacePrefix(property))
+    sb.append(property.name)
+    if (description.isEmpty()) {
+      sb.append("</b>")
+    }
+    else {
+      sb.append(":</b><br/>")
+      sb.append(description)
+    }
+    sb.append("</html>")
+    return sb.toString()
+  }
+
+  private fun findNamespacePrefix(property: NelePropertyItem): String {
+    val resolver = property.namespaceResolver
+    // TODO: This should not be required, but it is for as long as getNamespaceResolver returns TOOLS_ONLY:
+    if (resolver == ResourceNamespace.Resolver.TOOLS_ONLY && property.namespace == SdkConstants.ANDROID_URI) {
+      return SdkConstants.PREFIX_ANDROID
+    }
+    val prefix = resolver.uriToPrefix(property.namespace) ?: return ""
+    return "$prefix:"
+  }
+
+  private val lineEndingRegex = Regex("\n *")
+
+  // TODO: b/121033944 Give access to links and format code sections as well.
+  @VisibleForTesting
+  fun filterRawAttributeComment(comment: String): String {
+    return HtmlEscapers.htmlEscaper().escape(comment.replace(lineEndingRegex, " "))
+  }
 }

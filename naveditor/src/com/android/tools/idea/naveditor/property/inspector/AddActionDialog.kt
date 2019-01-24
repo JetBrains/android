@@ -255,7 +255,7 @@ open class AddActionDialog(
     dialog.myDestinationComboBox.selectedIndex = 0
     dialog.myDestinationComboBox.isEnabled = false
 
-    selectItem(dialog.myPopToComboBox, { it.component?.getAttribute(ANDROID_URI, ATTR_ID) }, ATTR_POP_UP_TO, AUTO_URI, existingAction)
+    selectItem(dialog.myPopToComboBox, { it.component?.resolveAttribute(ANDROID_URI, ATTR_ID) }, ATTR_POP_UP_TO, AUTO_URI, existingAction)
     dialog.myInclusiveCheckBox.isSelected = existingAction.inclusive == true
     selectItem(dialog.myEnterComboBox, { it.value }, ATTR_ENTER_ANIM, AUTO_URI, existingAction)
     selectItem(dialog.myExitComboBox, { it.value }, ATTR_EXIT_ANIM, AUTO_URI, existingAction)

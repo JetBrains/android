@@ -82,11 +82,11 @@ class ProfilerDeviceFileManagerTest {
         newFolder("dev", it.toString())
       }
       listOf(Abi.ARMEABI, Abi.ARMEABI_V7A).forEach {
-        newFile("dev/$it/perfd")
+        newFile("dev/$it/transport")
       }
     }
 
-    val hostFile = ProfilerHostFileBuilder("perfd")
+    val hostFile = ProfilerHostFileBuilder("transport")
       .setReleaseDir("release")
       .setDevDir("dev")
       .setExecutable(true)
@@ -111,7 +111,7 @@ class ProfilerDeviceFileManagerTest {
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
 
     val expectedPaths = listOf(
-      Pair("dev/${Abi.ARMEABI_V7A}/perfd", "perfd")
+      Pair("dev/${Abi.ARMEABI_V7A}/transport", "transport")
     ).map { (host, device) ->
       // maps from relative paths to absolute paths
       Pair("${temporaryFolder.root.absolutePath}/$host", fileManager.deviceFullDir + device)

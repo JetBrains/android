@@ -25,7 +25,6 @@ import org.junit.runner.RunWith;
 
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 
-
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   DesignerTestSuite.class,
@@ -38,17 +37,19 @@ public class DesignerTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    symlinkToIdeaHome("prebuilts/studio/layoutlib",
-       "tools/adt/idea/android/annotations",
-       "tools/adt/idea/android/lib/androidWidgets",
-       "tools/adt/idea/android/lib/sampleData",
-       "tools/adt/idea/android/testData",
-       "tools/adt/idea/designer/testData",
-       "tools/base/templates",
-       "tools/idea/build.txt",
-       "tools/idea/java",
-       "prebuilts/studio/sdk",
-       "prebuilts/tools/common/offline-m2");
+    symlinkToIdeaHome(
+        "prebuilts/studio/layoutlib",
+        "prebuilts/studio/sdk",
+        "prebuilts/tools/common/offline-m2",
+        "tools/adt/idea/android/annotations",
+        "tools/adt/idea/android/lib/androidWidgets",
+        "tools/adt/idea/android/lib/sampleData",
+        "tools/adt/idea/android/testData",
+        "tools/adt/idea/designer/testData",
+        "tools/adt/idea/resources-aar/framework_res.jar",
+        "tools/base/templates",
+        "tools/idea/build.txt",
+        "tools/idea/java");
 
     // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
     System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());

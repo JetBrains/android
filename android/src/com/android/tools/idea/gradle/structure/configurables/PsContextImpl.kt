@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -66,6 +67,8 @@ class PsContextImpl constructor(
 
   override val mainConfigurable: ProjectStructureConfigurable
     get() = ProjectStructureConfigurable.getInstance(project.ideProject)
+
+  private val editedFields = mutableSetOf<PSDEvent.PSDField>()
 
   init {
     mainConfigurable.add(
@@ -188,6 +191,15 @@ class PsContextImpl constructor(
       project.applyChanges()
     }
   }
+
+  override fun logFieldEdited(fieldId: PSDEvent.PSDField) {
+    editedFields.add(fieldId)
+  }
+
+  override fun getEditedFieldsAndClear(): List<PSDEvent.PSDField> =
+    editedFields.toList().also {
+      editedFields.clear()
+    }
 }
 
 class PsPathRendererImpl : PsPathRenderer {

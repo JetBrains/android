@@ -109,13 +109,13 @@ class SyncExecutor {
 
   void syncProject(@NotNull ProgressIndicator indicator,
                    @NotNull SyncExecutionCallback callback) {
-    syncProject(indicator, callback, null /* full gradle sync*/, null, null, false);
+    syncProject(indicator, callback, null /* full gradle sync*/, null, null, null, false);
   }
 
   void syncProject(@NotNull ProgressIndicator indicator,
                    @NotNull SyncExecutionCallback callback,
                    @NotNull VariantOnlySyncOptions options) {
-    syncProject(indicator, callback, options, null, null, options.myShouldGenerateSources);
+    syncProject(indicator, callback, options, null, null, null, options.myShouldGenerateSources);
   }
 
   void syncProject(@NotNull ProgressIndicator indicator,
@@ -123,6 +123,7 @@ class SyncExecutor {
                    @Nullable VariantOnlySyncOptions options,
                    @Nullable GradleSyncListener listener,
                    @Nullable GradleSyncInvoker.Request request,
+                   @Nullable SyncResultHandler resultHandler,
                    boolean shouldGenerateSources) {
     if (myProject.isDisposed()) {
       callback.reject(String.format("Project '%1$s' is already disposed", myProject.getName()));
@@ -133,7 +134,7 @@ class SyncExecutor {
     GradleExecutionSettings executionSettings = findGradleExecutionSettings();
 
     Function<ProjectConnection, Void> syncFunction = connection -> {
-      syncProject(connection, executionSettings, indicator, callback, options, listener, request, shouldGenerateSources);
+      syncProject(connection, executionSettings, indicator, callback, options, listener, request, resultHandler, shouldGenerateSources);
       return null;
     };
 
@@ -166,6 +167,7 @@ class SyncExecutor {
                            @Nullable VariantOnlySyncOptions options,
                            @Nullable GradleSyncListener listener,
                            @Nullable GradleSyncInvoker.Request request,
+                           @Nullable SyncResultHandler resultHandler,
                            boolean shouldGenerateSources) {
     // Create a task id for this sync
     ExternalSystemTaskId id = createId(myProject);
@@ -194,6 +196,9 @@ class SyncExecutor {
         else {
           executeFullSyncAndGenerateSources(connection, executionSettings, indicator, id, buildOutputReader, callback,
                                             forceFullVariantsSync);
+        }
+        if (resultHandler != null) {
+          resultHandler.onCompoundSyncFinished(listener);
         }
       }
       else if (options != null) {

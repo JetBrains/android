@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.run.activity;
 
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.xml.AndroidManifest.NODE_INTENT;
+
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
@@ -25,9 +28,15 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.manifest.*;
+import org.jetbrains.android.dom.manifest.Activity;
+import org.jetbrains.android.dom.manifest.ActivityAlias;
+import org.jetbrains.android.dom.manifest.Application;
+import org.jetbrains.android.dom.manifest.IntentFilter;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -36,13 +45,9 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.xml.AndroidManifest.NODE_INTENT;
-
 public class DefaultActivityLocator extends ActivityLocator {
+  private static final Logger LOG = Logger.getInstance(DefaultActivityLocator.class);
+
   @NotNull
   private final AndroidFacet myFacet;
 
@@ -92,7 +97,7 @@ public class DefaultActivityLocator extends ActivityLocator {
     }
 
     if (!ApplicationManager.getApplication().isUnitTestMode() && DumbService.isDumb(project)) {
-      Logger.getInstance(DefaultActivityLocator.class).warn("Cannot locate default activity when indices are not available");
+      LOG.warn("Cannot locate default activity when indices are not available");
       return null;
     }
 
@@ -170,14 +175,13 @@ public class DefaultActivityLocator extends ActivityLocator {
       .filter(activity -> ActivityLocatorUtils.containsLauncherIntent(activity) && activity.isEnabled())
       .collect(Collectors.toList());
 
-    if (launchableActivities.isEmpty()) {
-      Logger logger = Logger.getInstance(DefaultActivityLocator.class);
-      logger.warn("No launchable activities found, total # of activities: " + allActivities.size());
+    if (launchableActivities.isEmpty() && LOG.isDebugEnabled()) {
+      LOG.debug("No launchable activities found, total # of activities: " + allActivities.size());
       allActivities
-        .forEach(wrapper -> logger.warn(String.format("activity: %1$s, isEnabled: %2$s, containsLauncherIntent: %3$s",
-                                                      wrapper.getQualifiedName(),
-                                                      wrapper.isEnabled(),
-                                                      ActivityLocatorUtils.containsLauncherIntent(wrapper))));
+        .forEach(wrapper -> LOG.debug(String.format("activity: %1$s, isEnabled: %2$s, containsLauncherIntent: %3$s",
+                                                    wrapper.getQualifiedName(),
+                                                    wrapper.isEnabled(),
+                                                    ActivityLocatorUtils.containsLauncherIntent(wrapper))));
     }
 
     return launchableActivities;

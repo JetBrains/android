@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.idea.transport.IntellijLogService;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
@@ -27,15 +28,11 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ProfilerService implements Disposable {
   /**

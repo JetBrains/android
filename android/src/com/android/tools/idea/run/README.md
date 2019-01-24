@@ -177,10 +177,14 @@ on whether we're testing and whether we're debugging (this is specific to the Ja
  * not testing, debugging: as described in the section above, the original `ProcessHandler` is detached and an instance of
    [AndroidRemoteDebugProcessHandler](AndroidRemoteDebugProcessHandler.java) is used instead. This handler does no adb monitoring, instead
    relying on the IJ machinery to get notified when the JDWP connection is closed. When this happens, handler notifies its listeners
-   (including the UI) that the process has detached. When user clicks the stop button in UI, IJ java debugger kills the target VM (see
-   com.sun.jdi.VirtualMachine#exit). `AndroidRemoteDebugProcessHandler#destroyProcess` is also eventually called, but at this stage the
-   device process is usually dead anyway. This eventually calls the listener in ClientDebuggerLauncher.Java#launchDebugger, which runs
-   `am force-stop`.
+   (including the UI) that the process has detached. When user clicks the stop
+   (![Stop Button](../../../../../../../artwork/resources/studio/icons/shell/toolbar/stop.svg)) button in UI, IJ java debugger kills the
+   target VM (see `com.sun.jdi.VirtualMachine#exit`) and multiple listeners are triggered to execute `ProcessListener#processWillTerminate`.
+   The first listener to be called is in IntelliJ's `DebuggerManagerImpl`, which is created when we attach the VM. When this listener is
+   notified the process should terminate, it will destroy the app's process in a pooled thread. `DebuggerManagerImpl#attachVirtualMachine`
+   is called from [ConnectJavaDebuggerTask#launchDebugger](tasks/ConnectJavaDebuggerTask.java), which later creates another listener that
+   will run the `am force-stop` shell command using a `ProgressIndicator`, not blocking the UI thread. This listener makes sure that all
+   processes related to the app are killed.
  * testing, debugging: combination of the above. `AndroidRemoteDebugProcessHandler#destroyProcess` gets called by `AndroidTestListener`
    after the tests have finished running. Stop button is handled through the debugger protocol.
 

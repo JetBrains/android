@@ -22,5 +22,5 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 
 object DeclaredLibraryDependencyUiProperties {
   fun makeVersionUiProperty(dependency: PsDeclaredLibraryDependency): PropertyUiModel<Unit, *> =
-    PropertyUiModelImpl(dependency.versionProperty, ::simplePropertyEditor)
+    PropertyUiModelImpl(dependency.versionProperty, ::simplePropertyEditor, psdUsageLogFieldId = null)
 }

@@ -16,10 +16,102 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import com.intellij.testFramework.IdeaTestCase
+import org.junit.Assert
+import org.junit.Test
+import org.mockito.Mockito
 import java.awt.Color
 import java.awt.Dimension
+import java.awt.event.MouseEvent
 
 class ColorAdjustPanelTest : IdeaTestCase() {
+
+  @Test
+  fun testPickColorFromHueSlider() {
+    val model = ColorPickerModel()
+    val panel = ColorAdjustPanel(model, FakeColorPipetteProvider())
+    val slider = panel.hueSlider
+    slider.setSize(300, 300)
+    val initialColor = Color(0xFF, 0x00, 0x00, 0xFF)
+    model.setColor(initialColor)
+    val pressColor = Color(140, 255, 0, 0xFF)
+    val dragColor = Color(0, 255, 255, 0xFF)
+    val releaseColor = Color(140, 0, 255, 0xFF)
+
+    val listener = Mockito.mock(ColorPickerListener::class.java)
+    model.addListener(listener)
+
+    testColorSlider(panel, slider, initialColor, pressColor, dragColor, releaseColor, model, listener)
+  }
+
+  @Test
+  fun testPickColorFromAlphaSlider() {
+    val model = ColorPickerModel()
+    val panel = ColorAdjustPanel(model, FakeColorPipetteProvider())
+    val slider = panel.alphaSlider
+    slider.setSize(300, 300)
+    val initialColor = Color(0x00, 0x00, 0xFF, 0xFF)
+    model.setColor(initialColor)
+    val pressColor = Color(0x00, 0x00, 0xFF, 62)
+    val dragColor = Color(0x00, 0x00, 0xFF, 128)
+    val releaseColor = Color(0x00, 0x00, 0xFF, 193)
+
+    val listener = Mockito.mock(ColorPickerListener::class.java)
+    model.addListener(listener)
+
+    testColorSlider(panel, slider, initialColor, pressColor, dragColor, releaseColor, model, listener)
+  }
+
+  private fun testColorSlider(panel: ColorAdjustPanel,
+                              slider: SliderComponent<out Number>,
+                              initialColor: Color,
+                              pressColor: Color,
+                              dragColor: Color,
+                              releaseColor: Color,
+                              model: ColorPickerModel,
+                              listener: ColorPickerListener) {
+    val centerY = slider.y + slider.height / 2
+
+    slider.dispatchEvent(MouseEvent(slider,
+                                    MouseEvent.MOUSE_PRESSED,
+                                    System.currentTimeMillis(),
+                                    0,
+                                    slider.x + slider.width / 4,
+                                    centerY,
+                                    1,
+                                    false))
+
+    // pressing won't change the color in color model, but just trigger pickingColorChanged callback.
+    Assert.assertEquals(initialColor, model.color)
+    Mockito.verify(listener, Mockito.times(0)).colorChanged(pressColor, panel)
+    Mockito.verify(listener, Mockito.times(1)).pickingColorChanged(pressColor, panel)
+
+    slider.dispatchEvent(MouseEvent(slider,
+                                    MouseEvent.MOUSE_DRAGGED,
+                                    System.currentTimeMillis(),
+                                    0,
+                                    slider.x + slider.width / 2,
+                                    centerY,
+                                    1,
+                                    false))
+    // dragging won't change the color but trigger pickingColorChanged callback neither.
+    Assert.assertEquals(initialColor, model.color)
+    Mockito.verify(listener, Mockito.times(0)).colorChanged(dragColor, panel)
+    Mockito.verify(listener, Mockito.times(1)).pickingColorChanged(dragColor, panel)
+
+
+    slider.dispatchEvent(MouseEvent(slider,
+                                    MouseEvent.MOUSE_RELEASED,
+                                    System.currentTimeMillis(),
+                                    0,
+                                    slider.x + slider.width * 3 / 4,
+                                    centerY,
+                                    1,
+                                    false))
+    // releasing change the color of model but doesn't trigger pickingColorChanged callback.
+    Assert.assertEquals(releaseColor, model.color)
+    Mockito.verify(listener, Mockito.times(1)).colorChanged(releaseColor, panel)
+    Mockito.verify(listener, Mockito.times(0)).pickingColorChanged(releaseColor, panel)
+  }
 
   fun testChangeModelColorWillUpdateAllComponent() {
     val model = ColorPickerModel()

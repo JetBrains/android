@@ -136,12 +136,26 @@ class AddActionDialogTest : NavTestCase() {
     }
 
     AddActionDialog(AddActionDialog.Defaults.NORMAL, model.find("a1"), model.find("f1")!!, DESIGN_SURFACE).runAndClose { dialog ->
-      assertEquals("f2", dialog.popTo)
       assertEquals("@anim/fade_in", dialog.enterTransition)
       assertEquals("@anim/fade_out", dialog.popEnterTransition)
       assertEquals(model.find("f1"), dialog.source)
       assertEquals("f2", dialog.popTo)
       assertEquals("a1", dialog.id)
+    }
+  }
+
+  fun testExistingPopToInclude() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1", popUpTo = "nav")
+        }
+        include("navigation")
+      }
+    }
+
+    AddActionDialog(AddActionDialog.Defaults.NORMAL, model.find("a1"), model.find("f1")!!, DESIGN_SURFACE).runAndClose { dialog ->
+      assertEquals("nav", dialog.popTo)
     }
   }
 

@@ -1017,11 +1017,11 @@ class NavSceneTest : NavTestCase() {
     val transform = SceneContext.get(view)!!
     val fragment1 = scene.getSceneComponent("fragment1")!!
     fragment1.setPosition(100, 100)
-    fragment1.setSize(100, 100, false)
+    fragment1.setSize(100, 100)
     fragment1.layout(transform, 0)
     val fragment2 = scene.getSceneComponent("fragment2")!!
     fragment2.setPosition(1000, 1000)
-    fragment2.setSize(100, 100, false)
+    fragment2.setSize(100, 100)
     fragment2.layout(transform, 0)
 
     assertEquals(SceneComponent.DrawState.NORMAL, fragment1.drawState)

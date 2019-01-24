@@ -298,7 +298,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
               annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
             }
 
-            if (issue == DeprecationDetector.ISSUE || issue == GradleDetector.DEPRECATED) {
+            if (issue == DeprecationDetector.ISSUE || issue == GradleDetector.DEPRECATED || issue == GradleDetector.DEPRECATED_CONFIGURATION) {
               annotation.setHighlightType(ProblemHighlightType.LIKE_DEPRECATED);
             }
 

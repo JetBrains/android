@@ -60,7 +60,7 @@ public class CpuThreadsModelTest {
   @Before
   public void setUp() {
     if (myIsUnifiedPipeline) {
-      myProfilerService.populateThreads(ProfilersTestData.SESSION_DATA.getDeviceId());
+      myProfilerService.populateThreads(ProfilersTestData.SESSION_DATA.getStreamId());
     }
     FakeTimer timer = new FakeTimer();
     myServices.enableEventsPipeline(myIsUnifiedPipeline);
@@ -110,7 +110,7 @@ public class CpuThreadsModelTest {
   public void testThreadsSorted() {
     //Add a few more threads.
     if (myIsUnifiedPipeline) {
-      long streamId = ProfilersTestData.SESSION_DATA.getDeviceId();
+      long streamId = ProfilersTestData.SESSION_DATA.getStreamId();
       int pid = ProfilersTestData.SESSION_DATA.getPid();
       myProfilerService.addEventToEventGroup(
         streamId, 104, ProfilersTestData.generateCpuThreadEvent(1, 104, "Thread 100", Cpu.CpuThreadData.State.RUNNING).build());

@@ -21,25 +21,33 @@ import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.NEW_ID_PREFIX
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.MockNlComponent
-import com.android.tools.idea.uibuilder.property2.*
+import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem
+import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.google.common.collect.ImmutableList
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.text.nullize
+import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.mockito.Mockito
 import java.util.stream.Collectors
 
-open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture, val components: List<NlComponent>) {
+open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixture, val components: List<NlComponent>) {
   val model = NelePropertiesModel(fixture.testRootDisposable, facet)
   val nlModel = components[0].model
+  private val frameworkResourceManager = ModuleResourceManagers.getInstance(facet).frameworkResourceManager
 
   constructor(facet: AndroidFacet, fixture: CodeInsightTestFixture,
               vararg tags: String, parentTag: String = "", fileName: String = "", activityName: String = ""):
@@ -49,7 +57,14 @@ open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture,
     this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, *tags, parentTag = parentTag, fileName = fileName)
 
   fun makeProperty(namespace: String, name: String, type: NelePropertyType): NelePropertyItem {
-    return NelePropertyItem(namespace, name, type, null, "", "", model, null, components)
+    val definition = findDefinition(namespace, name)
+    when {
+      definition == null ->
+        return NelePropertyItem(namespace, name, type, null, "", "", model, null, components)
+      definition.formats.contains(AttributeFormat.FLAGS) ->
+        return NeleFlagsPropertyItem(namespace, name, NelePropertyType.ENUM, definition, "", "", model, null, components)
+      else -> return makeProperty(namespace, definition)
+    }
   }
 
   fun makeProperty(namespace: String, definition: AttributeDefinition): NelePropertyItem {
@@ -69,14 +84,60 @@ open class SupportTestUtil(facet: AndroidFacet, fixture: CodeInsightTestFixture,
   }
 
   fun makeIdProperty(): NeleIdPropertyItem {
-    return NeleIdPropertyItem(model, null, "", null, components)
+    val definition = findDefinition(ANDROID_URI, ATTR_ID)
+    return NeleIdPropertyItem(model, definition, "", null, components)
+  }
+
+  fun setUpCustomView() {
+    setUpCustomView(fixture)
   }
 
   fun findSiblingById(id: String): NlComponent? {
     return findChildById(components[0].parent!!, id)
   }
 
+  private fun findDefinition(namespace: String, name: String): AttributeDefinition? {
+    if (namespace != ANDROID_URI) {
+      return null
+    }
+    val ref = ResourceReference.attr(ResourceNamespace.ANDROID, name)
+    return frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ref)
+  }
+
   companion object {
+
+    fun setUpCustomView(fixture: CodeInsightTestFixture) {
+      @Language("XML")
+      val attrsSrc = """<?xml version="1.0" encoding="utf-8"?>
+      <resources>
+        <declare-styleable name="PieChart">
+          <!-- Help Text -->
+          <attr name="legend" format="boolean" />
+          <attr name="labelPosition" format="enum">
+            <enum name="left" value="0"/>
+            <enum name="right" value="1"/>
+          </attr>
+        </declare-styleable>
+      </resources>
+      """.trimIndent()
+
+      @Language("JAVA")
+      val javaSrc = """
+      package com.example;
+
+      import android.content.Context;
+      import android.view.View;
+
+      public class PieChart extends View {
+          public PieChart(Context context) {
+              super(context);
+          }
+      }
+      """.trimIndent()
+
+      fixture.addFileToProject("res/values/attrs.xml", attrsSrc)
+      fixture.addFileToProject("src/com/example/PieChart.java", javaSrc)
+    }
 
     fun fromId(projectRule: AndroidProjectRule, text: String, id: String): SupportTestUtil {
       val facet = AndroidFacet.getInstance(projectRule.module)!!

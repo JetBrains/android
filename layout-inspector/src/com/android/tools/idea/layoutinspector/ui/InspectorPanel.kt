@@ -28,11 +28,12 @@ import javax.swing.JPanel
  * Main (center) panel of the layout inspector
  */
 class InspectorPanel(val project: Project) : JPanel(BorderLayout()) {
+  private val deviceViewPanel: DeviceViewPanel
 
   init {
     val workbench = WorkBench<LayoutInspector>(project, "Layout Inspector", null)
     val layoutInspector = LayoutInspector(chromeSampleData)
-    val deviceViewPanel = DeviceViewPanel(layoutInspector)
+    deviceViewPanel = DeviceViewPanel(layoutInspector)
     workbench.init(deviceViewPanel, layoutInspector, listOf(
       LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()))
     add(workbench, BorderLayout.CENTER)

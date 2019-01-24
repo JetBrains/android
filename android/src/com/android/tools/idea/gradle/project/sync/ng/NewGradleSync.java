@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
-import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
@@ -183,11 +182,7 @@ public class NewGradleSync implements GradleSync {
       callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener));
     }
 
-    mySyncExecutor.syncProject(indicator, callback, request.variantOnlySyncOptions, syncListener, request, isCompoundSync);
-
-    if (isCompoundSync) {
-      myResultHandler.onCompoundSyncFinished(syncListener);
-    }
+    mySyncExecutor.syncProject(indicator, callback, request.variantOnlySyncOptions, syncListener, request, myResultHandler, isCompoundSync);
   }
 
   /**

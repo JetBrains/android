@@ -26,7 +26,7 @@ private const val ERROR_NOT_FOCUSABLE = "Component is not focusable"
  * A custom editor may use this as a base class for its model.
  */
 open class GenericInspectorLineModel : InspectorLineModel {
-  private var listeners = mutableListOf<ValueChangedListener>()
+  protected var listeners = mutableListOf<ValueChangedListener>()
 
   override var parent: InspectorLineModel? = null
 

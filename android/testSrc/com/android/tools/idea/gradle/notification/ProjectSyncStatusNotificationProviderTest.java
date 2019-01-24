@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.IndexingSensitiveNotificationPanel;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -43,12 +44,13 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleSyncSummary mySyncSummary;
-  @Mock private GradleExperimentalSettings myGradleExperimentalSettings;
 
   private ProjectSyncStatusNotificationProvider myNotificationProvider;
   private VirtualFile myFile;
   @SuppressWarnings("FieldCanBeLocal")
   private IdeComponents myIdeComponents;
+  @SuppressWarnings("FieldCanBeLocal")
+  private PropertiesComponent myPropertiesComponent;
 
   @Override
   protected void setUp() throws Exception {
@@ -63,9 +65,9 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
     myNotificationProvider = new ProjectSyncStatusNotificationProvider(getProject(), myProjectInfo, mySyncState);
     myFile = VfsUtil.findFileByIoFile(createTempFile("build.gradle", "whatever"), true);
 
+    myPropertiesComponent = new PropertiesComponentMock();
     myIdeComponents = new IdeComponents(myProject);
-    myGradleExperimentalSettings = new GradleExperimentalSettings();
-    myIdeComponents.replaceApplicationService(GradleExperimentalSettings.class, myGradleExperimentalSettings);
+    myIdeComponents.replaceApplicationService(PropertiesComponent.class, myPropertiesComponent);
   }
 
   public void testNotificationPanelTypeWithProjectNotBuiltWithGradle() {
@@ -78,7 +80,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
   public void testNotificationPanelTypeWithSyncNotificationsDisabled() {
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(false);
-    GradleExperimentalSettings.getInstance().PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP = 0;
+    PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
@@ -109,7 +111,7 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
   public void testNotificationPanelTypeWithSyncErrors() {
     when(mySyncSummary.hasSyncErrors()).thenReturn(true);
-    GradleExperimentalSettings.getInstance().PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP = 0;
+    PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
@@ -124,7 +126,8 @@ public class ProjectSyncStatusNotificationProviderTest extends IdeaTestCase {
 
     // The reshow timeout should always be too large comparing to the potential time difference between statements below,
     // e.g. dozens of days.
-    GradleExperimentalSettings.getInstance().PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP = System.currentTimeMillis();
+    PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP",
+                                               Long.toString(System.currentTimeMillis()));
     type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
     assertNull(type.create(myProject, myFile, myProjectInfo));

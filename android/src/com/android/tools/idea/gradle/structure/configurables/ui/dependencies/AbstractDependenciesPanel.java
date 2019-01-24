@@ -38,7 +38,9 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.structure.dialog.Header;
+import com.android.tools.idea.structure.dialog.TrackedConfigurableKt;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -305,6 +307,9 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     protected void showAddDependencyDialog(@NotNull PsModule module) {
       AddLibraryDependencyDialog dialog = new AddLibraryDependencyDialog(myContext, module);
       if (dialog.showAndGet()) {
+        TrackedConfigurableKt.logUsagePsdAction(
+          module.getParent().getIdeProject(),
+          AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_DEPENDENCIES_ADD_LIBRARY);
         dialog.addNewDependencies();
       }
     }
@@ -319,6 +324,9 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     protected void showAddDependencyDialog(@NotNull PsModule module) {
       AddJarDependencyDialog dialog = new AddJarDependencyDialog(module);
       if (dialog.showAndGet()) {
+        TrackedConfigurableKt.logUsagePsdAction(
+          module.getParent().getIdeProject(),
+          AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_DEPENDENCIES_ADD_JAR);
         dialog.addNewDependencies();
       }
     }
@@ -333,6 +341,9 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     protected void showAddDependencyDialog(@NotNull PsModule module) {
       AddModuleDependencyDialog dialog = new AddModuleDependencyDialog(module);
       if (dialog.showAndGet()) {
+        TrackedConfigurableKt.logUsagePsdAction(
+          module.getParent().getIdeProject(),
+          AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_DEPENDENCIES_ADD_MODULE);
         dialog.addNewDependencies();
       }
     }

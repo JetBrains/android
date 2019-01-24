@@ -377,6 +377,11 @@ public final class StudioFlags {
     "If enabled, the new resource management tools are enabled. Subflags will also need to be enabled to enable all available new tools",
     true);
 
+  private static final FlagGroup RESOURCE_REPOSITORIES = new FlagGroup(FLAGS, "res.repo", "Resource Repositories");
+  public static final Flag<Boolean> ALLOW_FRAMEWORK_RES_JAR = Flag.create(
+    RESOURCE_REPOSITORIES, "framework.res.jar", "Load framework resources from framework_res.jar",
+    "If enabled, load embedded Android framework resources from framework_res.jar.", true);
+
   private static final FlagGroup LAYOUT_INSPECTOR = new FlagGroup(FLAGS, "layout.inspector", "Layout Inspector");
   public static final Flag<Boolean> LAYOUT_INSPECTOR_LOAD_OVERLAY_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "load.overlay", "Enable the Load Overlay feature",

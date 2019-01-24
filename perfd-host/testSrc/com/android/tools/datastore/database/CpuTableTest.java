@@ -27,6 +27,7 @@ import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,9 +40,9 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
   private static final int SESSION_ONE_TID_100 = 100;
   private static final int SESSION_ONE_TID_101 = 101;
   private static final Common.Session SESSION_HUNDREDS =
-    Common.Session.newBuilder().setSessionId(1L).setDeviceId(100).setEndTimestamp(Long.MAX_VALUE /* alive */).setPid(PROCESS_ID).build();
+    Common.Session.newBuilder().setSessionId(1L).setStreamId(100).setEndTimestamp(Long.MAX_VALUE /* alive */).setPid(PROCESS_ID).build();
   private static final Common.Session SESSION_THOUSANDS =
-    Common.Session.newBuilder().setSessionId(2L).setDeviceId(1000).setEndTimestamp(10 /* ended */).setPid(PROCESS_ID).build();
+    Common.Session.newBuilder().setSessionId(2L).setStreamId(1000).setEndTimestamp(10 /* ended */).setPid(PROCESS_ID).build();
 
   @Before
   @Override
@@ -51,6 +52,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
   }
 
   @Override
+  @NotNull
   protected List<Consumer<CpuTable>> getTableQueryMethodsForVerification() {
     List<Consumer<CpuTable>> methodCalls = new ArrayList<>();
     methodCalls.add((table) -> assertThat(table.getCpuDataByRequest(CpuProfiler.CpuDataRequest.getDefaultInstance())).isEmpty());
@@ -79,6 +81,7 @@ public class CpuTableTest extends DatabaseTest<CpuTable> {
   }
 
   @Override
+  @NotNull
   protected CpuTable createTable() {
     return new CpuTable();
   }

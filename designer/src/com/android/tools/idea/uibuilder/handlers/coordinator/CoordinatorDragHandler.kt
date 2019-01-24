@@ -42,7 +42,7 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
     assert(components.size == 1)
     val dragged = components[0]
     sceneComponent = layout.scene.getSceneComponent(dragged) ?:
-        TemporarySceneComponent(layout.scene, dragged).apply { setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h), false) }
+        TemporarySceneComponent(layout.scene, dragged).apply { setSize(editor.pxToDp(dragged.w), editor.pxToDp(dragged.h)) }
 
     sceneComponent.setTargetProvider { listOf(dragTarget) }
     sceneComponent.updateTargets()

@@ -186,6 +186,11 @@ class AddArgumentDialogTest : NavTestCase() {
     val fragment1 = model.find("fragment1")!!
 
     AddArgumentDialog(null, fragment1).runAndClose { dialog ->
+      dialog.type = "foo"
+      assertEquals(null, dialog.type)
+    }
+
+    AddArgumentDialog(null, fragment1).runAndClose { dialog ->
       dialog.type = "integer"
       dialog.type = "foo"
       assertEquals("integer", dialog.type)

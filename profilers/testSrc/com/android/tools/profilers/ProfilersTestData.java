@@ -37,7 +37,7 @@ public final class ProfilersTestData {
 
   public static final Common.Session SESSION_DATA = Common.Session.newBuilder()
     .setSessionId(4321)
-    .setDeviceId(1234)
+    .setStreamId(1234)
     .setPid(5678)
     .build();
 
@@ -126,7 +126,7 @@ public final class ProfilersTestData {
   @NotNull
   public static Common.Event.Builder generateCpuThreadEvent(long timestampSeconds, int tid, String name, Cpu.CpuThreadData.State state) {
     return Common.Event.newBuilder()
-      .setSessionId(SESSION_DATA.getSessionId())
+      .setPid(SESSION_DATA.getPid())
       .setTimestamp(TimeUnit.SECONDS.toNanos(timestampSeconds))
       .setKind(Common.Event.Kind.CPU_THREAD)
       .setGroupId(tid)

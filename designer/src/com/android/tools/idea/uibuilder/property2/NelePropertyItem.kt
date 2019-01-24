@@ -21,9 +21,7 @@ import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.NULL_RESOURCE
-import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TOOLS_URI
-import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
@@ -169,7 +167,7 @@ open class NelePropertyItem(
     }
 
   override val helpSupport = object : HelpSupport {
-    // TODO: b/121259587 Implement help
+    override val help = HelpActions.help
     override val secondaryHelp = HelpActions.secondaryHelp
     override fun browse() { browseToValue() }
   }
@@ -275,7 +273,7 @@ open class NelePropertyItem(
     get() = model.facet.module.project
 
   protected val firstTag: XmlTag?
-    get() = firstComponent?.tag
+    get() = firstComponent?.backend?.getTag()
 
   private val nlModel: NlModel?
     get() = firstComponent?.model
@@ -293,15 +291,7 @@ open class NelePropertyItem(
   }
 
   private fun computeTooltipForName(): String {
-    val sb = StringBuilder(100)
-    sb.append(findNamespacePrefix())
-    sb.append(name)
-    val value = definition?.getDescription(null) ?: ""
-    if (value.isNotEmpty()) {
-      sb.append(":\n")
-      sb.append(filterRawAttributeComment(value))
-    }
-    return sb.toString()
+    return HelpActions.createHelpText(this, allowEmptyDescription = true)
   }
 
   private fun computeTooltipForValue(): String {
@@ -314,15 +304,6 @@ open class NelePropertyItem(
     val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)
     val resolvedText = if (resolvedValue != currentValue) " = \"$resolvedValue\" ($keyStroke)" else ""
     return "$defaultText\"${currentValue?:defaultValue}\"$resolvedText"
-  }
-
-  private fun findNamespacePrefix(): String {
-    val resolver = namespaceResolver
-    // TODO: This should not be required, but it is for as long as getNamespaceResolver returns TOOLS_ONLY:
-    if (resolver == ResourceNamespace.Resolver.TOOLS_ONLY && namespace == ANDROID_URI) return PREFIX_ANDROID
-    val prefix = namespaceResolver.uriToPrefix(namespace) ?: return ""
-    @Suppress("ConvertToStringTemplate")
-    return prefix + ":"
   }
 
   protected open fun getCompletionValues(): List<String> {
@@ -371,6 +352,9 @@ open class NelePropertyItem(
       for (type in types) {
         frameworkRepository?.getPublicResources(ResourceNamespace.ANDROID, type)?.mapTo(values, toName)
       }
+    }
+    if (type == NelePropertyType.FONT) {
+      values.addAll(AndroidDomUtil.AVAILABLE_FAMILIES)
     }
     return values
   }
@@ -524,14 +508,4 @@ open class NelePropertyItem(
     }
 
   // endregion
-
-  companion object {
-    private val lineEndingRegex = Regex("\n *")
-
-    // TODO: b/121033944 Give access to links and format code sections as well.
-    @VisibleForTesting
-    fun filterRawAttributeComment(comment: String): String {
-      return comment.replace(lineEndingRegex, " ")
-    }
-  }
 }

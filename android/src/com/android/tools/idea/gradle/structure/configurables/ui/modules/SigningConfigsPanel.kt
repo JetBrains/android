@@ -24,6 +24,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.renameWithDialog
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
+import com.android.tools.idea.structure.dialog.logUsagePsdAction
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -58,6 +61,7 @@ class SigningConfigsPanel(
             "Remove Signing Config",
             Messages.getQuestionIcon()
           ) == YES) {
+          module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_SIGNINGCONFIGS_REMOVE)
           val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
           module.removeSigningConfig(selectedNode.getModel() ?: return)
           selectNode(nodeToSelectAfter)
@@ -81,6 +85,7 @@ class SigningConfigsPanel(
           nameValidator
         )
         { newName, alsoRenameReferences ->
+          module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_SIGNINGCONFIGS_RENAME)
           if (alsoRenameReferences) TODO("Renaming references")
           (selectedNode.getModel<PsSigningConfig>() ?: return@renameWithDialog).rename(newName)
         }
@@ -101,6 +106,7 @@ class SigningConfigsPanel(
                   "",
                   nameValidator)
             if (newName != null) {
+              module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_SIGNINGCONFIGS_ADD)
               val signingConfig = module.addNewSigningConfig(newName)
               val node = treeModel.rootNode.findChildFor(signingConfig)
               selectNode(node)
@@ -115,4 +121,6 @@ class SigningConfigsPanel(
   override fun PsUISettings.setLastEditedItem(value: String?) {
     LAST_EDITED_SIGNING_CONFIG = value
   }
+
+  override val topConfigurable: PSDEvent.PSDTopTab = PSDEvent.PSDTopTab.PROJECT_STRUCTURE_DIALOG_TOP_TAB_SIGNING_CONFIGS
 }

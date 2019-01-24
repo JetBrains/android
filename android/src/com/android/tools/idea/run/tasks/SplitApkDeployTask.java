@@ -89,6 +89,15 @@ public class SplitApkDeployTask implements LaunchTask {
       installOptions.add("-g");
     }
 
+    // API 28 changes how the instant property is set on app install.
+    // We can add --full to pmInstallOptions to restore the previous behavior,
+    // where an app's instant flag is reset on install, and avoid errors installing
+    // a non-instant app over its instant version with the device still treating
+    // the app as instant.
+    if (device.getVersion().isGreaterOrEqualThan(28)) {
+      installOptions.add("--full");
+    }
+
     if (myContext.isPatchBuild()) {
       installOptions.add("-p"); // partial install
       installOptions.add(myContext.getApplicationId());

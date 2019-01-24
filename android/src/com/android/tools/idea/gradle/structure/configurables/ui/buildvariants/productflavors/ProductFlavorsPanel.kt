@@ -25,6 +25,9 @@ import com.android.tools.idea.gradle.structure.configurables.ui.renameWithDialog
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
+import com.android.tools.idea.structure.dialog.logUsagePsdAction
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -67,6 +70,7 @@ class ProductFlavorsPanel(
                 "Remove Flavor Dimension",
                 Messages.getQuestionIcon()
               ) == Messages.YES) {
+              module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_FLAVORS_DIMENSION_REMOVE)
               val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
               module.removeFlavorDimension(selectedNode.getModel() ?: return)
               selectNode(nodeToSelectAfter)
@@ -79,6 +83,7 @@ class ProductFlavorsPanel(
                 "Remove Product Flavor",
                 Messages.getQuestionIcon()
               ) == Messages.YES) {
+              module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_FLAVORS_PRODUCTFLAVOR_REMOVE)
               val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling ?: selectedNode.parent
               module.removeProductFlavor(selectedNode.getModel() ?: return)
               selectNode(nodeToSelectAfter)
@@ -102,6 +107,7 @@ class ProductFlavorsPanel(
                   "",
                   flavorDimensionNameValidator)
             if (newName != null) {
+              module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_FLAVORS_DIMENSION_ADD)
               val flavorDimension = module.addNewFlavorDimension(newName)
               val node = treeModel.rootNode.findChildFor(flavorDimension)
               tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
@@ -131,6 +137,7 @@ class ProductFlavorsPanel(
                 NameValidator { module.validateProductFlavorName(it.orEmpty()) }
               )
             if (newName != null) {
+              module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_FLAVORS_PRODUCTFLAVOR_ADD)
               val productFlavor = module.addNewProductFlavor(currentDimension.orEmpty(), newName)
               val dimension = module.findFlavorDimension(currentDimension.orEmpty())
               val node =
@@ -161,6 +168,7 @@ class ProductFlavorsPanel(
             selectedConfigurable?.displayName,
             flavorDimensionNameValidator
           ) { newName, renameReferences ->
+            module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_FLAVORS_DIMENSION_RENAME)
             TODO("Renaming dimensions")
           }
           is ProductFlavorConfigurable -> renameWithDialog(
@@ -170,6 +178,7 @@ class ProductFlavorsPanel(
             selectedConfigurable?.displayName,
             productFlavorNameValidator
           ) { newName, alsoRenameReferences ->
+            module.parent.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_FLAVORS_PRODUCTFLAVOR_RENAME)
             if (alsoRenameReferences) TODO("Renaming references")
             (selectedNode.getModel<PsProductFlavor>() ?: return@renameWithDialog).rename(newName)
           }
@@ -183,6 +192,8 @@ class ProductFlavorsPanel(
   override fun PsUISettings.setLastEditedItem(value: String?) {
     LAST_EDITED_FLAVOR_OR_DIMENSION = value
   }
+
+  override val topConfigurable: PSDEvent.PSDTopTab = PSDEvent.PSDTopTab.PROJECT_STRUCTURE_DIALOG_TOP_TAB_FLAVORS
 }
 
 private fun removeTextFor(configurable: NamedConfigurable<*>?) = when (configurable) {

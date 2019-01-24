@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testing;
 
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,17 +31,20 @@ public class BuildEnvironment {
   @NotNull private final String myBuildToolsVersion;
   private final int myCompileSdkVersion;
   private final int myTargetSdkVersion;
+  private final int myMinSdkVersion;
 
   private BuildEnvironment(@NotNull String gradlePluginVersion,
-                   @NotNull String experimentalPluginVersion,
-                   @NotNull String buildToolsVersion,
-                   int compileSdkVersion,
-                   int targetSdkVersion) {
+                           @NotNull String experimentalPluginVersion,
+                           @NotNull String buildToolsVersion,
+                           int compileSdkVersion,
+                           int targetSdkVersion,
+                           int minSdkVersion) {
     myGradlePluginVersion = gradlePluginVersion;
     myExperimentalPluginVersion = experimentalPluginVersion;
     myBuildToolsVersion = buildToolsVersion;
     myCompileSdkVersion = compileSdkVersion;
     myTargetSdkVersion = targetSdkVersion;
+    myMinSdkVersion = minSdkVersion;
   }
 
   @NotNull
@@ -51,7 +55,8 @@ public class BuildEnvironment {
         AndroidPluginGeneration.COMPONENT.getLatestKnownVersion(),
         CURRENT_BUILD_TOOLS_VERSION,
         CURRENT_COMPILE_VERSION,
-        CURRENT_COMPILE_VERSION
+        CURRENT_COMPILE_VERSION,
+        SdkVersionInfo.LOWEST_ACTIVE_API
       );
     }
     return ourInstance;
@@ -78,5 +83,9 @@ public class BuildEnvironment {
 
   public String getTargetSdkVersion() {
     return String.valueOf(myTargetSdkVersion);
+  }
+
+  public String getMinSdkVersion() {
+    return String.valueOf(myMinSdkVersion);
   }
 }

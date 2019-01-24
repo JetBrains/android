@@ -24,7 +24,6 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.util.FormScalingUtil;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.npw.model.NewProjectModel;
@@ -34,23 +33,32 @@ import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.ui.ActivityGallery;
 import com.android.tools.idea.npw.ui.WizardGallery;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.progress.util.BackgroundTaskUtil;
+import com.intellij.ui.GuiUtils;
 import com.intellij.ui.components.JBList;
-import java.awt.Image;
+import com.intellij.ui.components.JBLoadingPanel;
+
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -66,16 +74,19 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
   // To have the sequence specified by design, we hardcode the sequence.
-  private final String[] ORDERED_ACTIVITY_NAMES = {
+  private static final String[] ORDERED_ACTIVITY_NAMES = {
     "Basic Activity", "Empty Activity", "Bottom Navigation Activity", "Fullscreen Activity", "Master/Detail Flow",
     "Navigation Drawer Activity", "Google Maps Activity", "Login Activity", "Scrolling Activity", "Tabbed Activity"
   };
 
-  private final List<FormFactorInfo> myFormFactors = new ArrayList<>();
+  private final Supplier<List<FormFactorInfo>> myFormFactors =
+          Suppliers.memoize(() -> createFormFactors(getTitle()));
 
   private JPanel myRootPanel;
   private CommonTabbedPane myTabsPanel;
+  private JBLoadingPanel myLoadingPanel;
   private NewProjectModuleModel myNewProjectModuleModel;
+  private final BoolValueProperty canGoForward = new BoolValueProperty();
 
   public ChooseAndroidProjectStep(@NotNull NewProjectModel model) {
     super(model, message("android.wizard.project.new.choose"));
@@ -92,11 +103,41 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
                         new ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), newArrayList()));
   }
 
+  private void createUIComponents() {
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), this) {
+      @Override
+      public void setBounds(int x, int y, int width, int height) {
+        super.setBounds(x, y, width, height);
+
+        // Work-around for IDEA-205343 issue.
+        for (Component component : getComponents()) {
+          component.setBounds(x, y, width, height);
+        }
+      }
+    };
+  }
+
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    populateFormFactors();
+    myLoadingPanel.startLoading();
+    BackgroundTaskUtil.executeOnPooledThread(this, () -> {
+      // Constructing FormFactors performs disk access and XML parsing, so let's do it in background
+      // thread.
+      final List<FormFactorInfo> formFactors = myFormFactors.get();
 
-    for (FormFactorInfo formFactorInfo : myFormFactors) {
+      // Update UI with the loaded formFactors. Switch back to UI thread.
+      GuiUtils.invokeLaterIfNeeded(() -> updateUi(wizard, formFactors), ModalityState.any());
+    });
+  }
+
+  /**
+   * Updates UI with a given form factors. This method must be executed on event dispatch thread.
+   */
+  private void updateUi(@NotNull ModelWizard.Facade wizard,
+                        @NotNull List<FormFactorInfo> formFactors) {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
+    for (FormFactorInfo formFactorInfo : formFactors) {
       ChooseAndroidProjectPanel<TemplateRenderer> tabPanel = formFactorInfo.tabPanel;
       myTabsPanel.addTab(formFactorInfo.formFactor.toString(), tabPanel.myRootPanel);
 
@@ -121,11 +162,13 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     }
 
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+    myLoadingPanel.stopLoading();
+    canGoForward.set(Boolean.TRUE);
   }
 
   @Override
   protected void onProceeding() {
-    FormFactorInfo formFactorInfo = myFormFactors.get(myTabsPanel.getSelectedIndex());
+    FormFactorInfo formFactorInfo = myFormFactors.get().get(myTabsPanel.getSelectedIndex());
     TemplateRenderer selectedTemplate = formFactorInfo.tabPanel.myGallery.getSelectedElement();
 
     getModel().enableCppSupport().set(selectedTemplate.isCppTemplate());
@@ -135,6 +178,12 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
 
     TemplateHandle extraStepTemplateHandle = formFactorInfo.formFactor == FormFactor.THINGS ? selectedTemplate.getTemplate() : null;
     myNewProjectModuleModel.getExtraRenderTemplateModel().setTemplateHandle(extraStepTemplateHandle);
+  }
+
+  @NotNull
+  @Override
+  protected ObservableBool canGoForward() {
+    return canGoForward;
   }
 
   @NotNull
@@ -149,7 +198,8 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
     return myTabsPanel;
   }
 
-  private void populateFormFactors() {
+  @NotNull
+  private static List<FormFactorInfo> createFormFactors(@NotNull String wizardTitle) {
     Map<FormFactor, FormFactorInfo> formFactorInfoMap = Maps.newTreeMap();
     TemplateManager manager = TemplateManager.getInstance();
     List<File> applicationTemplates = manager.getTemplatesInCategory(CATEGORY_APPLICATION);
@@ -169,7 +219,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
 
       if (prevFormFactorInfo == null) {
         int minSdk = Math.max(templateMinSdk, formFactor.getMinOfflineApiLevel());
-        ChooseAndroidProjectPanel<TemplateRenderer> tabPanel = new ChooseAndroidProjectPanel<>(createGallery(getTitle(), formFactor));
+        ChooseAndroidProjectPanel<TemplateRenderer> tabPanel = new ChooseAndroidProjectPanel<>(createGallery(wizardTitle, formFactor));
         formFactorInfoMap.put(formFactor, new FormFactorInfo(templateFile, formFactor, minSdk, tabPanel));
       }
       else if (templateMinSdk > prevFormFactorInfo.minSdk) {
@@ -178,12 +228,11 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
       }
     }
 
-    myFormFactors.addAll(formFactorInfoMap.values());
-    myFormFactors.sort(Comparator.comparing(f -> f.formFactor));
+    return formFactorInfoMap.values().stream().sorted(Comparator.comparing(f -> f.formFactor)).collect(toList());
   }
 
   @NotNull
-  private List<TemplateHandle> getFilteredTemplateHandles(@NotNull FormFactor formFactor) {
+  private static List<TemplateHandle> getFilteredTemplateHandles(@NotNull FormFactor formFactor) {
     List<TemplateHandle> templateHandles = TemplateManager.getInstance().getTemplateList(formFactor);
 
     if (formFactor == FormFactor.MOBILE) {
@@ -195,7 +244,7 @@ public class ChooseAndroidProjectStep extends ModelWizardStep<NewProjectModel> {
   }
 
   @NotNull
-  private ASGallery<TemplateRenderer> createGallery(@NotNull String title, @NotNull FormFactor formFactor) {
+  private static ASGallery<TemplateRenderer> createGallery(@NotNull String title, @NotNull FormFactor formFactor) {
     List<TemplateHandle> templateHandles = getFilteredTemplateHandles(formFactor);
 
     List<TemplateRenderer> templateRenderers = Lists.newArrayListWithExpectedSize(templateHandles.size() + 2);

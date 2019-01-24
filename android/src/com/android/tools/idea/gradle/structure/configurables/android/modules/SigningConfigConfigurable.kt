@@ -22,22 +22,27 @@ import com.android.tools.idea.gradle.structure.configurables.ui.modules.SigningC
 import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
+import com.google.wireless.android.sdk.stats.PSDEvent
+import javax.swing.Icon
 
 class SigningConfigConfigurable(private val signingConfig: PsSigningConfig, val context: PsContext)
-  : ChildModelConfigurable<PsSigningConfig, SigningConfigConfigPanel>(
-  signingConfig) {
+  : ChildModelConfigurable<PsSigningConfig, SigningConfigConfigPanel>(signingConfig) {
   override fun getBannerSlogan() = "Signing Config '${signingConfig.name}'"
-
+  override fun getIcon(expanded: Boolean): Icon? = signingConfig.icon
   override fun createPanel(): SigningConfigConfigPanel = SigningConfigConfigPanel(signingConfig, context)
 }
 
 fun signingConfigPropertiesModel() =
   PropertiesUiModel(
     listOf(
-      uiProperty(PsSigningConfig.SigningConfigDescriptors.storeFile, ::simplePropertyEditor),
-      uiProperty(PsSigningConfig.SigningConfigDescriptors.storePassword, ::simplePropertyEditor),
+      uiProperty(PsSigningConfig.SigningConfigDescriptors.storeFile, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_SIGNINGCONFIGS_STORE_FILE),
+      uiProperty(PsSigningConfig.SigningConfigDescriptors.storePassword, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_SIGNINGCONFIGS_STORE_PASSWORD),
 // TODO(b/70501607): uiProperty(PsSigningConfig.SigningConfigDescriptors.storeType, ::simplePropertyEditor),
-      uiProperty(PsSigningConfig.SigningConfigDescriptors.keyAlias, ::simplePropertyEditor),
-      uiProperty(PsSigningConfig.SigningConfigDescriptors.keyPassword, ::simplePropertyEditor)
+      uiProperty(PsSigningConfig.SigningConfigDescriptors.keyAlias, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULES_SIGNINGCONFIGS_KEY_ALIAS),
+      uiProperty(PsSigningConfig.SigningConfigDescriptors.keyPassword, ::simplePropertyEditor,
+                 PSDEvent.PSDField.PROJECT_STRUCTURE_DIALOG_FIELD_MODULE_SIGNING_KEY_PASSWORD)
     ))
 

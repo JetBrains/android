@@ -42,7 +42,7 @@ class FragmentDecoratorTest : NavTestCase() {
 
     val sceneComponent = SceneComponent(model.surface.scene!!, model.find("f1")!!, Mockito.mock(HitProvider::class.java))
     sceneComponent.setPosition(50, 150)
-    sceneComponent.setSize(100, 200, false)
+    sceneComponent.setSize(100, 200)
 
     val sceneView = model.surface.currentSceneView!!
     val displayList = DisplayList()
@@ -66,7 +66,7 @@ class FragmentDecoratorTest : NavTestCase() {
 
     val sceneComponent = SceneComponent(model.surface.scene!!, model.find("f1")!!, Mockito.mock(HitProvider::class.java))
     sceneComponent.setPosition(50, 150)
-    sceneComponent.setSize(100, 200, false)
+    sceneComponent.setSize(100, 200)
     sceneComponent.drawState = SceneComponent.DrawState.SELECTED
 
     val sceneView = model.surface.currentSceneView!!
