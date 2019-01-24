@@ -19,9 +19,11 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.intellij.ide.util.PropertiesComponent
 import icons.StudioIcons
+import org.jetbrains.annotations.TestOnly
 
 private const val PREFERENCE_KEY_PREFIX = "LayoutEditorPreference"
 private const val AUTO_CONNECT_PREF_KEY = PREFERENCE_KEY_PREFIX + "AutoConnect"
