@@ -15,23 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import static java.util.Objects.requireNonNull;
+
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.java.model.GradlePluginModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.*;
-import org.jetbrains.kotlin.gradle.model.KotlinProject;
-
-import static java.util.Objects.requireNonNull;
 
 public class SyncProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
@@ -80,7 +81,7 @@ public class SyncProjectModels implements Serializable {
     // This implies that the Gradle project applies a version of the Kotlin plugin that doesn't support the new Sync models.
     for (GradleBuild gradleBuild : gradleBuilds) {
       GradleProject gradleProject = controller.findModel(gradleBuild.getRootProject(), GradleProject.class);
-      failIfKotlinPluginAppliedAndKotlinModelIsMissing(controller, gradleProject);
+      failIfKotlinPluginApplied(controller, gradleProject);
     }
 
     for (GradleBuild gradleBuild : gradleBuilds) {
@@ -97,18 +98,17 @@ public class SyncProjectModels implements Serializable {
     populateGlobalLibraryMap(controller);
   }
 
-  private static void failIfKotlinPluginAppliedAndKotlinModelIsMissing(@NotNull BuildController controller,
+  private static void failIfKotlinPluginApplied(@NotNull BuildController controller,
                                                                        @Nullable GradleProject gradleProject) {
     if (gradleProject != null) {
       GradlePluginModel pluginModel = controller.findModel(gradleProject, GradlePluginModel.class);
-      KotlinProject kotlinProject = controller.findModel(gradleProject, KotlinProject.class);
-      if (pluginModel != null && kotlinProject == null && pluginModel.getGraldePluginList()
+      if (pluginModel != null && pluginModel.getGraldePluginList()
         .stream()
         .anyMatch(p -> p.startsWith("org.jetbrains.kotlin"))) {
         throw new NewGradleSyncNotSupportedException("containing Kotlin modules using an unsupported plugin version");
       }
       for (GradleProject child : gradleProject.getChildren()) {
-        failIfKotlinPluginAppliedAndKotlinModelIsMissing(controller, child);
+        failIfKotlinPluginApplied(controller, child);
       }
     }
   }
