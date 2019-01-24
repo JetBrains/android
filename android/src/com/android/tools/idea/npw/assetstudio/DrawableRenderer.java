@@ -150,7 +150,7 @@ public class DrawableRenderer implements Disposable {
     @NotNull private final Project myProject;
     @NotNull private final RenderLogger myLogger;
 
-    public MyLayoutPullParserFactory(@NotNull Project project, @NotNull RenderLogger logger) {
+    MyLayoutPullParserFactory(@NotNull Project project, @NotNull RenderLogger logger) {
       myProject = project;
       myLogger = logger;
     }
