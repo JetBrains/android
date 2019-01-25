@@ -53,6 +53,7 @@ public class TransportService {
   private static final String DATASTORE_NAME = "DataStoreService";
 
   @NotNull private final DataStoreService myDataStoreService;
+  @NotNull private final TransportClient myTransportClient;
   @NotNull private final Set<Project> myProjects = new TreeSet<>();
   @Nullable private File myCurrentAdb;
 
@@ -75,6 +76,7 @@ public class TransportService {
     myDataStoreService =
       new DataStoreService(DATASTORE_NAME, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread,
                            new IntellijLogService());
+    myTransportClient = new TransportClient(DATASTORE_NAME);
 
     // TODO b/73538507 handle the device deamon/app agent initialization logic.
   }
@@ -82,9 +84,12 @@ public class TransportService {
   @Nullable
   public synchronized TransportClient getClient(@NotNull Project project) {
     if (registerProject(project)) {
-      return new TransportClient(DATASTORE_NAME);
+      return myTransportClient;
     }
     else {
+      // Technically here we can still return the client even if the project's adb is not compatible. (e.g. Caller can still have access to
+      // the data already in the database). Return null for now to keep things simple.
+      // TODO b/123475451 properly notify user when this happens. Perhaps show a balloon warning?
       getLogger().warn("Unable to obtain pipeline client for the project.");
       return null;
     }
