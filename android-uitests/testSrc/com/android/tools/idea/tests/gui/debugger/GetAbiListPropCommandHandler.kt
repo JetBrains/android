@@ -30,7 +30,7 @@ class GetAbiListPropCommandHandler(private val abiList: List<String>) : SimpleSh
     }
   }
 
-  override fun invoke(
+  override fun execute(
     fakeAdbServer: FakeAdbServer,
     responseSocket: Socket,
     device: DeviceState,
