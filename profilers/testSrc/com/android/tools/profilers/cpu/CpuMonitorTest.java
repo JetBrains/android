@@ -15,17 +15,25 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.NullMonitorStage;
+import com.android.tools.profilers.StudioProfilers;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
-import static org.junit.Assert.*;
-
 public class CpuMonitorTest {
+  private final FakeTimer myTimer = new FakeTimer();
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuMonitorTestChannel", new FakeCpuService(), new FakeProfilerService());
+  public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("CpuMonitorTestChannel", new FakeCpuService(), new FakeTransportService(myTimer), new FakeProfilerService(myTimer));
 
   @Test
   public void testName() {
@@ -36,12 +44,11 @@ public class CpuMonitorTest {
 
   @Test
   public void testExpand() {
-    FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers =new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     CpuMonitor monitor = new CpuMonitor(profilers);
     assertEquals(profilers.getStage().getClass(), NullMonitorStage.class);
     // One second must be enough for new devices (and processes) to be picked up
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     monitor.expand();
     assertThat(profilers.getStage(), instanceOf(CpuProfilerStage.class));
   }

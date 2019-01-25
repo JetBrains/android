@@ -18,11 +18,13 @@ package com.android.tools.profilers.cpu.capturedetails
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.TextInstruction
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerStageView
 import com.android.tools.profilers.cpu.CpuProfilerToolbar
@@ -49,9 +51,11 @@ class RecordingInitiatorPaneTest {
   @Rule
   val cpuProfiler: FakeCpuProfiler
 
+  private val timer = FakeTimer()
+
   init {
     val cpuService = FakeCpuService()
-    grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService, FakeProfilerService(),
+    grpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", cpuService, FakeTransportService(timer), FakeProfilerService(timer),
                                   FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
     cpuProfiler = FakeCpuProfiler(grpcChannel = grpcChannel, cpuService = cpuService)

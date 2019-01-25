@@ -17,14 +17,15 @@ package com.android.tools.profilers.commands
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Profiler
+import com.android.tools.profiler.proto.Transport.Command
+import com.android.tools.profiler.proto.Transport.EventGroup
 
 /**
  * This class handles end session commands by finding the group a begin session command created then adding a session ended event to that
  * group.
  */
 class EndSession(timer: FakeTimer) : CommandHandler(timer) {
-  override fun handleCommand(command: Profiler.Command, events: MutableList<Profiler.EventGroup.Builder>) {
+  override fun handleCommand(command: Command, events: MutableList<EventGroup.Builder>) {
     val group = events.find { it.groupId == command.endSession.sessionId }!!
     val previous_pid = group.getEvents(0).pid
     group.addEvents(Common.Event.newBuilder().apply {

@@ -55,8 +55,7 @@ public class NetworkUsage extends LineChartModel {
   @NotNull
   public DataSeries<Long> createSeries(@NotNull StudioProfilers profilers, @NotNull NetworkTrafficDataSeries.Type trafficType) {
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      ProfilerServiceGrpc.ProfilerServiceBlockingStub client = profilers.getClient().getProfilerClient();
-      return new UnifiedEventDataSeries(client,
+      return new UnifiedEventDataSeries(profilers.getClient().getTransportClient(),
                                         profilers.getSession().getStreamId(),
                                         profilers.getSession().getPid(),
                                         Common.Event.Kind.NETWORK_SPEED,

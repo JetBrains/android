@@ -19,8 +19,12 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Network;
 import com.android.tools.profiler.proto.Network.NetworkHttpConnectionData;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Transport.BytesRequest;
+import com.android.tools.profiler.proto.Transport.BytesResponse;
+import com.android.tools.profiler.proto.Transport.EventGroup;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.intellij.openapi.util.text.StringUtil;
@@ -36,12 +40,12 @@ import org.jetbrains.annotations.NotNull;
  * A {@link NetworkConnectionsModel} that uses the new event pipeline to fetch http connection data originated from an app.
  */
 public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
-  @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
+  @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportService;
   @NotNull private final Common.Session mySession;
 
-  public RpcNetworkConnectionsModel(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
+  public RpcNetworkConnectionsModel(@NotNull TransportServiceGrpc.TransportServiceBlockingStub transportService,
                                     @NotNull Common.Session session) {
-    myProfilerService = profilerService;
+    myTransportService = transportService;
     mySession = session;
   }
 
@@ -50,23 +54,23 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   public List<HttpData> getData(@NotNull Range timeCurrentRangeUs) {
     long queryStartTimeNs = TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin());
     long queryEndTimeNs = TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax());
-    Profiler.GetEventGroupsRequest request = Profiler.GetEventGroupsRequest.newBuilder()
+    GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
       .setStreamId(mySession.getStreamId())
       .setPid(mySession.getPid())
       .setKind(Common.Event.Kind.NETWORK_HTTP_CONNECTION)
       .build();
-    Profiler.GetEventGroupsResponse response = myProfilerService.getEventGroups(request);
+    GetEventGroupsResponse response = myTransportService.getEventGroups(request);
 
-    Profiler.GetEventGroupsRequest threadRequest = Profiler.GetEventGroupsRequest.newBuilder()
+    GetEventGroupsRequest threadRequest = GetEventGroupsRequest.newBuilder()
       .setStreamId(mySession.getStreamId())
       .setPid(mySession.getPid())
       .setKind(Common.Event.Kind.NETWORK_HTTP_THREAD)
       .build();
-    Map<Long, List<Common.Event>> connectionThreadMap = myProfilerService.getEventGroups(threadRequest)
-      .getGroupsList().stream().collect(Collectors.toMap(Profiler.EventGroup::getGroupId, Profiler.EventGroup::getEventsList));
+    Map<Long, List<Common.Event>> connectionThreadMap = myTransportService.getEventGroups(threadRequest)
+      .getGroupsList().stream().collect(Collectors.toMap(EventGroup::getGroupId, EventGroup::getEventsList));
 
     List<HttpData> httpDataList = new ArrayList<>(response.getGroupsCount());
-    for (Profiler.EventGroup connectionGroup : response.getGroupsList()) {
+    for (EventGroup connectionGroup : response.getGroupsList()) {
       // Skip event groups that occur before or after the query range.
       if (connectionGroup.getEvents(0).getTimestamp() > queryEndTimeNs ||
           (connectionGroup.getEvents(connectionGroup.getEventsCount() - 1).getTimestamp() < queryStartTimeNs &&
@@ -146,12 +150,12 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
       return ByteString.EMPTY;
     }
 
-    Profiler.BytesRequest request = Profiler.BytesRequest.newBuilder()
+    BytesRequest request = BytesRequest.newBuilder()
+      .setStreamId(mySession.getStartTimestamp())
       .setId(id)
-      .setSession(mySession)
       .build();
 
-    Profiler.BytesResponse response = myProfilerService.getBytes(request);
+    BytesResponse response = myTransportService.getBytes(request);
     return response.getContents();
   }
 }

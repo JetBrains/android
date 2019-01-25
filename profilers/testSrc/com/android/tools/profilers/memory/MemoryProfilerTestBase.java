@@ -15,36 +15,28 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME;
+
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListenableFutureTask;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
-
-import java.util.concurrent.Executor;
 
 public abstract class MemoryProfilerTestBase {
   protected StudioProfilers myProfilers;
   protected MemoryProfilerStage myStage;
   protected FakeCaptureObjectLoader myMockLoader;
   protected MemoryAspectObserver myAspectObserver;
-  protected FakeTimer myTimer;
+  protected FakeTimer myTimer = new FakeTimer();
   protected FakeIdeProfilerServices myIdeProfilerServices;
 
   @Before
   public void setupBase() {
-    myTimer = new FakeTimer();
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myProfilers = new StudioProfilers(getGrpcChannel().getClient(), myIdeProfilerServices, myTimer);
-    myProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
+    myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myMockLoader = new FakeCaptureObjectLoader();
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
     myAspectObserver = new MemoryAspectObserver(myStage.getAspect());

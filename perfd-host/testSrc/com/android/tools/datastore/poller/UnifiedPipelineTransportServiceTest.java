@@ -25,21 +25,22 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.ProfilerService;
+import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
-import com.android.tools.profiler.proto.Profiler.Command;
-import com.android.tools.profiler.proto.Profiler.EventGroup;
-import com.android.tools.profiler.proto.Profiler.ExecuteRequest;
-import com.android.tools.profiler.proto.Profiler.ExecuteResponse;
-import com.android.tools.profiler.proto.Profiler.GetEventGroupsRequest;
-import com.android.tools.profiler.proto.Profiler.GetEventGroupsResponse;
-import com.android.tools.profiler.proto.Profiler.GetEventsRequest;
-import com.android.tools.profiler.proto.Profiler.TimeRequest;
-import com.android.tools.profiler.proto.Profiler.TimeResponse;
-import com.android.tools.profiler.proto.Profiler.VersionRequest;
-import com.android.tools.profiler.proto.Profiler.VersionResponse;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Transport.Command;
+import com.android.tools.profiler.proto.Transport.EventGroup;
+import com.android.tools.profiler.proto.Transport.ExecuteRequest;
+import com.android.tools.profiler.proto.Transport.ExecuteResponse;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
+import com.android.tools.profiler.proto.Transport.GetEventsRequest;
+import com.android.tools.profiler.proto.Transport.TimeRequest;
+import com.android.tools.profiler.proto.Transport.TimeResponse;
+import com.android.tools.profiler.proto.Transport.VersionRequest;
+import com.android.tools.profiler.proto.Transport.VersionResponse;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
@@ -55,18 +56,18 @@ import org.mockito.Mockito;
  * ProfilerServiceTest for scenarios related to the new data pipeline, which goes through the
  * {@link ProfilerService#startPolling(Stream, Channel)} instead of the old {@link ProfilerService#startMonitoring(Channel)} API.
  */
-public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
+public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
   private static final long STREAM_ID = 1234;
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private ProfilerService myProfilerService = new ProfilerService(myDataStore, getPollTicker()::run, new FakeLogService());
+  private TransportService myTransportService = new TransportService(myDataStore, getPollTicker()::run, new FakeLogService());
 
-  private FakeProfilerService myFakeService = new FakeProfilerService();
+  private FakeTransportService myFakeService = new FakeTransportService();
   private Channel myChannel;
   private TestName myTestName = new TestName();
   private TestGrpcService myService =
-    new TestGrpcService(UnifiedPipelineProfilerServiceTest.class, myTestName, myProfilerService, myFakeService);
+    new TestGrpcService(UnifiedPipelineTransportServiceTest.class, myTestName, myTransportService, myFakeService);
 
   @Rule
   public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
@@ -76,7 +77,7 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
     myChannel = myService.getChannel();
     // Stream id is analogous to device id.
     Stream stream = Stream.newBuilder().setType(Stream.Type.DEVICE).setStreamId(STREAM_ID).build();
-    myProfilerService.startPolling(stream, myChannel);
+    myTransportService.startPolling(stream, myChannel);
   }
 
   @After
@@ -87,14 +88,14 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
   @Test
   public void testGetTimes() {
     StreamObserver<TimeResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getCurrentTime(TimeRequest.newBuilder().setStreamId(STREAM_ID).build(), observer);
+    myTransportService.getCurrentTime(TimeRequest.newBuilder().setStreamId(STREAM_ID).build(), observer);
     validateResponse(observer, TimeResponse.getDefaultInstance());
   }
 
   @Test
   public void testGetVersion() {
     StreamObserver<VersionResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getVersion(VersionRequest.newBuilder().setStreamId(STREAM_ID).build(), observer);
+    myTransportService.getVersion(VersionRequest.newBuilder().setStreamId(STREAM_ID).build(), observer);
     validateResponse(observer, VersionResponse.getDefaultInstance());
   }
 
@@ -104,7 +105,7 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
     getPollTicker().run();
     // Get events from poller to validate we have a connection.
     StreamObserver<GetEventGroupsResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getEventGroups(
+    myTransportService.getEventGroups(
       GetEventGroupsRequest.newBuilder()
         .setKind(Event.Kind.STREAM)
         .setStreamId(DataStoreService.DATASTORE_RESERVED_STREAM_ID)
@@ -134,10 +135,10 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
     validateEventNoTimestamp(expectedGroup.getEvents(0), actualGroup.getEvents(0));
 
     // Disconnect service.
-    myProfilerService.stopMonitoring(myChannel);
+    myTransportService.stopMonitoring(myChannel);
     Mockito.reset(observer);
     response = ArgumentCaptor.forClass(GetEventGroupsResponse.class);
-    myProfilerService.getEventGroups(
+    myTransportService.getEventGroups(
       GetEventGroupsRequest.newBuilder()
         .setKind(Event.Kind.STREAM)
         .setStreamId(DataStoreService.DATASTORE_RESERVED_STREAM_ID)
@@ -163,12 +164,12 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
   public void executeRedirectsProperly() {
     StreamObserver<ExecuteResponse> observer = mock(StreamObserver.class);
     Command sentCommand = Command.newBuilder().setStreamId(STREAM_ID).setType(Command.CommandType.BEGIN_SESSION).build();
-    myProfilerService.execute(
+    myTransportService.execute(
       ExecuteRequest.newBuilder().setCommand(sentCommand).build(),
       observer);
     assertThat(sentCommand).isEqualTo(myFakeService.getLastCommandReceived());
     // Test executing a command on an invalid stream.
-    myProfilerService.execute(
+    myTransportService.execute(
       ExecuteRequest.newBuilder()
         .setCommand(Command.newBuilder().setStreamId(STREAM_ID).setType(Command.CommandType.BEGIN_SESSION)).build(),
       observer);
@@ -180,7 +181,7 @@ public class UnifiedPipelineProfilerServiceTest extends DataStorePollerTest {
     assertThat(expected).isEqualTo(actual);
   }
 
-  private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
+  private static class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
 
     private Command myLastCommandReceived;
 

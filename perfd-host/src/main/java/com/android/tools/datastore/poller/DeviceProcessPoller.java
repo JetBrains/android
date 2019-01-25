@@ -15,26 +15,28 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DeviceId;
 import com.android.tools.datastore.database.DataStoreTable;
-import com.android.tools.datastore.database.ProfilerTable;
+import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
-import com.android.tools.profiler.proto.Common.AgentStatusRequest;
-import com.android.tools.profiler.proto.Profiler.*;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
+import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
+import com.android.tools.profiler.proto.Transport.GetDevicesResponse;
+import com.android.tools.profiler.proto.Transport.GetProcessesRequest;
+import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.common.collect.Sets;
 import io.grpc.StatusRuntimeException;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
-public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.DataStoreTableErrorCallback {
+public class DeviceProcessPoller extends PollRunner implements DataStoreTable.DataStoreTableErrorCallback {
 
   private static final class DeviceData {
     public final Common.Device device;
@@ -45,14 +47,14 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
     }
   }
 
-  private final ProfilerTable myTable;
-  private final DataStoreService myService;
-  private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myPollingService;
-  private final Map<DeviceId, DeviceData> myDevices = new HashMap<>();
+  @NotNull private final UnifiedEventsTable myTable;
+  @NotNull private final DataStoreService myService;
+  @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myPollingService;
+  @NotNull private final Map<DeviceId, DeviceData> myDevices = new HashMap<>();
 
-  public ProfilerDevicePoller(DataStoreService service,
-                              ProfilerTable table,
-                              ProfilerServiceGrpc.ProfilerServiceBlockingStub pollingService) {
+  public DeviceProcessPoller(@NotNull DataStoreService service,
+                             @NotNull UnifiedEventsTable table,
+                             @NotNull TransportServiceGrpc.TransportServiceBlockingStub pollingService) {
     super(TimeUnit.SECONDS.toNanos(1));
     myTable = table;
     myService = service;
@@ -80,9 +82,6 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
         DeviceData deviceData = myDevices.computeIfAbsent(deviceId, s -> new DeviceData(device));
 
         myService.setConnectedClients(deviceId, myPollingService.getChannel());
-
-        TimeResponse timeResponse = myPollingService.getCurrentTime(TimeRequest.getDefaultInstance());
-        myTable.updateDeviceLastKnownTime(device, timeResponse.getTimestampNs());
 
         GetProcessesRequest processesRequest = GetProcessesRequest.newBuilder().setDeviceId(deviceId.get()).build();
         GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
@@ -140,7 +139,7 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
       // The process is already dead, just mark it as agent non-attachable.
       AgentData agentData =
         myTable.getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(deviceId.get()).setPid(process.getPid()).build());
-        myTable.updateAgentStatus(deviceId, process, agentData.toBuilder().setStatus(AgentData.Status.UNATTACHABLE).build());
+      myTable.updateAgentStatus(deviceId, process, agentData.toBuilder().setStatus(AgentData.Status.UNATTACHABLE).build());
     }
   }
 }

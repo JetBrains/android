@@ -30,8 +30,9 @@ import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_NAME
-import com.android.tools.profilers.FakeProfilerService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -64,7 +65,7 @@ private const val ART_TRACE_FILE = "tools/adt/idea/profilers-ui/testData/valid_t
 
 class CpuProfilerStageViewTest {
 
-  private val myProfilerService = FakeProfilerService()
+  private val myTimer = FakeTimer()
 
   private val myComponents = FakeIdeProfilerComponents()
 
@@ -72,11 +73,10 @@ class CpuProfilerStageViewTest {
 
   private val myCpuService = FakeCpuService()
 
-  private val myTimer = FakeTimer()
 
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel(
-    "CpuCaptureViewTestChannel", myCpuService, myProfilerService,
+    "CpuCaptureViewTestChannel", myCpuService, FakeTransportService(myTimer), FakeProfilerService(myTimer),
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
 

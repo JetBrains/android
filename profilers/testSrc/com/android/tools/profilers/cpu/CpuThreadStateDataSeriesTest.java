@@ -26,7 +26,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import java.io.IOException;
@@ -49,13 +49,14 @@ public class CpuThreadStateDataSeriesTest {
     return Arrays.asList(false, true);
   }
 
+  private final FakeTimer myTimer = new FakeTimer();
   private final FakeCpuService myService = new FakeCpuService();
-  private final FakeProfilerService myProfilerService = new FakeProfilerService();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   private CpuProfilerStage myProfilerStage;
   private boolean myIsUnifiedPipeline;
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuThreadStateDataSeriesTest", myService, myProfilerService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuThreadStateDataSeriesTest", myService, myTransportService);
 
   public CpuThreadStateDataSeriesTest(boolean isUnifiedPipeline) {
     myIsUnifiedPipeline = isUnifiedPipeline;
@@ -64,12 +65,11 @@ public class CpuThreadStateDataSeriesTest {
   @Before
   public void setUp() {
     if (myIsUnifiedPipeline) {
-      myProfilerService.populateThreads(ProfilersTestData.SESSION_DATA.getStreamId());
+      myTransportService.populateThreads(ProfilersTestData.SESSION_DATA.getStreamId());
     }
-    FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     // One second must be enough for new devices (and processes) to be picked up
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilerStage = new CpuProfilerStage(profilers);
   }
 
@@ -158,7 +158,7 @@ public class CpuThreadStateDataSeriesTest {
 
   private DataSeries<CpuProfilerStage.ThreadState> createThreadSeries(int tid) {
     return myIsUnifiedPipeline
-           ? new CpuThreadStateDataSeries(myProfilerStage.getStudioProfilers().getClient().getProfilerClient(),
+           ? new CpuThreadStateDataSeries(myProfilerStage.getStudioProfilers().getClient().getTransportClient(),
                                           ProfilersTestData.SESSION_DATA.getStreamId(),
                                           ProfilersTestData.SESSION_DATA.getPid(),
                                           tid)

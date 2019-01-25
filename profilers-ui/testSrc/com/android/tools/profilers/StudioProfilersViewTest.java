@@ -15,13 +15,18 @@
  */
 package com.android.tools.profilers;
 
+import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE;
+import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_ID;
+import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
@@ -35,23 +40,18 @@ import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import icons.StudioIcons;
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.swing.*;
-import java.awt.*;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE;
-import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_ID;
-import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_NAME;
-import static com.android.tools.profilers.FakeProfilerService.FAKE_PROCESS_NAME;
-import static com.google.common.truth.Truth.assertThat;
 
 public class StudioProfilersViewTest {
   private static final Common.Session SESSION_O = Common.Session.newBuilder().setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS)
@@ -59,17 +59,18 @@ public class StudioProfilersViewTest {
   private static final Common.SessionMetaData SESSION_O_METADATA = Common.SessionMetaData.newBuilder().setSessionId(2).setJvmtiEnabled(true)
     .setSessionName("App Device").setType(Common.SessionMetaData.SessionType.FULL).setStartTimestampEpochMs(1).build();
 
-  private final FakeProfilerService myService = new FakeProfilerService();
-  @Rule public FakeGrpcServer myGrpcChannel = FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myService);
+  private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myService = new FakeTransportService(myTimer);
+  private final FakeProfilerService myProfilerService = new FakeProfilerService(myTimer);
+  @Rule public FakeGrpcServer myGrpcChannel =
+    FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myService, myProfilerService);
   private StudioProfilers myProfilers;
   private FakeIdeProfilerServices myProfilerServices = new FakeIdeProfilerServices();
-  private FakeTimer myTimer;
   private StudioProfilersView myView;
   private FakeUi myUi;
 
   @Before
   public void setUp() {
-    myTimer = new FakeTimer();
     myProfilerServices.enableEnergyProfiler(true);
     myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
@@ -97,7 +98,7 @@ public class StudioProfilersViewTest {
   @Test
   public void testMonitorExpansion() {
     // Set session to enable Energy Monitor.
-    myService.addSession(SESSION_O, SESSION_O_METADATA);
+    myProfilerService.addSession(SESSION_O, SESSION_O_METADATA);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.getSessionsManager().setSession(SESSION_O);
     myUi.layout();
@@ -138,7 +139,7 @@ public class StudioProfilersViewTest {
   @Test
   public void testMonitorTooltip() {
     // Set Session to enable Energy monitor tooltip.
-    myService.addSession(SESSION_O, SESSION_O_METADATA);
+    myProfilerService.addSession(SESSION_O, SESSION_O_METADATA);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.getSessionsManager().setSession(SESSION_O);
     myUi.layout();
@@ -410,11 +411,11 @@ public class StudioProfilersViewTest {
     assertThat(myView.getStageLoadingComponent().isVisible()).isTrue();
 
     Common.Process process = Common.Process.newBuilder()
-                                           .setPid(2)
-                                           .setDeviceId(FAKE_DEVICE_ID)
-                                           .setState(Common.Process.State.ALIVE)
-                                           .setName(FAKE_PROCESS_2)
-                                           .build();
+      .setPid(2)
+      .setDeviceId(FAKE_DEVICE_ID)
+      .setState(Common.Process.State.ALIVE)
+      .setName(FAKE_PROCESS_2)
+      .build();
     myService.addProcess(FAKE_DEVICE, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
@@ -432,11 +433,11 @@ public class StudioProfilersViewTest {
     myService.setAgentStatus(
       Common.AgentData.getDefaultInstance());
     Common.Process process = Common.Process.newBuilder()
-                                           .setPid(2)
-                                           .setDeviceId(FAKE_DEVICE_ID)
-                                           .setState(Common.Process.State.ALIVE)
-                                           .setName(FAKE_PROCESS_2)
-                                           .build();
+      .setPid(2)
+      .setDeviceId(FAKE_DEVICE_ID)
+      .setState(Common.Process.State.ALIVE)
+      .setName(FAKE_PROCESS_2)
+      .build();
     myService.addProcess(FAKE_DEVICE, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.setProcess(FAKE_DEVICE, process);

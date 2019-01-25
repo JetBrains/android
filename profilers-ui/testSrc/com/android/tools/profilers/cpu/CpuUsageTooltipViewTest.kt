@@ -22,6 +22,7 @@ import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
@@ -33,16 +34,16 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 
 class CpuUsageTooltipViewTest {
-  private var cpuService = FakeCpuService()
+  private val cpuService = FakeCpuService()
+  private val timer = FakeTimer()
   private lateinit var cpuStage: CpuProfilerStage
   private lateinit var usageTooltipView: FakeCpuUsageTooltipView
   @Rule
   @JvmField
-  val myGrpcChannel = FakeGrpcChannel("CpuUsageTooltipViewTest", cpuService, FakeProfilerService())
+  val myGrpcChannel = FakeGrpcChannel("CpuUsageTooltipViewTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer))
 
   @Before
   fun setUp() {
-    val timer = FakeTimer()
     val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), timer)
     cpuStage = CpuProfilerStage(profilers)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
