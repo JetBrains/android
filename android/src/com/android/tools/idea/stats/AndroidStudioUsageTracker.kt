@@ -115,6 +115,7 @@ object AndroidStudioUsageTracker {
       dialog.showAndGetOk().doWhenDone(Runnable {
         val result = dialog.selectedSentiment
         UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+          kind = AndroidStudioEvent.EventKind.USER_SENTIMENT
           userSentiment = UserSentiment.newBuilder().apply {
             state = UserSentiment.SentimentState.POPUP_QUESTION
             level = result
