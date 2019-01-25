@@ -162,7 +162,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
    * This loads the parameters form component the ConstraintWidget
    */
   private void configureUI() {
-    if (myWidgetModel.getComponent() == null) {
+    NlComponent component = myWidgetModel.getComponent();
+    if (component == null) {
       return;
     }
 
@@ -181,6 +182,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     if (showHorizontalSlider) {
       float bias = myWidgetModel.getHorizontalBias();
       mHorizontalSlider.setValue((int)(bias * 100));
+      mHorizontalSlider.setInverted(ConstraintUtilities.isInRTL(component));
     }
 
     if (showVerticalSlider) {
