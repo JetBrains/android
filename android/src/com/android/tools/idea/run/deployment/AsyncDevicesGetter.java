@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
-import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
@@ -28,6 +27,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,7 +48,7 @@ class AsyncDevicesGetter {
   private final Worker<Collection<IDevice>> myConnectedDevicesWorker;
 
   @NotNull
-  private final DeviceNamePropertiesProvider myDevicePropertiesProvider;
+  private final DeviceNamePropertiesFetcher myDevicePropertiesFetcher;
 
   @Nullable
   private LaunchCompatibilityChecker myChecker;
@@ -64,13 +64,17 @@ class AsyncDevicesGetter {
   AsyncDevicesGetter(@NotNull Disposable parent, @Nullable ConnectionTimeService service) {
     myVirtualDevicesWorker = new Worker<>();
     myConnectedDevicesWorker = new Worker<>();
-    myDevicePropertiesProvider = new DeviceNamePropertiesFetcher(new DefaultCallback<>(), parent);
+    myDevicePropertiesFetcher = new DeviceNamePropertiesFetcher(new DefaultCallback<>(), parent);
 
     myService = service;
   }
 
   @NotNull
   List<Device> get(@NotNull Project project) {
+    if (Disposer.isDisposed(myDevicePropertiesFetcher)) {
+      return Collections.emptyList();
+    }
+
     initChecker(RunManager.getInstance(project).getSelectedConfiguration(), AndroidFacet::getInstance);
     initService(project);
 
@@ -91,7 +95,7 @@ class AsyncDevicesGetter {
       .forEach(devices::add);
 
     connectedDevices.stream()
-      .map(device -> PhysicalDevice.newBuilder(myDevicePropertiesProvider.get(device), device).build(myChecker, myService))
+      .map(device -> PhysicalDevice.newBuilder(myDevicePropertiesFetcher.get(device), device).build(myChecker, myService))
       .forEach(devices::add);
 
     Collection<String> keys = devices.stream()

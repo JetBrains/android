@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetManager;
@@ -57,7 +56,7 @@ import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@VisibleForTesting(visibility = Visibility.PACKAGE)
+@VisibleForTesting
 public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private static final String SELECTED_DEVICE = "DeviceAndSnapshotComboBoxAction.selectedDevice";
   private static final Key<Instant> SELECTION_TIME = new Key<>("DeviceAndSnapshotComboBoxAction.selectionTime");
@@ -66,7 +65,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   private final AsyncDevicesGetter myDevicesGetter;
+
+  private final AnAction myRunOnMultipleDevicesAction;
   private final AnAction myOpenAvdManagerAction;
+
   private final Clock myClock;
 
   private List<Device> myDevices;
@@ -89,6 +91,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
 
     myDevicesGetter = devicesGetter;
+
+    myRunOnMultipleDevicesAction = new RunOnMultipleDevicesAction(devicesGetter);
     myOpenAvdManagerAction = new RunAndroidAvdManagerAction();
 
     Presentation presentation = myOpenAvdManagerAction.getTemplatePresentation();
@@ -103,6 +107,12 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   boolean areSnapshotsEnabled() {
     return mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get();
+  }
+
+  @NotNull
+  @VisibleForTesting
+  AnAction getRunOnMultipleDevicesAction() {
+    return myRunOnMultipleDevicesAction;
   }
 
   @NotNull
@@ -229,7 +239,9 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       group.addSeparator();
     }
 
+    group.add(myRunOnMultipleDevicesAction);
     group.add(myOpenAvdManagerAction);
+
     AnAction action = getTroubleshootDeviceConnectionsAction();
 
     if (action == null) {
