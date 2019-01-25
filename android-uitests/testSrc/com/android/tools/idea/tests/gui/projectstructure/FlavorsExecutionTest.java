@@ -82,9 +82,9 @@ public class FlavorsExecutionTest {
 
     FakeAdbServer.Builder adbBuilder = new FakeAdbServer.Builder();
     adbBuilder.installDefaultCommandHandlers()
-              .addShellHandler(new ActivityManagerCommandHandler(startCmdHandler))
-              .addShellHandler(new LogcatCommandHandler())
-              .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
+              .addDeviceHandler(new ActivityManagerCommandHandler(startCmdHandler))
+              .addDeviceHandler(new LogcatCommandHandler())
+              .addDeviceHandler(new JdwpCommandHandler());
 
     fakeAdbServer = adbBuilder.build();
     DeviceState fakeDevice = fakeAdbServer.connectDevice(
@@ -181,7 +181,7 @@ public class FlavorsExecutionTest {
     }
 
     @Override
-    public void invoke(@NotNull FakeAdbServer fakeAdbServer,
+    public void execute(@NotNull FakeAdbServer fakeAdbServer,
                        @NotNull Socket responseSocket,
                        @NotNull DeviceState device,
                        @Nullable String args) {
