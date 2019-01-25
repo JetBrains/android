@@ -65,8 +65,8 @@ public class LayoutInspectorTest {
     };
     fakeAdbServer = new FakeAdbServer.Builder()
       .installDefaultCommandHandlers()
-      .addShellHandler(new ActivityManagerCommandHandler(startCmdHandler))
-      .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new)
+      .addDeviceHandler(new ActivityManagerCommandHandler(startCmdHandler))
+      .addDeviceHandler(new JdwpCommandHandler())
       .build();
 
     DeviceState dev = fakeAdbServer.connectDevice(

@@ -72,12 +72,9 @@ public class RunOnEmulatorTest {
 
     FakeAdbServer.Builder fakeAdbBuilder = new FakeAdbServer.Builder();
     fakeAdbBuilder.installDefaultCommandHandlers()
-      .addShellHandler(new ActivityManagerCommandHandler(procStarter))
-      .addShellHandler(new LsCommandHandler())
-      .setDeviceCommandHandler(
-        JdwpCommandHandler.COMMAND,
-        JdwpCommandHandler::new
-      );
+      .addDeviceHandler(new ActivityManagerCommandHandler(procStarter))
+      .addDeviceHandler(new LsCommandHandler())
+      .addDeviceHandler(new JdwpCommandHandler());
 
     fakeAdbServer = fakeAdbBuilder.build();
 
@@ -150,7 +147,7 @@ public class RunOnEmulatorTest {
     }
 
     @Override
-    public void invoke(@NotNull FakeAdbServer fakeAdbServer, @NotNull Socket responseSocket, @NotNull DeviceState device, @Nullable String args) {
+    public void execute(@NotNull FakeAdbServer fakeAdbServer, @NotNull Socket responseSocket, @NotNull DeviceState device, @Nullable String args) {
       try {
         OutputStream output = responseSocket.getOutputStream();
 

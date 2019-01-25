@@ -59,14 +59,8 @@ class CreateAndRunInstantAppTest {
 
     fakeAdbServer = FakeAdbServer.Builder()
       .installDefaultCommandHandlers()
-      .addShellHandler(
-        ActivityManagerCommandHandler(
-          startCmdHandler
-        )
-      )
-      .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, {
-        JdwpCommandHandler()
-      })
+      .addDeviceHandler(ActivityManagerCommandHandler(startCmdHandler))
+      .addDeviceHandler(JdwpCommandHandler())
       .build()
 
     val fakeDevice = fakeAdbServer.connectDevice(
