@@ -338,12 +338,7 @@ public class NdkModuleModel implements ModuleModel {
     myToolchainsByName = new HashMap<>();
     mySettingsByName = new HashMap<>();
 
-    if (myVariantAbi.isEmpty()) {
-      populateForFullVariantsSync();
-    }
-    else {
-      populateForSingleVariantSync();
-    }
+    populateModuleFields();
   }
 
   @Override
