@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.perfd;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.transport.TransportProxyService;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
-public class NetworkServiceProxy extends PerfdProxyService {
+public class NetworkServiceProxy extends TransportProxyService {
   private NetworkServiceGrpc.NetworkServiceBlockingStub myServiceStub;
 
   public NetworkServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {

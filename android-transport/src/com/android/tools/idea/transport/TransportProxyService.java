@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.perfd;
+package com.android.tools.idea.transport;
 
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
@@ -28,11 +28,11 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Map;
 
-public abstract class PerfdProxyService {
+public abstract class TransportProxyService {
 
   private final ServiceDescriptor myServiceDescriptor;
 
-  public PerfdProxyService(@NotNull ServiceDescriptor serviceDescriptor) {
+  public TransportProxyService(@NotNull ServiceDescriptor serviceDescriptor) {
     myServiceDescriptor = serviceDescriptor;
   }
 
@@ -52,8 +52,8 @@ public abstract class PerfdProxyService {
    * @param blockingStub the stub to redirect any un-mapped unary calls to
    * @return
    */
-  final ServerServiceDefinition generatePassThroughDefinitions(@NotNull Map<MethodDescriptor, ServerCallHandler> overrides,
-                                                               @NotNull AbstractStub blockingStub) {
+  protected final ServerServiceDefinition generatePassThroughDefinitions(@NotNull Map<MethodDescriptor, ServerCallHandler> overrides,
+                                                                         @NotNull AbstractStub blockingStub) {
     ServerServiceDefinition.Builder builder = ServerServiceDefinition.builder(myServiceDescriptor);
     overrides.forEach((method, handler) -> builder.addMethod(method, handler));
     myServiceDescriptor.getMethods().forEach(descriptor -> {

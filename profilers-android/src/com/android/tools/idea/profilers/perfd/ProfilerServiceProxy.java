@@ -25,6 +25,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.transport.TransportProxyService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.*;
 import com.android.tools.profiler.proto.Profiler.*;
@@ -52,7 +53,7 @@ import org.jetbrains.annotations.TestOnly;
  * A proxy ProfilerService on host that intercepts grpc requests from perfd-host to device perfd.
  * This enables us to support legacy workflows based on device's API levels.
  */
-public class ProfilerServiceProxy extends PerfdProxyService
+public class ProfilerServiceProxy extends TransportProxyService
   implements AndroidDebugBridge.IClientChangeListener, AndroidDebugBridge.IDeviceChangeListener {
 
   private static Logger getLog() {
