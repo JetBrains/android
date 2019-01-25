@@ -38,6 +38,7 @@ import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ExceptionUtilRt;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -509,12 +510,24 @@ public class LauncherIconGenerator extends IconGenerator {
         localOptions.generateRoundIcon = (previewShape == PreviewShape.LEGACY_ROUND);
         localOptions.generateWebIcon = (previewShape == PreviewShape.WEB);
 
-        BufferedImage image = generatePreviewImage(context, localOptions);
-        return new GeneratedImageIcon(previewShape.id,
-                                      null, // No path for preview icons.
-                                      IconCategory.PREVIEW,
-                                      localOptions.density,
-                                      image);
+        BufferedImage image;
+        String errorMessage = null;
+        try {
+          image = generatePreviewImage(context, localOptions);
+        } catch (Throwable e) {
+          errorMessage = e.getMessage();
+          Rectangle imageRect = getFullBleedRectangle(localOptions);
+          image = AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);
+        }
+        GeneratedImageIcon icon = new GeneratedImageIcon(previewShape.id,
+                                                         null, // No path for preview icons.
+                                                         IconCategory.PREVIEW,
+                                                         localOptions.density,
+                                                         image);
+        if (errorMessage != null) {
+          icon.setErrorMessage(errorMessage);
+        }
+        return icon;
       });
     }
   }
@@ -945,8 +958,10 @@ public class LauncherIconGenerator extends IconGenerator {
         return image;
       }
     }
-    catch (InterruptedException | ExecutionException e) {
-      // Ignore to return the default image.
+    catch (ExecutionException e) {
+      ExceptionUtilRt.rethrow(e.getCause());
+    }
+    catch (InterruptedException ignore) {
     }
 
     return AssetUtil.newArgbBufferedImage(imageRect.width, imageRect.height);

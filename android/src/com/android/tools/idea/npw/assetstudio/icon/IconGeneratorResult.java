@@ -17,24 +17,37 @@ package com.android.tools.idea.npw.assetstudio.icon;
 
 import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
+import com.google.common.base.Predicates;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-public class IconGeneratorResult {
-  private Collection<GeneratedIcon> icons;
-  private IconGenerator.Options options;
+public final class IconGeneratorResult {
+  @NotNull private final Collection<GeneratedIcon> icons;
+  @NotNull private final IconGenerator.Options options;
 
   public IconGeneratorResult(@NotNull Collection<GeneratedIcon> icons, @NotNull IconGenerator.Options options) {
     this.icons = icons;
     this.options = options;
   }
 
+  @NotNull
   public Collection<GeneratedIcon> getIcons() {
     return icons;
   }
 
+  @NotNull
   public IconGenerator.Options getOptions() {
     return options;
+  }
+
+  @NotNull
+  public Collection<String> getErrors() {
+    return icons.stream()
+        .map(GeneratedIcon::getErrorMessage)
+        .filter(Predicates.notNull())
+        .distinct()
+        .collect(Collectors.toList());
   }
 }
