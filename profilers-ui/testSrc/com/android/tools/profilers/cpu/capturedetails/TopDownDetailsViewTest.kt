@@ -19,8 +19,19 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profilers.*
-import com.android.tools.profilers.cpu.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.CpuProfilerStageView
+import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
+import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -37,8 +48,8 @@ class TopDownDetailsViewTest {
 
   @JvmField
   @Rule
-  val grpcChannel = FakeGrpcChannel("TopDownDetailsViewTest", cpuService,  FakeProfilerService(),
-                                      FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
+  val grpcChannel = FakeGrpcChannel("TopDownDetailsViewTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer),
+                                    FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
   private lateinit var stageView: CpuProfilerStageView
   private lateinit var stage: CpuProfilerStage
@@ -47,7 +58,7 @@ class TopDownDetailsViewTest {
   fun setUp() {
     val profilers = StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
 
     stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage

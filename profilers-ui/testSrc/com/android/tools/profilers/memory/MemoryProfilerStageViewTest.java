@@ -15,19 +15,49 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profiler.proto.Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetNodeWithClassName;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findDescendantClassSetNodeWithInstance;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.getRootClassifierSet;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.ReferenceWalker;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
-import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.ClassSet;
+import com.android.tools.profilers.memory.adapters.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
+import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
+import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
+import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
@@ -36,37 +66,33 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.io.FileUtil;
 import icons.StudioIcons;
+import java.awt.Component;
 import java.awt.geom.Rectangle2D;
-import java.util.concurrent.Executor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.swing.*;
-import javax.swing.tree.TreePath;
-import java.awt.*;
 import java.io.File;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static com.android.tools.profiler.proto.Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.*;
-import static com.google.common.truth.Truth.assertThat;
+import javax.swing.ComboBoxModel;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
-  @NotNull private final FakeProfilerService myProfilerService = new FakeProfilerService();
+  @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myProfilerService, myService,
+    new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myTransportService, myService, new FakeProfilerService(myTimer),
                         new FakeCpuService(), new FakeEventService(), new FakeNetworkService.Builder().build());
   private StudioProfilersView myProfilersView;
 
@@ -183,7 +209,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(myStage.isTrackingAllocations()).isFalse();
 
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
-    myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(startTime));
+    myTimer.setCurrentTimeNs(TimeUnit.SECONDS.toNanos(startTime));
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
 
     myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.SUCCESS);
@@ -194,7 +220,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     assertThat(stageView.getCaptureElapsedTimeLabel().getText())
       .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(0));
 
-    myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(endTime));
+    myTimer.setCurrentTimeNs(TimeUnit.SECONDS.toNanos(endTime));
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CAPTURE_ELAPSED_TIME);
     assertThat(stageView.getCaptureElapsedTimeLabel().getText())
       .isEqualTo(TimeFormatter.getSemiSimplifiedClockString(deltaUs));
@@ -407,26 +433,30 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(8000).setEndTime(9000))
       .addGcStatsSamples(MemoryData.GcStatsSample.newBuilder().setStartTime(10000).setEndTime(11000))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-         .setTimestamp(1000)
-         .setSamplingRate(AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
+                                    .setTimestamp(1000)
+                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                                       .setSamplingNumInterval(
+                                                         MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-         .setTimestamp(5000)
-         .setSamplingRate(AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
+                                    .setTimestamp(5000)
+                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                                       .setSamplingNumInterval(
+                                                         MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-         .setTimestamp(8000)
-         .setSamplingRate(AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
+                                    .setTimestamp(8000)
+                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                                       .setSamplingNumInterval(
+                                                         MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-         .setTimestamp(10000)
-         .setSamplingRate(AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
+                                    .setTimestamp(10000)
+                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                                       .setSamplingNumInterval(
+                                                         MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .build();
     myService.setMemoryData(data);
 
     // Set up the correct agent and session state so that the MemoryProfilerStageView can be initialized properly.
-    myProfilerService.setAgentStatus(
+    myTransportService.setAgentStatus(
       Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
     myProfilers.getSessionsManager().endCurrentSession();
     myProfilers.getSessionsManager().beginSession(
@@ -464,26 +494,30 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
       .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(0).setJavaAllocationCount(0))
       .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setTimestamp(10000).setJavaAllocationCount(100))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-         .setTimestamp(1000)
-         .setSamplingRate(AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
+                                    .setTimestamp(1000)
+                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                                       .setSamplingNumInterval(
+                                                         MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-         .setTimestamp(5000)
-         .setSamplingRate(AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
+                                    .setTimestamp(5000)
+                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                                       .setSamplingNumInterval(
+                                                         MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-         .setTimestamp(8000)
-         .setSamplingRate(AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
+                                    .setTimestamp(8000)
+                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                                       .setSamplingNumInterval(
+                                                         MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())))
       .addAllocSamplingRateEvents(AllocationSamplingRateEvent.newBuilder()
-         .setTimestamp(10000)
-         .setSamplingRate(AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
+                                    .setTimestamp(10000)
+                                    .setSamplingRate(AllocationSamplingRate.newBuilder()
+                                                       .setSamplingNumInterval(
+                                                         MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())))
       .build();
     myService.setMemoryData(data);
 
     // Set up the correct agent and session state so that the MemoryProfilerStageView can be initialized properly.
-    myProfilerService.setAgentStatus(
+    myTransportService.setAgentStatus(
       Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
     myProfilers.getSessionsManager().endCurrentSession();
     myProfilers.getSessionsManager().beginSession(

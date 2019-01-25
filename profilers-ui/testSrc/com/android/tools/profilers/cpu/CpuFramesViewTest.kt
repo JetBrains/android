@@ -19,7 +19,14 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.ProfilerColors
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.ExpandedItemListCellRendererWrapper
@@ -32,17 +39,17 @@ import javax.swing.JList
 // TODO(b/110767935): add tests for handling mouse events (e.g. selecting a frame slice or toggling the panel expanded state)
 class CpuFramesViewTest {
   private val cpuService = FakeCpuService()
+  private val timer = FakeTimer()
 
   @Rule
   @JvmField
-  val grpcChannel = FakeGrpcChannel("FramesTest", cpuService, FakeProfilerService())
-  private val timer = FakeTimer()
+  val grpcChannel = FakeGrpcChannel("FramesTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer))
   private lateinit var stage: CpuProfilerStage
 
   @Before
   fun setUp() {
     val profilers = StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer)
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage

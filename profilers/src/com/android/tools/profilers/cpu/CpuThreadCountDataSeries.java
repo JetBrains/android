@@ -19,8 +19,10 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
+import com.android.tools.profiler.proto.Transport.EventGroup;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,11 +34,11 @@ import org.jetbrains.annotations.NotNull;
  * This class is responsible for querying CPU thread data from unified pipeline {@link Common.Event} and extract thread count data.
  */
 public class CpuThreadCountDataSeries implements DataSeries<Long> {
-  @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myClient;
+  @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myClient;
   private final long myStreamId;
   private final int myPid;
 
-  public CpuThreadCountDataSeries(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub client, long streamId, int pid) {
+  public CpuThreadCountDataSeries(@NotNull TransportServiceGrpc.TransportServiceBlockingStub client, long streamId, int pid) {
     myClient = client;
     myStreamId = streamId;
     myPid = pid;
@@ -46,16 +48,16 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
   public List<SeriesData<Long>> getDataForXRange(Range xRangeUs) {
     long minNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMin());
 
-    Profiler.GetEventGroupsRequest request = Profiler.GetEventGroupsRequest.newBuilder()
+    GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
       .setStreamId(myStreamId)
       .setPid(myPid)
       .setKind(Common.Event.Kind.CPU_THREAD)
       // TODO(b/122110659): set from_timestamp and to_timestamp when GetEventGroups works as intended.
       .build();
-    Profiler.GetEventGroupsResponse response = myClient.getEventGroups(request);
+    GetEventGroupsResponse response = myClient.getEventGroups(request);
 
     TreeMap<Long, Long> timestampToCountMap = new TreeMap<>();
-    for (Profiler.EventGroup group : response.getGroupsList()) {
+    for (EventGroup group : response.getGroupsList()) {
       if (group.getEventsCount() > 0) {
         Common.Event first = group.getEvents(0);
         Common.Event last = group.getEvents(group.getEventsCount() - 1);

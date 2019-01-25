@@ -21,7 +21,7 @@ import static com.android.tools.profiler.proto.Common.Event.EventGroupIds.NETWOR
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Network;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -66,9 +66,9 @@ public final class ProfilersTestData {
   }
 
   @NotNull
-  public static Profiler.EventGroup.Builder generateNetworkConnectionData(@NotNull HttpData data) {
+  public static EventGroup.Builder generateNetworkConnectionData(@NotNull HttpData data) {
     long connectionId = data.getId();
-    Profiler.EventGroup.Builder builder = Profiler.EventGroup.newBuilder().setGroupId(connectionId);
+    EventGroup.Builder builder = EventGroup.newBuilder().setGroupId(connectionId);
     long requestStartNs = TimeUnit.MICROSECONDS.toNanos(data.getRequestStartTimeUs());
     long requestCompleteNs = TimeUnit.MICROSECONDS.toNanos(data.getRequestCompleteTimeUs());
     long responseStartNs = TimeUnit.MICROSECONDS.toNanos(data.getResponseStartTimeUs());

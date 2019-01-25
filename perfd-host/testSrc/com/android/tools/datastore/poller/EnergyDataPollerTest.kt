@@ -29,8 +29,10 @@ import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profiler.proto.EnergyServiceGrpc
 import com.android.tools.profiler.proto.NetworkProfiler
 import com.android.tools.profiler.proto.NetworkServiceGrpc
-import com.android.tools.profiler.proto.Profiler
 import com.android.tools.profiler.proto.ProfilerServiceGrpc
+import com.android.tools.profiler.proto.Transport.TimeRequest
+import com.android.tools.profiler.proto.Transport.TimeResponse
+import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.collect.Lists
 import io.grpc.stub.StreamObserver
 import org.junit.After
@@ -105,19 +107,19 @@ class EnergyDataPollerTest : DataStorePollerTest() {
    * Run the clock forward and re-poll.
    */
   private fun fastForward(timeNs: Long) {
-    fakeProfilerService.currentTimeNs += timeNs
+    fakeTransportService.currentTimeNs += timeNs
     pollTicker.run()
   }
 
-  private class FakeProfilerService : ProfilerServiceGrpc.ProfilerServiceImplBase() {
+  private class FakeTransportService : TransportServiceGrpc.TransportServiceImplBase() {
     var currentTimeNs: Long = 0
 
-    override fun getCurrentTime(request: Profiler.TimeRequest, responseObserver: StreamObserver<Profiler.TimeResponse>) {
-      responseObserver.onNext(Profiler.TimeResponse.newBuilder().setTimestampNs(currentTimeNs).build())
+    override fun getCurrentTime(request: TimeRequest, responseObserver: StreamObserver<TimeResponse>) {
+      responseObserver.onNext(TimeResponse.newBuilder().setTimestampNs(currentTimeNs).build())
       responseObserver.onCompleted()
     }
   }
-
+  
   private class FakeCpuService : CpuServiceGrpc.CpuServiceImplBase() {
     var dataList = ArrayList<Cpu.CpuUsageData>()
 
@@ -186,7 +188,7 @@ class EnergyDataPollerTest : DataStorePollerTest() {
   private val energyService = EnergyService(BatteryModel(TestPowerProfile(), SAMPLE_INTERVAL_NS), dataStoreService, pollTicker::run,
                                             FakeLogService())
 
-  private val fakeProfilerService = FakeProfilerService() // Used to provide timestamp
+  private val fakeTransportService = FakeTransportService() // Used to provide timestamp
   private val fakeCpuService = FakeCpuService() // Used to provide cpu data that affects energy usage
   private val fakeNetworkService = FakeNetworkService() // Used to provide test network data that affects energy usage
   private val fakeEnergyService = FakeEnergyService() // Host-side service calls fake device-side start/stop
@@ -197,7 +199,7 @@ class EnergyDataPollerTest : DataStorePollerTest() {
     EnergyDataPollerTest::class.java,
     testName,
     energyService,
-    fakeProfilerService,
+    fakeTransportService,
     fakeCpuService,
     fakeNetworkService,
     fakeEnergyService
@@ -208,7 +210,10 @@ class EnergyDataPollerTest : DataStorePollerTest() {
 
   @Before
   fun setUp() {
-    `when`(dataStoreService.getProfilerClient(ArgumentMatchers.any())).thenReturn(ProfilerServiceGrpc.newBlockingStub(grpcService.channel))
+    `when`(dataStoreService.getTransportClient(ArgumentMatchers.any())).thenReturn(
+      TransportServiceGrpc.newBlockingStub(grpcService.channel))
+    `when`(dataStoreService.getProfilerClient(ArgumentMatchers.any())).thenReturn(
+      ProfilerServiceGrpc.newBlockingStub(grpcService.channel))
     `when`(dataStoreService.getCpuClient(ArgumentMatchers.any())).thenReturn(CpuServiceGrpc.newBlockingStub(grpcService.channel))
     `when`(dataStoreService.getNetworkClient(ArgumentMatchers.any())).thenReturn(NetworkServiceGrpc.newBlockingStub(grpcService.channel))
     `when`(dataStoreService.getEnergyClient(ArgumentMatchers.any())).thenReturn(EnergyServiceGrpc.newBlockingStub(grpcService.channel))

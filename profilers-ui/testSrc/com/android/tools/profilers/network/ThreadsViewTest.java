@@ -15,32 +15,42 @@
  */
 package com.android.tools.profilers.network;
 
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessTableUI;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.EmptyRunnable;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.table.TableCellRenderer;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class ThreadsViewTest {
   private static final ImmutableList<HttpData> FAKE_DATA =
@@ -55,15 +65,17 @@ public class ThreadsViewTest {
       .add(newData(12, 115, 120, 14, "threadC"))
       .build();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ThreadsViewTest", new FakeProfilerService(false),
-                                                                   FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+  private final FakeTimer myTimer = new FakeTimer();
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("ThreadsViewTest", new FakeTransportService(myTimer, false), new FakeProfilerService(myTimer),
+                        FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkProfilerStageView myStageView;
   private ThreadsView myThreadsView;
   private FakeUi myUi;
 
   @Before
   public void setUp() throws InvocationTargetException, InterruptedException {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     myStageView = new NetworkProfilerStageView(profilersView, new NetworkProfilerStage(profilers));
     myThreadsView = new ThreadsView(myStageView);

@@ -15,29 +15,44 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findDescendantClassSetNodeWithInstance;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.getRootClassifierSet;
+import static com.android.tools.profilers.memory.adapters.FakeCaptureObject.DEFAULT_HEAP_ID;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.profilers.*;
-import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.ClassSet;
+import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
+import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableSet;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Supplier;
+import javax.swing.JTree;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.swing.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Supplier;
-
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findDescendantClassSetNodeWithInstance;
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.getRootClassifierSet;
-import static com.android.tools.profilers.memory.adapters.FakeCaptureObject.DEFAULT_HEAP_ID;
-import static org.junit.Assert.*;
-
 public class MemoryNavigationTest {
+  private final FakeTimer myTimer = new FakeTimer();
   @Rule public final FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeProfilerService(), new FakeMemoryService());
+    new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
+                        new FakeMemoryService());
 
   private MemoryProfilerStage myStage;
   private MemoryProfilerStageView myStageView;
@@ -46,7 +61,7 @@ public class MemoryNavigationTest {
   @Before
   public void before() {
     FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices, new FakeTimer());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices, myTimer);
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
     StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents);
 

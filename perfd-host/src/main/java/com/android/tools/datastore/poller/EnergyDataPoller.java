@@ -29,8 +29,8 @@ import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Transport.TimeRequest;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import io.grpc.StatusRuntimeException;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +53,7 @@ public final class EnergyDataPoller extends PollRunner {
   private Cpu.CpuUsageData myLastData = null;
   private PowerProfile.NetworkType myLastKnownNetworkType = PowerProfile.NetworkType.NONE;
 
-  @NotNull private ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
+  @NotNull private TransportServiceGrpc.TransportServiceBlockingStub myTransportService;
   @NotNull private CpuServiceGrpc.CpuServiceBlockingStub myCpuService;
   @NotNull private NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
 
@@ -65,7 +65,7 @@ public final class EnergyDataPoller extends PollRunner {
   public EnergyDataPoller(@NotNull Common.Session session,
                           @NotNull BatteryModel batteryModel,
                           @NotNull EnergyTable eventTable,
-                          @NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
+                          @NotNull TransportServiceGrpc.TransportServiceBlockingStub transportService,
                           @NotNull CpuServiceGrpc.CpuServiceBlockingStub cpuService,
                           @NotNull NetworkServiceGrpc.NetworkServiceBlockingStub networkService,
                           @NotNull EnergyServiceGrpc.EnergyServiceBlockingStub energyService,
@@ -73,7 +73,7 @@ public final class EnergyDataPoller extends PollRunner {
     super(POLLING_DELAY_NS);
     myBatteryModel = batteryModel;
     myEnergyTable = eventTable;
-    myProfilerService = profilerService;
+    myTransportService = transportService;
     myCpuService = cpuService;
     myNetworkService = networkService;
     myEnergyService = energyService;
@@ -97,8 +97,8 @@ public final class EnergyDataPoller extends PollRunner {
 
   // TODO: Remove this temporary function once we're not creating fake data anymore
   private long queryCurrentTime() {
-    Profiler.TimeRequest timeRequest = Profiler.TimeRequest.newBuilder().setStreamId(mySession.getStreamId()).build();
-    return myProfilerService.getCurrentTime(timeRequest).getTimestampNs();
+    TimeRequest timeRequest = TimeRequest.newBuilder().setStreamId(mySession.getStreamId()).build();
+    return myTransportService.getCurrentTime(timeRequest).getTimestampNs();
   }
 
   @Override
@@ -194,7 +194,7 @@ public final class EnergyDataPoller extends PollRunner {
 
       CpuProfiler.CpuDataRequest cpuDataRequest =
         CpuProfiler.CpuDataRequest.newBuilder().setSession(request.getSession()).setStartTimestamp(request.getStartTimestamp())
-                                  .setEndTimestamp(request.getEndTimestamp()).build();
+          .setEndTimestamp(request.getEndTimestamp()).build();
       CpuProfiler.CpuDataResponse cpuDataResponse = myCpuService.getData(cpuDataRequest);
       Cpu.CpuUsageData prevUsageData = myLastData;
 

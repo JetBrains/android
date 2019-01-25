@@ -16,8 +16,17 @@
 package com.android.tools.datastore.database;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.datastore.DeviceId;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Common.Event;
+import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
+import com.android.tools.profiler.proto.Transport.BytesRequest;
+import com.android.tools.profiler.proto.Transport.BytesResponse;
+import com.android.tools.profiler.proto.Transport.EventGroup;
+import com.android.tools.profiler.proto.Transport.GetDevicesResponse;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Transport.GetProcessesRequest;
+import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -27,14 +36,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statements> {
   public enum Statements {
     // Since no data should be updated after it has been inserted we drop any duplicated request from the poller.
-    INSERT(
+    INSERT_EVENT(
       "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, ProcessId, GroupId, Kind, Timestamp, Data) VALUES (?, ?, ?, ?, ?, ?)"),
     // Only used for test.
-    QUERY_EVENTS("SELECT Data FROM [UnifiedEventsTable]");
+    QUERY_EVENTS("SELECT Data FROM [UnifiedEventsTable]"),
+    INSERT_DEVICE("INSERT OR REPLACE INTO [DevicesTable] (DeviceId, Data) values (?, ?)"),
+    INSERT_PROCESS("INSERT OR REPLACE INTO [ProcessesTable] (DeviceId, ProcessId, Name, State, StartTime, Arch) " +
+                   "values (?, ?, ?, ?, ?, ?)"),
+    UPDATE_PROCESS_STATE("UPDATE [ProcessesTable] Set State = ? WHERE DeviceId = ? AND ProcessId = ?"),
+    SELECT_PROCESSES("SELECT DeviceId, ProcessId, Name, State, StartTime, Arch from [ProcessesTable] WHERE DeviceId = ?"),
+    SELECT_PROCESS_BY_ID("SELECT ProcessId from [ProcessesTable] WHERE DeviceId = ? AND ProcessId = ?"),
+    SELECT_DEVICE("SELECT Data from [DevicesTable]"),
+    FIND_AGENT_STATUS("SELECT AgentStatus from [ProcessesTable] WHERE DeviceId = ? AND ProcessId = ?"),
+    UPDATE_AGENT_STATUS("UPDATE [ProcessesTable] SET AgentStatus = ? WHERE DeviceId = ? AND ProcessId = ?"),
+    INSERT_BYTES("INSERT OR IGNORE INTO [BytesTable] (StreamId, Id, Data) VALUES (?, ?, ?)"),
+    GET_BYTES("SELECT Data FROM [BytesTable] WHERE StreamId = ? AND Id = ?");
 
     @NotNull private final String mySqlStatement;
 
@@ -71,17 +92,23 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
                   "Kind INTEGER NOT NULL", // Required filter, required for all data.
                   "Timestamp INTEGER NOT NULL", // Optional filter, required for all data.
                   "Data BLOB");
-
+      createTable("DevicesTable", "DeviceId INTEGER", "Data BLOB");
+      createTable("ProcessesTable", "DeviceId INTEGER", "ProcessId INTEGER", "Name STRING NOT NULL", "State INTEGER",
+                  "StartTime INTEGER", "Arch STRING NOT NULL", "AgentStatus INTEGER");
+      createTable("BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Data BLOB");
       createUniqueIndex("UnifiedEventsTable", "StreamId", "ProcessId", "GroupId", "Kind", "Timestamp");
       createUniqueIndex("UnifiedEventsTable", "StreamId", "Kind", "Timestamp");
+      createUniqueIndex("DevicesTable", "DeviceId");
+      createUniqueIndex("ProcessesTable", "DeviceId", "ProcessId");
+      createUniqueIndex("BytesTable", "StreamId", "Id");
     }
     catch (SQLException ex) {
       onError(ex);
     }
   }
 
-  public void insertUnifiedEvent(long streamId, @NotNull Common.Event event) {
-    execute(Statements.INSERT,
+  public void insertUnifiedEvent(long streamId, @NotNull Event event) {
+    execute(Statements.INSERT_EVENT,
             streamId,
             event.getPid(),
             event.getGroupId(),
@@ -91,29 +118,29 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
   }
 
   @VisibleForTesting
-  public List<Common.Event> queryUnifiedEvents() {
+  public List<Event> queryUnifiedEvents() {
     return queryUnifiedEvents(Statements.QUERY_EVENTS);
   }
 
   /**
-   * Queries for set of events then groups them by {@link Common.Event#getGroupId()}
-   *
-   * The query filters data on {@link Common.Event#getKind()}, {@link Common.Event#getSessionId()}, {@link Common.Event#getGroupId()},
-   * and {@link Common.Event#getTimestamp()}.
-   *
-   * The timestamp is filtered by the optional parameters of {@link Profiler.GetEventGroupsRequest#getFromTimestamp()} and
-   * {@link Profiler.GetEventGroupsRequest#getToTimestamp()}.
-   *
-   * If the parameter {@link Profiler.GetEventGroupsRequest#getFromTimestamp()} is supplied then in addition to all events after the
+   * Queries for set of events then groups them by {@link Event#getGroupId()}
+   * <p>
+   * The query filters data on {@link Event#getKind()}, {@link Event#getSessionId()}, {@link Event#getGroupId()},
+   * and {@link Event#getTimestamp()}.
+   * <p>
+   * The timestamp is filtered by the optional parameters of {@link GetEventGroupsRequest#getFromTimestamp()} and
+   * {@link GetEventGroupsRequest#getToTimestamp()}.
+   * <p>
+   * If the parameter {@link GetEventGroupsRequest#getFromTimestamp()} is supplied then in addition to all events after the
    * supplied timestamp the latest event before the timestamp is also returned. The exception to this is if the
-   * {@link Common.Event#getIsEnded()} returns true, then these events are discarded and no X-1 event is returned.
-   *
-   * If the parameter {@link Profiler.GetEventGroupsRequest#getToTimestamp()} is supplied then in addition to all events before the
+   * {@link Event#getIsEnded()} returns true, then these events are discarded and no X-1 event is returned.
+   * <p>
+   * If the parameter {@link GetEventGroupsRequest#getToTimestamp()} is supplied then in addition to all events before the
    * supplied timestamp the first event after the timestamp is also returned. The exception to this is if the event at X+1 does not
    * previously have any elements in its group this event is not returned.
-   *
+   * <p>
    * FromTimestamp X - ToTimestamp Y Example
-   *
+   * <p>
    * Events
    *  1:  i----i----i-----i
    *  2:----e
@@ -127,18 +154,19 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
    *  1:  i----i----i-----i
    *  4:       i-----i
    *  5:  i---------------
-   *  Note: Group 1 has all elements returned due to +1/-1 behavior.
-   *  Note: Group 2 and group 3 do not get returned. Group 2 only has an end event before our from timestamp, while Group 3 only has data
-   *  after.
-   *  Note: Group 5 gets returned as it has a single event before our from timestamp that does not ended, or ends after our to timestamp.
+   * Note: Group 1 has all elements returned due to +1/-1 behavior.
+   * Note: Group 2 and group 3 do not get returned. Group 2 only has an end event before our from timestamp, while Group 3 only has data
+   * after.
+   * Note: Group 5 gets returned as it has a single event before our from timestamp that does not ended, or ends after our to timestamp.
+   *
    * @param request
    */
-  public List<Profiler.EventGroup> queryUnifiedEventGroups(@NotNull Profiler.GetEventGroupsRequest request) {
+  public List<EventGroup> queryUnifiedEventGroups(@NotNull GetEventGroupsRequest request) {
     ArrayList<Object> baseParams = new ArrayList<>();
     List<Object> beforeRangeParams = null;
     List<Object> afterRangeParams = null;
 
-    HashMap<Long, Profiler.EventGroup.Builder> builderGroups = new HashMap<>();
+    HashMap<Long, EventGroup.Builder> builderGroups = new HashMap<>();
     // The string format allows for altering the group by results for +1 and -1 queries.
     String sql = "SELECT [Data]%s From [UnifiedEventsTable] WHERE Kind = ? %s";
     StringBuilder filter = new StringBuilder();
@@ -196,35 +224,165 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       gatherEvents(sqlAfter, afterRangeParams, builderGroups, (event) -> builderGroups.containsKey(event.getGroupId()));
     }
 
-    List<Profiler.EventGroup> groups = new ArrayList<>();
+    List<EventGroup> groups = new ArrayList<>();
     builderGroups.values().forEach((builder) -> {
       groups.add(builder.build());
     });
     return groups;
   }
 
+
+  @NotNull
+  public GetDevicesResponse getDevices() {
+    if (isClosed()) {
+      return GetDevicesResponse.getDefaultInstance();
+    }
+
+    GetDevicesResponse.Builder responseBuilder = GetDevicesResponse.newBuilder();
+    try {
+      ResultSet results = executeQuery(Statements.SELECT_DEVICE);
+      while (results.next()) {
+        responseBuilder.addDevice(Common.Device.parseFrom(results.getBytes(1)));
+      }
+    }
+    catch (InvalidProtocolBufferException | SQLException ex) {
+      onError(ex);
+    }
+    return responseBuilder.build();
+  }
+
+  @NotNull
+  public GetProcessesResponse getProcesses(@NotNull GetProcessesRequest request) {
+    if (isClosed()) {
+      return GetProcessesResponse.getDefaultInstance();
+    }
+
+    GetProcessesResponse.Builder responseBuilder = GetProcessesResponse.newBuilder();
+    try {
+      ResultSet results = executeQuery(Statements.SELECT_PROCESSES, request.getDeviceId());
+      while (results.next()) {
+        long deviceId = results.getLong(1);
+        int pid = results.getInt(2);
+        String name = results.getString(3);
+        int state = results.getInt(4);
+        long startTimeNs = results.getLong(5);
+        String arch = results.getString(6);
+        Common.Process process = Common.Process.newBuilder()
+          .setDeviceId(deviceId)
+          .setPid(pid)
+          .setName(name)
+          .setState(Common.Process.State.forNumber(state))
+          .setStartTimestampNs(startTimeNs)
+          .setAbiCpuArch(arch)
+          .build();
+        responseBuilder.addProcess(process);
+      }
+    }
+    catch (SQLException ex) {
+      onError(ex);
+    }
+    return responseBuilder.build();
+  }
+
+  public void insertOrUpdateDevice(@NotNull Common.Device device) {
+    // TODO: Update start/end times with times polled from device.
+    // End time always equals now, start time comes from device. This way if we get disconnected we still have an accurate end time.
+    execute(Statements.INSERT_DEVICE, device.getDeviceId(), device.toByteArray());
+  }
+
+  public void insertOrUpdateProcess(@NotNull DeviceId devicdId, @NotNull Common.Process process) {
+    try {
+      ResultSet results = executeQuery(Statements.SELECT_PROCESS_BY_ID, devicdId.get(), process.getPid());
+      if (results.next()) {
+        execute(Statements.UPDATE_PROCESS_STATE, process.getStateValue(), devicdId.get(), process.getPid());
+      }
+      else {
+        execute(Statements.INSERT_PROCESS, devicdId.get(), process.getPid(), process.getName(), process.getStateValue(),
+                process.getStartTimestampNs(), process.getAbiCpuArch());
+      }
+    }
+    catch (SQLException ex) {
+      onError(ex);
+    }
+  }
+
+  /**
+   * NOTE: Currently an assumption is made such that the agent lives and dies along with the process it is attached to.
+   * If for some reason the agent freezes and we stop receiving a valid heartbeat momentarily, this will not downgrade the HasAgent status
+   * in the process entry.
+   */
+  public void updateAgentStatus(@NotNull DeviceId devicdId,
+                                @NotNull Common.Process process,
+                                @NotNull Common.AgentData agentData) {
+    try {
+      ResultSet results = executeQuery(Statements.FIND_AGENT_STATUS, devicdId.get(), process.getPid());
+      if (results.next()) {
+        execute(Statements.UPDATE_AGENT_STATUS, agentData.getStatus().ordinal(),
+                devicdId.get(), process.getPid());
+      }
+    }
+    catch (SQLException ex) {
+      onError(ex);
+    }
+  }
+
+  @NotNull
+  public Common.AgentData getAgentStatus(@NotNull AgentStatusRequest request) {
+    Common.AgentData.Builder responseBuilder = Common.AgentData.newBuilder();
+    try {
+      ResultSet results = executeQuery(Statements.FIND_AGENT_STATUS, request.getDeviceId(), request.getPid());
+      if (results.next()) {
+        responseBuilder.setStatusValue(results.getInt(1));
+      }
+    }
+    catch (SQLException ex) {
+      onError(ex);
+    }
+
+    return responseBuilder.build();
+  }
+
+  public void insertBytes(@NotNull long streamId, @NotNull String id, @NotNull BytesResponse response) {
+    execute(Statements.INSERT_BYTES, streamId, id, response.toByteArray());
+  }
+
+  @Nullable
+  public BytesResponse getBytes(@NotNull BytesRequest request) {
+    try {
+      ResultSet results = executeQuery(Statements.GET_BYTES, request.getStreamId(), request.getId());
+      if (results.next()) {
+        return BytesResponse.parseFrom(results.getBytes(1));
+      }
+    }
+    catch (InvalidProtocolBufferException | SQLException ex) {
+      onError(ex);
+    }
+
+    return null;
+  }
+
   /**
    * Executes the sql statement and passes each event through the filter. If the filter returns true, the event is added
    * to the hashmap. Otherwise it is ignored.
    *
-   * @param sql Statement to execute and gather a list of events
-   * @param params List of params to pass to the sql statement.
+   * @param sql           Statement to execute and gather a list of events
+   * @param params        List of params to pass to the sql statement.
    * @param builderGroups map of event group ids to event groups used to collect events into respective groups.
-   * @param filter predicate to determine which events are included in the event group.
+   * @param filter        predicate to determine which events are included in the event group.
    */
   private void gatherEvents(String sql,
                             List<Object> params,
-                            HashMap<Long, Profiler.EventGroup.Builder> builderGroups,
-                            Predicate<Common.Event> filter) {
+                            HashMap<Long, EventGroup.Builder> builderGroups,
+                            Predicate<Event> filter) {
     try {
       ResultSet results = executeOneTimeQuery(sql, params.toArray());
       while (results.next()) {
-        Common.Event event = Common.Event.parser().parseFrom(results.getBytes(1));
+        Event event = Event.parser().parseFrom(results.getBytes(1));
         if (!filter.test(event)) {
           continue;
         }
-        Profiler.EventGroup.Builder group =
-          builderGroups.computeIfAbsent(event.getGroupId(), key -> Profiler.EventGroup.newBuilder().setGroupId(key));
+        EventGroup.Builder group =
+          builderGroups.computeIfAbsent(event.getGroupId(), key -> EventGroup.newBuilder().setGroupId(key));
         group.addEvents(event);
       }
     }
@@ -233,12 +391,12 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
     }
   }
 
-  private List<Common.Event> queryUnifiedEvents(Statements stmt, Object... args) {
-    List<Common.Event> records = new ArrayList<>();
+  private List<Event> queryUnifiedEvents(Statements stmt, Object... args) {
+    List<Event> records = new ArrayList<>();
     try {
       ResultSet results = executeQuery(stmt, args);
       while (results.next()) {
-        records.add(Common.Event.parser().parseFrom(results.getBytes(1)));
+        records.add(Event.parser().parseFrom(results.getBytes(1)));
       }
     }
     catch (SQLException | InvalidProtocolBufferException ex) {

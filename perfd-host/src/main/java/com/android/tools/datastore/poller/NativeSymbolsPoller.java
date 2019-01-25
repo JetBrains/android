@@ -22,8 +22,9 @@ import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.nativeSymbolizer.Symbol;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Transport.GetProcessesRequest;
+import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,7 @@ public class NativeSymbolsPoller extends PollRunner {
   @NotNull
   private final NativeSymbolizer mySymbolizer;
   @NotNull
-  private ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
+  private TransportServiceGrpc.TransportServiceBlockingStub myTransportService;
   @NotNull
   private final LogService myLogService;
 
@@ -50,13 +51,13 @@ public class NativeSymbolsPoller extends PollRunner {
   public NativeSymbolsPoller(@NotNull Common.Session session,
                              @NotNull MemoryLiveAllocationTable liveAllocationTable,
                              @NotNull NativeSymbolizer symbolizer,
-                             @NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
+                             @NotNull TransportServiceGrpc.TransportServiceBlockingStub transportService,
                              @NotNull LogService logService) {
     super(POLLING_DELAY_NS);
     mySession = session;
     myLiveAllocationTable = liveAllocationTable;
     mySymbolizer = symbolizer;
-    myProfilerService = profilerService;
+    myTransportService = transportService;
     myLogService = logService;
   }
 
@@ -90,8 +91,8 @@ public class NativeSymbolsPoller extends PollRunner {
 
   @Nullable
   private Common.Process findProcess() {
-    Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setDeviceId(mySession.getStreamId()).build();
-    Profiler.GetProcessesResponse response = myProfilerService.getProcesses(request);
+    GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(mySession.getStreamId()).build();
+    GetProcessesResponse response = myTransportService.getProcesses(request);
     for (Common.Process process : response.getProcessList()) {
       if (process.getPid() == mySession.getPid()) {
         return process;
@@ -116,9 +117,9 @@ public class NativeSymbolsPoller extends PollRunner {
       return frame.toBuilder().setSymbolName(unfoundSymbolName).build();
     }
     return frame.toBuilder().setSymbolName(symbol.getName())
-                .setModuleName(symbol.getModule())
-                .setFileName(symbol.getSourceFile())
-                .setLineNumber(symbol.getLineNumber()).build();
+      .setModuleName(symbol.getModule())
+      .setFileName(symbol.getSourceFile())
+      .setLineNumber(symbol.getLineNumber()).build();
   }
 
   private long getOffsetOfPreviousInstruction(long offset) {

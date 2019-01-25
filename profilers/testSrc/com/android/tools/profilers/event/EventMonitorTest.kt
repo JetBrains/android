@@ -31,19 +31,18 @@ import org.junit.Test
 
 class EventMonitorTest {
   private val eventService = FakeEventService()
-
-  private val profilerService = FakeProfilerService(false)
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, false)
+  private val profilerService = FakeProfilerService(timer)
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("EventMonitorTest", profilerService, eventService)
+  val grpcChannel = FakeGrpcChannel("EventMonitorTest", transportService, profilerService, eventService)
 
   private lateinit var monitor: EventMonitor
-  private lateinit var timer: FakeTimer
   private lateinit var profilers: StudioProfilers
 
   @Before
   fun setUp() {
-    timer = FakeTimer()
     val services = FakeIdeProfilerServices()
     profilers = StudioProfilers(grpcChannel.client, services, timer)
     monitor = EventMonitor(profilers)
@@ -69,7 +68,7 @@ class EventMonitorTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     // Make sure the agent is attached and set the session afterwards. Monitor should be enabled.
-    profilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
+    transportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
     profilers.sessionsManager.setSession(session)
 
     assertThat(monitor.isEnabled).isTrue()

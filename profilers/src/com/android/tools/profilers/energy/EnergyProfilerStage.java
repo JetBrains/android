@@ -13,7 +13,16 @@
 // limitations under the License.
 package com.android.tools.profilers.energy;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.EaseOutModel;
+import com.android.tools.adtui.model.Interpolatable;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SelectionListener;
+import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.EnergyAxisFormatter;
@@ -24,9 +33,13 @@ import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Transport.BytesRequest;
+import com.android.tools.profiler.proto.Transport.BytesResponse;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.event.EventMonitor;
@@ -34,12 +47,11 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_ENERGY_SELECTION = "energy.used.selection";
@@ -80,7 +92,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange());
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
     profilers.addDependency(myAspectObserver)
-             .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
+      .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
     mySelectionModel.addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {
@@ -215,7 +227,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
 
     if (mySelectedDuration != null) {
       getStudioProfilers().getIdeServices().getFeatureTracker()
-                          .trackSelectEnergyEvent(new EnergyEventMetadata(mySelectedDuration.getEventList()));
+        .trackSelectEnergyEvent(new EnergyEventMetadata(mySelectedDuration.getEventList()));
     }
   }
 
@@ -239,13 +251,12 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
       return ByteString.EMPTY;
     }
 
-    Profiler.BytesRequest request =
-      Profiler.BytesRequest.newBuilder()
-                           .setId(id)
-                           .setSession(getStudioProfilers().getSession())
-                           .build();
+    BytesRequest request = BytesRequest.newBuilder()
+      .setStreamId(getStudioProfilers().getSession().getStreamId())
+      .setId(id)
+      .build();
 
-    Profiler.BytesResponse response = getStudioProfilers().getClient().getProfilerClient().getBytes(request);
+    BytesResponse response = getStudioProfilers().getClient().getTransportClient().getBytes(request);
     return response.getContents();
   }
 
@@ -267,11 +278,11 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull
   public EnergyEventOrigin getEventOrigin() {
     int savedOriginOrdinal = getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences()
-                                                 .getInt(ENERGY_EVENT_ORIGIN_INDEX, EnergyEventOrigin.ALL.ordinal());
+      .getInt(ENERGY_EVENT_ORIGIN_INDEX, EnergyEventOrigin.ALL.ordinal());
     return EnergyEventOrigin.values()[savedOriginOrdinal];
   }
 
- public void setEventOrigin(@NotNull EnergyEventOrigin origin) {
+  public void setEventOrigin(@NotNull EnergyEventOrigin origin) {
     if (getEventOrigin() != origin) {
       getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setInt(ENERGY_EVENT_ORIGIN_INDEX, origin.ordinal());
       // As the selected duration is in the stage, update it before the table view update because the table view need reflect the selection.
@@ -290,7 +301,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   public List<EnergyDuration> filterByOrigin(@NotNull List<EnergyDuration> list) {
     String appName = getStudioProfilers().getSelectedAppName();
     return list.stream().filter(duration -> getEventOrigin().isValid(appName, myTraceCache.getTraceData(duration.getCalledByTraceId())))
-               .collect(Collectors.toList());
+      .collect(Collectors.toList());
   }
 
   @Override
@@ -311,7 +322,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
       myNetworkLegend = new SeriesLegend(detailedUsage.getNetworkUsageSeries(), EnergyAxisFormatter.LEGEND_FORMATTER, range, "Network",
                                          Interpolatable.SegmentInterpolator);
       myLocationLegend = new SeriesLegend(detailedUsage.getLocationUsageSeries(), EnergyAxisFormatter.LEGEND_FORMATTER, range, "Location",
-                                     Interpolatable.SegmentInterpolator);
+                                          Interpolatable.SegmentInterpolator);
 
       add(myCpuLegend);
       add(myNetworkLegend);

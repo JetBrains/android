@@ -17,6 +17,8 @@ package com.android.tools.profilers.network;
 
 import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
 import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
+import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
 import static com.google.common.truth.Truth.assertThat;
@@ -32,6 +34,7 @@ import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
@@ -74,23 +77,23 @@ public class NetworkProfilerStageTest {
              .setResponsePayloadId(TEST_PAYLOAD_ID).build())
       .build();
 
-  private FakeProfilerService myProfilerService = new FakeProfilerService(true);
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerStageTest", myProfilerService,
-                                                                   new FakeEventService(), new FakeCpuService(), new FakeMemoryService(),
-                                                                   FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA)
-                                                                     .setHttpDataList(FAKE_HTTP_DATA).build());
+  private FakeTimer myTimer = new FakeTimer();
+  private FakeTransportService myTransportService = new FakeTransportService(myTimer, true);
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("NetworkProfilerStageTest", myTransportService, new FakeProfilerService(myTimer),
+                        new FakeEventService(), new FakeCpuService(), new FakeMemoryService(),
+                        FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA)
+                          .setHttpDataList(FAKE_HTTP_DATA).build());
 
   private NetworkProfilerStage myStage;
 
-  private FakeTimer myTimer;
 
   private StudioProfilers myStudioProfilers;
 
   @Before
   public void setUp() {
-    myTimer = new FakeTimer();
     myStudioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
-    myStudioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
+    myStudioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myStage = new NetworkProfilerStage(myStudioProfilers);
     myStage.getStudioProfilers().getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(5));
     myStage.getStudioProfilers().setStage(myStage);
@@ -98,14 +101,14 @@ public class NetworkProfilerStageTest {
     // TODO remove once we remove the legacy pipeline codebase.
     for (HttpData httpData : FAKE_HTTP_DATA) {
       String stackTrace = TestHttpData.fakeStackTrace(httpData.getId());
-      myProfilerService.addFile(TestHttpData.fakeStackTraceId(stackTrace), ByteString.copyFromUtf8(stackTrace));
+      myTransportService.addFile(TestHttpData.fakeStackTraceId(stackTrace), ByteString.copyFromUtf8(stackTrace));
     }
   }
 
   @Test
   public void getConnectionsModel() {
     String dummyPayloadContent = "Dummy Contents";
-    myProfilerService.addFile(TEST_PAYLOAD_ID, ByteString.copyFromUtf8(dummyPayloadContent));
+    myTransportService.addFile(TEST_PAYLOAD_ID, ByteString.copyFromUtf8(dummyPayloadContent));
 
     NetworkConnectionsModel connectionsModel = myStage.getConnectionsModel();
     List<HttpData> dataList = connectionsModel.getData(new Range(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(16)));
@@ -300,7 +303,7 @@ public class NetworkProfilerStageTest {
       .setResponsePayloadId(TEST_PAYLOAD_ID);
     HttpData data = builder.build();
     String content = "Unzipped payload";
-    myProfilerService.addFile(TEST_PAYLOAD_ID, ByteString.copyFrom(content.getBytes(Charset.defaultCharset())));
+    myTransportService.addFile(TEST_PAYLOAD_ID, ByteString.copyFrom(content.getBytes(Charset.defaultCharset())));
 
     AspectObserver observer = new AspectObserver();
     final boolean[] connectionChanged = {false};
@@ -342,7 +345,7 @@ public class NetworkProfilerStageTest {
     assertThat(zippedBytes.toByteArray().length).isGreaterThan(0);
     assertThat(zippedBytes.toByteArray().length).isNotEqualTo(unzippedBytes.length);
     ByteString zippedBytesString = ByteString.copyFrom(zippedBytes.toByteArray());
-    myProfilerService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
+    myTransportService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
 
     assertThat(myStage.setSelectedConnection(data)).isTrue();
     String output = Payload.newResponsePayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
@@ -359,7 +362,7 @@ public class NetworkProfilerStageTest {
     String unzippedPayload = "Unzipped payload";
     byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
     ByteString unzippedBytesString = ByteString.copyFrom(unzippedBytes);
-    myProfilerService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
+    myTransportService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
 
     assertThat(myStage.setSelectedConnection(data)).isTrue();
     String output = Payload.newResponsePayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
@@ -382,7 +385,7 @@ public class NetworkProfilerStageTest {
     assertThat(zippedBytes.toByteArray().length).isGreaterThan(0);
     assertThat(zippedBytes.toByteArray().length).isNotEqualTo(unzippedBytes.length);
     ByteString zippedBytesString = ByteString.copyFrom(zippedBytes.toByteArray());
-    myProfilerService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
+    myTransportService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
 
     myStage.setSelectedConnection(data);
     String output = Payload.newRequestPayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
@@ -399,7 +402,7 @@ public class NetworkProfilerStageTest {
     String unzippedPayload = "Unzipped payload";
     byte[] unzippedBytes = unzippedPayload.getBytes(Charset.defaultCharset());
     ByteString unzippedBytesString = ByteString.copyFrom(unzippedBytes);
-    myProfilerService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
+    myTransportService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
 
     myStage.setSelectedConnection(data);
     String output = Payload.newRequestPayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
@@ -444,7 +447,7 @@ public class NetworkProfilerStageTest {
   public void selectionDisabledWithoutAgent() {
     Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
 
-    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
+    myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     // Need to re-enter the stage again given the device/process can be set and return to the default StudioMonitorStage.
     myStage.getStudioProfilers().setStage(myStage);
@@ -455,7 +458,7 @@ public class NetworkProfilerStageTest {
     assertThat(selection.getMin()).isWithin(EPSILON).of(0);
     assertThat(selection.getMax()).isWithin(EPSILON).of(100);
 
-    myProfilerService.setAgentStatus(DEFAULT_AGENT_DETACHED_RESPONSE);
+    myTransportService.setAgentStatus(DEFAULT_AGENT_DETACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     assertThat(myStage.getStudioProfilers().isAgentAttached()).isFalse();
 

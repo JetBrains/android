@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.profilers.perfd;
 
-import com.android.ddmlib.IDevice;
 import com.android.tools.idea.transport.TransportProxyService;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
+import org.jetbrains.annotations.NotNull;
 
 public final class EnergyServiceProxy extends TransportProxyService {
   private EnergyServiceGrpc.EnergyServiceBlockingStub myServiceStub;
 
-  public EnergyServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
+  public EnergyServiceProxy(@NotNull ManagedChannel channel) {
     super(EnergyServiceGrpc.getServiceDescriptor());
     myServiceStub = EnergyServiceGrpc.newBlockingStub(channel);
   }

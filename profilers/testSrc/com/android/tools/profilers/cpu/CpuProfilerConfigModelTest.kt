@@ -24,6 +24,7 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -34,19 +35,20 @@ import org.junit.Rule
 import org.junit.Test
 
 class CpuProfilerConfigModelTest {
-
+  private val myTimer = FakeTimer()
   private val myServices = FakeIdeProfilerServices()
   private var myProfilers: StudioProfilers? = null
   private var myProfilerStage: CpuProfilerStage? = null
   private var model: CpuProfilerConfigModel? = null
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("CpuProfilerConfigModelTest", FakeCpuService(), FakeProfilerService(),
-      FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
+  var myGrpcChannel = FakeGrpcChannel("CpuProfilerConfigModelTest", FakeCpuService(), FakeTransportService(myTimer),
+                                      FakeProfilerService(myTimer), FakeMemoryService(), FakeEventService(),
+                                      FakeNetworkService.newBuilder().build())
 
   @Before
   fun setup() {
-    myProfilers = StudioProfilers(myGrpcChannel.client, myServices, FakeTimer())
+    myProfilers = StudioProfilers(myGrpcChannel.client, myServices, myTimer)
     myProfilerStage = CpuProfilerStage(myProfilers!!)
     model = CpuProfilerConfigModel(myProfilers!!, myProfilerStage!!)
   }

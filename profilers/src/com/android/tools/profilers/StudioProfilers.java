@@ -15,28 +15,36 @@
  */
 package com.android.tools.profilers;
 
+import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
+import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
+
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.FpsTimer;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StopwatchTimer;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Common.*;
-import com.android.tools.profiler.proto.Common.AgentStatusRequest;
 import com.android.tools.profiler.proto.Common.AgentData;
-import com.android.tools.profiler.proto.Profiler.EventGroup;
-import com.android.tools.profiler.proto.Profiler.GetDevicesRequest;
-import com.android.tools.profiler.proto.Profiler.GetDevicesResponse;
-import com.android.tools.profiler.proto.Profiler.GetEventGroupsRequest;
-import com.android.tools.profiler.proto.Profiler.GetEventGroupsResponse;
-import com.android.tools.profiler.proto.Profiler.GetProcessesRequest;
-import com.android.tools.profiler.proto.Profiler.GetProcessesResponse;
-import com.android.tools.profiler.proto.Profiler.TimeRequest;
-import com.android.tools.profiler.proto.Profiler.TimeResponse;
+import com.android.tools.profiler.proto.Common.Device;
+import com.android.tools.profiler.proto.Common.Event;
+import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
+import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
+import com.android.tools.profiler.proto.Transport.EventGroup;
+import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
+import com.android.tools.profiler.proto.Transport.GetDevicesResponse;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
+import com.android.tools.profiler.proto.Transport.GetProcessesRequest;
+import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
+import com.android.tools.profiler.proto.Transport.TimeRequest;
+import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfiler;
@@ -54,19 +62,21 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.StatusRuntimeException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
-import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * The suite of profilers inside Android Studio. This object is responsible for maintaining the information
@@ -190,7 +200,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       setStage(new StudioMonitorStage(this));
       if (SessionsManager.isSessionAlive(mySelectedSession)) {
         // The session is live - move the timeline to the current time.
-        TimeResponse timeResponse = myClient.getProfilerClient().getCurrentTime(
+        TimeResponse timeResponse = myClient.getTransportClient().getCurrentTime(
           TimeRequest.newBuilder().setStreamId(mySelectedSession.getStreamId()).build());
 
         myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
@@ -209,8 +219,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     });
 
     mySessionsManager.addDependency(this)
-                     .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
-                     .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
+      .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
+      .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
 
     myViewAxis = new ResizingAxisComponentModel.Builder(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT)
       .setGlobalRange(myTimeline.getDataRange()).build();
@@ -315,7 +325,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         .setStreamId(-1)  // DataStoreService.DATASTORE_RESERVED_STREAM_ID
         .setKind(Event.Kind.STREAM)
         .build();
-      GetEventGroupsResponse response = client.getProfilerClient().getEventGroups(request);
+      GetEventGroupsResponse response = client.getTransportClient().getEventGroups(request);
       for (EventGroup group : response.getGroupsList()) {
         boolean isStreamDead = group.getEvents(group.getEventsCount() - 1).getIsEnded();
         Common.Event connectedEvent = getLastMatchingEvent(group, e -> (e.hasStream() && e.getStream().hasStreamConnected()));
@@ -339,7 +349,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
     }
     else {
-      GetDevicesResponse response = client.getProfilerClient().getDevices(GetDevicesRequest.getDefaultInstance());
+      GetDevicesResponse response = client.getTransportClient().getDevices(GetDevicesRequest.getDefaultInstance());
       devices = response.getDeviceList();
     }
     return devices;
@@ -362,7 +372,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
             .setStreamId(myStreamIds.get(device))
             .setKind(Event.Kind.PROCESS)
             .build();
-          GetEventGroupsResponse processResponse = myClient.getProfilerClient().getEventGroups(processRequest);
+          GetEventGroupsResponse processResponse = myClient.getTransportClient().getEventGroups(processRequest);
           List<Common.Process> processList = new ArrayList<>();
           int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
           // A group is a collection of events that happened to a single process.
@@ -389,14 +399,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       else {
         for (Common.Device device : devices) {
           GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(device.getDeviceId()).build();
-          GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
+          GetProcessesResponse processes = myClient.getTransportClient().getProcesses(request);
 
           int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
           List<Common.Process> processList = processes.getProcessList()
-                                                      .stream()
-                                                      .filter(process -> process.getState() == Common.Process.State.ALIVE ||
-                                                                         process.getPid() == lastProcessId)
-                                                      .collect(Collectors.toList());
+            .stream()
+            .filter(process -> process.getState() == Common.Process.State.ALIVE ||
+                               process.getPid() == lastProcessId)
+            .collect(Collectors.toList());
 
           newProcesses.put(device, processList);
         }
@@ -474,7 +484,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   /**
    * Chooses a device+process combination, and starts profiling it if not already (and stops profiling the previous one).
    *
-   * @param device the device that will be selected. If it is null, no device and process will be selected for profiling.
+   * @param device  the device that will be selected. If it is null, no device and process will be selected for profiling.
    * @param process the process that will be selected. Note that the process is expected to be spawned from the specified device.
    *                If it is null, a process will be determined automatically by heuristics.
    */
@@ -595,8 +605,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     ProfilingStateResponse response = getClient().getCpuClient()
-                                                 .checkAppProfilingState(
-                                                   ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
+      .checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
 
     return response.getBeingProfiled() && response.getIsStartupProfiling();
   }
@@ -650,7 +659,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // In legacy pipeline we don't have streams so we set device ID to session's stream ID.
       AgentStatusRequest statusRequest =
         AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getStreamId()).build();
-      return myClient.getProfilerClient().getAgentStatus(statusRequest);
+      return myClient.getTransportClient().getAgentStatus(statusRequest);
     }
     // Get agent data for requested session.
     GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
@@ -658,7 +667,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       .setStreamId(session.getStreamId())
       .setPid(session.getPid())
       .build();
-    GetEventGroupsResponse response = myClient.getProfilerClient().getEventGroups(request);
+    GetEventGroupsResponse response = myClient.getTransportClient().getEventGroups(request);
     for (EventGroup group : response.getGroupsList()) {
       agentData = group.getEvents(group.getEventsCount() - 1).getAgentData();
     }

@@ -32,9 +32,9 @@ import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.ProfilerServiceProxyManager;
-import com.android.tools.idea.transport.TransportProxy;
-import com.android.tools.idea.profilers.perfd.ProfilerServiceProxy;
+import com.android.tools.idea.profilers.perfd.TransportServiceProxy;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.profiler.proto.Common;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
@@ -361,10 +361,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
         if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
           myDataStore.connect(Common.Stream.newBuilder()
-                                             .setStreamId(myDataStore.getUniqueStreamId())
-                                             .setType(Common.Stream.Type.DEVICE)
-                                             .setDevice(ProfilerServiceProxy.profilerDeviceFromIDevice(myDevice))
-                                             .build(),
+                                .setStreamId(myDataStore.getUniqueStreamId())
+                                .setType(Common.Stream.Type.DEVICE)
+                                .setDevice(TransportServiceProxy.transportDeviceFromIDevice(myDevice))
+                                .build(),
                               proxyChannel);
         }
         else {
