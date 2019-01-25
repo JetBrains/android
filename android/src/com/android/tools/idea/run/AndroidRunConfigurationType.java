@@ -64,4 +64,9 @@ public final class AndroidRunConfigurationType extends ConfigurationTypeBase {
   public ConfigurationFactory getFactory() {
     return getConfigurationFactories()[0];
   }
+
+  @Override
+  public boolean isDumbAware() {
+    return true;
+  }
 }
