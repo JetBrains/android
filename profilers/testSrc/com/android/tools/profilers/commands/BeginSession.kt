@@ -36,7 +36,6 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
     if (attachAgentCalled) {
       events.add(Profiler.EventGroup.newBuilder().setGroupId(nextSessionId)
                    .addEvents(Common.Event.newBuilder().apply {
-                     groupId = nextSessionId
                      pid = command.beginSession.pid
                      kind = Common.Event.Kind.AGENT
                      timestamp = timer.currentTimeNs
