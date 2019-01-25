@@ -25,20 +25,20 @@ import com.android.tools.profiler.proto.Common.Device;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.SessionData;
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.Profiler.BeginSession;
 import com.android.tools.profiler.proto.Profiler.BeginSessionRequest;
 import com.android.tools.profiler.proto.Profiler.BeginSessionResponse;
-import com.android.tools.profiler.proto.Profiler.Command;
 import com.android.tools.profiler.proto.Profiler.DeleteSessionRequest;
-import com.android.tools.profiler.proto.Profiler.EndSession;
 import com.android.tools.profiler.proto.Profiler.EndSessionRequest;
 import com.android.tools.profiler.proto.Profiler.EndSessionResponse;
-import com.android.tools.profiler.proto.Profiler.EventGroup;
-import com.android.tools.profiler.proto.Profiler.ExecuteRequest;
-import com.android.tools.profiler.proto.Profiler.GetEventGroupsRequest;
-import com.android.tools.profiler.proto.Profiler.GetEventGroupsResponse;
 import com.android.tools.profiler.proto.Profiler.GetSessionsRequest;
 import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
+import com.android.tools.profiler.proto.Transport.BeginSession;
+import com.android.tools.profiler.proto.Transport.Command;
+import com.android.tools.profiler.proto.Transport.EndSession;
+import com.android.tools.profiler.proto.Transport.EventGroup;
+import com.android.tools.profiler.proto.Transport.ExecuteRequest;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
@@ -208,10 +208,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
   private void updateSessions() {
     assert myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled();
-    GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
-                                                         .setKind(Event.Kind.SESSION)
-                                                         .build();
-    GetEventGroupsResponse response = myProfilers.getClient().getProfilerClient().getEventGroups(request);
+    GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder().setKind(Event.Kind.SESSION).build();
+    GetEventGroupsResponse response = myProfilers.getClient().getTransportClient().getEventGroups(request);
     updateSessionItemsByGroup(response.getGroupsList());
   }
 
@@ -361,7 +359,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setBeginSession(requestBuilder)
         .setType(Command.CommandType.BEGIN_SESSION)
         .build();
-      myProfilers.getClient().getProfilerClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
+      myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
     }
     else {
       BeginSessionRequest.Builder requestBuilder = BeginSessionRequest.newBuilder()
@@ -407,7 +405,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         .setEndSession(EndSession.newBuilder().setSessionId(profilingSession.getSessionId()))
         .setType(Command.CommandType.END_SESSION)
         .build();
-      myProfilers.getClient().getProfilerClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
+      myProfilers.getClient().getTransportClient().execute(ExecuteRequest.newBuilder().setCommand(command).build());
     }
     else {
       // In legacy pipeline BeginSession uses device ID as stream ID.
@@ -415,6 +413,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         EndSessionRequest.newBuilder()
           .setDeviceId(profilingSession.getStreamId())
           .setSessionId(profilingSession.getSessionId())
+          .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myProfilers.getTimeline().getDataRange().getMax()))
           .build());
       Common.Session session = response.getSession();
       updateSessionItems(Collections.singletonList(session));
@@ -460,20 +459,20 @@ public class SessionsManager extends AspectModel<SessionAspect> {
                                               long endTimestampNs,
                                               long startTimestampEpochMs) {
     Common.Session session = Common.Session.newBuilder()
-                                           .setSessionId(generateUniqueSessionId())
-                                           .setStartTimestamp(startTimestampNs)
-                                           .setEndTimestamp(endTimestampNs)
-                                           .build();
+      .setSessionId(generateUniqueSessionId())
+      .setStartTimestamp(startTimestampNs)
+      .setEndTimestamp(endTimestampNs)
+      .build();
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       // TODO (b/73538507): Move over to new events pipeline.
     }
     else {
       Profiler.ImportSessionRequest sessionRequest = Profiler.ImportSessionRequest.newBuilder()
-                                                                                  .setSession(session)
-                                                                                  .setSessionName(sessionName)
-                                                                                  .setSessionType(sessionType)
-                                                                                  .setStartTimestampEpochMs(startTimestampEpochMs)
-                                                                                  .build();
+        .setSession(session)
+        .setSessionName(sessionName)
+        .setSessionType(sessionType)
+        .setStartTimestampEpochMs(startTimestampEpochMs)
+        .build();
       myProfilers.getClient().getProfilerClient().importSession(sessionRequest);
     }
     return session;

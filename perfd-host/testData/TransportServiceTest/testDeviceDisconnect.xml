@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
+<GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetDevices" Class="class com.android.tools.profiler.proto.Transport$GetDevicesRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$GetDevicesRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/GetDevices</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetDevices" Class="class com.android.tools.profiler.proto.Transport$GetDevicesResponse">
+        <Message>device {
+  device_id: 1234
+  serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$GetDevicesResponse</clazz>
+        <functionCalled>profiler.proto.TransportService/GetDevices</functionCalled>
+        <message>device {
+  device_id: 1234
+  serial: "SomeSerialId"
+  boot_id: "SOME BOOT ID"
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetProcesses" Class="class com.android.tools.profiler.proto.Transport$GetProcessesRequest">
+        <Message>device_id: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$GetProcessesRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/GetProcesses</functionCalled>
+        <message>device_id: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetProcesses" Class="class com.android.tools.profiler.proto.Transport$GetProcessesResponse">
+        <Message>process {
+  name: "INITIAL"
+  pid: 1234
+  device_id: 1234
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$GetProcessesResponse</clazz>
+        <functionCalled>profiler.proto.TransportService/GetProcesses</functionCalled>
+        <message>process {
+  name: "INITIAL"
+  pid: 1234
+  device_id: 1234
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetAgentStatus" Class="class com.android.tools.profiler.proto.Transport$AgentStatusRequest">
+        <Message>device_id: 1234
+pid: 1234
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$AgentStatusRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/GetAgentStatus</functionCalled>
+        <message>device_id: 1234
+pid: 1234
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetAgentStatus" Class="class com.android.tools.profiler.proto.Common$AgentData">
+        <Message>status: ATTACHED
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Common$AgentData</clazz>
+        <functionCalled>profiler.proto.TransportService/GetAgentStatus</functionCalled>
+        <message>status: ATTACHED
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetDevices" Class="class com.android.tools.profiler.proto.Transport$GetDevicesRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$GetDevicesRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/GetDevices</functionCalled>
+        <message></message>
+    </GrpcCall>
+</GrpcList>

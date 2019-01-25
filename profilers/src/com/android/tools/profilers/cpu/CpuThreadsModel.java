@@ -25,7 +25,9 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Transport.EventGroup;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.DragAndDropListModel;
 import com.android.tools.profilers.DragAndDropModelListElement;
 import java.util.Arrays;
@@ -85,8 +87,8 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     Map<Integer, RangedCpuThread> requestedThreadsRangedCpuThreads = new HashMap<>();
 
     if (myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      Profiler.GetEventGroupsResponse response = myStage.getStudioProfilers().getClient().getProfilerClient().getEventGroups(
-        Profiler.GetEventGroupsRequest.newBuilder()
+      GetEventGroupsResponse response = myStage.getStudioProfilers().getClient().getTransportClient().getEventGroups(
+        GetEventGroupsRequest.newBuilder()
           .setStreamId(mySession.getStreamId())
           .setPid(mySession.getPid())
           .setKind(Common.Event.Kind.CPU_THREAD)
@@ -95,7 +97,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
           .build());
 
       // Merge the two lists.
-      for (Profiler.EventGroup eventGroup : response.getGroupsList()) {
+      for (EventGroup eventGroup : response.getGroupsList()) {
         if (eventGroup.getEventsCount() > 0) {
           Common.Event first = eventGroup.getEvents(0);
           Common.Event last = eventGroup.getEvents(eventGroup.getEventsCount() - 1);
@@ -200,8 +202,8 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
   void buildImportedTraceThreads(@NotNull CpuCapture capture) {
     // Create the RangedCpuThread objects from the capture's threads
     List<RangedCpuThread> threads = capture.getThreads().stream()
-                                           .map(thread -> new RangedCpuThread(myRange, thread.getId(), thread.getName(), capture))
-                                           .collect(Collectors.toList());
+      .map(thread -> new RangedCpuThread(myRange, thread.getId(), thread.getName(), capture))
+      .collect(Collectors.toList());
     // Now insert the elements in order.
     threads.forEach(this::insertOrderedElement);
     sortElements();
@@ -265,7 +267,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
         // Capture is null for non-imported traces
         DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries =
           myStage.getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled() ?
-          new CpuThreadStateDataSeries(myStage.getStudioProfilers().getClient().getProfilerClient(),
+          new CpuThreadStateDataSeries(myStage.getStudioProfilers().getClient().getTransportClient(),
                                        mySession.getStreamId(),
                                        mySession.getPid(),
                                        myThreadId) :

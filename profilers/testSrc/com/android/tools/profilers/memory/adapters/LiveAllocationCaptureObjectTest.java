@@ -29,6 +29,7 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -58,8 +59,12 @@ import org.junit.runners.Parameterized.Parameters;
 
 
 public class LiveAllocationCaptureObjectTest {
+  @NotNull private final FakeTimer myTimer = new FakeTimer();
   @NotNull protected final FakeMemoryService myService = new FakeMemoryService();
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LiveAllocationCaptureObjectTest", new FakeProfilerService(), myService);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LiveAllocationCaptureObjectTest",
+                                                                   new FakeTransportService(myTimer),
+                                                                   new FakeProfilerService(myTimer),
+                                                                   myService);
 
   protected final int CAPTURE_START_TIME = 0;
   protected final ExecutorService LOAD_SERVICE = MoreExecutors.newDirectExecutorService();
@@ -73,7 +78,7 @@ public class LiveAllocationCaptureObjectTest {
 
   public void before() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, new FakeTimer()));
+    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, myTimer));
   }
 
   @RunWith(value = Parameterized.class)
@@ -504,21 +509,25 @@ public class LiveAllocationCaptureObjectTest {
     public void testInfoMessageBasedOnSelection() {
       MemoryProfiler.MemoryData memoryData = MemoryProfiler.MemoryData.newBuilder().setEndTimestamp(1)
         .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-          .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME))
-          .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build()))
+                                      .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME))
+                                      .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+                                                         .setSamplingNumInterval(
+                                                           MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build()))
         .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-          .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + 1))
-          .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build()))
+                                      .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + 1))
+                                      .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+                                                         .setSamplingNumInterval(
+                                                           MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()).build()))
         .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-          .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + 2))
-          .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build()))
+                                      .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + 2))
+                                      .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+                                                         .setSamplingNumInterval(
+                                                           MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()).build()))
         .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
-          .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + 3))
-          .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
-            .setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build()))
+                                      .setTimestamp(TimeUnit.MICROSECONDS.toNanos(CAPTURE_START_TIME + 3))
+                                      .setSamplingRate(MemoryProfiler.AllocationSamplingRate.newBuilder()
+                                                         .setSamplingNumInterval(
+                                                           MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build()))
         .build();
       myService.setMemoryData(memoryData);
 

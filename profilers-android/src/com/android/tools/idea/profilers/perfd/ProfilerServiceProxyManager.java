@@ -32,15 +32,15 @@ public class ProfilerServiceProxyManager {
     IDevice device = transportProxy.getDevice();
     ManagedChannel perfdChannel = transportProxy.getTransportChannel();
 
-    transportProxy.registerProxyService(new ProfilerServiceProxy(device, perfdChannel));
+    transportProxy.registerProxyService(new TransportServiceProxy(device, perfdChannel));
+    transportProxy.registerProxyService(new ProfilerServiceProxy(perfdChannel));
     transportProxy.registerProxyService(new EventServiceProxy(device, perfdChannel));
-    transportProxy.registerProxyService(new CpuServiceProxy(device, perfdChannel, new StudioLegacyCpuTraceProfiler(device,
-                                                                                                                   CpuServiceGrpc
-                                                                                                     .newBlockingStub(perfdChannel))));
+    transportProxy.registerProxyService(
+      new CpuServiceProxy(device, perfdChannel, new StudioLegacyCpuTraceProfiler(device, CpuServiceGrpc.newBlockingStub(perfdChannel))));
     transportProxy.registerProxyService(new MemoryServiceProxy(
       device, perfdChannel, Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat(MEMORY_PROXY_EXECUTOR_NAME).build()),
       (d, p) -> new StudioLegacyAllocationTracker(d, p)));
-    transportProxy.registerProxyService(new NetworkServiceProxy(device, perfdChannel));
-    transportProxy.registerProxyService(new EnergyServiceProxy(device, perfdChannel));
+    transportProxy.registerProxyService(new NetworkServiceProxy(perfdChannel));
+    transportProxy.registerProxyService(new EnergyServiceProxy(perfdChannel));
   }
 }

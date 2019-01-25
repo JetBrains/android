@@ -15,29 +15,16 @@
  */
 package com.android.tools.idea.profilers.perfd
 
-import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.EnergyServiceGrpc
-import com.android.tools.profiler.proto.NetworkServiceGrpc
 import com.google.common.truth.Truth.assertThat
-import io.grpc.MethodDescriptor
 import io.grpc.inprocess.InProcessChannelBuilder
 import org.junit.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
-import java.util.stream.Collectors
 
 class EnergyServiceProxyTest {
   @Test
   fun testBindServiceContainsAllMethods() {
-    val mockDevice = mock(IDevice::class.java)
-    `when`(mockDevice.serialNumber).thenReturn("Serial")
-    `when`(mockDevice.name).thenReturn("Device")
-    `when`(mockDevice.version).thenReturn(AndroidVersion(1, "API"))
-    `when`(mockDevice.isOnline).thenReturn(true)
-    `when`(mockDevice.clients).thenReturn(arrayOfNulls(0))
     val channel = InProcessChannelBuilder.forName("EnergyServiceProxyTest").build()
-    val proxy = EnergyServiceProxy(mockDevice, channel)
+    val proxy = EnergyServiceProxy(channel)
 
     val serverDefinition = proxy.serviceDefinition
     val allMethods = EnergyServiceGrpc.getServiceDescriptor().methods

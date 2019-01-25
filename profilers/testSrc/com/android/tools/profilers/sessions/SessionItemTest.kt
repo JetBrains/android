@@ -19,7 +19,13 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.MemoryProfiler
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.NullMonitorStage
+import com.android.tools.profilers.StudioMonitorStage
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -31,25 +37,26 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 class SessionItemTest {
-  private val myProfilerService = FakeProfilerService(false)
+  private val myTimer = FakeTimer()
   private val myMemoryService = FakeMemoryService()
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel(
-      "SessionItemTestChannel",
-      myProfilerService,
-      myMemoryService,
-      FakeCpuService(),
-      FakeEventService(),
-      FakeNetworkService.newBuilder().build()
+    "SessionItemTestChannel",
+    FakeTransportService(myTimer, false),
+    FakeProfilerService(myTimer),
+    myMemoryService,
+    FakeCpuService(),
+    FakeEventService(),
+    FakeNetworkService.newBuilder().build()
   )
 
   @Test
   fun testNavigateToStudioMonitorStage() {
     val profilers = StudioProfilers(
-        myGrpcChannel.client,
-        FakeIdeProfilerServices(),
-        FakeTimer()
+      myGrpcChannel.client,
+      FakeIdeProfilerServices(),
+      FakeTimer()
     )
     Truth.assertThat(profilers.stageClass).isEqualTo(NullMonitorStage::class.java)
 

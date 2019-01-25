@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
@@ -34,12 +35,13 @@ import java.util.concurrent.TimeUnit
 
 class HprofSessionArtifactTest {
 
-  private val myProfilerService = FakeProfilerService(false)
+  private val timer = FakeTimer()
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel(
     "SessionsManagerTestChannel",
-    myProfilerService,
+    FakeTransportService(timer, false),
+    FakeProfilerService(timer),
     FakeMemoryService(),
     FakeCpuService(),
     FakeEventService(),

@@ -27,6 +27,7 @@ import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
@@ -74,9 +75,10 @@ public class ConnectionDetailsViewTest {
   private NetworkProfilerStageView myStageView;
   private FakeIdeProfilerServices myIdeProfilerServices;
 
-  private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
+  private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer, false);
   @Rule public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("StudioProfilerTestChannel", myProfilerService,
+    new FakeGrpcChannel("StudioProfilerTestChannel", myTransportService, new FakeProfilerService(myTimer),
                         FakeNetworkService.newBuilder().setHttpDataList(Collections.singletonList(DEFAULT_DATA)).build());
 
   /**
@@ -96,9 +98,8 @@ public class ConnectionDetailsViewTest {
 
   @Before
   public void before() {
-    FakeTimer timer = new FakeTimer();
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, timer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, myTimer);
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
     StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     profilers.setStage(stage);
@@ -106,14 +107,14 @@ public class ConnectionDetailsViewTest {
     myStage = myStageView.getStage();
     myView = new ConnectionDetailsView(myStageView);
 
-    myProfilerService.addFile(TestHttpData.fakeStackTraceId(fakeTrace), ByteString.copyFromUtf8(fakeTrace));
+    myTransportService.addFile(TestHttpData.fakeStackTraceId(fakeTrace), ByteString.copyFromUtf8(fakeTrace));
   }
 
   @Test
   public void viewerForRequestPayloadIsPresentWhenRequestPayloadIsNotNull() {
     myView = new ConnectionDetailsView(myStageView);
 
-    myProfilerService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
+    myTransportService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
 
     HttpData data =
       new HttpData.Builder(DEFAULT_DATA).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID).setResponseFields(RESPONSE_HEADERS).build();
@@ -140,7 +141,7 @@ public class ConnectionDetailsViewTest {
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields("Content-Type = application/x-www-form-urlencoded")
       .setResponseFields(RESPONSE_HEADERS).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID)
       .build();
-    myProfilerService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("a=1&b=2"));
+    myTransportService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("a=1&b=2"));
     myView.setHttpData(data);
 
     JComponent payloadBody = findTab(myView, RequestTabContent.class).findPayloadBody();
@@ -156,7 +157,7 @@ public class ConnectionDetailsViewTest {
     HttpData data =
       new HttpData.Builder(DEFAULT_DATA).setResponseFields("null =  HTTP/1.1 302 Found\n Content-Type = application/x-www-form-urlencoded")
         .setResponsePayloadId(TEST_RESPONSE_PAYLOAD_ID).build();
-    myProfilerService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("a=1&b=2"));
+    myTransportService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("a=1&b=2"));
     myView.setHttpData(data);
 
     JComponent payloadBody = findTab(myView, ResponseTabContent.class).findPayloadBody();
@@ -181,7 +182,7 @@ public class ConnectionDetailsViewTest {
 
   @Test
   public void viewerExistsWhenPayloadIsPresent() {
-    myProfilerService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
+    myTransportService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
 
     HttpData data = new HttpData.Builder(DEFAULT_DATA)
       .setResponseFields(RESPONSE_HEADERS)

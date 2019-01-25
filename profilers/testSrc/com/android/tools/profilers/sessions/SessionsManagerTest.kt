@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.cpu.FakeCpuService
@@ -53,7 +54,8 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     }
   }
 
-  private val myProfilerService = FakeProfilerService(false)
+  private val myTimer = FakeTimer()
+  private val myTransportService = FakeTransportService(myTimer, false)
   private val myMemoryService = FakeMemoryService()
   private val myCpuService = FakeCpuService()
 
@@ -62,14 +64,14 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel(
     "SessionsManagerTestChannel",
-    myProfilerService,
+    myTransportService,
+    FakeProfilerService(myTimer),
     myMemoryService,
     myCpuService,
     FakeEventService(),
     FakeNetworkService.newBuilder().build()
   )
 
-  private lateinit var myTimer: FakeTimer
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
   private lateinit var myObserver: SessionsAspectObserver
@@ -77,15 +79,14 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
   @Before
   fun setup() {
-    myTimer = FakeTimer()
     ideProfilerServices = FakeIdeProfilerServices().apply {
       enableEventsPipeline(useUnifiedEvents)
     }
     myObserver = SessionsAspectObserver()
     myProfilers = StudioProfilers(
-        myGrpcChannel.client,
-        ideProfilerServices,
-        myTimer
+      myGrpcChannel.client,
+      ideProfilerServices,
+      myTimer
     )
     myManager = myProfilers.sessionsManager
     myManager.addDependency(myObserver)
@@ -289,7 +290,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val session1Timestamp = 1L
-    myProfilerService.setTimestampNs(session1Timestamp)
+    myTimer.currentTimeNs = session1Timestamp
     beginSessionHelper(device, process1)
     endSessionHelper()
     assertThat(SessionsManager.isSessionAlive(myManager.profilingSession)).isFalse()
@@ -303,11 +304,11 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
 
     val session1Timestamp = 1L
     val session2Timestamp = 2L
-    myProfilerService.setTimestampNs(session1Timestamp)
+    myTimer.currentTimeNs = session1Timestamp
     beginSessionHelper(device, process1)
     endSessionHelper()
     val session1 = myManager.selectedSession
-    myProfilerService.setTimestampNs(session2Timestamp)
+    myTimer.currentTimeNs = session2Timestamp
     beginSessionHelper(device, process2)
     endSessionHelper()
     val session2 = myManager.selectedSession
@@ -429,10 +430,10 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     val process1 = Common.Process.newBuilder().setPid(10).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
     val process3 = Common.Process.newBuilder().setPid(30).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
-    myProfilerService.addDevice(device)
-    myProfilerService.addProcess(device, process1)
-    myProfilerService.addProcess(device, process2)
-    myProfilerService.addProcess(device, process3)
+    myTransportService.addDevice(device)
+    myTransportService.addProcess(device, process1)
+    myTransportService.addProcess(device, process2)
+    myTransportService.addProcess(device, process3)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     myProfilers.setProcess(device, process1)
 
@@ -476,6 +477,7 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
     assertThat(myManager.sessionArtifacts[0].session).isEqualTo(session1)
   }
+
   @Test
   fun testGetAllSessions() {
     Assume.assumeTrue(ideProfilerServices.featureConfig.isUnifiedPipelineEnabled)
@@ -483,13 +485,13 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     val process1 = Common.Process.newBuilder().setDeviceId(1).setPid(10).setState(Common.Process.State.ALIVE).build()
     val device2 = Common.Device.newBuilder().setDeviceId(2).setState(Common.Device.State.ONLINE).build()
     val process2 = Common.Process.newBuilder().setDeviceId(2).setPid(2).setState(Common.Process.State.ALIVE).build()
-    myProfilerService.addDevice(device2)
-    myProfilerService.addProcess(device2, process2)
+    myTransportService.addDevice(device2)
+    myTransportService.addProcess(device2, process2)
     // Create session for device/process 2
     myManager.beginSession(2, device2, process2)
     myManager.endCurrentSession()
-    myProfilerService.addDevice(device1)
-    myProfilerService.addProcess(device1, process1)
+    myTransportService.addDevice(device1)
+    myTransportService.addProcess(device1, process1)
     // Create session for device/process 1
     myManager.beginSession(1, device1, process1)
     myManager.endCurrentSession()
@@ -507,9 +509,9 @@ class SessionsManagerTest(private val useUnifiedEvents: Boolean) {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setDeviceId(1).setState(Common.Process.State.ALIVE).build()
-    myProfilerService.addDevice(device)
-    myProfilerService.addProcess(device, process1)
-    myProfilerService.addProcess(device, process2)
+    myTransportService.addDevice(device)
+    myTransportService.addProcess(device, process1)
+    myTransportService.addProcess(device, process2)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     myProfilers.setProcess(device, process1)
     // Create a finished session and a ongoing profiling session.

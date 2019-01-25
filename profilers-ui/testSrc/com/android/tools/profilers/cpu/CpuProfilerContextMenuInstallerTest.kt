@@ -16,12 +16,19 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.android.tools.profilers.stacktrace.ContextMenuItem
-import com.google.common.truth.Truth.*
+import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -30,6 +37,8 @@ import javax.swing.JPanel
 
 class CpuProfilerContextMenuInstallerTest {
 
+  private val timer = FakeTimer()
+
   private val ideServices = FakeIdeProfilerServices()
 
   private val ideComponents = FakeIdeProfilerComponents()
@@ -37,7 +46,7 @@ class CpuProfilerContextMenuInstallerTest {
   @JvmField
   @Rule
   val myGrpcChannel = FakeGrpcChannel(
-    "CpuProfilerContextMenuInstallerTest", FakeCpuService(), FakeProfilerService(),
+    "CpuProfilerContextMenuInstallerTest", FakeCpuService(), FakeTransportService(timer), FakeProfilerService(timer),
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
 
@@ -45,9 +54,8 @@ class CpuProfilerContextMenuInstallerTest {
 
   @Before
   fun setUp() {
-    val timer = FakeTimer()
     val profilers = StudioProfilers(myGrpcChannel.client, ideServices, timer)
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
 
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)

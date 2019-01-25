@@ -115,7 +115,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       myRunners.put(sessionId, new MemoryDataPoller(session, myStatsTable, client, myFetchExecutor));
       mySymbolizationRunners.put(sessionId,
                                  new NativeSymbolsPoller(session, myAllocationsTable, myService.getNativeSymbolizer(),
-                                                         myService.getProfilerClient(deviceId), myLogService));
+                                                         myService.getTransportClient(deviceId), myLogService));
 
       myFetchExecutor.accept(mySymbolizationRunners.get(sessionId));
       myFetchExecutor.accept(myJvmtiRunners.get(sessionId));
@@ -345,7 +345,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void getJvmtiData(MemoryRequest request, StreamObserver<MemoryData> responseObserver) {
     MemoryData response = MemoryData.newBuilder().addAllAllocSamplingRateEvents(
       myAllocationsTable.getAllocationSamplingRateEvents(request.getSession().getSessionId(), request.getStartTime(), request.getEndTime()))
-                                    .build();
+      .build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }

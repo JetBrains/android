@@ -20,7 +20,13 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.atrace.AtraceFrame
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
@@ -31,24 +37,23 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JSeparator
 
 class CpuFrameTooltipViewTest {
 
   val ATRACE_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
+  private val timer = FakeTimer()
   private lateinit var stage: CpuProfilerStage
   private lateinit var tooltip: CpuFrameTooltip
   private lateinit var tooltipView: FakeCpuFrameTooltipView
-  private val fakeProfilerService = FakeProfilerService()
+  private val fakeTransportService = FakeTransportService(timer)
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("CpuFrameTooltipViewTest", FakeCpuService(), fakeProfilerService)
+  val grpcChannel = FakeGrpcChannel("CpuFrameTooltipViewTest", FakeCpuService(), fakeTransportService, FakeProfilerService(timer))
 
   @Before
   fun setUp() {
     val device = Common.Device.newBuilder().setDeviceId(1).build()
-    fakeProfilerService.addDevice(device)
-    fakeProfilerService.addProcess(device, Common.Process.newBuilder().setDeviceId(1).setPid(1).build())
-    val timer = FakeTimer()
+    fakeTransportService.addDevice(device)
+    fakeTransportService.addProcess(device, Common.Process.newBuilder().setDeviceId(1).setPid(1).build())
     val profilers = StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer)
     stage = CpuProfilerStage(profilers)
     val capture = AtraceParser(1).parse(TestUtils.getWorkspaceFile(ATRACE_TRACE_PATH), 0)

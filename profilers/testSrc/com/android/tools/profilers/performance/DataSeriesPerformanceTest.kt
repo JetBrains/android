@@ -26,18 +26,19 @@ import com.android.tools.datastore.DeviceId
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.poller.PollRunner
 import com.android.tools.perflogger.Benchmark
-import com.android.tools.perflogger.WindowDeviationAnalyzer
 import com.android.tools.perflogger.Metric
+import com.android.tools.perflogger.WindowDeviationAnalyzer
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.LegacyCpuThreadCountDataSeries
 import com.android.tools.profilers.cpu.CpuUsage
 import com.android.tools.profilers.cpu.CpuUsageDataSeries
 import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.cpu.LegacyCpuThreadCountDataSeries
 import com.android.tools.profilers.cpu.LegacyCpuThreadStateDataSeries
 import com.android.tools.profilers.energy.EnergyDuration
 import com.android.tools.profilers.energy.EnergyEventsDataSeries
@@ -112,7 +113,7 @@ class DataSeriesPerformanceTest {
   fun runPerformanceTest() {
     val timer = FakeTimer()
     val studioProfilers = StudioProfilers(grpcChannel.client, FakeIdeProfilerServices(), timer)
-    studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
+    studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     val dataSeriesToTest = mapOf(Pair("Event-Activities",
                                       LifecycleEventDataSeries(client, session, false)),
                                  Pair("Event-Interactions", UserEventDataSeries(client, session)),
@@ -149,8 +150,8 @@ class DataSeriesPerformanceTest {
     }
     nameToMetrics.values.forEach {
       it.setAnalyzers(cpuBenchmark, setOf(WindowDeviationAnalyzer.Builder()
-                                         .addMeanTolerance(WindowDeviationAnalyzer.MeanToleranceParams.Builder().build())
-                                         .build()))
+                                            .addMeanTolerance(WindowDeviationAnalyzer.MeanToleranceParams.Builder().build())
+                                            .build()))
       it.commit()
     }
     logMemoryUsed("After-Query-Memory-Used")
