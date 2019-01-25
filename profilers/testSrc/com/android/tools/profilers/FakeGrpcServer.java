@@ -15,14 +15,48 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profiler.proto.*;
-import com.android.tools.profiler.proto.CpuProfiler.*;
-import com.android.tools.profiler.proto.EventProfiler.*;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.android.tools.profiler.proto.NetworkProfiler.*;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStartResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStopResponse;
+import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.EnergyServiceGrpc;
+import com.android.tools.profiler.proto.EventProfiler.ActivityDataResponse;
+import com.android.tools.profiler.proto.EventProfiler.EventDataRequest;
+import com.android.tools.profiler.proto.EventProfiler.EventStartRequest;
+import com.android.tools.profiler.proto.EventProfiler.EventStartResponse;
+import com.android.tools.profiler.proto.EventProfiler.EventStopRequest;
+import com.android.tools.profiler.proto.EventProfiler.EventStopResponse;
+import com.android.tools.profiler.proto.EventProfiler.SystemDataResponse;
+import com.android.tools.profiler.proto.EventServiceGrpc;
+import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
+import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkDataRequest;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkDataResponse;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkStartRequest;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkStartResponse;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopRequest;
+import com.android.tools.profiler.proto.NetworkProfiler.NetworkStopResponse;
+import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.BindableService;
 import io.grpc.stub.StreamObserver;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,13 +79,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   /**
    * @return a new instance of FakeGrpcServer ready for a test to use.
    */
-  public static FakeGrpcServer createFakeGrpcServer(String name, BindableService service) {
+  public static FakeGrpcServer createFakeGrpcServer(String name, BindableService transportService, BindableService profilerService) {
     EventService eventService = new EventService();
     MemoryService memoryService = new MemoryService();
     NetworkService networkService = new NetworkService();
     CpuService cpuService = new CpuService();
     EnergyService energyService = new EnergyService();
-    FakeGrpcServer server = new FakeGrpcServer(name, service, eventService, memoryService, networkService, cpuService, energyService);
+    FakeGrpcServer server =
+      new FakeGrpcServer(name, transportService, profilerService, eventService, memoryService, networkService, cpuService, energyService);
     // Set the links between the services and the server.
     eventService.myServer = server;
     memoryService.myServer = server;
@@ -281,7 +316,8 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     }
 
     @Override
-    public void getEventGroup(EnergyProfiler.EnergyEventGroupRequest request, StreamObserver<EnergyProfiler.EnergyEventsResponse> response) {
+    public void getEventGroup(EnergyProfiler.EnergyEventGroupRequest request,
+                              StreamObserver<EnergyProfiler.EnergyEventsResponse> response) {
       response.onNext(EnergyProfiler.EnergyEventsResponse.getDefaultInstance());
       response.onCompleted();
     }

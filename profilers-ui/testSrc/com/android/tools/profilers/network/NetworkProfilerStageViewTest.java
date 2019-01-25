@@ -15,6 +15,14 @@
  */
 package com.android.tools.profilers.network;
 
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
+import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
+import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertFalse;
+
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.TreeWalker;
@@ -24,25 +32,28 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.google.common.collect.ImmutableList;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
-import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
-import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertFalse;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 public class NetworkProfilerStageViewTest {
@@ -63,26 +74,25 @@ public class NetworkProfilerStageViewTest {
 
   private FakeUi myFakeUi;
   private StudioProfilersView myView;
+  private FakeTimer myTimer = new FakeTimer();
 
-  private final FakeProfilerService myProfilerService = new FakeProfilerService(true);
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   private final FakeNetworkService myNetworkService =
     FakeNetworkService.newBuilder().setNetworkDataList(NETWORK_PROFILER_DATA_LIST).build();
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("NetworkProfilerStageViewTestChannel", myProfilerService, myNetworkService,
+    new FakeGrpcChannel("NetworkProfilerStageViewTestChannel", myTransportService, myNetworkService, new FakeProfilerService(myTimer),
                         new FakeEventService(), new FakeMemoryService(), new FakeCpuService());
 
-  private FakeTimer myTimer;
 
   @Before
   public void setUp() {
-    myTimer = new FakeTimer();
     FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), ideProfilerServices, myTimer);
-    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
+    myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
     // constructed. If the StudioMonitorStageView is constructed as well, grpc exceptions will be thrown due to lack of various services
     // in the channel, and the tick loop would not complete properly to set the process and agent status.

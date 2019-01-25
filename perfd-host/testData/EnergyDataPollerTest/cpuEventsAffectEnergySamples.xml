@@ -23,18 +23,18 @@
         <functionCalled>profiler.proto.EnergyService/StartMonitoringApp</functionCalled>
         <message></message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Transport$TimeRequest">
         <Message>stream_id: 1234
 </Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <clazz>class com.android.tools.profiler.proto.Transport$TimeRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/GetCurrentTime</functionCalled>
         <message>stream_id: 1234
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Transport$TimeResponse">
         <Message></Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <clazz>class com.android.tools.profiler.proto.Transport$TimeResponse</clazz>
+        <functionCalled>profiler.proto.TransportService/GetCurrentTime</functionCalled>
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.CpuService/GetCpuCoreConfig" Class="class com.android.tools.profiler.proto.CpuProfiler$CpuCoreConfigRequest">
@@ -59,18 +59,18 @@
 }
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Transport$TimeRequest">
         <Message>stream_id: 1234
 </Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <clazz>class com.android.tools.profiler.proto.Transport$TimeRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/GetCurrentTime</functionCalled>
         <message>stream_id: 1234
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Transport$TimeResponse">
         <Message></Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <clazz>class com.android.tools.profiler.proto.Transport$TimeResponse</clazz>
+        <functionCalled>profiler.proto.TransportService/GetCurrentTime</functionCalled>
         <message></message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.EnergyService/GetEvents" Class="class com.android.tools.profiler.proto.EnergyProfiler$EnergyRequest">
@@ -139,19 +139,19 @@
         <functionCalled>profiler.proto.CpuService/GetData</functionCalled>
         <message></message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeRequest">
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Transport$TimeRequest">
         <Message>stream_id: 1234
 </Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeRequest</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <clazz>class com.android.tools.profiler.proto.Transport$TimeRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/GetCurrentTime</functionCalled>
         <message>stream_id: 1234
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.ProfilerService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Profiler$TimeResponse">
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetCurrentTime" Class="class com.android.tools.profiler.proto.Transport$TimeResponse">
         <Message>timestamp_ns: 1000000000
 </Message>
-        <clazz>class com.android.tools.profiler.proto.Profiler$TimeResponse</clazz>
-        <functionCalled>profiler.proto.ProfilerService/GetCurrentTime</functionCalled>
+        <clazz>class com.android.tools.profiler.proto.Transport$TimeResponse</clazz>
+        <functionCalled>profiler.proto.TransportService/GetCurrentTime</functionCalled>
         <message>timestamp_ns: 1000000000
 </message>
     </GrpcCall>

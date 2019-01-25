@@ -15,37 +15,68 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetNodeWithClassName;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithName;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.verifyNode;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
-import com.android.tools.profilers.*;
-import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.ClassSet;
+import com.android.tools.profilers.memory.adapters.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
+import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
+import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject;
+import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.android.tools.profilers.memory.adapters.MethodSet;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.containers.ImmutableList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.table.TableColumnModel;
+import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.swing.*;
-import javax.swing.table.TableColumnModel;
-import javax.swing.tree.TreePath;
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.*;
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.*;
-import static com.google.common.truth.Truth.assertThat;
-
 public class MemoryClassifierViewTest {
+  private final FakeTimer myTimer = new FakeTimer();
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeProfilerService(), new FakeMemoryService());
+  public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
+                        new FakeMemoryService());
 
   private FakeIdeProfilerServices myFakeIdeProfilerServices;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;

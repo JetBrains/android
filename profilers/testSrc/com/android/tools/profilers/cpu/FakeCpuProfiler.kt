@@ -17,9 +17,17 @@ package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profiler.proto.CpuProfiler.*
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceResponse
+import com.android.tools.profiler.proto.CpuProfiler.TraceInfo
 import com.android.tools.profiler.protobuf3jarjar.ByteString
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.rules.ExternalResource
 import java.util.concurrent.TimeUnit
@@ -28,7 +36,7 @@ import java.util.concurrent.TimeUnit
  * A JUnit rule for simulating CPU profiler events.
  */
 class FakeCpuProfiler(val grpcChannel: FakeGrpcChannel,
-                      val cpuService: FakeCpuService): ExternalResource() {
+                      val cpuService: FakeCpuService) : ExternalResource() {
 
   lateinit var ideServices: FakeIdeProfilerServices
   lateinit var stage: CpuProfilerStage
@@ -40,7 +48,7 @@ class FakeCpuProfiler(val grpcChannel: FakeGrpcChannel,
 
     val profilers = StudioProfilers(grpcChannel.client, ideServices, timer)
     // One second must be enough for new devices (and processes) to be picked up
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     stage = CpuProfilerStage(profilers)
@@ -126,7 +134,8 @@ class FakeCpuProfiler(val grpcChannel: FakeGrpcChannel,
   private fun selectConfig(profilerType: CpuProfilerType) {
     when (profilerType) {
       CpuProfilerType.ATRACE -> ideServices.enableAtrace(true)
-      else -> {}
+      else -> {
+      }
     }
 
     stage.profilerConfigModel.apply {

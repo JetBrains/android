@@ -15,16 +15,36 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.ATRACE_DATA_FILE;
+import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.ATRACE_MISSING_DATA_FILE;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterModel;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeFeatureTracker;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.StudioMonitorStage;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.UnifiedEventDataSeries;
 import com.android.tools.profilers.analytics.FilterMetadata;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
@@ -38,12 +58,6 @@ import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.collect.Iterators;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,20 +68,21 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.ATRACE_DATA_FILE;
-import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.ATRACE_MISSING_DATA_FILE;
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class CpuProfilerStageTest extends AspectObserver {
-  private final FakeProfilerService myProfilerService = new FakeProfilerService();
+  private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myFakeTransportService = new FakeTransportService(myTimer);
   private final FakeCpuService myCpuService = new FakeCpuService();
   private final FakeMemoryService myMemoryService = new FakeMemoryService();
-  private final FakeTimer myTimer = new FakeTimer();
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myProfilerService,
+    new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myFakeTransportService, new FakeProfilerService(myTimer),
                         myMemoryService, new FakeEventService(), FakeNetworkService.newBuilder().build());
 
   private CpuProfilerStage myStage;
@@ -81,7 +96,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myServices = new FakeIdeProfilerServices();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStage = new CpuProfilerStage(profilers);
     myStage.getStudioProfilers().setStage(myStage);
@@ -1013,24 +1028,24 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Trace 1: not API-initiated. Shouldn't have API-tracing usage.
     CpuProfiler.TraceInfo traceInfo1 = CpuProfiler.TraceInfo.newBuilder()
-                                                            .setTraceId(traceId1)
-                                                            .setTraceFilePath(fileName1)
-                                                            .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_UI)
-                                                            .build();
+      .setTraceId(traceId1)
+      .setTraceFilePath(fileName1)
+      .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_UI)
+      .build();
 
     // Trace 2: API-initiated with a valid given trace path.
     CpuProfiler.TraceInfo traceInfo2 = CpuProfiler.TraceInfo.newBuilder()
-                                                            .setTraceId(traceId2)
-                                                            .setTraceFilePath(fileName2)
-                                                            .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_API)
-                                                            .build();
+      .setTraceId(traceId2)
+      .setTraceFilePath(fileName2)
+      .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_API)
+      .build();
 
     // Trace 3: API-initiated without a valid given trace path.
     CpuProfiler.TraceInfo traceInfo3 = CpuProfiler.TraceInfo.newBuilder()
-                                                            .setTraceId(traceId3)
-                                                            .setTraceFilePath(fileName3)
-                                                            .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_API)
-                                                            .build();
+      .setTraceId(traceId3)
+      .setTraceFilePath(fileName3)
+      .setInitiationType(CpuProfiler.TraceInitiationType.INITIATED_BY_API)
+      .build();
 
     final FakeFeatureTracker featureTracker = (FakeFeatureTracker)myServices.getFeatureTracker();
     myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
@@ -1920,11 +1935,11 @@ public class CpuProfilerStageTest extends AspectObserver {
     myServices.enableLiveAllocationsSampling(false);
     addAndSetDevice(AndroidVersion.VersionCodes.N_MR1, "FOO");
     ProfilingConfiguration config = new ProfilingConfiguration("My Instrumented Config",
-                                                                     CpuProfiler.CpuProfilerType.ART,
-                                                                     CpuProfiler.CpuProfilerMode.INSTRUMENTED);
+                                                               CpuProfiler.CpuProfilerType.ART,
+                                                               CpuProfiler.CpuProfilerMode.INSTRUMENTED);
     config.setDisableLiveAllocation(false);
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);
-    myProfilerService.setAgentStatus(Common.AgentData.getDefaultInstance());
+    myFakeTransportService.setAgentStatus(Common.AgentData.getDefaultInstance());
 
     // Live allocation sampling rate should remain the same.
     startCapturingSuccess();
@@ -1942,9 +1957,9 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Set agent status to ATTACHED.
     // Live allocation sampling rate should still remain the same.
-    myProfilerService.setAgentStatus(Common.AgentData.newBuilder()
-                                       .setStatus(Common.AgentData.Status.ATTACHED)
-                                       .build());
+    myFakeTransportService.setAgentStatus(Common.AgentData.newBuilder()
+                                            .setStatus(Common.AgentData.Status.ATTACHED)
+                                            .build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     startCapturingSuccess();
     assertThat(myMemoryService.getSamplingRate()).isEqualTo(1);
@@ -2026,9 +2041,9 @@ public class CpuProfilerStageTest extends AspectObserver {
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
-    myProfilerService.addDevice(device);
+    myFakeTransportService.addDevice(device);
     // Adds at least one ALIVE process as well. Otherwise, StudioProfilers would prefer selecting a device that has live processes.
-    myProfilerService.addProcess(device, process);
+    myFakeTransportService.addProcess(device, process);
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new device to be picked up
     myStage.getStudioProfilers().setProcess(device, null);

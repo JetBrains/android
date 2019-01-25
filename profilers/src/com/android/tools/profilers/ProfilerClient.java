@@ -15,13 +15,20 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.EnergyServiceGrpc;
+import com.android.tools.profiler.proto.EventServiceGrpc;
+import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import org.jetbrains.annotations.NotNull;
 
 public class ProfilerClient {
 
+  @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportClient;
   @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
   @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
@@ -33,12 +40,18 @@ public class ProfilerClient {
     // Optimization - In-process direct-executor channel which allows us to communicate between the profiler and perfd-host without
     // going through the thread pool. This gives us a speed boost per grpc call plus the full caller's stack in perfd-host.
     ManagedChannel channel = InProcessChannelBuilder.forName(name).usePlaintext(true).directExecutor().build();
+    myTransportClient = TransportServiceGrpc.newBlockingStub(channel);
     myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
     myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
     myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
     myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
     myEventClient = EventServiceGrpc.newBlockingStub(channel);
     myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
+  }
+
+  @NotNull
+  public TransportServiceGrpc.TransportServiceBlockingStub getTransportClient() {
+    return myTransportClient;
   }
 
   @NotNull

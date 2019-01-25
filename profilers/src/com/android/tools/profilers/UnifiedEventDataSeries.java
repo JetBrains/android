@@ -19,8 +19,9 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -37,7 +38,7 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
 
   public static final int DEFAULT_GROUP_ID = Common.Event.EventGroupIds.INVALID_VALUE;
 
-  @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myClient;
+  @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myClient;
   private final long myStreamId;
   private final int myPid;
   @NotNull private final Common.Event.Kind myKind;
@@ -52,7 +53,7 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
    * @param groupId       the group id within the data kind to query. If the data don't have group distinction, use {@link DEFAULT_GROUP_ID}.
    * @param dataExtractor the function to extract data from a list of events to build the list of series data as a stream.
    */
-  public UnifiedEventDataSeries(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub client,
+  public UnifiedEventDataSeries(@NotNull TransportServiceGrpc.TransportServiceBlockingStub client,
                                 long streamId,
                                 int pid,
                                 @NotNull Common.Event.Kind kind,
@@ -72,7 +73,7 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
     long minNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMin()) - TimeUnit.SECONDS.toNanos(1);
     long maxNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMax()) + TimeUnit.SECONDS.toNanos(1);
 
-    Profiler.GetEventGroupsRequest request = Profiler.GetEventGroupsRequest.newBuilder()
+    GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
       .setStreamId(myStreamId)
       .setPid(myPid)
       .setKind(myKind)
@@ -80,7 +81,7 @@ public class UnifiedEventDataSeries implements DataSeries<Long> {
       .setFromTimestamp(minNs)
       .setToTimestamp(maxNs)
       .build();
-    Profiler.GetEventGroupsResponse response = myClient.getEventGroups(request);
+    GetEventGroupsResponse response = myClient.getEventGroups(request);
     // We don't expect more than one data group in our numeric data series. This is to avoid having to sort the data from multiple groups
     // after they are added to the list. We can re-evaluate if the need arises.
     assert response.getGroupsCount() <= 1;

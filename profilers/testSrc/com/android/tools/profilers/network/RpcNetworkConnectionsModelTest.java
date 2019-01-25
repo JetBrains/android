@@ -22,11 +22,12 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.network.httpdata.HttpData;
@@ -89,10 +90,12 @@ public class RpcNetworkConnectionsModelTest {
              .build())
       .build();
 
-  private FakeProfilerService myProfilerService = new FakeProfilerService(false);
+  private final FakeTimer myTimer = new FakeTimer();
+  private FakeTransportService myTransportService = new FakeTransportService(myTimer, false);
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("RpcNetworkConnectionsModelTest", myProfilerService,
-                                                                   FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("RpcNetworkConnectionsModelTest", myTransportService, new FakeProfilerService(myTimer),
+                        FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private boolean myUseNewEventPipeline;
   private NetworkConnectionsModel myModel;
 
@@ -102,42 +105,42 @@ public class RpcNetworkConnectionsModelTest {
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
 
     if (myUseNewEventPipeline) {
-      myModel = new RpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(), Common.Session.getDefaultInstance());
+      myModel = new RpcNetworkConnectionsModel(profilers.getClient().getTransportClient(), Common.Session.getDefaultInstance());
 
       for (HttpData data : FAKE_DATA) {
         long groupId = data.getId();
         // Add the http connection events
-        Profiler.EventGroup group = generateNetworkConnectionData(data).build();
+        EventGroup group = generateNetworkConnectionData(data).build();
         for (Common.Event event : group.getEventsList()) {
-          myProfilerService.addEventToEventGroup(0, groupId, event);
+          myTransportService.addEventToEventGroup(0, groupId, event);
         }
 
         // Add the thread data associated with the connection events.
-        myProfilerService.addEventToEventGroup(0, groupId, generateNetworkThreadData(data).build());
+        myTransportService.addEventToEventGroup(0, groupId, generateNetworkThreadData(data).build());
       }
     }
     else {
-      myModel = new LegacyRpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(), profilers.getClient().getNetworkClient(),
+      myModel = new LegacyRpcNetworkConnectionsModel(profilers.getClient().getTransportClient(), profilers.getClient().getNetworkClient(),
                                                      ProfilersTestData.SESSION_DATA);
     }
 
     for (int i = 0; i < FAKE_DATA.size(); i++) {
       long id = FAKE_DATA.get(i).getId();
-      myProfilerService.addFile(FAKE_REQUEST_PAYLOAD_ID + id, ByteString.copyFromUtf8("Request Body " + i));
-      myProfilerService.addFile(FAKE_RESPONSE_PAYLOAD_ID + id, ByteString.copyFromUtf8("Response Body " + i));
+      myTransportService.addFile(FAKE_REQUEST_PAYLOAD_ID + id, ByteString.copyFromUtf8("Request Body " + i));
+      myTransportService.addFile(FAKE_RESPONSE_PAYLOAD_ID + id, ByteString.copyFromUtf8("Response Body " + i));
 
       // TODO remove once we remove the legacy pipeline codebase.
       String stackTrace = TestHttpData.fakeStackTrace(id);
-      myProfilerService.addFile(TestHttpData.fakeStackTraceId(stackTrace), ByteString.copyFromUtf8(stackTrace));
+      myTransportService.addFile(TestHttpData.fakeStackTraceId(stackTrace), ByteString.copyFromUtf8(stackTrace));
     }
   }
 
   @Test
   public void nonEmptyBytes() {
-    myProfilerService.addFile("dummyid", ByteString.copyFromUtf8("Dummy Contents"));
+    myTransportService.addFile("dummyid", ByteString.copyFromUtf8("Dummy Contents"));
     assertThat(myModel.requestBytes("dummyid").toStringUtf8()).isEqualTo("Dummy Contents");
   }
 

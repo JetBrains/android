@@ -21,8 +21,8 @@ import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.FakeLogService
 import com.android.tools.datastore.database.UnifiedEventsTable
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Profiler
-import com.android.tools.profiler.proto.ProfilerServiceGrpc
+import com.android.tools.profiler.proto.Transport.GetEventsRequest
+import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.truth.Truth.assertThat
 import io.grpc.Server
 import io.grpc.inprocess.InProcessChannelBuilder
@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock
 class UnifiedEventsDataPollerTest : DataStorePollerTest() {
 
   private lateinit var dataStore: DataStoreService
-  private lateinit var profilerService: FakeProfilerService
+  private lateinit var transportService: FakeTransportService
   private lateinit var table: UnifiedEventsTable
   private lateinit var server: Server
   private lateinit var poller: UnifiedEventsDataPoller
@@ -46,16 +46,16 @@ class UnifiedEventsDataPollerTest : DataStorePollerTest() {
   fun setup() {
     val servicePath = TestUtils.createTempDirDeletedOnExit().absolutePath
     dataStore = DataStoreService(javaClass.simpleName, servicePath, pollTicker::run, FakeLogService())
-    profilerService = FakeProfilerService()
+    transportService = FakeTransportService()
     val namespace = DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE
     val database = dataStore.createDatabase(servicePath + namespace.myNamespace, namespace.myCharacteristic) { _ -> }
     table = UnifiedEventsTable()
     table.initialize(database.connection)
 
-    server = InProcessServerBuilder.forName("UnifiedEventsPollerServer").addService(profilerService).build()
+    server = InProcessServerBuilder.forName("UnifiedEventsPollerServer").addService(transportService).build()
     server.start()
     val managedChannel = InProcessChannelBuilder.forName("UnifiedEventsPollerServer").build()
-    val serviceStub = ProfilerServiceGrpc.newBlockingStub(managedChannel)
+    val serviceStub = TransportServiceGrpc.newBlockingStub(managedChannel)
 
     poller = UnifiedEventsDataPoller(1, table, serviceStub)
   }
@@ -83,19 +83,19 @@ class UnifiedEventsDataPollerTest : DataStorePollerTest() {
     var retryAttempts = 5
     val thread = Thread(poller)
     thread.start()
-    profilerService.eventsLock.lock()
-    assertThat(profilerService.eventsPopulated.await(1, TimeUnit.SECONDS)).isTrue()
-    profilerService.eventsLock.unlock()
+    transportService.eventsLock.lock()
+    assertThat(transportService.eventsPopulated.await(1, TimeUnit.SECONDS)).isTrue()
+    transportService.eventsLock.unlock()
     var response = table.queryUnifiedEvents()
-    while (response.size != FakeProfilerService.eventsList.size && retryAttempts-- >= 0) {
+    while (response.size != FakeTransportService.eventsList.size && retryAttempts-- >= 0) {
       response = table.queryUnifiedEvents()
       Thread.sleep(100)
     }
-    assertThat(response).containsExactlyElementsIn(FakeProfilerService.eventsList)
+    assertThat(response).containsExactlyElementsIn(FakeTransportService.eventsList)
   }
 
 
-  private class FakeProfilerService : ProfilerServiceGrpc.ProfilerServiceImplBase() {
+  private class FakeTransportService : TransportServiceGrpc.TransportServiceImplBase() {
 
     val eventsLock = ReentrantLock()
     val eventsPopulated = eventsLock.newCondition()
@@ -121,7 +121,7 @@ class UnifiedEventsDataPollerTest : DataStorePollerTest() {
                                        .build())
     }
 
-    override fun getEvents(request: Profiler.GetEventsRequest?, responseObserver: StreamObserver<Common.Event>) {
+    override fun getEvents(request: GetEventsRequest?, responseObserver: StreamObserver<Common.Event>) {
       eventsList.forEach { responseObserver.onNext(it) }
       responseObserver.onCompleted()
       eventsLock.lock()

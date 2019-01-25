@@ -21,13 +21,19 @@ import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent
 import com.android.tools.profiler.proto.EnergyProfiler.JobScheduled
 import com.android.tools.profiler.protobuf3jarjar.ByteString
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.*
+import java.util.Arrays
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import javax.swing.JTextPane
@@ -59,7 +65,7 @@ class EnergyDetailsViewTest {
     .setType(EnergyProfiler.AlarmSet.Type.ELAPSED_REALTIME_WAKEUP)
     .setOperation(EnergyProfiler.PendingIntent.newBuilder().setCreatorPackage("package").setCreatorUid(1234).build())
     .build()
-  private val alarmSetEvent =  EnergyEvent.newBuilder()
+  private val alarmSetEvent = EnergyEvent.newBuilder()
     .setTimestamp(TimeUnit.MILLISECONDS.toNanos(600))
     .setAlarmSet(alarmSet)
     .build()
@@ -101,19 +107,20 @@ class EnergyDetailsViewTest {
     .setTransientExtras("TransientExtrasValue")
     .build()
 
-  private val profilerService = FakeProfilerService(true)
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, true)
   private val energyService = FakeEnergyService()
   @get:Rule
-  var grpcChannel = FakeGrpcChannel(EnergyDetailsViewTest::class.java.simpleName, profilerService, energyService)
+  var grpcChannel = FakeGrpcChannel(EnergyDetailsViewTest::class.java.simpleName, transportService, energyService,
+                                    FakeProfilerService(timer))
 
   private lateinit var view: EnergyDetailsView
 
   @Before
   fun before() {
-    val timer = FakeTimer()
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
     val profilers = StudioProfilers(grpcChannel.client, services, timer)
-    profilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
+    transportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
 
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
@@ -166,7 +173,7 @@ class EnergyDetailsViewTest {
   @Test
   fun callstackIsProperlyRendered() {
     val eventWithTrace = wakeLockAcquireEvent.toBuilder().setTraceId("traceId").build()
-    profilerService.addFile("traceId", ByteString.copyFromUtf8(callstackText))
+    transportService.addFile("traceId", ByteString.copyFromUtf8(callstackText))
     view.setDuration(EnergyDuration(Arrays.asList(eventWithTrace)))
     val nonEmptyView = TreeWalker(view).descendants().filterIsInstance<EnergyCallstackView>().first()
     assertThat(nonEmptyView.components.any { c -> c is JPanel }).isTrue()
@@ -214,13 +221,14 @@ class EnergyDetailsViewTest {
     val jobScheduled = JobScheduled.newBuilder().setJob(periodicJob).setResult(JobScheduled.Result.RESULT_SUCCESS).build()
     val scheduled = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(100)).setJobScheduled(jobScheduled).build()
     val jobFinished = EnergyProfiler.JobFinished.newBuilder().setParams(jobParams).build()
-    val finished = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(500)).setJobFinished(jobFinished).setIsTerminal(true).build()
+    val finished = EnergyEvent.newBuilder().setTimestamp(TimeUnit.MILLISECONDS.toNanos(500)).setJobFinished(jobFinished).setIsTerminal(
+      true).build()
     view.setDuration(EnergyDuration(Arrays.asList(scheduled, finished)))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
       assertUiContainsLabelAndValue(this, "Triggered Content Authorities", "auth1, auth2")
       assertUiContainsLabelAndValue(this, "Is Override Deadline Expired", "true")
-      assertUiContainsLabelAndValue(this,"Duration", "400 ms")
+      assertUiContainsLabelAndValue(this, "Duration", "400 ms")
     }
   }
 
@@ -241,8 +249,8 @@ class EnergyDetailsViewTest {
     view.setDuration(EnergyDuration(Arrays.asList(eventBuilder.build())))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
-      assertUiContainsLabelAndValue(this,"Provider", "ProviderValue")
-      assertUiContainsLabelAndValue(this,"Min Interval Time", "100 ms")
+      assertUiContainsLabelAndValue(this, "Provider", "ProviderValue")
+      assertUiContainsLabelAndValue(this, "Min Interval Time", "100 ms")
       assertUiContainsLabelAndValue(this, "Fastest Interval Time", "200 ms")
       assertUiContainsLabelAndValue(this, "Min Distance", "0.1m")
       assertUiContainsLabelAndValue(this, "Creator", "package\\b.+\\bUID\\b.+\\b1")

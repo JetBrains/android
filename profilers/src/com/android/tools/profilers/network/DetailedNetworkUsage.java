@@ -47,8 +47,7 @@ public class DetailedNetworkUsage extends NetworkUsage {
   @NotNull
   private static DataSeries<Long> createOpenConnectionsSeries(@NotNull StudioProfilers profilers) {
     if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      ProfilerServiceGrpc.ProfilerServiceBlockingStub client = profilers.getClient().getProfilerClient();
-      return new UnifiedEventDataSeries(client,
+      return new UnifiedEventDataSeries(profilers.getClient().getTransportClient(),
                                         profilers.getSession().getStreamId(),
                                         profilers.getSession().getPid(),
                                         Common.Event.Kind.NETWORK_CONNECTION_COUNT,

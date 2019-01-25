@@ -16,10 +16,16 @@
 package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.model.Range
 import com.android.tools.profiler.proto.EnergyProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeFeatureTracker
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.StudioProfilers
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -77,22 +83,22 @@ class EnergyProfilerStageTest {
       .build()
   )
 
-  private val profilerService = FakeProfilerService(true)
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, true)
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("EnergyProfilerStageTest", profilerService, FakeEnergyService(eventList = fakeData))
+  var grpcChannel = FakeGrpcChannel("EnergyProfilerStageTest", transportService, FakeProfilerService(timer),
+                                    FakeEnergyService(eventList = fakeData))
 
-  private lateinit var timer: FakeTimer
   private lateinit var myStage: EnergyProfilerStage
 
   @Before
   fun setUp() {
-    timer = FakeTimer()
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
     myStage = EnergyProfilerStage(StudioProfilers(grpcChannel.client, services, timer))
     myStage.studioProfilers.timeline.viewRange.set(TimeUnit.SECONDS.toMicros(0).toDouble(), TimeUnit.SECONDS.toMicros(5).toDouble())
     myStage.studioProfilers.stage = myStage
-    myStage.studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
+    myStage.studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
   }
 
   @Test
@@ -171,8 +177,8 @@ class EnergyProfilerStageTest {
   fun filterEventsByConfiguration() {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(myStage.studioProfilers.selectedAppName).isEqualTo("FakeProcess")
-    profilerService.addFile("alarmTraceId", ByteString.copyFromUtf8("FakeProcess"))
-    profilerService.addFile("jobTraceId", ByteString.copyFromUtf8("ThirdParty"))
+    transportService.addFile("alarmTraceId", ByteString.copyFromUtf8("FakeProcess"))
+    transportService.addFile("jobTraceId", ByteString.copyFromUtf8("ThirdParty"))
     val durationList = EnergyDuration.groupById(fakeData)
 
     myStage.eventOrigin = EnergyEventOrigin.APP_ONLY
@@ -198,8 +204,8 @@ class EnergyProfilerStageTest {
   fun selectedDurationFilteredByOrigin() {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(myStage.studioProfilers.selectedAppName).isEqualTo("FakeProcess")
-    profilerService.addFile("alarmTraceId", ByteString.copyFromUtf8("FakeProcess"))
-    profilerService.addFile("jobTraceId", ByteString.copyFromUtf8("ThirdParty"))
+    transportService.addFile("alarmTraceId", ByteString.copyFromUtf8("FakeProcess"))
+    transportService.addFile("jobTraceId", ByteString.copyFromUtf8("ThirdParty"))
     val durationList = EnergyDuration.groupById(fakeData)
 
     myStage.eventOrigin = EnergyEventOrigin.ALL

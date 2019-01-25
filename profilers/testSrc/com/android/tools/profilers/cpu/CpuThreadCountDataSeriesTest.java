@@ -19,10 +19,11 @@ import static com.intellij.util.ObjectUtils.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
 import com.android.tools.profilers.ProfilersTestData;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,10 +42,10 @@ public class CpuThreadCountDataSeriesTest {
     return Arrays.asList(false, true);
   }
 
-  private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
+  private final FakeTransportService myTransportService = new FakeTransportService(new FakeTimer(), false);
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuThreadCountDataSeriesTest", new FakeCpuService(), myProfilerService);
+    new FakeGrpcChannel("CpuThreadCountDataSeriesTest", new FakeCpuService(), myTransportService);
 
   private boolean myIsUnifiedPipeline;
   private DataSeries<Long> myDataSeries;
@@ -56,8 +57,8 @@ public class CpuThreadCountDataSeriesTest {
   @Before
   public void setUp() {
     if (myIsUnifiedPipeline) {
-      myProfilerService.populateThreads(ProfilersTestData.SESSION_DATA.getStreamId());
-      myDataSeries = new CpuThreadCountDataSeries(myGrpcChannel.getClient().getProfilerClient(),
+      myTransportService.populateThreads(ProfilersTestData.SESSION_DATA.getStreamId());
+      myDataSeries = new CpuThreadCountDataSeries(myGrpcChannel.getClient().getTransportClient(),
                                                   ProfilersTestData.SESSION_DATA.getStreamId(),
                                                   ProfilersTestData.SESSION_DATA.getPid());
     }

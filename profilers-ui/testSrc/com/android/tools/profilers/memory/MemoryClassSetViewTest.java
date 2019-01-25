@@ -15,40 +15,65 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.common.ColumnTreeTestInfo;
-import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.formatter.NumberFormatter;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import com.android.tools.profilers.*;
-import com.android.tools.profilers.memory.adapters.*;
-import com.android.tools.profilers.memory.adapters.FakeInstanceObject.Builder;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.intellij.util.containers.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.swing.*;
-import javax.swing.tree.TreePath;
-import java.util.*;
-import java.util.function.Supplier;
-
 import static com.android.tools.profilers.memory.MemoryClassSetView.InstanceTreeNode;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.*;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
 import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 
+import com.android.tools.adtui.common.ColumnTreeTestInfo;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.ClassSet;
+import com.android.tools.profilers.memory.adapters.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
+import com.android.tools.profilers.memory.adapters.FakeFieldObject;
+import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
+import com.android.tools.profilers.memory.adapters.FakeInstanceObject.Builder;
+import com.android.tools.profilers.memory.adapters.FieldObject;
+import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.intellij.util.containers.ImmutableList;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Supplier;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
 public class MemoryClassSetViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
 
+  private final FakeTimer myTimer = new FakeTimer();
   @NotNull private final FakeMemoryService myMemoryService = new FakeMemoryService();
   @NotNull private final FakeIdeProfilerComponents myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
   @Rule public final FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeProfilerService(), myMemoryService);
+    new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer), myMemoryService);
 
   private MemoryProfilerStage myStage;
 
@@ -65,7 +90,7 @@ public class MemoryClassSetViewTest {
 
   @Before
   public void before() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents);
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();

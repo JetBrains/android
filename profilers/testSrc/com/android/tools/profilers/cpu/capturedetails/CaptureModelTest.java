@@ -37,13 +37,12 @@ import java.util.*;
 import static com.google.common.truth.Truth.assertThat;
 
 public class CaptureModelTest {
-  private final FakeProfilerService myProfilerService = new FakeProfilerService();
-
+  private final FakeTimer myTimer = new FakeTimer();
   private final FakeCpuService myCpuService = new FakeCpuService();
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, myProfilerService,
+    new FakeGrpcChannel("CpuProfilerStageTestChannel", myCpuService, new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
                         new FakeMemoryService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
 
   private CaptureModel myModel;
@@ -52,10 +51,9 @@ public class CaptureModelTest {
 
   @Before
   public void setUp() {
-    FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     // One second must be enough for new devices (and processes) to be picked up
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStage = new CpuProfilerStage(profilers);
     myStage.getStudioProfilers().setStage(myStage);
     myStage.enter();

@@ -21,7 +21,16 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.*
+import com.android.tools.profilers.DragAndDropList
+import com.android.tools.profilers.FakeFeatureTracker
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME
+import com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.ProfilerColors
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.capturedetails.CaptureModel
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
@@ -34,14 +43,14 @@ import javax.swing.JLabel
 import javax.swing.ListSelectionModel
 
 class CpuThreadsViewTest {
+  private val timer = FakeTimer()
   private val cpuService = FakeCpuService()
 
   @Rule
   @JvmField
-  var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", cpuService, FakeProfilerService(),
+  var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer),
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
 
-  private val timer = FakeTimer()
   private lateinit var stage: CpuProfilerStage
   private lateinit var ideServices: FakeIdeProfilerServices
 
@@ -49,7 +58,7 @@ class CpuThreadsViewTest {
   fun setUp() {
     ideServices = FakeIdeProfilerServices()
     val profilers = StudioProfilers(grpcChannel.client, ideServices, timer)
-    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null)
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
     stage = CpuProfilerStage(profilers)

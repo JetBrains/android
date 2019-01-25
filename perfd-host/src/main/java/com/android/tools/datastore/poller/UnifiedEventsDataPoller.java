@@ -16,13 +16,12 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.UnifiedEventsTable;
-import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Common.Event;
+import com.android.tools.profiler.proto.Transport.GetEventsRequest;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import io.grpc.StatusRuntimeException;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,14 +32,14 @@ import org.jetbrains.annotations.NotNull;
 public class UnifiedEventsDataPoller implements Runnable {
   private final long myStreamId;
   @NotNull private final UnifiedEventsTable myTable;
-  @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myEventPollingService;
+  @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myEventPollingService;
   @NotNull private final CountDownLatch myRunningLatch;
   @NotNull private final AtomicBoolean myIsRunning = new AtomicBoolean(false);
   @NotNull private final AtomicBoolean myIsStopCalled = new AtomicBoolean(false);
 
   public UnifiedEventsDataPoller(long streamId,
                                  @NotNull UnifiedEventsTable unifiedEventsTable,
-                                 @NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub pollingService) {
+                                 @NotNull TransportServiceGrpc.TransportServiceBlockingStub pollingService) {
     myEventPollingService = pollingService;
     myStreamId = streamId;
     myTable = unifiedEventsTable;
@@ -64,9 +63,9 @@ public class UnifiedEventsDataPoller implements Runnable {
   public void run() throws StatusRuntimeException {
     myIsRunning.set(true);
     // The iterator returned will block on next calls, only returning when data is received or the server disconnects.
-    Iterator<Common.Event> events = myEventPollingService.getEvents(Profiler.GetEventsRequest.getDefaultInstance());
+    Iterator<Event> events = myEventPollingService.getEvents(GetEventsRequest.getDefaultInstance());
     while (!myIsStopCalled.get() && events.hasNext()) {
-      Common.Event event = events.next();
+      Event event = events.next();
       if (event != null) {
         myTable.insertUnifiedEvent(myStreamId, event);
       }
