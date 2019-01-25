@@ -18,5 +18,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/perfd-host:intellij.android.perfdHost[module]",
+        "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
     ],
 )

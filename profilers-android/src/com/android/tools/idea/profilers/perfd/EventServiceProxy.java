@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.perfd;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.transport.TransportProxyService;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
@@ -27,7 +28,7 @@ import java.util.Collections;
  * A proxy EventService on host that intercepts grpc requests from perfd-host to device perfd.
  * This enables us to support legacy workflows based on device's API levels.
  */
-public class EventServiceProxy extends PerfdProxyService {
+public class EventServiceProxy extends TransportProxyService {
 
   private EventServiceGrpc.EventServiceBlockingStub myServiceStub;
 
