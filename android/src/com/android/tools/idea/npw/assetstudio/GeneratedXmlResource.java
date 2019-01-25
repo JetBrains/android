@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,50 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.annotations.NonNull;
 import com.android.ide.common.util.PathString;
+import org.jetbrains.annotations.NotNull;
 
 /** A {@link GeneratedIcon} that is defined by an XML document. */
 public final class GeneratedXmlResource extends GeneratedIcon {
-    @NonNull private final String name;
-    @NonNull private final PathString outputPath;
-    @NonNull private final IconCategory category;
-    @NonNull private final String xmlText;
+  @NotNull private final String xmlText;
 
-    public GeneratedXmlResource(
-            @NonNull String name,
-            @NonNull PathString outputPath,
-            @NonNull IconCategory category,
-            @NonNull String xmlText) {
-        this.name = name;
-        this.outputPath = outputPath;
-        this.category = category;
-        this.xmlText = xmlText;
-    }
+  public GeneratedXmlResource(@NotNull String name, @NotNull PathString outputPath, @NotNull IconCategory category,
+                              @NotNull String xmlText) {
+    super(name, outputPath, category);
+    this.xmlText = xmlText;
+  }
 
-    @NonNull
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @NonNull
-    @Override
-    public PathString getOutputPath() {
-        return outputPath;
-    }
-
-    @NonNull
-    @Override
-    public IconCategory getCategory() {
-        return category;
-    }
-
-    @NonNull
-    public String getXmlText() {
-        return xmlText;
-    }
+  @NotNull
+  public String getXmlText() {
+    return xmlText;
+  }
 }
