@@ -820,15 +820,11 @@ public class RenderTask {
    * Asynchronously renders the given resource value (which should refer to a drawable)
    * and returns it as an image.
    *
-   * @param drawableResourceValue the drawable resource value to be rendered, or null
+   * @param drawableResourceValue the drawable resource value to be rendered
    * @return a {@link CompletableFuture} with the BufferedImage of the passed drawable.
    */
   @NotNull
-  public CompletableFuture<BufferedImage> renderDrawable(ResourceValue drawableResourceValue) {
-    if (drawableResourceValue == null) {
-      return CompletableFuture.completedFuture(null);
-    }
-
+  public CompletableFuture<BufferedImage> renderDrawable(@NotNull ResourceValue drawableResourceValue) {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     RenderTaskContext context = getContext();
@@ -841,16 +837,23 @@ public class RenderTask {
     params.setAssetRepository(myAssetRepository);
 
     return runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params))
-      .thenApply(result -> {
-        if (result != null && result.isSuccess()) {
-          Object data = result.getData();
-          if (data instanceof BufferedImage) {
-            return (BufferedImage)data;
+        .thenCompose(result -> {
+          if (result != null && result.isSuccess()) {
+            Object data = result.getData();
+            if (!(data instanceof BufferedImage)) {
+              data = null;
+            }
+            return CompletableFuture.completedFuture((BufferedImage)data);
           }
-        }
-
-        return null;
-      });
+          else {
+            Throwable exception = result == null ? new RuntimeException("Rendering failed - null result") : result.getException();
+            if (exception == null) {
+              exception = new RuntimeException("Rendering failed - " + result.getErrorMessage());
+            }
+            reportException(exception);
+            return immediateFailedFuture(exception);
+          }
+        });
   }
 
   /**
