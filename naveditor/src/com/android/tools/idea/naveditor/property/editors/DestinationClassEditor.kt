@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_LAYOUT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.annotations.VisibleForTesting
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.property.NlProperty
@@ -63,7 +64,8 @@ class DestinationClassEditor(listener: NlEditingListener = Listener, comboBox: C
   private fun findLayoutForClass(className: String): String? {
     val resourceManager = LocalResourceManager.getInstance(property.model.module) ?: return null
 
-    for (resourceFile in resourceManager.findResourceFiles(ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
+    for (resourceFile in
+        resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT).filterIsInstance<XmlFile>()) {
       // TODO: refactor AndroidGotoRelatedProvider so this can be done more cleanly
       val itemComputable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(resourceFile, property.model.facet)
       for (item in itemComputable?.compute() ?: continue) {

@@ -15,13 +15,45 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_ACTIVITY;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE_STATE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_NAME;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_NIGHT_MODE;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TARGET;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_THEME;
+import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI_MODE;
+import static com.android.tools.idea.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
+import static com.android.tools.idea.configurations.ConfigurationListener.MASK_PROJECT_STATE;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.configuration.*;
-import com.android.resources.*;
+import com.android.ide.common.resources.configuration.DensityQualifier;
+import com.android.ide.common.resources.configuration.DeviceConfigHelper;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
+import com.android.ide.common.resources.configuration.NightModeQualifier;
+import com.android.ide.common.resources.configuration.ResourceQualifier;
+import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
+import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
+import com.android.ide.common.resources.configuration.UiModeQualifier;
+import com.android.ide.common.resources.configuration.VersionQualifier;
+import com.android.resources.Density;
+import com.android.resources.FolderTypeRelationship;
+import com.android.resources.LayoutDirection;
+import com.android.resources.NightMode;
+import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
+import com.android.resources.ScreenOrientation;
+import com.android.resources.ScreenSize;
+import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -49,17 +81,13 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.ArrayList;
+import java.util.List;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.configurations.ConfigurationListener.*;
 
 /**
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
@@ -475,7 +503,7 @@ public class Configuration implements Disposable, ModificationTracker {
                 // We get instead all the available folders and check that there is one compatible.
                 LocalResourceManager resourceManager = LocalResourceManager.getInstance(module);
                 if (resourceManager != null) {
-                  for (PsiFile resourceFile : resourceManager.findResourceFiles(ResourceFolderType.VALUES)) {
+                  for (PsiFile resourceFile : resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.VALUES)) {
                     if (myFile.equals(resourceFile.getVirtualFile()) && resourceFile.getParent() != null) {
                       FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(resourceFile.getParent().getName());
                       if (currentConfig.isMatchFor(folderConfiguration)) {
