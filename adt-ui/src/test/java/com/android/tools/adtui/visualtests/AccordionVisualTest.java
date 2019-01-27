@@ -16,9 +16,9 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.AccordionLayout;
+import com.android.tools.adtui.AnimatedTimeRange;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -114,25 +114,22 @@ public class AccordionVisualTest extends VisualTest {
   protected void populateUi(@NotNull JPanel panel) {
     panel.setLayout(new GridLayout(0, 1));
 
-    Thread mUpdateDataThread = new Thread() {
-      @Override
-      public void run() {
-        try {
-          while (true) {
-            long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
-            for (LongDataSeries series : mData) {
-              List<SeriesData<Long>> data = series.getAllData();
-              long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
-              float delta = 10 * ((float)Math.random() - 0.45f);
-              series.add(nowUs, last + (long)delta);
-            }
-            Thread.sleep(LINECHART_DATA_DELAY);
+    Thread mUpdateDataThread = new Thread(() -> {
+      try {
+        while (true) {
+          long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
+          for (LongDataSeries series : mData) {
+            List<SeriesData<Long>> data = series.getAllData();
+            long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
+            float delta = 10 * ((float)Math.random() - 0.45f);
+            series.add(nowUs, last + (long)delta);
           }
-        }
-        catch (InterruptedException e) {
+          Thread.sleep(LINECHART_DATA_DELAY);
         }
       }
-    };
+      catch (InterruptedException e) {
+      }
+    }, "AccordionVisualTest#populateUi");
     mUpdateDataThread.start();
     // Creates the vertical accordion at the top half.
     JBPanel yPanel = new JBPanel();
@@ -140,9 +137,7 @@ public class AccordionVisualTest extends VisualTest {
     yPanel.setBorder(BorderFactory.createLineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR));
     final JPanel controlsY = VisualTest.createControlledPane(yPanel, mPanelY);
 
-    controlsY.add(VisualTest.createButton("Reset Weights", listener -> {
-      mAccordionY.resetComponents();
-    }));
+    controlsY.add(VisualTest.createButton("Reset Weights", listener -> mAccordionY.resetComponents()));
     controlsY.add(VisualTest.createButton("Add Chart", listener -> {
       final LineChart chart = generateChart(mAccordionY, AccordionLayout.Orientation.VERTICAL,
                                             0, PREFERRED_SIZE, Integer.MAX_VALUE);
@@ -195,9 +190,7 @@ public class AccordionVisualTest extends VisualTest {
       mPanelX.add(chart);
       mChartCountX++;
     }));
-    controlsX.add(VisualTest.createButton("Remove Last Chart", listener -> {
-      mPanelX.remove(--mChartCountX);
-    }));
+    controlsX.add(VisualTest.createButton("Remove Last Chart", listener -> mPanelX.remove(--mChartCountX)));
 
     controlsX.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),
@@ -229,7 +222,8 @@ public class AccordionVisualTest extends VisualTest {
         if (e.getClickCount() == DOUBLE_CLICK) {
           if (e.isControlDown()) {
             layout.toggleMinimize(chart);
-          } else {
+          }
+          else {
             layout.toggleMaximize(chart);
           }
         }
