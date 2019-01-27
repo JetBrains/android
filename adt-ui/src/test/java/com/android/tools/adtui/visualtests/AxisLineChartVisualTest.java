@@ -18,11 +18,10 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -196,25 +195,22 @@ public class AxisLineChartVisualTest extends VisualTest {
     final AtomicInteger variance = new AtomicInteger(10);
     final AtomicInteger delay = new AtomicInteger(10);
 
-    Thread mUpdateDataThread = new Thread() {
-      @Override
-      public void run() {
-        try {
-          while (true) {
-            long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
-            for (LongDataSeries series : mData) {
-              List<SeriesData<Long>> data = series.getAllData();
-              long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
-              float delta = 10 * ((float)Math.random() - 0.45f);
-              series.add(nowUs, last + (long)delta);
-            }
-            Thread.sleep(delay.get());
+    Thread mUpdateDataThread = new Thread(() -> {
+      try {
+        while (true) {
+          long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
+          for (LongDataSeries series : mData) {
+            List<SeriesData<Long>> data = series.getAllData();
+            long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
+            float delta = 10 * ((float)Math.random() - 0.45f);
+            series.add(nowUs, last + (long)delta);
           }
-        }
-        catch (InterruptedException e) {
+          Thread.sleep(delay.get());
         }
       }
-    };
+      catch (InterruptedException ignored) {
+      }
+    }, "AxisLineChartVisualTest.populateUi");
     mUpdateDataThread.start();
     controls.add(VisualTest.createVariableSlider("Delay", 10, 5000, new VisualTests.Value() {
       @Override
