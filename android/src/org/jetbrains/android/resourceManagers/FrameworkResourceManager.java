@@ -64,13 +64,6 @@ public class FrameworkResourceManager extends ResourceManager {
     return !myPublicOnly || platform.getSdkData().getTargetData(platform.getTarget()).isResourcePublic(type, name);
   }
 
-  @Override
-  @NotNull
-  public Collection<VirtualFile> getAllResourceDirs() {
-    VirtualFile resDir = getResourceDir();
-    return resDir == null ? ImmutableList.of() : ImmutableList.of(resDir);
-  }
-
   @Nullable
   private VirtualFile getResourceDir() {
     AndroidPlatform platform = getPlatform();
@@ -85,13 +78,6 @@ public class FrameworkResourceManager extends ResourceManager {
   @Override
   public boolean isResourceDir(@NotNull VirtualFile dir) {
     return dir.equals(getResourceDir());
-  }
-
-  @Override
-  @NotNull
-  public List<VirtualFile> getResourceDirs() {
-    VirtualFile dir = getResourceDir();
-    return dir != null ? Collections.singletonList(dir) : Collections.emptyList();
   }
 
   @Nullable

@@ -16,20 +16,27 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -81,30 +88,18 @@ public class LocalResourceManager extends ResourceManager {
 
   @Override
   public boolean isResourceDir(@NotNull VirtualFile dir) {
-    for (VirtualFile resDir : getResourceDirs()) {
+    for (VirtualFile resDir : ResourceFolderManager.getInstance(myFacet).getFolders()) {
       if (dir.equals(resDir)) {
         return true;
       }
     }
-    for (VirtualFile dir1 : AndroidRootUtil.getResourceOverlayDirs(myFacet)) {
-      if (dir.equals(dir1)) {
+    for (VirtualFile resDir : AndroidRootUtil.getResourceOverlayDirs(myFacet)) {
+      if (dir.equals(resDir)) {
         return true;
       }
     }
 
     return false;
-  }
-
-  @Override
-  @NotNull
-  public List<VirtualFile> getResourceDirs() {
-    return ResourceFolderManager.getInstance(myFacet).getFolders();
-  }
-
-  @Override
-  @NotNull
-  public Collection<VirtualFile> getAllResourceDirs() {
-    return ResourceRepositoryManager.getInstance(myFacet).getAllResourceDirs();
   }
 
   @Override
@@ -248,7 +243,7 @@ public class LocalResourceManager extends ResourceManager {
 
     ResourceFolderType folderType = ResourceFolderType.getTypeByName(resClassName);
     if (folderType != null) {
-      targets.addAll(findResourceFiles(folderType, fieldName, false, true));
+      targets.addAll(findResourceFiles(namespace, folderType, fieldName, false, true));
     }
 
     for (ResourceElement element : findValueResources(namespace, resClassName, fieldName, false)) {
@@ -271,5 +266,82 @@ public class LocalResourceManager extends ResourceManager {
     }
 
     return targets;
+  }
+
+  /**
+   * Equivalent to calling {@code findResourceFiles(namespace, resourceFolderType, null, true, true)}.
+   * @see #findResourceFiles(ResourceNamespace, ResourceFolderType, String, boolean, boolean)
+   */
+  @NotNull
+  public Collection<PsiFile> findResourceFiles(@NotNull ResourceNamespace namespace, @NotNull ResourceFolderType resourceFolderType) {
+    return findResourceFiles(namespace, resourceFolderType, null, true, true);
+  }
+
+  /**
+   * Returns all files containing resource definitions matching the supplied parameters.
+   * The returned files include the ones containing overridden resource definitions.
+   *
+   * @param namespace the namespace of the resources
+   * @param resourceFolderType the type of the resource folder
+   * @param nameToLookFor the name of the resource, or null to consider all resources matching
+   *     {@code namespace} and {@code resourceFolderType}
+   * @param distinguishDelimitersInName determines whether delimiters in resource name should be
+   *     matched exactly or not
+   * @param withDependencies determines whether resources belonging to the module's dependencies
+   *     should be included or not
+   * @return the files containing resource definitions
+   */
+  @NotNull
+  public Collection<PsiFile> findResourceFiles(@NotNull ResourceNamespace namespace,
+                                               @NotNull ResourceFolderType resourceFolderType,
+                                               @Nullable String nameToLookFor,
+                                               boolean distinguishDelimitersInName,
+                                               boolean withDependencies) {
+    Set<PsiFile> result = new LinkedHashSet<>();
+    ResourceRepository repository =
+        withDependencies ? ResourceRepositoryManager.getAppResources(myFacet) : ResourceRepositoryManager.getModuleResources(myFacet);
+    Collection<SingleNamespaceResourceRepository> repositories = repository.getLeafResourceRepositories();
+    if (resourceFolderType == ResourceFolderType.VALUES) {
+      for (ResourceType resourceType : FolderTypeRelationship.getRelatedResourceTypes(resourceFolderType)) {
+        findResourceFiles(repositories, namespace, resourceType, resourceFolderType, nameToLookFor, distinguishDelimitersInName, result);
+      }
+    }
+    else {
+      ResourceType resourceType = FolderTypeRelationship.getNonIdRelatedResourceType(resourceFolderType);
+      findResourceFiles(repositories, namespace, resourceType, resourceFolderType, nameToLookFor, distinguishDelimitersInName, result);
+    }
+
+    return result;
+  }
+
+  private void findResourceFiles(@NotNull Collection<SingleNamespaceResourceRepository> repositories,
+                                 @NotNull ResourceNamespace namespace,
+                                 @NotNull ResourceType resourceType,
+                                 @NotNull ResourceFolderType resourceFolderType,
+                                 @Nullable String nameToLookFor,
+                                 boolean distinguishDelimitersInName,
+                                 @NotNull Set<PsiFile> result) {
+    for (ResourceRepository leafRepository : repositories) {
+      Collection<ResourceItem> items;
+      if (nameToLookFor == null) {
+        items = leafRepository.getResources(namespace, resourceType).values();
+      }
+      else if (distinguishDelimitersInName) {
+        items = leafRepository.getResources(namespace, resourceType, nameToLookFor);
+      }
+      else {
+        items = leafRepository.getResources(namespace, resourceType, item -> AndroidUtils.equal(nameToLookFor, item.getName(), false));
+      }
+
+      for (ResourceItem item : items) {
+        VirtualFile resFile = ResourceHelper.getSourceAsVirtualFile(item);
+        if (resFile != null && ResourceFolderType.getFolderType(resFile.getParent().getName()) == resourceFolderType) {
+          PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
+          if (file != null) {
+            result.add(file);
+          }
+        }
+      }
+    }
   }
 }

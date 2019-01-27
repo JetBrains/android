@@ -1,6 +1,8 @@
 package org.jetbrains.android;
 
+import static com.android.tools.idea.res.ResourcesTestsUtil.addAarDependency;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.SdkConstants;
 import com.google.common.collect.ImmutableSet;
@@ -9,16 +11,21 @@ import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.ide.actions.GotoRelatedSymbolAction;
 import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.TestActionEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -42,10 +49,15 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     createManifest();
     VirtualFile layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
     VirtualFile layout1 = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml");
-    VirtualFile layout2 = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout2.xml");
     VirtualFile layoutLand = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml");
+    VirtualFile[] layout2 = new VirtualFile[1];
+    addAarDependency(myModule, "myLibrary", "com.library", dir -> {
+      layout2[0] = copyFile("layout1.xml", new File(dir, "res/layout/layout2.xml"));
+      return null;
+    });
+
     VirtualFile activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java");
-    Set<VirtualFile> expectedTargetFiles = ImmutableSet.of(layout, layout1, layout2, layoutLand);
+    Set<VirtualFile> expectedTargetFiles = ImmutableSet.of(layout, layout1, layout2[0], layoutLand);
     doTestGotoRelatedFile(activityFile, expectedTargetFiles, PsiFile.class);
     doCheckLineMarkers(expectedTargetFiles, PsiFile.class);
   }
@@ -206,5 +218,16 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
       targetFiles.add(targetFile);
     }
     assertThat(targetFiles).containsExactlyElementsIn(expectedTargetFiles);
+  }
+
+  @Nullable
+  private VirtualFile copyFile(@NotNull String fileName, @NotNull File destination) {
+    try {
+      FileUtil.copy(new File(AndroidTestBase.getTestDataPath() + BASE_PATH + fileName), destination);
+    }
+    catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return findFileByIoFile(destination, true);
   }
 }
