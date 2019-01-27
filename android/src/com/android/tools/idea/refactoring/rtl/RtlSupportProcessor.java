@@ -70,6 +70,7 @@ import static com.android.xml.AndroidManifest.ATTRIBUTE_TARGET_SDK_VERSION;
 import static com.android.xml.AndroidManifest.NODE_APPLICATION;
 import static com.android.xml.AndroidManifest.NODE_USES_SDK;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -96,6 +97,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -390,7 +392,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         }
         else {
           LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-          List<PsiFile> files = resourceManager.findResourceFiles(ResourceFolderType.LAYOUT);
+          Collection<PsiFile> files = resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT);
           for (PsiFile psiFile : files) {
             if (isLibraryResourceFile(psiFile.getVirtualFile())) {
               continue;

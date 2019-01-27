@@ -14,6 +14,7 @@
 package com.android.tools.idea.naveditor.property.editors
 
 import com.android.SdkConstants.NAVIGATION_PREFIX
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
@@ -34,7 +35,7 @@ class SourceGraphEditor(listener: NlEditingListener, comboBox: CustomComboBox) :
     override fun getAllValues(): List<ValueWithDisplayString> {
       val resourceManager = LocalResourceManager.getInstance(myProperty.model.module)
 
-      return resourceManager!!.findResourceFiles(ResourceFolderType.NAVIGATION)
+      return resourceManager!!.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.NAVIGATION)
           .filter { myProperty.model.file != it }
           .sortedBy { it.name }
           .map { ValueWithDisplayString(it.name, "$NAVIGATION_PREFIX${it.virtualFile.nameWithoutExtension}") }
