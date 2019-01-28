@@ -64,12 +64,6 @@ public interface GradleTaskRunner {
     DefaultGradleTaskRunner(@NotNull Project project, @Nullable BuildAction buildAction) {
       myProject = project;
       myBuildAction = buildAction;
-      Disposer.register(myProject, new Disposable() {
-        @Override
-        public void dispose() {
-          myProject = null;
-        }
-      });
     }
 
     @Override
