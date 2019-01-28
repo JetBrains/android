@@ -46,9 +46,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.extensions.Extensions.getRootArea;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class TemplateValueInjectorTest{
-
-  private static int PREVIEW_VERSION = 104;
+public class TemplateValueInjectorTest {
+  private static final int PREVIEW_VERSION = 104;
 
   @Mock
   private AndroidVersionsInfo myMockAndroidVersionsInfo;
