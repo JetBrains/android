@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
@@ -131,5 +132,32 @@ public class NewModuleTest {
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/src/main/java/my/test/MyJavaClass.java")).isFile();
     assertAbout(file()).that(guiTest.getProjectPath("mylib/.gitignore")).doesNotExist();
+  }
+
+  @Test
+  public void addNewModuleToAndroidxProject() {
+    WizardUtils.createNewProject(guiTest); // Default projects are created with androidx dependencies
+    guiTest.ideFrame()
+      .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
+      .clickNext() // Default Phone & Tablet Module
+      .setModuleName("otherModule")
+      .clickNext()
+      .clickNext() // Default "Empty Activity"
+      .clickFinish();
+
+    String gradleProperties = guiTest.ideFrame().getEditor()
+      .open("gradle.properties")
+      .getCurrentFileContents();
+    assertThat(gradleProperties).contains("android.useAndroidX=true");
+
+    String appBuildGradle = guiTest.ideFrame().getEditor()
+      .open("app/build.gradle")
+      .getCurrentFileContents();
+    assertThat(appBuildGradle).contains("androidx.appcompat:appcompat");
+
+    String otherModuleBuildGradle = guiTest.ideFrame().getEditor()
+      .open("othermodule/build.gradle")
+      .getCurrentFileContents();
+    assertThat(otherModuleBuildGradle).contains("androidx.appcompat:appcompat");
   }
 }
