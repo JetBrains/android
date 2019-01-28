@@ -239,7 +239,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       group.addSeparator();
     }
 
-    group.add(myRunOnMultipleDevicesAction);
+    // group.add(myRunOnMultipleDevicesAction);
     group.add(myOpenAvdManagerAction);
 
     AnAction action = getTroubleshootDeviceConnectionsAction();
