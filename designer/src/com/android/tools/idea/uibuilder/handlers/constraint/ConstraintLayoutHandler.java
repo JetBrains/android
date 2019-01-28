@@ -36,7 +36,6 @@ import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
-import static com.android.SdkConstants.CLASS_MOTION_LAYOUT;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
@@ -59,7 +58,6 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
 import static icons.StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -74,6 +72,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -109,7 +108,6 @@ import com.android.tools.idea.uibuilder.scout.ScoutMotionConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.DependencyManagementUtil;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -118,7 +116,9 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
 import icons.AndroidIcons;
@@ -1199,9 +1199,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       DesignSurface surface = editor.getScene().getDesignSurface();
       NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
-      JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
+      JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
         .setRequestFocus(true)
-        .createPopup().show(relativePoint);
+        .createPopup();
+      myMarginPopup.setPopup(popup);
+      Disposer.register(popup, () -> myMarginPopup.setPopup(null));
+      popup.show(relativePoint);
     }
 
     @Override
