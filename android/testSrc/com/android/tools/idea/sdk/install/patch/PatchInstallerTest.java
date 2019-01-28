@@ -21,14 +21,13 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.PathUtil;
-import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.bind.JAXBException;
 import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import javax.xml.bind.JAXBException;
+import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link PatchInstallerFactory}.
@@ -111,8 +110,7 @@ public class PatchInstallerTest extends TestCase {
     throws JAXBException {
     InputStream remoteInput = new ByteArrayInputStream(REMOTE.getBytes());
     ImmutableList<SchemaModule<?>> modules = ImmutableList.of(RepoManager.getGenericModule());
-    Repository r = (Repository)SchemaModuleUtil
-      .unmarshal(remoteInput, modules, repoManager.getResourceResolver(progress), true, progress);
+    Repository r = (Repository) SchemaModuleUtil.unmarshal(remoteInput, modules, true, progress);
     RemotePackage p = r.getRemotePackage().get(0);
     ConstantSourceProvider provider = new ConstantSourceProvider("http://example.com", "dummy", modules);
     p.setSource(provider.getSources(null, progress, false).get(0));
