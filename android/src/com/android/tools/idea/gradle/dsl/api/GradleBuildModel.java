@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.intellij.openapi.diagnostic.ControlFlowException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -49,6 +50,10 @@ public interface GradleBuildModel extends GradleFileModel {
     try {
       return supplier.get();
     } catch (Exception e) {
+      if (e instanceof ControlFlowException) {
+        // Control-Flow exceptions should not be logged and reported.
+        return null;
+      }
       Logger logger = Logger.getInstance(ProjectBuildModel.class);
       logger.error(e);
 
