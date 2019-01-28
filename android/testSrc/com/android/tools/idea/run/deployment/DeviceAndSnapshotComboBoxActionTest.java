@@ -191,7 +191,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
-    assertEquals(actualChildren, Arrays.asList(action.getRunOnMultipleDevicesAction(), action.getOpenAvdManagerAction()));
+    assertEquals(actualChildren, Collections.singletonList(action.getOpenAvdManagerAction()));
   }
 
   @Test
@@ -216,7 +216,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
         .setDevice(builder.build(null, myService))
         .build(),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
       action.getOpenAvdManagerAction());
 
     assertEquals(expectedChildren, actualChildren);
@@ -243,7 +242,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
         .setDevice(builder.build(null, myService))
         .build(),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
       action.getOpenAvdManagerAction());
 
     assertEquals(expectedChildren, actualChildren);
@@ -284,7 +282,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
         .setDevice(virtualDeviceBuilder.build(null, myService))
         .build(),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
       action.getOpenAvdManagerAction());
 
     assertEquals(expectedChildren, actualChildren);
@@ -313,7 +310,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
         .setSnapshot(VirtualDevice.DEFAULT_SNAPSHOT)
         .build(),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
       action.getOpenAvdManagerAction());
 
     assertEquals(expectedChildren, actualChildren);
@@ -341,7 +337,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
         .setDevice(builder.build(null, myService))
         .build(),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
       action.getOpenAvdManagerAction());
 
     assertEquals(expectedChildren, actualChildren);
