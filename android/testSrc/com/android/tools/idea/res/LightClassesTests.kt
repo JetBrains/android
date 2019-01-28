@@ -29,6 +29,7 @@ import com.android.tools.idea.util.toVirtualFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
@@ -1128,11 +1129,20 @@ class GeneratedResourcesTest : AndroidGradleTestCase() {
       """.trimIndent())
 
     requestSyncAndWait()
-    generateSources()
-    VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot.toVirtualFile(refresh = true))
 
-    val appResources = ResourceRepositoryManager.getAppResources(myModules.appModule)!!
-    assertThat(appResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isNotEmpty()
+    AndroidProjectRootListener.ensureSubscribed(project)
+    assertThat(ResourceRepositoryManager.getAppResources(myModules.appModule)!!
+                 .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isEmpty()
+
+    generateSources()
+
+    runWriteAction {
+      VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot.toVirtualFile(refresh = true))
+    }
+    UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(ResourceRepositoryManager.getAppResources(myModules.appModule)!!
+                 .getResources(ResourceNamespace.RES_AUTO, ResourceType.RAW, "sample_raw_resource")).isNotEmpty()
 
     myFixture.openFileInEditor(
       project.guessProjectDir()!!
