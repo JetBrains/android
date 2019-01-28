@@ -82,7 +82,7 @@ public class LocalResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  public ResourceRepository getResourceRepository() {
+  protected ResourceRepository getResourceRepository() {
     return ResourceRepositoryManager.getAppResources(myFacet);
   }
 

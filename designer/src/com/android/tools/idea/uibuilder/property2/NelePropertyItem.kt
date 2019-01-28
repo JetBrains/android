@@ -70,7 +70,6 @@ import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomUtil
 import org.jetbrains.android.dom.AttributeProcessingUtil
 import org.jetbrains.android.dom.attrs.AttributeDefinition
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.Color
 import javax.swing.Icon
 
@@ -322,9 +321,9 @@ open class NelePropertyItem(
     if (definition != null && definition.values.isNotEmpty()) {
       values.addAll(definition.values)
     }
-    val resourceManagers = ModuleResourceManagers.getInstance(model.facet)
-    val localRepository = resourceManagers.localResourceManager.resourceRepository
-    val frameworkRepository = resourceManagers.frameworkResourceManager?.resourceRepository
+    val repositoryManager = ResourceRepositoryManager.getInstance(model.facet)
+    val localRepository = repositoryManager.appResources
+    val frameworkRepository = repositoryManager.getFrameworkResources(false)
     val types = type.resourceTypes
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
     if (types.isNotEmpty()) {
