@@ -131,6 +131,7 @@ public final class TemplateValueInjector {
     Project project = module.getProject();
     addGradleVersions(project);
     addKotlinVersion();
+    addAndroidxSupport(project);
 
     int projectType = facet.getConfiguration().getProjectType();
     if (projectType == PROJECT_TYPE_FEATURE) {
@@ -139,8 +140,6 @@ public final class TemplateValueInjector {
     else if (projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
       setDynamicFeatureSupport(module);
     }
-
-    myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, isAndroidx(project));
 
     return this;
   }
@@ -176,6 +175,7 @@ public final class TemplateValueInjector {
     }
     addGradleVersions(project);
     addKotlinVersion();
+    addAndroidxSupport(project);
     return this;
   }
 
@@ -406,6 +406,12 @@ public final class TemplateValueInjector {
     GradleVersion gradlePluginVersion = determineGradlePluginVersion(project);
     myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, buildToolRevision.toString());
     myTemplateValues.put(ATTR_EXPLICIT_BUILD_TOOLS_VERSION, needsExplicitBuildToolsVersion(gradlePluginVersion, buildToolRevision));
+  }
+
+  private void addAndroidxSupport(@Nullable Project project) {
+    if (project != null) {
+      myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, isAndroidx(project));
+    }
   }
 
   private static void addDebugKeyStore(@NotNull Map<String, Object> templateValues, @Nullable AndroidFacet facet) {
