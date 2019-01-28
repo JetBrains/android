@@ -43,5 +43,6 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/idea/java/execution/openapi:intellij.java.execution[module]",
     ],
 )

@@ -29,20 +29,27 @@ import com.intellij.debugger.impl.DebuggerContextImpl;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.impl.DebuggerTask;
 import com.intellij.debugger.impl.MultiProcessCommand;
+import com.intellij.debugger.impl.RemoteConnectionBuilder;
 import com.intellij.debugger.jdi.ThreadReferenceProxyImpl;
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl;
 import com.intellij.debugger.ui.breakpoints.BreakpointManager;
 import com.intellij.debugger.ui.breakpoints.StackCapturingLineBreakpoint;
+import com.intellij.execution.configurations.RemoteConnection;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.concurrency.Semaphore;
 import com.intellij.xdebugger.XDebugSession;
+import com.sun.jdi.ClassType;
+import com.sun.jdi.ReferenceType;
+import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VirtualMachine;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 import javax.swing.SwingUtilities;
 
@@ -56,8 +63,80 @@ public class DebuggerRedefiner implements ClassRedefiner {
 
   private final Project project;
 
-  public DebuggerRedefiner(Project project) {
+  // This is the port that the IntelliJ talks to (port opended by ddmlib).
+  private final int debuggerPort;
+
+  private RedefineClassSupportState supportState = null;
+
+  public DebuggerRedefiner(Project project, int debuggerPort) {
     this.project = project;
+    this.debuggerPort = debuggerPort;
+  }
+
+  @Override
+  public RedefineClassSupportState canRedefineClass() {
+    if (supportState != null) {
+      return supportState;
+    }
+
+    MultiProcessCommand commands = new MultiProcessCommand();
+    Collection<DebuggerSession> debuggerSessions = DebuggerManagerEx.getInstanceEx(project).getSessions();
+    List<DebuggerTask> tasks = new ArrayList<>(debuggerSessions.size());
+    final AtomicReference<RedefineClassSupportState> result = new AtomicReference<>();
+
+    for (DebuggerSession debuggerSession : debuggerSessions) {
+      RemoteConnection s = debuggerSession.getProcess().getConnection();
+      String address = s.getAddress();
+      int projectDebuggerPort = Integer.parseInt(address);
+      if (debuggerPort == projectDebuggerPort) {
+        DebuggerCommandImpl command = new DebuggerCommandImpl() {
+          @Override
+          protected void action() {
+            result.set(canRedefineClassInternal(debuggerSession));
+          }
+        };
+        commands.addCommand(debuggerSession.getProcess(), command);
+        tasks.add(command);
+      }
+
+    }
+    commands.run();
+    tasks.forEach(cmd -> cmd.waitFor());
+    supportState = result.get();
+    return supportState;
+  }
+
+  private RedefineClassSupportState canRedefineClassInternal(DebuggerSession debuggerSession) {
+    // We use the IntelliJ abstraction of the debugger here since it is available.
+    DebuggerManagerThreadImpl.assertIsManagerThread();
+    DebugProcessImpl debugProcess = debuggerSession.getProcess();
+    VirtualMachineProxyImpl virtualMachineProxy = debugProcess.getVirtualMachineProxy();
+
+    // Simple case, debugger has the capability to all is good.
+    if (virtualMachineProxy.canRedefineClasses()) {
+      return new RedefineClassSupportState(RedefineClassSupport.FULL, null);
+    }
+
+    Collection<ThreadReferenceProxyImpl> allThreads = virtualMachineProxy.allThreads();
+
+    // Prioritize on MAIN_THREAD_RUNNING since this is the safest option.
+    for (ThreadReferenceProxyImpl thread : allThreads) {
+      if (thread.name().equals("main")) {
+        if (!thread.isSuspended()) {
+          return new RedefineClassSupportState(RedefineClassSupport.MAIN_THREAD_RUNNING, "main");
+        }
+      }
+    }
+
+    // Just hope for a thread on a breakpoint after.
+    for (ThreadReferenceProxyImpl thread : allThreads) {
+      if (thread.isAtBreakpoint()) {
+        RedefineClassSupportState state = new RedefineClassSupportState(RedefineClassSupport.NEEDS_AGENT_SERVER, thread.name());
+        return state;
+      }
+    }
+
+    return new RedefineClassSupportState(RedefineClassSupport.NONE, null);
   }
 
   @Override
@@ -102,11 +181,11 @@ public class DebuggerRedefiner implements ClassRedefiner {
     return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.OK).build();
   }
 
-  private static void redefine(Project project, DebuggerSession session, Deploy.SwapRequest request) throws DeployerException {
+  private void redefine(Project project, DebuggerSession session, Deploy.SwapRequest request) throws DeployerException {
     try {
       disableBreakPoints(project, session);
       VirtualMachine vm = session.getProcess().getVirtualMachineProxy().getVirtualMachine();
-      new JdiBasedClassRedefiner(vm).redefine(request);
+      new JdiBasedClassRedefiner(vm, canRedefineClass()).redefine(request);
     } finally {
       enableBreakPoints(project, session);
     }
