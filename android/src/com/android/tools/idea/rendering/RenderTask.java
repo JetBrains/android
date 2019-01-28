@@ -81,8 +81,11 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -121,6 +124,18 @@ public class RenderTask {
    * When quality < 1.0, the max allowed size for the rendering is DOWNSCALED_IMAGE_MAX_BYTES * downscalingFactor
    */
   private static final int DOWNSCALED_IMAGE_MAX_BYTES = 2_500_000; // 2.5MB
+
+  /**
+   * Executor to run the dispose tasks. The thread will run them sequentially.
+   */
+  private static final ExecutorService ourDisposeService = new ThreadPoolExecutor(0, 1, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+                                                                                  new ThreadFactory() {
+                                                                                    @Override
+                                                                                    public Thread newThread(@NotNull Runnable runnable) {
+                                                                                      return new Thread(runnable,
+                                                                                                        "RenderTask dispose thread");
+                                                                                    }
+                                                                                  });
 
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderTaskContext myContext;
@@ -266,7 +281,7 @@ public class RenderTask {
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
-    FutureTask<Void> disposeTask = new FutureTask<>(() -> {
+    return ourDisposeService.submit(() -> {
       try {
         CompletableFuture<?>[] currentRunningFutures;
         synchronized (myRunningFutures) {
@@ -293,9 +308,6 @@ public class RenderTask {
 
       return null;
     });
-
-    new Thread(disposeTask, "RenderTask dispose thread").start();
-    return disposeTask;
   }
 
   /**
