@@ -63,7 +63,7 @@ public abstract class ResourceManager {
    * Returns the resource repository associated with this resource manager.
    */
   @NotNull
-  public abstract ResourceRepository getResourceRepository();
+  protected abstract ResourceRepository getResourceRepository();
 
   /** Returns true if the given directory is a resource directory in this module. */
   public abstract boolean isResourceDir(@NotNull VirtualFile dir);
