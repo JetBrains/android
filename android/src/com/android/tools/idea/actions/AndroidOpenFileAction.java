@@ -161,15 +161,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
   }
 
   private static boolean openOrImportProject(@NotNull VirtualFile file, @Nullable Project project) {
-    if (canOpenAsExistingProject(file)) {
-      if (!promptToCloseIfNecessary(project)) {
-        return false;
-      }
-      EnumSet<PlatformProjectOpenProcessor.Option> options = EnumSet.of(PlatformProjectOpenProcessor.Option.REOPEN);
-      PlatformProjectOpenProcessor.doOpenProject(file, null, -1, null, options);
-      return true;
-    }
-    if (canImportAsGradleProject(file)) {
+    if (!canOpenAsExistingProject(file) && canImportAsGradleProject(file)) {
       VirtualFile target = findImportTarget(file);
       if (target != null) {
         if (!promptToCloseIfNecessary(project)) {
