@@ -16,10 +16,10 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.SdkConstants
-import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
 import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.util.ui.ThreeStateCheckBox
 
