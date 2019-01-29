@@ -1056,6 +1056,8 @@
     <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel$StateStorage" />
     <projectService serviceImplementation="com.android.tools.idea.rendering.RenderSettings" />
     <projectService serviceImplementation="com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler" />
+    <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
+                    serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingDefaultTracker"/>
 
     <moduleService serviceImplementation="org.jetbrains.android.compiler.ModuleSourceAutogenerating" />
     <moduleService serviceImplementation="org.jetbrains.android.TagToClassMapperImpl"

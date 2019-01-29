@@ -30,6 +30,9 @@
     <automaticRenamerFactory implementation="com.android.tools.idea.databinding.DataBindingRenamerFactory"/>
     <moduleService serviceImplementation="com.android.tools.idea.databinding.ModuleDataBinding" />
     <xml.elementDescriptorProvider implementation="com.android.tools.idea.databinding.DataBindingDomElementDescriptorProvider" order="first"/>
+    <projectService serviceInterface="com.android.tools.idea.databinding.analytics.api.DataBindingTracker"
+                    serviceImplementation="com.android.tools.idea.databinding.analytics.DataBindingTracker"
+                    overrides="true"/>
 
     <intentionAction>
       <className>com.android.tools.idea.actions.ConvertLayoutToDataBindingAction</className>
