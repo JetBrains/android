@@ -417,7 +417,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   private static FileChooserDescriptor createSingleFolderDescriptor(@NotNull String title, @NotNull Function<File, Void> validation) {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false) {
       @Override
-      public void validateSelectedFiles(VirtualFile[] files) {
+      public void validateSelectedFiles(@NotNull VirtualFile[] files) {
         for (VirtualFile virtualFile : files) {
           File file = virtualToIoFile(virtualFile);
           validation.fun(file);

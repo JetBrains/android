@@ -41,7 +41,7 @@ public class PropertiesComponentMock extends PropertiesComponent {
 
   @Nullable
   @Override
-  public String getValue(@NonNls String name) {
+  public String getValue(@NotNull @NonNls String name) {
     return myProperties.getProperty(name);
   }
 

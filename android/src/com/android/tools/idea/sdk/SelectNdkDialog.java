@@ -111,7 +111,7 @@ public class SelectNdkDialog extends DialogWrapper {
 
     FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false) {
       @Override
-      public void validateSelectedFiles(VirtualFile[] files) throws Exception {
+      public void validateSelectedFiles(@NotNull VirtualFile[] files) throws Exception {
         for (VirtualFile virtualFile : files) {
           File file = virtualToIoFile(virtualFile);
           ValidationResult validationResult = validateAndroidNdk(file, false);

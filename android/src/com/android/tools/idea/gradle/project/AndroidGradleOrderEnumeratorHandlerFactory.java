@@ -24,6 +24,7 @@ public class AndroidGradleOrderEnumeratorHandlerFactory extends FactoryImpl {
     return AndroidModuleModel.get(module) != null;
   }
 
+  @NotNull
   @Override
   public GradleOrderEnumeratorHandler createHandler(@NotNull Module module) {
     return new GradleOrderEnumeratorHandler(module) {
