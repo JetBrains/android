@@ -20,12 +20,12 @@ import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.EnumSupport
 import com.android.tools.idea.common.property2.api.EnumValue
+import com.android.tools.idea.common.property2.impl.model.util.TestInspectorLineModel
+import com.android.tools.idea.common.property2.impl.model.util.TestLineType
 import com.android.tools.idea.common.property2.impl.model.util.TestAction
 import com.android.tools.idea.common.property2.impl.model.util.TestEnumSupport
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property2.testutils.LineType
-import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -103,7 +103,7 @@ class ComboBoxPropertyEditorModelTest {
   @Test
   fun testEnter() {
     val (model, listener) = createModelWithListener()
-    val line = FakeInspectorLine(LineType.PROPERTY)
+    val line = TestInspectorLineModel(TestLineType.PROPERTY)
     model.lineModel = line
     model.text = "gone"
     model.enterKeyPressed()

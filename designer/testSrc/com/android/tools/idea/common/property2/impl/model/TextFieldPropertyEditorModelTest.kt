@@ -20,10 +20,10 @@ import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.PropertyItem
+import com.android.tools.idea.common.property2.impl.model.util.TestInspectorLineModel
+import com.android.tools.idea.common.property2.impl.model.util.TestLineType
 import com.android.tools.idea.common.property2.impl.model.util.TestAsyncPropertyItem
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
-import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
-import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -55,7 +55,7 @@ class TextFieldPropertyEditorModelTest {
   @Test
   fun testEnter() {
     val (model, listener) = createModel()
-    val line = FakeInspectorLine(LineType.PROPERTY)
+    val line = TestInspectorLineModel(TestLineType.PROPERTY)
     model.lineModel = line
     model.text = "world"
     model.commit()
@@ -102,7 +102,7 @@ class TextFieldPropertyEditorModelTest {
     // setup
     val property = TestAsyncPropertyItem(ANDROID_URI, ATTR_ID, "textView")
     val (model, listener) = createModel(property)
-    val line = FakeInspectorLine(LineType.PROPERTY)
+    val line = TestInspectorLineModel(TestLineType.PROPERTY)
     model.lineModel = line
     model.focusGained()
     model.text = "imageView"
