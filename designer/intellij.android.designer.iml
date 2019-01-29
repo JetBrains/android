@@ -37,6 +37,7 @@
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="library" name="javax.activation" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="jaxb-runtime" level="project" />
   </component>
 </module>
