@@ -406,6 +406,7 @@ class AddDynamicFeatureTest {
    * new module wizard, with conditional delivery specifying a couple of
    * device feature conditions
    */
+  @RunIn(TestGroup.UNRELIABLE)  // b/123579093
   @Test
   @Throws(Exception::class)
   fun addDynamicModuleWithConditionalDelivery_installOnDemandDeviceFeatures() {
