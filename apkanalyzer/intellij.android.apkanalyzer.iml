@@ -30,15 +30,7 @@
     <orderEntry type="library" name="com.android.tools.apkparser:apkanalyzer" level="project" />
     <orderEntry type="library" name="com.android.tools:annotations" level="project" />
     <orderEntry type="library" name="com.android.tools:sdk-common" level="project" />
-    <orderEntry type="module-library">
-      <library name="aapt">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../android/lib/aapt-proto-jarjar.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="aapt-proto-jarjar" level="project" />
     <orderEntry type="library" name="com.android.tools:sdklib" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="commons-compress" level="project" />

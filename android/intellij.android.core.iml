@@ -169,15 +169,7 @@
     <orderEntry type="library" name="http-client" level="project" />
     <orderEntry type="library" name="kxml2" level="project" />
     <orderEntry type="library" name="com.android.tools.build:manifest-merger" level="project" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/aapt-proto-jarjar.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="aapt-proto-jarjar" level="project" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
