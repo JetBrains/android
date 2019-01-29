@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,14 +36,14 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
   @NotNull
   private List<Device> myDevices;
 
-  SelectDeploymentTargetsDialogTableModel(@NotNull AsyncDevicesGetter devicesGetter, @NotNull Project project) {
+  SelectDeploymentTargetsDialogTableModel(@NotNull Project project) {
     mySelected = Collections.emptyList();
     myDevices = Collections.emptyList();
 
     Timer timer = new Timer(1_000, event -> {
       int oldDeviceCount = myDevices.size();
 
-      myDevices = devicesGetter.get(project);
+      myDevices = ServiceManager.getService(project, AsyncDevicesGetter.class).get();
       myDevices.sort(new DeviceComparator());
 
       int newDeviceCount = myDevices.size();

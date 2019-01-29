@@ -23,8 +23,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -42,6 +40,12 @@ import org.jetbrains.annotations.Nullable;
 
 class AsyncDevicesGetter {
   @NotNull
+  private final Project myProject;
+
+  @NotNull
+  private final KeyToConnectionTimeMap myMap;
+
+  @NotNull
   private final Worker<Collection<VirtualDevice>> myVirtualDevicesWorker;
 
   @NotNull
@@ -53,39 +57,35 @@ class AsyncDevicesGetter {
   @Nullable
   private LaunchCompatibilityChecker myChecker;
 
-  @Nullable
-  private ConnectionTimeService myService;
-
-  AsyncDevicesGetter(@NotNull Disposable parent) {
-    this(parent, null);
+  @SuppressWarnings("unused")
+  private AsyncDevicesGetter(@NotNull Project project) {
+    this(project, new KeyToConnectionTimeMap());
   }
 
   @VisibleForTesting
-  AsyncDevicesGetter(@NotNull Disposable parent, @Nullable ConnectionTimeService service) {
+  AsyncDevicesGetter(@NotNull Project project, @NotNull KeyToConnectionTimeMap map) {
+    myProject = project;
+    myMap = map;
+
     myVirtualDevicesWorker = new Worker<>();
     myConnectedDevicesWorker = new Worker<>();
-    myDevicePropertiesFetcher = new DeviceNamePropertiesFetcher(new DefaultCallback<>(), parent);
-
-    myService = service;
+    myDevicePropertiesFetcher = new DeviceNamePropertiesFetcher(new DefaultCallback<>(), project);
   }
 
   @NotNull
-  List<Device> get(@NotNull Project project) {
+  List<Device> get() {
     if (Disposer.isDisposed(myDevicePropertiesFetcher)) {
       return Collections.emptyList();
     }
 
-    initChecker(RunManager.getInstance(project).getSelectedConfiguration(), AndroidFacet::getInstance);
-    initService(project);
-
-    assert myService != null;
+    initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
 
     Collection<VirtualDevice> virtualDevices = myVirtualDevicesWorker.get(
-      () -> new VirtualDevicesWorkerDelegate(myChecker, myService),
+      () -> new VirtualDevicesWorkerDelegate(myChecker, myMap),
       Collections.emptyList());
 
     Collection<IDevice> connectedDevices = new ArrayList<>(myConnectedDevicesWorker.get(
-      () -> new ConnectedDevicesWorkerDelegate(project),
+      () -> new ConnectedDevicesWorkerDelegate(myProject),
       Collections.emptyList()));
 
     List<Device> devices = new ArrayList<>(virtualDevices.size() + connectedDevices.size());
@@ -95,7 +95,7 @@ class AsyncDevicesGetter {
       .forEach(devices::add);
 
     connectedDevices.stream()
-      .map(device -> PhysicalDevice.newBuilder(myDevicePropertiesFetcher.get(device), device).build(myChecker, myService))
+      .map(device -> PhysicalDevice.newBuilder(myDevicePropertiesFetcher.get(device), device).build(myChecker, myMap))
       .forEach(devices::add);
 
     Collection<String> keys = devices.stream()
@@ -103,7 +103,7 @@ class AsyncDevicesGetter {
       .map(Device::getKey)
       .collect(Collectors.toList());
 
-    myService.retainAll(keys);
+    myMap.retainAll(keys);
     return devices;
   }
 
@@ -146,23 +146,18 @@ class AsyncDevicesGetter {
     myChecker = LaunchCompatibilityCheckerImpl.create(facet, null, null);
   }
 
-  private void initService(@NotNull Project project) {
-    myService = ServiceManager.getService(project, ConnectionTimeService.class);
-  }
-
   // TODO(b/122476635) Simplify this method
   @NotNull
   @VisibleForTesting
   final Device newVirtualDeviceIfItsConnected(@NotNull VirtualDevice virtualDevice, @NotNull Iterable<IDevice> connectedDevices) {
     Object key = virtualDevice.getKey();
-    assert myService != null;
 
     for (Iterator<IDevice> i = connectedDevices.iterator(); i.hasNext(); ) {
       IDevice device = i.next();
 
       if (Objects.equals(device.getAvdName(), key)) {
         i.remove();
-        return VirtualDevice.newConnectedDeviceBuilder(virtualDevice, device).build(myChecker, myService);
+        return VirtualDevice.newConnectedDeviceBuilder(virtualDevice, device).build(myChecker, myMap);
       }
     }
 
