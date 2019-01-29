@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.property2.impl.ui
 
-import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.android.tools.idea.common.property2.api.InspectorPanel
@@ -29,6 +28,7 @@ import com.android.tools.idea.common.property2.impl.model.InspectorPanelModel
 import com.android.tools.idea.common.property2.impl.model.SeparatorLineModel
 import com.android.tools.idea.common.property2.impl.model.TableLineModelImpl
 import com.android.tools.idea.common.property2.impl.model.TitleLineModel
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE
 import com.intellij.openapi.actionSystem.AnAction
