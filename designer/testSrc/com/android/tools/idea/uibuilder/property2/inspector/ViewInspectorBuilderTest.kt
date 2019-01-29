@@ -16,12 +16,12 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
+import com.android.tools.idea.common.property2.impl.model.util.TestInspectorLineModel
+import com.android.tools.idea.common.property2.impl.model.util.TestLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
-import com.android.tools.idea.uibuilder.property2.testutils.FakeInspectorLine
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
-import com.android.tools.idea.uibuilder.property2.testutils.LineType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.PathManager
 import com.intellij.testFramework.EdtRule
@@ -477,13 +477,13 @@ class ViewInspectorBuilderTest {
     checkProperty(util.inspector.lines[24], AUTO_URI, ATTR_BOX_STROKE_WIDTH)
   }
 
-  private fun checkTitle(line: FakeInspectorLine, title: String) {
-    assertThat(line.type).isEqualTo(LineType.TITLE)
+  private fun checkTitle(line: TestInspectorLineModel, title: String) {
+    assertThat(line.type).isEqualTo(TestLineType.TITLE)
     assertThat(line.title).isEqualTo(title)
   }
 
-  private fun checkProperty(line: FakeInspectorLine, namespace: String, propertyName: String) {
-    assertThat(line.type).isEqualTo(LineType.PROPERTY)
+  private fun checkProperty(line: TestInspectorLineModel, namespace: String, propertyName: String) {
+    assertThat(line.type).isEqualTo(TestLineType.PROPERTY)
     assertThat(line.editorModel?.property?.name).isEqualTo(propertyName)
     assertThat(line.editorModel?.property?.namespace).isEqualTo(namespace)
   }
