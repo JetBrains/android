@@ -23,6 +23,7 @@ timestamp: 100
         <Message>command {
   stream_id: 1234
   type: BEGIN_SESSION
+  pid: 1
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.Transport$ExecuteRequest</clazz>
@@ -30,6 +31,7 @@ timestamp: 100
         <message>command {
   stream_id: 1234
   type: BEGIN_SESSION
+  pid: 1
 }
 </message>
     </GrpcCall>
@@ -43,6 +45,7 @@ timestamp: 100
         <Message>command {
   stream_id: 1234
   type: BEGIN_SESSION
+  pid: 1
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.Transport$ExecuteRequest</clazz>
@@ -50,6 +53,7 @@ timestamp: 100
         <message>command {
   stream_id: 1234
   type: BEGIN_SESSION
+  pid: 1
 }
 </message>
     </GrpcCall>

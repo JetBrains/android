@@ -37,7 +37,7 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
     if (attachAgentCalled) {
       events.add(EventGroup.newBuilder().setGroupId(nextSessionId)
                    .addEvents(Common.Event.newBuilder().apply {
-                     pid = command.beginSession.pid
+                     pid = command.pid
                      kind = Common.Event.Kind.AGENT
                      timestamp = timer.currentTimeNs
                      agentData = Common.AgentData.newBuilder().apply {
@@ -48,14 +48,14 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
     events.add(EventGroup.newBuilder().setGroupId(nextSessionId)
                  .addEvents(Common.Event.newBuilder().apply {
                    groupId = nextSessionId
-                   pid = command.beginSession.pid
+                   pid = command.pid
                    kind = Common.Event.Kind.SESSION
                    timestamp = timer.currentTimeNs
                    session = Common.SessionData.newBuilder().apply {
                      sessionStarted = Common.SessionData.SessionStarted.newBuilder().apply {
                        sessionId = nextSessionId
                        streamId = command.streamId
-                       pid = command.beginSession.pid
+                       pid = command.pid
                        startTimestampEpochMs = command.beginSession.requestTimeEpochMs
                        sessionName = command.beginSession.sessionName
                        type = Common.SessionData.SessionStarted.SessionType.FULL
