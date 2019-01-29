@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Collection;
@@ -23,27 +23,26 @@ import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
-final class ConnectionTimeService {
-  private final Map<String, Instant> myKeyToConnectionTimeMap;
+final class KeyToConnectionTimeMap {
+  private final Map<String, Instant> myMap;
   private final Clock myClock;
 
-  @SuppressWarnings("unused")
-  private ConnectionTimeService() {
+  KeyToConnectionTimeMap() {
     this(Clock.systemDefaultZone());
   }
 
   @VisibleForTesting
-  ConnectionTimeService(@NotNull Clock clock) {
-    myKeyToConnectionTimeMap = new HashMap<>();
+  KeyToConnectionTimeMap(@NotNull Clock clock) {
+    myMap = new HashMap<>();
     myClock = clock;
   }
 
   @NotNull
   Instant get(@NotNull String key) {
-    return myKeyToConnectionTimeMap.computeIfAbsent(key, k -> myClock.instant());
+    return myMap.computeIfAbsent(key, k -> myClock.instant());
   }
 
   void retainAll(@NotNull Collection<String> keys) {
-    myKeyToConnectionTimeMap.keySet().retainAll(keys);
+    myMap.keySet().retainAll(keys);
   }
 }

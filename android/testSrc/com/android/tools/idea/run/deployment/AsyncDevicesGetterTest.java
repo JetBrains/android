@@ -26,9 +26,7 @@ import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfigurationModule;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Disposer;
 import java.io.File;
 import java.time.Clock;
 import java.time.Instant;
@@ -38,7 +36,6 @@ import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,8 +45,7 @@ public final class AsyncDevicesGetterTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
-  private Disposable myDisposable;
-  private ConnectionTimeService myService;
+  private KeyToConnectionTimeMap myMap;
   private AsyncDevicesGetter myGetter;
   private VirtualDevice myVirtualDevice;
 
@@ -58,13 +54,11 @@ public final class AsyncDevicesGetterTest {
 
   @Before
   public void setUp() {
-    myDisposable = Mockito.mock(Disposable.class);
-
     Clock clock = Mockito.mock(Clock.class);
     Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
-    myService = new ConnectionTimeService(clock);
-    myGetter = new AsyncDevicesGetter(myDisposable, myService);
+    myMap = new KeyToConnectionTimeMap(clock);
+    myGetter = new AsyncDevicesGetter(myRule.getProject(), myMap);
 
     AvdInfo avdInfo = new AvdInfo(
       "Pixel_2_XL_API_27",
@@ -73,7 +67,7 @@ public final class AsyncDevicesGetterTest {
       Mockito.mock(ISystemImage.class),
       null);
 
-    myVirtualDevice = VirtualDevice.newDisconnectedDeviceBuilder(avdInfo).build(null, myService);
+    myVirtualDevice = VirtualDevice.newDisconnectedDeviceBuilder(avdInfo).build(null, myMap);
   }
 
   @Before
@@ -82,11 +76,6 @@ public final class AsyncDevicesGetterTest {
 
     myConnectedDevices = new ArrayList<>(1);
     myConnectedDevices.add(myConnectedDevice);
-  }
-
-  @After
-  public void disposeOfDisposable() {
-    Disposer.dispose(myDisposable);
   }
 
   @Test
@@ -120,7 +109,7 @@ public final class AsyncDevicesGetterTest {
       .setKey("Pixel_2_XL_API_27")
       .setAndroidDevice(actualDevice.getAndroidDevice())
       .setConnected(true)
-      .build(null, myService);
+      .build(null, myMap);
 
     assertEquals(expectedDevice, actualDevice);
     assertEquals(Collections.emptyList(), myConnectedDevices);

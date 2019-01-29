@@ -29,15 +29,10 @@ import org.jetbrains.annotations.NotNull;
 
 final class SelectDeploymentTargetsDialog extends DialogWrapper {
   @NotNull
-  private final AsyncDevicesGetter myDevicesGetter;
-
-  @NotNull
   private final Project myProject;
 
-  SelectDeploymentTargetsDialog(@NotNull AsyncDevicesGetter devicesGetter, @NotNull Project project) {
+  SelectDeploymentTargetsDialog(@NotNull Project project) {
     super(project);
-
-    myDevicesGetter = devicesGetter;
     myProject = project;
 
     init();
@@ -50,7 +45,7 @@ final class SelectDeploymentTargetsDialog extends DialogWrapper {
     JComponent panel = new JPanel();
     GroupLayout layout = new GroupLayout(panel);
     Component label = new JLabel("Available devices");
-    Component scrollPane = new JBScrollPane(new SelectDeploymentTargetsDialogTable(myDevicesGetter, myProject));
+    Component scrollPane = new JBScrollPane(new SelectDeploymentTargetsDialogTable(myProject));
 
     Group horizontalGroup = layout.createParallelGroup()
       .addComponent(label)

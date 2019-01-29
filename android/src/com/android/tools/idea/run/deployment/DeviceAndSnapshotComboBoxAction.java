@@ -33,6 +33,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Condition;
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
@@ -64,7 +66,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
   private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
-  private final AsyncDevicesGetter myDevicesGetter;
+  private final Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
 
   private final AnAction myRunOnMultipleDevicesAction;
   private final AnAction myOpenAvdManagerAction;
@@ -78,21 +80,21 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private DeviceAndSnapshotComboBoxAction() {
     this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get(),
          () -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(),
-         new AsyncDevicesGetter(ApplicationManager.getApplication()),
+         project -> ServiceManager.getService(project, AsyncDevicesGetter.class),
          Clock.systemDefaultZone());
   }
 
   @VisibleForTesting
   DeviceAndSnapshotComboBoxAction(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible,
                                   @NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxSnapshotsEnabled,
-                                  @NotNull AsyncDevicesGetter devicesGetter,
+                                  @NotNull Function<Project, AsyncDevicesGetter> devicesGetterGetter,
                                   @NotNull Clock clock) {
     mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
 
-    myDevicesGetter = devicesGetter;
+    myDevicesGetterGetter = devicesGetterGetter;
 
-    myRunOnMultipleDevicesAction = new RunOnMultipleDevicesAction(devicesGetter);
+    myRunOnMultipleDevicesAction = new RunOnMultipleDevicesAction();
     myOpenAvdManagerAction = new RunAndroidAvdManagerAction();
 
     Presentation presentation = myOpenAvdManagerAction.getTemplatePresentation();
@@ -320,7 +322,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     presentation.setVisible(true);
 
-    myDevices = myDevicesGetter.get(project);
+    myDevices = myDevicesGetterGetter.apply(project).get();
     myDevices.sort(new DeviceComparator());
 
     if (myDevices.isEmpty()) {
