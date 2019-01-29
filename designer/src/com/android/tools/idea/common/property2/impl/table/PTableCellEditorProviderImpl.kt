@@ -15,11 +15,20 @@
  */
 package com.android.tools.idea.common.property2.impl.table
 
-import com.android.annotations.VisibleForTesting
-import com.android.tools.adtui.ptable2.*
-import com.android.tools.idea.common.property2.api.*
-import com.android.tools.idea.common.property2.impl.model.TableLineModelImpl
+import com.android.tools.adtui.ptable2.DefaultPTableCellEditor
+import com.android.tools.adtui.ptable2.PTable
+import com.android.tools.adtui.ptable2.PTableCellEditor
+import com.android.tools.adtui.ptable2.PTableCellEditorProvider
+import com.android.tools.adtui.ptable2.PTableColumn
+import com.android.tools.adtui.ptable2.PTableItem
+import com.android.tools.idea.common.property2.api.ControlType
+import com.android.tools.idea.common.property2.api.ControlTypeProvider
+import com.android.tools.idea.common.property2.api.EditorProvider
+import com.android.tools.idea.common.property2.api.NewPropertyItem
+import com.android.tools.idea.common.property2.api.PropertyEditorModel
+import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.common.property2.impl.ui.CellPanel
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Color

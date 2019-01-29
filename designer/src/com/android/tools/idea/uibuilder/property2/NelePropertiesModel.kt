@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants
-import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.ModelListener
@@ -35,6 +34,7 @@ import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.AccessoryPanelListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
