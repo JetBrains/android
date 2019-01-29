@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
-import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.util.text.Matcher
 import com.intellij.util.ui.UIUtil
