@@ -95,7 +95,7 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
     myProjectPathTextField.setTextFieldPreferredWidth(50);
     FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, false) {
       @Override
-      public void validateSelectedFiles(VirtualFile[] files) throws Exception {
+      public void validateSelectedFiles(@NotNull VirtualFile[] files) throws Exception {
         for (VirtualFile virtualFile : files) {
           String errorMessage = validateProjectFilePath(virtualToIoFile(virtualFile));
           if (errorMessage != null) {
