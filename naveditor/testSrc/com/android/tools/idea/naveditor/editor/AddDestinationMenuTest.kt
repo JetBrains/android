@@ -104,7 +104,7 @@ class AddDestinationMenuTest : NavTestCase() {
   }
 
   fun testContent() {
-    val virtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity_main2.xml")
+    val virtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity_main.xml")
     val xmlFile = PsiManager.getInstance(project).findFile(virtualFile!!) as XmlFile
 
     addFragment("fragment1")
@@ -201,12 +201,12 @@ class AddDestinationMenuTest : NavTestCase() {
     assertEquals("placeholder", (gallery.model.getElementAt(0) as Destination).label)
     assertEquals("BlankFragment", (gallery.model.getElementAt(1) as Destination).label)
     assertEquals("navigation.xml", (gallery.model.getElementAt(2) as Destination).label)
-    assertEquals("activity_main2", (gallery.model.getElementAt(3) as Destination).label)
+    assertEquals("activity_main", (gallery.model.getElementAt(3) as Destination).label)
 
     searchField.text = "v"
     assertEquals(2, gallery.itemsCount)
     assertEquals("navigation.xml", (gallery.model.getElementAt(0) as Destination).label)
-    assertEquals("activity_main2", (gallery.model.getElementAt(1) as Destination).label)
+    assertEquals("activity_main", (gallery.model.getElementAt(1) as Destination).label)
 
     searchField.text = "vig"
     assertEquals(1, gallery.itemsCount)
