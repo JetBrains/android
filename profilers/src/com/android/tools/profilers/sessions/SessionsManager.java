@@ -339,7 +339,6 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       assert streamId != 0;
       BeginSession.Builder requestBuilder = BeginSession.newBuilder()
-        .setPid(process.getPid())
         .setSessionName(buildSessionName(device, process))
         .setRequestTimeEpochMs(System.currentTimeMillis());
       // Attach agent for advanced profiling if JVMTI is enabled
@@ -356,6 +355,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
 
       Command command = Command.newBuilder()
         .setStreamId(streamId)
+        .setPid(process.getPid())
         .setBeginSession(requestBuilder)
         .setType(Command.CommandType.BEGIN_SESSION)
         .build();
@@ -402,6 +402,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     if (myProfilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
       Command command = Command.newBuilder()
         .setStreamId(profilingSession.getStreamId())
+        .setPid(profilingSession.getPid())
         .setEndSession(EndSession.newBuilder().setSessionId(profilingSession.getSessionId()))
         .setType(Command.CommandType.END_SESSION)
         .build();
