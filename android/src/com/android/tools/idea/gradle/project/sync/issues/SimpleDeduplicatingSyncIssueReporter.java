@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.android.tools.idea.project.messages.MessageType.WARNING;
+import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 /**
@@ -96,7 +96,7 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
                                                @NotNull Map<Module, VirtualFile> buildFileMap,
                                                boolean isError) {
     GradleSyncMessages messages = GradleSyncMessages.getInstance(project);
-    MessageType type = isError ? ERROR : WARNING;
+    MessageType type = isError ? ERROR : INFO;
 
     assert !syncIssues.isEmpty();
     NotificationData notification = setupNotificationData(project, syncIssues, affectedModules, buildFileMap, type);
