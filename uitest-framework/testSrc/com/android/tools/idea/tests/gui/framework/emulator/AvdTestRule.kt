@@ -73,12 +73,35 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
     private set
   private var avdDevice: IDevice? = null
   private var emulatorProcess: Process? = null
+  private var homeDirectory: File? = null
 
   override fun before() {
     super.before()
 
     var sdkLocation = TestUtils.getSdk()
     if (TestUtils.runningFromBazel()) {
+      // ADB will try to make a .android directory under the user's home directory.
+      // Mount a tmpfs on the home directory so ADB will succeed while running in the sandbox
+      // Start by checking if we are the (fake) root user:
+      if (System.getProperty("user.name", "notroot") != "root") {
+        throw IllegalStateException("Not running as fake root. Is \"requires-fakeroot\" a tag in the BUILD target?")
+      }
+
+      // Check if we're underneath the directory we're about to mount over:
+      val rootHomeDir = File(System.getProperty("user.home") ?: throw IllegalStateException("No home directory available!"))
+      if (checkFileAncestry(rootHomeDir, File(System.getProperty("user.dir")))) {
+        throw IllegalStateException("We were about to mount a tmpfs over a directory we were working under.")
+      }
+
+      val mountPb = ProcessBuilder("mount", "-t", "tmpfs", "none", rootHomeDir.canonicalPath).inheritIO()
+      val mountProc = mountPb.start()
+      if (!mountProc.waitFor(10, TimeUnit.SECONDS)) {
+        // failed to mount
+        throw RuntimeException("Unable to mount tmpfs to /root")
+      }
+
+      homeDirectory = rootHomeDir
+
       // copy the SDK to a writable area
       val tmpDir = File(System.getenv("TEST_TMPDIR"))
       val newSdkLocation = copySdkToTmp(sdkLocation, tmpDir)
@@ -119,6 +142,21 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
 
     AndroidDebugBridge.terminate()
     AndroidDebugBridge.disconnectBridge()
+  }
+
+  private fun checkFileAncestry(possibleAncestor: File, descendant: File): Boolean {
+    val resolvedAncestor = possibleAncestor.canonicalFile
+    var fileTreeWalker: File? = descendant.canonicalFile
+
+    if (resolvedAncestor.equals(fileTreeWalker)) {
+      return true
+    }
+
+    while (fileTreeWalker != null && !resolvedAncestor.equals(fileTreeWalker)) {
+      fileTreeWalker = fileTreeWalker.parentFile?.canonicalFile
+    }
+
+    return resolvedAncestor.equals(fileTreeWalker)
   }
 
   private fun copySdkToTmp(sdk: File, tmpDir: File): File {
@@ -303,8 +341,14 @@ class AvdTestRule(private val avdSpec: AvdSpec) : ExternalResource() {
 
   override fun after() {
     try {
+      // Emulator was started after mounting tmpfs on /root, so we should unmount tmpfs from
+      // the home directory only after stopping the emulator.
       emulatorProcess?.destroy()
       emulatorProcess?.waitFor(30, TimeUnit.SECONDS)
+      val mountedHomeDir = homeDirectory
+      if (TestUtils.runningFromBazel() && mountedHomeDir != null) {
+        ProcessBuilder("umount", mountedHomeDir.canonicalPath).inheritIO().start().waitFor(10, TimeUnit.SECONDS)
+      }
     } catch (interrupted: InterruptedException) {
       Thread.currentThread().interrupt()
     } finally {

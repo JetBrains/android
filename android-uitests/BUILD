@@ -799,6 +799,10 @@ config_setting(
 )
 
 # sanity test
+DEBUG_ON_EMU_TEST_TAGS = list(COMMON_TAGS)
+
+DEBUG_ON_EMU_TEST_TAGS.remove("cpu:3")
+
 java_test(
     name = "DebugOnEmulatorTest",
     size = "enormous",
@@ -816,13 +820,14 @@ java_test(
     jvm_flags = [
         "-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.DebugOnEmulatorTest",
     ],
-    tags = COMMON_TAGS + [
+    tags = DEBUG_ON_EMU_TEST_TAGS + [
         "no-remote",
+        "requires-fakeroot",
         "no_psq",
         "qa_sanity",
         "qa_unreliable",
         "requires_emulator",
-        "exclusive",
+        "cpu:100",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
