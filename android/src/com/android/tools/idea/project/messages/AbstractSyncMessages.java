@@ -25,6 +25,7 @@ import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.build.SyncViewManager;
 import com.intellij.build.events.Failure;
+import com.intellij.build.events.MessageEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -216,7 +217,13 @@ public abstract class AbstractSyncMessages implements Disposable {
     SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
     syncViewManager.onEvent(issueEvent);
     syncViewManager.onEvent(new AndroidSyncIssueOutputEvent(taskId, notification));
-    myShownFailures.computeIfAbsent(taskId, key -> new ArrayList<>()).addAll(((AndroidSyncIssueEventResult)issueEvent.getResult()).getFailures());
+
+    // Only include errors in the summary text output
+    // This has the side effect of not opening the right hand bar if there are no failures
+    if (issueEvent.getKind() == MessageEvent.Kind.ERROR) {
+      myShownFailures.computeIfAbsent(taskId, key -> new ArrayList<>())
+        .addAll(((AndroidSyncIssueEventResult)issueEvent.getResult()).getFailures());
+    }
   }
 
   @NotNull
