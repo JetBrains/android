@@ -35,7 +35,7 @@ public class AndroidSdkUpdaterPluginTest extends AndroidTestCase {
     String user = "testUser";
     String password = "testPassword" + System.currentTimeMillis();
     PasswordSafe.getInstance().set(new CredentialAttributes(serviceName), new Credentials(user, password), true);
-    PasswordAuthentication auth = Authenticator.requestPasswordAuthentication("example.com", InetAddress.getByName("example.com"), 80,
+    PasswordAuthentication auth = Authenticator.requestPasswordAuthentication("example.com", InetAddress.getByName(null), 80,
                                                                               "http", "Server authentication: foo", "basic", new URL(url),
                                                                               Authenticator.RequestorType.SERVER);
     assertEquals(user, auth.getUserName());
