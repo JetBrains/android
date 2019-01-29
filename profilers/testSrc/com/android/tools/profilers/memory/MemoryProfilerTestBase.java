@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.google.common.util.concurrent.Futures;
@@ -43,6 +44,7 @@ public abstract class MemoryProfilerTestBase {
     myTimer = new FakeTimer();
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myProfilers = new StudioProfilers(getGrpcChannel().getClient(), myIdeProfilerServices, myTimer);
+    myProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
     myMockLoader = new FakeCaptureObjectLoader();
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
     myAspectObserver = new MemoryAspectObserver(myStage.getAspect());
@@ -59,45 +61,5 @@ public abstract class MemoryProfilerTestBase {
   protected abstract FakeGrpcChannel getGrpcChannel();
 
   protected void onProfilersCreated(StudioProfilers profilers) {
-  }
-
-  protected static class FakeCaptureObjectLoader extends CaptureObjectLoader {
-    @Nullable
-    private ListenableFutureTask<CaptureObject> myTask;
-    private boolean isReturnImmediateFuture;
-
-    @NotNull
-    @Override
-    public ListenableFuture<CaptureObject> loadCapture(@NotNull CaptureObject captureObject,
-                                                       @Nullable Range queryRange,
-                                                       @Nullable Executor queryJoiner) {
-      if (isReturnImmediateFuture) {
-        return Futures.immediateFuture(captureObject.load(queryRange, queryJoiner) ? captureObject : null);
-      }
-      else {
-        cancelTask();
-        myTask = ListenableFutureTask.create(() -> captureObject.load(queryRange, queryJoiner) ? captureObject : null);
-        return myTask;
-      }
-    }
-
-    public void runTask() {
-      if (myTask != null) {
-        myTask.run();
-        myTask = null;
-      }
-    }
-
-    public void cancelTask() {
-      if (myTask != null) {
-        myTask.cancel(true);
-        myTask = null;
-      }
-    }
-
-    public void setReturnImmediateFuture(boolean val) {
-      isReturnImmediateFuture = val;
-      cancelTask();
-    }
   }
 }

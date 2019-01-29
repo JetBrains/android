@@ -1,88 +1,31 @@
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public interface DexOptionsModel {
-  @Nullable
-  List<GradleNotNullValue<String>> additionalParameters();
+public interface DexOptionsModel extends GradleDslModel {
+  @NotNull
+  ResolvedPropertyModel additionalParameters();
 
   @NotNull
-  DexOptionsModel addAdditionalParameter(@NotNull String additionalParameter);
+  ResolvedPropertyModel javaMaxHeapSize();
 
   @NotNull
-  DexOptionsModel removeAdditionalParameter(@NotNull String additionalParameter);
+  ResolvedPropertyModel jumboMode();
 
   @NotNull
-  DexOptionsModel removeAllAdditionalParameters();
+  ResolvedPropertyModel keepRuntimeAnnotatedClasses();
 
   @NotNull
-  DexOptionsModel replaceAdditionalParameter(@NotNull String oldAdditionalParameter, @NotNull String newAdditionalParameter);
+  ResolvedPropertyModel maxProcessCount();
 
   @NotNull
-  GradleNullableValue<String> javaMaxHeapSize();
+  ResolvedPropertyModel optimize();
 
   @NotNull
-  DexOptionsModel setJavaMaxHeapSize(@NotNull String javaMaxHeapSize);
+  ResolvedPropertyModel preDexLibraries();
 
   @NotNull
-  DexOptionsModel removeJavaMaxHeapSize();
-
-  @NotNull
-  GradleNullableValue<Boolean> jumboMode();
-
-  @NotNull
-  DexOptionsModel setJumboMode(boolean jumboMode);
-
-  @NotNull
-  DexOptionsModel removeJumboMode();
-
-  @NotNull
-  GradleNullableValue<Boolean> keepRuntimeAnnotatedClasses();
-
-  @NotNull
-  DexOptionsModel setKeepRuntimeAnnotatedClasses(boolean keepRuntimeAnnotatedClasses);
-
-  @NotNull
-  DexOptionsModel removeKeepRuntimeAnnotatedClasses();
-
-  @NotNull
-  GradleNullableValue<Integer> maxProcessCount();
-
-  @NotNull
-  DexOptionsModel setMaxProcessCount(int maxProcessCount);
-
-  @NotNull
-  DexOptionsModel removeMaxProcessCount();
-
-  @NotNull
-  GradleNullableValue<Boolean> optimize();
-
-  @NotNull
-  DexOptionsModel setOptimize(boolean optimize);
-
-  @NotNull
-  DexOptionsModel removeOptimize();
-
-  @NotNull
-  GradleNullableValue<Boolean> preDexLibraries();
-
-  @NotNull
-  DexOptionsModel setPreDexLibraries(boolean preDexLibraries);
-
-  @NotNull
-  DexOptionsModel removePreDexLibraries();
-
-  @NotNull
-  GradleNullableValue<Integer> threadCount();
-
-  @NotNull
-  DexOptionsModel setThreadCount(int threadCount);
-
-  @NotNull
-  DexOptionsModel removeThreadCount();
+  ResolvedPropertyModel threadCount();
 }

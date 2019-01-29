@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.detector.api.LintFix;
+import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -40,6 +40,9 @@ import javax.annotation.RegEx;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_BEGINNING;
+import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_END;
+
 /**
  * Generic lint quickfix which replaces text somewhere in the range from [startElement,endElement] by matching
  * a regular expression and replacing the first group with a specified value. The regular expression can be null
@@ -48,6 +51,7 @@ import java.util.regex.Pattern;
  */
 public class ReplaceStringQuickFix implements AndroidLintQuickFix {
   private final String myName;
+  private final String myFamilyName;
   @RegEx private final String myRegexp;
   private final String myNewValue;
   private boolean myShortenNames;
@@ -58,14 +62,19 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
   /**
    * Creates a new lint quickfix which can replace string contents at the given PSI element
    *
-   * @param name the quickfix description, which is optional (if not specified, it will be Replace with X)
-   * @param regexp the regular expression
+   * @param name       the quickfix description, which is optional (if not specified, it will be Replace with X)
+   * @param familyName the name to use for this fix <b>if</b> it is safe to apply along with all other fixes of the same family name
+   * @param regexp     the regular expression, or {@link ReplaceString#INSERT_BEGINNING} or {@link ReplaceString#INSERT_END}
    * @param newValue
    */
-  public ReplaceStringQuickFix(@Nullable String name, @Nullable @RegEx String regexp, @NotNull String newValue) {
+  public ReplaceStringQuickFix(@Nullable String name,
+                               @Nullable String familyName,
+                               @Nullable @RegEx String regexp,
+                               @NotNull String newValue) {
     myName = name;
+    myFamilyName = familyName;
     myNewValue = newValue;
-    if (regexp != null && regexp.indexOf('(') == -1) {
+    if (regexp != null && regexp.indexOf('(') == -1 && !regexp.equals(INSERT_BEGINNING) && !regexp.equals(INSERT_END)) {
       regexp = "(" + Pattern.quote(regexp) + ")";
     }
     myRegexp = regexp;
@@ -92,9 +101,18 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
   @Override
   public String getName() {
     if (myName == null) {
+      if (myNewValue.isEmpty()) {
+        return "Delete";
+      }
       return "Replace with " + myNewValue;
     }
     return myName;
+  }
+
+  @Nullable
+  @Override
+  public String getFamilyName() {
+    return myFamilyName;
   }
 
   @Nullable
@@ -176,6 +194,9 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
     // See if there's nothing left on the line; if so, delete the whole line
     int lineStart = DocumentUtil.getLineStartOffset(startOffset, document);
     int lineEnd = DocumentUtil.getLineEndOffset(startOffset, document);
+    if (lineEnd < endOffset) {
+      return range;
+    }
 
     String prefix = document.getText(new TextRange(lineStart, startOffset));
     String suffix = document.getText(new TextRange(endOffset, lineEnd));
@@ -202,6 +223,11 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
       }
     }
     if (myRegexp != null) {
+      if (INSERT_BEGINNING.equals(myRegexp)) {
+        return new TextRange(start, start);
+      } else if (INSERT_END.equals(myRegexp)) {
+        return new TextRange(end, end);
+      }
       try {
         Pattern pattern = Pattern.compile(myRegexp, Pattern.MULTILINE);
         String sequence;
@@ -240,7 +266,7 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
           }
 
           if (computeReplacement && myExpandedNewValue == null) {
-            myExpandedNewValue = LintFix.ReplaceString.expandBackReferences(myNewValue, matcher);
+            myExpandedNewValue = ReplaceString.expandBackReferences(myNewValue, matcher);
           }
         }
         else {

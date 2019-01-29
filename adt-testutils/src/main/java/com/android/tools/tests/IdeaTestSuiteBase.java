@@ -32,7 +32,7 @@ import static com.android.testutils.TestUtils.getWorkspaceRoot;
 
 
 public class IdeaTestSuiteBase {
-  private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+  protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
 
   static {
     VfsRootAccess.allowRootAccess("/");  // Bazel tests are sandboxed so we disable VfsRoot checks.
@@ -42,6 +42,7 @@ public class IdeaTestSuiteBase {
   private static void setProperties() {
     System.setProperty("idea.home", createTmpDir("tools/idea").toString());
     System.setProperty("gradle.user.home", createTmpDir("home").toString());
+    System.setProperty("local.gradle.distribution.path", new File(getWorkspaceRoot(), "tools/external/gradle/").getAbsolutePath());
     // See AndroidLocation.java for more information on this system property.
     System.setProperty("ANDROID_SDK_HOME", createTmpDir(".android").toString());
     System.setProperty("layoutlib.thread.timeout", "60000");
@@ -52,7 +53,7 @@ public class IdeaTestSuiteBase {
     setRealJdkPathForGradle();
   }
 
-  protected static Path createTmpDir(String p) {
+  public static Path createTmpDir(String p) {
     Path path = Paths.get(TMP_DIR, p);
     try {
       Files.createDirectories(path);

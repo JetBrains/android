@@ -27,6 +27,6 @@ class ChildDestinationsEditor(listener: NlEditingListener, comboBox: CustomCombo
   constructor() : this(NlEditingListener.DEFAULT_LISTENER, CustomComboBox())
 
   override fun getEnumSupport(property: NlProperty): EnumSupport = DestinationEnumSupport(property) {
-    it.children.filter { component -> component.destinationType != null }
+    it.children.filter { component -> component.destinationType != null }.sortedBy { it.id }
   }
 }

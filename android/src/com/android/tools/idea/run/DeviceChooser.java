@@ -102,8 +102,8 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
-    mySupportedAbis = facet.getAndroidModel() instanceof AndroidModuleModel ?
-                      ((AndroidModuleModel)facet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+    mySupportedAbis = facet.getConfiguration().getModel() instanceof AndroidModuleModel ?
+                      ((AndroidModuleModel)facet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
                       null;
 
     // Currently, we only look at whether the device supports the watch feature.
@@ -365,7 +365,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
         }
       }
     }
-    return result.toArray(new IDevice[result.size()]);
+    return result.toArray(new IDevice[0]);
   }
 
   @NotNull
@@ -382,7 +382,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
       }
     }
 
-    return filteredDevices.toArray(new IDevice[filteredDevices.size()]);
+    return filteredDevices.toArray(new IDevice[0]);
   }
 
   private boolean isRowCompatible(int row) {

@@ -61,6 +61,11 @@ public class FileFixture {
   @NotNull
   public Collection<HighlightInfo> getHighlightInfos(@NotNull final HighlightSeverity severity) {
     waitUntilErrorAnalysisFinishes();
+    return queryHighlightInfos(severity);
+  }
+
+  @NotNull
+  private Collection<HighlightInfo> queryHighlightInfos(@NotNull final HighlightSeverity severity) {
     return GuiQuery.getNonNull(
       () -> {
         Document document = FileDocumentManager.getInstance().getDocument(myVirtualFile);
@@ -72,9 +77,10 @@ public class FileFixture {
 
   @NotNull
   public FileFixture waitForCodeAnalysisHighlightCount(@NotNull HighlightSeverity severity, int expected) {
+    waitUntilErrorAnalysisFinishes();
     Wait.seconds(5)
       .expecting("number of highlight items to be " + expected)
-      .until(() -> getHighlightInfos(severity).size() == expected);
+      .until(() -> queryHighlightInfos(severity).size() == expected);
     return this;
   }
 }

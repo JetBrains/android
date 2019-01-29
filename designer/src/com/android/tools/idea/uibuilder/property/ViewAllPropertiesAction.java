@@ -31,8 +31,9 @@ public class ViewAllPropertiesAction extends ToggleAction {
   private final Model myModel;
 
   public interface Model {
-    boolean isAllPropertiesPanelVisible();
+    boolean isAllPropertiesPanelMode();
     void setAllPropertiesPanelVisible(boolean viewAllProperties);
+    boolean isAccessoryPanelVisible();
   }
 
   public ViewAllPropertiesAction(@NotNull Model model) {
@@ -55,7 +56,7 @@ public class ViewAllPropertiesAction extends ToggleAction {
 
   @NotNull
   private String getActualText() {
-    if (myModel.isAllPropertiesPanelVisible()) {
+    if (myModel.isAllPropertiesPanelMode()) {
       return VIEW_FEWER_ATTRIBUTES;
     }
     PropertiesComponent properties = PropertiesComponent.getInstance();
@@ -63,13 +64,15 @@ public class ViewAllPropertiesAction extends ToggleAction {
   }
 
   @Override
-  public boolean isSelected(@NotNull AnActionEvent e) {
-    return myModel.isAllPropertiesPanelVisible();
+  public boolean isSelected(AnActionEvent e) {
+    return myModel.isAllPropertiesPanelMode();
   }
 
   @Override
-  public void setSelected(@NotNull AnActionEvent e, boolean state) {
-    myModel.setAllPropertiesPanelVisible(state);
+  public void setSelected(AnActionEvent e, boolean state) {
+    if (!myModel.isAccessoryPanelVisible()) {
+      myModel.setAllPropertiesPanelVisible(state);
+    }
   }
 
   @Override

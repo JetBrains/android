@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.ide.common.resources.LocaleManager;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.adtui.actions.DropDownAction;
@@ -25,8 +26,8 @@ import com.android.tools.idea.rendering.FlagManager;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -38,10 +39,7 @@ import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class LocaleMenuAction extends DropDownAction {
 
@@ -53,7 +51,7 @@ public class LocaleMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
 
   public LocaleMenuAction(@NotNull ConfigurationHolder renderContext) {
-    super("", "Locale in Editor", null);
+    super("", "Locale for Preview", null);
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     updatePresentation(presentation);
@@ -161,8 +159,8 @@ public class LocaleMenuAction extends DropDownAction {
       }
     }
 
-    LocalResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(module);
-    Set<LocaleQualifier> languages = projectResources != null ? projectResources.getLocales() : Collections.emptySet();
+    LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(module);
+    Set<LocaleQualifier> languages = projectResources != null ? ResourceRepositoryUtil.getLocales(projectResources) : Collections.emptySet();
     for (LocaleQualifier l : languages) {
       if (specificLocale != null && !specificLocale.isMatchFor(l)) {
         continue;
@@ -218,6 +216,8 @@ public class LocaleMenuAction extends DropDownAction {
     }
 
     String languageCode = locale.qualifier.getLanguage();
+    assert languageCode != null; // hasLanguage() above.
+
     String languageName = LocaleManager.getLanguageName(languageCode);
 
     if (!locale.hasRegion()) {

@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.startup
 
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.project.Project
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import org.mockito.Mockito.`when`
 
 @RunWith(JUnit4::class)
 class ClearResourceCacheAfterFirstBuildTest {
   @JvmField @Rule val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
   private lateinit var project: Project
+  private lateinit var projectSystem: TestProjectSystem
   private lateinit var clearResourceCacheAfterFirstBuild: ClearResourceCacheAfterFirstBuild
   private lateinit var onCacheClean: TestRunnable
   private lateinit var onSourceGenerationError: TestRunnable
@@ -49,7 +52,18 @@ class ClearResourceCacheAfterFirstBuildTest {
   @Before
   fun setUp() {
     project = projectRule.project
-    clearResourceCacheAfterFirstBuild = ClearResourceCacheAfterFirstBuild(project)
+    projectSystem = TestProjectSystem(project, lastSyncResult = SyncResult.UNKNOWN)
+
+    // Mock ProjectSystemService to ensure a fresh test project system for each test case.
+    val mockProjectSystemService = projectRule.mockProjectService(ProjectSystemService::class.java)
+    `when`(mockProjectSystemService.projectSystem).thenReturn(projectSystem)
+
+    // AndroidProjectRule uses a shared project instance, so we use and reset the same instance
+    // of the ClearResourceCacheAfterFirstBuild project component for each test case.
+    if (!::clearResourceCacheAfterFirstBuild.isInitialized) {
+      clearResourceCacheAfterFirstBuild = project.getComponent(ClearResourceCacheAfterFirstBuild::class.java)
+      clearResourceCacheAfterFirstBuild.reset()
+    }
 
     onCacheClean = TestRunnable {
       assertWithMessage("onCacheClean callback was called before resource cache was cleared")
@@ -60,6 +74,11 @@ class ClearResourceCacheAfterFirstBuildTest {
       assertWithMessage("onSourceGenerationError callback was called after resource cache was cleared")
           .that(clearResourceCacheAfterFirstBuild.isCacheClean()).isFalse()
     }
+  }
+
+  @After
+  fun tearDown() {
+    clearResourceCacheAfterFirstBuild.reset()
   }
 
   @Test
@@ -75,7 +94,7 @@ class ClearResourceCacheAfterFirstBuildTest {
 
   @Test
   fun runWhenResourceCacheClean_cacheAlreadyCleared() {
-    clearResourceCacheAfterFirstBuild.syncSucceeded()
+    projectSystem.emulateSync(SyncResult.SUCCESS)
 
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
 
@@ -85,8 +104,8 @@ class ClearResourceCacheAfterFirstBuildTest {
 
   @Test
   fun runWhenResourceCacheClean_errorAlreadyOccurredAndCacheAlreadyCleared() {
-    clearResourceCacheAfterFirstBuild.syncFailed()
-    clearResourceCacheAfterFirstBuild.syncSucceeded()
+    projectSystem.emulateSync(SyncResult.FAILURE)
+    projectSystem.emulateSync(SyncResult.SUCCESS)
 
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
 
@@ -97,7 +116,7 @@ class ClearResourceCacheAfterFirstBuildTest {
 
   @Test
   fun runWhenResourceCacheClean_errorAlreadyOccurredButCacheNotCleared() {
-    clearResourceCacheAfterFirstBuild.syncFailed()
+    projectSystem.emulateSync(SyncResult.FAILURE)
 
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
     onCacheClean.assertHasNotRun()
@@ -113,9 +132,9 @@ class ClearResourceCacheAfterFirstBuildTest {
 
   @Test
   fun runWhenResourceCacheClean_errorAlreadyOccurredAndThenCacheClean() {
-    clearResourceCacheAfterFirstBuild.syncFailed()
+    projectSystem.emulateSync(SyncResult.FAILURE)
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
-    clearResourceCacheAfterFirstBuild.syncSucceeded()
+    projectSystem.emulateSync(SyncResult.SUCCESS)
 
     onCacheClean.assertHasRun()
   }
@@ -124,7 +143,7 @@ class ClearResourceCacheAfterFirstBuildTest {
   fun runWhenResourceCacheClean_cacheClearedLater() {
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
 
-    clearResourceCacheAfterFirstBuild.syncSucceeded()
+    projectSystem.emulateSync(SyncResult.SUCCESS)
     onCacheClean.assertHasRun()
     onSourceGenerationError.assertHasNotRun()
   }
@@ -133,7 +152,7 @@ class ClearResourceCacheAfterFirstBuildTest {
   fun runWhenResourceCacheClean_errorLater() {
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
 
-    clearResourceCacheAfterFirstBuild.syncFailed()
+    projectSystem.emulateSync(SyncResult.FAILURE)
     onCacheClean.assertHasNotRun()
     onSourceGenerationError.assertHasRun()
   }
@@ -141,8 +160,8 @@ class ClearResourceCacheAfterFirstBuildTest {
   @Test
   fun runWhenResourceCacheClean_errorLaterAndThenCacheClean() {
     clearResourceCacheAfterFirstBuild.runWhenResourceCacheClean(onCacheClean, onSourceGenerationError)
-    clearResourceCacheAfterFirstBuild.syncFailed()
-    clearResourceCacheAfterFirstBuild.syncSucceeded()
+    projectSystem.emulateSync(SyncResult.FAILURE)
+    projectSystem.emulateSync(SyncResult.SUCCESS)
 
     onCacheClean.assertHasRun()
   }

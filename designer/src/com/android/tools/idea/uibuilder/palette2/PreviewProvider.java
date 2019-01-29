@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -29,10 +30,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -44,6 +42,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.UIUtil;
@@ -144,11 +143,10 @@ public class PreviewProvider implements Disposable {
       return null;
     }
 
-    NlModel model = sceneView.getModel();
-    ViewEditor editor = ViewEditorImpl.getOrCreate(sceneView);
+    NlModel model = sceneView.getSceneManager().getModel();
     NlComponent component = ApplicationManager.getApplication()
       .runWriteAction(
-        (Computable<NlComponent>)() -> NlModelHelperKt.createComponent(model, editor, tag, null, null, InsertType.CREATE_PREVIEW
+        (Computable<NlComponent>)() -> model.createComponent(sceneView.getSurface(), tag, null, null, InsertType.CREATE_PREVIEW
         ));
 
     if (component == null) {
@@ -202,13 +200,14 @@ public class PreviewProvider implements Disposable {
       return null;
     }
     PsiFile file = PsiFileFactory
-      .getInstance(renderTask.getModule().getProject()).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
+      .getInstance(renderTask.getContext().getModule().getProject()).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
 
-    renderTask.setPsiFile(file);
+    assert file instanceof XmlFile;
+    renderTask.setXmlFile((XmlFile)file);
     renderTask.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
     renderTask.setDecorations(false);
     renderTask.setRenderingMode(SessionParams.RenderingMode.V_SCROLL);
-    renderTask.setFolderType(ResourceFolderType.LAYOUT);
+    renderTask.getContext().setFolderType(ResourceFolderType.LAYOUT);
 
     renderTask.inflate();
     try {
@@ -236,7 +235,7 @@ public class PreviewProvider implements Disposable {
   private RenderTask getRenderTask(@NotNull Configuration configuration) {
     Module module = configuration.getModule();
 
-    if (myRenderTask == null || myRenderTask.getModule() != module) {
+    if (myRenderTask == null || myRenderTask.getContext().getModule() != module) {
       disposeRenderTaskNoWait();
 
       if (module == null) {
@@ -246,9 +245,11 @@ public class PreviewProvider implements Disposable {
       if (facet == null) {
         return null;
       }
-      RenderService renderService = RenderService.getInstance(facet);
-      RenderLogger logger = renderService.createLogger();
-      myRenderTask = renderService.createTask(null, configuration, logger, null);
+      RenderService renderService = RenderService.getInstance(module.getProject());
+      RenderLogger logger = renderService.createLogger(facet);
+      myRenderTask = renderService.taskBuilder(facet, configuration)
+                                  .withLogger(logger)
+                                  .build();
     }
 
     return myRenderTask;

@@ -51,7 +51,7 @@ public class CommandLineArgsTest extends LightPlatformTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    IdeComponents.replaceService(getProject(), GradleProjectInfo.class, myGradleProjectInfo);
+    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
 
     myArgs = new CommandLineArgs(myApplicationInfo, myIdeInfo, myInitScripts, myIdeSettings, false /* do not apply Java library plugin */);
   }

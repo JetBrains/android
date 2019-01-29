@@ -247,4 +247,36 @@ public class RangeTest {
     r.clear();
     assertThat(r.toString()).isEqualTo(empty.toString());
   }
+
+  // Currently, the Range class is used as a key in at least one hashmap, so if we override the
+  // class's equals method, we'd break it. We should fix this eventually, but carefully! And during
+  // a development window that's not too risky.
+  @Test
+  public void assertRangeEqualityIntentionallyNotOverwridden() {
+    // TODO(b/79753868): Although we do want to override it later...
+    Range r1 = new Range(123, 456);
+    Range r2 = new Range(123, 456);
+
+    assertThat(r1).isNotEqualTo(r2);
+  }
+
+  @Test
+  public void testIsSameAs() {
+    Range same1 = new Range(0, 100);
+    Range same2 = new Range(0, 100);
+    Range same3 = new Range(same2);
+    Range different = new Range(1, 99);
+    Range rangeToClear = new Range(5, 10);
+    Range empty1 = new Range();
+    Range empty2 = new Range(10, -10);
+
+    assertThat(same1.isSameAs(same2)).isTrue();
+    assertThat(same1.isSameAs(same3)).isTrue();
+    assertThat(same1.isSameAs(different)).isFalse();
+
+    assertThat(rangeToClear.isSameAs(empty1)).isFalse();
+    rangeToClear.clear();
+    assertThat(rangeToClear.isSameAs(empty1)).isTrue();
+    assertThat(empty2.isSameAs(empty1)).isTrue();
+  }
 }

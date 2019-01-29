@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.rendering.api.RenderResources;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -72,7 +72,7 @@ public class GutterIconCache {
   }
 
   @Nullable
-  public Icon getIcon(@NotNull String path, @Nullable ResourceResolver resolver) {
+  public Icon getIcon(@NotNull String path, @Nullable RenderResources resolver) {
     boolean isRetina = UIUtil.isRetina();
     if (myRetina != isRetina) {
       myRetina = isRetina;

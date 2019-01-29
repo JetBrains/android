@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.gradle.npw.project;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
+import static com.android.ide.common.repository.GradleVersion.parse;
+import static com.android.repository.Revision.parseRevision;
 
 public class GradleBuildSettings {
   /**
@@ -34,19 +38,27 @@ public class GradleBuildSettings {
    * @param isInstantApp TODO: This parameter is only needed until AIA has a stable release
    */
   @NotNull
-  public static Revision getRecommendedBuildToolsRevision(AndroidSdkHandler sdkHandler, ProgressIndicator progress, boolean isInstantApp) {
+  public static Revision getRecommendedBuildToolsRevision(@NotNull AndroidSdkHandler sdkHandler, @NotNull ProgressIndicator progress) {
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
-    if (buildTool == null || isInstantApp) {
+    if (buildTool == null) {
       buildTool = sdkHandler.getLatestBuildTool(progress, true);
     }
-    Revision minimumBuildToolsRev = Revision.parseRevision(CURRENT_BUILD_TOOLS_VERSION);
+    Revision minimumBuildToolsRev = parseRevision(CURRENT_BUILD_TOOLS_VERSION);
     boolean isOld = (buildTool == null || buildTool.getRevision().compareTo(minimumBuildToolsRev) < 0);
 
     return isOld ? minimumBuildToolsRev : buildTool.getRevision();
   }
 
-  @NotNull
-  public static Revision getRecommendedBuildToolsRevision(AndroidSdkHandler sdkHandler, ProgressIndicator progress) {
-    return getRecommendedBuildToolsRevision(sdkHandler, progress, false);
+  public static boolean needsExplicitBuildToolsVersion(@NotNull GradleVersion gradlePluginVersion, @NotNull Revision buildToolRev) {
+    return needsExplicitBuildToolsVersion(gradlePluginVersion, buildToolRev, CURRENT_BUILD_TOOLS_VERSION);
+  }
+
+  @VisibleForTesting
+  static boolean needsExplicitBuildToolsVersion(@NotNull GradleVersion gradlePluginVersion, @NotNull Revision buildToolRev,
+                                                @NotNull String currentBuildToolsVersion) {
+    // We need to explicitly add the Build Tools version if the gradle plugin is less than 3.0.0 or if the tools version to be used is
+    // more recent than the current recommended (this may happen when a new Build Tools is released, but we have a older Studio)
+    return gradlePluginVersion.compareIgnoringQualifiers(parse("3.0.0")) < 0 ||
+           parseRevision(currentBuildToolsVersion).compareTo(buildToolRev) < 0;
   }
 }

@@ -16,8 +16,8 @@
 package org.jetbrains.android.databinding;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.ModuleDataBinding;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
@@ -30,24 +30,37 @@ import org.jetbrains.android.AndroidTestCase;
  * {@link org.jetbrains.android.dom.converters.DataBindingConverter} and
  * {@link com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor}.
  */
-public class AndroidDataBindingTest extends AndroidTestCase {
+@SuppressWarnings("SameParameterValue")
+public abstract class AndroidDataBindingTest extends AndroidTestCase {
   private static final String DUMMY_CLASS_QNAME = "p1.p2.DummyClass";
+  private final DataBindingMode myDataBindingMode;
+
+  @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
+  protected AndroidDataBindingTest(DataBindingMode mode) {
+    myDataBindingMode = mode;
+  }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.setTestDataPath(myFixture.getTestDataPath() + "/databinding");
-    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
+    ModuleDataBinding.getInstance(myFacet).setMode(myDataBindingMode);
   }
 
-  private VirtualFile copyLayout(String name) {
-    return myFixture.copyFileToProject("res/layout/" + name + ".xml");
+  private void copyLayout(String name) {
+    myFixture.copyFileToProject("res/layout/" + name + ".xml");
   }
 
-  private VirtualFile copyClass(String qName) {
+  private void copyClass(String qName) {
     String asPath = qName.replace(".", "/");
-    return myFixture.copyFileToProject("src/" + asPath + ".java");
+    myFixture.copyFileToProject("src/" + asPath + ".java");
+  }
+
+  private void copyClass(String qName, String targetQName) {
+    String source = qName.replace(".", "/");
+    String dest = targetQName.replace(".", "/");
+    myFixture.copyFileToProject("src/" + source + ".java", "src/" + dest + ".java");
   }
 
   private static void assertMethod(PsiClass aClass, String name, String returnType, String... parameters) {
@@ -78,6 +91,11 @@ public class AndroidDataBindingTest extends AndroidTestCase {
    * Tests symbol resolution in the scenario described in https://issuetracker.google.com/65467760.
    */
   public void testPropertyResolution() {
+    if (myDataBindingMode == DataBindingMode.SUPPORT) {
+      copyClass("p1.p2.ClassWithBindableProperty");
+    } else {
+      copyClass("p1.p2.ClassWithBindableProperty_androidx", "p1.p2.ClassWithBindableProperty");
+    }
     ReferenceProvidersRegistryImpl.disableUnderlyingElementChecks(getTestRootDisposable());
     copyClass("p1.p2.ClassWithBindableProperty");
     myFixture.configureByFile("res/layout/data_binding_property_reference.xml");

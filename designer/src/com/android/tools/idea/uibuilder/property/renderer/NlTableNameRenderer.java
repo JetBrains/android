@@ -20,6 +20,7 @@ import com.android.tools.adtui.ptable.*;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
@@ -40,8 +41,8 @@ public class NlTableNameRenderer extends PTableCellRenderer implements PNameRend
   public NlTableNameRenderer() {
     myPanel = new JPanel(new BorderLayout());
     myStarLabel = new JBLabel();
-    myStarLabel.setPreferredSize(new Dimension(BEFORE_STAR_SPACING + STAR_SIZE, STAR_SIZE));
-    myStarLabel.setBorder(BorderFactory.createEmptyBorder(0, BEFORE_STAR_SPACING, 0, 0));
+    myStarLabel.setPreferredSize(new JBDimension(BEFORE_STAR_SPACING + STAR_SIZE, STAR_SIZE));
+    myStarLabel.setBorder(JBUI.Borders.emptyLeft(BEFORE_STAR_SPACING));
     myPanel.add(myStarLabel, BorderLayout.WEST);
     myPanel.add(this, BorderLayout.CENTER);
   }
@@ -103,11 +104,11 @@ public class NlTableNameRenderer extends PTableCellRenderer implements PNameRend
     }
     if (TOOLS_URI.equals(item.getNamespace())) {
       if (icon == null) {
-        icon = StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY;
+        icon = StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE;
       }
       else {
-        LayeredIcon layered = new LayeredIcon(icon, StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
-        layered.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY, 1, afterGroupIcon + icon.getIconWidth(), 0);
+        LayeredIcon layered = new LayeredIcon(icon, StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE);
+        layered.setIcon(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE, 1, afterGroupIcon + icon.getIconWidth(), 0);
         icon = layered;
       }
       textGap = 4;

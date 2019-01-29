@@ -16,9 +16,8 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GoogleMavenRepository
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.projectsystem.gradle.GradleDependencyVersion
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
@@ -28,16 +27,23 @@ import org.jetbrains.android.AndroidTestBase
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import java.io.File
-import kotlin.test.assertFailsWith
 
 
+/**
+ * These unit tests use a local test maven repo "project-system-gradle/testData/repoIndex". To see
+ * what dependencies are available to test with, go to that folder and look at the group-indices.
+ *
+ * TODO:
+ * Some cases of getAvailableDependency cannot be tested without AndroidGradleTestCase because it relies on real gradle models.
+ * Because of this tests for getAvailableDependency with matching platform support libs reside in [GradleModuleSystemIntegrationTest].
+ * Once we truly move dependency versioning logic into GradleDependencyManager the tests can be implemented there.
+ */
 class GradleModuleSystemTest : IdeaTestCase() {
-  private lateinit var ideComponents: IdeComponents
   private lateinit var gradleDependencyManager: GradleDependencyManager
   private lateinit var gradleModuleSystem: GradleModuleSystem
 
   private val mavenRepository = object : GoogleMavenRepository(File(AndroidTestBase.getTestDataPath(),
-      "../../project-system-gradle/testData/repoIndex")) {
+      "../../project-system-gradle/testData/repoIndex"), cacheExpiryHours = Int.MAX_VALUE) {
     override fun readUrlData(url: String, timeout: Int): ByteArray? = throw AssertionFailedError("shouldn't try to read!")
 
     override fun error(throwable: Throwable, message: String?) {}
@@ -45,66 +51,46 @@ class GradleModuleSystemTest : IdeaTestCase() {
 
   override fun setUp() {
     super.setUp()
-    ideComponents = IdeComponents(myProject)
-    gradleDependencyManager = ideComponents.mockProjectService(GradleDependencyManager::class.java)
+    gradleDependencyManager = IdeComponents(myProject).mockProjectService(GradleDependencyManager::class.java)
     gradleModuleSystem = GradleModuleSystem(myModule, mavenRepository)
+    assertThat(gradleModuleSystem.getResolvedDependentLibraries()).isEmpty()
   }
 
-  override fun tearDown() {
-    try {
-      ideComponents.restore()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
-
-  fun testAddDependency() {
-    val toAdd = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
-
-    gradleModuleSystem.addDependencyWithoutSync(toAdd, null, false)
-
+  fun testRegisterDependency() {
+    val coordinate = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
+    gradleModuleSystem.registerDependency(coordinate)
     Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
-        .addDependenciesWithoutSync(myModule, listOf(getLatestCoordinateForArtifactId(toAdd, false)!!))
+      .addDependenciesWithoutSync(myModule, listOf(coordinate))
   }
 
-  // fails; see http://b/72033729
-  fun ignore_testAddPreviewDependency() {
-    // In the test data, NAVIGATION only has a preview version
-    val toAdd = GoogleMavenArtifactId.NAVIGATION
-
-    gradleModuleSystem.addDependencyWithoutSync(toAdd, null, true)
-
-    Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
-        .addDependenciesWithoutSync(myModule, listOf(getLatestCoordinateForArtifactId(toAdd, true)!!))
+  fun testNoAndroidModuleModel() {
+    // The AndroidModuleModel shouldn't be created when running from an IdeaTestCase.
+    assertThat(AndroidModuleModel.get(myModule)).isNull()
+    assertThat(gradleModuleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))).isNull()
   }
 
-  fun testFailToAddPreviewDependency() {
-    // In the test data, NAVIGATION only has a preview version
-    val toAdd = GoogleMavenArtifactId.NAVIGATION
-
-    val ex = assertFailsWith(DependencyManagementException::class, "Expected add to fail!") {
-      gradleModuleSystem.addDependencyWithoutSync(toAdd, null, false)
-    }
-    assertThat(ex.errorCode).isEqualTo(DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
+  fun testGetAvailableDependency_fallbackToPreview() {
+    // In the test repo NAVIGATION only has a preview version 0.0.1-alpha1
+    val coordinate = gradleModuleSystem.getLatestCompatibleDependency(
+      GoogleMavenArtifactId.NAVIGATION.mavenGroupId, GoogleMavenArtifactId.NAVIGATION.mavenArtifactId)
+    assertThat(coordinate).isNotNull()
+    assertThat(coordinate?.isPreview).isTrue()
+    assertThat(coordinate?.revision).isEqualTo("0.0.1-alpha1")
   }
 
-  fun testAddDependencyWithBadVersion() {
-    val toAdd = GoogleMavenArtifactId.CONSTRAINT_LAYOUT
-    val version = GradleDependencyVersion(null)
-
-    try {
-      gradleModuleSystem.addDependencyWithoutSync(toAdd, version, false)
-      fail("addDependencyWithoutSync should have thrown an exception.")
-    }
-    catch (e: DependencyManagementException) {
-      assertThat(e.errorCode).isEqualTo(DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
-    }
+  fun testGetAvailableDependency_returnsLatestStable() {
+    // In the test repo CONSTRAINT_LAYOUT has a stable version of 1.0.2 and a beta version of 1.1.0-beta3
+    val coordinate = gradleModuleSystem.getLatestCompatibleDependency(
+      GoogleMavenArtifactId.CONSTRAINT_LAYOUT.mavenGroupId, GoogleMavenArtifactId.CONSTRAINT_LAYOUT.mavenArtifactId)
+    assertThat(coordinate).isNotNull()
+    assertThat(coordinate?.isPreview).isFalse()
+    assertThat(coordinate?.revision).isEqualTo("1.0.2")
   }
 
-  private fun getLatestCoordinateForArtifactId(id: GoogleMavenArtifactId, allowPreview: Boolean): GradleCoordinate? {
-    val wildCardCoordinate = GradleCoordinate.parseCoordinateString(id.toString() + ":+")!!
-    val version = mavenRepository.findVersion(wildCardCoordinate, null, allowPreview)
-    return GradleCoordinate.parseCoordinateString(id.toString() + ":" + version)
+  fun testGetAvailableDependency_returnsNullWhenNoneMatches() {
+    // The test repo does not have any version of PLAY_SERVICES_ADS.
+    val coordinate = gradleModuleSystem.getLatestCompatibleDependency(
+      GoogleMavenArtifactId.PLAY_SERVICES_ADS.mavenGroupId, GoogleMavenArtifactId.PLAY_SERVICES_ADS.mavenArtifactId)
+    assertThat(coordinate).isNull()
   }
 }

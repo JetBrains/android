@@ -18,29 +18,42 @@ package com.android.tools.idea.gradle.dsl.model.android;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.ExternalNativeBuildOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.NdkOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.productFlavors.VectorDrawablesOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.ExternalNativeBuildOptionsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.android.productFlavors.VectorDrawablesOptionsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME;
 
-public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
-                                                                              ProductFlavorModel {
+public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements ProductFlavorModel {
   @NonNls private static final String APPLICATION_ID = "applicationId";
   @NonNls private static final String DIMENSION = "dimension";
   @NonNls private static final String MAX_SDK_VERSION = "maxSdkVersion";
   @NonNls private static final String MIN_SDK_VERSION = "minSdkVersion";
+  @NonNls private static final String MISSING_DIMENSION_STRATEGY = "missingDimensionStrategy";
+  @NonNls private static final String RENDER_SCRIPT_TARGET_API = "renderscriptTargetApi";
+  @NonNls private static final String RENDER_SCRIPT_SUPPORT_MODE_ENABLED = "renderscriptSupportModeEnabled";
+  @NonNls private static final String RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED = "renderscriptSupportModeBlasEnabled";
+  @NonNls private static final String RENDER_SCRIPT_NDK_MODE_ENABLED = "renderscriptNdkModeEnabled";
   @NonNls private static final String RES_CONFIGS = "resConfigs";
   @NonNls private static final String TARGET_SDK_VERSION = "targetSdkVersion";
   @NonNls private static final String TEST_APPLICATION_ID = "testApplicationId";
@@ -50,6 +63,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NonNls private static final String TEST_INSTRUMENTATION_RUNNER_ARGUMENTS = "testInstrumentationRunnerArguments";
   @NonNls private static final String VERSION_CODE = "versionCode";
   @NonNls private static final String VERSION_NAME = "versionName";
+  @NonNls private static final String WEAR_APP_UNBUNDLED = "wearAppUnbundled";
 
   public ProductFlavorModelImpl(@NotNull ProductFlavorDslElement dslElement) {
     super(dslElement);
@@ -75,7 +89,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
                                       ExternalNativeBuildOptionsDslElement.class);
     if (externalNativeBuildOptionsDslElement == null) {
       externalNativeBuildOptionsDslElement = new ExternalNativeBuildOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME, externalNativeBuildOptionsDslElement);
+      myDslElement.setNewElement(externalNativeBuildOptionsDslElement);
     }
     return new ExternalNativeBuildOptionsModelImpl(externalNativeBuildOptionsDslElement);
   }
@@ -88,13 +102,59 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @Override
   @NotNull
   public ResolvedPropertyModel maxSdkVersion() {
-    return getModelForProperty(MAX_SDK_VERSION);
+    return getModelForProperty(MAX_SDK_VERSION, true);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel minSdkVersion() {
-    return getModelForProperty(MIN_SDK_VERSION);
+    return getModelForProperty(MIN_SDK_VERSION, true);
+  }
+
+  @NotNull
+  @Override
+  public List<ResolvedPropertyModel> missingDimensionStrategies() {
+    List<ResolvedPropertyModel> models = new ArrayList<>();
+    for (GradleDslExpressionList list : myDslElement.getPropertyElements(MISSING_DIMENSION_STRATEGY, GradleDslExpressionList.class)) {
+      if (list.getExpressions().size() > 1) {
+        models.add(GradlePropertyModelBuilder.create(list).buildResolved());
+      }
+    }
+    return models;
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel addMissingDimensionStrategy(@NotNull String dimension, @NotNull Object... fallbacks) {
+    GradleDslExpressionList list = new GradleDslExpressionList(myDslElement, GradleNameElement.create(MISSING_DIMENSION_STRATEGY), false);
+    myDslElement.setNewElement(list);
+    list.setElementType(REGULAR);
+    ResolvedPropertyModel model = GradlePropertyModelBuilder.create(list).asMethod(true).buildResolved();
+    model.addListValue().setValue(dimension);
+    for (Object fallback : fallbacks) {
+      model.addListValue().setValue(fallback);
+    }
+    return model;
+  }
+
+  @Override
+  public boolean areMissingDimensionStrategiesModified() {
+    List<GradleDslElement> originalElements =
+      myDslElement.getOriginalElements().stream().filter(e -> e.getName().equals(MISSING_DIMENSION_STRATEGY)).collect(Collectors.toList());
+    List<GradleDslElement> currentElements = myDslElement.getPropertyElementsByName(MISSING_DIMENSION_STRATEGY);
+    if (originalElements.size() != currentElements.size()) {
+      return true;
+    }
+    for (GradleDslElement oldElement : originalElements) {
+      boolean modified = true;
+      for (GradleDslElement newElement : currentElements) {
+        modified &= PropertyUtil.isElementModified(oldElement, newElement);
+      }
+      if (modified) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -103,7 +163,7 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
     NdkOptionsDslElement ndkOptionsDslElement = myDslElement.getPropertyElement(NDK_BLOCK_NAME, NdkOptionsDslElement.class);
     if (ndkOptionsDslElement == null) {
       ndkOptionsDslElement = new NdkOptionsDslElement(myDslElement);
-      myDslElement.setNewElement(NDK_BLOCK_NAME, ndkOptionsDslElement);
+      myDslElement.setNewElement(ndkOptionsDslElement);
     }
     return new NdkOptionsModelImpl(ndkOptionsDslElement);
   }
@@ -114,35 +174,39 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   }
 
   @Override
-  @Nullable
-  public List<GradleNotNullValue<String>> resConfigs() {
-    return myDslElement.getListProperty(RES_CONFIGS, String.class);
+  @NotNull
+  public ResolvedPropertyModel resConfigs() {
+    return getModelForProperty(RES_CONFIGS, true);
   }
 
+  @NotNull
   @Override
-  public void addResConfig(@NotNull String resConfig) {
-    myDslElement.addToNewLiteralList(RES_CONFIGS, resConfig);
+  public ResolvedPropertyModel renderscriptTargetApi() {
+    return getModelForProperty(RENDER_SCRIPT_TARGET_API);
   }
 
+  @NotNull
   @Override
-  public void removeResConfig(@NotNull String resConfig) {
-    myDslElement.removeFromExpressionList(RES_CONFIGS, resConfig);
+  public ResolvedPropertyModel renderscriptSupportModeEnabled() {
+    return getModelForProperty(RENDER_SCRIPT_SUPPORT_MODE_ENABLED);
   }
 
+  @NotNull
   @Override
-  public void removeAllResConfigs() {
-    myDslElement.removeProperty(RES_CONFIGS);
+  public ResolvedPropertyModel renderscriptSupportModelBlasEnabled() {
+    return getModelForProperty(RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED);
   }
 
+  @NotNull
   @Override
-  public void replaceResConfig(@NotNull String oldResConfig, @NotNull String newResConfig) {
-    myDslElement.replaceInExpressionList(RES_CONFIGS, oldResConfig, newResConfig);
+  public ResolvedPropertyModel renderscriptNdkModeEnabled() {
+    return getModelForProperty(RENDER_SCRIPT_NDK_MODE_ENABLED);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel targetSdkVersion() {
-    return getModelForProperty(TARGET_SDK_VERSION);
+    return getModelForProperty(TARGET_SDK_VERSION, true);
   }
 
   @Override
@@ -170,24 +234,9 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   }
 
   @Override
-  @Nullable
-  public Map<String, GradleNotNullValue<String>> testInstrumentationRunnerArguments() {
-    return myDslElement.getMapProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, String.class);
-  }
-
-  @Override
-  public void setTestInstrumentationRunnerArgument(@NotNull String name, @NotNull String value) {
-    myDslElement.setInNewLiteralMap(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, name, value);
-  }
-
-  @Override
-  public void removeTestInstrumentationRunnerArgument(@NotNull String name) {
-    myDslElement.removeFromExpressionMap(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, name);
-  }
-
-  @Override
-  public void removeAllTestInstrumentationRunnerArguments() {
-    myDslElement.removeProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
+  @NotNull
+  public ResolvedPropertyModel testInstrumentationRunnerArguments() {
+    return getModelForProperty(TEST_INSTRUMENTATION_RUNNER_ARGUMENTS);
   }
 
   @Override
@@ -200,5 +249,23 @@ public final class ProductFlavorModelImpl extends FlavorTypeModelImpl implements
   @NotNull
   public ResolvedPropertyModel versionName() {
     return getModelForProperty(VERSION_NAME);
+  }
+
+  @NotNull
+  @Override
+  public VectorDrawablesOptionsModel vectorDrawables() {
+    VectorDrawablesOptionsDslElement vectorDrawableElement =
+      myDslElement.getPropertyElement(VECTOR_DRAWABLES_OPTIONS_BLOCK_NAME, VectorDrawablesOptionsDslElement.class);
+    if (vectorDrawableElement == null) {
+      vectorDrawableElement = new VectorDrawablesOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(vectorDrawableElement);
+    }
+    return new VectorDrawablesOptionsModelImpl(vectorDrawableElement);
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel wearAppUnbundled() {
+    return getModelForProperty(WEAR_APP_UNBUNDLED);
   }
 }

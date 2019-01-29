@@ -326,16 +326,15 @@ drop_view_statement ::= DROP VIEW ( IF EXISTS )? ( database_name '.' )? view_nam
 
 expression ::=
   raise_function_expression
+  | or_expression
+  | and_expression
   | case_expression
   | exists_expression
   | in_expression
   | isnull_expression
   | like_expression
   | cast_expression
-  | paren_expression
   | function_call_expression
-  | or_expression
-  | and_expression
   | equivalence_group
   | comparison_expression
   | bit_expression
@@ -346,13 +345,14 @@ expression ::=
   | collate_expression // "The COLLATE operator has a higher precedence (binds more tightly) than any binary operator and any unary prefix operator..."
   | literal_expression
   | column_ref_expression
+  | paren_expression
 
 // "The precedence of the BETWEEN operator is the same as the precedence as operators == and != and LIKE and groups left to right."
 private equivalence_group ::= equivalence_expression | between_expression
 
 and_expression ::= expression AND expression
 or_expression ::= expression OR expression
-equivalence_expression ::= expression ( '==' | '=' | '!=' | '<>' | IS NOT? | IN | LIKE | GLOB | MATCH | REGEXP) expression
+equivalence_expression ::= expression ( '==' | '=' | '!=' | '<>' | IS NOT? | LIKE | GLOB | MATCH | REGEXP) expression
 comparison_expression ::= expression ( '<' | '<=' | '>' | '>=' ) expression
 bit_expression ::= expression ( '<<' | '>>' | '&' | '|' ) expression
 add_expression ::= expression ( '+' | '-' ) expression
@@ -476,7 +476,7 @@ compound_operator ::= UNION ALL? | INTERSECT | EXCEPT
 update_statement ::=
   UPDATE ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )? single_table_statement_table ( INDEXED BY index_name | NOT INDEXED )?
   SET column_name '=' expression ( ',' column_name '=' expression )*
-  where_clause?
+  where_clause? { pin=1 }
 
 single_table_statement_table ::= ( database_name '.' )? defined_table_name {
   implements="com.android.tools.idea.lang.roomSql.psi.SqlTableElement"

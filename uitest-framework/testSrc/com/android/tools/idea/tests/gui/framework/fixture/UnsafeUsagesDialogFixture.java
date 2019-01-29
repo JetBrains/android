@@ -43,7 +43,7 @@ public class UnsafeUsagesDialogFixture extends IdeaDialogFixture<UnsafeUsagesDia
   }
 
   public void deleteAnyway() {
-    GuiTests.findAndClickButtonWhenEnabled(this, "Delete Anyway");
+    GuiTests.findAndClickButton(this, "Delete Anyway");
     waitUntilNotShowing(); // Mac dialogs have an animation, wait until it hides
   }
 }

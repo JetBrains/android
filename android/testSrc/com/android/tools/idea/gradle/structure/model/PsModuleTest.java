@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model;
 
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
+import com.android.tools.idea.gradle.structure.configurables.CachingRepositorySearchFactory;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -37,18 +38,21 @@ import static org.junit.Assume.assumeThat;
 public class PsModuleTest extends AndroidGradleTestCase {
 
 
-  private static final String ORIGINAL_GUAVA_COORDINATES = "com.google.guava:guava:19.0";
+  private static final String GUAVA_GROUP = "com.google.guava";
+  private static final String GUAVA_NAME = "guava";
   private static final String UPDATED_GUAVA_COORDINATES = "com.google.guava:guava:20.0";
 
   public void testApplyChanges() throws Exception {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION);
-    PsProject psProject = new PsProject(getProject());
+    PsProject psProject = new PsProjectImpl(getProject(), new CachingRepositorySearchFactory());
     PsAndroidModule psAppModule = (PsAndroidModule)psProject.findModuleByName("app");
     Document buildFileDocument = getDocument();
     assumeThat(buildFileDocument.getText(), not(containsString(UPDATED_GUAVA_COORDINATES)));
 
-    PsLibraryAndroidDependency dependency = psAppModule.findLibraryDependency(ORIGINAL_GUAVA_COORDINATES);
-    dependency.setVersion("20.0");
+    PsLibraryAndroidDependency dependency =
+      psAppModule.getDependencies().findLibraryDependencies(GUAVA_GROUP, GUAVA_NAME).stream().findFirst().orElse(null);
+    assertThat(dependency, notNullValue());
+    psAppModule.setLibraryDependencyVersion(dependency.getSpec(), "api", "20.0");
     assertThat(buildFileDocument.getText(), not(containsString(UPDATED_GUAVA_COORDINATES)));
     assertThat(psAppModule.isModified(), is(true));
     psAppModule.applyChanges();
@@ -59,13 +63,13 @@ public class PsModuleTest extends AndroidGradleTestCase {
 
   public void testLocalRepositories() throws Exception {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION);
-    PsProject psProject = new PsProject(getProject());
+    PsProject psProject = new PsProjectImpl(getProject(), new CachingRepositorySearchFactory());
     PsAndroidModule psAppModule = (PsAndroidModule)psProject.findModuleByName("app");
     assertThat(psAppModule.getParsedModel().repositories().repositories(), hasItem(instanceOf(MavenRepositoryModel.class)));
     List<String> mavenRepositories =
       psAppModule.getParsedModel().repositories().repositories().stream()
         .filter(it -> it.getType() == RepositoryModel.RepositoryType.MAVEN)
-        .map(it -> ((MavenRepositoryModel)(it)).url().value())
+        .map(it -> ((MavenRepositoryModel)(it)).url().toString())
         .collect(toList());
     Iterable<Matcher<? super String>> localRepositoryMatchers =
       AndroidGradleTests

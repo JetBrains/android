@@ -55,7 +55,7 @@ public class UpgradeAppenginePluginVersionHyperlink extends NotificationHyperlin
     if (latest == null) {
       latest = DEFAULT_APPENGINE_PLUGIN_VERSION;
     }
-    myDependency.setVersion(latest.toString());
+    myDependency.version().setValue(latest.toString());
     runWriteCommandAction(project, myBuildModel::applyChanges);
 
     GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);

@@ -28,17 +28,11 @@ public class DataStorePollerTest {
   protected static final int TEST_DEVICE_ID = 1234;
   protected static final int TEST_APP_ID = 5678;
 
-  protected static final Common.Device DEVICE = Common.Device.newBuilder()
-    .setDeviceId(TEST_DEVICE_ID)
-    .setBootId("TEST_BOOT_ID")
-    .setSerial("TEST_DEVICE_SERIAL")
-    .build();
+  protected static final Common.Device DEVICE =
+    Common.Device.newBuilder().setDeviceId(TEST_DEVICE_ID).setBootId("TEST_BOOT_ID").setSerial("TEST_DEVICE_SERIAL").build();
 
-  protected static final Common.Session SESSION = Common.Session.newBuilder()
-    .setSessionId(TEST_SESSION_ID)
-    .setDeviceId(TEST_DEVICE_ID)
-    .setPid(TEST_APP_ID)
-    .build();
+  protected static final Common.Session SESSION =
+    Common.Session.newBuilder().setSessionId(TEST_SESSION_ID).setDeviceId(TEST_DEVICE_ID).setPid(TEST_APP_ID).build();
 
   private PollTicker myPollTicker = new PollTicker();
 

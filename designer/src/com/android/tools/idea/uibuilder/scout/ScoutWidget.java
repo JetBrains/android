@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -29,6 +28,8 @@ import java.util.*;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction.*;
 import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.pixelToDP;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutHorizontalBiasPercent;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutVerticalBiasPercent;
 
 /**
  * Main Wrapper class for Constraint Widgets
@@ -36,12 +37,12 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintCom
 public class ScoutWidget implements Comparable<ScoutWidget> {
   private static final boolean DEBUG = false;
   private static final float MAXIMUM_STRETCH_GAP = 0.6f; // percentage
-  private int mX;
-  private int mY;
-  private int mWidth;
-  private int mHeight;
-  private int mBaseLine;
-  private ScoutWidget mParent;
+  protected int mX;
+  protected int mY;
+  protected int mWidth;
+  protected int mHeight;
+  protected int mBaseLine;
+  protected ScoutWidget mParent;
   boolean mCheckedForChain;
   private DimensionInfo mPreConvertDimension;
   private float mRootDistance;
@@ -80,6 +81,9 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    */
   public enum DimensionBehaviour {
     FIXED, WRAP_CONTENT, MATCH_CONSTRAINT, MATCH_PARENT
+  }
+
+  public ScoutWidget(){
   }
 
   public ScoutWidget(NlComponent component, ScoutWidget parent) {
@@ -579,7 +583,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   }
 
   public int getDpBaseline() {
-    return mY;
+    return mBaseLine;
   }
 
   public static boolean hasBaseline(@NotNull NlComponent component) {
@@ -593,7 +597,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    * @param to1   first widget  to connect to
    * @param to2   second widget to connect to
    * @param cDir1 the side of first widget to connect to
-   * @param cDir2 the sed of the second widget to connect to
+   * @param cDir2 the side of the second widget to connect to
    * @param gap   the gap
    * @return true if it was able to connect
    */
@@ -679,6 +683,97 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   }
 
   /**
+   * set a centered constraint if possible return true if it did
+   *
+   * @param dir   direction 0 = vertical
+   * @param to1   first widget  to connect to
+   * @param to2   second widget to connect to
+   * @param cDir1 the side of first widget to connect to
+   * @param cDir2 the side of the second widget to connect to
+   * @param bias  bias percent
+   * @return true if it was able to connect
+   */
+  boolean setCenteredWithBias(int dir, ScoutWidget to1, ScoutWidget to2, Direction cDir1, Direction cDir2,
+                      float bias) {
+    Direction ori = (dir == 0) ? Direction.TOP : Direction.LEFT;
+    Anchor anchor1 = getAnchor(ori);
+    Anchor anchor2 = getAnchor(ori.getOpposite());
+
+    if (mKeepExistingConnections && (anchor1.isConnected() || anchor2.isConnected())) {
+      if (anchor1.isConnected() ^ anchor2.isConnected()) {
+        return false;
+      }
+      if (anchor1.isConnected()
+          && (anchor1.getTarget().getOwner() != to1)) {
+        return false;
+      }
+      if (anchor2.isConnected()
+          && (anchor2.getTarget().getOwner() != to2)) {
+        return false;
+      }
+    }
+
+    if (anchor1.isConnectionAllowed(to1) &&
+        anchor2.isConnectionAllowed(to2)) {
+      // Resize
+      if (!isResizable(dir)) {
+        if (dir == 0) {
+          int height = getDpHeight();
+          if (isCandidateResizable(dir)) {
+            setVerticalDimensionBehaviour(
+              DimensionBehaviour.MATCH_CONSTRAINT);
+          }
+        }
+        else {
+          int width = getDpWidth();
+          if (isCandidateResizable(dir)) {
+            setHorizontalDimensionBehaviour(
+              DimensionBehaviour.MATCH_CONSTRAINT);
+          }
+        }
+      }
+
+      if (to1.equals(to2)) {
+        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, cDir1, to1.mNlComponent)) {
+          return false;
+        }
+        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, cDir2, to2.mNlComponent)) {
+          return false;
+        }
+        connect(cDir1, to1, cDir1, 0);
+        connect(cDir2, to2, cDir2, 0);
+      }
+      else {
+        float pos1 = to1.getLocation(cDir1);
+        float pos2 = to2.getLocation(cDir2);
+        Direction c1 = (pos1 < pos2) ? (ori) : (ori.getOpposite());
+        Direction c2 = (pos1 > pos2) ? (ori) : (ori.getOpposite());
+        int gap1 = gap(this, c1, to1, cDir1);
+        int gap2 = gap(this, c2, to2, cDir2);
+        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, c1, to1.mNlComponent)) {
+          return false;
+        }
+        if (ConstraintComponentUtilities.wouldCreateLoop(mNlComponent, c2, to2.mNlComponent)) {
+          return false;
+        }
+        connect(c1, to1, cDir1, Math.max(0, gap1));
+        connect(c2, to2, cDir2, Math.max(0, gap2));
+
+      }
+      if (dir == Direction.ORIENTATION_VERTICAL){
+        setScoutVerticalBiasPercent(this.mNlComponent, bias);
+      } else {
+        setScoutHorizontalBiasPercent(this.mNlComponent, bias);
+      }
+
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  /**
    * Get the gap between two specific edges of widgets
    *
    * @param widget1
@@ -724,6 +819,29 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   }
 
   /**
+   * Get the position of a edge of a widget
+   *
+   * @param direction
+   * @return
+   */
+  int getPos(Direction direction) {
+    switch (direction) {
+      case TOP:
+        return getDpY();
+      case BOTTOM:
+        return getDpY() + getDpHeight();
+      case LEFT:
+        return getDpX();
+      case RIGHT:
+        return getDpX() + getDpWidth();
+      case BASELINE:
+        return getDpBaseline();
+      default:
+        return 0;
+    }
+  }
+
+  /**
    * set a centered constraint if possible return true if it did
    *
    * @param dir   direction 0 = vertical
@@ -762,7 +880,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    *
    * @param dir  the direction of the connection
    * @param to   the widget to connect to
-   * @param cDir the direction of
+   * @param cDir the target direction
    * @param gap
    * @return false if unable to apply
    */

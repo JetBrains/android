@@ -16,16 +16,22 @@
 package com.android.tools.idea.project
 
 import com.android.tools.apk.analyzer.AaptInvoker
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.*
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
+import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
+import com.android.tools.idea.res.ProjectLightResourceClassService
+import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElementFinder
 import com.intellij.ui.AppUIUtil
 import java.nio.file.Path
 
@@ -51,9 +57,9 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
 
   override fun getSyncManager(): ProjectSystemSyncManager = object: ProjectSystemSyncManager {
     override fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
-      AppUIUtil.invokeLaterIfProjectAlive(project, {
+      AppUIUtil.invokeLaterIfProjectAlive(project) {
         project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
-      })
+      }
       return Futures.immediateFuture(SyncResult.SUCCESS)
     }
 
@@ -72,26 +78,21 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     return false
   }
 
-  override fun getModuleSystem(module: Module): AndroidModuleSystem {
-    return object : AndroidModuleSystem {
-      override fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?,
-                                            includePreview: Boolean) {}
+  override fun getModuleSystem(module: Module): AndroidModuleSystem = DefaultModuleSystem(module)
 
-      override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? = null
-
-      override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? = null
-
-      override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
-        return emptyList()
-      }
-
-      override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
-        return CapabilityNotSupported()
-      }
-
-      override fun getInstantRunSupport(): CapabilityStatus {
-        return CapabilityNotSupported()
-      }
+  override fun getPsiElementFinders(): List<PsiElementFinder> {
+    return if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      listOf(
+        AndroidInnerClassFinder.INSTANCE,
+        AndroidManifestClassPsiElementFinder.getInstance(project),
+        AndroidResourceClassPsiElementFinder(getLightResourceClassService())
+      )
+    } else {
+      listOf(AndroidInnerClassFinder.INSTANCE)
     }
   }
+
+  override fun getAugmentRClasses() = !StudioFlags.IN_MEMORY_R_CLASSES.get()
+
+  override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
 }

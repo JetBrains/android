@@ -18,16 +18,19 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GradleUpdateTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /**
    * Verifies automatic update of gradle version
@@ -46,7 +49,7 @@ public class GradleUpdateTest {
    *   Open build.gradle files and make sure that the version of the plugin was updated to <current gradle="" version="">
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/73645716
   @Test
   public void updateGradleTestProject() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -74,7 +77,7 @@ public class GradleUpdateTest {
     ideFrameFixture.requestProjectSync();
 
     // Project sync can take a very long time
-    GuiTests.findAndClickButtonWhenEnabled(
+    GuiTests.findAndClickButton(
       ideFrameFixture.waitForDialog("Android Gradle Plugin Update Recommended", 120),
       "Update");
     guiTest.waitForBackgroundTasks();

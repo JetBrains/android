@@ -15,36 +15,50 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.CONSTRUCTOR_NAME;
+import static com.android.SdkConstants.DOT_PNG;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.WIDGET_PKG_PREFIX;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.lint.UpgradeConstraintLayoutFix;
 import com.android.utils.HtmlBuilder;
+import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashSet;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.File;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * A {@link LayoutLog} which records the problems it encounters and offers them as a
@@ -64,7 +78,8 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
    * in case we need to ask bug submitters to generate full, raw exceptions.
    */
   @SuppressWarnings("UseOfArchaicSystemPropertyAccessors")
-  private static final boolean LOG_ALL = Boolean.getBoolean("adt.renderLog");
+  private static final boolean LOG_ALL = Boolean.getBoolean("adt.renderLog") ||
+                                         ApplicationManager.getApplication().isUnitTestMode();
   private static Set<String> ourIgnoredFidelityWarnings;
   private static boolean ourIgnoreAllFidelityWarnings;
   private static boolean ourIgnoreFragments;
@@ -75,7 +90,8 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
   private boolean myHaveExceptions;
   private Multiset<String> myTags;
   private List<Throwable> myTraces;
-  private List<RenderProblem> myMessages;
+  @GuardedBy("myMessages")
+  private final List<RenderProblem> myMessages = new ArrayList<>();
   private List<RenderProblem> myFidelityWarnings;
   private Set<String> myMissingClasses;
   private Map<String, Throwable> myBrokenClasses;
@@ -156,10 +172,6 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     return false;
   }
 
-  static boolean isLoggingAllErrors() {
-    return LOG_ALL;
-  }
-
   @Nullable
   public Module getModule() {
     return myModule;
@@ -175,17 +187,48 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     return null;
   }
 
-  @Override
-  public void addMessage(@NotNull RenderProblem message) {
-    if (myMessages == null) {
-      myMessages = Lists.newArrayList();
+  private void logMessageToIdeaLog(@NotNull String message, @Nullable Throwable t) {
+    String logMessage;
+
+    if (t == null) {
+      logMessage = message;
     }
-    myMessages.add(message);
+    else {
+      StringWriter stringWriter = new StringWriter();
+      PrintWriter writer = new PrintWriter(stringWriter);
+      writer.println(t.getMessage());
+      t.printStackTrace(writer);
+      logMessage = message + "\n" + stringWriter.toString();
+    }
+    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+    try {
+      LOG.warn(logMessage);
+    }
+    finally {
+      RenderSecurityManager.exitSafeRegion(token);
+    }
   }
 
-  @Nullable
+  private void logMessageToIdeaLog(@NotNull String message) {
+    logMessageToIdeaLog(message, null);
+  }
+
+  @Override
+  public void addMessage(@NotNull RenderProblem message) {
+    synchronized (myMessages) {
+      myMessages.add(message);
+    }
+
+    logMessageToIdeaLog(XmlUtils.fromXmlAttributeValue(message.getHtml()));
+  }
+
+  @NotNull
   public List<RenderProblem> getMessages() {
-    return myMessages;
+    ImmutableList<RenderProblem> copy;
+    synchronized (myMessages) {
+      copy = ImmutableList.copyOf(myMessages);
+    }
+    return copy;
   }
 
   /**
@@ -203,7 +246,11 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
    * @return true if there were errors during the render
    */
   public boolean hasErrors() {
-    return myHaveExceptions || myMessages != null ||
+    boolean hasMessage;
+    synchronized (myMessages) {
+      hasMessage = !myMessages.isEmpty();
+    }
+    return myHaveExceptions || hasMessage ||
            myClassesWithIncorrectFormat != null || myBrokenClasses != null || myMissingClasses != null ||
            myMissingSize || myMissingFragments != null;
   }
@@ -227,16 +274,6 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
   @Override
   public void error(@Nullable String tag, @Nullable String message, @Nullable Object viewCookie, @Nullable Object data) {
     String description = describe(message, null);
-
-    if (LOG_ALL) {
-      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-      try {
-        LOG.warn(String.format("%1$s: %2$s", myName, description));
-      }
-      finally {
-        RenderSecurityManager.exitSafeRegion(token);
-      }
-    }
 
     // Workaround: older layout libraries don't provide a tag for this error
     if (tag == null && message != null &&
@@ -266,15 +303,6 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
                     @Nullable Object viewCookie,
                     @Nullable Object data) {
     String description = describe(message, throwable);
-    if (LOG_ALL) {
-      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-      try {
-        LOG.warn(String.format("%1$s: %2$s", myName, description), throwable);
-      }
-      finally {
-        RenderSecurityManager.exitSafeRegion(token);
-      }
-    }
     if (throwable != null) {
       if (throwable instanceof ClassNotFoundException) {
         // The LayoutlibCallback is given a chance to resolve classes,
@@ -532,16 +560,6 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
       return;
     }
 
-    if (LOG_ALL) {
-      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-      try {
-        LOG.warn(String.format("%1$s: %2$s", myName, description), throwable);
-      }
-      finally {
-        RenderSecurityManager.exitSafeRegion(token);
-      }
-    }
-
     if (throwable != null) {
       myHaveExceptions = true;
     }
@@ -655,6 +673,8 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
         myMissingClasses = new TreeSet<>();
       }
       myMissingClasses.add(className);
+
+      logMessageToIdeaLog("Class not found " + className);
     }
   }
 
@@ -665,6 +685,8 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
       myClassesWithIncorrectFormat = new HashMap<>();
     }
     myClassesWithIncorrectFormat.put(className, exception);
+
+    logMessageToIdeaLog("Class with incorrect format " + className, exception);
   }
 
   @Override
@@ -678,6 +700,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
       myBrokenClasses = new HashMap<>();
     }
     myBrokenClasses.put(className, exception);
+    logMessageToIdeaLog("Broken class " + className, exception);
   }
 
   @Nullable

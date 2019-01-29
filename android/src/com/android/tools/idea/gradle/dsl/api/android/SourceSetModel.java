@@ -17,73 +17,59 @@ package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceDirectoryModel;
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceFileModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface SourceSetModel {
+public interface SourceSetModel extends GradleDslModel {
   @NotNull
   String name();
 
   @NotNull
-  GradleNullableValue<String> root();
-
-  @NotNull
-  SourceSetModel setRoot(@NotNull String root);
-
-  @NotNull
-  SourceSetModel removeRoot();
+  ResolvedPropertyModel root();
 
   @NotNull
   SourceDirectoryModel aidl();
 
-  @NotNull
-  SourceSetModel removeAidl();
+  void removeAidl();
 
   @NotNull
   SourceDirectoryModel assets();
 
-  @NotNull
-  SourceSetModel removeAssets();
+  void removeAssets();
 
   @NotNull
   SourceDirectoryModel java();
 
-  @NotNull
-  SourceSetModel removeJava();
+  void removeJava();
 
   @NotNull
   SourceDirectoryModel jni();
 
-  @NotNull
-  SourceSetModel removeJni();
+  void removeJni();
 
   @NotNull
   SourceDirectoryModel jniLibs();
 
-  @NotNull
-  SourceSetModel removeJniLibs();
+  void removeJniLibs();
 
   @NotNull
   SourceFileModel manifest();
 
-  @NotNull
-  SourceSetModel removeManifest();
+  void removeManifest();
 
   @NotNull
   SourceDirectoryModel renderscript();
 
-  @NotNull
-  SourceSetModel removeRenderscript();
+  void removeRenderscript();
 
   @NotNull
   SourceDirectoryModel res();
 
-  @NotNull
-  SourceSetModel removeRes();
+  void removeRes();
 
   @NotNull
   SourceDirectoryModel resources();
 
-  @NotNull
-  SourceSetModel removeResources();
+  void removeResources();
 }

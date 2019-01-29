@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -48,39 +49,41 @@ public class EmbeddedDistributionPaths {
     }
     // Development build
     List<File> repoPaths = new ArrayList<>();
-    File repoPath;
 
     // Add prebuilt offline repo
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
-      repoPath = new File(toCanonicalPath(toSystemDependentName(studioCustomRepo)));
-      if (!repoPath.isDirectory()) {
+      File customRepoPath = new File(toCanonicalPath(toSystemDependentName(studioCustomRepo)));
+      if (!customRepoPath.isDirectory()) {
         throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
       }
+      repoPaths.add(customRepoPath);
     }
     else {
-      // trying to detect workspace root the same way as TestUtils#getWorkspaceRoot()
-      String workspace = System.getenv("TEST_WORKSPACE");
-      String workspaceParent = System.getenv("TEST_SRCDIR");
-      if (workspace != null && workspaceParent != null) {
-        File workspaceRoot = new File(workspaceParent, workspace);
-        repoPath = new File(workspaceRoot, toCanonicalPath(toSystemIndependentName("/prebuilts/tools/common/m2/repository")));
+      File localGMaven = new File(PathManager.getHomePath() + toSystemDependentName("/../../out/repo"));
+      if (localGMaven.isDirectory()) {
+        repoPaths.add(localGMaven);
       }
-      else {
-        String relativePath = toSystemDependentName("/../../prebuilts/tools/common/offline-m2");
-        repoPath = new File(toCanonicalPath(getIdeHomePath() + relativePath));
+      File prebuiltOfflineM2 = new File(toCanonicalPath(getIdeHomePath() + toSystemDependentName("/../../prebuilts/tools/common/offline-m2")));
+      getLog().info("Looking for embedded Maven repo at '" + prebuiltOfflineM2.getPath() + "'");
+      if (prebuiltOfflineM2.isDirectory()) {
+        repoPaths.add(prebuiltOfflineM2);
       }
-    }
-    getLog().info("Looking for embedded Maven repo at '" + repoPath.getPath() + "'");
-    if (repoPath.isDirectory()) {
-      repoPaths.add(repoPath);
     }
 
-    // Add locally published studio repo
-    String relativePath = toSystemDependentName("/../../out/studio/repo");
-    repoPath = new File(PathManager.getHomePath() + relativePath);
-    if (repoPath.isDirectory()) {
-      repoPaths.add(repoPath);
+    // Add locally published offline studio repo
+    File localOfflineRepoPath = new File(PathManager.getHomePath() + toSystemDependentName("/../../out/studio/repo"));
+    if (localOfflineRepoPath.isDirectory()) {
+      repoPaths.add(localOfflineRepoPath);
+    }
+
+    if (StudioFlags.SHIPPED_SYNC_ENABLED.get()) {
+      // Add a repo generated from/for New Project Wizard projects
+      File npwRepoPath = new File(PathManager.getHomePath() +
+                                  toSystemDependentName("/../adt/idea/android/testData/nosyncbuilder/offline_repo"));
+      if (npwRepoPath.isDirectory()) {
+        repoPaths.add(npwRepoPath);
+      }
     }
 
     return repoPaths;
@@ -116,9 +119,39 @@ public class EmbeddedDistributionPaths {
 
     // Development build.
     String ideHomePath = getIdeHomePath();
-    String relativePath = toSystemDependentName("/../../out/gradle-dist-link");
+    String relativePath = toSystemDependentName("/../../tools/external/gradle");
     distributionPath = new File(toCanonicalPath(ideHomePath + relativePath));
-    return distributionPath.isDirectory() ? distributionPath : null;
+    if (distributionPath.isDirectory()) {
+      return distributionPath;
+    }
+
+    // Development build.
+    String localDistributionPath = System.getProperty("local.gradle.distribution.path");
+    if (localDistributionPath != null) {
+      distributionPath = new File(toCanonicalPath(localDistributionPath));
+      if (distributionPath.isDirectory()) {
+        return distributionPath;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public File findEmbeddedGradleDistributionFile(@NotNull String gradleVersion) {
+    File distributionPath = findEmbeddedGradleDistributionPath();
+    if (distributionPath != null) {
+      File allDistributionFile = new File(distributionPath, "gradle-" + gradleVersion + "-all.zip");
+      if (allDistributionFile.isFile() && allDistributionFile.exists()) {
+        return allDistributionFile;
+      }
+
+      File binDistributionFile = new File(distributionPath, "gradle-" + gradleVersion + "-bin.zip");
+      if (binDistributionFile.isFile() && binDistributionFile.exists()) {
+        return binDistributionFile;
+      }
+    }
+    return null;
   }
 
   @NotNull
@@ -133,6 +166,17 @@ public class EmbeddedDistributionPaths {
     return rootDirPath.isDirectory() ? rootDirPath : null;
   }
 
+  @Nullable
+  public File tryToGetEmbeddedJdkPath() {
+    try {
+      return getEmbeddedJdkPath();
+    }
+    catch (Throwable t) {
+      Logger.getInstance(EmbeddedDistributionPaths.class).warn("Failed to find a valid embedded JDK", t);
+      return null;
+    }
+  }
+
   @NotNull
   public File getEmbeddedJdkPath() {
     String ideHomePath = getIdeHomePath();
@@ -141,6 +185,13 @@ public class EmbeddedDistributionPaths {
     if (jdkRootPath.isDirectory()) {
       // Release build.
       return getSystemSpecificJdkPath(jdkRootPath);
+    }
+
+    // If AndroidStudio runs from IntelliJ IDEA sources
+    if (System.getProperty("android.test.embedded.jdk") != null) {
+      File jdkDir = new File(System.getProperty("android.test.embedded.jdk"));
+      assert jdkDir.exists();
+      return jdkDir;
     }
 
     // Development build.
@@ -155,13 +206,6 @@ public class EmbeddedDistributionPaths {
     }
     else if (SystemInfo.isMac) {
       jdkRootPath = new File(jdkRootPath, "mac");
-    }
-    if (!jdkRootPath.exists()) {
-      // fallback to JAVA_HOME
-      String javaHome = System.getenv("JAVA_HOME");
-      if (javaHome != null) {
-        jdkRootPath = new File(javaHome);
-      }
     }
     return getSystemSpecificJdkPath(jdkRootPath);
   }

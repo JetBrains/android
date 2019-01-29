@@ -59,8 +59,7 @@ class SourceProviderAdapter(private val name: String, private val paths: Android
   }
 
   override fun getResDirectories(): Collection<File> {
-    val resDirectory = paths.resDirectory
-    return if (resDirectory == null) emptyList() else setOf(resDirectory)
+    return paths.resDirectories
   }
 
   override fun getAssetsDirectories(): Collection<File> {

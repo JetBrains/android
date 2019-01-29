@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleFileModel;
-import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -27,8 +29,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class GradleFileModelImpl implements GradleFileModel {
   @NotNull protected GradleDslFile myGradleDslFile;
@@ -37,6 +41,7 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     myGradleDslFile = gradleDslFile;
   }
 
+  @Override
   @Nullable
   public PsiElement getPsiElement() {
     return myGradleDslFile.getPsiElement();
@@ -69,36 +74,60 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     return myGradleDslFile.getFile();
   }
 
-  private void saveAllRelatedFiles() {
-    Set<PsiElement> relatedPsiElements = new HashSet<>();
-    relatedPsiElements.add(myGradleDslFile.getPsiElement());
+  @Override
+  @NotNull
+  public Map<String, GradlePropertyModel> getInScopeProperties() {
+    return myGradleDslFile.getInScopeElements().entrySet().stream()
+      .collect(Collectors.toMap(e -> e.getKey(), e -> new GradlePropertyModelImpl(e.getValue())));
+  }
 
+  @NotNull
+  @Override
+  public List<GradlePropertyModel> getDeclaredProperties() {
+    return myGradleDslFile.getContainedElements(false).stream().map(e -> new GradlePropertyModelImpl(e))
+      .collect(Collectors.toList());
+  }
+
+  @NotNull
+  public Set<GradleDslFile> getAllInvolvedFiles() {
+    Set<GradleDslFile> files = new HashSet<>();
+    files.add(myGradleDslFile);
     // Add all parent dsl files.
+    files.addAll(getParentFiles());
+
+    List<GradleDslFile> currentFiles = new ArrayList<>();
+    currentFiles.add(myGradleDslFile);
+    // TODO: Generalize cycle detection in GradleDslSimpleExpression and reuse here.
+    // Attempting to parse a cycle of applied files will fail in GradleDslFile#mergeAppliedFiles;
+    while (!currentFiles.isEmpty()) {
+      GradleDslFile currentFile = currentFiles.remove(0);
+      files.addAll(currentFile.getApplyDslElement());
+      currentFiles.addAll(currentFile.getApplyDslElement());
+    }
+
+    // Get all the properties files.
+    for (GradleDslFile file : new ArrayList<>(files)) {
+      GradleDslFile sibling = file.getSiblingDslFile();
+      if (sibling != null) {
+        files.add(sibling);
+      }
+    }
+
+    return files;
+  }
+
+  private Set<GradleDslFile> getParentFiles() {
+    Set<GradleDslFile> files = new HashSet<>();
     GradleDslFile file = myGradleDslFile.getParentModuleDslFile();
-    while (file!= null) {
-      relatedPsiElements.add(file.getPsiElement());
+    while (file != null) {
+      files.add(file);
       file = file.getParentModuleDslFile();
     }
+    return files;
+  }
 
-    // Now relatedPsiElements should contain psi elements for the whole GradleDslFile tree.
-    // TODO: Only save the files that were actually modified by the build model.
-    for (PsiElement psiElement : relatedPsiElements) {
-      // Check for any postponed psi operations and complete them to unblock the underlying document for further modifications.
-      assert psiElement instanceof PsiFile;
-
-      PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(getProject());
-      Document document = psiDocumentManager.getDocument((PsiFile)psiElement);
-      if (document == null) {
-        return;
-      }
-
-      if (psiDocumentManager.isDocumentBlockedByPsi(document)) {
-        psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
-      }
-
-      // Save the file to disk to ensure the changes exist when it is read.
-      FileDocumentManager.getInstance().saveDocument(document);
-    }
+  private void saveAllRelatedFiles() {
+    getAllInvolvedFiles().forEach(GradleDslFile::saveAllChanges);
   }
 
   @Override
@@ -106,5 +135,17 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     myGradleDslFile.applyChanges();
 
     saveAllRelatedFiles();
+  }
+
+  @TestOnly
+  @NotNull
+  public GradleDslFile getDslFile() {
+    return myGradleDslFile;
+  }
+
+  @Override
+  @NotNull
+  public Map<String, List<BuildModelNotification>> getNotifications() {
+    return getAllInvolvedFiles().stream().collect(Collectors.toMap(e -> e.getFile().getPath(), e -> e.getPublicNotifications()));
   }
 }

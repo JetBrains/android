@@ -16,6 +16,14 @@
  *
   -->
 <idea-plugin url="https://www.jetbrains.com/idea">
+<!--
+  <application-components>
+    <component>
+      <implementation-class>com.android.tools.idea.stats.LowMemoryReporter</implementation-class>
+    </component>
+  </application-components>
+-->
+
   <extensions defaultExtensionNs="com.intellij">
     <!--
       Startup.AndroidStudioInitializer has to be always first because the first thing it does is checking that the IDE installation is not
@@ -26,12 +34,23 @@
     <androidStudioInitializer id="Startup.AndroidSdkInitializer" order="last" implementation="com.android.tools.idea.startup.AndroidSdkInitializer" />
 
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
-    <applicationService serviceImplementation="com.android.tools.idea.welcome.whatsnew.WhatsNew$WhatsNewService"/>
-    <postStartupActivity implementation="com.android.tools.idea.welcome.whatsnew.WhatsNew"
-                         order="before TipOfTheDayActivity"/>
     <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioIconProvider" id="androidStudioIcons" order="before javaDirectory"/>
     <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioFileIconProvider" id="androidFileIcons"/>
   </extensions>
+
+<!--
+  <application-components>
+    <component>
+      <implementation-class>com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor</implementation-class>
+      <headless-implementation-class/>
+    </component>
+  </application-components>
+-->
+  <project-components>
+    <component>
+      <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>
+    </component>
+  </project-components>
 
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
@@ -59,17 +78,13 @@
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
 
-    <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">
-      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="SendFeedback" />
-    </action>
-
-    <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
-            text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
-      <add-to-group group-id="RefactoringMenu"/>
-    </action>
-
     <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
-            icon="AndroidIcons.SdkManager">
+            icon="StudioIcons.Shell.Toolbar.SDK_MANAGER">
+      <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
+    </action>
+
+    <action id="WelcomeScreen.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
+            icon="StudioIcons.Shell.Menu.AVD_MANAGER">
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 
@@ -106,12 +121,10 @@
                         overrides="true"/>
     <welcomeFrameProvider implementation="com.android.tools.idea.welcome.wizard.FirstRunWizardFrameProvider" order="FIRST"/>
 
-    <!--Disable overridden Android Studio inspections until the proper mechanism to override inspections will be introduced in IntelliJ IDEA -->
-
-    <!--<localInspection groupPath="Java" language="JAVA" suppressId="deprecation" shortName="Deprecation" displayName="Deprecated API usage"-->
-                     <!--groupKey="group.names.code.maturity.issues" groupBundle="messages.InspectionsBundle"-->
-                     <!--enabledByDefault="true" level="WARNING"-->
-                     <!--implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>-->
+    <localInspection groupPath="Java" language="JAVA" suppressId="deprecation" shortName="Deprecation" displayName="Deprecated API usage"
+                     groupKey="group.names.code.maturity.issues" groupBundle="messages.InspectionsBundle"
+                     enabledByDefault="true" level="WARNING"
+                     implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
 
   </extensions>
 

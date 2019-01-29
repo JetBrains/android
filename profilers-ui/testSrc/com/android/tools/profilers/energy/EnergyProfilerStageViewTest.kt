@@ -15,9 +15,11 @@
  */
 package com.android.tools.profilers.energy
 
+import com.android.tools.adtui.RangeTooltipComponent
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profiler.proto.Profiler
 import com.android.tools.profilers.*
+import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -39,7 +41,7 @@ class EnergyProfilerStageViewTest {
     timer = FakeTimer()
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
     val profilers = StudioProfilers(grpcChannel.client, services, timer)
-    profilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED)
+    profilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
 
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
@@ -53,5 +55,13 @@ class EnergyProfilerStageViewTest {
   @Test
   fun expectedStageViewIsCreated() {
     assertThat(view.stageView).isInstanceOf(EnergyProfilerStageView::class.java)
+  }
+
+  @Test
+  fun testTooltipComponentIsFirstChild() {
+    val cpuProfilerStageView = view.stageView as EnergyProfilerStageView
+    val treeWalker = TreeWalker(cpuProfilerStageView.component)
+    val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)[0]
+    assertThat(tooltipComponent.parent.components[0]).isEqualTo(tooltipComponent)
   }
 }

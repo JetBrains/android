@@ -48,7 +48,7 @@ public class AndroidNonConstantResIdsInSwitchInspection extends LocalInspectionT
       @Override
       public void visitSwitchLabelStatement(PsiSwitchLabelStatement statement) {
         final AndroidFacet facet = AndroidFacet.getInstance(statement);
-        if (facet == null || facet.isAppProject()) {
+        if (facet == null || facet.getConfiguration().isAppProject()) {
           return;
         }
 

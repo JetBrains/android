@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,141 +15,97 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Provide Gradle specific abstraction over a {@link PsiElement}.
+ * Provide Gradle specific abstraction over a {@link PsiElement}s.
  */
-public abstract class GradleDslElement {
-  @NotNull protected final String myName;
+public interface GradleDslElement extends AnchorProvider {
+  void setParsedClosureElement(@NotNull GradleDslClosure closure);
 
-  @Nullable protected GradleDslElement myParent;
-
-  @NotNull private final String myQualifiedName;
-  @NotNull private final GradleDslFile myDslFile;
-
-  @Nullable private PsiElement myPsiElement;
-
-  @Nullable private GradleDslClosure myClosureElement;
-
-  private volatile boolean myModified;
-
-  // Whether or not that DslElement should be represented with the assignment syntax i.e "name = 'value'" or
-  // the method call syntax i.e "name 'value'". This is needed since on some element types as we do not carry
-  // the information to make this distinction. GradleDslElement will set this to a default of false.
-  protected boolean myUseAssignment;
-
-  @NotNull private PropertyType myElementType;
+  void setNewClosureElement(@Nullable GradleDslClosure closureElement);
 
   /**
-   * Creates an in stance of a {@link GradleDslElement}
-   *
-   * @param parent     the parent {@link GradleDslElement} of this element. The parent element should always be a not-null value except if
-   *                   this element is the root element, i.e a {@link GradleDslFile}.
-   * @param psiElement the {@link PsiElement} of this dsl element.
-   * @param name       the name of this element.
+   * @return the closure that should be added to the element on the next call to {@link #applyChanges()}, null is no closure has been set.
    */
-  protected GradleDslElement(@Nullable GradleDslElement parent, @Nullable PsiElement psiElement, @NotNull String name) {
-    assert parent != null || this instanceof GradleDslFile;
+  @Nullable
+  GradleDslClosure getUnsavedClosure();
 
-    myParent = parent;
-    myPsiElement = psiElement;
-    myName = name;
+  /**
+   * @return the current closure element, either {@link #getUnsavedClosure()} if non-null or the closure that was parsed from the build
+   * file. Null is both of these are absent.
+   */
+  @Nullable
+  GradleDslClosure getClosureElement();
 
-    if (parent == null || parent instanceof GradleDslFile) {
-      myQualifiedName = name;
-    }
-    else {
-      myQualifiedName = parent.myQualifiedName + "." + name;
-    }
+  /**
+   * Returns the name of this element at the lowest scope. I.e the text after the last dot ('.').
+   */
+  @NotNull
+  String getName();
 
-    if (parent == null) {
-      myDslFile = (GradleDslFile)this;
-    }
-    else {
-      myDslFile = parent.myDslFile;
-    }
+  /**
+   * Returns the full and qualified name of this {@link GradleDslElement}, this will be the name of this element appended to the
+   * qualified name of this elements parent.
+   */
+  @NotNull
+  String getQualifiedName();
 
-    myUseAssignment = false;
-    // Default to DERIVED, this is overwritten in the parser if required for the given element type.
-    myElementType = DERIVED;
-  }
+  /**
+   * Returns the full name of the element. For elements where it makes sense, this will be the text of the
+   * PsiElement in the build file.
+   */
+  @NotNull
+  String getFullName();
 
-  public void setParsedClosureElement(@NotNull GradleDslClosure closureElement) {
-    myClosureElement = closureElement;
-  }
+  @NotNull
+  GradleNameElement getNameElement();
+
+  void rename(@NotNull String newName);
 
   @Nullable
-  public GradleDslClosure getClosureElement() {
-    return myClosureElement;
-  }
+  GradleDslElement getParent();
 
   @NotNull
-  public String getName() {
-    return myName;
-  }
+  List<GradlePropertiesDslElement> getHolders();
+
+  void addHolder(@NotNull GradlePropertiesDslElement holder);
+
+  void setParent(@NotNull GradleDslElement parent);
 
   @Nullable
-  public GradleDslElement getParent() {
-    return myParent;
-  }
+  PsiElement getPsiElement();
+
+  void setPsiElement(@Nullable PsiElement psiElement);
+
+  boolean shouldUseAssignment();
+
+  void setUseAssignment(boolean useAssignment);
+
+  @NotNull
+  PropertyType getElementType();
+
+  void setElementType(@NotNull PropertyType propertyType);
+
+  @NotNull
+  GradleDslFile getDslFile();
+
+  @NotNull
+  List<GradleReferenceInjection> getResolvedVariables();
 
   @Nullable
-  public PsiElement getPsiElement() {
-    return myPsiElement;
-  }
-
-  public void setPsiElement(@Nullable PsiElement psiElement) {
-    myPsiElement = psiElement;
-  }
-
-  public boolean shouldUseAssignment() {
-    return myUseAssignment;
-  }
-
-  public void setUseAssignment(boolean useAssignment) {
-    myUseAssignment = useAssignment;
-  }
-
-  @NotNull
-  public PropertyType getElementType() {
-    return myElementType;
-  }
-
-  public void setElementType(@NotNull PropertyType propertyType) {
-    myElementType = propertyType;
-  }
-
-  @NotNull
-  public String getQualifiedName() {
-    return myQualifiedName;
-  }
-
-  @NotNull
-  public GradleDslFile getDslFile() {
-    return myDslFile;
-  }
-
-  @NotNull
-  public Collection<GradleReferenceInjection> getResolvedVariables() {
-    ImmutableList.Builder<GradleReferenceInjection> resultBuilder = ImmutableList.builder();
-    for (GradleDslElement child : getChildren()) {
-      resultBuilder.addAll(child.getResolvedVariables());
-    }
-    return resultBuilder.build();
-  }
+  GradleDslElement getAnchor();
 
   /**
    * Creates the {@link PsiElement} by adding this element to the .gradle file.
@@ -160,62 +116,95 @@ public abstract class GradleDslElement {
    * {@link PsiElement}.
    */
   @Nullable
-  public PsiElement create() {
-    return myDslFile.getWriter().createDslElement(this);
-  }
+  PsiElement create();
+
+  /**
+   * Triggers the moving of the element if required. Repositions the element within the build file based on
+   * its parent. After a call to this method, if the element should be moved, the element will be placed
+   * after the {@link PsiElement} obtained from calling {@link #requestAnchor(GradleDslElement)} on its parent.
+   *
+   * @return the new PsiElement of the moved element, null if the element is not attached to a tree or if
+   * no PsiElement currently exists for it.
+   */
+  @Nullable
+  PsiElement move();
 
   /**
    * Deletes this element and all it's children from the .gradle file.
    */
-  protected void delete() {
-    for (GradleDslElement element : getChildren()) {
-      element.delete();
-    }
+  void delete();
 
-    this.getDslFile().getWriter().deleteDslElement(this);
-  }
+  /**
+   * Marks this element as having been modified.
+   */
+  void setModified();
 
-  public void setModified(boolean modified) {
-    myModified = modified;
-    if (myParent != null && modified) {
-      myParent.setModified(true);
-    }
-  }
-
-  public boolean isModified() {
-    return myModified;
-  }
+  boolean isModified();
 
   /**
    * Returns {@code true} if this element represents a Block element (Ex. android, productFlavors, dependencies etc.),
    * {@code false} otherwise.
    */
-  public boolean isBlockElement() {
-    return false;
-  }
+  boolean isBlockElement();
 
   /**
    * Returns {@code true} if this element represents an element which is insignificant if empty.
    */
-  public boolean isInsignificantIfEmpty() {
-    return true;
-  }
+  boolean isInsignificantIfEmpty();
 
   @NotNull
-  public abstract Collection<GradleDslElement> getChildren();
+  Collection<GradleDslElement> getChildren();
 
-  public final void applyChanges() {
-    ApplicationManager.getApplication().assertWriteAccessAllowed();
-    apply();
-    setModified(false);
-  }
+  void resetState();
 
-  protected abstract void apply();
+  void applyChanges();
 
-  public final void resetState() {
-    reset();
-    setModified(false);
-  }
+  /**
+   * Computes a list of properties and variables that are declared or assigned to in this scope.
+   * Override in subclasses to return meaningful values.
+   */
+  @NotNull
+  List<GradleDslElement> getContainedElements(boolean includeProperties);
 
-  protected abstract void reset();
+  /**
+   * Computes a list of properties and variables that are visible from this GradleDslElement.
+   */
+  @NotNull
+  Map<String, GradleDslElement> getInScopeElements();
+
+  /**
+   * Helpers to quick obtain a notification instance for this elements build context.
+   *
+   * @param type type reference of the given notification, see {@link NotificationTypeReference} for possible values.
+   * @param <T>  type of the notification
+   * @return the instance of the notification in the build model.
+   */
+  @NotNull
+  <T extends BuildModelNotification> T notification(@NotNull NotificationTypeReference<T> type);
+
+  void registerDependent(@NotNull GradleReferenceInjection injection);
+
+  void unregisterDependent(@NotNull GradleReferenceInjection injection);
+
+  void unregisterAllDependants();
+
+  /**
+   * @return all things that depend on this element.
+   */
+  @NotNull
+  List<GradleReferenceInjection> getDependents();
+
+  /**
+   * @return all resolved and unresolved dependencies.
+   */
+  @NotNull
+  List<GradleReferenceInjection> getDependencies();
+
+  void updateDependenciesOnAddElement(@NotNull GradleDslElement newElement);
+
+  void updateDependenciesOnReplaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement);
+
+  void updateDependenciesOnRemoveElement(@NotNull GradleDslElement oldElement);
+
+  void resolve();
 }

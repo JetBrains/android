@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android.sourceSets;
 
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceFileModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceFileDslElement;
 import org.jetbrains.annotations.NonNls;
@@ -37,21 +37,7 @@ public class SourceFileModelImpl extends GradleDslBlockModel implements SourceFi
 
   @Override
   @NotNull
-  public GradleNullableValue<String> srcFile() {
-    return myDslElement.getLiteralProperty(SRC_FILE, String.class);
-  }
-
-  @Override
-  @NotNull
-  public SourceFileModel setSrcFile(@NotNull String srcFile) {
-    myDslElement.setNewLiteral(SRC_FILE, srcFile);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public SourceFileModel removeSrcFile() {
-    myDslElement.removeProperty(SRC_FILE);
-    return this;
+  public ResolvedPropertyModel srcFile() {
+    return getModelForProperty(SRC_FILE, true);
   }
 }

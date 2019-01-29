@@ -34,7 +34,19 @@ public interface ProfilerPreferences {
 
   void setFloat(@NotNull String name, float value);
 
+  /**
+   * @param defaultValue if value is identical to defaultValue, the cache will be unset. Next time getFloat is called on the same name,
+   *                     the defaultValue passed into getFloat(...) will be used instead.
+   */
+  void setFloat(@NotNull String name, float value, float defaultValue);
+
   void setInt(@NotNull String name, int value);
+
+  /**
+   * @param defaultValue if value is identical to defaultValue, the cache will be unset. Next time getInt is called on the same name,
+   *                     the defaultValue passed into getInt(...) will be used instead.
+   */
+  void setInt(@NotNull String name, int value, int defaultValue);
 
   void setBoolean(@NotNull String name, boolean value);
 }

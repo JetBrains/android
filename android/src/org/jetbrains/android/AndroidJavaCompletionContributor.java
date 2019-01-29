@@ -1,22 +1,23 @@
 package org.jetbrains.android;
 
+import static com.android.SdkConstants.R_CLASS;
+
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.codeInsight.completion.CompletionResult;
 import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.util.Consumer;
+import java.util.Objects;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.R_CLASS;
 
 /**
  * @author Eugene.Kudelevsky
@@ -35,20 +36,17 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
     }
 
     if (AndroidMavenUtil.isMavenizedModule(facet.getModule())) {
-      resultSet.runRemainingContributors(parameters, new Consumer<CompletionResult>() {
-        @Override
-        public void consume(CompletionResult result) {
-          final Object obj = result.getLookupElement().getObject();
+      resultSet.runRemainingContributors(parameters, result -> {
+        final Object obj = result.getLookupElement().getObject();
 
-          if (obj instanceof PsiClass) {
-            final String qName = ((PsiClass)obj).getQualifiedName();
+        if (obj instanceof PsiClass) {
+          final String qName = ((PsiClass)obj).getQualifiedName();
 
-            if (qName != null && !isAllowedInAndroid(qName)) {
-              return;
-            }
+          if (qName != null && !isAllowedInAndroid(qName)) {
+            return;
           }
-          resultSet.passResult(result);
         }
+        resultSet.passResult(result);
       });
     }
 
@@ -60,8 +58,25 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
         PsiReferenceExpression ref2 = (PsiReferenceExpression)ref.getQualifierExpression();
         if (ref2.getQualifierExpression() instanceof PsiReferenceExpression) {
           PsiReferenceExpression ref3 = (PsiReferenceExpression)ref2.getQualifierExpression();
-          if (ref3.getQualifierExpression() == null && R_CLASS.equals(ref3.getReferenceName())) {
-            filterPrivateResources(parameters, resultSet, facet);
+          if (R_CLASS.equals(ref3.getReferenceName())) {
+            // We do the filtering only on the R class of this module, users who explicitly reference other R classes are assumed to know
+            // what they're doing.
+            boolean filterPrivateResources = false;
+            PsiExpression qualifierExpression = ref3.getQualifierExpression();
+            if (qualifierExpression == null) {
+              filterPrivateResources = true;
+            }
+            else if (qualifierExpression instanceof PsiReferenceExpression) {
+              PsiReferenceExpression referenceExpression = (PsiReferenceExpression)qualifierExpression;
+              if (Objects.equals(AndroidManifestUtils.getPackageName(facet), referenceExpression.getQualifiedName()) ||
+                  Objects.equals(AndroidManifestUtils.getTestPackageName(facet), referenceExpression.getQualifiedName())) {
+                filterPrivateResources = true;
+              }
+            }
+
+            if (filterPrivateResources) {
+              filterPrivateResources(parameters, resultSet, facet);
+            }
           }
         }
       }
@@ -71,7 +86,7 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
   public void filterPrivateResources(@NotNull CompletionParameters parameters,
                                      @NotNull final CompletionResultSet resultSet,
                                      AndroidFacet facet) {
-    final ResourceVisibilityLookup lookup = AppResourceRepository.getOrCreateInstance(facet).getResourceVisibility(facet);
+    final ResourceVisibilityLookup lookup = ResourceRepositoryManager.getOrCreateInstance(facet).getResourceVisibility();
     if (lookup.isEmpty()) {
       return;
     }
@@ -83,8 +98,8 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
         PsiClass containingClass = field.getContainingClass();
         if (containingClass != null) {
           PsiClass rClass = containingClass.getContainingClass();
-          if (rClass != null && rClass.getName().equals(R_CLASS)) {
-            ResourceType type = ResourceType.getEnum(containingClass.getName());
+          if (rClass != null && R_CLASS.equals(rClass.getName())) {
+            ResourceType type = ResourceType.fromClassName(containingClass.getName());
             if (type != null && lookup.isPrivate(type, field.getName())) {
               return;
             }

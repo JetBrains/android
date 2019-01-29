@@ -17,11 +17,11 @@ package com.android.tools.idea.tests.gui.kotlin;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.ComponentWithMnemonics;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.util.PatternTextMatcher;
@@ -32,14 +32,15 @@ import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class InstantRunWithKotlinTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";
@@ -70,7 +71,7 @@ public class InstantRunWithKotlinTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70634044
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void instantRunWithKotlin() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("KotlinInstrumentation");
@@ -86,10 +87,8 @@ public class InstantRunWithKotlinTest {
 
     ideFrameFixture.getEditor()
       .open("app/src/main/java/android/com/kotlininstrumentation/MainActivity.kt")
-      .moveBetween("import android.os.Bundle", "")
-      .enterText("\nimport android.util.Log")
       .moveBetween("setContentView(R.layout.activity_main)", "")
-      .enterText("\nLog.d(\"TAG\", \"Testing Instant apps\")");
+      .enterText("\nfindViewById<TextView>(0).text=\"st\"");
 
     int notificationBalloonCountBefore = getNotificationBalloonCount(ideFrameFixture);
 

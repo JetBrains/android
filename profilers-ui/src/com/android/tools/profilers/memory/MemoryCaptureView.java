@@ -15,21 +15,19 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.FileOutputStream;
-import java.io.IOException;
+
+import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
 
 public final class MemoryCaptureView extends AspectObserver {
   private static Logger getLogger() {
@@ -39,8 +37,6 @@ public final class MemoryCaptureView extends AspectObserver {
   @NotNull private final MemoryProfilerStage myStage;
 
   @NotNull private final JLabel myLabel;
-
-  @NotNull private final JButton myExportButton;
 
   @NotNull private final JPanel myPanel;
 
@@ -52,17 +48,9 @@ public final class MemoryCaptureView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::reset)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
 
-    myPanel = new JPanel(new TabularLayout("Fit,Fit,Fit,Fit", "*"));
-
+    myPanel = new JPanel(createToolbarLayout());
     myLabel = new JLabel();
-    myLabel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 3));
-
-    myExportButton = new FlatButton(AllIcons.ToolbarDecorator.Export);
-    myExportButton.setToolTipText("Export capture to file");
-    myExportButton.addActionListener(e -> ideProfilerComponents.createExportDialog().open(
-      () -> "Export As",
-      this::getFileExtension,
-      file -> stage.getStudioProfilers().getIdeServices().saveFile(file, this::saveToFile, null)));
+    myLabel.setBorder(new JBEmptyBorder(0, 11, 0, 3));
     reset();
   }
 
@@ -81,7 +69,6 @@ public final class MemoryCaptureView extends AspectObserver {
     myPanel.removeAll();
     myLabel.setText("");
     myCaptureObject = myStage.getSelectedCapture();
-    myExportButton.setEnabled(false);
   }
 
   private void refresh() {
@@ -89,30 +76,9 @@ public final class MemoryCaptureView extends AspectObserver {
     boolean validCapture = captureObject == myCaptureObject && myCaptureObject != null;
 
     if (validCapture) {
-      if (captureObject.isExportable()) {
-        myExportButton.setEnabled(captureObject.isExportable());
-        myPanel.add(myExportButton, new TabularLayout.Constraint(0, 0));
-        myPanel.add(new FlatSeparator(), new TabularLayout.Constraint(0, 1));
-      }
       myLabel.setText(myCaptureObject.getName());
-      myPanel.add(myLabel, new TabularLayout.Constraint(0, 2));
-      myPanel.add(new FlatSeparator(), new TabularLayout.Constraint(0, 3));
-    }
-  }
-
-  @Nullable
-  private String getFileExtension() {
-    return myCaptureObject == null ? null : myCaptureObject.getExportableExtension();
-  }
-
-  private void saveToFile(@NotNull FileOutputStream outputStream) {
-    if (myCaptureObject != null) {
-      try {
-        myCaptureObject.saveToFile(outputStream);
-      }
-      catch (IOException e) {
-        getLogger().warn(e);
-      }
+      myPanel.add(myLabel);
+      myPanel.add(new FlatSeparator());
     }
   }
 }

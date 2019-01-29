@@ -2,6 +2,7 @@ package org.jetbrains.android;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -16,6 +17,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.impl.source.xml.SchemaPrefix;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import com.intellij.refactoring.rename.RenameDialog;
@@ -23,8 +25,10 @@ import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
+import org.jetbrains.android.augment.AndroidLightField;
 import org.jetbrains.android.dom.converters.AndroidResourceReference;
 import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.wrappers.ResourceFieldElementWrapper;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -52,6 +56,11 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       return false;
     }
 
+    final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(dataContext);
+    if (element instanceof SchemaPrefix) {
+      return false; // Leave renaming of namespace prefixes to the default XML handler.
+    }
+
     if (AndroidUsagesTargetProvider.findValueResourceTagInContext(editor, file, true) != null) {
       return true;
     }
@@ -65,7 +74,6 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (project == null) {
       return false;
     }
-    final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(dataContext);
     return element != null && isPackageAttributeInManifest(project, element);
   }
 
@@ -108,7 +116,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       //   <string name="my_alias">@string/my_string</string>
       // If the caret is on my_string, you expect to rename my_string, not my_alias (the XmlTag)
       ResourceUrl url = findResourceReferenceUnderCaret(editor, file);
-      if (url != null && !url.framework) {
+      if (url != null && !url.isFramework()) {
         performResourceReferenceRenaming(project, editor, dataContext, file, url);
       }
       else {
@@ -144,14 +152,18 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
                                                        DataContext dataContext,
                                                        PsiFile file,
                                                        ResourceUrl url) {
-    assert !url.framework;
+    assert !url.isFramework();
 
     final AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet != null) {
       // Treat the resource reference as if the user renamed the R field instead
       PsiField[] resourceFields = AndroidResourceUtil.findResourceFields(facet, url.type.getName(), url.name, false);
       if (resourceFields.length == 1) {
-        RenameDialog.showRenameDialog(dataContext, new RenameDialog(project, resourceFields[0], null, editor));
+        PsiElement element = resourceFields[0];
+        if (StudioFlags.IN_MEMORY_R_CLASSES.get() && element instanceof AndroidLightField) {
+          element = new ResourceFieldElementWrapper((AndroidLightField)element);
+        }
+        RenameDialog.showRenameDialog(dataContext, new RenameDialog(project, element, null, editor));
       }
     }
   }

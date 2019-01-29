@@ -24,9 +24,11 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.project.Project;
@@ -60,7 +62,8 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   }
 
   @Override
-  public void onSuccess(@Nullable DataNode<ProjectData> projectInfo) {
+  public void onSuccess(@NotNull ExternalSystemTaskId taskId,
+                        @Nullable DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
     unregisterAsNewProject(myProject);
 
@@ -69,7 +72,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     }
     GradleSyncState.getInstance(myProject).setupStarted();
     boolean importedProject = GradleProjectInfo.getInstance(myProject).isImportedProject();
-    populateProject(projectInfo, importedProject);
+    populateProject(projectInfo, taskId, importedProject);
 
     Runnable runnable = () -> {
       boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
@@ -78,7 +81,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
           open(myProject);
         }
         if (!isTest) {
-          myProject.save();
+          CommandProcessor.getInstance().runUndoTransparentAction(() -> myProject.save());
         }
       }
 
@@ -99,18 +102,18 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     }
   }
 
-  private void populateProject(@NotNull DataNode<ProjectData> projectInfo, boolean importedProject) {
+  private void populateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId, boolean importedProject) {
     if (!importedProject) {
-      doPopulateProject(projectInfo);
+      doPopulateProject(projectInfo, taskId);
       return;
     }
     StartupManager startupManager = StartupManager.getInstance(myProject);
-    startupManager.runWhenProjectIsInitialized(() -> doPopulateProject(projectInfo));
+    startupManager.runWhenProjectIsInitialized(() -> doPopulateProject(projectInfo, taskId));
   }
 
-  private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo) {
+  private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId) {
     IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
-    task.populateProject(projectInfo, mySetupRequest, () -> {
+    task.populateProject(projectInfo, taskId, mySetupRequest, () -> {
       if (mySyncListener != null) {
         if (mySyncSkipped) {
           mySyncListener.syncSkipped(myProject);
@@ -124,6 +127,18 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   @Override
   public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
+    Logger logger = getLogger();
+    if (isNotEmpty(errorDetails)) {
+      logger.warn(errorDetails);
+    }
+    logger.warn(errorMessage);
+
+    // Make sure the failure was not because sync is already running, if so, then return
+    // See b/75005810
+    if (errorMessage.contains(ExternalSystemBundle.message("error.resolve.already.running", ""))) {
+      return;
+    }
+
     unregisterAsNewProject(myProject);
 
     // Initialize the "Gradle Sync" tool window, otherwise any sync errors will not be displayed to the user.
@@ -133,14 +148,10 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       }
     });
 
-    if (isNotEmpty(errorDetails)) {
-      getLogger().warn(errorDetails);
-    }
     handleSyncFailure(errorMessage);
   }
 
   private void handleSyncFailure(@NotNull String errorMessage) {
-    getLogger().warn(errorMessage);
 
     String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
     // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
@@ -151,12 +162,6 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
     if (mySyncListener != null) {
       mySyncListener.syncFailed(myProject, newMessage);
-    }
-
-    if (!myProject.isOpen()) {
-      // if the project is not open yet (e.g. a project created with the NPW) the error will be ignored bt
-      // ExternalSystemNotificationManager#processExternalProjectRefreshError
-      GradleProjectInfo.getInstance(myProject).setProjectCreationError(errorMessage);
     }
   }
 

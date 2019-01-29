@@ -52,10 +52,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myCommandLineOptionsDocHyperlinkLabel;
 
-  private JCheckBox myConfigureOnDemandCheckBox;
-  @SuppressWarnings("UnusedDeclaration")
-  private HyperlinkLabel myConfigureOnDemandDocHyperlinkLabel;
-
   private final String myDisplayName;
 
   public GradleCompilerSettingsConfigurable(@NotNull Project project, @NotNull String displayName) {
@@ -92,7 +88,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   public boolean isModified() {
     return myCompilerConfiguration.PARALLEL_COMPILATION != isParallelBuildsEnabled() ||
            myCompilerConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
-           myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND != isConfigurationOnDemandEnabled() ||
            myBuildConfiguration.SYNC_PROJECT_BEFORE_BUILD != isSyncBeforeBuildEnabled() ||
            !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS);
   }
@@ -102,7 +97,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myCompilerConfiguration.PARALLEL_COMPILATION = isParallelBuildsEnabled();
     myCompilerConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
     myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
-    myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND = isConfigurationOnDemandEnabled();
     myBuildConfiguration.SYNC_PROJECT_BEFORE_BUILD = isSyncBeforeBuildEnabled();
   }
 
@@ -112,10 +106,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   private boolean isAutoMakeEnabled() {
     return myAutoMakeCheckBox.isSelected();
-  }
-
-  private boolean isConfigurationOnDemandEnabled() {
-    return myConfigureOnDemandCheckBox.isSelected();
   }
 
   private boolean isSyncBeforeBuildEnabled() {
@@ -131,13 +121,11 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   public void reset() {
     myParallelBuildCheckBox.setSelected(myCompilerConfiguration.PARALLEL_COMPILATION);
     myAutoMakeCheckBox.setSelected(myCompilerConfiguration.MAKE_PROJECT_ON_SAVE);
-    myConfigureOnDemandCheckBox.setSelected(myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND);
     myAutoMakeCheckBox.setText("Make project automatically (only works while not running / debugging" +
                                (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
                                ")");
     String commandLineOptions = nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
     myCommandLineOptionsEditor.setText(commandLineOptions);
-    myConfigureOnDemandCheckBox.setSelected(myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND);
     mySyncProjectBeforeBuildCheckBox.setSelected(myBuildConfiguration.SYNC_PROJECT_BEFORE_BUILD);
   }
 
@@ -153,10 +141,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myCommandLineOptionsDocHyperlinkLabel =
       createHyperlinkLabel("Example: --stacktrace --debug (for more information, please read Gradle's ", "documentation", ".)",
                            "http://www.gradle.org/docs/current/userguide/gradle_command_line.html");
-
-    myConfigureOnDemandDocHyperlinkLabel =
-      createHyperlinkLabel("This option may speed up builds. This option is in \"incubation.\" Please read Gradle's ", "documentation", ".",
-                           "http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:configuration_on_demand");
 
     myCommandLineOptionsEditor = new RawCommandLineEditor();
     myCommandLineOptionsEditor.setDialogCaption("Command-line Options");

@@ -17,7 +17,6 @@
 package com.android.tools.adtui.model.updater;
 
 import com.android.tools.adtui.model.StopwatchTimer;
-import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
@@ -51,7 +50,6 @@ public class Updater implements StopwatchTimer.TickHandler {
     mTimer.start();
   }
 
-  @VisibleForTesting
   public StopwatchTimer getTimer() {
     return mTimer;
   }
@@ -148,6 +146,6 @@ public class Updater implements StopwatchTimer.TickHandler {
   }
 
   public static double lerp(double a, double b, float factor) {
-    return a * (1.0f - factor) + b * factor;
+    return a + (b - a) * factor;
   }
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
-import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
@@ -29,9 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
@@ -54,14 +52,23 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
     @NotNull
     @Override
     public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {
-      if (DEEP_LINK == null || DEEP_LINK.isEmpty()) {
-        return ImmutableList.of(ValidationError.warning("URL not specified"));
+      boolean isInstantApp = facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP;
+
+      if ((DEEP_LINK == null || DEEP_LINK.isEmpty())) {
+        if (isInstantApp) {
+          // The new AIA SDK library supports launching instant apps without a URL
+          return ImmutableList.of();
+        }
+        else {
+          return ImmutableList.of(ValidationError.warning("URL not specified"));
+        }
       }
-      else if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+
+      if (isInstantApp) {
         boolean matched = false;
         List<Module> featureModules = findFeatureModules(facet);
         for (Module featureModule : featureModules) {
-          if (new InstantAppUrlFinder(MergedManifest.get(featureModule)).matchesUrl(DEEP_LINK)) {
+          if (new InstantAppUrlFinder(featureModule).matchesUrl(DEEP_LINK)) {
             matched = true;
             break;
           }

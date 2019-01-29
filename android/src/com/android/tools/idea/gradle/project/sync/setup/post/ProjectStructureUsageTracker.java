@@ -15,6 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.tools.idea.fd.InstantRunSettings.isInstantRunEnabled;
+import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.modelSupportsInstantRun;
+import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.variantSupportsInstantRun;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
+import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.CMAKE;
+import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.GRADLE_EXPERIMENTAL;
+import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.NDK_BUILD;
+import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE;
+import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeLibrary;
@@ -29,7 +42,13 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AnonymizerUtil;
-import com.google.wireless.android.sdk.stats.*;
+import com.android.tools.idea.stats.UsageTrackerUtils;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.GradleAndroidModule;
+import com.google.wireless.android.sdk.stats.GradleBuildDetails;
+import com.google.wireless.android.sdk.stats.GradleLibrary;
+import com.google.wireless.android.sdk.stats.GradleModule;
+import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule;
 import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -37,22 +56,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.android.tools.idea.fd.InstantRunSettings.isInstantRunEnabled;
-import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.modelSupportsInstantRun;
-import static com.android.tools.idea.fd.gradle.InstantRunGradleUtils.variantSupportsInstantRun;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS;
-import static com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBuildSystemType.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tracks, using {@link UsageTracker}, the structure of a project.
@@ -144,21 +151,21 @@ public class ProjectStructureUsageTracker {
         }
 
         boolean shouldReportNative = false;
-        NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+        NdkModuleModel ndkModel = NdkModuleModel.get(module);
         NativeBuildSystemType buildSystemType = UNKNOWN_NATIVE_BUILD_SYSTEM_TYPE;
         String moduleName = "";
 
-        if (ndkModuleModel != null) {
+        if (ndkModel != null) {
           shouldReportNative = true;
-          if (ndkModuleModel.modelVersionIsAtLeast("2.2.0")) {
-            for (String buildSystem : ndkModuleModel.getAndroidProject().getBuildSystems()) {
+          if (ndkModel.getFeatures().isBuildSystemNameSupported()) {
+            for (String buildSystem : ndkModel.getAndroidProject().getBuildSystems()) {
               buildSystemType = stringToBuildSystemType(buildSystem);
             }
           }
           else {
             buildSystemType = GRADLE_EXPERIMENTAL;
           }
-          moduleName = AnonymizerUtil.anonymizeUtf8(ndkModuleModel.getModuleName());
+          moduleName = AnonymizerUtil.anonymizeUtf8(ndkModel.getModuleName());
         }
         else if (androidModel != null && areNativeLibrariesPresent(androidModel.getAndroidProject())) {
           shouldReportNative = true;
@@ -190,7 +197,7 @@ public class ProjectStructureUsageTracker {
       // @formatter:on
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
       event.setCategory(GRADLE).setKind(GRADLE_BUILD_DETAILS).setGradleBuildDetails(gradleBuild);
-      UsageTracker.getInstance().log(event);
+      UsageTracker.log(UsageTrackerUtils.withProjectId(event, myProject));
     }
   }
 
@@ -247,19 +254,5 @@ public class ProjectStructureUsageTracker {
                                      .setJarDependencyCount(dependencies.getJavaLibraries().size())
                                      .build();
     // @formatter:on
-  }
-
-  @Nullable
-  public static String getApplicationId(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-      if (androidModel != null) {
-        if (androidModel.getAndroidProject().getProjectType() == PROJECT_TYPE_APP) {
-          return androidModel.getApplicationId();
-        }
-      }
-    }
-    return null;
   }
 }

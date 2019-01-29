@@ -31,6 +31,9 @@ public abstract class GradleModelProvider {
     return new GradleModelSource();
   }
 
+  @NotNull
+  public abstract ProjectBuildModel getProjectModel(@NotNull Project project);
+
   @Nullable
   public abstract GradleBuildModel getBuildModel(@NotNull Project project);
 
@@ -45,11 +48,6 @@ public abstract class GradleModelProvider {
 
   @Nullable
   public abstract GradleSettingsModel getSettingsModel(@NotNull Project project);
-
-  @NotNull
-  public abstract GradleSettingsModel getSettingsModel(@NotNull VirtualFile file,
-                                                       @NotNull Project project,
-                                                       @NotNull String moduleName);
 
   @NotNull
   public abstract ArtifactDependencySpec getArtifactDependencySpec(@NotNull String name,

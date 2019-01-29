@@ -18,6 +18,9 @@ package com.android.tools.idea.run.activity;
 import com.android.SdkConstants;
 import org.jetbrains.android.AndroidTestCase;
 
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ALIAS;
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_UNDECLARED;
+
 public class SpecificActivityLocatorTest extends AndroidTestCase {
 
   @Override
@@ -34,8 +37,8 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testActivityNotDeclared() throws ActivityLocator.ActivityLocatorException {
-    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/undeclared/Launcher2.java", "src/com/example/unittest/Launcher2.java");
+    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher2.java", "src/com/example/unittest/Launcher2.java");
 
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher2");
     try {
@@ -48,7 +51,7 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testNonActivity() {
-    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher");
     try {
       locator.validate();
@@ -59,16 +62,16 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testValidLauncherAlias() throws ActivityLocator.ActivityLocatorException {
-    myFixture.copyFileToProject("projects/runConfig/alias/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/alias/src/debug/java/com/example/unittest/Launcher.java",
+    myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "LauncherAlias");
     locator.validate();
   }
 
   public void testAliasNotDeclared() throws ActivityLocator.ActivityLocatorException {
-    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/undeclared/Launcher.java", "src/com/example/unittest/Launcher.java");
+    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "NotLaunchable");
     try {
       locator.validate();
@@ -79,8 +82,8 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testActivityWithoutLauncherIntent() {
-    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/undeclared/Launcher.java", "src/com/example/unittest/Launcher.java");
+    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher");
     try {
       locator.validate();
@@ -91,15 +94,15 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testActivityWithSomeLauncherIntent() throws ActivityLocator.ActivityLocatorException {
-    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/undeclared/Launcher.java", "src/com/example/unittest/Launcher.java");
+    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "SendHandler");
     locator.validate();
   }
 
   public void testExportedActivity() throws ActivityLocator.ActivityLocatorException {
-    myFixture.copyFileToProject("projects/runConfig/undeclared/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/undeclared/ExportedActivity.java", "src/com/example/unittest/ExportedActivity.java");
+    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/ExportedActivity.java", "src/com/example/unittest/ExportedActivity.java");
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.ExportedActivity");
     locator.validate();
   }

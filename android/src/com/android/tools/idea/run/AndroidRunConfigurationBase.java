@@ -11,10 +11,12 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.fd.*;
 import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.InstantRunNotificationTask;
@@ -24,6 +26,8 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.MultiUserUtils;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.stats.RunStats;
+import com.android.tools.idea.stats.RunStatsService;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -44,10 +48,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.DefaultJDOMExternalizer;
-import com.intellij.openapi.util.InvalidDataException;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.util.*;
 import com.intellij.util.xmlb.annotations.Transient;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -148,8 +149,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       // Can't proceed.
       return ImmutableList.of(ValidationError.fatal(AndroidBundle.message("no.facet.error", module.getName())));
     }
-    if (!facet.isAppProject() && facet.getProjectType() != PROJECT_TYPE_TEST) {
-      if (facet.isLibraryProject() || facet.getProjectType() == PROJECT_TYPE_FEATURE) {
+    if (!facet.getConfiguration().isAppProject() && facet.getConfiguration().getProjectType() != PROJECT_TYPE_TEST) {
+      if (facet.getConfiguration().isLibraryProject() || facet.getConfiguration().getProjectType() == PROJECT_TYPE_FEATURE) {
         Pair<Boolean, String> result = supportsRunningLibraryProjects(facet);
         if (!result.getFirst()) {
           errors.add(ValidationError.fatal(result.getSecond()));
@@ -162,12 +163,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (facet.getConfiguration().getAndroidPlatform() == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
-    if (facet.getManifest() == null && facet.getProjectType() != PROJECT_TYPE_INSTANTAPP) {
+    if (facet.getManifest() == null && facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP) {
       errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
 
-    errors.addAll(getApkProvider(facet, getApplicationIdProvider(facet)).validate());
+    errors.addAll(getApkProvider(facet, getApplicationIdProvider(facet), new ArrayList<>()).validate());
 
     errors.addAll(checkConfiguration(facet));
     AndroidDebuggerState androidDebuggerState = myAndroidDebuggerContext.getAndroidDebuggerState();
@@ -231,6 +232,22 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Override
   public RunProfileState getState(@NotNull final Executor executor, @NotNull ExecutionEnvironment env) throws ExecutionException {
+    RunStats stats = RunStatsService.get(getProject()).create();
+    try {
+      stats.start();
+      RunProfileState state = doGetState(executor, env, stats);
+      stats.markStateCreated();
+      return state;
+    } catch (Throwable t) {
+      stats.abort();
+      throw t;
+    }
+  }
+
+  @Nullable
+  public RunProfileState doGetState(@NotNull Executor executor,
+                                    @NotNull ExecutionEnvironment env,
+                                    @NotNull RunStats stats) throws ExecutionException {
     validateBeforeRun(executor);
 
     final Module module = getConfigurationModule().getModule();
@@ -243,13 +260,21 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     final boolean instantRunEnabled = InstantRunSettings.isInstantRunEnabled();
     final AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
 
+    stats.setDebuggable(LaunchUtils.canDebugApp(facet));
+    stats.setInstantRunEnabled(instantRunEnabled);
+    stats.setExecutor(executor.getId());
+    stats.setApplyChanges(!forceColdswap);
+
+    updateExtraRunStats(stats);
+
     boolean couldHaveHotswapped = false;
     DeviceFutures deviceFutures = null;
-
     final boolean isDebugging = executor instanceof DefaultDebugExecutor;
+    boolean userSelectedDeployTarget = requiresUserSelection(executor, isDebugging, facet);
+    stats.setUserSelectedTarget(userSelectedDeployTarget);
 
     // Figure out deploy target, prompt user if needed (ignore completely if user chose to hotswap).
-    if (forceColdswap) {
+    if (forceColdswap || StudioFlags.JVMTI_REFRESH.get()) {
       DeployTarget deployTarget = getDeployTarget(executor, env, isDebugging, facet);
       if (deployTarget == null) { // if user doesn't select a deploy target from the dialog
         return null;
@@ -264,6 +289,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       if (deviceFutures == null) {
         // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
         return null;
+      }
+      for (AndroidDevice device : deviceFutures.getDevices()) {
+        if (device instanceof LaunchableAndroidDevice) {
+          stats.setLaunchedDevices(true);
+        }
       }
     }
 
@@ -310,11 +340,21 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Save the instant run context so that before-run task can access it
     env.putCopyableUserData(InstantRunContext.KEY, instantRunContext);
 
+    // Save the instant run context so that before-run task can access it
+    env.putUserData(RunStats.KEY, stats);
+
     ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
+
+    LaunchOptions.Builder launchOptions = getLaunchOptions()
+      .setDebug(isDebugging);
+
+    if (executor instanceof LaunchOptionsProvider) {
+      launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
+    }
 
     LaunchTasksProviderFactory providerFactory =
       createLaunchTasksProviderFactory(env, facet, deviceFutures,
-                                       applicationIdProvider, instantRunContext, processHandler, isDebugging);
+                                       applicationIdProvider, launchOptions.build(), instantRunContext, processHandler);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
     return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
@@ -355,12 +395,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                                       @NotNull AndroidFacet facet,
                                                                       @NotNull DeviceFutures deviceFutures,
                                                                       @NotNull ApplicationIdProvider applicationIdProvider,
+                                                                      @NotNull LaunchOptions launchOptions,
                                                                       @Nullable InstantRunContext instantRunContext,
-                                                                      @Nullable ProcessHandler processHandler, boolean isDebugging) {
-    LaunchOptions launchOptions = getLaunchOptions()
-      .setDebug(isDebugging)
-      .build();
-    return new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, getApkProvider(facet, applicationIdProvider),
+                                                                      @Nullable ProcessHandler processHandler) {
+    return new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider,
+                                                 getApkProvider(facet, applicationIdProvider, deviceFutures.getDevices()),
                                                  deviceFutures, launchOptions,
                                                  processHandler, instantRunContext);
   }
@@ -531,6 +570,20 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return null;
   }
 
+  /**
+   * @return {@code true} if the current {@link DeployTargetProvider} will require user to select the {@link DeployTarget}.
+   */
+  private boolean requiresUserSelection(@NotNull Executor executor, boolean debug, @NotNull AndroidFacet facet) {
+    DeployTargetProvider currentTargetProvider = getDeployTargetContext().getCurrentDeployTargetProvider();
+    if (currentTargetProvider instanceof ShowChooserTargetProvider) {
+      return currentTargetProvider.requiresRuntimePrompt() &&
+             ((ShowChooserTargetProvider)currentTargetProvider)
+               .getCachedDeployTarget(executor, facet, getDeviceCount(debug), getDeployTargetContext().getDeployTargetStates(),
+                                      getUniqueID()) == null;
+    }
+    return currentTargetProvider.requiresRuntimePrompt();
+  }
+
   @Nullable
   private DeployTarget getDeployTarget(@NotNull Executor executor,
                                        @NotNull ExecutionEnvironment env,
@@ -599,14 +652,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   protected ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
-    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidModuleModel) {
+    if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
       return new GradleApplicationIdProvider(facet, myOutputProvider);
     }
     return new NonGradleApplicationIdProvider(facet);
   }
 
   @NotNull
-  protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider);
+  protected abstract ApkProvider getApkProvider(@NotNull AndroidFacet facet,
+                                                @NotNull ApplicationIdProvider applicationIdProvider,
+                                                @NotNull List<AndroidDevice> targetDevices);
 
   @NotNull
   protected abstract ConsoleProvider getConsoleProvider();
@@ -614,8 +669,25 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Nullable
   protected abstract LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                                          @NotNull AndroidFacet facet,
+                                                         @NotNull String contributorsAmStartOptions,
                                                          boolean waitForDebugger,
                                                          @NotNull LaunchStatus launchStatus);
+
+  @NotNull
+  protected ApkProvider createGradleApkProvider(@NotNull AndroidFacet facet,
+                                                @NotNull ApplicationIdProvider applicationIdProvider,
+                                                boolean test,
+                                                @NotNull List<AndroidDevice> targetDevices) {
+    Computable<GradleApkProvider.OutputKind> outputKindProvider = () -> {
+      if (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.getModule(), this, targetDevices)) {
+        return GradleApkProvider.OutputKind.AppBundleOutputModel;
+      }
+      else {
+        return GradleApkProvider.OutputKind.Default;
+      }
+    };
+    return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, test, outputKindProvider);
+  }
 
   public boolean monitorRemoteProcess() {
     return true;
@@ -638,6 +710,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return false;
   }
 
+  public void updateExtraRunStats(RunStats runStats) {
+
+  }
+
   // Overridden in subclasses that allow customization of deployment user id
   public int getUserIdFromAmParameters() {
     return MultiUserUtils.PRIMARY_USERID;
@@ -655,6 +731,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     AndroidVersion version = device.getVersion();
     if (!InstantRunManager.isInstantRunCapableDeviceVersion(version)) {
       return API_TOO_LOW_FOR_INSTANT_RUN;
+    }
+
+    // If using app bundle, IR is not supported
+    if (DynamicAppUtils.useSelectApksFromBundleBuilder(module, this, targetDevices)) {
+      return USES_APP_BUNDLE_OUTPUT;
     }
 
     IDevice targetDevice = MakeBeforeRunTaskProvider.getLaunchedDevice(device);
@@ -708,7 +789,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Override
   public void readExternal(@NotNull Element element) throws InvalidDataException {
     super.readExternal(element);
-    readModule(element);
     DefaultJDOMExternalizer.readExternal(this, element);
 
     myDeployTargetContext.readExternal(element);
@@ -723,7 +803,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @Override
   public void writeExternal(@NotNull Element element) throws WriteExternalException {
     super.writeExternal(element);
-    writeModule(element);
     DefaultJDOMExternalizer.writeExternal(this, element);
 
     myDeployTargetContext.writeExternal(element);

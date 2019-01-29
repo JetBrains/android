@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.common.scene.target;
 
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawAction;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
@@ -32,9 +35,6 @@ import java.util.List;
  */
 public class ActionTarget extends BaseTarget {
 
-  final static int mySize = 12;
-  final static int myGap = 4;
-  final ActionTarget myPreviousActionTarget;
   @Nullable private Action myAction;
   @NotNull private final NlIcon myIcon;
   protected boolean myIsVisible = true;
@@ -43,8 +43,7 @@ public class ActionTarget extends BaseTarget {
     void apply(SceneComponent component);
   }
 
-  public ActionTarget(@Nullable ActionTarget previous, @NotNull NlIcon icon, @Nullable Action action) {
-    myPreviousActionTarget = previous;
+  public ActionTarget(@NotNull NlIcon icon, @Nullable Action action) {
     myIcon = icon;
     myAction = action;
   }
@@ -63,63 +62,61 @@ public class ActionTarget extends BaseTarget {
     return Target.ACTION_LEVEL;
   }
 
+  public float getRight() {
+    return myRight;
+  }
+
+  public boolean isVisible() {
+    return myComponent.isSelected() && myIsVisible;
+  }
+
   @Override
   public boolean layout(@NotNull SceneContext sceneTransform,
                         @AndroidDpCoordinate int l,
                         @AndroidDpCoordinate int t,
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
-    float ratio = 1f / (float)sceneTransform.getScale();
-    if (ratio > 2) {
-      ratio = 2;
-    }
-    if (myPreviousActionTarget == null) {
-      myLeft = l;
-    }
-    else {
-      if (!myPreviousActionTarget.myIsVisible) {
-        myLeft = myPreviousActionTarget.myRight;
-      }
-      else {
-        myLeft = myPreviousActionTarget.myRight + (myGap * ratio);
-      }
-    }
-    float size = (mySize * ratio);
-    myTop = b + (myGap * ratio);
-    myRight = myLeft + size;
-    myBottom = myTop + size;
-    if (!myIsVisible) {
-      myLeft = (myPreviousActionTarget == null) ? myLeft : myPreviousActionTarget.myRight;
-      myRight = myLeft;
-    }
+    myLeft = l;
+    myRight = r;
+    myTop = t;
+    myBottom = b;
     return false;
   }
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    if (!myComponent.getScene().allowsTarget(this)) {
+    if (!isRenderable()) {
       return;
     }
 
     if (myIsVisible) {
       Rectangle src = new Rectangle();
       myComponent.fillRect(src);
-      DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, src, myIcon, mIsOver);
+      DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, myIcon, mIsOver);
     }
   }
 
   @Override
-  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
-    // Do nothing
+  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+    if (isRenderable()) {
+      picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
+                     transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
+    }
+  }
+
+  private boolean isRenderable() {
+    SceneComponent component = getComponent();
+    if (component.isSelected()) {
+      if (component.canShowBaseline()) {
+        return true;
+      }
+      return !component.isDragging();
+    }
+    return false;
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
-    // Do nothing
-  }
-
-  @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     if (myAction != null && closestTargets.contains(this)) {
       myAction.apply(myComponent);
       myComponent.getScene().needsRebuildList();

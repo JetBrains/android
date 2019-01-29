@@ -30,7 +30,7 @@ object ColoredIconGenerator {
     return generateColoredIcon(icon, Color.WHITE.rgb)
   }
 
-  private fun generateColoredIcon(icon: Icon, color: Int): Icon {
+  fun generateColoredIcon(icon: Icon, color: Int): Icon {
     //noinspection UndesirableClassUsage
     val image = generateColoredImage(icon, color)
     return ImageIcon(image)

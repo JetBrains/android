@@ -18,7 +18,7 @@ package com.android.tools.adtui;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.RotatedLabel;
-import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.intellij.ui.JBColor;
@@ -47,7 +47,7 @@ public final class AxisComponent extends AnimatedComponent {
   }
 
   private static final BasicStroke DEFAULT_AXIS_STROKE = new BasicStroke(1);
-  private static final int MARKER_LABEL_OFFSET_PX = 3;
+  private static final int MARKER_LABEL_OFFSET_PX = 5;
   private static final int MAXIMUM_LABEL_WIDTH = 50;
   private static final int DEFAULT_MAJOR_MARKER_LENGTH = 10;
   private static final int DEFAULT_MINOR_MARKER_LENGTH = 4;
@@ -85,12 +85,12 @@ public final class AxisComponent extends AnimatedComponent {
   private float myMarkerLabelDensity;
 
   /**
-   * Cached max marker lablels
+   * Cached max marker labels
    */
   private String myMaxLabel;
 
   /**
-   * Cached min marker lablels
+   * Cached min marker labels
    */
   private String myMinLabel;
 
@@ -153,8 +153,10 @@ public final class AxisComponent extends AnimatedComponent {
     setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
     setFont(AdtUiUtils.DEFAULT_FONT);
 
-    myModel.addDependency(myAspectObserver)
-      .onChange(AxisComponentModel.Aspect.AXIS, this::modelChanged);
+    myModel.addDependency(myAspectObserver).onChange(AxisComponentModel.Aspect.AXIS, this::modelChanged);
+
+    // Sets the boolean myCalculateMarkers true for the initial markers.
+    myCalculateMarkers = true;
   }
 
   private void modelChanged() {
@@ -178,7 +180,7 @@ public final class AxisComponent extends AnimatedComponent {
     return myMarkerLabelDensity;
   }
 
-  void caluculateMarkers(@NotNull Dimension dimension) {
+  void calculateMarkers(@NotNull Dimension dimension) {
     myMarkerLabels.clear();
     myMajorMarkerPositions.reset();
     myMinorMarkerPositions.reset();
@@ -186,7 +188,7 @@ public final class AxisComponent extends AnimatedComponent {
     double currentMinValueRelative = myModel.getRange().getMin() - myModel.getZero();
     double currentMaxValueRelative = myModel.getRange().getMax() - myModel.getZero();
     double range = myModel.getRange().getLength();
-    double labelRange = myModel.getGlobalRange() == null ? range : myModel.getGlobalRange().getLength();
+    double labelRange = myModel.getDataRange();
 
     BaseAxisFormatter formatter = myModel.getFormatter();
     // During the postAnimate phase, use the interpolated min/max/range values to calculate the current major and minor intervals that
@@ -212,9 +214,9 @@ public final class AxisComponent extends AnimatedComponent {
 
     // We always start from a major marker.
     for (int i = 0; i < numMarkers; i++) {
-      // Discard negative values (TODO configurable?)
+      // Discard values that is configured out of the marker range, by default this discards negative values.
       double markerValue = firstMarkerValue + i * minorInterval;
-      if (markerValue < 0f) {
+      if (!myModel.getMarkerRange().contains(markerValue)) {
         continue;
       }
 
@@ -233,10 +235,10 @@ public final class AxisComponent extends AnimatedComponent {
       }
     }
 
-    if (myShowMin) {
+    if (myShowMin && myModel.getMarkerRange().contains(currentMinValueRelative)) {
       myMinLabel = formatter.getFormattedString(labelRange, currentMinValueRelative, !myShowUnitAtMax);
     }
-    if (myShowMax) {
+    if (myShowMax && myModel.getMarkerRange().contains(currentMaxValueRelative)) {
       myMaxLabel = formatter.getFormattedString(labelRange, currentMaxValueRelative, true);
     }
   }
@@ -244,7 +246,7 @@ public final class AxisComponent extends AnimatedComponent {
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
     if (myCalculateMarkers) {
-      caluculateMarkers(dim);
+      calculateMarkers(dim);
       myCalculateMarkers = false;
     }
     // Calculate drawing parameters.
@@ -350,8 +352,8 @@ public final class AxisComponent extends AnimatedComponent {
       float scaledPosition = myMajorMarkerPositions.get(i) * myAxisLength;
       drawMarkerLine(g2d, line, scaledPosition, origin, myMajorMarkerLength);
       if (myShowLabels) {
-        boolean ignoreMinMaxBufferZone = !(myShowMin || myShowMax || (myHideTickAtMin && scaledPosition == 0));
-        drawMarkerLabel(g2d, scaledPosition, origin, myMarkerLabels.get(i), ignoreMinMaxBufferZone);
+        boolean reserveMinMaxBufferZone = myShowMin || myShowMax || (myHideTickAtMin && scaledPosition == 0);
+        drawMarkerLabel(g2d, scaledPosition, origin, myMarkerLabels.get(i), !reserveMinMaxBufferZone);
       }
     }
   }

@@ -16,11 +16,9 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,8 +28,7 @@ import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.UNRELIABLE)  // b/71749347
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class AdaptiveIconPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
@@ -42,7 +39,8 @@ public class AdaptiveIconPreviewTest {
       guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
         .getEditor()
         .open("app/src/main/res/mipmap-anydpi-v26/ic_launcher_adaptive.xml")
-        .getLayoutPreview(true);
+        .getLayoutPreview(true)
+        .waitForRenderToFinish();
     Point adaptiveIconTopLeftCorner = preview.getAdaptiveIconTopLeftCorner();
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
     toolbar.requireDensity("xxxhdpi")
@@ -75,7 +73,8 @@ public class AdaptiveIconPreviewTest {
       guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
         .getEditor()
         .open("app/src/main/res/mipmap-anydpi-v26/ic_launcher_adaptive.xml")
-        .getLayoutPreview(true);
+        .getLayoutPreview(true)
+        .waitForRenderToFinish();
     Point adaptiveIconTopLeftCorner = preview.getAdaptiveIconTopLeftCorner();
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
     toolbar.chooseShape("Circle")
@@ -107,17 +106,18 @@ public class AdaptiveIconPreviewTest {
       guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
         .getEditor()
         .open("app/src/main/res/mipmap-anydpi-v26/ic_theme_adaptive.xml")
-        .getLayoutPreview(true);
-    Point adaptiveIconTopLeftCorner = preview.getAdaptiveIconTopLeftCorner();
+        .getLayoutPreview(true)
+        .waitForRenderToFinish();
     NlConfigurationToolbarFixture<NlPreviewFixture> toolbar = preview.getConfigToolbar();
     toolbar.openThemeSelectionDialog()
-      .selectsTheme("Holo Light", "android:Theme.Holo.Light")
+      .selectTheme("Holo Light", "android:Theme.Holo.Light")
       .clickOk();
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();
+    Point adaptiveIconTopLeftCorner = preview.getAdaptiveIconTopLeftCorner();
     assertThat(preview.getPixelColor(adaptiveIconTopLeftCorner)).isEqualTo("ffe6e6e6");
     toolbar.openThemeSelectionDialog()
-      .selectsTheme("Material Dark", "android:Theme.Material")
+      .selectTheme("Material Dark", "android:Theme.Material")
       .clickOk();
     toolbar.leaveConfigToolbar()
       .waitForRenderToFinish();

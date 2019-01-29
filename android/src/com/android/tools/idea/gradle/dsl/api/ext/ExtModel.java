@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public interface ExtModel {
+public interface ExtModel extends GradleDslModel {
   /**
    * Returns a {@link GradlePropertyModel} representing the property with a given {@code name} on the
    * Gradle ExtraPropertiesExtension. The returned {@link GradlePropertyModel} will have a {@link ValueType} of NONE if the
@@ -31,8 +32,15 @@ public interface ExtModel {
 
   /**
    * Returns all of the existing properties defined in this block. This does not include variables, every {@link GradlePropertyModel}
-   * returned by this method will have a property type of {@link PropertyType.REGULAR}
+   * returned by this method will have a property type of {@link PropertyType#REGULAR}
    */
   @NotNull
   List<GradlePropertyModel> getProperties();
+
+  /**
+   * Return all of the existing variables defined within Gradle's ExtraPropertiesExtension. Note that these can only be referenced from
+   * properties in this modules {@link ExtModel}.
+   */
+  @NotNull
+  List<GradlePropertyModel> getVariables();
 }

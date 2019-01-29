@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,29 +23,23 @@ import java.io.File;
 import java.util.List;
 
 public interface GradleSettingsModel extends GradleFileModel {
+  /**
+   * @deprecated Use {@link ProjectBuildModel#getProjectSettingsModel()} instead.
+   */
+  @Deprecated
   @Nullable
   static GradleSettingsModel get(@NotNull Project project) {
     return GradleModelProvider.get().getSettingsModel(project);
   }
 
   @NotNull
-  static GradleSettingsModel get(@NotNull VirtualFile file,
-                                 @NotNull Project project,
-                                 @NotNull String moduleName) {
-    return GradleModelProvider.get().getSettingsModel(file, project, moduleName);
-  }
-
-  @NotNull
   List<String> modulePaths();
 
-  @NotNull
-  GradleSettingsModel addModulePath(@NotNull String modulePath);
+  void addModulePath(@NotNull String modulePath);
 
-  @NotNull
-  GradleSettingsModel removeModulePath(@NotNull String modulePath);
+  void removeModulePath(@NotNull String modulePath);
 
-  @NotNull
-  GradleSettingsModel replaceModulePath(@NotNull String oldModulePath, @NotNull String newModulePath);
+  void replaceModulePath(@NotNull String oldModulePath, @NotNull String newModulePath);
 
   @Nullable
   File moduleDirectory(String modulePath);

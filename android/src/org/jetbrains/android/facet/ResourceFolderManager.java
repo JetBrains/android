@@ -15,7 +15,9 @@
  */
 package org.jetbrains.android.facet;
 
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.ProjectResourceRepositoryRootListener;
@@ -23,7 +25,9 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.*;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -47,25 +51,37 @@ import static com.android.SdkConstants.*;
  * IDE sessions such that before the gradle initialization is done, it returns
  * the folder set as it was before the IDE exited.
  */
-public class ResourceFolderManager implements ModificationTracker {
-  private final AndroidFacet myFacet;
+public class ResourceFolderManager extends AndroidFacetScopedService implements ModificationTracker {
+  private static final Key<ResourceFolderManager> KEY = Key.create(ResourceFolderManager.class.getName());
+
   private List<VirtualFile> myResDirCache;
   private long myGeneration;
   private final List<ResourceFolderListener> myListeners = Lists.newArrayList();
   private boolean myVariantListenerAdded;
 
   /**
-   * Should only be constructed by {@link AndroidFacet}; others should obtain instance
-   * via {@link AndroidFacet#getResourceFolderManager}
+   * Should only be constructed by {@link #getInstance}.
    */
   ResourceFolderManager(AndroidFacet facet) {
-    myFacet = facet;
+    super(facet);
+  }
+
+  @NotNull
+  public static ResourceFolderManager getInstance(@NotNull AndroidFacet facet) {
+    synchronized (KEY) {
+      ResourceFolderManager resourceFolderManager = facet.getUserData(KEY);
+      if (resourceFolderManager == null) {
+        resourceFolderManager = new ResourceFolderManager(facet);
+        facet.putUserData(KEY, resourceFolderManager);
+      }
+      return resourceFolderManager;
+    }
   }
 
   /** Notifies the resource folder manager that the resource folder set may have changed */
   public void invalidate() {
     List<VirtualFile> old = myResDirCache;
-    if (old == null) {
+    if (old == null || isDisposed()) {
       return;
     }
     myResDirCache = null;
@@ -94,10 +110,28 @@ public class ResourceFolderManager implements ModificationTracker {
     return myResDirCache;
   }
 
+  /**
+   * This returns the primary resource directory; the default location to place newly created resources etc.  This method is marked
+   * deprecated since we should be gradually adding in UI to allow users to choose specific resource folders among the available flavors
+   * (see {@link AndroidModuleModel#getFlavorSourceProviders()} etc).
+   *
+   * @return the primary resource dir, if any.
+   */
+  @Deprecated
+  @Nullable
+  public VirtualFile getPrimaryFolder() {
+    List<VirtualFile> dirs = getFolders();
+    if (!dirs.isEmpty()) {
+      return dirs.get(0);
+    }
+    return null;
+  }
+
   private List<VirtualFile> computeFolders() {
-    if (myFacet.requiresAndroidModel()) {
-      JpsAndroidModuleProperties state = myFacet.getConfiguration().getState();
-      AndroidModel androidModel = myFacet.getAndroidModel();
+    AndroidFacet facet = getFacet();
+    if (facet.requiresAndroidModel()) {
+      JpsAndroidModuleProperties state = facet.getConfiguration().getState();
+      AndroidModel androidModel = facet.getConfiguration().getModel();
       List<VirtualFile> resDirectories = new ArrayList<>();
       if (androidModel == null) {
         // Read string property
@@ -117,12 +151,12 @@ public class ResourceFolderManager implements ModificationTracker {
             // First time; have not yet computed the res folders
             // just try the default: src/main/res/ (from Gradle templates), res/ (from exported Eclipse projects)
             String mainRes = '/' + FD_SOURCES + '/' + FD_MAIN + '/' + FD_RES;
-            VirtualFile dir =  AndroidRootUtil.getFileByRelativeModulePath(myFacet.getModule(), mainRes, true);
+            VirtualFile dir =  AndroidRootUtil.getFileByRelativeModulePath(facet.getModule(), mainRes, true);
             if (dir != null) {
               resDirectories.add(dir);
             } else {
               String res = '/' + FD_RES;
-              dir =  AndroidRootUtil.getFileByRelativeModulePath(myFacet.getModule(), res, true);
+              dir =  AndroidRootUtil.getFileByRelativeModulePath(facet.getModule(), res, true);
               if (dir != null) {
                 resDirectories.add(dir);
               }
@@ -130,7 +164,7 @@ public class ResourceFolderManager implements ModificationTracker {
           }
         }
       } else {
-        for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
+        for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(facet)) {
           resDirectories.addAll(provider.getResDirectories());
         }
 
@@ -152,20 +186,21 @@ public class ResourceFolderManager implements ModificationTracker {
         // Also refresh the app resources whenever the variant changes
         if (!myVariantListenerAdded) {
           myVariantListenerAdded = true;
-          BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this::invalidate);
+          BuildVariantUpdater.getInstance(facet.getModule().getProject()).addSelectionChangeListener(this::invalidate);
         }
       }
       // Listen to root change events. Be notified when project is initialized so we can update the
       // resource set, if necessary.
-      ProjectResourceRepositoryRootListener.ensureSubscribed(myFacet.getModule().getProject());
+      ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
 
       return resDirectories;
     } else {
-      return new ArrayList<>(myFacet.getMainIdeaSourceProvider().getResDirectories());
+      return new ArrayList<>(facet.getMainIdeaSourceProvider().getResDirectories());
     }
   }
 
   private void notifyChanged(@NotNull List<VirtualFile> before, @NotNull List<VirtualFile> after) {
+    AndroidFacet facet = getFacet();
     myGeneration++;
     Set<VirtualFile> added = new HashSet<>(after.size());
     added.addAll(after);
@@ -176,13 +211,18 @@ public class ResourceFolderManager implements ModificationTracker {
     removed.removeAll(after);
 
     for (ResourceFolderListener listener : new ArrayList<>(myListeners)) {
-      listener.resourceFoldersChanged(myFacet, after, added, removed);
+      listener.resourceFoldersChanged(facet, after, added, removed);
     }
   }
 
   @Override
   public long getModificationCount() {
     return myGeneration;
+  }
+
+  @Override
+  protected void onServiceDisposal(@NotNull AndroidFacet facet) {
+    facet.putUserData(KEY, null);
   }
 
   public synchronized void addListener(@NotNull ResourceFolderListener listener) {
@@ -196,23 +236,33 @@ public class ResourceFolderManager implements ModificationTracker {
   /** Adds in any AAR library resource directories found in the library definitions for the given facet */
   public static void addAarsFromModuleLibraries(@NotNull AndroidFacet facet, @NotNull Map<File, String> dirs) {
     Module module = facet.getModule();
-    OrderEntry[] orderEntries = ModuleRootManager.getInstance(module).getOrderEntries();
-    for (OrderEntry orderEntry : orderEntries) {
+    orderEntries: for (OrderEntry orderEntry : ModuleRootManager.getInstance(module).getOrderEntries()) {
       if (orderEntry instanceof LibraryOrSdkOrderEntry) {
         if (orderEntry.isValid() && isAarDependency(facet, orderEntry)) {
           final LibraryOrSdkOrderEntry entry = (LibraryOrSdkOrderEntry)orderEntry;
-          final VirtualFile[] libClasses = entry.getRootFiles(OrderRootType.CLASSES);
+          final VirtualFile[] roots = entry.getRootFiles(OrderRootType.CLASSES);
           String libraryName = entry.getPresentableName();
+          // We may end up here if there's no model (yet?) but this is project created by Gradle Sync. In this case recover the artifact
+          // address from the library name by stripping the Gradle prefix.
+          if (libraryName.startsWith(LibraryDependency.NAME_PREFIX)) {
+            libraryName = libraryName.substring(LibraryDependency.NAME_PREFIX.length());
+          }
+
           File res = null;
-          for (VirtualFile root : libClasses) {
+          for (VirtualFile root : roots) {
             if (root.getName().equals(FD_RES)) {
               res = VfsUtilCore.virtualToIoFile(root);
               break;
             }
+            // TODO(b/74425399): Use AndroidProjectModelUtils instead of all this code. Temporarily for testing, we use res.apk when found.
+            if (root.getName().equals(FN_RESOURCE_STATIC_LIBRARY)) {
+              dirs.put(VfsUtilCore.virtualToIoFile(root).getParentFile(), libraryName);
+              continue orderEntries;
+            }
           }
 
           if (res == null) {
-            for (VirtualFile root : libClasses) {
+            for (VirtualFile root : roots) {
               // Switch to file IO: The root may be inside a jar file system, where
               // getParent() returns null (and to get the real parent is ugly;
               // e.g. ((PersistentFSImpl.JarRoot)root).getParentLocalFile()).
@@ -234,18 +284,35 @@ public class ResourceFolderManager implements ModificationTracker {
   }
 
   private static boolean isAarDependency(@NotNull AndroidFacet facet, @NotNull OrderEntry orderEntry) {
-    if (facet.requiresAndroidModel() && orderEntry instanceof LibraryOrderEntry) {
-      VirtualFile[] files = orderEntry.getFiles(OrderRootType.CLASSES);
-      if (files.length >= 2) {
-        for (VirtualFile file : files) {
-          if (FD_RES.equals(file.getName()) && file.isDirectory()) {
-            return true;
-          }
-        }
-      }
+    if (!(orderEntry instanceof LibraryOrderEntry)) {
       return false;
     }
-    return AndroidMavenUtil.isMavenAarDependency(facet.getModule(), orderEntry);
+    LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)orderEntry;
+
+    if (facet.requiresAndroidModel()) {
+      return looksLikeAar(libraryOrderEntry);
+    }
+    else if (AndroidMavenUtil.isMavenizedModule(facet.getModule())) {
+      return AndroidMavenUtil.isMavenAarDependency(facet.getModule(), orderEntry);
+    }
+    else if (StringUtil.notNullize(libraryOrderEntry.getLibraryName()).endsWith(".aar")) {
+      // Most likely this is an IDEA project generated by some other build system. Check if it follows the right conventions:
+      return looksLikeAar(libraryOrderEntry);
+    }
+
+    return false;
+  }
+
+  private static boolean looksLikeAar(@NotNull LibraryOrderEntry orderEntry) {
+    VirtualFile[] files = orderEntry.getFiles(OrderRootType.CLASSES);
+    if (files.length >= 2) {
+      for (VirtualFile file : files) {
+        if ((FD_RES.equals(file.getName()) && file.isDirectory()) || FN_RESOURCE_STATIC_LIBRARY.equals(file.getName())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**

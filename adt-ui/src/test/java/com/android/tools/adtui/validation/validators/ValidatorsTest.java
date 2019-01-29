@@ -23,7 +23,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class ValidatorsTest {
 
   @Test
-  public void trueValidatorWorks() throws Exception {
+  public void trueValidatorWorks() {
     TrueValidator validator = new TrueValidator("Dummy error message");
     assertThat(validator.validate(Boolean.TRUE).getSeverity()).isEqualTo(Validator.Severity.OK);
     assertThat(validator.validate(Boolean.FALSE).getSeverity()).isEqualTo(Validator.Severity.ERROR);
@@ -34,7 +34,7 @@ public class ValidatorsTest {
   }
 
   @Test
-  public void falseValidatorWorks() throws Exception {
+  public void falseValidatorWorks() {
     FalseValidator validator = new FalseValidator("Dummy error message");
     assertThat(validator.validate(Boolean.TRUE).getSeverity()).isEqualTo(Validator.Severity.ERROR);
     assertThat(validator.validate(Boolean.FALSE).getSeverity()).isEqualTo(Validator.Severity.OK);
@@ -42,5 +42,22 @@ public class ValidatorsTest {
     FalseValidator warnValidator = new FalseValidator(Validator.Severity.WARNING, "Dummy error message");
     assertThat(warnValidator.validate(Boolean.TRUE).getSeverity()).isEqualTo(Validator.Severity.WARNING);
     assertThat(warnValidator.validate(Boolean.FALSE).getSeverity()).isEqualTo(Validator.Severity.OK);
+  }
+
+  @Test
+  public void positiveIntegerValidatorWorks() {
+    PositiveIntegerValidator validator = new PositiveIntegerValidator("Dummy error message");
+    assertThat(validator.validate(Integer.MIN_VALUE).getSeverity()).isEqualTo(Validator.Severity.ERROR);
+    assertThat(validator.validate(-1).getSeverity()).isEqualTo(Validator.Severity.ERROR);
+    assertThat(validator.validate(0).getSeverity()).isEqualTo(Validator.Severity.ERROR);
+    assertThat(validator.validate(1).getSeverity()).isEqualTo(Validator.Severity.OK);
+    assertThat(validator.validate(Integer.MAX_VALUE).getSeverity()).isEqualTo(Validator.Severity.OK);
+
+    PositiveIntegerValidator warnValidator = new PositiveIntegerValidator(Validator.Severity.WARNING, "Dummy error message");
+    assertThat(warnValidator.validate(Integer.MIN_VALUE).getSeverity()).isEqualTo(Validator.Severity.WARNING);
+    assertThat(warnValidator.validate(-1).getSeverity()).isEqualTo(Validator.Severity.WARNING);
+    assertThat(warnValidator.validate(0).getSeverity()).isEqualTo(Validator.Severity.WARNING);
+    assertThat(warnValidator.validate(1).getSeverity()).isEqualTo(Validator.Severity.OK);
+    assertThat(warnValidator.validate(Integer.MAX_VALUE).getSeverity()).isEqualTo(Validator.Severity.OK);
   }
 }

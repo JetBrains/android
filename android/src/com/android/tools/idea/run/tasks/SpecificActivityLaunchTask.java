@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SpecificActivityLaunchTask extends ActivityLaunchTask {
+  private static final String ID = "SPECIFIC_ACTIVITY";
   @NotNull private final String myActivity;
 
   public SpecificActivityLaunchTask(@NotNull String applicationId,
@@ -35,5 +36,11 @@ public class SpecificActivityLaunchTask extends ActivityLaunchTask {
   @Override
   protected String getQualifiedActivityName(@NotNull IDevice device, @NotNull ConsolePrinter printer) {
     return myActivity;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 }

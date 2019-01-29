@@ -65,6 +65,14 @@ data {
     timestamp: 86402000000000
     state: PAUSED
   }
+  state_changes {
+    timestamp: 86403000000000
+    state: RESUMED
+  }
+  state_changes {
+    timestamp: 86404000000000
+    state: PAUSED
+  }
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.EventProfiler$ActivityDataResponse</clazz>
@@ -88,6 +96,14 @@ data {
   }
   state_changes {
     timestamp: 86402000000000
+    state: PAUSED
+  }
+  state_changes {
+    timestamp: 86403000000000
+    state: RESUMED
+  }
+  state_changes {
+    timestamp: 86404000000000
     state: PAUSED
   }
 }
@@ -151,7 +167,7 @@ data {
   device_id: 1234
   pid: 5678
 }
-start_timestamp: 86402000000000
+start_timestamp: 86404000000000
 end_timestamp: 9223372036854775807
 </Message>
         <clazz>class com.android.tools.profiler.proto.EventProfiler$EventDataRequest</clazz>
@@ -161,7 +177,7 @@ end_timestamp: 9223372036854775807
   device_id: 1234
   pid: 5678
 }
-start_timestamp: 86402000000000
+start_timestamp: 86404000000000
 end_timestamp: 9223372036854775807
 </message>
     </GrpcCall>
@@ -185,6 +201,14 @@ data {
   }
   state_changes {
     timestamp: 86402000000000
+    state: PAUSED
+  }
+  state_changes {
+    timestamp: 86403000000000
+    state: RESUMED
+  }
+  state_changes {
+    timestamp: 86404000000000
     state: PAUSED
   }
 }
@@ -212,6 +236,14 @@ data {
     timestamp: 86402000000000
     state: PAUSED
   }
+  state_changes {
+    timestamp: 86403000000000
+    state: RESUMED
+  }
+  state_changes {
+    timestamp: 86404000000000
+    state: PAUSED
+  }
 }
 </message>
     </GrpcCall>
@@ -221,7 +253,7 @@ data {
   device_id: 1234
   pid: 5678
 }
-start_timestamp: 86402000000000
+start_timestamp: 86404000000000
 end_timestamp: 9223372036854775807
 </Message>
         <clazz>class com.android.tools.profiler.proto.EventProfiler$EventDataRequest</clazz>
@@ -231,7 +263,7 @@ end_timestamp: 9223372036854775807
   device_id: 1234
   pid: 5678
 }
-start_timestamp: 86402000000000
+start_timestamp: 86404000000000
 end_timestamp: 9223372036854775807
 </message>
     </GrpcCall>

@@ -3,8 +3,6 @@ package google;
 import android.app.Activity;
 import android.os.Bundle;
 
-import R;
-
 public class MainActivity extends Activity {
 
     @Override

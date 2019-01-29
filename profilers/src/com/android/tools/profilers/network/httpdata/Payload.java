@@ -18,12 +18,10 @@ package com.android.tools.profilers.network.httpdata;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 
@@ -103,29 +101,8 @@ public abstract class Payload {
     return myCachedBytes;
   }
 
-  /**
-   * Convert this payload into a file containing its bytes, with a filename whose extension is
-   * chosen based on this data's content type.
-   *
-   * This method will always return a file, although it will be empty if this payload is empty,
-   * or if a temporary file couldn't be created (which shouldn't normally happen).
-   */
   @NotNull
-  public final File toFile() {
-    File payloadFile;
-    ByteString payload = getBytes();
-    HttpData.ContentType contentType = getHeader().getContentType();
-    try {
-      payloadFile = FileUtil.createTempFile(getId(), StringUtil.notNullize(contentType.guessFileExtension()), true);
-      FileUtil.writeToFile(payloadFile, payload.toByteArray());
-      // We don't expect the following call to fail but don't care if it does
-      //noinspection ResultOfMethodCallIgnored
-      payloadFile.setReadOnly();
-    }
-    catch (IOException ignored) {
-      payloadFile = new File("");
-    }
-
-    return payloadFile;
+  public HttpData.ContentType getContentType() {
+    return getHeader().getContentType();
   }
 }

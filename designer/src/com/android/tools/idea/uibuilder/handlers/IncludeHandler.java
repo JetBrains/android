@@ -22,7 +22,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -107,15 +107,16 @@ public final class IncludeHandler extends ViewHandler {
   }
 
   @Override
-  public void onActivateInComponentTree(@NotNull NlComponent component) {
-    openIncludedLayout(component);
+  public void onActivateInComponentTree(@NotNull NlComponent component, @NotNull ViewEditor editor) {
+    openIncludedLayout(component, editor);
   }
 
   @Override
   public void onActivateInDesignSurface(@NotNull NlComponent component,
+                                        @NotNull ViewEditor editor,
                                         @AndroidCoordinate int x,
                                         @AndroidCoordinate int y) {
-    openIncludedLayout(component);
+    openIncludedLayout(component, editor);
   }
 
   /**
@@ -124,19 +125,12 @@ public final class IncludeHandler extends ViewHandler {
    *
    * @param component  The include component
    */
-  private static void openIncludedLayout(@NotNull NlComponent component) {
+  private static void openIncludedLayout(@NotNull NlComponent component, @NotNull ViewEditor editor) {
     NlModel model = component.getModel();
     String attribute = component.getAttribute(null, ATTR_LAYOUT);
     if (attribute == null) {
       return;
     }
-    Configuration configuration = model.getConfiguration();
-    VirtualFile virtualFile = component.getTag().getContainingFile().getVirtualFile();
-    boolean editorOpened = DesignSurfaceHelper.openResource(model.getProject(), configuration, attribute, virtualFile);
-    if (!editorOpened) {
-      Logger.getInstance(IncludeHandler.class).warn(
-        String.format("Cannot open included layout \"%s\" for %s tag with id \"%s\"", attribute, component.getTag(), component.getId())
-      );
-    }
+    editor.openResourceFile(attribute);
   }
 }

@@ -20,9 +20,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.messages.MessageType;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.Modules;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -38,12 +37,12 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -80,6 +79,16 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     return false;
   }
 
+  @Override
+  protected boolean useSingleVariantSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
+  protected boolean useCompoundSyncInfrastructure() {
+    return false;
+  }
+
   public void testWithNonExistingInterModuleDependencies() throws Exception {
     loadSimpleApplication();
 
@@ -109,8 +118,8 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     GradleBuildModel buildModel = GradleBuildModel.parseBuildFile(buildFile, project);
 
     for (ArtifactDependencyModel artifact : buildModel.dependencies().artifacts()) {
-      if ("com.android.support".equals(artifact.group().value()) && "appcompat-v7".equals(artifact.name().value())) {
-        artifact.setVersion("100.0.0");
+      if ("com.android.support".equals(artifact.group().toString()) && "appcompat-v7".equals(artifact.name().forceString())) {
+        artifact.version().setValue("100.0.0");
         versionChanged = true;
         break;
       }
@@ -127,15 +136,14 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
       // Sync issues are expected.
     }
 
-    List<SyncMessage> messages = syncMessages.getReportedMessages();
+    List<NotificationData> messages = syncMessages.getNotifications();
     assertThat(messages).hasSize(1);
 
-    SyncMessage message = messages.get(0);
-    // @formatter:off
-    // Verify text contains both of single line and multi-line message from SyncIssue.
-    assertAbout(syncMessage()).that(message).hasType(MessageType.ERROR)
-                                            .hasGroup("Unresolved Android dependencies")
-                                            .hasMessageLine("Failed to resolve: com.android.support:appcompat-v7:100.0.0", 0);
+    NotificationData notification = messages.get(0);
+
+    assertEquals(ERROR, notification.getNotificationCategory());
+    assertEquals("Unresolved dependencies", notification.getTitle());
+    assertThat(notification.getMessage()).contains("Failed to resolve: com.android.support:appcompat-v7:100.0.0\nAffected Modules:");
   }
 
   public void testWithLocalAarsAsModules() throws Exception {
@@ -152,7 +160,8 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     assertAbout(libraryDependencies()).that(localAarModule).doesNotHaveDependencies();
 
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*library\\-debug$", COMPILE);
+    assertAbout(libraryDependencies()).that(appModule).containsMatching(
+      false, "Gradle: artifacts:library\\-debug:unspecified@jar$", COMPILE);
   }
 
   public void testWithLocalJarsAsModules() throws Exception {
@@ -180,7 +189,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     Module appModule = myModules.getAppModule();
 
     // 'app' module should have 'guava' as dependency.
-    // 'app' -> 'lib' -> 'guava'
+    // 'app' -> 'javalib1' -> 'guava'
     assertAbout(libraryDependencies()).that(appModule).containsMatching(false, "Gradle: .*guava.*$", COMPILE, PROVIDED);
   }
 
@@ -209,14 +218,17 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
     Module appModule = myModules.getAppModule();
 
     // dependency should be set on the module not the compiled jar.
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("lib", COMPILE, false);
-    assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: lib", COMPILE);
+    // 'app' -> 'javalib1' -> 'javalib2'
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("javalib1", COMPILE, false);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("javalib2", COMPILE, false);
+    assertAbout(libraryDependencies()).that(appModule).doesNotContain("Gradle: javalib1", COMPILE);
   }
 
   public void testDependencySetUpInJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
-    Module libModule = myModules.getModule("lib");
-    assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: lib.lib", COMPILE);
+    Module libModule = myModules.getModule("javalib1");
+    assertAbout(moduleDependencies()).that(libModule).hasDependency("javalib2", COMPILE, true);
+    assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: javalib2.javalib2", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=213627

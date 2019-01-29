@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (C) 2018 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<tutorialBundle
+    name="Connection Assistant"
+    resourceRoot="/bundle/connection"
+    stepByStep="true">
+  <welcome>
+    <![CDATA[Troubleshoot device connection issues.]]>
+  </welcome>
+  <feature
+      name="Troubleshoot device connection issues."
+      serviceId="connect.device">
+    <description>
+      <![CDATA[Troubleshoot device connection issues.]]>
+    </description>
+    <tutorial
+        key="analytics-troubleshoot-device-connection-android"
+        label="Troubleshoot device connection issues."
+        remoteLink="https://developer.android.com/studio/run/device.html"
+        remoteLinkLabel="View the device setup instructions in a browser.">
+      <description>
+        <![CDATA[This guide helps you troubleshoot issues connecting and running your app on a physical device.]]>
+      </description>
+      <step label="Connect your device over USB">
+        <stepElement>
+          <section>
+            <![CDATA[Verify that your operating system is able to see your device—it may appear as a USB drive. If you're not sure, click the button below to scan for connected USB devices, and check whether your device appears in the list.]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <action
+              key="connection.list.devices"
+              label="Rescan USB devices">
+          </action>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[If your computer does not detect your device, disconnect and reconnect your device, or try using a different USB cable. If the
+            issue persists, click <b>Next</b> below.]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Enable USB debugging">
+        <stepElement>
+          <section>
+            <![CDATA[For ADB to recognize your device as a target for deploying debuggable APKs, you must first enable USB debugging in
+            the on-device developer options.]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[Depending on the version of Android you're using, proceed as follows:]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[
+            <ul>
+              <li>On Android 8.0 and higher, go to <b>Settings > System > About phone</b> and tap <b>Build number</b> seven times.</li>
+              <li>On Android 4.2 through 7.1.2, go to <b>Settings > About phone</b> and tap <b>Build number</b> seven times.</li>
+            </ul>]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[Return to the main <b>Settings</b> menu to find <b>Developer options</b> at the bottom.
+            In the <b>Developer options</b> menu, scroll down and enable <b>USB debugging</b>.]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <image
+              src="/dev-options-nexus.png"
+              width="227"
+              height="403"/>
+        </stepElement>
+      </step>
+      <step label="Restart the ADB (Android Debug Bridge) server">
+        <stepElement>
+          <section>
+            <![CDATA[If you do not see your device, and you followed the previous steps, click the button below to stop and restart the
+            local ADB server. This also causes ADB to search for new devices.]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <section>
+            <![CDATA[If your device appears below after restarting the ADB server, try deploying your app to the device.
+            If you continue to experience issues, please <a href="https://issuetracker.google.com/issues/new?component=328290&template=1">
+            submit a bug report</a>.]]>
+          </section>
+        </stepElement>
+        <stepElement>
+          <action
+              key="connection.restart.adb"
+              label="Restart ADB server">
+          </action>
+        </stepElement>
+      </step>
+    </tutorial>
+  </feature>
+</tutorialBundle>

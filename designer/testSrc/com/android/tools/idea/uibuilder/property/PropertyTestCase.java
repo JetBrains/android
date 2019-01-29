@@ -23,9 +23,9 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.inspector.InspectorProvider;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.util.PropertiesMap;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
@@ -52,6 +52,7 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.cleanUsageTrackerAfterTesting;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.mockNlUsageTracker;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
 
 public abstract class PropertyTestCase extends LayoutTestCase {
   private static final String UNKNOWN_TAG = "UnknownTagName";
@@ -76,19 +77,27 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myImageViewInCollapsingToolbarLayout;
   protected NlComponent myTabLayout;
   protected NlComponent myRelativeLayout;
+  protected NlComponent myChip;
   protected NlComponent myViewTag;
   protected NlComponent myFragment;
   protected SyncNlModel myModel;
-  protected DesignSurface myDesignSurface;
+  protected NlDesignSurface myDesignSurface;
   protected NlPropertiesManager myPropertiesManager;
   protected NlUsageTracker myUsageTracker;
   private AndroidDomElementDescriptorProvider myDescriptorProvider;
   private Map<String, NlComponent> myComponentMap;
   protected PropertiesComponent myPropertiesComponent;
 
+  /**
+   * Override this method to add files to the project before the model is created.
+   */
+  public void addFiles() {
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    addFiles();
     setUpManifest();
     myModel = createModel();
     myComponentMap = createComponentMap();
@@ -110,9 +119,12 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myImageViewInCollapsingToolbarLayout = myComponentMap.get("imgv");
     myTabLayout = myComponentMap.get("tabLayout");
     myRelativeLayout = myComponentMap.get("relativeLayout");
+    myChip = myComponentMap.get("chip");
     myViewTag = myComponentMap.get("viewTag");
     myFragment = myComponentMap.get("fragmentTag");
-    myDesignSurface = myModel.getSurface();
+    myDesignSurface = (NlDesignSurface)myModel.getSurface();
+    ScreenView view = new ScreenView(myDesignSurface, myDesignSurface.getSceneManager());
+    when(myDesignSurface.getCurrentSceneView()).thenReturn(view);
     myPropertiesManager = new NlPropertiesManager(myFacet, myDesignSurface);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
@@ -147,6 +159,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
       myImageViewInCollapsingToolbarLayout = null;
       myTabLayout = null;
       myRelativeLayout = null;
+      myChip = null;
       myModel = null;
       myDesignSurface = null;
       myPropertiesManager = null;
@@ -170,7 +183,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   //    testXyzMinApi17   -   will cause a manifest with minSdkVersion set to 17.
   // If no MinApi is specified in the test name the default if LOLLIPOP_MR1.
   // Alternatively a test can override this method to customize the manifest.
-  protected void setUpManifest() throws Exception {
+  protected void setUpManifest() {
     String minApiAsString = StringUtil.substringAfter(getTestName(true), "MinApi");
     int minApi = minApiAsString != null ? Integer.parseInt(minApiAsString) : DEFAULT_MIN_API_LEVEL;
     myFixture.addFileToProject(FN_ANDROID_MANIFEST_XML, String.format(MANIFEST_SOURCE, minApi, MOST_RECENT_API_LEVEL));
@@ -240,7 +253,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                        .withBounds(100, 500, 100, 100)
                                        .id("@id/checkBox3")
                                        .width("wrap_content")
-                                       .height("wrap_content"),
+                                       .height("wrap_content")
+                                       .withAttribute(ANDROID_URI, "onCheckedChanged", "@{(cb, isChecked) -> doSomething()}"),
                                      component(SWITCH)
                                        .withBounds(100, 600, 100, 100)
                                        .id("@id/switch")
@@ -285,7 +299,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .width("wrap_content")
                                            .height("wrap_content")
                                        ),
-                                     component(CONSTRAINT_LAYOUT)
+                                     component(CONSTRAINT_LAYOUT.defaultName())
                                        .withBounds(300, 0, 700, 1000)
                                        .id("@id/constraintLayout")
                                        .width("700dp")
@@ -298,20 +312,20 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .height("wrap_content")
                                            .text("OtherButton")
                                        ),
-                                     component(CONSTRAINT_LAYOUT)
+                                     component(CONSTRAINT_LAYOUT.defaultName())
                                        .withBounds(300, 0, 700, 1000)
                                        .id("@id/constraintLayoutWithConstraintSet")
                                        .width("700dp")
                                        .height("1000dp")
                                        .withAttribute(SHERPA_URI, ATTR_LAYOUT_CONSTRAINTSET, "@+id/constraints")
                                        .children(
-                                         component(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)
+                                         component(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS.defaultName())
                                            .withBounds(400, 100, 100, 100)
                                            .id("@+id/constraints")
                                            .width("wrap_content")
                                            .height("wrap_content")
                                        ),
-                                     component(TAB_LAYOUT)
+                                     component(TAB_LAYOUT.defaultName())
                                        .withBounds(300, 0, 700, 1000)
                                        .id("@id/tabLayout")
                                        .width("700dp")
@@ -349,7 +363,18 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .width("wrap_content")
                                            .height("wrap_content")
                                            .text("ButtonInLinearLayout"),
-                                         component(COLLAPSING_TOOLBAR_LAYOUT)
+                                         component(CHIP_GROUP)
+                                           .withBounds(400, 200, 100, 100)
+                                           .id("@id/chip_group")
+                                           .width("wrap_content")
+                                           .height("wrap_content")
+                                           .children(
+                                             component(CHIP)
+                                               .withBounds(400, 200, 100, 30)
+                                               .id("@id/chip")
+                                               .width("wrap_content")
+                                               .height("wrap_content")),
+                                         component(COLLAPSING_TOOLBAR_LAYOUT.defaultName())
                                            .withBounds(400, 300, 100, 200)
                                            .children(
                                              component(IMAGE_VIEW)
@@ -409,11 +434,11 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     AndroidFacet facet = component.getModel().getFacet();
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
-    ResourceManager systemResourceManager = resourceManagers.getSystemResourceManager();
-    assertThat(systemResourceManager).isNotNull();
+    ResourceManager frameworkResourceManager = resourceManagers.getFrameworkResourceManager();
+    assertThat(frameworkResourceManager).isNotNull();
 
     AttributeDefinitions localAttrDefs = localResourceManager.getAttributeDefinitions();
-    AttributeDefinitions systemAttrDefs = systemResourceManager.getAttributeDefinitions();
+    AttributeDefinitions systemAttrDefs = frameworkResourceManager.getAttributeDefinitions();
     XmlName name = getXmlName(component, descriptor);
 
     AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
@@ -472,7 +497,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                                    @NotNull String propertyName,
                                                    @NotNull String resource) {
     NlPropertyItem property = getProperty(component, propertyName);
-    property.setDefaultValue(new PropertiesMap.Property(resource, null));
+    property.setDefaultValue(resource);
     return property;
   }
 

@@ -48,87 +48,25 @@ class TooltipComponentTest {
   }
 
   @Test
-  fun addsToTheJLayeredPaneRoot() {
+  fun shouldHandleAncestorStructureChanges() {
     val root = createWithSize { JLayeredPane() }
-    val owner = createWithSize { JPanel() }
+    val owner = createWithSize { JLayeredPane() }
+
     root.add(owner)
 
     val displayableProducer = DisplayableProducer(owner)
-    val tooltip = TooltipComponent(JLabel(), owner, null, displayableProducer).apply { registerListenersOn(owner) }
-
-    // Tooltip only added when mouse moves over [owner]
-    assertThat(root.components).asList().doesNotContain(tooltip)
+    val tooltip = TooltipComponent.Builder(JLabel(), owner, root).setIsOwnerDisplayable(displayableProducer).build()
+      .apply { registerListenersOn(owner) }
 
     val fakeUi = FakeUi(root)
     fakeUi.mouse.moveTo(50, 50)
 
     assertThat(root.components).asList().contains(tooltip)
 
-    // Tooltip removed on mouse exit
-    fakeUi.mouse.moveTo(-50, -50)
-    assertThat(root.components).asList().doesNotContain(tooltip)
-  }
-
-  @Test
-  fun addsToTheSecondNodeIfTheRootIsNotLayered() {
-    val root = createWithSize { JPanel() }
-    val layered = createWithSize { JLayeredPane() }
-    val owner = createWithSize { JPanel() }
-    root.add(layered)
-    layered.add(owner)
-
-    val displayableProducer = DisplayableProducer(owner)
-    val tooltip = TooltipComponent(JLabel(), owner, null, displayableProducer).apply { registerListenersOn(owner) }
-    val fakeUi = FakeUi(root)
-    fakeUi.mouse.moveTo(50, 50)
-
-    assertThat(root.components).asList().doesNotContain(tooltip)
-    assertThat(layered.components).asList().contains(tooltip)
-  }
-
-  @Test
-  fun addsTotheFarthestLayeredAncestor() {
-    val root = createWithSize { JPanel() }
-    val layered1 = createWithSize { JLayeredPane() }
-    val layered2 = createWithSize { JLayeredPane() }
-    val owner = createWithSize { JPanel() }
-    root.add(layered1)
-    layered1.add(layered2)
-    layered2.add(owner)
-
-    val displayableProducer = DisplayableProducer(owner)
-    val tooltip = TooltipComponent(JLabel(), owner, null, displayableProducer).apply { registerListenersOn(owner) }
-    val fakeUi = FakeUi(root)
-    fakeUi.mouse.moveTo(50, 50)
-
-    assertThat(layered1.components).asList().contains(tooltip)
-    assertThat(layered2.components).asList().doesNotContain(tooltip)
-  }
-
-  @Test
-  fun shouldHandleAncestorStructureChanges() {
-    val root1 = createWithSize { JLayeredPane() }
-    val root2 = createWithSize { JLayeredPane() }
-    val owner = createWithSize { JLayeredPane() }
-
-    val displayableProducer = DisplayableProducer(owner)
-    val tooltip = TooltipComponent(JLabel(), owner, null, displayableProducer).apply { registerListenersOn(owner) }
-
-    root1.add(owner)
-    val fakeUi1 = FakeUi(root1)
-    fakeUi1.mouse.moveTo(50, 50)
-
-    assertThat(root1.components).asList().contains(tooltip)
-
-    root1.remove(owner)
-    // Wait for removal event to propogate...
+    root.remove(owner)
+    // Wait for removal event to propagate...
     SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE)
-    assertThat(root1.components).asList().doesNotContain(tooltip)
-
-    root2.add(owner)
-    val fakeUi2 = FakeUi(root2)
-    fakeUi2.mouse.moveTo(50, 50)
-    assertThat(root2.components).asList().contains(tooltip)
+    assertThat(root.components).asList().doesNotContain(tooltip)
   }
 
   @Test
@@ -141,7 +79,8 @@ class TooltipComponentTest {
     intermediate.add(owner)
 
     val displayableProducer = DisplayableProducer(owner, root)
-    val tooltip = TooltipComponent(JLabel(), owner, null, displayableProducer).apply { registerListenersOn(owner) }
+    val tooltip = TooltipComponent.Builder(JLabel(), owner, root).setIsOwnerDisplayable(displayableProducer).build()
+      .apply { registerListenersOn(owner) }
     val fakeUi = FakeUi(root)
     fakeUi.mouse.moveTo(50, 50)
 
@@ -153,22 +92,4 @@ class TooltipComponentTest {
     assertThat(root.components).asList().doesNotContain(tooltip)
     assertThat(tooltip.parent).isNull()
   }
-
-  @Test
-  fun withPreferredParent() {
-    val root = createWithSize { JLayeredPane() }
-    val preferred = createWithSize { FakeLayeredPane() }
-    val owner = createWithSize { JLayeredPane() }
-
-    root.add(preferred)
-    preferred.add(owner)
-    val displayableProducer = DisplayableProducer(owner)
-    val tooltip = TooltipComponent(JLabel(), owner, FakeLayeredPane::class.java, displayableProducer).apply { registerListenersOn(owner) }
-
-    val fakeUi = FakeUi(root)
-    fakeUi.mouse.moveTo(50, 50)
-    assertThat(tooltip.parent).isEqualTo(preferred)
-  }
-
-  private class FakeLayeredPane: JLayeredPane()
 }

@@ -16,43 +16,40 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
-import com.android.tools.idea.common.editor.NlEditor
+import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.surface.ZoomType
+import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
-import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm
+import com.android.tools.idea.naveditor.TestNlEditor
+import com.android.tools.idea.naveditor.scene.targets.ScreenDragTarget
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.command.undo.DocumentReference
-import com.intellij.openapi.command.undo.DocumentReferenceManager
-import com.intellij.openapi.command.undo.DocumentReferenceProvider
 import com.intellij.openapi.command.undo.UndoManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 
 /**
  * Tests for the nav editor Scene.
  */
 class NavSceneTest : NavTestCase() {
-
   fun testDisplayList() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1", layout = "activity_main") {
           action("action1", destination = "subnav")
-          action("action2", destination="activity")
+          action("action2", destination = "activity")
         }
         navigation("subnav") {
           fragment("fragment2", layout = "activity_main2") {
@@ -64,34 +61,46 @@ class NavSceneTest : NavTestCase() {
     }
     val scene = model.surface.scene!!
 
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("subnav")!!, 380, 20)
+    moveComponentTo(scene.getSceneComponent("activity")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
     val list = DisplayList()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals("Clip,0,0,1050,928\n" +
-        "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,491,401,74,126\n" +
-        "DrawAction,NORMAL,490x400x76x128,580x400x70x19,NORMAL\n" +
-        "DrawArrow,2,RIGHT,570x406x5x6,b2a7a7a7\n" +
-        "DrawAction,NORMAL,490x400x76x128,400x400x76x128,NORMAL\n" +
-        "DrawArrow,2,RIGHT,390x461x5x6,b2a7a7a7\n" +
-        "DrawIcon,490x389x7x7,START_DESTINATION\n" +
-        "DrawTruncatedText,3,fragment1,498x390x68x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawFilledRectangle,580x400x70x19,fffafafa,6\n" +
-        "DrawRectangle,579x399x72x21,ffa7a7a7,1,6\n" +
-        "DrawTruncatedText,3,Nested Graph,580x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-        "DrawAction,EXIT,580x400x70x19,400x400x76x128,NORMAL\n" +
-        "DrawArrow,2,RIGHT,390x461x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,subnav,580x390x70x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawFilledRectangle,400x400x76x128,fffafafa,6\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,6\n" +
-        "DrawFilledRectangle,404x404x68x111,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,404x404x68x111,ffa7a7a7,Default:0:9,true\n" +
-        "DrawTruncatedText,3,Activity,400x515x76x13,ffa7a7a7,Default:1:9,true\n" +
-        "DrawTruncatedText,3,activity,400x390x76x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,1050,928\n" +
+      "DrawAction,EXIT_DESTINATION,580.0x400.0x70.0x19.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,DOWN,435.25x380.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,580.0x400.0x70.0x19.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,612.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,498.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,490.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,580.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,580.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,580.0x400.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,subnav,580.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "DrawFilledRectangle,0,404.0x404.0x68.5x111.0,fffdfdfd\n" +
+      "DrawFilledRoundRectangle,1,400.0x400.0x76.5x128.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,400.0x400.0x76.5x128.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Activity,400.0x515.0x76.5x13.0,ffa7a7a7,Default:1:9,true\n" +
+      "DrawTruncatedText,3,activity,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,404.0x404.0,472.5x515.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,404.0x515.0,472.5x404.0,ffcccccc,1:2:0\n" +
+      "DrawRectangle,5,404.0x404.0x68.5x111.0,ffa7a7a7,1.0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testInclude() {
@@ -104,24 +113,31 @@ class NavSceneTest : NavTestCase() {
       }
     }
     val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
+    moveComponentTo(scene.getSceneComponent("nav")!!, 320, 20)
+    scene.sceneManager.layout(false)
 
     val list = DisplayList()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals("Clip,0,0,960,928\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawAction,NORMAL,400x400x76x128,490x400x70x19,NORMAL\n" +
-        "DrawArrow,2,RIGHT,480x406x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawFilledRectangle,490x400x70x19,fffafafa,6\n" +
-        "DrawRectangle,489x399x72x21,ffa7a7a7,1,6\n" +
-        "DrawTruncatedText,3,navigation.xml,490x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-        "DrawTruncatedText,3,nav,490x390x70x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,960,928\n" +
+      "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,navigation.xml,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,nav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testNegativePositions() {
@@ -134,36 +150,36 @@ class NavSceneTest : NavTestCase() {
     }
 
     val scene = model.surface.scene!!
-    val algorithm = ManualLayoutAlgorithm(model.module)
-    var component = scene.getSceneComponent("fragment1")!!
-    component.setPosition(-100, -200)
-    algorithm.save(component)
-    component = scene.getSceneComponent("fragment2")!!
-    component.setPosition(-300, 0)
-    algorithm.save(component)
-    component = scene.getSceneComponent("fragment3")!!
-    component.setPosition(200, 200)
-    algorithm.save(component)
+    val sceneManager = scene.sceneManager as NavSceneManager
+    val component1 = scene.getSceneComponent("fragment1")!!
+    component1.setPosition(-100, -200)
+    val component2 = scene.getSceneComponent("fragment2")!!
+    component2.setPosition(-300, 0)
+    val component3 = scene.getSceneComponent("fragment3")!!
+    component3.setPosition(200, 200)
+    sceneManager.save(listOf(component1, component2, component3))
 
     val list = DisplayList()
     model.surface.sceneManager!!.update()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals("Clip,0,0,1126,1128\n" +
-        "DrawRectangle,500x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,501,401,74,126\n" +
-        "DrawIcon,500x389x7x7,START_DESTINATION\n" +
-        "DrawTruncatedText,3,fragment1,508x390x68x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawRectangle,400x500x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,401,501,74,126\n" +
-        "DrawTruncatedText,3,fragment2,400x490x77x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawRectangle,650x600x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,651,601,74,126\n" +
-        "DrawTruncatedText,3,fragment3,650x590x76x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,1127,1128\n" +
+      "DrawRectangle,1,500.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,508.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,500.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawNavScreen,501.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "DrawRectangle,1,400.0x500.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment2,400.0x490.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,401.0x501.0x74.5x126.0\n" +
+      "\n" +
+      "DrawRectangle,1,650.0x600.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment3,650.0x590.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,651.0x601.0x74.5x126.0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testVeryPositivePositions() {
@@ -176,40 +192,40 @@ class NavSceneTest : NavTestCase() {
     }
 
     val scene = model.surface.scene!!
-    val algorithm = ManualLayoutAlgorithm(model.module)
-    var component = scene.getSceneComponent("fragment1")!!
-    component.setPosition(1900, 1800)
-    algorithm.save(component)
-    component = scene.getSceneComponent("fragment2")!!
-    component.setPosition(1700, 2000)
-    algorithm.save(component)
-    component = scene.getSceneComponent("fragment3")!!
-    component.setPosition(2200, 2200)
-    algorithm.save(component)
+    val sceneManager: NavSceneManager = scene.sceneManager as NavSceneManager
+    val component1 = scene.getSceneComponent("fragment1")!!
+    component1.setPosition(1900, 1800)
+    val component2 = scene.getSceneComponent("fragment2")!!
+    component2.setPosition(1700, 2000)
+    val component3 = scene.getSceneComponent("fragment3")!!
+    component3.setPosition(2200, 2200)
+    sceneManager.save(listOf(component1, component2, component3))
 
     val list = DisplayList()
     model.surface.sceneManager!!.update()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals("Clip,0,0,1126,1128\n" +
-        "DrawRectangle,500x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,501,401,74,126\n" +
-        "DrawIcon,500x389x7x7,START_DESTINATION\n" +
-        "DrawTruncatedText,3,fragment1,508x390x68x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawRectangle,400x500x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,401,501,74,126\n" +
-        "DrawTruncatedText,3,fragment2,400x490x76x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawRectangle,650x600x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,651,601,74,126\n" +
-        "DrawTruncatedText,3,fragment3,650x590x76x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,1127,1128\n" +
+      "DrawRectangle,1,500.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,508.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,500.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawNavScreen,501.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "DrawRectangle,1,400.0x500.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment2,400.0x490.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,401.0x501.0x74.5x126.0\n" +
+      "\n" +
+      "DrawRectangle,1,650.0x600.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment3,650.0x590.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,651.0x601.0x74.5x126.0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testAddComponent() {
-    /*lateinit*/ var root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
+    lateinit var root: NavModelBuilderUtil.NavigationComponentDescriptor
 
     val modelBuilder = modelBuilder("nav.xml") {
       navigation("root", startDestination = "fragment2") {
@@ -226,29 +242,38 @@ class NavSceneTest : NavTestCase() {
     val list = DisplayList()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
 
-    root!!.fragment("fragment3")
+    root.fragment("fragment3")
     modelBuilder.updateModel(model)
     model.notifyModified(NlModel.ChangeType.EDIT)
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 20, 20)
+    moveComponentTo(scene.getSceneComponent("fragment3")!!, 380, 20)
+    scene.sceneManager.layout(false)
+
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals("Clip,0,0,1056,928\n" +
-        "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,491,401,74,126\n" +
-        "DrawAction,NORMAL,490x400x76x128,400x400x76x128,NORMAL\n" +
-        "DrawArrow,2,RIGHT,390x461x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,401,401,74,126\n" +
-        "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-        "DrawTruncatedText,3,fragment2,408x390x68x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawRectangle,580x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,581x401x74x126,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,581x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawTruncatedText,3,fragment3,580x390x76x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,1057,928\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment2,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "DrawFilledRectangle,0,581.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,580.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment3,580.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,581.0x401.0,655.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,581.0x527.0,655.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testRemoveComponent() {
@@ -257,12 +282,15 @@ class NavSceneTest : NavTestCase() {
         fragment("fragment1", layout = "activity_main") {
           action("action1", destination = "fragment2")
         }
-        fragment("fragment2", layout="activity_main2")
+        fragment("fragment2", layout = "activity_main2")
       }
     }
     val editor = TestNlEditor(model.virtualFile, project)
 
     val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 20, 20)
+    scene.sceneManager.layout(false)
 
     val list = DisplayList()
     model.delete(listOf(model.find("fragment2")!!))
@@ -270,14 +298,16 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     list.clear()
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals("Clip,0,0,876,928\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,401,401,74,126\n" +
-        "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-        "DrawLine,2,477x464,484x464,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,484x461x5x6,b2a7a7a7\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,877,928\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,477.5x464.0,484.5x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,484.5x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
 
     val undoManager = UndoManager.getInstance(project)
     undoManager.undo(editor)
@@ -287,26 +317,22 @@ class NavSceneTest : NavTestCase() {
     list.clear()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals("Clip,0,0,966,928\n" +
-        "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,491,401,74,126\n" +
-        "DrawAction,NORMAL,490x400x76x128,400x400x76x128,NORMAL\n" +
-        "DrawArrow,2,RIGHT,390x461x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,401,401,74,126\n" +
-        "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-        "DrawTruncatedText,3,fragment2,408x390x68x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
-  }
-
-  private class TestNlEditor(private val myFile: VirtualFile, project: Project) : NlEditor(myFile, project), DocumentReferenceProvider {
-
-    override fun getDocumentReferences(): Collection<DocumentReference> {
-      return ImmutableList.of(DocumentReferenceManager.getInstance().create(myFile))
-    }
+    assertEquals(
+      "Clip,0,0,967,928\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,491.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment2,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testSubflow() {
@@ -328,65 +354,82 @@ class NavSceneTest : NavTestCase() {
         }
       }
     }
-    val surface = NavDesignSurface(project, myRootDisposable)
-    surface.setSize(1000, 1000)
-    surface.model = model
-    surface.zoom(ZoomType.ACTUAL)
-    if (!SystemInfo.isMac || !UIUtil.isRetina()) {
-      surface.zoomOut()
-      surface.zoomOut()
-      surface.zoomOut()
-      surface.zoomOut()
-    }
-    val scene = surface.scene!!
-    val list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
 
-    val view = NavView(surface, surface.sceneManager!!)
+    val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 380, 20)
+    moveComponentTo(scene.getSceneComponent("subnav")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
+    val surface = model.surface as NavDesignSurface
+
+    val view = NavView(surface, scene.sceneManager)
+    scene.layout(0, SceneContext.get(view))
+
+    val list = DisplayList()
     scene.buildDisplayList(list, 0, view)
-    assertEquals("Clip,0,0,56,-72\n" +
-        "DrawRectangle,-10x-100x76x128,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,-9x-99x74x126,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,-9x-99x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawAction,NORMAL,-10x-100x76x128,80x-100x76x128,NORMAL\n" +
-        "DrawArrow,2,RIGHT,70x-39x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,fragment1,-10x-110x76x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawRectangle,80x-100x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,81,-99,74,126\n" +
-        "DrawIcon,80x-111x7x7,START_DESTINATION\n" +
-        "DrawTruncatedText,3,fragment2,88x-110x68x5,ff656565,Default:0:9,false\n" +
-        "DrawLine,2,157x-36,164x-36,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,164x-39x5x6,b2a7a7a7\n" +
-        "\n" +
-        "DrawFilledRectangle,-100x-70x70x19,fffafafa,6\n" +
-        "DrawRectangle,-101x-71x72x21,ffa7a7a7,1,6\n" +
-        "DrawTruncatedText,3,Nested Graph,-100x-70x70x19,ffa7a7a7,Default:1:9,true\n" +
-        "DrawAction,EXIT,-100x-70x70x19,-10x-100x76x128,NORMAL\n" +
-        "DrawArrow,2,RIGHT,-20x-39x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,subnav,-100x-80x70x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+
+    assertEquals(
+      "Clip,0,0,1057,928\n" +
+      "DrawAction,EXIT_DESTINATION,400.0x400.0x70.0x19.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,580.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,571.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawFilledRectangle,0,491.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,491.0x401.0,565.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,491.0x527.0,565.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawRectangle,1,580.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,657.5x464.0,664.5x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,664.5x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment2,588.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,580.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawNavScreen,581.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,400.0x400.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,subnav,400.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
+
     list.clear()
-    surface.currentNavigation = model.find("subnav")!!
+
+    `when`<NlComponent>(surface.currentNavigation).then { model.find("subnav")!! }
+    scene.sceneManager.update()
+    moveComponentTo(scene.getSceneComponent("fragment3")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment4")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
+
     scene.layout(0, SceneContext.get(view))
     scene.buildDisplayList(list, 0, view)
-    assertEquals("Clip,0,0,-246,-254\n" +
-        "DrawRectangle,-122x-140x15x25,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,-121x-139x13x23,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,-121x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
-        "DrawAction,NORMAL,-122x-140x15x25,-140x-140x15x25,NORMAL\n" +
-        "DrawArrow,2,RIGHT,-142x-128x1x1,b2a7a7a7\n" +
-        "DrawTruncatedText,3,fragment3,-122x-142x15x1,ff656565,Default:0:2,false\n" +
-        "\n" +
-        "DrawRectangle,-140x-140x15x25,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,-139x-139x13x23,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,-139x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
-        "DrawTruncatedText,3,fragment4,-140x-142x15x1,ff656565,Default:0:2,false\n" +
-        "DrawLine,2,-125x-128,-124x-128,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,-124x-128x1x1,b2a7a7a7\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,967,928\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawFilledRectangle,0,491.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment3,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,491.0x401.0,565.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,491.0x527.0,565.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,477.5x464.0,484.5x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,484.5x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment4,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testNonexistentLayout() {
@@ -401,13 +444,14 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals("Clip,0,0,876,928\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,877,928\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testSelectedNlComponentSelectedInScene() {
@@ -421,15 +465,16 @@ class NavSceneTest : NavTestCase() {
     }
     val surface = model.surface
     val rootComponent = model.components[0]
-    object: WriteCommandAction<Any?>(project, "Add") {
+    object : WriteCommandAction<Any?>(project, "Add") {
       override fun run(result: Result<Any?>) {
         val tag = rootComponent.tag.createChildTag("fragment", null, null, true)
-        val newComponent = surface.model!!.createComponent(tag, rootComponent, null)
+        val newComponent = surface.model!!.createComponent(surface, tag, rootComponent, null, InsertType.CREATE)
         surface.selectionModel.setSelection(ImmutableList.of(newComponent))
         newComponent.assignId("myId")
       }
     }.execute()
     val manager = NavSceneManager(model, model.surface as NavDesignSurface)
+    manager.update()
     val scene = manager.scene
 
     assertTrue(scene.getSceneComponent("myId")!!.isSelected)
@@ -441,23 +486,39 @@ class NavSceneTest : NavTestCase() {
         fragment("fragment1", layout = "activity_main") {
           action("action1", destination = "fragment1")
         }
+        navigation("nav1") {
+          action("action2", destination = "nav1")
+        }
       }
     }
     val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
+    moveComponentTo(scene.getSceneComponent("nav1")!!, 320, 20)
+    scene.sceneManager.layout(false)
 
     val list = DisplayList()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals("Clip,0,0,876,928\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,401,401,74,126\n" +
-        "DrawAction,SELF,400x400x76x128,400x400x76x128,NORMAL\n" +
-        "DrawArrow,2,UP,457x533x6x5,b2a7a7a7\n" +
-        "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-        "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,960,928\n" +
+      "DrawArrow,2,UP,541.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawSelfAction,560.0x409.5,544.0x427.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawArrow,2,UP,457.5x532.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawSelfAction,476.5x464.0,460.5x536.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,nav1,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testDeepLinks() {
@@ -474,14 +535,16 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals("Clip,0,0,876,928\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawNavScreen,401,401,74,126\n" +
-        "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-        "DrawIcon,469x389x7x7,DEEPLINK\n" +
-        "DrawTruncatedText,3,fragment1,408x390x60x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,877,928\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,408.0x390.0x60.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawIcon,469.5x389.0x7.0x7.0,DEEPLINK\n" +
+      "DrawNavScreen,401.0x401.0x74.5x126.0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testSelectedComponent() {
@@ -497,27 +560,34 @@ class NavSceneTest : NavTestCase() {
     // Selecting global nav brings it to the front
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("a1")!!))
 
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
+    moveComponentTo(scene.getSceneComponent("subnav")!!, 320, 20)
+
+    scene.sceneManager.layout(false)
     var list = DisplayList()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     val view = NavView(model.surface as NavDesignSurface, scene.sceneManager)
     scene.buildDisplayList(list, 0, view)
     val context = SceneContext.get(view)
 
-    assertEquals("Clip,0,0,990,928\n" +
-        "DrawFilledRectangle,520x400x70x19,fffafafa,6\n" +
-        "DrawRectangle,519x399x72x21,ffa7a7a7,1,6\n" +
-        "DrawTruncatedText,3,Nested Graph,520x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-        "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawLine,2,387x464,391x464,ff1886f7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,391x461x5x6,ff1886f7\n" +
-        "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
-        "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-        "\n" +
-        "UNClip\n", list.generateSortedDisplayList(context))
+    assertEquals(
+      "Clip,0,0,960,928\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,387.0x464.0,391.0x464.0,ff1886f7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,ff1886f7\n" +
+      "DrawTruncatedText,3,fragment1,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
 
     // now "subnav" is in the front
     val subnav = model.find("subnav")!!
@@ -526,23 +596,26 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, view)
 
-    assertEquals("Clip,0,0,990,928\n" +
-        "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
-        "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-        "\n" +
-        "DrawFilledRectangle,520x400x70x19,fffafafa,6\n" +
-        "DrawRectangle,519x399x72x21,ff1886f7,1,6\n" +
-        "DrawTruncatedText,3,Nested Graph,520x400x70x19,ff1886f7,Default:1:9,true\n" +
-        "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
-        "DrawFilledCircle,6,591x409,fff5f5f5,0:3:54\n" +
-        "DrawCircle,7,591x409,ff1886f7,2,0:2:54\n" +
-        "\n" +
-        "UNClip\n", list.generateSortedDisplayList(context))
+    assertEquals(
+      "Clip,0,0,960,928\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,387.0x464.0,391.0x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ff1886f7,2.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ff1886f7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "DrawFilledCircle,6,560.0x409.5,fff5f5f5,0.0:3.5:127\n" +
+      "DrawCircle,7,560.0x409.5,ff1886f7,2,0.0:2.5:127\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
 
     // test multi select
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!, subnav))
@@ -551,24 +624,27 @@ class NavSceneTest : NavTestCase() {
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals("Clip,0,0,990,928\n" +
-        "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawRectangle,398x398x80x132,ff1886f7,1,2\n" +
-        "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawTruncatedText,3,fragment1,408x390x68x5,ff656565,Default:0:9,false\n" +
-        "DrawIcon,400x389x7x7,START_DESTINATION\n" +
-        "\n" +
-        "DrawFilledRectangle,520x400x70x19,fffafafa,6\n" +
-        "DrawRectangle,519x399x72x21,ff1886f7,1,6\n" +
-        "DrawTruncatedText,3,Nested Graph,520x400x70x19,ff1886f7,Default:1:9,true\n" +
-        "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
-        "DrawFilledCircle,6,591x409,fff5f5f5,3:0:54\n" +
-        "DrawCircle,7,591x409,ff1886f7,2,2:0:54\n" +
-        "\n" +
-        "UNClip\n", list.generateSortedDisplayList(context))
+    assertEquals(
+      "Clip,0,0,960,928\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawRoundRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ff1886f7,2.0\n" +
+      "DrawLine,2,387.0x464.0,391.0x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,408.0x390.0x68.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawIcon,400.0x389.0x7.0x7.0,START_DESTINATION\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ff1886f7,2.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ff1886f7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "DrawFilledCircle,6,560.0x409.5,fff5f5f5,3.5:0.0:127\n" +
+      "DrawCircle,7,560.0x409.5,ff1886f7,2,2.5:0.0:127\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testHoveredComponent() {
@@ -583,78 +659,187 @@ class NavSceneTest : NavTestCase() {
     }
 
     val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
+    moveComponentTo(scene.getSceneComponent("subnav")!!, 320, 20)
+    scene.sceneManager.layout(false)
 
     val list = DisplayList()
-    val view = model.surface.currentSceneView!!
-    `when`(view.scale).thenReturn(1.0)
-    val transform = SceneContext.get(view)
-    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+    val transform = SceneContext.get(model.surface.currentSceneView)
+    scene.layout(0, transform)
     scene.mouseHover(transform, 150, 30)
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals("Clip,0,0,990,928\n" +
-        "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawRectangle,398x398x80x132,ffa7a7a7,1,2\n" +
-        "DrawAction,NORMAL,400x400x76x128,520x400x70x19,NORMAL\n" +
-        "DrawArrow,2,RIGHT,510x406x5x6,b2a7a7a7\n" +
-        "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-        "DrawFilledCircle,6,478x464,fff5f5f5,0:3:54\n" +
-        "DrawCircle,7,478x464,ffa7a7a7,2,0:2:54\n" +
-        "\n" +
-        "DrawFilledRectangle,520x400x70x19,fffafafa,6\n" +
-        "DrawRectangle,519x399x72x21,ffa7a7a7,1,6\n" +
-        "DrawTruncatedText,3,Nested Graph,520x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-        "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.generateSortedDisplayList(transform))
+    assertEquals(
+      "Clip,0,0,960,928\n" +
+      "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawRoundRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ffa7a7a7,2.0\n" +
+      "DrawLine,2,387.0x464.0,391.0x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "DrawFilledCircle,6,478.5x464.0,fff5f5f5,0.0:3.5:127\n" +
+      "DrawCircle,7,478.5x464.0,ffa7a7a7,2,0.0:2.5:127\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
 
-    scene.mouseHover(transform, 488, 436)
+    scene.mouseHover(transform, 552, 440)
     list.clear()
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals("Clip,0,0,990,928\n" +
-        "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawAction,NORMAL,400x400x76x128,520x400x70x19,HOVER\n" +
-        "DrawArrow,2,RIGHT,510x406x5x6,ffa7a7a7\n" +
-        "DrawLine,2,387x464,391x464,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,391x461x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-        "DrawFilledCircle,6,478x464,fff5f5f5,3:0:54\n" +
-        "DrawCircle,7,478x464,ffa7a7a7,2,2:0:54\n" +
-        "\n" +
-        "DrawFilledRectangle,520x400x70x19,fffafafa,6\n" +
-        "DrawRectangle,519x399x72x21,ffa7a7a7,1,6\n" +
-        "DrawTruncatedText,3,Nested Graph,520x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-        "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.generateSortedDisplayList(transform))
+    assertEquals(
+      "Clip,0,0,960,928\n" +
+      "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,387.0x464.0,391.0x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "DrawFilledCircle,6,478.5x464.0,fff5f5f5,3.5:0.0:127\n" +
+      "DrawCircle,7,478.5x464.0,ffa7a7a7,2,2.5:0.0:127\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
 
     scene.mouseHover(transform, 120, 148)
     list.clear()
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
 
-    assertEquals("Clip,0,0,990,928\n" +
-        "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawAction,NORMAL,400x400x76x128,520x400x70x19,NORMAL\n" +
-        "DrawArrow,2,RIGHT,510x406x5x6,b2a7a7a7\n" +
-        "DrawLine,2,387x464,391x464,ffa7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,391x461x5x6,ffa7a7a7\n" +
-        "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawTruncatedText,3,fragment1,400x390x76x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "DrawFilledRectangle,520x400x70x19,fffafafa,6\n" +
-        "DrawRectangle,519x399x72x21,ffa7a7a7,1,6\n" +
-        "DrawTruncatedText,3,Nested Graph,520x400x70x19,ffa7a7a7,Default:1:9,true\n" +
-        "DrawTruncatedText,3,subnav,520x390x70x5,ff656565,Default:0:9,false\n" +
-        "\n" +
-        "UNClip\n", list.generateSortedDisplayList(transform))
+    assertEquals(
+      "Clip,0,0,960,928\n" +
+      "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,387.0x464.0,391.0x464.0,ffa7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,ffa7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
+  }
+
+  fun testHoveredHandle() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+      }
+    }
+
+    val scene = model.surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
+    val list = DisplayList()
+    val transform = SceneContext.get(model.surface.currentSceneView)
+    scene.layout(0, transform)
+
+    // If rectangle extends from (20, 20) to (173, 276), then the handle should be at (173, 148)
+    // Hover over a point to the right of that so that we're over the handle but not the rectangle
+    scene.mouseHover(transform, 177, 148)
+    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
+
+    assertEquals(
+      "Clip,0,0,877,928\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawRoundRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ffa7a7a7,2.0\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "DrawFilledCircle,6,478.5x464.0,fff5f5f5,0.0:5.5:200\n" +
+      "DrawCircle,7,478.5x464.0,ffa7a7a7,2,0.0:4.0:200\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
+  }
+
+  fun testHoverDuringDrag() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1") {
+          action("a1", destination = "subnav")
+        }
+        navigation("subnav")
+        action("a2", destination = "fragment1")
+      }
+    }
+
+    val surface = model.surface
+    val scene = surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 140, 20)
+    moveComponentTo(scene.getSceneComponent("subnav")!!, 320, 20)
+    scene.sceneManager.layout(false)
+
+    val list = DisplayList()
+    val sceneContext = SceneContext.get(surface.currentSceneView)
+
+    scene.layout(0, sceneContext)
+
+    val interactionManager = mock(InteractionManager::class.java)
+    `when`(interactionManager.isInteractionInProgress).thenReturn(true)
+    `when`(surface.interactionManager).thenReturn(interactionManager)
+
+    val drawRect1 = scene.getSceneComponent("fragment1")!!
+    scene.mouseDown(sceneContext, drawRect1.drawX + drawRect1.drawWidth, drawRect1.centerY)
+
+    val drawRect2 = scene.getSceneComponent("subnav")!!
+    scene.mouseDrag(sceneContext, drawRect2.centerX, drawRect2.centerY)
+
+    scene.buildDisplayList(list, 0, NavView(surface as NavDesignSurface, scene.sceneManager))
+
+    assertEquals(
+      "Clip,0,0,960,928\n" +
+      "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x400.0x70.0x19.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,522.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,490.0x400.0x70.0x19.0x6.0x6.0,ff1886f7,2.0\n" +
+      "DrawTruncatedText,3,Nested Graph,490.0x400.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,subnav,490.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawRoundRectangle,1,398.0x398.0x80.5x132.0x2.0x2.0,ff1886f7,2.0\n" +
+      "DrawLine,2,387.0x464.0,391.0x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,391.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "DrawFilledCircle,6,478.5x464.0,fff5f5f5,0.0:3.5:127\n" +
+      "DrawFilledCircle,7,478.5x464.0,ff1886f7,2.5:2.5:0\n" +
+      "DrawActionHandleDrag,479,464\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
+
   }
 
   // TODO: this should test the different "Simulated Layouts", once that's implemented.
@@ -669,37 +854,43 @@ class NavSceneTest : NavTestCase() {
     val scene = surface.scene!!
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals("Clip,0,0,977,1028\n" +
-        "DrawRectangle,450x450x77x128,FRAMES,1,0\n" +
-        "DrawActionHandle,527,514,0,0,FRAMES,0\n" +
-        "DrawScreenLabel,450,445,fragment1\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,977,1028\n" +
+      "DrawRoundRectangle,450x450x77x128,FRAMES,1,0\n" +
+      "DrawActionHandle,527,514,0,0,FRAMES,0\n" +
+      "DrawScreenLabel,450,445,fragment1\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
 
     list.clear()
     model.configuration
-        .setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("wear_square", "Google"), false)
+      .setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("wear_square", "Google"), false)
     surface.sceneManager!!.update()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals("Clip,0,0,914,914\n" +
-        "DrawRectangle,425x425x64x64,FRAMES,1,0\n" +
-        "DrawActionHandle,489,456,0,0,FRAMES,0\n" +
-        "DrawTruncatedText,3,fragment1,425x415x64x5,SUBDUED_TEXT,0,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,914,914\n" +
+      "DrawRoundRectangle,425x425x64x64,FRAMES,1,0\n" +
+      "DrawActionHandle,489,456,0,0,FRAMES,0\n" +
+      "DrawTruncatedText,3,fragment1,425x415x64x5,SUBDUED_TEXT,0,false\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
 
     list.clear()
     model.configuration.setDevice(DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevice("tv_1080p", "Google"), false)
     surface.sceneManager!!.update()
     scene.layout(0, SceneContext.get(model.surface.currentSceneView))
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals("Clip,0,0,1028,972\n" +
-        "DrawRectangle,450x450x128x72,FRAMES,1,0\n" +
-        "DrawActionHandle,578,486,0,0,FRAMES,0\n" +
-        "DrawTruncatedText,3,fragment1,450x440x128x5,SUBDUED_TEXT,0,false\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,1028,972\n" +
+      "DrawRoundRectangle,450x450x128x72,FRAMES,1,0\n" +
+      "DrawActionHandle,578,486,0,0,FRAMES,0\n" +
+      "DrawTruncatedText,3,fragment1,450x440x128x5,SUBDUED_TEXT,0,false\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testGlobalActions() {
@@ -715,6 +906,7 @@ class NavSceneTest : NavTestCase() {
         fragment("fragment1")
         fragment("fragment2") {
           action("action8", destination = "fragment3")
+          action("action9", destination = "fragment2")
         }
         fragment("fragment3")
       }
@@ -723,46 +915,99 @@ class NavSceneTest : NavTestCase() {
     val list = DisplayList()
     val surface = model.surface
     val scene = surface.scene!!
+
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 380, 20)
+    moveComponentTo(scene.getSceneComponent("fragment3")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
     scene.layout(0, SceneContext.get())
     scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
-    assertEquals("Clip,0,0,1086,928\n" +
-        "DrawRectangle,490x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,491x401x74x126,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,491x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawTruncatedText,3,fragment1,490x390x76x5,ff656565,Default:0:9,false\n" +
-        "DrawLine,2,477x464,481x464,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,481x461x5x6,b2a7a7a7\n" +
-        "\n" +
-        "DrawRectangle,610x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,611x401x74x126,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,611x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawAction,NORMAL,610x400x76x128,400x400x76x128,NORMAL\n" +
-        "DrawArrow,2,RIGHT,390x461x5x6,b2a7a7a7\n" +
-        "DrawTruncatedText,3,fragment2,610x390x76x5,ff656565,Default:0:9,false\n" +
-        "DrawLine,2,597x455,601x455,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,601x452x5x6,b2a7a7a7\n" +
-        "DrawLine,2,597x464,601x464,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,601x461x5x6,b2a7a7a7\n" +
-        "\n" +
-        "DrawRectangle,400x400x76x128,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,401x401x74x126,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,401x401x74x126,ffa7a7a7,Default:0:9,true\n" +
-        "DrawTruncatedText,3,fragment3,400x390x76x5,ff656565,Default:0:9,false\n" +
-        "DrawLine,2,387x446,391x446,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,391x443x5x6,b2a7a7a7\n" +
-        "DrawLine,2,387x455,391x455,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,391x452x5x6,b2a7a7a7\n" +
-        "DrawLine,2,387x473,391x473,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,391x470x5x6,b2a7a7a7\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,1057,928\n" +
+      "DrawAction,REGULAR,580.0x400.0x76.5x128.0,400.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,435.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawFilledRectangle,0,491.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,477.0x464.0,481.0x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,491.0x401.0,565.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,491.0x527.0,565.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRectangle,0,581.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,580.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawArrow,2,UP,637.5x532.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawSelfAction,656.5x464.0,640.5x536.0,b2a7a7a7\n" +
+      "DrawLine,2,567.0x455.0,571.0x455.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,571.0x452.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawLine,2,567.0x464.0,571.0x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,571.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment2,580.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,581.0x401.0,655.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,581.0x527.0,655.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,387.0x446.0,391.0x446.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,391.0x443.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawLine,2,387.0x455.0,391.0x455.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,391.0x452.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawLine,2,387.0x473.0,391.0x473.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,391.0x470.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment3,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
+  }
+
+  fun testPopToDestination() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        fragment("fragment2") {
+          action("a", popUpTo = "fragment1")
+        }
+      }
+    }
+    val list = DisplayList()
+    val surface = model.surface
+    val scene = surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
+    scene.layout(0, SceneContext.get())
+    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
+    assertEquals(
+      "Clip,0,0,967,928\n" +
+      "DrawAction,REGULAR,400.0x400.0x76.5x128.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawFilledRectangle,0,491.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,491.0x401.0,565.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,491.0x527.0,565.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment2,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testExitActions() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment1") {
         fragment("fragment1")
-        navigation("subnav") {
+        navigation("nav1") {
           fragment("fragment2") {
             action("action1", destination = "fragment1")
           }
@@ -776,63 +1021,90 @@ class NavSceneTest : NavTestCase() {
             action("action6", destination = "fragment1")
             action("action7", destination = "fragment2")
           }
+          fragment("fragment5") {
+            action("action8", destination = "fragment1")
+            action("action9", destination = "fragment5")
+          }
+          navigation("nav2") {
+            action("action8", destination = "root")
+          }
         }
       }
     }
 
-    val surface = NavDesignSurface(project, myRootDisposable)
-    surface.setSize(1000, 1000)
-    surface.model = model
-    surface.zoom(ZoomType.ACTUAL)
-
-    if (!SystemInfo.isMac || !UIUtil.isRetina()) {
-      surface.zoomOut()
-      surface.zoomOut()
-      surface.zoomOut()
-      surface.zoomOut()
-    }
+    val surface = model.surface as NavDesignSurface
+    `when`<NlComponent>(surface.currentNavigation).then { model.find("nav1")!! }
 
     val scene = surface.scene!!
-    val list = DisplayList()
-    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+    scene.sceneManager.update()
+
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment3")!!, 380, 20)
+    moveComponentTo(scene.getSceneComponent("fragment4")!!, 20, 260)
+    moveComponentTo(scene.getSceneComponent("fragment5")!!, 200, 320)
+    moveComponentTo(scene.getSceneComponent("nav2")!!, 20, 20)
+    scene.sceneManager.layout(false)
 
     val view = NavView(surface, surface.sceneManager!!)
-    surface.currentNavigation = model.find("subnav")!!
     scene.layout(0, SceneContext.get(view))
+
+    val list = DisplayList()
     scene.buildDisplayList(list, 0, view)
 
-
-    assertEquals("Clip,0,0,-222,-254\n" +
-        "DrawRectangle,-122x-140x15x25,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,-121x-139x13x23,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,-121x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
-        "DrawTruncatedText,3,fragment2,-122x-142x15x1,ff656565,Default:0:2,false\n" +
-        "DrawLine,2,-107x-128,-106x-128,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,-106x-128x1x1,b2a7a7a7\n" +
-        "\n" +
-        "DrawRectangle,-98x-140x15x25,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,-97x-139x13x23,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,-97x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
-        "DrawTruncatedText,3,fragment3,-98x-142x15x1,ff656565,Default:0:2,false\n" +
-        "DrawLine,2,-83x-130,-82x-130,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,-82x-130x1x1,b2a7a7a7\n" +
-        "DrawLine,2,-83x-128,-82x-128,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,-82x-128x1x1,b2a7a7a7\n" +
-        "\n" +
-        "DrawRectangle,-140x-140x15x25,ffa7a7a7,1,0\n" +
-        "DrawFilledRectangle,-139x-139x13x23,fffafafa,0\n" +
-        "DrawTruncatedText,3,Preview Unavailable,-139x-139x13x23,ffa7a7a7,Default:0:2,true\n" +
-        "DrawAction,NORMAL,-140x-140x15x25,-122x-140x15x25,NORMAL\n" +
-        "DrawArrow,2,RIGHT,-124x-128x1x1,b2a7a7a7\n" +
-        "DrawTruncatedText,3,fragment4,-140x-142x15x1,ff656565,Default:0:2,false\n" +
-        "DrawLine,2,-125x-132,-124x-132,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,-124x-132x1x1,b2a7a7a7\n" +
-        "DrawLine,2,-125x-130,-124x-130,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,-124x-130x1x1,b2a7a7a7\n" +
-        "DrawLine,2,-125x-126,-124x-126,b2a7a7a7,3:0:1\n" +
-        "DrawArrow,2,RIGHT,-124x-126x1x1,b2a7a7a7\n" +
-        "\n" +
-        "UNClip\n", list.serialize())
+    assertEquals(
+      "Clip,0,0,1057,1078\n" +
+      "DrawAction,REGULAR,400.0x520.0x76.5x128.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,525.25x532.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawFilledRectangle,0,491.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,567.5x464.0,574.5x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,574.5x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment2,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,491.0x401.0,565.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,491.0x527.0,565.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRectangle,0,581.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,580.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,657.5x455.0,664.5x455.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,664.5x452.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawLine,2,657.5x464.0,664.5x464.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,664.5x461.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment3,580.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,581.0x401.0,655.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,581.0x527.0,655.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRectangle,0,401.0x521.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x520.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,477.5x566.0,484.5x566.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,484.5x563.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawLine,2,477.5x575.0,484.5x575.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,484.5x572.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawLine,2,477.5x593.0,484.5x593.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,484.5x590.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment4,400.0x510.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x521.0,475.5x647.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x647.0,475.5x521.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRectangle,0,491.0x551.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,490.0x550.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,567.5x605.0,574.5x605.0,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,574.5x602.0x5.0x6.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,547.5x682.0x6.0x5.0,b2a7a7a7\n" +
+      "DrawSelfAction,566.5x614.0,550.5x686.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,fragment5,490.0x540.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,491.0x551.0,565.5x677.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,491.0x677.0,565.5x551.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawLine,2,471.0x409.5,478.0x409.5,b2a7a7a7,3:0:1\n" +
+      "DrawArrow,2,RIGHT,478.0x406.5x5.0x6.0,b2a7a7a7\n" +
+      "DrawTruncatedText,3,Nested Graph,400.0x400.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,nav2,400.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
   }
 
   fun testHoverMarksComponent() {
@@ -876,5 +1148,274 @@ class NavSceneTest : NavTestCase() {
     assertEquals(SceneComponent.DrawState.NORMAL, fragment1.drawState)
     assertEquals(SceneComponent.DrawState.NORMAL, fragment2.drawState)
     assertTrue(version < scene.displayListVersion)
+  }
+
+  fun testRegularActions() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1") {
+          action("a1", destination = "fragment2")
+          action("a2", destination = "nav1")
+        }
+        fragment("fragment2")
+        navigation("nav1") {
+          action("a3", destination = "fragment1")
+          action("a4", destination = "nav2")
+        }
+        navigation("nav2")
+      }
+    }
+
+    val list = DisplayList()
+    val surface = model.surface
+    val scene = surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 200, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 380, 20)
+    moveComponentTo(scene.getSceneComponent("nav1")!!, 20, 80)
+    moveComponentTo(scene.getSceneComponent("nav2")!!, 20, 20)
+    scene.sceneManager.layout(false)
+
+    scene.layout(0, SceneContext.get())
+    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
+    assertEquals(
+      "Clip,0,0,1057,928\n" +
+      "DrawAction,REGULAR,400.0x430.0x70.0x19.0,490.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,481.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawAction,REGULAR,400.0x430.0x70.0x19.0,400.0x400.0x70.0x19.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,432.0x423.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,580.0x400.0x76.5x128.0,b2a7a7a7\n" +
+      "DrawArrow,2,RIGHT,571.0x461.0x5.0x6.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawAction,REGULAR,490.0x400.0x76.5x128.0,400.0x430.0x70.0x19.0,b2a7a7a7\n" +
+      "DrawArrow,2,UP,432.0x453.0x6.0x5.0,b2a7a7a7\n" +
+      "\n" +
+      "DrawFilledRectangle,0,491.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,490.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,490.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,491.0x401.0,565.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,491.0x527.0,565.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRectangle,0,581.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,580.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment2,580.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,581.0x401.0,655.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,581.0x527.0,655.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,400.0x430.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,400.0x430.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,400.0x430.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,nav1,400.0x420.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "DrawFilledRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,fffafafa\n" +
+      "DrawRoundRectangle,1,400.0x400.0x70.0x19.0x6.0x6.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,Nested Graph,400.0x400.0x70.0x19.0,ffa7a7a7,Default:1:6,true\n" +
+      "DrawTruncatedText,3,nav2,400.0x390.0x70.0x5.0,ff656565,Default:0:9,false\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
+  }
+
+  fun testEmptyDesigner() {
+    var root: NavModelBuilderUtil.NavigationComponentDescriptor? = null
+
+    val modelBuilder = modelBuilder("nav.xml") {
+      navigation("root") {
+        action("action1", destination = "root")
+      }.also { root = it }
+    }
+
+    val model = modelBuilder.build()
+
+    val surface = model.surface as NavDesignSurface
+    val scene = surface.scene!!
+    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+
+    val list = DisplayList()
+    val sceneManager = scene.sceneManager as NavSceneManager
+    scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
+
+    assertEquals(
+      "DrawEmptyDesigner,130x258\n", list.generateSortedDisplayList()
+    )
+    assertTrue(sceneManager.isEmpty)
+
+    root?.fragment("fragment1")
+
+    modelBuilder.updateModel(model)
+    model.notifyModified(NlModel.ChangeType.EDIT)
+    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+    list.clear()
+    scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
+
+    assertEquals(
+      "Clip,0,0,877,928\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
+    assertFalse(sceneManager.isEmpty)
+
+    model.delete(listOf(model.find("fragment1")!!))
+    scene.layout(0, SceneContext.get(model.surface.currentSceneView))
+    list.clear()
+    scene.buildDisplayList(list, 0, NavView(surface, sceneManager))
+
+    assertEquals(
+      "DrawEmptyDesigner,130x258\n", list.generateSortedDisplayList()
+    )
+    assertTrue(sceneManager.isEmpty)
+  }
+
+  fun testZoomIn() {
+    zoomTest(3.0, "Clip,0,0,5259,5568\n" +
+                  "DrawFilledRectangle,0,2401.0x2401.0x457.0x766.0,fffdfdfd\n" +
+                  "DrawRectangle,1,2400.0x2400.0x459.0x768.0,ffa7a7a7,1.0\n" +
+                  "DrawTruncatedText,3,fragment1,2400.0x2340.0x459.0x30.0,ff656565,Default:0:36,false\n" +
+                  "DrawLine,5,2401.0x2401.0,2858.0x3167.0,ffcccccc,1:2:0\n" +
+                  "DrawLine,5,2401.0x3167.0,2858.0x2401.0,ffcccccc,1:2:0\n" +
+                  "\n" +
+                  "UNClip\n")
+  }
+
+  fun testZoomOut() {
+    zoomTest(0.25, "Clip,0,0,438,464\n" +
+                   "DrawFilledRectangle,0,201.0x201.0x36.25x62.0,fffdfdfd\n" +
+                   "DrawRectangle,1,200.0x200.0x38.25x64.0,ffa7a7a7,1.0\n" +
+                   "DrawTruncatedText,3,fragment1,200.0x195.0x38.25x2.5,ff656565,Default:0:5,false\n" +
+                   "DrawLine,5,201.0x201.0,237.25x263.0,ffcccccc,1:2:0\n" +
+                   "DrawLine,5,201.0x263.0,237.25x201.0,ffcccccc,1:2:0\n" +
+                   "\n" +
+                   "UNClip\n")
+  }
+
+  fun testZoomToFit() {
+    zoomTest(1.0, "Clip,0,0,1753,1856\n" +
+                  "DrawFilledRectangle,0,801.0x801.0x151.0x254.0,fffdfdfd\n" +
+                  "DrawRectangle,1,800.0x800.0x153.0x256.0,ffa7a7a7,1.0\n" +
+                  "DrawTruncatedText,3,fragment1,800.0x780.0x153.0x10.0,ff656565,Default:0:12,false\n" +
+                  "DrawLine,5,801.0x801.0,952.0x1055.0,ffcccccc,1:2:0\n" +
+                  "DrawLine,5,801.0x1055.0,952.0x801.0,ffcccccc,1:2:0\n" +
+                  "\n" +
+                  "UNClip\n")
+  }
+
+  private fun zoomTest(newScale: Double, serialized: String) {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+      }
+    }
+
+    val list = DisplayList()
+    val surface = model.surface
+    val scene = surface.scene!!
+
+    scene.layout(0, SceneContext.get())
+    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
+    assertEquals(
+      "Clip,0,0,877,928\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,fragment1,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
+
+    list.clear()
+
+    `when`(surface.scale).thenReturn(newScale)
+
+    scene.layout(0, SceneContext.get())
+    scene.buildDisplayList(list, 0, NavView(model.surface as NavDesignSurface, scene.sceneManager))
+    assertEquals(serialized, list.generateSortedDisplayList())
+  }
+
+  fun testCustomDestination() {
+    val relativePath = "src/mytest/navtest/MyTestNavigator.java"
+    val fileText = """
+      package myTest.navtest;
+      import androidx.navigation.NavDestination;
+      import androidx.navigation.Navigator;
+      @Navigator.Name("customComponent")
+      public class TestNavigator extends Navigator<TestNavigator.Destination> {
+          public static class Destination extends NavDestination {}
+      }
+      """
+
+    myFixture.addFileToProject(relativePath, fileText)
+
+    val model = model("nav.xml") {
+      navigation {
+        custom("customComponent")
+      }
+    }
+
+    val surface = model.surface
+    val scene = surface.scene!!
+    scene.layout(0, SceneContext.get())
+
+    val list = DisplayList()
+    scene.buildDisplayList(list, 0, NavView(surface as NavDesignSurface, scene.sceneManager))
+
+    assertEquals(
+      "Clip,0,0,877,928\n" +
+      "DrawFilledRectangle,0,401.0x401.0x74.5x126.0,fffdfdfd\n" +
+      "DrawRectangle,1,400.0x400.0x76.5x128.0,ffa7a7a7,1.0\n" +
+      "DrawTruncatedText,3,customComponent,400.0x390.0x76.5x5.0,ff656565,Default:0:9,false\n" +
+      "DrawLine,5,401.0x401.0,475.5x527.0,ffcccccc,1:2:0\n" +
+      "DrawLine,5,401.0x527.0,475.5x401.0,ffcccccc,1:2:0\n" +
+      "\n" +
+      "UNClip\n", list.generateSortedDisplayList()
+    )
+  }
+
+  fun testTooltips() {
+    val model = model("nav.xml") {
+      navigation {
+        action("global", destination = "fragment1")
+        fragment("fragment1") {
+          action("a1", destination = "fragment2")
+          action("self", destination = "fragment1")
+          action("exit", destination = "foo")
+        }
+        fragment("fragment2")
+      }
+    }
+
+    val surface = model.surface
+    val scene = surface.scene!!
+    moveComponentTo(scene.getSceneComponent("fragment1")!!, 100, 20)
+    moveComponentTo(scene.getSceneComponent("fragment2")!!, 380, 20)
+    scene.layout(0, SceneContext.get())
+
+    val context = spy(SceneContext.get(model.surface.currentSceneView))
+
+    scene.mouseHover(context, 360, 148)
+    verify(context).setToolTip("a1")
+    scene.mouseHover(context, 282, 282)
+    verify(context).setToolTip("self")
+    scene.mouseHover(context, 83, 148)
+    verify(context).setToolTip("global")
+    scene.mouseHover(context, 260, 125)
+    verify(context).setToolTip("exit")
+  }
+
+  /**
+   * Reposition a component. If we just set the position directly children't aren't updated.
+   */
+  private fun moveComponentTo(component: SceneComponent, x: Int, y: Int) {
+    val dragTarget = component.targets.filterIsInstance(ScreenDragTarget::class.java).first()
+    dragTarget.mouseDown(component.drawX, component.drawY)
+    dragTarget.mouseDrag(x, y, listOf())
+    // the release position isn't used
+    dragTarget.mouseRelease(x, y, listOf())
   }
 }

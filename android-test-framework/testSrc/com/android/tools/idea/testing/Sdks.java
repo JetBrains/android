@@ -16,24 +16,101 @@
 package com.android.tools.idea.testing;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.testutils.TestUtils;
+import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.roots.JavadocOrderRootType;
+import com.intellij.openapi.roots.ModuleRootModificationUtil;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.JarFileSystem;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.util.ArrayUtil;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static com.android.testutils.TestUtils.getLatestAndroidPlatform;
 import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.junit.Assert.assertNotNull;
 
 public final class Sdks {
   private Sdks() {
+  }
+
+  @NotNull
+  public static Sdk addLatestAndroidSdk(@NotNull Disposable parentDisposable, @NotNull Module module) {
+    Sdk androidSdk = createLatestAndroidSdk("SDK", true);
+    ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
+    if (androidSdk != null) {
+      Disposer.register(parentDisposable, () -> WriteAction.run(() -> ProjectJdkTable.getInstance().removeJdk(androidSdk)));
+    }
+    return androidSdk;
+  }
+
+  public static Sdk createLatestAndroidSdk() {
+    return createLatestAndroidSdk("SDK", true);
+  }
+
+  public static Sdk createLatestAndroidSdk(String name, boolean addToSdkTable) {
+    String sdkPath = TestUtils.getSdk().toString();
+    String platformDir = TestUtils.getLatestAndroidPlatform();
+
+    Sdk sdk = ProjectJdkTable.getInstance().createSdk(name, AndroidSdkType.getInstance());
+    if (addToSdkTable) {
+      ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().addJdk(sdk));
+    }
+
+    SdkModificator sdkModificator = sdk.getSdkModificator();
+    sdkModificator.setHomePath(sdkPath);
+
+    VirtualFile androidJar = JarFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/android.jar!/");
+    sdkModificator.addRoot(androidJar, OrderRootType.CLASSES);
+
+    VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
+    sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
+
+    VirtualFile androidSrcFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/sources/" + platformDir);
+    if (androidSrcFolder != null) {
+      sdkModificator.addRoot(androidSrcFolder, OrderRootType.SOURCES);
+    }
+
+    VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
+    if (docsFolder != null) {
+      sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
+    }
+
+    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
+    AndroidSdkData sdkData = getSdkData(sdkPath);
+    assertNotNull(sdkData);
+    IAndroidTarget foundTarget = null;
+    IAndroidTarget[] targets = sdkData.getTargets();
+    for (IAndroidTarget target : targets) {
+      if (target.getLocation().contains(platformDir)) {
+        foundTarget = target;
+        break;
+      }
+    }
+    assertNotNull(foundTarget);
+    data.setBuildTarget(foundTarget);
+    sdkModificator.setSdkAdditionalData(data);
+    ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
+    sdkModificator.commitChanges();
+    return sdk;
   }
 
   @NotNull
@@ -45,7 +122,7 @@ public final class Sdks {
 
     // Use the latest platform, which is checked-in as a full SDK. Older platforms may not be checked in full, to save space.
     Optional<IAndroidTarget> found =
-      Arrays.stream(targets).filter(target -> target.hashString().equals(getLatestAndroidPlatform())).findFirst();
+      Arrays.stream(targets).filter(target -> target.hashString().equals(TestUtils.getLatestAndroidPlatform())).findFirst();
 
     IAndroidTarget target = found.isPresent() ? found.get() : null;
     assertNotNull(target);

@@ -16,9 +16,9 @@
 
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
-import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
-import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
@@ -32,8 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.ArrayList;
 
+import static com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder.UxStyle.INSTANT_APP;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class AndroidNewModuleAction extends AnAction implements DumbAware {
@@ -50,6 +50,8 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
     Project project = e.getProject();
     boolean isAvailable = project != null && ProjectSystemUtil.getProjectSystem(project).allowsFileCreation();
     e.getPresentation().setVisible(isAvailable);
+    boolean isEnabled = project != null && !GradleSyncState.getInstance(project).isSyncInProgress();
+    e.getPresentation().setEnabled(isEnabled);
   }
 
   @Override
@@ -61,15 +63,11 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
         return;
       }
 
-      ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
-      for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
-        moduleDescriptions.addAll(provider.getDescriptions());
-      }
-
-      ChooseModuleTypeStep chooseModuleTypeStep = new ChooseModuleTypeStep(project, moduleDescriptions);
+      ChooseModuleTypeStep chooseModuleTypeStep =
+        ChooseModuleTypeStep.createWithDefaultGallery(project, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
       ModelWizard wizard = new ModelWizard.Builder().addStep(chooseModuleTypeStep).build();
 
-      new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUseNewUx(true).build().show();
+      new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).setUxStyle(INSTANT_APP).build().show();
     }
   }
 }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.network.details;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
@@ -23,16 +25,17 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.profilers.ContentType;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.dataviewer.DataViewer;
+import com.android.tools.profilers.dataviewer.ImageDataViewer;
 import com.android.tools.profilers.network.ConnectionsStateChart;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
 import com.android.tools.profilers.network.NetworkState;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
-import com.android.tools.profilers.stacktrace.DataViewer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.BrowserUtil;
@@ -40,22 +43,29 @@ import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.BoldLabel;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.PlatformColors;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
-import java.io.File;
+import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tab which shows a bunch of useful, high level information for a network request.
@@ -89,8 +99,8 @@ final class OverviewTabContent extends TabContent {
     myModel = model;
   }
 
-  private static JComponent createFields(@NotNull HttpData httpData, @Nullable Dimension payloadDimension) {
-    JPanel myFieldsPanel = new JPanel(new TabularLayout("Fit,20px,*").setVGap(TabUiUtils.SECTION_VGAP));
+  private static JComponent createFields(@NotNull HttpData httpData, @Nullable BufferedImage image) {
+    JPanel myFieldsPanel = new JPanel(new TabularLayout("Fit-,40px,*").setVGap(TabUiUtils.SECTION_VGAP));
 
     int row = 0;
     myFieldsPanel.add(new NoWrapBoldLabel("Request"), new TabularLayout.Constraint(row, 0));
@@ -107,10 +117,10 @@ final class OverviewTabContent extends TabContent {
       myFieldsPanel.add(statusCode, new TabularLayout.Constraint(row, 2));
     }
 
-    if (payloadDimension != null) {
+    if (image != null) {
       row++;
       myFieldsPanel.add(new NoWrapBoldLabel("Dimension"), new TabularLayout.Constraint(row, 0));
-      JLabel dimension = new JLabel(String.format("%d x %d", (int)payloadDimension.getWidth(), (int)payloadDimension.getHeight()));
+      JLabel dimension = new JLabel(String.format("%d x %d", image.getWidth(), image.getHeight()));
       myFieldsPanel.add(dimension, new TabularLayout.Constraint(row, 2));
     }
 
@@ -166,7 +176,7 @@ final class OverviewTabContent extends TabContent {
     myFieldsPanel.add(hyperlink, new TabularLayout.Constraint(row, 2));
 
     row++;
-    JSeparator separator = TabUiUtils.createSeparator();
+    JSeparator separator = new JSeparator();
     separator.setMinimumSize(separator.getPreferredSize());
     int gap = TabUiUtils.PAGE_VGAP - TabUiUtils.SECTION_VGAP - (int)separator.getPreferredSize().getHeight() / 2;
     JPanel separatorContainer = new JPanel(new VerticalFlowLayout(0, gap));
@@ -210,18 +220,17 @@ final class OverviewTabContent extends TabContent {
 
     Legend sentLegend = new FixedLegend("Sent", TIME_FORMATTER.apply(sentTime));
     Legend receivedLegend = new FixedLegend("Received", TIME_FORMATTER.apply(receivedTime));
-    LegendComponentModel legendModel = new LegendComponentModel(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+    LegendComponentModel legendModel = new LegendComponentModel();
     legendModel.add(sentLegend);
     legendModel.add(receivedLegend);
 
     // TODO: Add waiting time in (currently hidden because it's always 0)
     LegendComponent legend = new LegendComponent.Builder(legendModel).setLeftPadding(0).setVerticalPadding(JBUI.scale(8)).build();
-    legend.setFont(legend.getFont().deriveFont(TabUiUtils.FIELD_FONT_SIZE));
+    legend.setFont(STANDARD_FONT);
     legend.configure(sentLegend,
                      new LegendConfig(LegendConfig.IconType.BOX, connectionsChart.getColors().getColor(NetworkState.SENDING)));
     legend.configure(receivedLegend,
                      new LegendConfig(LegendConfig.IconType.BOX, connectionsChart.getColors().getColor(NetworkState.RECEIVING)));
-    legendModel.update(1);
     panel.add(legend);
 
     return panel;
@@ -230,7 +239,7 @@ final class OverviewTabContent extends TabContent {
   @NotNull
   @Override
   public String getTitle() {
-    return myFeatures.isNetworkRequestPayloadEnabled() ? "Overview" : "Response";
+    return "Overview";
   }
 
   @NotNull
@@ -238,7 +247,7 @@ final class OverviewTabContent extends TabContent {
   protected JComponent createComponent() {
     TabularLayout layout = new TabularLayout("*").setVGap(TabUiUtils.PAGE_VGAP);
     myPanel = new JPanel(layout);
-    myPanel.setBorder(BorderFactory.createEmptyBorder(TabUiUtils.PAGE_VGAP, TabUiUtils.HGAP, 0, TabUiUtils.HGAP));
+    myPanel.setBorder(new JBEmptyBorder(TabUiUtils.PAGE_VGAP, TabUiUtils.HORIZONTAL_PADDING, 0, TabUiUtils.HORIZONTAL_PADDING));
     JBScrollPane overviewScroll = TabUiUtils.createVerticalScrollPane(myPanel);
     overviewScroll.getVerticalScrollBar().setUnitIncrement(TabUiUtils.SCROLL_UNIT);
     overviewScroll.addComponentListener(new ComponentAdapter() {
@@ -260,23 +269,21 @@ final class OverviewTabContent extends TabContent {
       return;
     }
 
-    File payloadFile = Payload.newResponsePayload(myModel, data).toFile();
-    DataViewer fileViewer = myComponents.createFileViewer(payloadFile);
-    JComponent responsePayloadComponent = fileViewer.getComponent();
+    Payload payload = Payload.newResponsePayload(myModel, data);
+    String mimeType = payload.getContentType().getMimeType();
+    DataViewer payloadViewer = myComponents.createDataViewer(payload.getBytes().toByteArray(), ContentType.fromMimeType(mimeType),
+                                                             DataViewer.Style.PRETTY);
+    JComponent responsePayloadComponent = payloadViewer.getComponent();
     responsePayloadComponent.setName(ID_RESPONSE_PAYLOAD_VIEWER);
 
     myPanel.add(responsePayloadComponent, new TabularLayout.Constraint(0, 0));
-    myPanel.add(createFields(data, fileViewer.getDimension()), new TabularLayout.Constraint(1, 0));
+    BufferedImage image = payloadViewer instanceof ImageDataViewer ? ((ImageDataViewer)payloadViewer).getImage() : null;
+    myPanel.add(createFields(data, image), new TabularLayout.Constraint(1, 0));
   }
 
   @Override
   public void trackWith(@NotNull FeatureTracker featureTracker) {
-    if (myFeatures.isNetworkRequestPayloadEnabled()) {
-      featureTracker.trackSelectNetworkDetailsOverview();
-    }
-    else {
-      featureTracker.trackSelectNetworkDetailsResponse();
-    }
+    featureTracker.trackSelectNetworkDetailsOverview();
   }
 
   @Nullable
@@ -340,7 +347,7 @@ final class OverviewTabContent extends TabContent {
       setLineWrap(true);
       setEditable(false);
       setBackground(UIUtil.getLabelBackground());
-      setFont(UIManager.getFont("Label.font").deriveFont(TabUiUtils.FIELD_FONT_SIZE).deriveFont(ImmutableMap.of(
+      setFont(STANDARD_FONT.deriveFont(ImmutableMap.of(
         TextAttribute.FOREGROUND, PlatformColors.BLUE,
         TextAttribute.BACKGROUND, UIUtil.getLabelBackground())));
 

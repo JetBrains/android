@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationDialog;
 import com.android.tools.idea.common.model.NlComponent;
@@ -53,7 +53,7 @@ public class AppBarLayoutHandler extends LinearLayoutHandler {
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) {
       // The AppBarConfigurationDialog replaces the root XML node in the current file.
-      AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(editor);
+      AppBarConfigurationDialog dialog = new AppBarConfigurationDialog(editor, APP_BAR_LAYOUT.newName().equals(newChild.getTagName()));
       ApplicationManager.getApplication().invokeLater(() -> dialog.open());
       return false;
     }

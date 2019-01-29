@@ -22,20 +22,20 @@ import java.util.List;
 
 public class RealWorldExamples {
 
-  final private static String[] NDK_SPECIAL_PACKAGES_EXAMPLE =
+  public final static String[] NDK_SPECIAL_PACKAGES_EXAMPLE =
     {"-I{ndkPath}/sources/android/cpufeatures", "-I{ndkPath}/sources/android/native_app_glue", "-I{ndkPath}/sources/android/ndk_helper",
       "-I{ndkPath}/sources/cxx-stl/stlport/stlport", "-I{ndkPath}/sources/cxx-stl//gabi++/include", "-I{ndkPath}/samples/Teapot/jni",
       "-I{ndkPath}/platforms/android-21/arch-arm64/usr/include", "-I{ndkPath}/sources/third_party/googletest/googletest/include"};
-  final private static String[] COCOS_EXTERNAL_ROOT_EXAMPLE = {
+  public final static String[] COCOS_EXTERNAL_ROOT_EXAMPLE = {
     "-I/usr/local/google/home/jomof/projects/Game/cocos2d/external",
   };
-  final private static String[] COCOS_EDITOR_SUPPORT_ROOT_EXAMPLE = {
+  public final static String[] COCOS_EDITOR_SUPPORT_ROOT_EXAMPLE = {
     "-I/usr/local/google/home/jomof/projects/Game/cocos2d/cocos/editor-support",
   };
-  final private static String[] COCOS_EXTERNAL_EXAMPLE = {
+  public final static String[] COCOS_EXTERNAL_EXAMPLE = {
     "-I/usr/local/google/home/jomof/projects/Game/cocos2d/external/xxhash",
   };
-  final private static String[] CDEP_EXAMPLE = {
+  public final static String[] CDEP_EXAMPLE = {
     "-I/usr/local/google/home/jomof/projects/cdep-android-studio-freetype-sample/build/cdep/exploded/com.github.jomof/mathfu/1.1.0-rev3/mathfu-headers.zip/include",
     "-I/usr/local/google/home/jomof/third_party/OpenCV/include",
     "-I{ndkPath}/platforms/android-21/arch-x86_64",
@@ -73,10 +73,10 @@ public class RealWorldExamples {
     "-I/usr/local/google/home/jomof/projects/cdep-android-studio-freetype-sample/build/cdep/exploded/com.github.jomof/stb/sprintf/0.0.0-rev6/stb-sprintf-headers.zip/include",
     "-I/usr/local/google/home/jomof/projects/cdep-android-studio-freetype-sample/build/cdep/exploded/com.github.jomof/re2/17.3.1-rev18/re2-headers.zip/include",
   };
-  final private static String[] MINI_COCOS_EXAMPLE = {
+  public final static String[] MINI_COCOS_EXAMPLE = {
     "-I/usr/local/google/home/jomof/projects/Game/cocos2d/external/poly2tri",
     "-I/usr/local/google/home/jomof/projects/Game/cocos2d/external/poly2tri/sweep"};
-  final private static String[] COCOS_EXAMPLE = {
+  public final static String[] COCOS_EXAMPLE = {
     "-I/usr/local/google/home/jomof/projects/Game/cocos2d/cocos/ui",
     "-I{ndkPath}/platforms/android-21/arch-x86_64",
     "-I/usr/local/google/home/jomof/projects/Game/cocos2d/external/flatbuffers",
@@ -140,22 +140,22 @@ public class RealWorldExamples {
     "-I/usr/local/google/home/jomof/projects/Game/cocos2d/extensions/GUI/CCControlExtension",
     "-I/usr/local/google/home/jomof/projects/Game/cocos2d/cocos/audio/android",
     "-I{ndkPath}/platforms/android-21/arch-arm64"};
-  final private static String[] RENDERSCRIPT_EXAMPLE = {
+  public final static String[] RENDERSCRIPT_EXAMPLE = {
     "-I{ndkPath}/toolchains/renderscript/prebuilt/{platform}-x86_64/lib/clang/3.5/include",
     "-I{ndkPath}/platforms/android-19/arch-arm/usr/include/rs/scriptc", "-I{ndkPath}/samples/HelloComputeNDK/jni"};
-  final private static String[] TWO_INCLUDES_SAME_BASE_NAME = {
+  public final static String[] TWO_INCLUDES_SAME_BASE_NAME = {
     "-I/project/include",
     "-I/project/subproject/include"};
-  final private static String[] TWO_WINDOWS_INCLUDES_SAME_BASE_NAME = {
+  public final static String[] TWO_WINDOWS_INCLUDES_SAME_BASE_NAME = {
     "-ID:\\project\\include",
     "-ID:\\project\\subproject\\include"};
-  final private static String[] TWO_WINDOWS_INCLUDES_SAME_BASE_NAME_DOUBLE_SLASHES = {
+  public final static String[] TWO_WINDOWS_INCLUDES_SAME_BASE_NAME_DOUBLE_SLASHES = {
     "-ID:\\\\project\\\\include",
     "-ID:\\\\project\\\\subproject\\\\include"};
-  final private static String[] TWO_IDENTICAL_INCLUDES = {
+  public final static String[] TWO_IDENTICAL_INCLUDES = {
     "-I/project/include",
     "-I/project/include"};
-  final private static String[] PACKAGING_EXPRESSION_EXAMPLE =
+  private final static String[] PACKAGING_EXPRESSION_EXAMPLE =
     {"-I../../../../cocos/editor-support/cocostudio/..", "-I../../../../cocos/editor-support/cocostudio/WidgetReader",
       "-I../../../../cocos/ui/../editor-support", "-I../../../../cocos/audio/android/../include", "-I../../../../external/flatbuffers/..",
       "-I{ndkPath}/sources/cxx-stl/gnu-libstdc++/4.9/include",
@@ -181,7 +181,7 @@ public class RealWorldExamples {
       "-I../../../../external/websockets/prebuilt/android/../../include/android", "-I../../../../cocos/editor-support/cocostudio",
       "-isystem", "{ndkPath}/platforms/android-9/arch-x86/usr/include"};
   /* A set of real world include flags gathered from various places. */
-  public static String[][] COMPILER_INCLUDE_FLAGS = {
+  public static final String[][] COMPILER_INCLUDE_FLAGS = {
     PACKAGING_EXPRESSION_EXAMPLE,
     {"-I{ndkPath}/sources/android/cpufeatures", "-I{ndkPath}/sources/android/native_app_glue", "-I{ndkPath}/sources/android/ndk_helper",
       "-I{ndkPath}/sources/cxx-stl/stlport/stlport", "-I{ndkPath}/sources/cxx-stl//gabi++/include", "-I{ndkPath}/samples/Teapot/jni",
@@ -731,7 +731,7 @@ public class RealWorldExamples {
     COCOS_EXAMPLE
   };
   /* NDK folders present in COMPILER_INCLUDE_FLAGS */
-  private static String[] NDK_PATHS_IN_COMPILER_INCLUDE_FLAGS = {
+  private static final String[] NDK_PATHS_IN_COMPILER_INCLUDE_FLAGS = {
     "c:\\{ndkPath}\\",
     "{ndkPath}/"
   };
@@ -745,6 +745,7 @@ public class RealWorldExamples {
     return result;
   }
 
+  @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
   @NotNull
   public static List<String> getConcreteCompilerIncludeFlags(String pathToNdk, String[] includes) {
     List<String> flags = new ArrayList<>();

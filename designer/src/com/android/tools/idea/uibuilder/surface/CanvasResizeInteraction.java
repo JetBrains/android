@@ -16,7 +16,8 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
@@ -33,7 +34,8 @@ import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.google.common.collect.ImmutableList;
@@ -132,12 +134,11 @@ public class CanvasResizeInteraction extends Interaction {
     VirtualFile file = configuration.getFile();
     assert file != null;
     String layoutName = file.getNameWithoutExtension();
-    ProjectResourceRepository resourceRepository = ProjectResourceRepository.getOrCreateInstance(configuration.getModule());
+    LocalResourceRepository resourceRepository = ResourceRepositoryManager.getProjectResources(configuration.getModule());
     assert resourceRepository != null;
 
     // TODO: namespaces
-    List<ResourceItem> layouts =
-      resourceRepository.getItems().get(null, ResourceType.LAYOUT).get(layoutName);
+    List<ResourceItem> layouts = resourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.LAYOUT, layoutName);
     myFolderConfigurations =
       layouts.stream().map(ResourceItem::getConfiguration).sorted(Collections.reverseOrder()).collect(Collectors.toList());
 

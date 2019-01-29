@@ -15,21 +15,81 @@
  */
 package com.android.tools.adtui.chart.linechart
 
-import com.android.tools.adtui.model.*
+import com.android.tools.adtui.model.DefaultDataSeries
+import com.android.tools.adtui.model.DurationData
+import com.android.tools.adtui.model.DurationDataModel
+import com.android.tools.adtui.model.Interpolatable
+import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.RangedContinuousSeries
+import com.android.tools.adtui.model.RangedSeries
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.Color
+import java.awt.Component
+import java.awt.Cursor
+import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Insets
+import java.awt.Rectangle
 import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
-import java.util.*
+import java.util.Arrays
+import java.util.Collections
 import javax.swing.Icon
+import javax.swing.JPanel
 
 const val EPSILON: Float = 1e-6f
 
 class DurationDataRendererTest {
+
+  @Test
+  fun testCursorIsSetToDefaultWhenMouseIsOverLabel() {
+    // Setup some data for the attached data seres
+    val xRange = Range(0.0, 10.0)
+    val yRange = Range(0.0, 10.0)
+    val attachedSeries = DefaultDataSeries<Long>()
+    attachedSeries.add(4, 4)
+    val attachedRangeSeries = RangedContinuousSeries("attached", xRange, yRange, attachedSeries)
+
+    // Setup the duration data series
+    val dataSeries = DefaultDataSeries<DurationData>()
+    dataSeries.add(0, DurationData { 0 })
+    val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
+    durationData.setAttachedSeries(attachedRangeSeries, Interpolatable.SegmentInterpolator)
+    durationData.setAttachPredicate { data -> data.x == 6L }
+
+    // Creates the DurationDataRenderer and forces an update, which calculates the DurationData's normalized positioning.
+    // Creates the DurationDataRenderer and forces an update, which calculates the DurationData's normalized positioning.
+    val dummyIcon = object : Icon {
+      override fun getIconHeight(): Int = 5
+      override fun getIconWidth(): Int = 5
+      override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
+    }
+
+    val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(dummyIcon).build()
+    val underneathComponent = JPanel()
+    val overlayComponent = OverlayComponent(underneathComponent)
+    overlayComponent.bounds = Rectangle(0, 0, 200, 50)
+    overlayComponent.addDurationDataRenderer(durationDataRenderer)
+
+    durationData.update(1) // Forces duration data renderer to update
+
+    assertThat(durationDataRenderer.clickRegionCache.size).isEqualTo(1)
+    validateRegion(durationDataRenderer.clickRegionCache[0], 0f, 1f, 5f, 5f)       // attached series has no data before this point, y == 1.
+
+    underneathComponent.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+
+    val fakeUi = FakeUi(overlayComponent)
+    val clickRegionRect = durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[0], 200, 50)
+    fakeUi.mouse.moveTo(0, 0)
+    assertThat(underneathComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+
+    fakeUi.mouse.moveTo(clickRegionRect.x.toInt()+1, clickRegionRect.y.toInt()+1)
+    assertThat(underneathComponent.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
+  }
 
   @Test
   fun testDurationDataPositioning() {
@@ -57,22 +117,50 @@ class DurationDataRendererTest {
     }
     val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
     durationData.setAttachedSeries(attachedRangeSeries, Interpolatable.SegmentInterpolator)
+    durationData.setAttachPredicate { data -> data.x >= 6L}
 
     // Creates the DurationDataRenderer and forces an update, which calculates the DurationData's normalized positioning.
     val mockIcon = mock(Icon::class.java)
     `when`(mockIcon.iconWidth).thenReturn(5)
     `when`(mockIcon.iconHeight).thenReturn(5)
     val durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK)
-        .setIcon(mockIcon).build()
+      .setIcon(mockIcon).setHostInsets(Insets(5, 10, 15, 20)).setClickRegionPadding(0, 0).build ()
     durationData.update(-1)  // value doesn't matter here.
 
-    val regions = durationDataRenderer.GetDurationDataRegions()
-    assertThat(regions.size).isEqualTo(5)
-    validateRegion(regions[0], 0f, 1f, 5f, 5f)       // attached series has no data before this point, y == 1.
-    validateRegion(regions[1], 0.2f, 1f, 5f, 5f)    // attached series has no data before this point, y == 1.
-    validateRegion(regions[2], 0.4f, 0.6f, 5f, 5f)
-    validateRegion(regions[3], 0.6f, 0.4f, 5f, 5f)
-    validateRegion(regions[4], 0.8f, 1f, 5f, 5f)   // attached series has no data after this point. y == 1.
+    assertThat(durationDataRenderer.clickRegionCache.size).isEqualTo(5)
+    validateRegion(durationDataRenderer.clickRegionCache[0], 0f, 1f, 5f, 5f)       // attached series has no data before this point, y == 1.
+    validateRegion(durationDataRenderer.clickRegionCache[1], 0.2f, 1f, 5f, 5f)    // attached series has no data before this point, y == 1.
+    validateRegion(durationDataRenderer.clickRegionCache[2], 0.4f, 1f, 5f, 5f)    // attached predicate fails.
+    validateRegion(durationDataRenderer.clickRegionCache[3], 0.6f, 0.4f, 5f, 5f)
+    // attached series has no data after this point, use the last point as the attached y.
+    validateRegion(durationDataRenderer.clickRegionCache[4], 0.8f, 0.2f, 5f, 5f)
+
+    // Also checked for the post-scaled values.
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[0], 100, 100),
+                   10f, // Account for the 10 pixel left inset
+                   80f, // Account for the 15 pixel bottom inset + icon height
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[1], 100, 100),
+                   24f, // 10 pixel left inset + 0.2 * 70 pixels (after accounting for padding)
+                   80f, // Account for the 15 pixel bottom inset + icon height
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[2], 100, 100),
+                   38f, // 10 pixel left inset + 0.4 * 70 pixels (after accounting for padding)
+                   80f, // Account for the 15 pixel bottom inset + icon height
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[3], 100, 100),
+                   52f, // 10 pixel left inset + 0.6 * 70 pixels (after accounting for padding)
+                   32f, // Account for the 15 pixel bottom inset + icon height + 0.4 * 80 pixels after accounting for padding)
+                   5f,
+                   5f)
+    validateRegion(durationDataRenderer.getScaledClickRegion(durationDataRenderer.clickRegionCache[4], 100, 100),
+                   66f, // 10 pixel left inset + 0.8 * 70 pixels (after accounting for padding)
+                   16f, // Account for the 15 pixel bottom inset + icon height + 0.2 * 80 pixels after accounting for padding)
+                   5f,
+                   5f)
   }
 
   @Test
@@ -83,7 +171,7 @@ class DurationDataRendererTest {
     val series2 = DefaultDataSeries<Long>()
     val rangeSeries1 = RangedContinuousSeries("test1", xRange, yRange, series1)
     val rangeSeries2 = RangedContinuousSeries("test2", xRange, yRange, series2)
-    var lineChart = LineChart(Arrays.asList(rangeSeries1, rangeSeries2))
+    val lineChart = LineChart(Arrays.asList(rangeSeries1, rangeSeries2))
     lineChart.configure(rangeSeries1, LineConfig(Color.ORANGE).setStroke(LineConfig.DEFAULT_DASH_STROKE))
     lineChart.configure(rangeSeries2, LineConfig(Color.PINK).setStroke(LineConfig.DEFAULT_DASH_STROKE))
 
@@ -110,6 +198,30 @@ class DurationDataRendererTest {
     assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries1).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.25)
     // rangeSeries2 isn't updated as the custom LineConfig is not a dash stroke.
     assertThat(durationDataRenderer.getCustomLineConfig(rangeSeries2).adjustedDashPhase).isWithin(EPSILON.toDouble()).of(0.0)
+  }
+
+  @Test
+  fun testGetIcon() {
+    val xRange = Range(0.0, 10.0)
+    val dataSeries = DefaultDataSeries<DurationData>()
+    dataSeries.add(0, DurationData { 0 })
+    val durationData = DurationDataModel(RangedSeries(xRange, dataSeries))
+    val dummyIcon = object : Icon {
+      override fun getIconHeight(): Int = 1
+      override fun getIconWidth(): Int = 1
+      override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
+    }
+    val dummyIcon2 = object : Icon {
+      override fun getIconHeight(): Int = 2
+      override fun getIconWidth(): Int = 2
+      override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) = Unit
+    }
+
+    var durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIcon(dummyIcon).build()
+    assertThat(durationDataRenderer.getIcon(DurationData { 0 })).isEqualTo(dummyIcon)
+
+    durationDataRenderer = DurationDataRenderer.Builder(durationData, Color.BLACK).setIconMapper { _ -> dummyIcon2 }.build()
+    assertThat(durationDataRenderer.getIcon(DurationData { 0 })).isEqualTo(dummyIcon2)
   }
 
   private fun validateRegion(rect: Rectangle2D.Float, xStart: Float, yStart: Float, width: Float, height: Float) {

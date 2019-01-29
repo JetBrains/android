@@ -75,7 +75,7 @@ public class DeviceRenderer {
     }
 
     if (deviceState != IDevice.DeviceState.DISCONNECTED && deviceState != IDevice.DeviceState.OFFLINE) {
-      component.append(DevicePropertyUtil.getBuild(deviceNameProperties.getBuildVersion(), deviceNameProperties.getApiLevel()),
+      component.append(DevicePropertyUtil.getBuild(deviceNameProperties.getBuildVersion(), null, deviceNameProperties.getApiLevel()),
                        SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
   }
@@ -90,7 +90,7 @@ public class DeviceRenderer {
       }
     }
     if (avdName == null) {
-      avdName = "unknown";
+      avdName = d.getSerialNumber();
     }
     return String.format("%1$s %2$s ", AndroidBundle.message("android.emulator"), avdName);
   }

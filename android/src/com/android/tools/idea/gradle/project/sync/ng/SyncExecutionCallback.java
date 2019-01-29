@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.util.ActionCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 class SyncExecutionCallback extends ActionCallback {
-  @Nullable private SyncProjectModels myModels;
+  @Nullable private SyncProjectModels mySyncModels;
+  @Nullable private VariantOnlyProjectModels myVariantOnlyModels;
   @Nullable private Throwable mySyncError;
+  @Nullable private ExternalSystemTaskId myTaskId;
 
   static class Factory {
     @NotNull
@@ -31,12 +35,29 @@ class SyncExecutionCallback extends ActionCallback {
   }
 
   @Nullable
-  SyncProjectModels getModels() {
-    return myModels;
+  public SyncProjectModels getSyncModels() {
+    return mySyncModels;
   }
 
-  void setDone(@Nullable SyncProjectModels models) {
-    myModels = models;
+  @Nullable
+  public VariantOnlyProjectModels getVariantOnlyModels() {
+    return myVariantOnlyModels;
+  }
+
+  @Nullable
+  public ExternalSystemTaskId getTaskId() {
+    return myTaskId;
+  }
+
+  void setDone(@Nullable SyncProjectModels models, @NotNull ExternalSystemTaskId taskId) {
+    mySyncModels = models;
+    myTaskId = taskId;
+    setDone();
+  }
+
+  void setDone(@Nullable VariantOnlyProjectModels models, @NotNull ExternalSystemTaskId taskId) {
+    myVariantOnlyModels = models;
+    myTaskId = taskId;
     setDone();
   }
 

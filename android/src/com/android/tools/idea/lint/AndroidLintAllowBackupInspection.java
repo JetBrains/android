@@ -46,10 +46,10 @@ public class AndroidLintAllowBackupInspection extends AndroidLintInspectionBase 
     }
     else {
       return new AndroidLintQuickFix[]{
-        new SetAttributeQuickFix("Set backup attribute", ATTR_ALLOW_BACKUP, null),
+        new SetAttributeQuickFix("Set backup attribute", null, ATTR_ALLOW_BACKUP, null),
         // The fullBackupContent quick fix should only be visible if the attribute is not set
         // and the allowBackup attribute is set to true.
-        new SetAttributeQuickFix("Set fullBackupContent attribute", ATTR_FULL_BACKUP_CONTENT, null) {
+        new SetAttributeQuickFix("Set fullBackupContent attribute", null, ATTR_FULL_BACKUP_CONTENT, null) {
           @Override
           public boolean isApplicable(@NotNull PsiElement startElement,
                                       @NotNull PsiElement endElement,

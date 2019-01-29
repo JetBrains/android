@@ -17,10 +17,13 @@ package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DeviceId;
+import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.ProfilerTable;
+import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.poller.ProfilerDevicePoller;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Maps;
@@ -29,9 +32,7 @@ import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -41,14 +42,27 @@ import java.util.function.Consumer;
 public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough {
   private final Map<Channel, ProfilerDevicePoller> myPollers = Maps.newHashMap();
   private final Consumer<Runnable> myFetchExecutor;
+  @NotNull private final LogService myLogService;
   private final ProfilerTable myTable;
-  private final DataStoreService myService;
+  @NotNull private final DataStoreService myService;
+  @NotNull private final UnifiedEventsTable myUnifiedEventsTable;
+  // This is a temp map, as we move to channel id this will be removed.
+  private final HashMap<Long, DeviceId> mySessionIdToDevice;
 
   public ProfilerService(@NotNull DataStoreService service,
-                         Consumer<Runnable> fetchExecutor) {
+                         Consumer<Runnable> fetchExecutor,
+                         @NotNull LogService logService) {
     myService = service;
     myFetchExecutor = fetchExecutor;
+    myLogService = logService;
     myTable = new ProfilerTable();
+    myUnifiedEventsTable = new UnifiedEventsTable();
+    mySessionIdToDevice = new HashMap<>();
+  }
+
+  @NotNull
+  private LogService.Logger getLogger() {
+    return myLogService.getLogger(ProfilerService.class);
   }
 
   @Override
@@ -79,7 +93,7 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> observer) {
-    GetDevicesResponse response = myTable.getDevices(request);
+    GetDevicesResponse response = myTable.getDevices();
     observer.onNext(response);
     observer.onCompleted();
   }
@@ -98,11 +112,18 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   }
 
   @Override
-  public void attachAgent(AgentAttachRequest request, StreamObserver<AgentAttachResponse> responseObserver) {
+  public void configureStartupAgent(ConfigureStartupAgentRequest request, StreamObserver<ConfigureStartupAgentResponse> observer) {
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
-      myService.getProfilerClient(DeviceId.fromSession(request.getSession()));
-    responseObserver.onNext(client == null ? AgentAttachResponse.getDefaultInstance() : client.attachAgent(request));
-    responseObserver.onCompleted();
+      myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
+
+    if (client != null) {
+      observer.onNext(client.configureStartupAgent(request));
+    }
+    else {
+      observer.onNext(ConfigureStartupAgentResponse.getDefaultInstance());
+    }
+
+    observer.onCompleted();
   }
 
   @Override
@@ -113,35 +134,70 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     }
     else {
       BeginSessionResponse response = client.beginSession(request);
-      responseObserver.onNext(response);
-
+      getLogger().info("Session (ID " + response.getSession().getSessionId() + ") begins.");
+      mySessionIdToDevice.put(response.getSession().getSessionId(), DeviceId.of(request.getDeviceId()));
       // TODO (b/67508808) re-investigate whether we should use a poller to update the session instead.
       // The downside is we will have a delay before getSessions will see the data
-      myTable.insertOrUpdateSession(response.getSession());
+      myTable.insertOrUpdateSession(response.getSession(),
+                                    request.getSessionName(),
+                                    request.getRequestTimeEpochMs(),
+                                    request.getJvmtiConfig().getAttachAgent(),
+                                    request.getJvmtiConfig().getLiveAllocationEnabled(),
+                                    Common.SessionMetaData.SessionType.FULL);
+      responseObserver.onNext(response);
     }
     responseObserver.onCompleted();
   }
 
   @Override
   public void endSession(EndSessionRequest request, StreamObserver<EndSessionResponse> responseObserver) {
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(DeviceId.of(request.getDeviceId()));
+    getLogger().info("Session (ID " + request.getSessionId() + ") ends.");
+    DeviceId deviceId = DeviceId.of(request.getDeviceId());
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(deviceId);
     if (client == null) {
-      responseObserver.onNext(EndSessionResponse.getDefaultInstance());
+      // In case the device is no longer connected, update the session's end time with the device's last known time.
+      long timeNs = myTable.getDeviceLastKnownTime(deviceId);
+      myTable.updateSessionEndTime(request.getSessionId(), timeNs);
+      Common.Session session = myTable.getSessionById(request.getSessionId());
+      responseObserver.onNext(EndSessionResponse.newBuilder().setSession(session).build());
     }
     else {
       EndSessionResponse response = client.endSession(request);
-      responseObserver.onNext(response);
-
+      Common.Session session = response.getSession();
       // TODO (b/67508808) re-investigate whether we should use a poller to update the session instead.
       // The downside is we will have a delay before getSessions will see the data
-      myTable.insertOrUpdateSession(response.getSession());
+      myTable.updateSessionEndTime(session.getSessionId(), session.getEndTimestamp());
+      responseObserver.onNext(response);
     }
     responseObserver.onCompleted();
   }
 
   @Override
+  public void getSessionMetaData(GetSessionMetaDataRequest request,
+                                 StreamObserver<GetSessionMetaDataResponse> responseObserver) {
+    responseObserver.onNext(myTable.getSessionMetaData(request.getSessionId()));
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void getSessions(GetSessionsRequest request, StreamObserver<GetSessionsResponse> responseObserver) {
-    responseObserver.onNext(myTable.getSessions(request));
+    responseObserver.onNext(myTable.getSessions());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void deleteSession(DeleteSessionRequest request, StreamObserver<DeleteSessionResponse> responseObserver) {
+    // TODO (b\67509712): properly delete all data related to the session.
+    myTable.deleteSession(request.getSessionId());
+    responseObserver.onNext(DeleteSessionResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void importSession(ImportSessionRequest request, StreamObserver<ImportSessionResponse> responseObserver) {
+    myTable.insertOrUpdateSession(request.getSession(), request.getSessionName(), request.getStartTimestampEpochMs(), false, false,
+                                  request.getSessionType());
+    responseObserver.onNext(ImportSessionResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
 
@@ -191,5 +247,32 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
     assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
     myTable.initialize(connection);
+    myUnifiedEventsTable.initialize(connection);
+  }
+
+  @Override
+  public void execute(ExecuteRequest request, StreamObserver<ExecuteResponse> responseObserver) {
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client =
+      myService.getProfilerClient(mySessionIdToDevice.get(request.getCommand().getStreamId()));
+    responseObserver.onNext(client.execute(request));
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getEvents(GetEventsRequest request, StreamObserver<GetEventsResponse> responseObserver) {
+    GetEventsResponse.Builder response = GetEventsResponse.newBuilder();
+    Collection<Event> events = myUnifiedEventsTable.queryUnifiedEvents(request);
+    response.addAllEvents(events);
+    responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getEventGroups(GetEventGroupsRequest request, StreamObserver<GetEventGroupsResponse> responseObserver) {
+    GetEventGroupsResponse.Builder response = GetEventGroupsResponse.newBuilder();
+    Collection<EventGroup> events = myUnifiedEventsTable.queryUnifiedEventGroups(request);
+    response.addAllGroups(events);
+    responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
   }
 }

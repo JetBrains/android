@@ -13,9 +13,12 @@
 // limitations under the License.
 package com.android.tools.idea.resourceExplorer.plugin
 
+import com.android.resources.ResourceType
 import com.android.tools.idea.resourceExplorer.model.DesignAsset
 import com.intellij.openapi.extensions.ExtensionPointName
-import java.awt.Image
+import com.intellij.openapi.vfs.VfsUtil
+import org.jetbrains.android.facet.AndroidFacet
+import java.io.File
 import javax.swing.JPanel
 
 /**
@@ -30,7 +33,7 @@ interface ResourceImporter {
   /**
    * The name of the plugin as it should be shown to the user
    */
-  fun getPresentableName() : String
+  fun getPresentableName(): String
 
   /**
    * Returns a list of the file extensions supported by this plugin.
@@ -46,7 +49,8 @@ interface ResourceImporter {
   /**
    * Return a [JPanel] displaying a interface to configure the importation settings.
    */
-  fun getConfigurationPanel(callback: ConfigurationDoneCallback): JPanel?
+  fun getConfigurationPanel(facet: AndroidFacet,
+                            callback: ConfigurationDoneCallback): JPanel?
 
   /**
    * Returns true if we should let the user configure the qualifiers or if the plugin handles it itself.
@@ -54,14 +58,26 @@ interface ResourceImporter {
   fun userCanEditQualifiers(): Boolean
 
   /**
-   * Return a preview of the result of the importation.
+   * Return the [DesignAssetRenderer] needed to preview the source file of the provided [asset]
    */
-  fun getSourcePreview(asset: DesignAsset): Image?
+  fun getSourcePreview(asset: DesignAsset): DesignAssetRenderer?
 
   /**
-   * Return a preview of the result of the importation.
+   * Return [DesignAssetRenderer] needed to preview the result of the importation.
    */
-  fun getImportPreview(asset: DesignAsset): Image?
+  fun getImportPreview(asset: DesignAsset): DesignAssetRenderer?
+
+  /**
+   * Wrap the provided files into [DesignAsset].
+   *
+   * The default implementation wrap each file if found on disk into a [DesignAsset] of with [ResourceType.RAW] and no qualifiers
+   * Implementing methods can do some processing on the files like converting, or resizing...
+   */
+  fun processFiles(files: List<File>): List<DesignAsset> =
+    files.mapNotNull {
+      val file = VfsUtil.findFileByIoFile(it, true) ?: return@mapNotNull null
+      DesignAsset(file, listOf(), ResourceType.RAW)
+    }
 }
 
 /**

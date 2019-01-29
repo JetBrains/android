@@ -17,13 +17,14 @@ package com.android.tools.idea.naveditor.property.editors;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
+import com.android.tools.adtui.model.stdui.DefaultCommonBorderModel;
+import com.android.tools.adtui.stdui.CommonBorder;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
-import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
 import com.intellij.openapi.command.undo.UndoConstants;
-import com.intellij.openapi.components.ComponentManager;
+import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EditorTextField;
@@ -33,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -45,7 +45,7 @@ public class TextEditor extends BaseComponentEditor {
 
   private final JPanel myPanel;
   private final JLabel myLabel;
-  private final ComponentManager myProject;
+  private final Project myProject;
   private final EditorTextField myTextEditor;
 
   private NlProperty myProperty;
@@ -53,6 +53,7 @@ public class TextEditor extends BaseComponentEditor {
   private Object myLastWriteValue;
 
   public TextEditor(@NotNull Project project,
+                    boolean drawBorder,
                     @NotNull NlEditingListener listener) {
     super(listener);
     myPanel = new AdtSecondaryPanel(new BorderLayout());
@@ -61,26 +62,21 @@ public class TextEditor extends BaseComponentEditor {
     myLabel = new JBLabel();
     myPanel.add(myLabel, BorderLayout.LINE_START);
     myPanel.setFocusable(false);
-    myLabel.setBorder(JBUI.Borders.emptyRight(HORIZONTAL_SPACE_AFTER_LABEL));
+    if (drawBorder) {
+      myLabel.setBorder(JBUI.Borders.emptyRight(HORIZONTAL_SPACE_AFTER_LABEL));
+    }
 
     myProject = project;
 
-    //noinspection UseDPIAwareInsets
-    myTextEditor = new EditorTextField() {
+    myTextEditor = new EditorTextField("", myProject, FileTypes.PLAIN_TEXT) {
         @Override
         public void addNotify() {
           super.addNotify();
           getEditor().getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
-          getEditor().setBorder(new DarculaEditorTextFieldBorder() {
-            @Override
-            public Insets getBorderInsets(Component component) {
-              Insets myEditorInsets = JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
-                                               HORIZONTAL_PADDING,
-                                               VERTICAL_SPACING + VERTICAL_PADDING,
-                                               HORIZONTAL_PADDING);
-              return new InsetsUIResource(myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right);
-            }
-          });
+          if (drawBorder) {
+            getEditor().setBorder(
+              new CommonBorder(1f, new DefaultCommonBorderModel(), JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING, HORIZONTAL_PADDING)));
+          }
         }
 
         @Override
@@ -116,10 +112,6 @@ public class TextEditor extends BaseComponentEditor {
       }
     });
     myProperty = EmptyProperty.INSTANCE;
-  }
-
-  protected EditorTextField getTextEditor() {
-    return myTextEditor;
   }
 
   @NotNull

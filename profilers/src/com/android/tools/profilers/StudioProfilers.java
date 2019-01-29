@@ -17,10 +17,14 @@ package com.android.tools.profilers;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -31,19 +35,27 @@ import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfiler;
 import com.android.tools.profilers.network.NetworkProfilerStage;
+import com.android.tools.profilers.sessions.SessionAspect;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
+import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
 
 /**
  * The suite of profilers inside Android Studio. This object is responsible for maintaining the information
@@ -51,14 +63,12 @@ import java.util.stream.Collectors;
  */
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
 
-  public static final int INVALID_PROCESS_ID = -1;
-
   /**
    * The number of updates per second our simulated object models receive.
    */
   public static final int PROFILERS_UPDATE_RATE = 60;
 
-  private final ProfilerClient myClient;
+  @NotNull private final ProfilerClient myClient;
 
   private final ProfilerTimeline myTimeline;
 
@@ -72,18 +82,33 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   private Map<Common.Device, List<Common.Process>> myProcesses;
 
+  @NotNull private final SessionsManager mySessionsManager;
+
   @Nullable
   private Common.Process myProcess;
 
-  private AgentStatusResponse.Status myAgentStatus;
+  @NotNull
+  private AgentStatusResponse myAgentStatus;
+
+  @Nullable
+  private String myPreferredDeviceName;
 
   @Nullable
   private String myPreferredProcessName;
 
+  private Predicate<Common.Process> myPreferredProcessFilter;
+
   private Common.Device myDevice;
 
-  @NotNull
-  private Common.Session mySessionData;
+  /**
+   * The session that is currently selected.
+   */
+  @NotNull private Common.Session mySelectedSession;
+
+  /**
+   * The session that is currently under profiling.
+   */
+  @NotNull private Common.Session myProfilingSession;
 
   @NotNull
   private Stage myStage;
@@ -94,18 +119,26 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private long myRefreshDevices;
 
-  private boolean myConnected;
+  private final Map<Common.SessionMetaData.SessionType, Runnable> mySessionChangeListener;
 
-  public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
+  /**
+   * Whether the profiler should auto-select a process to profile.
+   */
+  private boolean myAutoProfilingEnabled;
+
+  public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
   }
 
   @VisibleForTesting
-  public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
+  public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
     myClient = client;
     myIdeServices = ideServices;
     myPreferredProcessName = null;
+    myPreferredProcessFilter = null;
     myStage = new NullMonitorStage(this);
+    mySessionsManager = new SessionsManager(this);
+    mySessionChangeListener = new HashMap<>();
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -119,29 +152,55 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     myProfilers = profilersBuilder.build();
 
-    myTimeline = new ProfilerTimeline();
+    myTimeline = new ProfilerTimeline(myUpdater);
+
+    myProcesses = Maps.newHashMap();
+    myDevice = null;
+    myProcess = null;
+
+    // TODO: StudioProfilers initalizes with a default session, which a lot of tests now relies on to avoid a NPE.
+    // We should clean all the tests up to either have StudioProfilers create a proper session first or handle the null cases better.
+    mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
+    myAgentStatus = AgentStatusResponse.getDefaultInstance();
+
     myTimeline.getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
       if (!myTimeline.getSelectionRange().isEmpty()) {
         myTimeline.setStreaming(false);
       }
     });
 
-    myProcesses = Maps.newHashMap();
-    myConnected = false;
-    myDevice = null;
-    myProcess = null;
-    // TODO: StudioProfilers initalizes with a default session, which a lot of tests now relies on to avoid a NPE.
-    // We should clean all the tests up to either have StudioProfilers create a proper session first or handle the null cases better.
-    mySessionData = Common.Session.getDefaultInstance();
+    registerSessionChangeListener(Common.SessionMetaData.SessionType.FULL, () -> {
+      setStage(new StudioMonitorStage(this));
+      if (SessionsManager.isSessionAlive(mySelectedSession)) {
+        // The session is live - move the timeline to the current time.
+        TimeResponse timeResponse = myClient.getProfilerClient()
+                                            .getCurrentTime(
+                                              TimeRequest.newBuilder().setDeviceId(mySelectedSession.getDeviceId()).build());
 
-    myViewAxis = new AxisComponentModel(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT);
-    myViewAxis.setGlobalRange(myTimeline.getDataRange());
+        myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
+        if (startupCpuProfilingStarted()) {
+          setStage(new CpuProfilerStage(this));
+        }
+      }
+      else {
+        // The session is finished, reset the timeline to include the entire data range.
+        myTimeline.reset(mySelectedSession.getStartTimestamp(), mySelectedSession.getEndTimestamp());
+        // Disable data range update and stream/snap features.
+        myTimeline.setIsPaused(true);
+        myTimeline.setStreaming(false);
+        myTimeline.getViewRange().set(mySessionsManager.getSessionPreferredViewRange(mySelectedSession));
+      }
+    });
 
-    myUpdater.register(myTimeline);
-    myUpdater.register(myViewAxis);
+    mySessionsManager.addDependency(this)
+                     .onChange(SessionAspect.SELECTED_SESSION, this::selectedSessionChanged)
+                     .onChange(SessionAspect.PROFILING_SESSION, this::profilingSessionChanged);
+
+    myViewAxis = new ResizingAxisComponentModel.Builder(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT)
+      .setGlobalRange(myTimeline.getDataRange()).build();
+
     myUpdater.register(this);
   }
-
 
   public boolean isStopped() {
     return !myUpdater.isRunning();
@@ -164,17 +223,58 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     changed(ProfilerAspect.STAGE);
   }
 
+  public Map<Common.Device, List<Common.Process>> getDeviceProcessMap() {
+    return myProcesses;
+  }
+
   public List<Common.Device> getDevices() {
     return Lists.newArrayList(myProcesses.keySet());
   }
 
   /**
-   * Tells the profiler to select and profile the process of the same name next time it is detected.
+   * Tells the profiler to select and profile the device+process combo of the same name next time it is detected.
+   *
+   * @param processFilter Additional filter used for choosing the most desirable preferred process. e.g. Process of a particular pid,
+   *                      or process that starts after a certain time.
    */
-  public void setPreferredProcessName(@Nullable String name) {
-    myPreferredProcessName = name;
-    // Checks whether we can switch immediately if the process is already there.
-    setProcess(null);
+  public void setPreferredProcess(@Nullable String deviceName,
+                                  @NotNull String processName,
+                                  @Nullable Predicate<Common.Process> processFilter) {
+    myPreferredDeviceName = deviceName;
+    setPreferredProcessName(processName);
+    myPreferredProcessFilter = processFilter;
+    // Checks whether we can switch immediately if the device is already there.
+    setAutoProfilingEnabled(true);
+
+    changed(ProfilerAspect.PREFERRED_PROCESS);
+  }
+
+  public void setPreferredProcessName(@Nullable String processName) {
+    myPreferredProcessName = processName;
+  }
+
+  @Nullable
+  public String getPreferredProcessName() {
+    return myPreferredProcessName;
+  }
+
+  /**
+   * Enable/disable auto device+process selection, which looks for the preferred device + process combination and starts profiling. If no
+   * preference has been set (via {@link #setPreferredProcess(String, String)}, then we profiling any online device+process
+   * combo.
+   */
+  public void setAutoProfilingEnabled(boolean enabled) {
+    myAutoProfilingEnabled = enabled;
+
+    if (myAutoProfilingEnabled) {
+      setDevice(findPreferredDevice());
+      setProcess(null);
+    }
+  }
+
+  @TestOnly
+  public boolean getAutoProfilingEnabled() {
+    return myAutoProfilingEnabled;
   }
 
   @Override
@@ -187,11 +287,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     try {
       GetDevicesResponse response = myClient.getProfilerClient().getDevices(GetDevicesRequest.getDefaultInstance());
-      if (!myConnected) {
-        this.changed(ProfilerAspect.CONNECTION);
-      }
-
-      myConnected = true;
       Set<Common.Device> devices = new HashSet<>(response.getDeviceList());
       Map<Common.Device, List<Common.Process>> newProcesses = new HashMap<>();
       for (Common.Device device : devices) {
@@ -200,10 +295,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
         int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
         List<Common.Process> processList = processes.getProcessList()
-          .stream()
-          .filter(process -> process.getState() == Common.Process.State.ALIVE ||
-                             process.getPid() == lastProcessId)
-          .collect(Collectors.toList());
+                                                    .stream()
+                                                    .filter(process -> process.getState() == Common.Process.State.ALIVE ||
+                                                                       process.getPid() == lastProcessId)
+                                                    .collect(Collectors.toList());
 
         newProcesses.put(device, processList);
       }
@@ -219,16 +314,19 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         changed(ProfilerAspect.PROCESSES);
       }
 
+      mySessionsManager.update();
+
       // A heartbeat event may not have been sent by perfa when we first profile an app, here we keep pinging the status and
       // fire the corresponding change and tracking events.
-      if (myProcess != null) {
-        AgentStatusResponse.Status agentStatus = getAgentStatus();
-        if (myAgentStatus != agentStatus) {
-          myAgentStatus = agentStatus;
-          changed(ProfilerAspect.AGENT);
-          if (isProcessAlive() && myAgentStatus == AgentStatusResponse.Status.ATTACHED) {
+      if (SessionsManager.isSessionAlive(mySelectedSession)) {
+        AgentStatusResponse agentStatus = getAgentStatus(mySelectedSession);
+        if (!myAgentStatus.equals(agentStatus)) {
+          if (myAgentStatus.getStatus() != AgentStatusResponse.Status.ATTACHED &&
+              agentStatus.getStatus() == AgentStatusResponse.Status.ATTACHED) {
             getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
           }
+          myAgentStatus = agentStatus;
+          changed(ProfilerAspect.AGENT);
         }
       }
     }
@@ -238,73 +336,61 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // the exception gets thrown due to startMonitor being called on a service the test didn't setup, this seems like an
       // unintentional side effect of the state of the test that sets this class up properly, if we handle the exception elsewhere
       // the test will fail as a different service will run and an UNIMPLEMENTED exception will be thrown.
-      myConnected = false;
-      this.changed(ProfilerAspect.CONNECTION);
       System.err.println("Cannot find profiler service, retrying...");
     }
   }
 
   /**
-   * Finds and returns the preferred devices depending on the current state of the devices connected and their processes.
-   * If the currently selected device is ONLINE and has alive processes that can be profiled, it should remain selected.
-   * Online devices (first the ones with alive processes that can profiled) have preference over disconnected/offline ones.
-   * Finally, currently selected device (in case its state has changed) has preference over others.
+   * Finds and returns the preferred device if there is an online device with a matching name. Otherwise, we attempt to maintain the
+   * currently selected device. Otherwise if no preferred device is specified, return any device that has live processes in it.
    */
   @Nullable
   private Common.Device findPreferredDevice() {
-    if (myDevice != null && myDevice.getState().equals(Common.Device.State.ONLINE) && deviceHasAliveProcesses(myDevice)) {
-      // Current selected device is online and has alive processes that can be profiled. We don't need to change it.
-      return myDevice;
-    }
-
     Set<Common.Device> devices = myProcesses.keySet();
     Set<Common.Device> onlineDevices =
       devices.stream().filter(device -> device.getState().equals(Common.Device.State.ONLINE)).collect(Collectors.toSet());
-    if (!onlineDevices.isEmpty()) {
-      // There are online devices. First try to find a device with alive processes that can be profiled.
-      // If cant't find one, return any online device.
-      Common.Device anyOnlineDevice = onlineDevices.iterator().next();
-      return onlineDevices.stream().filter(this::deviceHasAliveProcesses).findAny().orElse(anyOnlineDevice);
-    }
 
-    // In case the currently selected device state has changed, it will be represented as a new Common.Device object.
-    // Therefore, try to find a device with same serial as the selected one. If can't find it, return any device.
-    Common.Device anyDevice = devices.isEmpty() ? null : devices.iterator().next();
-    return myDevice == null ? anyDevice :
-           devices.stream().filter(device -> device.getSerial().equals(myDevice.getSerial())).findAny().orElse(anyDevice);
-  }
-
-  private boolean deviceHasAliveProcesses(@NotNull Common.Device device) {
-    List<Common.Process> deviceProcesses = myProcesses.get(device);
-    if (deviceProcesses == null) {
-      return false;
-    }
-    for (Common.Process process : deviceProcesses) {
-      if (process.getState().equals(Common.Process.State.ALIVE)) {
-        return true;
+    // We have a preferred device, try not to select anything else.
+    if (myAutoProfilingEnabled && myPreferredDeviceName != null) {
+      for (Common.Device device : onlineDevices) {
+        if (myPreferredDeviceName.equals(buildDeviceName(device))) {
+          return device;
+        }
       }
     }
-    return false;
+
+    // Next, prefer the device currently used.
+    if (myDevice != null) {
+      for (Common.Device device : devices) {
+        if (myDevice.getDeviceId() == device.getDeviceId()) {
+          return device;
+        }
+      }
+    }
+
+    return null;
   }
 
   /**
-   * Chooses the given device. If the device is not known or null, the first available one will be chosen instead.
+   * Chooses the given device.
    */
-  public void setDevice(Common.Device device) {
+  public void setDevice(@Nullable Common.Device device) {
+    if (device != null) {
+      // Device can be not null in the following scenarios:
+      // 1. User explicitly sets a device from the dropdown.
+      // 2. The update loop has found the preferred device, in which case it will stay selected until the user selects something else.
+      // 3. There was no preferred device and the update loop found a device with live processes.
+      // All of these cases mean that we can unset the preferred device.
+      myPreferredDeviceName = null;
+    }
+
     if (!Objects.equals(device, myDevice)) {
       // The device has changed and we need to reset the process.
-      // First, stop profiling the current process on the previous device.
-      if (myDevice != null && myProcess != null &&
-          myDevice.getDeviceId() == myProcess.getDeviceId() &&
-          myDevice.getState() == Common.Device.State.ONLINE &&
-          myProcess.getState() == Common.Process.State.ALIVE) {
-        endSession();
-      }
-
-      mySessionData = Common.Session.getDefaultInstance();
-
+      // First, end the current session on the previous device.
+      mySessionsManager.endCurrentSession();
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
+      myIdeServices.getFeatureTracker().trackChangeDevice(myDevice);
 
       // Then set a new process.
       setProcess(null);
@@ -316,8 +402,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Chooses a process, and starts profiling it if not already (and stops profiling the previous
-   * one).
+   * Chooses a process, and starts profiling it if not already (and stops profiling the previous one).
    *
    * @param process the process that will be selected. If it is null, a process will be determined
    *                automatically by heuristics.
@@ -326,141 +411,156 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     List<Common.Process> processes = myProcesses.get(myDevice);
     if (process == null || processes == null || !processes.contains(process)) {
       process = getPreferredProcess(processes);
-    } else {
+    }
+    else {
       // The user wants to select a different process explicitly.
       // If the user intentionally selects something else, the profiler should not switch
       // back to the preferred process in any cases.
-      myPreferredProcessName = null;
+      setAutoProfilingEnabled(false);
     }
 
-    if (!Objects.equals(process, myProcess)) {
-      if (myDevice != null && myProcess != null &&
-          myDevice.getState() == Common.Device.State.ONLINE &&
-          // Avoids calling endSession() on a previous process if the device has already changed.
-          // In those cases, endSession() should have already been called during setDevice.
-          myDevice.getDeviceId() == myProcess.getDeviceId() &&
-          myProcess.getState() == Common.Process.State.ALIVE) {
-        endSession();
-      }
+    // Even if the process stays as null, the selected session could be changed.
+    // e.g. When the user stops a profiling session (session remains selected, but device + process are set to null). Then, when the user
+    // switches to a different device without processes (new process == null), SessionsManager need to reset the session to default.
+    // TODO(b/77649021): This is an edge case only for pre-sessions workflow.
+    if (process == null || !Objects.equals(process, myProcess)) {
+      // First make sure to end the previous session.
+      mySessionsManager.endCurrentSession();
 
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
-      myAgentStatus = getAgentStatus();
-      if (myDevice != null && myProcess != null &&
-          myDevice.getState() == Common.Device.State.ONLINE &&
-          myProcess.getState() == Common.Process.State.ALIVE) {
-        // Starts a new session.
-        beginSession();
+      myIdeServices.getFeatureTracker().trackChangeProcess(myProcess);
 
-        TimeResponse response =
-          myClient.getProfilerClient().getCurrentTime(TimeRequest.newBuilder().setDeviceId(myDevice.getDeviceId()).build());
-        long sessionRunTime = response.getTimestampNs() - mySessionData.getStartTimestamp();
-        myTimeline.reset(mySessionData.getStartTimestamp(), sessionRunTime);
-
-        // Attach agent for advanced profiling if JVMTI is enabled and not yet attached.
-        if (myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
-            myIdeServices.getFeatureConfig().isJvmtiAgentEnabled()) {
-          // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
-          // of re-attaching an agent. See ProfilerService::AttachAgent on the Perfd side for more details.
-          myClient.getProfilerClient()
-            .attachAgent(AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid())
-                           .setAgentLibFileName(String.format("libperfa_%s.so", myProcess.getAbiCpuArch())).build());
-        }
-
-        myIdeServices.getFeatureTracker().trackProfilingStarted();
-        if (myAgentStatus == AgentStatusResponse.Status.ATTACHED) {
-          getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
-        }
+      // In the case the device becomes null, keeps the previously stopped session.
+      // This happens when the user explicitly stops an ongoing session or the profiler.
+      if (myDevice != null) {
+        mySessionsManager.beginSession(myDevice, myProcess);
       }
-      else {
-        myTimeline.setIsPaused(true);
-
-        if (myDevice != null && myProcess != null) {
-          // The process is dead, find the previous session that was associated with the device and process.
-          GetSessionsResponse sessionsResponse = myClient.getProfilerClient().getSessions(GetSessionsRequest.getDefaultInstance());
-          // Sessions are sorted based on start time, reverse the traversal to find the most recent one.
-          for (int i = sessionsResponse.getSessionsCount() - 1; i >= 0; i--) {
-            Common.Session session = sessionsResponse.getSessions(i);
-            if (session.getDeviceId() == myDevice.getDeviceId() && session.getPid() == myProcess.getPid()) {
-              mySessionData = session;
-              break;
-            }
-          }
-        }
-      }
-
-      if (myProcess == null) {
-        setStage(new NullMonitorStage(this));
-      }
-      else if (myProcess.getState() == Common.Process.State.ALIVE) {
-        setStage(new StudioMonitorStage(this));
-      }
-
-      // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the session
-      // is properly assigned before firing this aspect change.
-      changed(ProfilerAspect.AGENT);
     }
   }
 
-  private void beginSession() {
-    assert myDevice != null && myProcess != null;
-    BeginSessionResponse response =
-      myClient.getProfilerClient().beginSession(BeginSessionRequest.newBuilder()
-                                                  .setDeviceId(myDevice.getDeviceId())
-                                                  .setProcessId(myProcess.getPid())
-                                                  .build());
-    mySessionData = response.getSession();
-    myProfilers.forEach(profiler -> profiler.startProfiling(mySessionData, myProcess));
+  /**
+   * Register the listener to set proper stage when a new session is selected.
+   *
+   * @param sessionType type of the new session.
+   * @param listener    listener to register.
+   */
+  public void registerSessionChangeListener(Common.SessionMetaData.SessionType sessionType, Runnable listener) {
+    mySessionChangeListener.put(sessionType, listener);
   }
 
-  private void endSession() {
-    EndSessionResponse response = myClient.getProfilerClient().endSession(EndSessionRequest.newBuilder()
-                                                                            .setDeviceId(myDevice.getDeviceId())
-                                                                            .setSessionId(mySessionData.getSessionId())
-                                                                            .build());
-    myProfilers.forEach(profiler -> profiler.stopProfiling(response.getSession(), myProcess));
-    mySessionData = Common.Session.getDefaultInstance();
+  private void selectedSessionChanged() {
+    Common.Session newSession = mySessionsManager.getSelectedSession();
+
+    // The current selected session has not changed but it has gone from live to finished, simply pause the timeline.
+    if (mySelectedSession.getSessionId() == newSession.getSessionId() &&
+        SessionsManager.isSessionAlive(mySelectedSession) && !SessionsManager.isSessionAlive(newSession)) {
+      mySelectedSession = newSession;
+      myTimeline.setIsPaused(true);
+      return;
+    }
+
+    mySelectedSession = newSession;
+    myAgentStatus = getAgentStatus(mySelectedSession);
+    if (Common.Session.getDefaultInstance().equals(newSession)) {
+      // No selected session - go to the null stage.
+      myTimeline.setIsPaused(true);
+      setStage(new NullMonitorStage(this));
+      return;
+    }
+
+    // Set the stage base on session type
+    Common.SessionMetaData.SessionType sessionType = mySessionsManager.getSelectedSessionMetaData().getType();
+    assert mySessionChangeListener.containsKey(sessionType);
+    mySessionChangeListener.get(sessionType).run();
+
+    // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the
+    // session is properly assigned before firing this aspect change.
+    changed(ProfilerAspect.AGENT);
+  }
+
+  private void profilingSessionChanged() {
+    Common.Session newSession = mySessionsManager.getProfilingSession();
+    // Stops the previous profiling session if it is active
+    if (!Common.Session.getDefaultInstance().equals(myProfilingSession)) {
+      assert SessionsManager.isSessionAlive(myProfilingSession);
+      myProfilers.forEach(profiler -> profiler.stopProfiling(myProfilingSession));
+    }
+
+    myProfilingSession = newSession;
+
+    if (!Common.Session.getDefaultInstance().equals(myProfilingSession)) {
+      assert SessionsManager.isSessionAlive(myProfilingSession);
+      myProfilers.forEach(profiler -> profiler.startProfiling(myProfilingSession));
+      myIdeServices.getFeatureTracker().trackProfilingStarted();
+      if (getAgentStatus(myProfilingSession).getStatus() == AgentStatusResponse.Status.ATTACHED) {
+        getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
+      }
+    }
   }
 
   /**
-   * Chooses a process among all potential candidates starting from the project's app process,
-   * and then the one previously used. If no candidate is available, return the first available
-   * process.
+   * Checks whether startup CPU Profiling started for the selected session by making RPC call to perfd.
+   */
+  private boolean startupCpuProfilingStarted() {
+    if (!getIdeServices().getFeatureConfig().isStartupCpuProfilingEnabled()) {
+      return false;
+    }
+
+    ProfilingStateResponse response = getClient().getCpuClient()
+                                                 .checkAppProfilingState(
+                                                   ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
+
+    return response.getBeingProfiled() && response.getIsStartupProfiling();
+  }
+
+  /**
+   * Chooses a process among all potential candidates starting from the project's app process, and then the one previously used. If no
+   * candidate is available and no preferred process has been configured, select the first available process.
    */
   @Nullable
   private Common.Process getPreferredProcess(List<Common.Process> processes) {
     if (processes == null || processes.isEmpty()) {
       return null;
     }
+
     // Prefer the project's app if available.
-    if (myPreferredProcessName != null) {
+    if (myAutoProfilingEnabled && myPreferredProcessName != null) {
       for (Common.Process process : processes) {
-        if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE) {
+        if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE &&
+            (myPreferredProcessFilter == null || myPreferredProcessFilter.test(process))) {
           return process;
         }
       }
     }
+
     // Next, prefer the one previously used, either selected by user or automatically (even if the process has switched states)
     if (myProcess != null) {
       for (Common.Process process : processes) {
-        if (isSameProcess(myProcess, process)) {
+        if (isSameProcess(myProcess, process) &&
+            // The profilers only keep the same process under the following scenarios:
+            // 1. The process's states have not changed
+            // 2. The process went from alive to dead. (e.g. the process is killed, the device is disconnected)
+            // If a identical process goes from dead to alive, it is most likely due to a device being reconnected, or an emulator snapshot
+            // being booted with a previously running process. We don't want to select and profiler that process in those cases.
+            (myProcess.getState() == process.getState() ||
+             (myProcess.getState() == Common.Process.State.ALIVE && process.getState() == Common.Process.State.DEAD))) {
           return process;
         }
       }
     }
-    // No preferred candidate. Choose a new process.
-    return processes.get(0);
+
+    return null;
   }
 
   @NotNull
-  private AgentStatusResponse.Status getAgentStatus() {
-    if (myDevice == null || myProcess == null) {
-      return AgentStatusResponse.getDefaultInstance().getStatus();
+  private AgentStatusResponse getAgentStatus(@NotNull Common.Session session) {
+    if (Common.Session.getDefaultInstance().equals(session)) {
+      return AgentStatusResponse.getDefaultInstance();
     }
 
-    AgentStatusRequest statusRequest =
-      AgentStatusRequest.newBuilder().setProcessId(myProcess.getPid()).setDeviceId(myDevice.getDeviceId()).build();
-    return myClient.getProfilerClient().getAgentStatus(statusRequest).getStatus();
+    AgentStatusRequest statusRequest = AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getDeviceId()).build();
+    return myClient.getProfilerClient().getAgentStatus(statusRequest);
   }
 
   /**
@@ -471,7 +571,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private static boolean isSameProcess(@Nullable Common.Process process1, @Nullable Common.Process process2) {
     return process1 != null &&
            process2 != null &&
-           process1.getPid() == process2.getPid() && process1.getName().equals(process2.getName());
+           process1.getPid() == process2.getPid() && process1.getName().equals(process2.getName()) &&
+           // pid and name are not enough, because emulator snapshot could try to restore previous pid of the app.
+           process1.getStartTimestampNs() == process2.getStartTimestampNs();
   }
 
   public List<Common.Process> getProcesses() {
@@ -484,23 +586,48 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myStage;
   }
 
+  @NotNull
   public ProfilerClient getClient() {
     return myClient;
   }
 
-  public int getProcessId() {
-    return myProcess != null ? myProcess.getPid() : INVALID_PROCESS_ID;
+  @NotNull
+  public SessionsManager getSessionsManager() {
+    return mySessionsManager;
   }
 
+  /**
+   * @return the active session, otherwise {@link Common.Session#getDefaultInstance()} if no session is currently being profiled.
+   */
   @NotNull
   public Common.Session getSession() {
-    return mySessionData;
+    return mySelectedSession;
+  }
+
+  /**
+   * Return the selected app's package name if present, otherwise returns empty string.
+   * <p>
+   * <p>TODO (78597376): Clean up the method to make it reusable.</p>
+   */
+  @NotNull
+  public String getSelectedAppName() {
+    String name = "";
+    if (!getSession().equals(Common.Session.getDefaultInstance())) {
+      name = mySessionsManager.getSelectedSessionMetaData().getSessionName();
+    }
+    else if (myProcess != null) {
+      name = myProcess.getName();
+    }
+    // The selected profiling name could be android.com.test (Google Pixel), remove the phone name.
+    String[] nameSplit = name.split(" \\(", 2);
+    return nameSplit.length > 0 ? nameSplit[0] : "";
   }
 
   public void setStage(@NotNull Stage stage) {
     myStage.exit();
     getTimeline().getSelectionRange().clear();
     myStage = stage;
+    myStage.getStudioProfilers().getUpdater().reset();
     myStage.enter();
     this.changed(ProfilerAspect.STAGE);
   }
@@ -510,25 +637,23 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myTimeline;
   }
 
+  @Nullable
   public Common.Device getDevice() {
     return myDevice;
   }
 
+  @Nullable
   public Common.Process getProcess() {
     return myProcess;
   }
 
-  public boolean isProcessAlive() {
-    return myProcess != null && myProcess.getState() == Common.Process.State.ALIVE;
-  }
-
-  public boolean isLiveAllocationEnabled() {
-    return getIdeServices().getFeatureConfig().isLiveAllocationsEnabled() && getDevice() != null &&
-           getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O && isAgentAttached();
-  }
-
   public boolean isAgentAttached() {
-    return myAgentStatus == AgentStatusResponse.Status.ATTACHED;
+    return myAgentStatus.getStatus() == AgentStatusResponse.Status.ATTACHED;
+  }
+
+  @NotNull
+  public AgentStatusResponse getAgentStatus() {
+    return myAgentStatus;
   }
 
   public List<StudioProfiler> getProfilers() {
@@ -565,7 +690,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     listBuilder.add(CpuProfilerStage.class);
     listBuilder.add(MemoryProfilerStage.class);
     listBuilder.add(NetworkProfilerStage.class);
-    if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled()) {
+    // Show the energy stage in the list only when the session has JVMTI enabled or the device is above O.
+    boolean hasSession = mySelectedSession.getSessionId() != 0;
+    boolean isEnergyStageEnabled = hasSession ? mySessionsManager.getSelectedSessionMetaData().getJvmtiEnabled()
+                                              : myDevice != null && myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
+    if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled() && isEnergyStageEnabled) {
       listBuilder.add(EnergyProfilerStage.class);
     }
     return listBuilder.build();
@@ -586,5 +715,55 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
       // will not happen
     }
+  }
+
+  @NotNull
+  public static String buildSessionName(@NotNull Common.Device device, @NotNull Common.Process process) {
+    return String.format("%s (%s)", process.getName(), buildDeviceName(device));
+  }
+
+  /**
+   * Enable or disable Memory Profiler live allocation tracking to improve app performance.
+   *
+   * @param enabled True to enable live allocation, false to disable.
+   */
+  public void setMemoryLiveAllocationEnabled(boolean enabled) {
+    if (getIdeServices().getFeatureConfig().isLiveAllocationsSamplingEnabled() &&
+        getDevice() != null && getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O) {
+      int savedSamplingRate = getIdeServices().getPersistentProfilerPreferences().getInt(
+        MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF, MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
+      int samplingRateOff = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
+      // If live allocation is already disabled, don't send any request.
+      if (savedSamplingRate != samplingRateOff) {
+        getClient().getMemoryClient().setAllocationSamplingRate(
+          SetAllocationSamplingRateRequest
+            .newBuilder()
+            .setSession(getSession())
+            .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(enabled ? savedSamplingRate : samplingRateOff))
+            .build());
+      }
+    }
+  }
+
+  /**
+   * Mirrors AndroidProfilerToolWindow#getDeviceDisplayName but works with a {@link Common.Device}.
+   */
+  @NotNull
+  public static String buildDeviceName(@NotNull Common.Device device) {
+    StringBuilder deviceNameBuilder = new StringBuilder();
+    String manufacturer = device.getManufacturer();
+    String model = device.getModel();
+    String serial = device.getSerial();
+    String suffix = String.format("-%s", serial);
+    if (model.endsWith(suffix)) {
+      model = model.substring(0, model.length() - suffix.length());
+    }
+    if (!StringUtil.isEmpty(manufacturer)) {
+      deviceNameBuilder.append(manufacturer);
+      deviceNameBuilder.append(" ");
+    }
+    deviceNameBuilder.append(model);
+
+    return deviceNameBuilder.toString();
   }
 }

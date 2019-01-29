@@ -62,6 +62,11 @@ public class AndroidJava8ListSortInspectionTest extends AndroidInspectionTestCas
   @Nullable
   @Override
   protected InspectionProfileEntry getInspection() {
-    return new Java8ListSortInspection();
+    return new Java8ListSortInspection() {
+      @Override
+      public String getDisplayName() {
+        return "Collections.sort() can be replaced with List.sort()";
+      }
+    };
   }
 }

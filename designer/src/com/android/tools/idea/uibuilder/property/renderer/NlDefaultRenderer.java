@@ -17,30 +17,28 @@ package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.AndroidColorAnnotator;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.AndroidAnnotatorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.Set;
 
 public class NlDefaultRenderer extends NlAttributeRenderer {
@@ -116,21 +114,21 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   @Nullable
   private static Icon getDrawableIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value) {
     ResourceType type = value.startsWith(SdkConstants.MIPMAP_PREFIX) ? ResourceType.MIPMAP : ResourceType.DRAWABLE;
-    ResourceValue drawable = resolver.resolveResValue(new ResourceValue(ResourceUrl.create(type, property.getName(), false), value));
+    ResourceValue drawable = resolver.resolveResValue(
+        new ResourceValueImpl(new ResourceReference(ResourceNamespace.TODO(), type, property.getName()), value));
     if (drawable == null) {
       return null;
     }
 
-    File file = AndroidColorAnnotator.pickBestBitmap(ResourceHelper.resolveDrawable(resolver, drawable, property.getModel().getProject()));
-    return file == null ? null : GutterIconCache.getInstance().getIcon(file.getPath(), resolver);
+    VirtualFile bitmap = ResourceHelper.resolveDrawable(resolver, drawable, property.getModel().getProject());
+    bitmap = AndroidAnnotatorUtil.pickBestBitmap(bitmap);
+    return bitmap == null ? null : GutterIconCache.getInstance().getIcon(bitmap.getPath(), resolver);
   }
 
   @Nullable
   private static Icon getColorIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value, int iconSize) {
-    ResourceValue resourceValue = resolver.resolveResValue(new ResourceValue(ResourceUrl.create(ResourceType.COLOR,
-                                                                                                property.getName(),
-                                                                                                false),
-                                                                             value));
+    ResourceValue resourceValue = resolver.resolveResValue(
+        new ResourceValueImpl(new ResourceReference(ResourceNamespace.TODO(), ResourceType.COLOR, property.getName()), value));
     if (resourceValue == null) {
       return null;
     }

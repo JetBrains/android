@@ -18,9 +18,37 @@ package com.android.tools.idea.naveditor.scene.layout;
 import com.android.tools.idea.common.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 /**
  * A mechanism for layout out screens in the navigation editor.
  */
 public interface NavSceneLayoutAlgorithm {
-  void layout(@NotNull SceneComponent component);
+  /**
+   * @param components The components to try to position
+   * @return The destinations that were not positioned
+   */
+  @NotNull
+  List<SceneComponent> layout(@NotNull List<SceneComponent> components);
+
+  /**
+   * @return true if this algorithm can persist components' positions
+   */
+  default boolean canSave() {
+    return false;
+  }
+
+  /**
+   * Persist the component's position.
+   */
+  default void save(@NotNull SceneComponent component) {
+    throw new UnsupportedOperationException();
+  }
+
+  default void restorePositionData(@NotNull List<String> path, @NotNull Object position) {
+    throw new UnsupportedOperationException();
+  }
+  default Object getPositionData(@NotNull SceneComponent component) {
+    throw new UnsupportedOperationException();
+  }
 }

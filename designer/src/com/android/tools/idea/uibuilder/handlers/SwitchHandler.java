@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -46,6 +49,12 @@ public class SwitchHandler extends ButtonHandler {
   @Override
   @NotNull
   public List<String> getBaseStyles(@NotNull String tagName) {
-    return ImmutableList.of("Widget.CompoundButton." + tagName);
+    return ImmutableList.of(PREFIX_ANDROID + "Widget.CompoundButton." + tagName);
+  }
+
+  @NotNull
+  @Override
+  public Icon getIcon(@NotNull NlComponent component) {
+    return StudioIcons.LayoutEditor.Menu.SWITCH;
   }
 }

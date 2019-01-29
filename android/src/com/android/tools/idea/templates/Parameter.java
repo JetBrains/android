@@ -17,15 +17,13 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.npw.assetstudio.AssetStudioUtils;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.res.ResourceFolderRegistry;
-import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.idea.res.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -516,8 +514,8 @@ public final class Parameter {
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
-      return repository.hasResourceItem(resourceType, name);
+      LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(facet);
+      return repository.hasResources(ResourceNamespace.TODO(), resourceType, name);
     }
     return false;
   }
@@ -537,8 +535,9 @@ public final class Parameter {
       if (facet != null) {
         VirtualFile virtualResDir = VfsUtil.findFileByIoFile(resDir, false);
         if (virtualResDir != null) {
-          ResourceFolderRepository folderRepository = ResourceFolderRegistry.get(facet, virtualResDir);
-          List<ResourceItem> resourceItemList = folderRepository.getResourceItem(resourceType, name);
+          ResourceFolderRepository folderRepository = ResourceFolderRegistry.getInstance(facet.getModule().getProject())
+                                                                            .get(facet, virtualResDir);
+          List<ResourceItem> resourceItemList = folderRepository.getResources(ResourceNamespace.TODO(), resourceType, name);
           if (resourceItemList != null && !resourceItemList.isEmpty()) {
             return true;
           }

@@ -16,14 +16,14 @@
 package com.android.tools.profilers;
 
 public enum ProfilerAspect {
-  // The connection between the profilers and the datastore has changed.
-  CONNECTION,
   // The current stage of the profiler tools has changed
   STAGE,
   // The set of processes has changed.
   PROCESSES,
   // The overall set of devices and/or processes seen by the datastore has changed.
   DEVICES,
+  // The profile's preferred process has changed.
+  PREFERRED_PROCESS,
   // The profiler desired mode has changed
   MODE,
   // The agent attach state has changed

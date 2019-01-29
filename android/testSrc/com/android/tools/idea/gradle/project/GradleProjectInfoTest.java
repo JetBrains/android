@@ -27,7 +27,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -40,7 +39,6 @@ import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.mockito.Mockito.*;
 
 /**
@@ -55,12 +53,8 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     myProjectInfo = GradleProjectInfo.getInstance(getProject());
   }
 
-  public void testHasTopLevelGradleBuildFileUsingGradleProject() {
-    File projectFolderPath = getBaseDirPath(getProject());
-    File buildFilePath = new File(projectFolderPath, "build.gradle");
-    assertTrue("Failed to create top-level build.gradle file", createIfNotExists(buildFilePath));
-    VfsUtil.findFileByIoFile(buildFilePath, true);
-
+  public void testHasTopLevelGradleBuildFileUsingGradleProject() throws Exception {
+    createFileInProjectRoot(getProject(), "build.gradle");
     assertTrue(myProjectInfo.hasTopLevelGradleBuildFile());
   }
 
@@ -135,6 +129,14 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     assertEmpty(myProjectInfo.getAndroidModules());
   }
 
+  public void testHasGradleFacets() {
+    createAndAddGradleFacet(getModule());
+    assertTrue(myProjectInfo.hasGradleFacets());
+
+    removeGradleFacetFromModule();
+    assertFalse(myProjectInfo.hasGradleFacets());
+  }
+
   private void removeGradleFacetFromModule() {
     FacetManager facetManager = FacetManager.getInstance(getModule());
     GradleFacet facet = facetManager.findFacet(GradleFacet.getFacetTypeId(), GradleFacet.getFacetName());
@@ -152,7 +154,7 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     when(summary.getSyncTimestamp()).thenReturn(timestamp);
 
     GradleSyncState syncState = mock(GradleSyncState.class);
-    IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
+    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
     when(syncState.getSummary()).thenReturn(summary);
   }
 
@@ -161,7 +163,7 @@ public class GradleProjectInfoTest extends IdeaTestCase {
     AndroidFacet facet = createAndAddAndroidFacet(module);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    facet.setAndroidModel(androidModel);
+    facet.getConfiguration().setModel(androidModel);
 
     ProjectFileIndex projectFileIndex = mock(ProjectFileIndex.class);
     Project project = getProject();

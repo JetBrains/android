@@ -2,11 +2,6 @@
 
 buildscript {
     repositories {
-        google()
-        jcenter()
-        maven{
-            url "/Applications/Android Studio 3.0 Preview.app/Contents/gradle/m2repository/"
-        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.0-alpha4'
@@ -18,8 +13,6 @@ buildscript {
 
 allprojects {
     repositories {
-        google()
-        jcenter()
     }
 }
 

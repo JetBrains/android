@@ -1,5 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.view.accessibility.AccessibilityEvent int getContentChangeTypes()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_UNDEFINED, android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE, android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_TEXT, android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION, android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_PANE_TITLE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.view.accessibility.AccessibilityEvent int getEventType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.accessibility.AccessibilityEvent.TYPE_VIEW_CLICKED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_LONG_CLICKED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_SELECTED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_HOVER_ENTER, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_HOVER_EXIT, android.view.accessibility.AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_START, android.view.accessibility.AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_END, android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_SCROLLED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_ANNOUNCEMENT, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_TEXT_TRAVERSED_AT_MOVEMENT_GRANULARITY, android.view.accessibility.AccessibilityEvent.TYPE_GESTURE_DETECTION_START, android.view.accessibility.AccessibilityEvent.TYPE_GESTURE_DETECTION_END, android.view.accessibility.AccessibilityEvent.TYPE_TOUCH_INTERACTION_START, android.view.accessibility.AccessibilityEvent.TYPE_TOUCH_INTERACTION_END, android.view.accessibility.AccessibilityEvent.TYPE_WINDOWS_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_CONTEXT_CLICKED, android.view.accessibility.AccessibilityEvent.TYPE_ASSIST_READING_CONTEXT}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.view.accessibility.AccessibilityEvent int getWindowChanges()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.accessibility.AccessibilityEvent.WINDOWS_CHANGE_ADDED, android.view.accessibility.AccessibilityEvent.WINDOWS_CHANGE_REMOVED, android.view.accessibility.AccessibilityEvent.WINDOWS_CHANGE_TITLE, android.view.accessibility.AccessibilityEvent.WINDOWS_CHANGE_BOUNDS, android.view.accessibility.AccessibilityEvent.WINDOWS_CHANGE_LAYER, android.view.accessibility.AccessibilityEvent.WINDOWS_CHANGE_ACTIVE, android.view.accessibility.AccessibilityEvent.WINDOWS_CHANGE_FOCUSED, android.view.accessibility.AccessibilityEvent.WINDOWS_CHANGE_ACCESSIBILITY_FOCUSED, android.view.accessibility.AccessibilityEvent.WINDOWS_CHANGE_PARENT, android.view.accessibility.AccessibilityEvent.WINDOWS_CHANGE_CHILDREN, android.view.accessibility.AccessibilityEvent.WINDOWS_CHANGE_PIP}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.view.accessibility.AccessibilityEvent void setContentChangeTypes(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_UNDEFINED, android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE, android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_TEXT, android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION, android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_PANE_TITLE}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.view.accessibility.AccessibilityEvent void setEventType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.accessibility.AccessibilityEvent.TYPE_VIEW_CLICKED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_LONG_CLICKED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_SELECTED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_FOCUSED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_HOVER_ENTER, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_HOVER_EXIT, android.view.accessibility.AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_START, android.view.accessibility.AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_END, android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_SCROLLED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_ANNOUNCEMENT, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_TEXT_TRAVERSED_AT_MOVEMENT_GRANULARITY, android.view.accessibility.AccessibilityEvent.TYPE_GESTURE_DETECTION_START, android.view.accessibility.AccessibilityEvent.TYPE_GESTURE_DETECTION_END, android.view.accessibility.AccessibilityEvent.TYPE_TOUCH_INTERACTION_START, android.view.accessibility.AccessibilityEvent.TYPE_TOUCH_INTERACTION_END, android.view.accessibility.AccessibilityEvent.TYPE_WINDOWS_CHANGED, android.view.accessibility.AccessibilityEvent.TYPE_VIEW_CONTEXT_CLICKED, android.view.accessibility.AccessibilityEvent.TYPE_ASSIST_READING_CONTEXT}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.view.accessibility.AccessibilityManager">
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.ACCESSIBILITY_SERVICE" />
@@ -27,6 +57,18 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.accessibility.AccessibilityManager void addTouchExplorationStateChangeListener(android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener, android.os.Handler) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.accessibility.AccessibilityNodeInfo java.lang.CharSequence getPaneTitle()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.accessibility.AccessibilityNodeInfo java.lang.CharSequence getTooltipText()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.accessibility.AccessibilityNodeInfo void setPaneTitle(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.accessibility.AccessibilityNodeInfo void setTooltipText(java.lang.CharSequence) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction AccessibilityAction(int, java.lang.CharSequence) 1">

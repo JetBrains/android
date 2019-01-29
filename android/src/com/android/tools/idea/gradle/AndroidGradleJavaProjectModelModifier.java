@@ -196,12 +196,9 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
     if (getAndroidModel(module) != null) {
       AndroidModel android = buildModel.android();
-      if (android == null) {
-        return null;
-      }
       CompileOptionsModel compileOptions = android.compileOptions();
-      compileOptions.setSourceCompatibility(level);
-      compileOptions.setTargetCompatibility(level);
+      compileOptions.sourceCompatibility().setLanguageLevel(level);
+      compileOptions.targetCompatibility().setLanguageLevel(level);
     }
     else {
       JavaFacet javaFacet = JavaFacet.getInstance(module);
@@ -209,8 +206,8 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         return null;
       }
       JavaModel javaModel = buildModel.java();
-      javaModel.setSourceCompatibility(level);
-      javaModel.setTargetCompatibility(level);
+      javaModel.sourceCompatibility().setLanguageLevel(level);
+      javaModel.targetCompatibility().setLanguageLevel(level);
     }
 
     new WriteCommandAction(project, "Change Gradle Language Level") {
@@ -275,7 +272,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
     request.generateSourcesOnSuccess = false;
 
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
         promise.setResult(null);

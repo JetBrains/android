@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ThemeSelectionPanel;
@@ -68,10 +69,10 @@ public class StyleListPaletteCellRenderer extends StyleListCellRenderer {
 
     final boolean isFrameworkAttr = !ThemeEditorUtils.isAppCompatTheme(theme);
 
-    ItemResourceValue primaryResourceValue = ThemeEditorUtils.resolveItemFromParents(theme, PRIMARY_MATERIAL, isFrameworkAttr);
-    ItemResourceValue primaryDarkResourceValue =
+    StyleItemResourceValue primaryResourceValue = ThemeEditorUtils.resolveItemFromParents(theme, PRIMARY_MATERIAL, isFrameworkAttr);
+    StyleItemResourceValue primaryDarkResourceValue =
       ThemeEditorUtils.resolveItemFromParents(theme, PRIMARY_DARK_MATERIAL, isFrameworkAttr);
-    ItemResourceValue accentResourceValue = ThemeEditorUtils.resolveItemFromParents(theme, ACCENT_MATERIAL, isFrameworkAttr);
+    StyleItemResourceValue accentResourceValue = ThemeEditorUtils.resolveItemFromParents(theme, ACCENT_MATERIAL, isFrameworkAttr);
 
     //Check needed in case the xml files are inconsistent and have an item, but not a value
     if (primaryResourceValue != null && primaryDarkResourceValue != null && accentResourceValue != null) {

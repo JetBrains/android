@@ -16,12 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.*;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
+import com.android.tools.idea.gradle.project.sync.idea.data.model.SyncIssuesModel;
 import com.intellij.openapi.externalSystem.model.Key;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,12 +66,16 @@ public final class AndroidProjectKeys {
   public static final Key<JavaModuleModel> JAVA_MODULE_MODEL = Key.create(JavaModuleModel.class, NDK_MODEL.getProcessingWeight() + 10);
 
   @NotNull
+  public static final Key<SyncIssuesModel> SYNC_ISSUES = Key.create(SyncIssuesModel.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
+
+  @NotNull
   public static final Key<ProjectCleanupModel>
-    PROJECT_CLEANUP_MODEL = Key.create(ProjectCleanupModel.class, JAVA_MODULE_MODEL.getProcessingWeight() + 10);
+    PROJECT_CLEANUP_MODEL = Key.create(ProjectCleanupModel.class, SYNC_ISSUES.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<ImportedModule> IMPORTED_MODULE =
     Key.create(ImportedModule.class, PROJECT_CLEANUP_MODEL.getProcessingWeight() + 10);
+
 
   private AndroidProjectKeys() {
   }

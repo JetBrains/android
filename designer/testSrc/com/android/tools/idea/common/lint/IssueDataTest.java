@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.common.lint;
 
-import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.Scope;
 import com.android.tools.lint.detector.api.Severity;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.psi.PsiElement;
+import java.util.List;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.util.List;
 
 public class IssueDataTest {
 
@@ -47,16 +47,13 @@ public class IssueDataTest {
   @Mock
   PsiElement myPsi;
 
-  @Mock
-  Implementation myImplementation;
-
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
   }
 
   @Test
-  public void compareTo() throws Exception {
+  public void compareTo() {
     LintAnnotationsModel model = new LintAnnotationsModel();
     addIssue(model, HighlightDisplayLevel.ERROR, 5, Severity.ERROR);
     addIssue(model, HighlightDisplayLevel.WARNING, 5, Severity.ERROR);
@@ -82,11 +79,13 @@ public class IssueDataTest {
   }
 
   @NotNull
-  private Issue createIssue(int priority, Severity severity) {
-    return Issue.create("toto", "tata", "titi", Category.LINT, priority, severity, myImplementation);
+  private static Issue createIssue(int priority, Severity severity) {
+    Implementation implementation = Mockito.mock(Implementation.class);
+    Mockito.when(implementation.getScope()).thenReturn(Scope.RESOURCE_FILE_SCOPE);
+    return Issue.create("toto", "tata", "titi", Category.LINT, priority, severity, implementation);
   }
 
   void addIssue(LintAnnotationsModel model, HighlightDisplayLevel level, int priority, Severity severity) {
-    model.addIssue(myComponent, createIssue(priority, severity), "", myInspection, level, myPsi, myPsi, null);
+    model.addIssue(myComponent, null, createIssue(priority, severity), "", myInspection, level, myPsi, myPsi, null);
   }
 }

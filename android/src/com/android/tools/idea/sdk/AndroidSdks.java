@@ -191,12 +191,14 @@ public class AndroidSdks {
   @Nullable
   public AndroidSdkData tryToChooseAndroidSdk() {
     if (mySdkData == null) {
-      // TODO fix circular dependency between IdeSdks and AndroidSdks
-      File sdkPath = IdeSdks.getInstance().getAndroidSdkPath();
-      if (sdkPath != null) {
-        mySdkData = getSdkData(sdkPath);
-        if (mySdkData != null) {
-          return mySdkData;
+      if (myIdeInfo.isAndroidStudio()) {
+        // TODO fix circular dependency between IdeSdks and AndroidSdks
+        File path = IdeSdks.getInstance().getAndroidSdkPath();
+        if (path != null) {
+          mySdkData = getSdkData(path);
+          if (mySdkData != null) {
+            return mySdkData;
+          }
         }
       }
 

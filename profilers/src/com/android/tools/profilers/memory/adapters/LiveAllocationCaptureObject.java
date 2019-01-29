@@ -19,10 +19,10 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerAspect;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.stacktrace.ThreadId;
@@ -51,13 +51,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return Logger.getInstance(LiveAllocationCaptureObject.class);
   }
 
-  static final String DEFAULT_HEAP_NAME = "default";
-  static final String IMAGE_HEAP_NAME = "image";
-  static final String ZYGOTE_HEAP_NAME = "zygote";
-  static final String APP_HEAP_NAME = "app";
-  static final String JNI_HEAP_NAME = "JNI";
-  // ID for JNI pseudo-heap, it should not overlap with real Android heaps
-  public static final int JNI_HEAP_ID = 4;
+  @VisibleForTesting static final String SAMPLING_INFO_MESSAGE = "Selected region does not have full tracking. Data may be inaccurate.";
 
   @Nullable private MemoryProfilerStage myStage;
 
@@ -84,6 +78,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   private Range myQueryRange;
 
   private Future myCurrentTask;
+  @Nullable private String myInfoMessage;
 
   public LiveAllocationCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                      @NotNull Common.Session session,
@@ -173,6 +168,12 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     return ImmutableList.of(InstanceAttribute.LABEL, ALLOCATION_TIME, DEALLOCATION_TIME);
   }
 
+  @Nullable
+  @Override
+  public String getInfoMessage() {
+    return myInfoMessage;
+  }
+
   @NotNull
   @Override
   public Collection<HeapSet> getHeapSets() {
@@ -223,7 +224,7 @@ public class LiveAllocationCaptureObject implements CaptureObject {
 
   @Nullable
   @Override
-  public MemoryProfiler.StackFrameInfoResponse getStackFrameInfoResponse(long methodId) {
+  public StackFrameInfoResponse getStackFrameInfoResponse(long methodId) {
     StackFrameInfoResponse frameInfo = myFrameInfoResponseMap.get(methodId);
     if (frameInfo == null) {
       frameInfo = getClient().getStackFrameInfo(StackFrameInfoRequest.newBuilder().setSession(getSession()).setMethodId(methodId).build());
@@ -298,6 +299,9 @@ public class LiveAllocationCaptureObject implements CaptureObject {
         if (newStartTimeNs == myPreviousQueryStartTimeNs && newEndTimeNs == myPreviousQueryEndTimeNs && newEndTimeNs != Long.MAX_VALUE) {
           return null;
         }
+
+        boolean hasNonFullTrackingRegion = !MemoryProfiler.hasOnlyFullAllocationTrackingWithinRegion(
+          myClient, mySession, TimeUnit.NANOSECONDS.toMicros(newStartTimeNs), TimeUnit.NANOSECONDS.toMicros(newEndTimeNs));
 
         joiner.execute(() -> myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP_UPDATING));
         updateAllocationContexts(newEndTimeNs);
@@ -405,6 +409,8 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             deltaFreeList.forEach(instance -> myHeapSets.get(instance.getHeapId()).freeDeltaInstanceObject(instance));
             resetDeltaAllocationList.forEach(instance -> myHeapSets.get(instance.getHeapId()).removeAddedDeltaInstanceObject(instance));
             resetDeltaFreeList.forEach(instance -> myHeapSets.get(instance.getHeapId()).removeFreedDeltaInstanceObject(instance));
+
+            myInfoMessage = hasNonFullTrackingRegion ? SAMPLING_INFO_MESSAGE : null;
             myStage.refreshSelectedHeap();
           }
         });
@@ -440,37 +446,15 @@ public class LiveAllocationCaptureObject implements CaptureObject {
   }
 
   @Nullable
-  private AllocationStack convertNativeCallstack(@Nullable NativeBacktrace backtrace) {
-    if (backtrace == null) return null;
-
-    //TODO: This is not even close to real native symbol resolution, just a temporary code to populate UI.
-    AllocationStack.StackFrameWrapper.Builder frames = AllocationStack.StackFrameWrapper.newBuilder();
-    AllocationStack.Builder stack = AllocationStack.newBuilder();
-    for (long address : backtrace.getAddressesList()) {
-      frames.addFrames(AllocationStack.StackFrame.newBuilder()
-                         .setClassName("CppClass")
-                         .setMethodName("Func_" + address));
-    }
-    stack.setFullStack(frames);
-    return stack.build();
-  }
-
-  @Nullable
-  private JniReferenceInstanceObject getOrCreateJniRefObject(int tag, long refValue, int threadId) {
+  private JniReferenceInstanceObject getOrCreateJniRefObject(int tag, long refValue) {
     LiveAllocationInstanceObject referencedObject = myInstanceMap.get(tag);
     if (referencedObject == null) {
       // If a Java object can't be found by a given tag, nothing is known about the JNI reference and we can't track it.
       return null;
     }
-    ThreadId thread = null;
-    if (threadId != 0) {
-      assert myThreadIdMap.containsKey(threadId);
-      thread = myThreadIdMap.get(threadId);
-    }
-
     JniReferenceInstanceObject result = referencedObject.getJniRefByValue(refValue);
     if (result == null) {
-      result = new JniReferenceInstanceObject(referencedObject, thread, tag, refValue);
+      result = new JniReferenceInstanceObject(this, referencedObject, tag, refValue);
       referencedObject.addJniRef(result);
     }
     return result;
@@ -511,13 +495,22 @@ public class LiveAllocationCaptureObject implements CaptureObject {
       if (event.getEventType() != JNIGlobalReferenceEvent.Type.CREATE_GLOBAL_REF) {
         continue;
       }
-      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
+      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue());
       if (refObject == null) {
         // JNI reference object can't be constructed, most likely allocation for underlying java object was not
         // reported. We don't have anything to show and ignore this reference.
         continue;
       }
-      refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
+      if (event.hasBacktrace()) {
+        refObject.setAllocationBacktrace(event.getBacktrace());
+      }
+      int threadId = event.getThreadId();
+      ThreadId thread = ThreadId.INVALID_THREAD_ID;
+      if (threadId != 0) {
+        assert myThreadIdMap.containsKey(threadId);
+        thread = myThreadIdMap.get(threadId);
+      }
+      refObject.setAllocThreadId(thread);
       refObject.setAllocationTime(event.getTimestamp());
       setAllocationList.add(refObject);
     }
@@ -581,19 +574,29 @@ public class LiveAllocationCaptureObject implements CaptureObject {
     BatchJNIGlobalRefEvent jniBatch = myClient.getJNIGlobalRefsEvents(request);
 
     for (JNIGlobalReferenceEvent event : jniBatch.getEventsList()) {
-      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue(), event.getThreadId());
+      JniReferenceInstanceObject refObject = getOrCreateJniRefObject(event.getObjectTag(), event.getRefValue());
       if (refObject == null) {
         // JNI reference object can't be constructed, most likely allocation for underlying java object was not
         // reported. We don't have anything to show and ignore this reference.
         continue;
       }
+      int threadId = event.getThreadId();
+      ThreadId thread = ThreadId.INVALID_THREAD_ID;
+      if (threadId != 0) {
+        assert myThreadIdMap.containsKey(threadId);
+        thread = myThreadIdMap.get(threadId);
+      }
+
       switch (event.getEventType()) {
         case CREATE_GLOBAL_REF:
           if (resetInstance) {
             refObject.setAllocationTime(Long.MIN_VALUE);
           } else {
             refObject.setAllocationTime(event.getTimestamp());
-            refObject.setAllocationStack(convertNativeCallstack(event.getBacktrace()));
+            if (event.hasBacktrace()) {
+              refObject.setAllocationBacktrace(event.getBacktrace());
+            }
+            refObject.setAllocThreadId(thread);
           }
           allocationList.add(refObject);
           break;
@@ -602,7 +605,10 @@ public class LiveAllocationCaptureObject implements CaptureObject {
             refObject.setAllocationTime(Long.MAX_VALUE);
           } else {
             refObject.setDeallocTime(event.getTimestamp());
-            refObject.setDeallocationStack(convertNativeCallstack(event.getBacktrace()));
+            if (event.hasBacktrace()) {
+              refObject.setDeallocationBacktrace(event.getBacktrace());
+            }
+            refObject.setDeallocThreadId(thread);
           }
           deallocatoinList.add(refObject);
           break;

@@ -3,12 +3,17 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
+import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.Sdks;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.application.UtilKt;
 import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.GlobalInspectionTool;
 import com.intellij.codeInspection.InspectionManager;
@@ -26,8 +31,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
@@ -48,10 +51,12 @@ import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
+import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +65,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestCase extends AndroidTestBase {
@@ -73,6 +80,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   private boolean myUseCustomSettings;
   private ComponentStack myApplicationComponentStack;
   private ComponentStack myProjectComponentStack;
+  private IdeComponents myIdeComponents;
 
   @Override
   protected void setUp() throws Exception {
@@ -116,7 +124,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       myAdditionalModules.add(additionalModule);
       AndroidFacet facet = addAndroidFacet(additionalModule);
       removeFacetOn(myFixture.getProjectDisposable(), facet);
-      facet.setProjectType(data.myProjectType);
+      facet.getConfiguration().setProjectType(data.myProjectType);
       String rootPath = getAdditionalModulePath(data.myDirName);
       myFixture.copyDirectoryToProject(getResDir(), rootPath + "/res");
       myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, rootPath + '/' + SdkConstants.FN_ANDROID_MANIFEST_XML);
@@ -149,6 +157,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
     myProjectComponentStack = new ComponentStack(getProject());
+    myIdeComponents = new IdeComponents(myFixture);
 
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
   }
@@ -250,7 +259,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    */
   @Nullable
   protected LanguageLevel getLanguageLevel() {
-    return null;
+    // Higher language levels trigger JavaPlatformModuleSystem checks which fail for our light PSI classes. For now set the language level
+    // to what real AS actually uses.
+    // TODO(b/110679859): figure out how to stop JavaPlatformModuleSystem from thinking the light classes are not accessible.
+    return LanguageLevel.JDK_1_8;
   }
 
   protected static AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
@@ -285,18 +297,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   public static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
-    Sdk sdk;
-    if (attachSdk) {
-      sdk = addLatestAndroidSdk(module);
-    }
-    else {
-      sdk = null;
-    }
     AndroidFacetType type = AndroidFacet.getFacetType();
     String facetName = "Android";
     AndroidFacet facet = addFacet(module, type, facetName);
-    if (sdk != null) {
-      Disposer.register(facet, ()-> WriteAction.run(()->ProjectJdkTable.getInstance().removeJdk(sdk)));
+    if (attachSdk) {
+      Sdks.addLatestAndroidSdk(facet, module);
     }
     return facet;
   }
@@ -340,6 +345,25 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   protected final void createManifest() throws IOException {
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
+  }
+
+  /**
+   * Enables namespacing in the main module and sets the app namespace according to the given package name.
+   */
+  protected void enableNamespacing(@NotNull String appPackageName) {
+    enableNamespacing(myFacet, appPackageName);
+  }
+
+  /**
+   * Enables namespacing in the given module and sets the app namespace according to the given package name.
+   */
+  protected void enableNamespacing(@NotNull AndroidFacet facet, @NotNull String appPackageName) {
+    facet.getConfiguration().setModel(TestAndroidModel.namespaced(facet));
+    runWriteCommandAction(getProject(), () -> facet.getManifest().getPackage().setValue(appPackageName));
+    LocalResourceManager.getInstance(facet.getModule()).invalidateAttributeDefinitions();
+
+    StudioFlags.IN_MEMORY_R_CLASSES.override(true);
+    Disposer.register(getProject(), () -> StudioFlags.IN_MEMORY_R_CLASSES.clearOverride());
   }
 
   protected final void createProjectProperties() throws IOException {
@@ -410,6 +434,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   public <T> void registerProjectComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
     myProjectComponentStack.registerComponentImplementation(key, instance);
+  }
+
+  public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
+    myIdeComponents.replaceProjectService(serviceType, newServiceInstance);
   }
 
   protected final static class MyAdditionalModuleData {

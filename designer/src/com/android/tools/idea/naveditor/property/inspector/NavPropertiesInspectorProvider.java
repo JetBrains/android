@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.inspector;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
@@ -24,7 +25,6 @@ import com.android.tools.idea.common.property.inspector.InspectorProvider;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.property.NavPropertiesManager;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,9 +102,9 @@ public abstract class NavPropertiesInspectorProvider implements InspectorProvide
       for (String propertyName : myPropertyNameUiNameMap.keySet()) {
         NlProperty property = properties.get(propertyName);
         if (property != null) {
-          if (propertyName.equals(NavigationSchema.ATTR_START_DESTINATION)
+          if (propertyName.equals(SdkConstants.ATTR_START_DESTINATION)
               && property.getComponents().stream().anyMatch(
-                component -> NavComponentHelperKt.getDestinationType(component) == NavigationSchema.DestinationType.NAVIGATION
+                component -> NavComponentHelperKt.isNavigation(component)
                   && ((NavDesignSurface)propertiesManager.getDesignSurface()).getCurrentNavigation() != component)) {
             continue;
           }
@@ -132,7 +132,7 @@ public abstract class NavPropertiesInspectorProvider implements InspectorProvide
 
     @Override
     public int getMaxNumberOfRows() {
-      return 1 + myEditors.size();
+      return myEditors.size() + (myTitle != null ? 1 : 0);
     }
 
     @Override

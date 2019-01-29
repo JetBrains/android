@@ -1,28 +1,30 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# managed by go/iml_to_build
 iml_module(
-    name = "updater-ui",
+    name = "intellij.android.updater.ui",
     srcs = ["src"],
-    iml_files = ["updater-ui.iml"],
-    tags = ["managed"],
+    iml_files = ["intellij.android.updater.ui.iml"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
-        "//tools/idea/platform/credential-store",
-        "//tools/idea/platform/tasks-platform-impl",
-        "//tools/idea/json",
-        "//tools/idea/xml/relaxng",
-        "//tools/idea/java/compiler/instrumentation-util-8",
-        "//tools/idea/plugins/maven:maven2-server-impl",
-        "//tools/adt/idea/adt-branding",
+        "//tools/idea/xml/relaxng:intellij.relaxng",
+        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/json:intellij.json",
+        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
     ],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/updater[module]",
-        "//tools/base/repository:studio.repository[module]",
-        "//tools/base/annotations:studio.android-annotations[module]",
-        "//tools/idea/platform/core-api[module]",
+        "//tools/idea/updater:intellij.platform.updater[module]",
+        "//tools/base/repository:studio.android.sdktools.repository[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
+        "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/idea/.idea/libraries:jna",
-        "//tools/adt/idea/android[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
     ],
 )

@@ -15,22 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
-import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.structure.StructureTreeDecorator;
+import com.android.tools.idea.uibuilder.structure.TreeSearchUtil;
 import com.android.xml.XmlBuilder;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import icons.StudioIcons;
 import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,7 +39,7 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public final class LinearLayoutTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
@@ -52,7 +49,6 @@ public final class LinearLayoutTest {
   private Path myMainStylePath;
   private Path myLayoutPath;
 
-  @Ignore("b/66680171")
   @Before
   public void setUp() {
     WizardUtils.createNewProject(myGuiTest, "Empty Activity");
@@ -107,7 +103,6 @@ public final class LinearLayoutTest {
     assertEquals("LinearLayout (horizontal)", getComponentTree().valueAt(0));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/70726902
   /**
    * Tries the case where style is referenced indirectly, e.g. through a reference in the theme.
    */
@@ -141,11 +136,12 @@ public final class LinearLayoutTest {
     editor.moveBetween("AppTheme", "");
     editor.invokeAction(EditorFixture.EditorAction.COMPLETE_CURRENT_STATEMENT);
 
-    // Editor inserts the closing tag automatically.
-    editor.enterText("<item name=\"linear_layout_style\">@style/vertical_linear_layout");
+    editor.pasteText("<item name=\"linear_layout_style\">@style/vertical_linear_layout</item>");
 
     editor.open(myLayoutPath.toString());
-    assertEquals("LinearLayout (vertical)", getComponentTree().valueAt(0));
+    Wait.seconds(10)
+      .expecting("Component tree pane to update")
+      .until(() -> getComponentTree().valueAt(0).equals("LinearLayout (vertical)"));
   }
 
   @NotNull
@@ -168,14 +164,13 @@ public final class LinearLayoutTest {
     JTreeFixture treeFixture = editor.getComponentTree();
 
     treeFixture.replaceCellReader((tree, value) -> {
-      return StructureTreeDecorator.toString((NlComponent)value);
+      return TreeSearchUtil.toString((NlComponent)value);
     });
 
     return treeFixture;
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE)
   public void changeOrientation() throws IOException {
     // @formatter:off
     String layout = new XmlBuilder()

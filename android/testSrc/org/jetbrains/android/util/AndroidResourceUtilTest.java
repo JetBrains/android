@@ -15,7 +15,17 @@
  */
 package org.jetbrains.android.util;
 
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.FRAME_LAYOUT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.TAG_LAYOUT;
+import static com.android.SdkConstants.TAG_NAVIGATION;
+import static com.android.SdkConstants.VIEW_MERGE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.resources.ResourceType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -24,27 +34,23 @@ import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
-import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidResourceUtilTest extends AndroidTestCase {
   @Override
@@ -64,7 +70,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values/colors.xml", "util/colors_after.xml", true);
   }
 
-  public void testCompareResourceFiles() throws Exception {
+  public void testCompareResourceFiles() {
     PsiFile f1 = myFixture.addFileToProject("res/values/filename.xml", "");
     PsiFile f2 = myFixture.addFileToProject("res/values-en/filename.xml", "");
     PsiFile f3 = myFixture.addFileToProject("res/values-en-rUS/filename.xml", "");
@@ -130,20 +136,19 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
 
   public void testFindResourceFields() {
     myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
 
     PsiField[] fields = AndroidResourceUtil.findResourceFields(myFacet, "string", "hello", false);
-
-    for (PsiField field : fields) {
-      assertEquals("hello", field.getName());
-      assertEquals("p2", field.getContainingFile().getContainingDirectory().getName());
-    }
     assertEquals(1, fields.length);
+    PsiField field = fields[0];
+    assertEquals("hello", field.getName());
+    assertEquals("string", field.getContainingClass().getName());
+    assertEquals("p1.p2.R", field.getContainingClass().getContainingClass().getQualifiedName());
   }
 
   public void testFindResourceFieldsWithMultipleResourceNames() {
     myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
 
     PsiField[] fields = AndroidResourceUtil.findResourceFields(
       myFacet, "string", ImmutableList.of("hello", "goodbye"), false);
@@ -151,7 +156,7 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     Set<String> fieldNames = Sets.newHashSet();
     for (PsiField field : fields) {
       fieldNames.add(field.getName());
-      assertEquals("p2", field.getContainingFile().getContainingDirectory().getName());
+      assertEquals("p1.p2.R", field.getContainingClass().getContainingClass().getQualifiedName());
     }
     assertEquals(ImmutableSet.of("hello", "goodbye"), fieldNames);
     assertEquals(2, fields.length);
@@ -159,13 +164,17 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
 
   /** Tests that "inherited" resource references are found (R fields in generated in dependent modules). */
   public void testFindResourceFieldsWithInheritance() throws Exception {
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     Module libModule = myAdditionalModules.get(0);
     // Remove the current manifest (has wrong package name) and copy a manifest with proper package into the lib module.
     deleteManifest(libModule);
+
     myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
-    // Copy an empty R class with the proper package into the lib module.
-    myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      // Copy an empty R class with the proper package into the lib module.
+      myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    }
+
     // Add some lib string resources.
     myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml");
 
@@ -173,12 +182,12 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     assertThat(facet).isNotNull();
     PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, "string", "lib_hello", false /* onlyInOwnPackages */);
 
-    Set<String> dirNames = Sets.newHashSet();
+    Set<String> packages = Sets.newHashSet();
     for (PsiField field : fields) {
       assertEquals("lib_hello", field.getName());
-      dirNames.add(field.getContainingFile().getContainingDirectory().getName());
+      packages.add(StringUtil.getPackageName(field.getContainingClass().getContainingClass().getQualifiedName()));
     }
-    assertEquals(ImmutableSet.of("p2", "lib"), dirNames);
+    assertEquals(ImmutableSet.of("p1.p2", "p1.p2.lib"), packages);
     assertEquals(2, fields.length);
   }
 
@@ -188,8 +197,12 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     // Remove the current lib manifest (has wrong package name) and copy a manifest with proper package into the lib module.
     deleteManifest(libModule);
     myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
-    // Copy an empty R class with the proper package into the lib module.
-    VirtualFile libRFile = myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      // Copy an empty R class with the proper package into the lib module.
+      myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    }
+
     // Add some lib string resources.
     myFixture.copyFileToProject("util/lib/strings.xml", "additionalModules/lib/res/values/strings.xml");
     // Remove the manifest from the main module.
@@ -204,10 +217,12 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     // However, if the main module happens to get a handle on the lib's R class
     // (e.g., via "import p1.p2.lib.R;"), then that R class should be recognized
     // (e.g., for goto navigation).
-    PsiManager psiManager = PsiManager.getInstance(getProject());
-    PsiFile libRClassFile = psiManager.findFile(libRFile);
-    assertNotNull(libRClassFile);
-    assertTrue(AndroidResourceUtil.isRJavaFile(myFacet, libRClassFile));
+    PsiFile javaFile =
+      myFixture.addFileToProject("src/com/example/Foo.java", "package com.example; class Foo {}");
+    PsiClass libRClass =
+      myFixture.getJavaFacade().findClass("p1.p2.lib.R", javaFile.getResolveScope());
+    assertNotNull(libRClass);
+    assertTrue(AndroidResourceUtil.isRJavaClass(libRClass));
   }
 
   public void testValidResourceFileName() {
@@ -282,9 +297,37 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
                                          "</layout>");
   }
 
+  public void testCreateMergeFileResource() throws Exception {
+    XmlFile file = AndroidResourceUtil.createFileResource("merge", getLayoutFolder(), VIEW_MERGE, ResourceType.LAYOUT.getName(), false);
+    assertThat(file.getName()).isEqualTo("merge.xml");
+    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<merge xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+                                         "\n" +
+                                         "</merge>");
+  }
+
+  public void testCreateNavigationFileResource() throws Exception {
+    XmlFile file =
+      AndroidResourceUtil.createFileResource("nav", getLayoutFolder(), TAG_NAVIGATION, ResourceType.NAVIGATION.getName(), false);
+    assertThat(file.getName()).isEqualTo("nav.xml");
+    assertThat(file.getText()).isEqualTo("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                         "    xmlns:app=\"http://schemas.android.com/apk/res-auto\" android:id=\"@+id/nav\">\n" +
+                                         "\n" +
+                                         "</navigation>");
+  }
+
   @NotNull
   private PsiDirectory getLayoutFolder() {
     PsiFile file = myFixture.configureByText("res/layout/main.xml", "<LinearLayout/>");
+    PsiDirectory folder = file.getParent();
+    assertThat(folder).isNotNull();
+    return folder;
+  }
+
+  @NotNull
+  private PsiDirectory getNavigationFolder() {
+    PsiFile file = myFixture.configureByText("res/navigation/main.xml", "<navigation/>");
     PsiDirectory folder = file.getParent();
     assertThat(folder).isNotNull();
     return folder;

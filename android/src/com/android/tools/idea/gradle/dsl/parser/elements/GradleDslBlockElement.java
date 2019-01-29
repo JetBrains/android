@@ -15,18 +15,35 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 
 /**
  * Base class for all the {@link GradleDslElement}s that represent blocks like android, productFlavors, buildTypes etc.
  */
-public abstract class GradleDslBlockElement extends GradlePropertiesDslElement {
-  protected GradleDslBlockElement(@NotNull GradleDslElement parent, @NotNull String name) {
+public class GradleDslBlockElement extends GradlePropertiesDslElement {
+  protected GradleDslBlockElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
   }
 
   @Override
   public boolean isBlockElement() {
     return true;
+  }
+
+  @Override
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (APPLY_BLOCK_NAME.equals(element.getFullName()) && element instanceof GradleDslExpressionMap) {
+      ApplyDslElement applyDslElement = getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
+      if (applyDslElement == null) {
+        applyDslElement = new ApplyDslElement(this);
+        super.addParsedElement(applyDslElement);
+      }
+      applyDslElement.addParsedElement(element);
+      return;
+    }
+    super.addParsedElement(element);
   }
 }

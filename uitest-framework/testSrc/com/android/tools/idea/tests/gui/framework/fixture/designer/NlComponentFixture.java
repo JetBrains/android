@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.target.ActionGroupTarget;
+import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.common.model.Coordinates;
@@ -41,7 +43,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static org.fest.swing.timing.Pause.pause;
 
 /**
@@ -70,7 +74,7 @@ public class NlComponentFixture {
    * Returns the center point in panel coordinates
    */
   @NotNull
-  private Point getMidPoint() {
+  public Point getMidPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
     int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
@@ -103,7 +107,7 @@ public class NlComponentFixture {
    * Returns the top center point in panel coordinates
    */
   @NotNull
-  private Point getTopCenterPoint() {
+  public Point getTopCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getCenterX());
     int topY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getDrawY());
@@ -114,7 +118,7 @@ public class NlComponentFixture {
    * Returns the left center point in panel coordinates
    */
   @NotNull
-  private Point getLeftCenterPoint() {
+  public Point getLeftCenterPoint() {
     SceneView sceneView = mySurface.getCurrentSceneView();
     int leftX = Coordinates.getSwingXDip(sceneView, mySceneComponent.getDrawX());
     int midY = Coordinates.getSwingYDip(sceneView, mySceneComponent.getCenterY());
@@ -223,6 +227,8 @@ public class NlComponentFixture {
     // Find the position of the baseline target icon and click on it
     SceneComponent sceneComponent = sceneView.getScene().getSceneComponent(myComponent);
     Target target = GuiQuery.getNonNull(() -> sceneComponent.getTargets().stream()
+      .filter(t -> t instanceof ActionGroupTarget)
+      .flatMap(t -> ((ActionGroupTarget)t).getActionTargets().stream())
       .filter(t -> expectedTooltipText.equals(t.getToolTipText()))
       .findFirst().get());
     SceneContext context = SceneContext.get(sceneView);
@@ -230,7 +236,7 @@ public class NlComponentFixture {
     myComponentDriver.click(mySurface, p);
 
     Point sourceBaseline = getTopCenterPoint();
-    sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(myComponent)) - 1);
+    sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(myComponent)) + 1);
     myDragAndDrop.drag(mySurface, sourceBaseline);
     Point destinationBaseline = destination.getTopCenterPoint();
     destinationBaseline
@@ -238,6 +244,33 @@ public class NlComponentFixture {
     myDragAndDrop.drop(mySurface, destinationBaseline);
     pause(SceneComponent.ANIMATION_DURATION);
     return this;
+  }
+
+  @NotNull
+  public ComponentAssistantFixture openComponentAssistant() {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+
+    // Find the position of the baseline target icon and click on it
+    SceneComponent sceneComponent = sceneView.getScene().getSceneComponent(myComponent);
+    Target target = GuiQuery.getNonNull(() -> sceneComponent.getTargets().stream()
+                                                            .flatMap(t -> {
+                                                              // Flatten all the ActionTargets into one list. This includes
+                                                              // unpacking all the targets within the ActionGroupTarget
+                                                              if (t instanceof ActionGroupTarget) {
+                                                                return ((ActionGroupTarget)t).getActionTargets().stream();
+                                                              }
+                                                              else {
+                                                                return Stream.of(t);
+                                                              }
+                                                            })
+                                                            .filter(ComponentAssistantActionTarget.class::isInstance)
+                                                            .findFirst().get());
+    SceneContext context = SceneContext.get(sceneView);
+    Point p = new Point(context.getSwingXDip(target.getCenterX()), context.getSwingYDip(target.getCenterY()));
+    myComponentDriver.click(mySurface, p);
+
+    return new ComponentAssistantFixture(myRobot, waitUntilFound(myRobot, null,
+                                                                 Matchers.byName(JComponent.class,"Component Assistant")));
   }
 
   @NotNull

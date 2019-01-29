@@ -19,11 +19,9 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResultPublisher
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
-import com.android.tools.idea.projectsystem.listenForNextSyncResult
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.*
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -47,11 +45,15 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     val trigger = convertReasonToTrigger(reason)
     val syncResult = SettableFuture.create<SyncResult>()
 
-    val connection = listenForNextSyncResult(project, listener = object: SyncResultListener {
-      override fun syncEnded(result: SyncResult) {
-        syncResult.set(result)
-      }
-    })
+    // Listen for the next sync result.
+    val connection = project.messageBus.connect(project).apply {
+      subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
+        override fun syncEnded(result: SyncResult) {
+          disconnect()
+          syncResult.set(result)
+        }
+      })
+    }
 
     val request = GradleSyncInvoker.Request(trigger)
     request.generateSourcesOnSuccess = requireSourceGeneration
@@ -62,7 +64,7 @@ class GradleProjectSystemSyncManager(val project: Project) : ProjectSystemSyncMa
     }
     catch (t: Throwable) {
       if (!Disposer.isDisposed(connection)) {
-        Disposer.dispose(connection)
+        connection.disconnect()
       }
 
       syncResult.setException(t)

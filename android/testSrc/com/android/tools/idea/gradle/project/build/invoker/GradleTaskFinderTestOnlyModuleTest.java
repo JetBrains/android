@@ -53,5 +53,7 @@ public class GradleTaskFinderTestOnlyModuleTest extends AndroidGradleTestCase {
     ListMultimap<Path, String> tasksPerProject = myTaskFinder.findTasksToExecute(projectPath, modules, REBUILD, TestCompileType.ALL);
     List<String> tasks = tasksPerProject.get(projectPath.toPath());
     assertThat(tasks).containsExactly("clean", ":app:assembleDebug", ":test:assembleDebug");
+    // Make sure clean is the first task (b/78443416)
+    assertThat(tasks.get(0)).isEqualTo("clean");
   }
 }

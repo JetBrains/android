@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.stats.RunStatsService;
 import com.android.tools.ir.client.InstantRunClient;
 import com.android.tools.ir.client.InstantRunPushFailedException;
 import com.android.tools.ir.client.UpdateMode;
@@ -25,12 +26,15 @@ import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.InstantRunStatsService;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.google.wireless.android.sdk.stats.ArtifactDetail;
+import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 public class HotSwapTask implements LaunchTask {
+  private static final String ID = "HOT_SWAP";
   private final Project myProject;
   private final InstantRunContext myInstantRunContext;
   private final boolean myRestartActivity;
@@ -68,9 +72,14 @@ public class HotSwapTask implements LaunchTask {
     catch (InstantRunPushFailedException | IOException e) {
       return terminateLaunch(launchStatus, "Error installing hot swap patches: " + e);
     }
-
     InstantRunStatsService.get(myProject).notifyDeployType(DeployType.HOTSWAP, myInstantRunContext, device);
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 
   private static boolean terminateLaunch(LaunchStatus launchStatus, String msg) {

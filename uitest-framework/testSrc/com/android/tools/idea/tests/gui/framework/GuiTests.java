@@ -25,31 +25,30 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.MessagePool;
-import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.PathManagerEx;
+import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.FrequentEventDetector;
-import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.impl.CoreProgressManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.IdeFrame;
-import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
+import com.intellij.util.containers.ConcurrentLongObjectMap;
 import com.intellij.util.net.HttpConfigurable;
-import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.*;
@@ -64,30 +63,28 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 import static com.google.common.base.Joiner.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.io.Files.createTempDir;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static org.fest.swing.finder.WindowFinder.findFrame;
-import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public final class GuiTests {
 
   public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
-
-  public static final String GUI_TEST_PROJECTS_ROOT_PROPERTY = "gui.tests.projects.root";
 
   /**
    * Environment variable set by users to point to sources
@@ -102,8 +99,6 @@ public final class GuiTests {
    */
   private static final String RELATIVE_DATA_PATH = "tools/adt/idea/android-uitests/testData".replace('/', File.separatorChar);
 
-  private static final EventQueue SYSTEM_EVENT_QUEUE = Toolkit.getDefaultToolkit().getSystemEventQueue();
-
   private static final File TMP_PROJECT_ROOT = createTempProjectCreationDir();
 
   @NotNull
@@ -116,6 +111,12 @@ public final class GuiTests {
       if (isNotEmpty(additionalInfo)) {
         messageBuilder.append(System.getProperty("line.separator")).append("Additional Info: ").append(additionalInfo);
       }
+
+      for (Attachment attachment : errorMessage.getAllAttachments()) {
+        messageBuilder.append(System.getProperty("line.separator")).append("Path: ").append(attachment.getPath()).
+          append(System.getProperty("line.separator")).append("Text: ").append(attachment.getDisplayText());
+      }
+
       Error error = new Error(messageBuilder.toString(), errorMessage.getThrowable());
       errors.add(error);
     }
@@ -131,6 +132,7 @@ public final class GuiTests {
     ideSettings.PROXY_HOST = "";
     ideSettings.PROXY_PORT = 80;
 
+    GuiTestingService.getInstance().setGuiTestingMode(true);
     GuiTestingService.GuiTestSuiteState state = GuiTestingService.getInstance().getGuiTestSuiteState();
     state.setSkipSdkMerge(false);
 
@@ -138,20 +140,27 @@ public final class GuiTests {
     PropertiesComponent.getInstance().setValue("SAVED_PROJECT_KOTLIN_SUPPORT", false); // New Project "Include Kotlin Support"
     PropertiesComponent.getInstance().setValue("SAVED_RENDER_LANGUAGE", "Java"); // New Activity "Source Language"
 
-    FrequentEventDetector.disableUntil(() -> {/* pigs fly */});
+    Disposable project = ProjectManager.getInstance().getDefaultProject();
+    Disposable pigsFly = new Disposable() {
+      @Override
+      public void dispose() {}
+    };
+    Disposer.register(project, pigsFly);
+    FrequentEventDetector.disableUntil(pigsFly);  // i.e., never re-enable it
 
     // TODO: setUpDefaultGeneralSettings();
   }
 
-  // Called by IdeTestApplication via reflection.
-  @SuppressWarnings("unused")
-  public static void setUpDefaultGeneralSettings() {
-    GuiTestingService.getInstance().setGuiTestingMode(true);
-    GeneralSettings.getInstance().setShowTipsOnStartup(false);
+  private static File getAndroidSdk() {
+    String androidHome = System.getenv("ANDROID_HOME");
+    if (androidHome == null) {
+      throw new RuntimeException("Must set ANDROID_HOME environment variable when running in standalone mode");
+    }
+    return new File(androidHome);
   }
 
   public static void setUpSdks() {
-    File androidSdkPath = TestUtils.getSdk();
+    File androidSdkPath = GuiTestOptions.INSTANCE.isStandaloneMode() ? getAndroidSdk() : TestUtils.getSdk();
 
     GuiTask.execute(
       () -> {
@@ -232,7 +241,7 @@ public final class GuiTests {
     }
 
     if (path == null) {
-      skipTest("Please specify " + description + ", using system property " + quote(propertyName));
+      skipTest("Please specify " + description + ", using system property '" + propertyName + "'");
     }
     return path;
   }
@@ -253,65 +262,6 @@ public final class GuiTests {
     RecentProjectsManager.getInstance().setLastProjectCreationLocation(lastProjectLocation);
   }
 
-  // Called by IdeTestApplication via reflection.
-  @SuppressWarnings("UnusedDeclaration")
-  public static void waitForIdeToStart() {
-    GuiActionRunner.executeInEDT(false);
-    Robot robot = null;
-    try {
-      robot = BasicRobot.robotWithCurrentAwtHierarchy();
-      MyProjectManagerListener listener = new MyProjectManagerListener();
-      findFrame(new GenericTypeMatcher<Frame>(Frame.class) {
-        @Override
-        protected boolean isMatching(@NotNull Frame frame) {
-          if (frame instanceof IdeFrame) {
-            if (frame instanceof IdeFrameImpl) {
-              listener.myActive = true;
-              ProjectManager.getInstance().addProjectManagerListener(listener);
-            }
-            return true;
-          }
-          return false;
-        }
-      }).withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot);
-
-      // We know the IDE event queue was pushed in front of the AWT queue. Some JDKs will leave a dummy event in the AWT queue, which
-      // we attempt to clear here. All other events, including those posted by the Robot, will go through the IDE event queue.
-      try {
-        if (SYSTEM_EVENT_QUEUE.peekEvent() != null) {
-          SYSTEM_EVENT_QUEUE.getNextEvent();
-        }
-      }
-      catch (InterruptedException ex) {
-        // Ignored.
-      }
-
-      if (listener.myActive) {
-        Wait.seconds(1).expecting("project to be opened")
-          .until(() -> {
-            boolean notified = listener.myNotified;
-            if (notified) {
-              ProgressManager progressManager = ProgressManager.getInstance();
-              boolean isIdle = !progressManager.hasModalProgressIndicator() &&
-                               !progressManager.hasProgressIndicator() &&
-                               !progressManager.hasUnsafeProgressIndicator();
-              if (isIdle) {
-                ProjectManager.getInstance().removeProjectManagerListener(listener);
-              }
-              return isIdle;
-            }
-            return false;
-          });
-      }
-    }
-    finally {
-      GuiActionRunner.executeInEDT(true);
-      if (robot != null) {
-        robot.cleanUpWithoutDisposingWindows();
-      }
-    }
-  }
-
   static ImmutableList<Window> windowsShowing() {
     ImmutableList.Builder<Window> listBuilder = ImmutableList.builder();
     for (Window window : Window.getWindows()) {
@@ -321,6 +271,44 @@ public final class GuiTests {
     }
     return listBuilder.build();
   }
+
+  @NotNull
+  public static File getConfigDirPath() throws IOException {
+    File dirPath = new File(getGuiTestRootDirPath(), "config");
+    ensureExists(dirPath);
+    return dirPath;
+  }
+
+  @NotNull
+  public static File getSystemDirPath() throws IOException {
+    File dirPath = new File(getGuiTestRootDirPath(), "system");
+    ensureExists(dirPath);
+    return dirPath;
+  }
+
+  @NotNull
+  public static File getFailedTestScreenshotDirPath() throws IOException {
+    File dirPath = new File(getGuiTestRootDirPath(), "failures");
+    ensureExists(dirPath);
+    return dirPath;
+  }
+
+  @NotNull
+  public static File getGuiTestRootDirPath() throws IOException {
+    String guiTestRootDirPathProperty = System.getProperty("gui.tests.root.dir.path");
+    if (isNotEmpty(guiTestRootDirPathProperty)) {
+      File rootDirPath = new File(guiTestRootDirPathProperty);
+      if (rootDirPath.isDirectory()) {
+        return rootDirPath;
+      }
+    }
+    String homeDirPath = toSystemDependentName(PathManager.getHomePath());
+    assertThat(homeDirPath).isNotEmpty();
+    File rootDirPath = new File(homeDirPath, join("androidStudio", "gui-tests"));
+    ensureExists(rootDirPath);
+    return rootDirPath;
+  }
+
 
   @NotNull
   public static File getProjectCreationDirPath(@Nullable String testDirectory) {
@@ -341,32 +329,18 @@ public final class GuiTests {
 
   @NotNull
   public static File getTestProjectsRootDirPath() {
-    String testDataPath = PathManager.getHomePath() + "/../adt/idea/android-uitests";
-    if (!new File(testDataPath).exists()) {
-      String relativeTestProjectsRoot = System.getProperty(GUI_TEST_PROJECTS_ROOT_PROPERTY, "plugins/android");
-      testDataPath = PathManagerEx.findFileUnderCommunityHome(relativeTestProjectsRoot).getPath();
+    String testDataPath;
+    // The release build directory structure is different; testData is in a different location.
+    if (GuiTestOptions.INSTANCE.isRunningOnRelease()) {
+      testDataPath = PathManagerEx.findFileUnderCommunityHome("plugins/uitest-framework").getPath();
+    } else {
+      testDataPath = PathManager.getHomePath() + "/../adt/idea/android-uitests";
     }
     testDataPath = toCanonicalPath(toSystemDependentName(testDataPath));
     return new File(testDataPath, "testData");
   }
 
   private GuiTests() {
-  }
-
-  public static void deleteFile(@Nullable VirtualFile file) {
-    // File deletion must happen on UI thread under write lock
-    if (file != null) {
-      GuiTask.execute(() -> ApplicationManager.getApplication().runWriteAction(
-        () -> {
-          try {
-            file.delete(GuiTests.class);
-          }
-          catch (IOException e) {
-            // ignored
-          }
-        }
-      ));
-    }
   }
 
   /**
@@ -394,8 +368,7 @@ public final class GuiTests {
   }
 
   public static void clickPopupMenuItemMatching(@NotNull Predicate<String> predicate, @NotNull Component component, @NotNull Robot robot) {
-
-    JPopupMenu menu = robot.findActivePopupMenu();
+    JPopupMenu menu = GuiQuery.get(robot::findActivePopupMenu);
     if (menu != null) {
       new JPopupMenuFixture(robot, menu).menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
@@ -438,7 +411,6 @@ public final class GuiTests {
 
       if (predicate.test(s)) {
         new JListFixture(robot, list).clickItem(i);
-        robot.waitForIdle();
         return;
       }
       items.add(s);
@@ -451,29 +423,19 @@ public final class GuiTests {
   }
 
   public static void findAndClickOkButton(@NotNull ContainerFixture<? extends Container> container) {
-    findAndClickButtonWhenEnabled(container, "OK");
+    findAndClickButton(container, "OK");
   }
 
   public static void findAndClickCancelButton(@NotNull ContainerFixture<? extends Container> container) {
-    findAndClickButtonWhenEnabled(container, "Cancel");
+    findAndClickButton(container, "Cancel");
   }
 
   public static void findAndClickButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
-    Robot robot = container.robot();
-    new JButtonFixture(robot, GuiTests.waitUntilShowing(robot, container.target(), Matchers.byText(JButton.class, text))).click();
-  }
-
-  public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
     new JButtonFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JButton.class, text))).click();
   }
 
   public static void findAndClickLabel(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
-    Robot robot = container.robot();
-    new JLabelFixture(robot, GuiTests.waitUntilShowing(robot, container.target(), Matchers.byText(JLabel.class, text))).click();
-  }
-
-  public static void findAndClickLabelWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
     new JLabelFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JLabel.class, text))).click();
   }
@@ -593,6 +555,9 @@ public final class GuiTests {
                                                        long secondsToWait) {
     AtomicReference<T> reference = new AtomicReference<>();
     String typeName = matcher.supportedType().getSimpleName();
+    // Since the condition may have been already satisfied in the middle of processing before the UI reaches its
+    // final state we need to for an idle queue before probing the UI state.
+    robot.waitForIdle();
     Wait.seconds(secondsToWait).expecting("matching " + typeName)
       .until(() -> {
         ComponentFinder finder = robot.finder();
@@ -647,82 +612,32 @@ public final class GuiTests {
       .expecting("background tasks to finish")
       .until(() -> {
         robot.waitForIdle();
-
-        ProgressManager progressManager = ProgressManager.getInstance();
-        return !progressManager.hasModalProgressIndicator() &&
-               !progressManager.hasProgressIndicator() &&
-               !progressManager.hasUnsafeProgressIndicator();
+        return noProgressIndicator();
       });
   }
 
-  /**
-   * Pretty-prints the given table fixture
-   */
-  @NotNull
-  public static String tableToString(@NotNull JTableFixture table) {
-    return tableToString(table, 0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, 40);
-  }
-
-  /**
-   * Pretty-prints the given table fixture
-   */
-  @NotNull
-  public static String tableToString(@NotNull JTableFixture table, int startRow, int endRow, int startColumn, int endColumn,
-                                     int cellWidth) {
-    String[][] contents = table.contents();
-
-    StringBuilder sb = new StringBuilder();
-    String formatString = "%-" + Integer.toString(cellWidth) + "s";
-    for (int row = Math.max(0, startRow); row < Math.min(endRow, contents.length); row++) {
-      for (int column = Math.max(0, startColumn); column < Math.min(contents[0].length, endColumn); column++) {
-        String cell = contents[row][column];
-        if (cell.length() > cellWidth) {
-          cell = cell.substring(0, cellWidth - 3) + "...";
-        }
-        sb.append(String.format(formatString, cell));
-      }
-      sb.append('\n');
+  private static boolean noProgressIndicator() {
+    try {
+      Field field = CoreProgressManager.class.getDeclaredField("currentIndicators");
+      field.setAccessible(true);
+      return ((ConcurrentLongObjectMap)field.get(null)).isEmpty();
     }
-
-    return sb.toString();
-  }
-
-  /**
-   * Pretty-prints the given list fixture
-   */
-  @NotNull
-  public static String listToString(@NotNull JListFixture list) {
-    return listToString(list, 0, Integer.MAX_VALUE, 40);
-  }
-
-  /**
-   * Pretty-prints the given list fixture
-   */
-  @NotNull
-  public static String listToString(@NotNull JListFixture list, int startRow, int endRow, int cellWidth) {
-    String[] contents = list.contents();
-
-    StringBuilder sb = new StringBuilder();
-    String formatString = "%-" + Integer.toString(cellWidth) + "s";
-    for (int row = Math.max(0, startRow); row < Math.min(endRow, contents.length); row++) {
-      String cell = contents[row];
-      if (cell.length() > cellWidth) {
-        cell = cell.substring(0, cellWidth - 3) + "...";
-      }
-      sb.append(String.format(formatString, cell));
-      sb.append('\n');
+    catch (NoSuchFieldException | IllegalAccessException ex) {
+      throw new RuntimeException("Failure retrieving CoreProgressManager.currentIndicators", ex);
     }
-
-    return sb.toString();
   }
 
-  private static class MyProjectManagerListener extends ProjectManagerAdapter {
-    boolean myActive;
-    boolean myNotified;
+  public static void waitForProjectIndexingToFinish(@NotNull Project project, @NotNull Wait indexing) {
+    AtomicBoolean isProjectIndexed = new AtomicBoolean();
+    DumbService.getInstance(project).smartInvokeLater(() -> isProjectIndexed.set(true));
 
-    @Override
-    public void projectOpened(@NotNull Project project) {
-      myNotified = true;
-    }
+    indexing.expecting("Project indexing to finish")
+      .until(isProjectIndexed::get);
+  }
+
+  public static void waitForProjectIndexingToFinish(@NotNull Project project) {
+    // Bazel wipes all Android Studio Caches between tests and all JDK and Android SDK libraries are re-indexed (about 50K files)
+    // Usually this take 20-30 secs, but depends heavily on the machine and its load
+    waitForProjectIndexingToFinish(project, Wait.seconds(120));
   }
 }

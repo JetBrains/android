@@ -17,40 +17,75 @@ package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
+import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.ExternalResource;
+
+import java.util.regex.Pattern;
 
 public class EmulatorTestRule extends ExternalResource {
 
   public static final long DEFAULT_EMULATOR_WAIT_SECONDS = 240;
 
+  private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final String DEFAULT_AVD_NAME = "device under test";
 
+  private final boolean deleteExistingAvds;
+
+  /**
+   * Use {@link EmulatorGeneratorKt#createDefaultAvd} to create a default AVD
+   * configuration. The method returns the name representing the AVD.
+   */
+  @Deprecated
   @NotNull
   public String getDefaultAvdName() { return DEFAULT_AVD_NAME; }
+
+  public EmulatorTestRule() {
+    // TODO remove this constructor. Tests that need to explicitly delete AVDs should be migrated over to using DeleteAvdsRule
+    this(true);
+  }
+
+  /**
+   * A temporary constructor acting as a stopgap while we migrate tests to use the
+   * {@link DeleteAvdsRule} if they need to delete AVDs
+   */
+  @Deprecated
+  public EmulatorTestRule(boolean deleteExistingAvds) {
+    this.deleteExistingAvds = deleteExistingAvds;
+  }
 
   @Override
   protected void before() throws Throwable {
     MockAvdManagerConnection.inject();
     getEmulatorConnection().killEmulatorProcesses();
     // Remove all AVDs
-    for (AvdInfo avdInfo: getEmulatorConnection().getAvds(true)) {
-      getEmulatorConnection().deleteAvd(avdInfo);
+    if (deleteExistingAvds) {
+      deleteAvds();
     }
   }
 
   @Override
   protected void after() {
     getEmulatorConnection().killEmulator();
-    // Remove all AVDs
+    if (deleteExistingAvds) {
+      deleteAvds();
+    }
+  }
+
+  private void deleteAvds() {
     for (AvdInfo avdInfo: getEmulatorConnection().getAvds(true)) {
       getEmulatorConnection().deleteAvd(avdInfo);
     }
   }
 
+  /**
+   * Use {@link EmulatorGeneratorKt#ensureAvdIsCreated} instead
+   */
+  @Deprecated
   public void createAVD(AvdManagerDialogFixture avdManagerDialog,
                         String tab,
                         ChooseSystemImageStepFixture.SystemImage image,
@@ -58,6 +93,10 @@ public class EmulatorTestRule extends ExternalResource {
     createAVD(avdManagerDialog, "Nexus 5", tab, image, avdName);
   }
 
+  /**
+   * Use {@link EmulatorGeneratorKt#ensureAvdIsCreated} instead
+   */
+  @Deprecated
   public void createAVD(AvdManagerDialogFixture avdManagerDialog,
                         String hardwareProfile,
                         String tab,
@@ -82,6 +121,10 @@ public class EmulatorTestRule extends ExternalResource {
     avdManagerDialog.close();
   }
 
+  /**
+   * Use {@link EmulatorGeneratorKt#createDefaultAvd} if you need to create a default AVD
+   */
+  @Deprecated
   public void createDefaultAVD(AvdManagerDialogFixture avdManagerDialog) {
     createAVD(avdManagerDialog,
               "x86 Images",
@@ -91,5 +134,16 @@ public class EmulatorTestRule extends ExternalResource {
 
   public MockAvdManagerConnection getEmulatorConnection() {
     return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
+  }
+
+  /**
+   * <p>Waits for the {@code contentWindow} to print text that matches the regular expression
+   * ".*Connected to process (\d+) .*". This pattern indicates that a process has been
+   * started on an emulator.</p>
+   *
+   * @throws org.fest.swing.exception.WaitTimedOutError if no text matches the pattern within the allotted time
+   */
+  public void waitForProcessToStart(ExecutionToolWindowFixture.ContentFixture contentWindow) {
+    contentWindow.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), DEFAULT_EMULATOR_WAIT_SECONDS);
   }
 }

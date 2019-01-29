@@ -30,8 +30,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link AbstractSyncMessages}.
  */
 public class AbstractSyncMessagesTest extends IdeaTestCase {
-  private SyncMessages mySyncMessages;
   private static final String TEST_GROUP = "Test";
+  private SyncMessages mySyncMessages;
 
   @Override
   protected void setUp() throws Exception {
@@ -60,17 +60,17 @@ public class AbstractSyncMessagesTest extends IdeaTestCase {
     generateMessages(expectedCount + 1, MessageType.WARNING);
     int actualCount = mySyncMessages.getErrorCount();
     assertEquals(expectedCount, actualCount);
+    assertEquals(2 * expectedCount + 1, mySyncMessages.getMessageCount(TEST_GROUP));
   }
 
   public void testGetMessageCount() {
-    String group = "Test";
-
-    int expectedCount = 6;
-    generateMessages(expectedCount, MessageType.ERROR);
-    generateMessages(expectedCount, MessageType.WARNING);
+    int expectedErrors = 6;
+    int expectedWarnings = 9;
+    generateMessages(expectedErrors, MessageType.ERROR);
+    generateMessages(expectedWarnings, MessageType.WARNING);
 
     int actualCount = mySyncMessages.getMessageCount(TEST_GROUP);
-    assertEquals(2 * expectedCount, actualCount);
+    assertEquals(expectedErrors + expectedWarnings, actualCount);
   }
 
   public void testIsEmptyWithMessages() {
@@ -83,7 +83,10 @@ public class AbstractSyncMessagesTest extends IdeaTestCase {
   }
 
   public void testRemoveAllMessages() {
-    generateMessages(1, MessageType.ERROR);
+    int numErrors = 7;
+    int numWarning = 13;
+    generateMessages(numWarning, MessageType.WARNING);
+    generateMessages(numErrors, MessageType.ERROR);
     assertFalse(mySyncMessages.isEmpty());
     mySyncMessages.removeAllMessages();
     assertTrue(mySyncMessages.isEmpty());

@@ -15,27 +15,46 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.builder.model.AndroidProject;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.java.model.ArtifactModel;
+import com.android.java.model.JavaProject;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
-import com.android.tools.idea.gradle.project.sync.GradleSync;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModelFactory;
+import com.android.tools.idea.gradle.project.sync.*;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.gradle.GradleScript;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
 
 public class NewGradleSync implements GradleSync {
   @NotNull private final Project myProject;
@@ -45,13 +64,30 @@ public class NewGradleSync implements GradleSync {
   @NotNull private final ProjectBuildFileChecksums.Loader myBuildFileChecksumsLoader;
   @NotNull private final CachedProjectModels.Loader myProjectModelsCacheLoader;
   @NotNull private final SyncExecutionCallback.Factory myCallbackFactory;
+  public static final String NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC = "not.eligible.for.single.variant.sync";
 
   public static boolean isLevel4Model() {
-    return isEnabled();
+    return StudioFlags.L4_DEPENDENCY_MODEL.get();
   }
 
-  public static boolean isEnabled() {
-    return StudioFlags.NEW_SYNC_INFRA_ENABLED.get();
+  public static boolean isEnabled(@NotNull Project project) {
+    return StudioFlags.NEW_SYNC_INFRA_ENABLED.get() || isSingleVariantSync(project);
+  }
+
+  public static boolean isSingleVariantSync(@NotNull Project project) {
+    return StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get() ||
+           (GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC &&
+            !PropertiesComponent.getInstance(project).getBoolean(NOT_ELIGIBLE_FOR_SINGLE_VARIANT_SYNC));
+  }
+
+  public static boolean isCompoundSync(@NotNull Project project) {
+    // Since Gradle plugin don't have the concept of selected variant and we don't want to generate sources for all variants, we only
+    // activate Compound Sync if Single Variant Sync is also enabled.
+    return StudioFlags.COMPOUND_SYNC_ENABLED.get() && isEnabled(project) && isSingleVariantSync(project);
+  }
+
+  public static boolean isShippedSync(@NotNull Project project) {
+    return StudioFlags.SHIPPED_SYNC_ENABLED.get() && isEnabled(project) && GradleProjectInfo.getInstance(project).isNewProject();
   }
 
   public NewGradleSync(@NotNull Project project) {
@@ -124,42 +160,81 @@ public class NewGradleSync implements GradleSync {
 
   private void sync(@NotNull GradleSyncInvoker.Request request, @NotNull ProgressIndicator indicator,
                     @Nullable GradleSyncListener syncListener) {
-    if (request.useCachedGradleModels) {
-      // Use models from disk cache.
-      ProjectBuildFileChecksums buildFileChecksums = myBuildFileChecksumsLoader.loadFromDisk(myProject);
-      if (buildFileChecksums != null && buildFileChecksums.canUseCachedData()) {
-        CachedProjectModels projectModelsCache = myProjectModelsCacheLoader.loadFromDisk(myProject);
-        if (projectModelsCache != null) {
-          PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-          setupRequest.usingCachedGradleModels = true;
-          setupRequest.generateSourcesAfterSync = false;
-          setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
-          // @formatter:on
+    PostSyncProjectSetup.Request setupRequest = createPostSyncRequest(request);
 
-          setSkipAndroidPluginUpgrade(request, setupRequest);
-
-          try {
-            myResultHandler.onSyncSkipped(projectModelsCache, setupRequest, indicator, syncListener);
-            return;
-          }
-          catch (ModelNotFoundInCacheException e) {
-            Logger.getInstance(NewGradleSync.class).warn("Restoring project state from cache failed. Performing a Gradle Sync.", e);
-          }
-        }
-      }
+    if (trySyncWithCachedGradleModels(setupRequest, indicator, syncListener)) {
+      return;
     }
 
+    boolean isVariantOnlySync = request.variantOnlySyncOptions != null;
+    boolean isCompoundSync = isCompoundSync(myProject) && request.generateSourcesOnSuccess;
+
+    SyncExecutionCallback callback = myCallbackFactory.create();
+    callback.doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
+
+    if (isCompoundSync) {
+      callback.doWhenDone(() -> myResultHandler.onCompoundSyncModels(callback, setupRequest, indicator, syncListener, isVariantOnlySync));
+    }
+    else if (isVariantOnlySync) {
+      callback.doWhenDone(() -> myResultHandler.onVariantOnlySyncFinished(callback, setupRequest, indicator, syncListener));
+    }
+    else {
+      callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener));
+    }
+
+    mySyncExecutor.syncProject(indicator, callback, request.variantOnlySyncOptions, syncListener, request, isCompoundSync);
+
+    if (isCompoundSync) {
+      myResultHandler.onCompoundSyncFinished(syncListener);
+    }
+  }
+
+  /**
+   * Returns true if loading of cached models was successful, false otherwise
+   */
+  private boolean trySyncWithCachedGradleModels(@NotNull PostSyncProjectSetup.Request setupRequest, @NotNull ProgressIndicator indicator,
+                                                @Nullable GradleSyncListener syncListener) {
+    if (!setupRequest.usingCachedGradleModels) {
+      return false;
+    }
+    // Use models from the disk cache.
+    ProjectBuildFileChecksums buildFileChecksums = myBuildFileChecksumsLoader.loadFromDisk(myProject);
+
+    if (buildFileChecksums == null || !buildFileChecksums.canUseCachedData()) {
+      return false;
+    }
+
+    CachedProjectModels projectModelsCache = myProjectModelsCacheLoader.loadFromDisk(myProject);
+
+    if (projectModelsCache == null) {
+      return false;
+    }
+
+    setupRequest.generateSourcesAfterSync = false;
+    setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
+
+    ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);
+
+    try {
+      myResultHandler.onSyncSkipped(projectModelsCache, setupRequest, indicator, syncListener, taskId);
+    }
+    catch (ModelNotFoundInCacheException e) {
+      Logger.getInstance(NewGradleSync.class).warn("Restoring project state from cache failed. Performing a Gradle Sync.", e);
+      return false;
+    }
+
+    return true;
+  }
+
+  private static PostSyncProjectSetup.Request createPostSyncRequest(@NotNull GradleSyncInvoker.Request request) {
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+
+    setupRequest.usingCachedGradleModels = request.useCachedGradleModels;
     setupRequest.generateSourcesAfterSync = request.generateSourcesOnSuccess;
     setupRequest.cleanProjectAfterSync = request.cleanProject;
     setSkipAndroidPluginUpgrade(request, setupRequest);
 
-    SyncExecutionCallback callback = myCallbackFactory.create();
-    // @formatter:off
-    callback.doWhenDone(() -> myResultHandler.onSyncFinished(callback, setupRequest, indicator, syncListener))
-            .doWhenRejected(() -> myResultHandler.onSyncFailed(callback, syncListener));
-    // @formatter:on
-    mySyncExecutor.syncProject(indicator, callback);
+    return setupRequest;
   }
 
   private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
@@ -167,5 +242,61 @@ public class NewGradleSync implements GradleSync {
     if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.skipAndroidPluginUpgrade) {
       setupRequest.skipAndroidPluginUpgrade = true;
     }
+  }
+
+  @Override
+  @NotNull
+  public List<GradleModuleModels> fetchGradleModels(@NotNull ProgressIndicator indicator) {
+    List<SyncModuleModels> models = mySyncExecutor.fetchGradleModels(indicator);
+    ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
+
+    IdeDependenciesFactory dependenciesFactory = new IdeDependenciesFactory();
+    JavaModuleModelFactory javaModelFactory = new JavaModuleModelFactory();
+    String emptyVariantName = "";
+
+    for (SyncModuleModels moduleModels : models) {
+      GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
+      if (gradleProject != null) {
+        String name = moduleModels.getModuleName();
+        PsdModuleModels newModels = new PsdModuleModels(name);
+        builder.add(newModels);
+
+        GradleScript buildScript = null;
+        try {
+          buildScript = gradleProject.getBuildScript();
+        }
+        catch (Throwable e) {
+          // Ignored. We got here because the project is using Gradle 1.8 or older.
+        }
+
+        File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
+        GradleModuleModel gradleModel = new GradleModuleModel(name, gradleProject, Collections.emptyList(), buildFilePath, null);
+        newModels.addModel(GradleModuleModel.class, gradleModel);
+
+        File moduleRootPath = gradleProject.getProjectDirectory();
+
+        AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
+        if (androidProject != null) {
+          AndroidModuleModel androidModel = new AndroidModuleModel(name, moduleRootPath, androidProject, emptyVariantName,
+                                                                   dependenciesFactory);
+          newModels.addModel(AndroidModuleModel.class, androidModel);
+          continue;
+        }
+
+        JavaProject javaProject = moduleModels.findModel(JavaProject.class);
+        if (javaProject != null) {
+          JavaModuleModel javaModel = javaModelFactory.create(moduleRootPath, gradleProject, javaProject);
+          newModels.addModel(JavaModuleModel.class, javaModel);
+          continue;
+        }
+
+        ArtifactModel jarAarProject = moduleModels.findModel(ArtifactModel.class);
+        if (!gradleProject.getPath().equals(":") && jarAarProject != null) {
+          JavaModuleModel javaModel = javaModelFactory.create(moduleRootPath, gradleProject, jarAarProject);
+          newModels.addModel(JavaModuleModel.class, javaModel);
+        }
+      }
+    }
+    return builder.build();
   }
 }

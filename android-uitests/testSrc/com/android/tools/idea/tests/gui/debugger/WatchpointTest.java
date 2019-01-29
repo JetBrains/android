@@ -16,17 +16,17 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunWith (GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class WatchpointTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
@@ -51,11 +51,13 @@ public class WatchpointTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70629290
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void testWatchpoint() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("WatchpointTestAppForUI");
 
     final IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);
 
     emulator.createDefaultAVD(ideFrame.invokeAvdManager());
 
@@ -65,12 +67,8 @@ public class WatchpointTest extends DebuggerTestBase {
     // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
     String[] expectedPattern = {variableToSearchPattern("write", "int", "5")};
 
-    ideFrame.debugApp(DEBUG_CONFIG_NAME)
-        .selectDevice(emulator.getDefaultAvdName())
-        .clickOk();
-
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
-    waitForSessionStart(debugToolWindowFixture);
+    DebugToolWindowFixture debugToolWindowFixture =
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
     checkAppIsPaused(ideFrame, expectedPattern);
 
     DebugToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);

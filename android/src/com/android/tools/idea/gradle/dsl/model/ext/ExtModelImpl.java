@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
@@ -46,15 +45,10 @@ public final class ExtModelImpl extends GradleDslBlockModel implements ExtModel 
     return myDslElement.getPropertyElement(property, clazz);
   }
 
-  @NotNull
-  public <T> GradleNullableValue<T> getLiteralProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    return myDslElement.getLiteralProperty(property, clazz);
-  }
-
   @Override
   @NotNull
   public GradlePropertyModel findProperty(@NotNull String name) {
-    GradleDslElement element = myDslElement.getPropertyElement(name);
+    GradleDslElement element = myDslElement.getElement(name);
     if (element == null) {
       element = myDslElement.getVariableElement(name);
     }
@@ -66,6 +60,13 @@ public final class ExtModelImpl extends GradleDslBlockModel implements ExtModel 
   @NotNull
   public List<GradlePropertyModel> getProperties() {
     return myDslElement.getPropertyElements().values().stream().map(element -> new GradlePropertyModelImpl(element))
+      .collect(Collectors.toList());
+  }
+
+  @NotNull
+  @Override
+  public List<GradlePropertyModel> getVariables() {
+    return myDslElement.getVariableElements().values().stream().map(element -> new GradlePropertyModelImpl(element))
       .collect(Collectors.toList());
   }
 }

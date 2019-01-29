@@ -16,14 +16,13 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
@@ -36,7 +35,7 @@ import org.junit.runner.RunWith;
 import javax.swing.*;
 import java.io.IOException;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NativeOptimizedWarningTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
@@ -69,10 +68,8 @@ public class NativeOptimizedWarningTest extends DebuggerTestBase {
     // Setup breakpoints
     openAndToggleBreakPoints(projectFrame, "app/src/main/cpp/hello-jni.c", "return 1+c;");
 
-    projectFrame.debugApp(DEBUG_CONFIG_NAME).selectDevice(emulator.getDefaultAvdName()).clickOk();
-
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
-    waitForSessionStart(debugToolWindowFixture);
+    DebugToolWindowFixture debugToolWindowFixture =
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(projectFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
 
     Wait.seconds(5).expecting("Frame list populated").until(
       () -> debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME).getFramesListFixture().selection().length > 0);
@@ -90,11 +87,6 @@ public class NativeOptimizedWarningTest extends DebuggerTestBase {
     listFixture.selectItem(2).requireSelection(".*stringFromJNI.*");
     GuiTests.waitUntilGone(guiTest.robot(), editorTabs, myWarningMatcher);
 
-    {
-      // We cannot reuse the context fixture we got above, as its windows could have been repurposed for other things.
-      final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-      contentFixture.stop();
-      contentFixture.waitForExecutionToFinish();
-    }
+    debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME).stop().waitForExecutionToFinish();
   }
 }

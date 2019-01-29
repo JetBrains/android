@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -48,6 +49,8 @@ public class GradleSettingsFileTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myDocument = null;
+    // Kotlin plugin requests Groovy JDK if $ is found in the editor.
+    IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
   public void testGetModules() throws Exception {

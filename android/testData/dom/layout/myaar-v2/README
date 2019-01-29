@@ -1,0 +1,18 @@
+This directory contains unpacked contents of an AAR file produced by the following procedure:
+
+1. In Studio create a project with an empty activity.
+2. Enable namespacing
+3. Add a library module, call it mylibrary
+4. In the mylibrary module replace contents of AndroidManifest.xml with:
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.mylibrary">
+</manifest>
+5. Create strings.xml under res/values with the following contents:
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="my_aar_string">This string came from an AARv2</string>
+</resources>
+6. In the application directory run:
+gw :mylibrary:assembleRelease
+7. Unzip mylibrary/build/outputs/aar/mylibrary-release.aar

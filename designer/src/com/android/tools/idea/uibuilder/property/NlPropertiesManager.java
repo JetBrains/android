@@ -16,22 +16,20 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
-import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -47,7 +45,6 @@ import java.util.List;
 import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
 
 public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> implements RenderListener {
-  private ComponentAssistant myComponentAssistant;
   private NlInspectorProviders myInspectorProviders;
 
   public NlPropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface) {
@@ -73,15 +70,6 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
   @Override
   public void setRestoreToolWindow(@NotNull Runnable restoreToolWindowCallback) {
     getPropertiesPanel().setRestoreToolWindow(restoreToolWindowCallback);
-  }
-
-  @NotNull
-  private ComponentAssistant getComponentAssistant() {
-    if (myComponentAssistant == null) {
-      myComponentAssistant = new ComponentAssistant(getProject());
-    }
-
-    return myComponentAssistant;
   }
 
   @NotNull
@@ -117,15 +105,16 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
     if (sceneView == mySceneView) {
       return;
     }
+    assert sceneView == null || sceneView instanceof ScreenView : "NlPropertiesManager can only handle ScreenViews";
 
     if (mySceneView != null) {
-      mySceneView.getSceneManager().removeRenderListener(this);
+      ((ScreenView)mySceneView).getSceneManager().removeRenderListener(this);
     }
 
     super.setSceneView(sceneView);
 
     if (mySceneView != null) {
-      mySceneView.getSceneManager().addRenderListener(this);
+      ((ScreenView)mySceneView).getSceneManager().addRenderListener(this);
     }
   }
 
@@ -143,7 +132,11 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
         SdkConstants.ATTR_PARENT_TAG.equals(property.getName())) {
       // Special case: When the tools:parentTag is updated on a <merge> tag, the set of attributes for
       // the <merge> tag may change e.g. if the value is set to "LinearLayout" the <merge> tag will
-      // then have all attributes from a <LinearLayout>. Force an update of all properties:
+      // then have all attributes from a <LinearLayout>. Force an update of all properties and reset
+      // cached components in the inspector providers.
+      if (myInspectorProviders != null) {
+        myInspectorProviders.resetCache();
+      }
       updateSelection();
       return;
     }
@@ -171,25 +164,6 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
       getPropertiesPanel().getFilterMatchCount());
   }
 
-  // ---- Implements DesignSurfaceListener ----
-
-  @Override
-  public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull final List<NlComponent> newSelection) {
-    super.componentSelectionChanged(surface, newSelection);
-    if (surface != getDesignSurface()) {
-      return;
-    }
-
-    ComponentAssistant assistant = getComponentAssistant();
-    assistant.componentSelectionChanged(surface, newSelection);
-    getContentPanel().setSecondComponent(assistant.isVisible() ? assistant : null);
-  }
-
-  @Override
-  public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
-    getComponentAssistant().modelChanged(surface, model);
-  }
-
   /**
    * Find the preferred attribute of the component specified,
    * and bring focus to the editor of this attribute in the inspector.
@@ -201,8 +175,6 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
    */
   @Override
   public boolean activatePreferredEditor(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-    getComponentAssistant().activatePreferredEditor(surface, component);
-
     ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
     String propertyName = handler != null ? handler.getPreferredProperty() : null;
     if (propertyName == null) {
@@ -210,6 +182,17 @@ public class NlPropertiesManager extends PropertiesManager<NlPropertiesManager> 
     }
     getPropertiesPanel().activatePreferredEditor(propertyName, myLoading);
     return true;
+  }
+
+  @Override
+  public void setToolContext(@Nullable DesignSurface designSurface) {
+    super.setToolContext(designSurface);
+    getPropertiesPanel().setToolContext(designSurface);
+  }
+
+  @Override
+  public void showAccessoryPanel(@NotNull DesignSurface surface, boolean show) {
+    getPropertiesPanel().showAccessoryPanel(show);
   }
 
   @Override

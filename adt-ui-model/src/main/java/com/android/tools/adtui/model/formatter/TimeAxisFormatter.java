@@ -48,114 +48,13 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
   }
 
   /**
-   * The base class implementation only shows a single unit at the current scale.
-   * Time formatting behaves differently as we want to show 1m30s instead
-   * of 1.5m, or 1h15m instead of 1.25h, for example. So here the implementation is
-   * extended to include the extra unit/scale when appropriate.
+   * The base class implementation shows a single unit at the current scale.
+   * Fot time axis, use TimeFormatter's behavior instead.
    */
   @Override
   @NotNull
   public String getFormattedString(double globalRange, double value, boolean includeUnit) {
-    if (!includeUnit) {
-      return super.getFormattedString(globalRange, value, includeUnit);
-    }
-
-    int index1 = getMultiplierIndex(globalRange, 1);
-    long scale1 = getMultiplier();
-    String unit1 = getUnit(index1);
-    if (index1 > 1) {
-      int index2 = index1 - 1;
-      long scale2 = scale1 / getUnitMultiplier(index2);
-      String unit2 = getUnit(index2);
-      int value1 = (int)(value / scale1);
-      float value2 = (float)(value - value1 * scale1) / scale2;
-
-      if (value2 > 0) {
-        if (value1 > 0) {
-          return String.format("%d%s%.2f%s", value1, unit1, value2, unit2);
-        }
-        else {
-          return String.format("%.2f%s", value2, unit2);
-        }
-      }
-      else {
-        return String.format("%d%s", value1, unit1);
-      }
-    }
-    else {
-      return String.format("%.2f%s", value / scale1, unit1);
-    }
-  }
-
-  @NotNull
-  public String getFixedPointFormattedString(long fixedPoint, long value) {
-    int baseIndex = getMultiplierIndex(fixedPoint, 1);
-    long baseScale = getMultiplier();
-
-    long factor = value / baseScale;
-    if (factor < 1) {
-      return String.format("0%s", getUnit(baseIndex));
-    }
-
-    long truncatedValue = factor * baseScale;
-    int leadIndex = baseIndex;
-    long leadScale = baseScale;
-    for (int i = leadIndex + 1; i < getNumUnits(); i++) {
-      long cumulativeScale = leadScale * getUnitMultiplier(leadIndex);
-      if (truncatedValue < cumulativeScale) {
-        break;
-      }
-      leadIndex = i;
-      leadScale = cumulativeScale;
-    }
-
-    StringBuilder builder = new StringBuilder();
-    while (leadIndex >= baseIndex && truncatedValue > 0) {
-      long truncatedFactor = truncatedValue / leadScale;
-      if (truncatedFactor != 0) {
-        builder.append(String.format("%d%s", truncatedFactor, getUnit(leadIndex)));
-      }
-      truncatedValue -= truncatedFactor * leadScale;
-      leadScale /= getUnitMultiplier(leadIndex);
-      leadIndex--;
-    }
-    return builder.toString();
-  }
-
-  @NotNull
-  public String getClockFormattedString(long micro) {
-    long milli = TimeUnit.MICROSECONDS.toMillis(micro) % TimeUnit.SECONDS.toMillis(1);
-    long sec = TimeUnit.MICROSECONDS.toSeconds(micro) % TimeUnit.MINUTES.toSeconds(1);
-    long min = TimeUnit.MICROSECONDS.toMinutes(micro) % TimeUnit.HOURS.toMinutes(1);
-    long hour = TimeUnit.MICROSECONDS.toHours(micro);
-
-    return String.format("%02d:%02d:%02d.%03d", hour, min, sec, milli);
-  }
-
-  @NotNull
-  public String getFormattedDuration(long micros) {
-    String[] units = new String[]{"μs", "ms", "s", "m", "h"};
-
-    float[] multipliers = new float[]{
-      1,
-      TimeUnit.MILLISECONDS.toMicros(1),
-      TimeUnit.SECONDS.toMicros(1),
-      TimeUnit.MINUTES.toMicros(1),
-      TimeUnit.HOURS.toMicros(1)
-    };
-
-    assert multipliers.length == units.length;
-
-    long value = micros;
-    String unit = units[0];
-    for (int i = units.length - 1; i >= 0; --i) {
-      if (micros / multipliers[i] >= 1) {
-        value = Math.round(micros / multipliers[i]);
-        unit = units[i];
-        break;
-      }
-    }
-    return String.format("%d %s", value, unit);
+    return TimeFormatter.getSimplifiedClockString((long)(value));
   }
 
   @Override

@@ -44,13 +44,13 @@ class NavDeeplinksPropertyTest : NavTestCase() {
 
   fun testMultipleLinks() {
     val property = NavDeeplinkProperty(listOf(model.find("f2")!!))
-    assertSameElements(property.properties.keys, listOf(uri1, uri2))
-    assertSameElements(property.properties.values.map { it.name }, listOf(uri1, uri2))
+    assertSameElements(property.properties.keys(), listOf(uri1, uri2))
+    assertSameElements(property.properties.values().map { it.name }, listOf(uri1, uri2))
   }
 
   fun testNoActions() {
     val property = NavDeeplinkProperty(listOf(model.find("f1")!!))
-    assertTrue(property.properties.isEmpty())
+    assertTrue(property.properties.isEmpty)
   }
 
   fun testModify() {
@@ -59,9 +59,9 @@ class NavDeeplinksPropertyTest : NavTestCase() {
     val deeplink = model.find { it.getAttribute(AUTO_URI, ATTR_URI) == uri1 }!!
     fragment.addChild(deeplink)
     property.refreshList()
-    assertEquals(deeplink, property.getChildProperty(uri1).components[0])
+    assertEquals(deeplink, property.getChildProperties(uri1)[0].components[0])
     fragment.removeChild(deeplink)
     property.refreshList()
-    assertTrue(property.properties.isEmpty())
+    assertTrue(property.properties.isEmpty)
   }
 }

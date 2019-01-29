@@ -38,6 +38,8 @@ import javax.swing.event.HyperlinkEvent;
 import java.util.Set;
 
 public class InstantRunNotificationTask implements LaunchTask {
+  private static final String ID = "IR_NOTIFICATION";
+
   public static final String INSTANT_RUN_URL = "http://developer.android.com/r/studio-ui/instant-run.html";
   // We only need to show this message once per IDE session, but we do want to show it once per project
   // So this is the set of all projects for which we've displayed that message once in this IDE session.
@@ -107,6 +109,12 @@ public class InstantRunNotificationTask implements LaunchTask {
     }
 
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 
   private boolean shouldShowIRAd(@NotNull BuildCause buildCause, String eligibility) {

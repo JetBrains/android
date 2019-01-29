@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
+
 import android.view.View;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.tests.gui.framework.BuildSpecificGuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.ScreenshotsDuringTest;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -27,29 +31,32 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
+import com.android.tools.idea.tests.gui.framework.guitestprojectsystem.TargetBuildSystem;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import java.awt.Point;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-@RunWith(GuiTestRunner.class)
+@RunWith(Parameterized.class)
+@Parameterized.UseParametersRunnerFactory(BuildSpecificGuiTestRunner.Factory.class)
 public class NlEditorTest {
-
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest movieRule = new ScreenshotsDuringTest();
+
+  @Parameterized.Parameters(name="{0}")
+  public static TargetBuildSystem.BuildSystem[] data() {
+    return TargetBuildSystem.BuildSystem.values();
+  }
 
   @Test
   public void testSelectComponent() throws Exception {
@@ -70,35 +77,56 @@ public class NlEditorTest {
     assertThat(layout.getSelection()).containsExactly(textView.getComponent());
   }
 
-  /**
-   * Verifies addition of components to designer screen
-   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TT ID: 78baed4b-32be-4d72-b558-ba9f6c727334
-   * <pre>
-   *   1. Create a new project
-   *   2. Open the layout xml file
-   *   3. Switch to design view
-   *   4. Drag and drop components TextView, Button
-   *   5. Switch back to Text view
-   *   Verification:
-   *   1. The added component shows up in the xml
-   * </pre>
-   */
-  @RunIn(TestGroup.SANITY)
+  @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
+  @Ignore("b/78228400")
   @Test
-  public void basicLayoutEdit() throws Exception {
+  public void designEditorUnavailableIfInProgressBazelSyncFailed() throws Exception {
+    // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
     guiTest.importSimpleLocalApplication()
       .getEditor()
+      .open("app/BUILD")
+      .moveBetween("deps = [", "")
+      .enterText("\n\":bogus_dependency\",");
+
+    guiTest.testSystem()
+           .requestProjectSync(guiTest.ideFrame())
+           .waitForProjectSyncToStart(guiTest.ideFrame());
+
+    // Open design editor while sync is in progress. We should see a loading panel
+    // while the sync is taking place. Then, once the sync fails, the loading
+    // animation should be replaced with an error message.
+    NlEditorFixture editorFixture = guiTest.ideFrame().getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
-      .dragComponentToSurface("Text", "TextView")
-      .dragComponentToSurface("Buttons", "Button");
-    String layoutFileContents = guiTest.ideFrame()
+      .waitForSurfaceToLoad();
+
+    // The design editor should be unavailable because the in-progress sync failed.
+    assertThat(editorFixture.canInteractWithSurface()).isFalse();
+  }
+
+  @TargetBuildSystem({TargetBuildSystem.BuildSystem.BAZEL})
+  @Ignore("b/78228400")
+  @Test
+  public void designEditorUnavailableIfLastBazelSyncFailed() throws Exception {
+    // Add a bad dependency to app/BUILD. This will cause the next sync to fail.
+    guiTest.importSimpleLocalApplication()
       .getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
-      .getCurrentFileContents();
-    assertThat(layoutFileContents).contains("<TextView");
-    assertThat(layoutFileContents).contains("<Button");
+      .open("app/BUILD")
+      .moveBetween("deps = [", "")
+      .enterText("\n\":bogus_dependency\",");
+
+    guiTest.testSystem()
+      .requestProjectSync(guiTest.ideFrame())
+      .waitForProjectSyncToFinish(guiTest.ideFrame());
+
+    // After the failing sync, open the design editor.
+    NlEditorFixture editorFixture = guiTest.ideFrame().getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(false)
+      .waitForSurfaceToLoad();
+
+    // The design editor should be unavailable because the last sync failed.
+    assertThat(editorFixture.canInteractWithSurface()).isFalse();
   }
 
   @Test
@@ -132,6 +160,7 @@ public class NlEditorTest {
     assertEquals(5, layout.getAllComponents().size());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/72573971
   @Test
   public void testZoomAndPanWithMouseShortcut() throws Exception {
     guiTest.importSimpleLocalApplication();
@@ -201,28 +230,14 @@ public class NlEditorTest {
       EditorFixture editor = ideFrame.getEditor()
         .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
       NlEditorFixture layout = editor.getLayoutEditor(true)
-        .dragComponentToSurface("Buttons", "Button")
         .waitForRenderToFinish();
-
-      // Test enter text manually
-      NlComponentFixture button = layout.findView("Button", 0);
-      button.rightClick();
-      layout.invokeContextMenuAction("Convert view...");
-      MorphDialogFixture fixture = layout.findMorphDialog();
-      assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
-
-      ideFrame.robot().enterText("TextView");
-      ideFrame.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, 0);
-      assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
-      fixture.getOkButton().click();
-      assertNotNull(layout.findView("TextView", 1));
-      assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
 
       // Test click on a suggestion
       NlComponentFixture textView = layout.findView("TextView", 0);
       textView.rightClick();
       textView.invokeContextMenuAction("Convert view...");
-      fixture = layout.findMorphDialog();
+      MorphDialogFixture fixture = layout.findMorphDialog();
+      fixture.getTextField().click();
       assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
 
       fixture.getSuggestionList().clickItem("Button");
@@ -230,6 +245,20 @@ public class NlEditorTest {
       fixture.getOkButton().click();
       layout.waitForRenderToFinish();
       assertThat(textView.getComponent().getTag().getName()).isEqualTo("Button");
+
+      // Test enter text manually
+      NlComponentFixture button = layout.findView("Button", 0);
+      button.rightClick();
+      layout.invokeContextMenuAction("Convert view...");
+      fixture = layout.findMorphDialog();
+      fixture.getTextField().click();
+      assertThat(fixture.getTextField().target().isFocusOwner()).isTrue();
+
+      fixture.getTextField().replaceText("TextView");
+      assertThat(fixture.getTextField().target().getText()).isEqualTo("TextView");
+      fixture.getOkButton().click();
+      layout.waitForRenderToFinish();
+      assertThat(button.getComponent().getTag().getName()).isEqualTo("TextView");
     }
     finally {
       StudioFlags.NELE_CONVERT_VIEW.override(morphViewActionEnabled);
@@ -269,10 +298,10 @@ public class NlEditorTest {
       String expected = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                         "    android:layout_width=\"match_parent\"\n" +
                         "    android:layout_height=\"match_parent\"\n" +
-                        "    android:paddingBottom=\"16dp\"\n" +
                         "    android:paddingLeft=\"16dp\"\n" +
+                        "    android:paddingTop=\"16dp\"\n" +
                         "    android:paddingRight=\"16dp\"\n" +
-                        "    android:paddingTop=\"16dp\">\n" +
+                        "    android:paddingBottom=\"16dp\">\n" +
                         "\n" +
                         "    <Button\n" +
                         "        android:id=\"@+id/button\"\n" +
@@ -387,6 +416,7 @@ public class NlEditorTest {
       .open("app/src/main/res/layout/scroll.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(true);
     Point surfacePosition = layoutEditor
+      .waitForRenderToFinish()
       .showOnlyDesignView()
       .waitForRenderToFinish()
       .mouseWheelZoomIn(-10)

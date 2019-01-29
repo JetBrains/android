@@ -24,6 +24,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Tests for code editor features when working with resources under res/xml.
+ */
 public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
   public AndroidXmlResourcesDomTest() {
     super("dom/xml");

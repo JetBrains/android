@@ -54,7 +54,8 @@ public class DetachedToolWindowManager implements ProjectComponent {
     return project.getComponent(DetachedToolWindowManager.class);
   }
 
-  public DetachedToolWindowManager(@NotNull Application application,
+  @VisibleForTesting
+  DetachedToolWindowManager(@NotNull Application application,
                                    @NotNull Project project,
                                    @NotNull FileEditorManager fileEditorManager) {
     myApplication = application;

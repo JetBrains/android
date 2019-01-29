@@ -43,7 +43,7 @@ public class TextEditorFixture extends EditorFixtureBase {
   }
 
   public static TextEditorFixture create(@NotNull Project project) {
-    return new TextEditorFixture(new TextEditor(project, createListener()));
+    return new TextEditorFixture(new TextEditor(project, true, createListener()));
   }
 
   @Override

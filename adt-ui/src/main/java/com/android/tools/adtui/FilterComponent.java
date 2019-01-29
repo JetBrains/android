@@ -16,36 +16,38 @@
 package com.android.tools.adtui;
 
 
-import com.android.tools.adtui.flat.FlatToggleButton;
-import com.android.tools.adtui.model.FilterModel;
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterModel;
+import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.intellij.openapi.keymap.KeymapUtil;
-import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
 import com.intellij.util.Alarm;
-import icons.AndroidArtworkIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.function.BiConsumer;
-import java.util.regex.Pattern;
-
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
+import java.text.DecimalFormat;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * A modified version of IJ's FilterComponent that allows users to specify a custom delay between typing and
  * the filter box triggering a change event.
  */
 
-public class FilterComponent extends JPanel {
+public final class FilterComponent extends JPanel {
   static final String OPEN_AND_FOCUS_ACTION = "OpenAndFocusSearchAction";
   static final String CLOSE_ACTION = "CloseSearchAction";
-  static final KeyStroke FILTER_KEY_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK);
+  static final KeyStroke FILTER_KEY_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
+  static final JBColor NO_MATCHES_COLOR = new JBColor(new Color(0xffffcccc), new Color(0xff743a3a));
 
   private static final String REGEX = "Regex";
   private static final String MATCH_CASE = "Match Case";
@@ -53,14 +55,19 @@ public class FilterComponent extends JPanel {
 
   private JCheckBox myRegexCheckBox;
   private JCheckBox myMatchCaseCheckBox;
-  private final SearchTextField myFilter;
+  private JLabel myCountLabel;
+  private final SearchTextField mySearchField;
   private final Alarm myUpdateAlarm = new Alarm();
   private final int myDelayMs;
+  private final Color mySearchFieldDefaultBackground;
 
-  public FilterComponent(int textFieldWidth, int historySize, int delayMs) {
-    super(new TabularLayout("4px," + textFieldWidth + "px,5px,Fit,5px,Fit", "Fit"));
+  public FilterComponent(@NotNull Filter filter, int textFieldWidth, int historySize, int delayMs) {
+    super(new TabularLayout("4px," + textFieldWidth + "px,5px,Fit-,5px,Fit-,20px,Fit-", "Fit-"));
+
     myDelayMs = delayMs;
     myModel = new FilterModel();
+    myModel.setFilter(filter);
+
     addComponentListener(new ComponentAdapter() {
       @Override
       public void componentShown(ComponentEvent e) {
@@ -70,19 +77,19 @@ public class FilterComponent extends JPanel {
     });
 
     // Configure filter text field
-    myFilter = new SearchTextField() {
+    mySearchField = new SearchTextField() {
       @Override
       protected Runnable createItemChosenCallback(JList list) {
         final Runnable callback = super.createItemChosenCallback(list);
         return () -> {
           callback.run();
-          filter();
+          updateModel();
         };
       }
 
       @Override
       protected Component getPopupLocationComponent() {
-        return FilterComponent.this.getPopupLocationComponent();
+        return mySearchField;
       }
 
       @Override
@@ -91,103 +98,103 @@ public class FilterComponent extends JPanel {
         super.onFocusLost();
       }
     };
-    myFilter.getTextEditor().addKeyListener(new KeyAdapter() {
+    if (!filter.isEmpty()) {
+      mySearchField.setText(filter.getFilterString());
+    }
+
+    mySearchField.getTextEditor().addKeyListener(new KeyAdapter() {
       //to consume enter in combo box - do not process this event by default button from DialogWrapper
       @Override
       public void keyPressed(final KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
           e.consume();
-          myFilter.addCurrentTextToHistory();
-          filter();
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-          onEscape(e);
+          mySearchField.addCurrentTextToHistory();
+          updateModel();
         }
       }
     });
 
-    myFilter.addDocumentListener(new DocumentListener() {
+    mySearchField.addDocumentListener(new DocumentListener() {
       @Override
       public void insertUpdate(DocumentEvent e) {
-        onChange();
+        onChanged();
       }
 
       @Override
       public void removeUpdate(DocumentEvent e) {
-        onChange();
+        onChanged();
       }
 
       @Override
       public void changedUpdate(DocumentEvent e) {
-        onChange();
+        onChanged();
+      }
+
+      private void onChanged() {
+        myUpdateAlarm.cancelAllRequests();
+        myUpdateAlarm.addRequest(() -> updateModel(), myDelayMs);
       }
     });
 
-    myFilter.setHistorySize(historySize);
+    mySearchField.setHistorySize(historySize);
 
-    add(myFilter, new TabularLayout.Constraint(0, 1));
+    add(mySearchField, new TabularLayout.Constraint(0, 1));
+    mySearchFieldDefaultBackground = mySearchField.getTextEditor().getBackground();
 
     // Configure check boxes
-    myMatchCaseCheckBox = new JCheckBox(MATCH_CASE);
+    myMatchCaseCheckBox = new JCheckBox(MATCH_CASE, filter.isMatchCase());
     myMatchCaseCheckBox.setMnemonic(KeyEvent.VK_C);
     myMatchCaseCheckBox.setDisplayedMnemonicIndex(MATCH_CASE.indexOf('C'));
     myMatchCaseCheckBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
-        myModel.setIsMatchCase(e.getStateChange() == ItemEvent.SELECTED);
+        updateModel();
       }
     });
     add(myMatchCaseCheckBox, new TabularLayout.Constraint(0, 3));
 
-    myRegexCheckBox = new JCheckBox(REGEX);
+    myRegexCheckBox = new JCheckBox(REGEX, filter.isRegex());
     myRegexCheckBox.setMnemonic(KeyEvent.VK_G);
     myRegexCheckBox.addItemListener(new ItemListener() {
       @Override
       public void itemStateChanged(ItemEvent e) {
-        myModel.setIsRegex(e.getStateChange() == ItemEvent.SELECTED);
+        updateModel();
       }
     });
     add(myRegexCheckBox, new TabularLayout.Constraint(0, 5));
+
+    myCountLabel = new JLabel();
+    myCountLabel.setFont(myCountLabel.getFont().deriveFont(Font.BOLD));
+    add(myCountLabel, new TabularLayout.Constraint(0, 7));
+
+    myModel.addMatchResultListener(result -> {
+      Color background = mySearchFieldDefaultBackground;
+      String text = "";
+      if (result.isFilterEnabled()) {
+        int count = result.getMatchCount();
+        if (count == 0) {
+          text = "No matches";
+          background = NO_MATCHES_COLOR;
+        }
+        else if (count == 1) {
+          text = "One match";
+        }
+        else {
+          text = new DecimalFormat("#,###").format(count) + " matches";
+        }
+      }
+      mySearchField.getTextEditor().setBackground(background);
+      myCountLabel.setText(text);
+    });
   }
 
-  protected JComponent getPopupLocationComponent() {
-    return myFilter;
+  public FilterComponent(int textFieldWidth, int historySize, int delayMs) {
+    this(Filter.EMPTY_FILTER, textFieldWidth, historySize, delayMs);
   }
 
-  public JTextField getTextEditor() {
-    return myFilter.getTextEditor();
-  }
-
-  private void onChange() {
+  public void setFilterText(final String filterText) {
     myUpdateAlarm.cancelAllRequests();
-    myUpdateAlarm.addRequest(() -> filter(), myDelayMs);
-  }
-
-  public void reset() {
-    myFilter.reset();
-  }
-
-  protected void onEscape(KeyEvent e) {
-  }
-
-  public String getFilter() {
-    return myFilter.getText();
-  }
-
-  public void setSelectedItem(final String filter) {
-    myFilter.setSelectedItem(filter);
-  }
-
-  public void setFilter(final String filter) {
-    myFilter.setText(filter);
-  }
-
-  public void selectText() {
-    myFilter.selectText();
-  }
-
-  private void filter() {
-    myModel.setFilterString(getFilter());
+    mySearchField.setText(filterText);
   }
 
   @NotNull
@@ -195,28 +202,43 @@ public class FilterComponent extends JPanel {
     return myModel;
   }
 
+  @NotNull
+  public FilterComponent setMatchCountVisibility(boolean value) {
+    myCountLabel.setVisible(value);
+    return this;
+  }
+
   @Override
   public boolean requestFocusInWindow() {
-    return myFilter.requestFocusInWindow();
+    return mySearchField.requestFocusInWindow();
   }
 
-  public void dispose() {
-    myUpdateAlarm.cancelAllRequests();
+  @VisibleForTesting
+  @NotNull
+  public SearchTextField getSearchField() {
+    return mySearchField;
   }
 
-  @TestOnly
-  JCheckBox getMatchCaseCheckBox() {
-    return myMatchCaseCheckBox;
+  @VisibleForTesting
+  @NotNull
+  public JLabel getCountLabel() {
+    return myCountLabel;
   }
 
-  @TestOnly
-  JCheckBox getRegexCheckBox() {
-    return myRegexCheckBox;
+  /**
+   * For performance reasons, FilterComponent doesn't apply the filter immediately, but waits for
+   * a delay period (so a filter operation is only applied once even if a user types a long String,
+   * for example). In tests, however, it may be prudent to call this method after a call to
+   * {@link #setFilterText(String)} - otherwise, your test may finish and then the filter component's
+   * alarm may fire.
+   */
+  @VisibleForTesting
+  public void waitForFilterUpdated() throws InterruptedException, ExecutionException, TimeoutException {
+    myUpdateAlarm.waitForAllExecuted(Long.MAX_VALUE, TimeUnit.SECONDS);
   }
 
-
-  public void addOnFilterChange(@NotNull BiConsumer<Pattern, FilterModel> callback) {
-    myModel.addOnFilterChange(callback);
+  private void updateModel() {
+    myModel.setFilter(new Filter(mySearchField.getText(), myMatchCaseCheckBox.isSelected(), myRegexCheckBox.isSelected()));
   }
 
   /**
@@ -238,9 +260,11 @@ public class FilterComponent extends JPanel {
                                                           @NotNull JToggleButton showHideButton) {
     showHideButton.addActionListener(event -> {
       filterComponent.setVisible(showHideButton.isSelected());
-      // Reset the filter content.
-      filterComponent.setFilter("");
-      if (showHideButton.isSelected()) {
+      if (!showHideButton.isSelected()) {
+        // Reset the filter content when dismissed
+        filterComponent.setFilterText("");
+      }
+      else {
         filterComponent.requestFocusInWindow();
       }
       containerComponent.revalidate();
@@ -282,8 +306,8 @@ public class FilterComponent extends JPanel {
   }
 
   @NotNull
-  static public FlatToggleButton createFilterToggleButton() {
-    FlatToggleButton filterButton = new FlatToggleButton("", AndroidArtworkIcons.Studio.Icons.Common.Filter);
+  static public CommonToggleButton createFilterToggleButton() {
+    CommonToggleButton filterButton = new CommonToggleButton("", StudioIcons.Common.FILTER);
     filterButton.setToolTipText(String.format("Filter (%s)", KeymapUtil.getKeystrokeText(FILTER_KEY_STROKE)));
     return filterButton;
   }

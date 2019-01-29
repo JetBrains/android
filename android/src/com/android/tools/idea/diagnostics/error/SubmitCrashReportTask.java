@@ -16,8 +16,9 @@
 
 package com.android.tools.idea.diagnostics.error;
 
-import com.android.tools.idea.diagnostics.crash.CrashReport;
-import com.android.tools.idea.diagnostics.crash.CrashReporter;
+import com.android.tools.analytics.crash.CrashReport;
+import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -58,10 +59,12 @@ public class SubmitCrashReportTask extends Task.Backgroundable {
   public void run(@NotNull ProgressIndicator indicator) {
     indicator.setIndeterminate(true);
 
-    CrashReport report = CrashReport.Builder.createForException(myThrowable)
-      .addProductData(getProductData())
-      .build();
-    CompletableFuture<String> future = CrashReporter.getInstance().submit(report, true);
+    CrashReport report =
+      new StudioExceptionReport.Builder()
+        .setThrowable(myThrowable)
+        .addProductData(getProductData())
+        .build();
+    CompletableFuture<String> future = StudioCrashReporter.getInstance().submit(report, true);
 
     try {
       String token = future.get(20, TimeUnit.SECONDS); // arbitrary limit, we don't really want an error report task to take longer

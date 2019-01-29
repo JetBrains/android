@@ -63,10 +63,23 @@ class SystemFonts {
   @Nullable
   private static FontFamily createFont(@NotNull DownloadableFontCacheServiceImpl service, @NotNull String systemFontName) {
     switch (systemFontName) {
+      case "sans-serif-thin":
+        return findFont(service, systemFontName, "Roboto", DEFAULT_WIDTH, 100, 400);
+      case "sans-serif-light":
+        return findFont(service, systemFontName, "Roboto", DEFAULT_WIDTH, 300, 700);
       case "sans-serif":
-        return findFont(service, systemFontName, "Roboto", DEFAULT_WIDTH, 100, 300, 400, 500, 700, 900);
+        return findFont(service, systemFontName, "Roboto", DEFAULT_WIDTH, 400, 700);
+      case "sans-serif-medium":
+        return findFont(service, systemFontName, "Roboto", DEFAULT_WIDTH, 500, 900);
+      case "sans-serif-black":
+        return findFont(service, systemFontName, "Roboto", DEFAULT_WIDTH, 900);
+      case "sans-serif-condensed-light":
+        return findFont(service, systemFontName, "Roboto", CONDENSED_WIDTH, 300, 700);
       case "sans-serif-condensed":
-        return findFont(service, systemFontName, "Roboto", CONDENSED_WIDTH, 300, 400, 700);
+        return findFont(service, systemFontName, "Roboto", CONDENSED_WIDTH, 400, 700);
+      case "sans-serif-condensed-medium":
+        // Should be (500, 700) but 500 doesn't exist on fonts.google.com
+        return findFont(service, systemFontName, "Roboto", CONDENSED_WIDTH, 400, 700);
       case "serif":
         return findFont(service, systemFontName, "Noto Serif", DEFAULT_WIDTH, 400, 700);
       case "monospace":

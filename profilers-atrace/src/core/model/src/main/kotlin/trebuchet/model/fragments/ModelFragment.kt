@@ -22,6 +22,7 @@ class ModelFragment {
     var globalStartTime: Double = 0.0
     var globalEndTime: Double = 0.0
     var parentTimestamp: Double = 0.0
+    var parentTimestampBootTime: Double = 0.0
     var realtimeTimestamp: Long = 0L
 
     fun autoCloseOpenSlices() {

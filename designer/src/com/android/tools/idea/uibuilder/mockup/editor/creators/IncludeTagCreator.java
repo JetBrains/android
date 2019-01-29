@@ -23,19 +23,17 @@ import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -91,7 +89,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
   @Override
   public NlComponent addToModel() {
     NlComponent component = getMockup().getComponent();
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_RECYCLER_VIEW)) {
+    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_RECYCLER_VIEW_V7)) {
       addListItemAttribute(component);
       return component;
     }
@@ -121,9 +119,8 @@ public class IncludeTagCreator extends SimpleViewCreator {
    */
   private String createNewIncludedLayout() {
     AndroidFacet facet = getMockup().getComponent().getModel().getFacet();
-    ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(ResourceType.LAYOUT);
     XmlFile newFile = CreateResourceFileAction.createFileResource(
-      facet, folderType, null, null, null, true, null, null, null, false);
+      facet, ResourceFolderType.LAYOUT, null, null, null, true, null, null, null, false);
 
     if (newFile == null) {
       return null;
@@ -132,7 +129,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
     if (rootTag == null) {
       return null;
     }
-    SceneManager manager = getScreenView().getSurface().getSceneManager();
+    LayoutlibSceneManager manager = (LayoutlibSceneManager)getScreenView().getSurface().getSceneManager();
 
     if (manager != null) {
       NlModel model = NlModel.create(newFile.getProject(), facet, newFile.getVirtualFile());

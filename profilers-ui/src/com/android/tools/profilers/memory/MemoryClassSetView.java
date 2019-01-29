@@ -17,13 +17,17 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -119,7 +123,7 @@ final class MemoryClassSetView extends AspectObserver {
           if (node instanceof ValueObject) {
             ValueObject valueObject = (ValueObject)node;
             if (valueObject.getDepth() >= 0 && valueObject.getDepth() < Integer.MAX_VALUE) {
-              return Integer.toString(valueObject.getDepth());
+              return NumberFormatter.formatInteger(valueObject.getDepth());
             }
           }
           return "";
@@ -137,13 +141,23 @@ final class MemoryClassSetView extends AspectObserver {
           if (node instanceof InstanceObject) {
             InstanceObject instanceObject = (InstanceObject)node;
             if (instanceObject.getAllocTime() > Long.MIN_VALUE) {
-              return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
-                TimeUnit.MILLISECONDS.toMicros(1),
-                myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
+              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
             }
           }
           return "";
-        }, value -> null, SwingConstants.RIGHT),
+        }, value -> null, value -> {
+          MemoryObject node = value.getAdapter();
+          if (node instanceof InstanceObject) {
+            InstanceObject instanceObject = (InstanceObject)node;
+            Range selectionRange = myStage.getSelectionModel().getSelectionRange();
+            long startTimeStamp = TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMin());
+            long endTimeStamp = TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax());
+            if (instanceObject.getAllocTime() >= startTimeStamp && instanceObject.getAllocTime() < endTimeStamp) {
+              return SimpleTextAttributes.REGULAR_ATTRIBUTES;
+            }
+          }
+          return SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES;
+        }, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.ASCENDING,
@@ -157,9 +171,7 @@ final class MemoryClassSetView extends AspectObserver {
           if (node instanceof InstanceObject) {
             InstanceObject instanceObject = (InstanceObject)node;
             if (instanceObject.getDeallocTime() < Long.MAX_VALUE) {
-              return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
-                TimeUnit.MILLISECONDS.toMicros(1),
-                myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
+              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
             }
           }
           return "";
@@ -174,7 +186,7 @@ final class MemoryClassSetView extends AspectObserver {
         "Native Size",
         () -> new SimpleColumnRenderer<>(value -> {
           MemoryObject node = value.getAdapter();
-          return node instanceof ValueObject ? Long.toString(((ValueObject)node).getNativeSize()) : "";
+          return node instanceof ValueObject ? NumberFormatter.formatInteger(((ValueObject)node).getNativeSize()) : "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -186,7 +198,7 @@ final class MemoryClassSetView extends AspectObserver {
         "Shallow Size",
         () -> new SimpleColumnRenderer<>(value -> {
           MemoryObject node = value.getAdapter();
-          return node instanceof ValueObject ? Integer.toString(((ValueObject)node).getShallowSize()) : "";
+          return node instanceof ValueObject ? NumberFormatter.formatInteger(((ValueObject)node).getShallowSize()) : "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -198,7 +210,7 @@ final class MemoryClassSetView extends AspectObserver {
         "Retained Size",
         () -> new SimpleColumnRenderer<>(value -> {
           MemoryObject node = value.getAdapter();
-          return node instanceof ValueObject ? Long.toString(((ValueObject)node).getRetainedSize()) : "";
+          return node instanceof ValueObject ? NumberFormatter.formatInteger(((ValueObject)node).getRetainedSize()) : "";
         }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -361,7 +373,7 @@ final class MemoryClassSetView extends AspectObserver {
         }
       }
     });
-    builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR);
+    builder.setHoverColor(StandardColors.HOVER_COLOR);
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);
@@ -429,7 +441,7 @@ final class MemoryClassSetView extends AspectObserver {
         myStage.selectHeapSet(heapSet);
 
         ClassifierSet classifierSet = heapSet.findContainingClassifierSet(selectedObject);
-        assert classifierSet != null && classifierSet instanceof ClassSet;
+        assert classifierSet instanceof ClassSet;
         myStage.selectClassSet((ClassSet)classifierSet);
         myStage.selectInstanceObject(selectedObject);
         myStage.selectFieldObjectPath(Collections.emptyList());

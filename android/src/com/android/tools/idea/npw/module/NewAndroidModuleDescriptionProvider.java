@@ -16,26 +16,32 @@
 package com.android.tools.idea.npw.module;
 
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import icons.AndroidIcons;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.npw.model.NewProjectModel.getSuggestedProjectPackage;
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
+import static com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
-  public Collection<ModuleTemplateGalleryEntry> getDescriptions() {
+  public Collection<ModuleTemplateGalleryEntry> getDescriptions(Project project) {
     ArrayList<ModuleTemplateGalleryEntry> res = new ArrayList<>();
 
     TemplateManager manager = TemplateManager.getInstance();
@@ -55,14 +61,15 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
         // Hidden if not installed
       }
       else if (formFactor.equals(FormFactor.MOBILE)) {
-        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, AndroidIcons.ModuleTemplates.Mobile,
+        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, getModuleTypeIcon(templateFile),
                                                       message("android.wizard.module.new.mobile"), metadata.getTitle()));
 
-        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, true, AndroidIcons.ModuleTemplates.Android,
+        File androidProjectTemplate = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE);
+        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, true, getModuleTypeIcon(androidProjectTemplate),
                                                       message("android.wizard.module.new.library"), metadata.getDescription()));
       }
       else {
-        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, getModuleTypeIcon(formFactor),
+        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, getModuleTypeIcon(templateFile),
                                                       metadata.getTitle(), metadata.getDescription()));
       }
     }
@@ -70,23 +77,8 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     return res;
   }
 
-  private static Icon getModuleTypeIcon(@NotNull FormFactor enumValue) {
-    switch (enumValue) {
-      case CAR:
-        return AndroidIcons.ModuleTemplates.Car;
-      case GLASS:
-        return AndroidIcons.ModuleTemplates.Glass;
-      case MOBILE:
-        return AndroidIcons.ModuleTemplates.Mobile;
-      case TV:
-        return AndroidIcons.ModuleTemplates.Tv;
-      case WEAR:
-        return AndroidIcons.ModuleTemplates.Wear;
-      case THINGS:
-        return AndroidIcons.ModuleTemplates.Things;
-      default:
-        throw new IllegalArgumentException(enumValue.name());
-    }
+  private static Image getModuleTypeIcon(@NotNull File templateFile) {
+    return getTemplateImage(new TemplateHandle(templateFile), false);
   }
 
   private static class AndroidModuleTemplateGalleryEntry implements ModuleTemplateGalleryEntry {
@@ -94,12 +86,12 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     private final FormFactor myFormFactor;
     private final int myMinSdkLevel;
     private final boolean myIsLibrary;
-    private final Icon myIcon;
+    private final Image myIcon;
     private final String myName;
     private final String myDescription;
 
     AndroidModuleTemplateGalleryEntry(File templateFile, FormFactor formFactor, int minSdkLevel, boolean isLibrary,
-                                      Icon icon, String name, String description) {
+                                      Image icon, String name, String description) {
       this.myTemplateFile = templateFile;
       this.myFormFactor = formFactor;
       this.myMinSdkLevel = minSdkLevel;
@@ -133,7 +125,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
 
     @Nullable
     @Override
-    public Icon getIcon() {
+    public Image getIcon() {
       return myIcon;
     }
 
@@ -157,7 +149,8 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, isLibrary(), false, myName);
+      String basePackage = getSuggestedProjectPackage(model.getProject().getValue(), false);
+      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, basePackage, isLibrary(), false, myName);
     }
   }
 }

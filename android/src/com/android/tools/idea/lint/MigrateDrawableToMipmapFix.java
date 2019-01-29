@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Result;
@@ -71,22 +72,20 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
     final Set<PsiElement> references = Sets.newHashSet();
 
     GlobalSearchScope useScope = GlobalSearchScope.projectScope(project);
-    ProjectResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(facet);
-    List<ResourceItem> resourceItems = projectResources.getResourceItem(myUrl.type, myUrl.name);
-    if (resourceItems != null) {
-      for (ResourceItem item : resourceItems) {
-        PsiFile file = LocalResourceRepository.getItemPsiFile(project, item);
-        if (file == null) {
-          continue;
-        }
-        bitmaps.add(file);
+    LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(facet);
+    List<ResourceItem> resourceItems = projectResources.getResources(ResourceNamespace.TODO(), myUrl.type, myUrl.name);
+    for (ResourceItem item : resourceItems) {
+      PsiFile file = LocalResourceRepository.getItemPsiFile(project, item);
+      if (file == null) {
+        continue;
+      }
+      bitmaps.add(file);
 
-        Iterable<PsiReference> allReferences = SearchUtils.findAllReferences(file, useScope);
-        for (PsiReference next : allReferences) {
-          PsiElement element = next.getElement();
-          if (element != null) {
-            references.add(element);
-          }
+      Iterable<PsiReference> allReferences = SearchUtils.findAllReferences(file, useScope);
+      for (PsiReference next : allReferences) {
+        PsiElement element = next.getElement();
+        if (element != null) {
+          references.add(element);
         }
       }
     }
@@ -113,7 +112,7 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
 
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(project,
                                                                    "Migrate Drawable to Bitmap",
-                                                                   applicableFiles.toArray(new PsiFile[applicableFiles.size()])) {
+                                                                   applicableFiles.toArray(PsiFile.EMPTY_ARRAY)) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
         // Move each drawable bitmap from drawable-my-qualifiers to bitmap-my-qualifiers

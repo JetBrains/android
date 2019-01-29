@@ -16,12 +16,13 @@
 package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +31,7 @@ import java.io.IOException;
 
 import static junit.framework.Assert.assertEquals;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NewStyleDialogGuiTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
@@ -41,6 +42,7 @@ public class NewStyleDialogGuiTest {
    *
    * Is a regression test for http://b.android.com/180575
    */
+  @Ignore("b/63539615")  // triggers IDE error
   @Test
   public void testCreateNewThemeSelection() throws IOException {
     guiTest.importSimpleApplication();

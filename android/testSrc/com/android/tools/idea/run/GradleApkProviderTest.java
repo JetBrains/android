@@ -26,12 +26,16 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
@@ -127,6 +131,33 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     assertEquals(apk, apks.iterator().next().getFile());
   }
 
+  public void testOutputModelForDynamicApp() throws Exception {
+    loadProject(DYNAMIC_APP);
+
+    // Create temporary directory with list of apk files
+    File apkFolder = FileUtil.createTempDirectory("apk-output", null);
+    createApkFiles(apkFolder, "base-master.apk", "feature1-master.apk", "feature2-test-master.apk");
+    PostBuildModelProviderStub outputProvider = new PostBuildModelProviderStub();
+    GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet),
+                                                       outputProvider, false, () -> GradleApkProvider.OutputKind.AppBundleOutputModel);
+    outputProvider.setAppBundleProjectBuildOutput(myAndroidFacet, createAppBundleBuildOutputMock("debug", apkFolder));
+    Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
+    assertSize(1, apks);
+    ApkInfo apkInfo = apks.iterator().next();
+    assertThat(apkInfo.getFiles().size()).isEqualTo(3);
+    assertThat(apkInfo.getFiles().stream().map(x -> x.getApkFile().getName()).collect(Collectors.toList()))
+      .containsExactly("base-master.apk", "feature1-master.apk", "feature2-test-master.apk");
+    assertThat(apkInfo.getFiles().stream().map(x -> x.getModuleName()).collect(Collectors.toList()))
+      .containsExactly("base", "feature1", "feature2-test");
+  }
+
+  private static void createApkFiles(File folder, String... files) throws IOException {
+    for (String fileName : files) {
+      File file = folder.toPath().resolve(fileName).toFile();
+      file.createNewFile();
+    }
+  }
+
   public void testGetApksForTestBuddyApks() throws Exception {
     loadProject(BUDDY_APKS, "test");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
@@ -156,8 +187,8 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     PostBuildModelProviderStub outputProvider = new PostBuildModelProviderStub();
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), outputProvider, true);
 
-    assertEquals(PROJECT_TYPE_TEST, myAndroidFacet.getProjectType());
-    AndroidModel androidModel = myAndroidFacet.getAndroidModel();
+    assertEquals(PROJECT_TYPE_TEST, myAndroidFacet.getConfiguration().getProjectType());
+    AndroidModel androidModel = myAndroidFacet.getConfiguration().getModel();
     assertInstanceOf(androidModel, AndroidModuleModel.class);
     for (TestedTargetVariant testedTargetVariant : ((AndroidModuleModel)androidModel).getSelectedVariant().getTestedTargetVariants()) {
       Module targetModule = findModuleByGradlePath(getProject(), testedTargetVariant.getTargetProjectPath());
@@ -195,6 +226,15 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     return projectBuildOutput;
   }
 
+  private static AppBundleProjectBuildOutput createAppBundleBuildOutputMock(@NotNull String variant, @NotNull File apkFolder) {
+    AppBundleProjectBuildOutput projectBuildOutput = mock(AppBundleProjectBuildOutput.class);
+    AppBundleVariantBuildOutput variantBuildOutput = mock(AppBundleVariantBuildOutput.class);
+    when(projectBuildOutput.getAppBundleVariantsBuildOutput()).thenReturn(Collections.singleton(variantBuildOutput));
+    when(variantBuildOutput.getName()).thenReturn(variant);
+    when(variantBuildOutput.getApkFolder()).thenReturn(apkFolder);
+    return projectBuildOutput;
+  }
+
   private static class PostBuildModelProviderStub implements PostBuildModelProvider {
     @NotNull private final PostBuildModel myPostBuildModel = mock(PostBuildModel.class);
 
@@ -204,6 +244,11 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
 
     void setInstantAppProjectBuildOutput(@NotNull AndroidFacet facet, @NotNull InstantAppProjectBuildOutput instantAppProjectBuildOutput) {
       when(myPostBuildModel.findInstantAppProjectBuildOutput(facet)).thenReturn(instantAppProjectBuildOutput);
+    }
+
+    void setAppBundleProjectBuildOutput(@NotNull AndroidFacet facet, @NotNull AppBundleProjectBuildOutput output) {
+      when(myPostBuildModel.findAppBundleProjectBuildOutput(facet)).thenReturn(output);
+      when(myPostBuildModel.findAppBundleProjectBuildOutput(facet.getModule())).thenReturn(output);
     }
 
     @Override

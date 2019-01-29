@@ -266,13 +266,11 @@ public final class GradleModuleImporter extends ModuleImporter {
   private static void copyAndRegisterModule(@NotNull Object requestor,
                                             @NotNull Map<String, VirtualFile> modules,
                                             @NotNull Project project,
-                                            @Nullable GradleSyncListener listener) throws IOException, ConfigurationException {
+                                            @Nullable GradleSyncListener listener) throws IOException {
     VirtualFile projectRoot = project.getBaseDir();
     if (projectRoot.findChild(SdkConstants.FN_SETTINGS_GRADLE) == null) {
       projectRoot.createChildData(requestor, SdkConstants.FN_SETTINGS_GRADLE);
     }
-    GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(project);
-    assert gradleSettingsFile != null : "File should have been created";
     for (Map.Entry<String, VirtualFile> module : modules.entrySet()) {
       String name = module.getKey();
       File targetFile = GradleUtil.getModuleDefaultPath(projectRoot, name);
@@ -292,6 +290,8 @@ public final class GradleModuleImporter extends ModuleImporter {
           targetFile = virtualToIoFile(moduleSource);
         }
       }
+      GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(project);
+      assert gradleSettingsFile != null : "File should have been created";
       gradleSettingsFile.addModule(name, targetFile);
     }
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();

@@ -15,10 +15,11 @@
  */
 package com.android.tools.profilers.energy
 
-import com.android.tools.profiler.proto.Common
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
+import com.android.tools.profilers.ProfilersTestData.SESSION_DATA
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -29,15 +30,14 @@ class EnergyProfilerTest {
 
   private val myService = FakeEnergyService()
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("NetworkProfilerTest", myService)
+  var myGrpcChannel = FakeGrpcChannel("EnergyProfilerTest", myService)
 
-  private val FAKE_PROCESS = Common.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build()
   private lateinit var myProfiler: EnergyProfiler
 
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices().apply { enableEnergyProfiler(true) }
-    myProfiler = EnergyProfiler(StudioProfilers(myGrpcChannel.client, services))
+    myProfiler = EnergyProfiler(StudioProfilers(myGrpcChannel.client, services, FakeTimer()))
   }
 
   @Test
@@ -49,17 +49,13 @@ class EnergyProfilerTest {
 
   @Test
   fun startMonitoring() {
-    myProfiler.startProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS)
-    // TODO: Add asserts once EnergyProfiler#startMonitoring is implemented
+    myProfiler.startProfiling(ProfilersTestData.SESSION_DATA)
+    assertThat(myService.session).isEqualTo(SESSION_DATA);
   }
 
   @Test
   fun stopMonitoring() {
-    myProfiler.stopProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS)
-    // TODO: Add asserts once EnergyProfiler#stopMonitoring is implemented
-  }
-
-  companion object {
-    private const val FAKE_PID = 111
+    myProfiler.stopProfiling(ProfilersTestData.SESSION_DATA)
+    assertThat(myService.session).isEqualTo(SESSION_DATA);
   }
 }

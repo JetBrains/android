@@ -31,8 +31,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -50,8 +50,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -69,8 +69,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -88,8 +88,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -108,8 +108,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -122,8 +122,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -140,8 +140,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface OrderDao {
@@ -154,8 +154,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface OrderDao {
@@ -172,8 +172,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -186,8 +186,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -204,8 +204,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -220,8 +220,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -232,14 +232,14 @@ class TableReferencesTest : RoomLightTestCase() {
     assertThat(myFixture.elementAtCaret).isEqualTo(myFixture.findClass("com.example.$newName"))
   }
 
-  fun testCodeCompletion_single() {
+  fun testCodeCompletion_select() {
     myFixture.addRoomEntity("com.example.User")
 
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -252,12 +252,72 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
           @Query("SELECT * FROM User") List<User> getAll();
+        }
+    """.trimIndent())
+  }
+
+  fun testCodeCompletion_update() {
+    myFixture.addRoomEntity("com.example.User")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("UPDATE U<caret>") void update();
+        }
+    """.trimIndent())
+
+    myFixture.completeBasic()
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("UPDATE User") void update();
+        }
+    """.trimIndent())
+  }
+
+  fun testCodeCompletion_delete() {
+    myFixture.addRoomEntity("com.example.User")
+
+    myFixture.configureByText(JavaFileType.INSTANCE, """
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("DELETE FROM U<caret>") void delete();
+        }
+    """.trimIndent())
+
+    myFixture.completeBasic()
+
+    myFixture.checkResult("""
+        package com.example;
+
+        import androidx.room.Dao;
+        import androidx.room.Query;
+
+        @Dao
+        public interface UserDao {
+          @Query("DELETE FROM User") void delete();
         }
     """.trimIndent())
   }
@@ -268,8 +328,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -282,8 +342,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -299,8 +359,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -322,8 +382,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -345,8 +405,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -361,8 +421,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -379,8 +439,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -398,8 +458,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -417,8 +477,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -436,8 +496,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -455,8 +515,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface OrderDao {
@@ -474,8 +534,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -492,8 +552,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -514,8 +574,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -533,8 +593,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -553,8 +613,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -574,8 +634,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -593,8 +653,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -611,8 +671,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -632,8 +692,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -648,8 +708,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -666,8 +726,8 @@ class TableReferencesTest : RoomLightTestCase() {
       myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -682,8 +742,8 @@ class TableReferencesTest : RoomLightTestCase() {
       myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -700,8 +760,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -716,8 +776,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -734,8 +794,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao
@@ -750,8 +810,8 @@ class TableReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
         import java.util.List;
 
         @Dao

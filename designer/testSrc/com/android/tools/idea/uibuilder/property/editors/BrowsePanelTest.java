@@ -16,24 +16,33 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceType;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
+import static com.android.SdkConstants.ATTR_HIDE_MOTION_SPEC;
+import static com.android.SdkConstants.ATTR_MENU;
+import static com.android.SdkConstants.ATTR_SHOW_MOTION_SPEC;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class BrowsePanelTest extends PropertyTestCase {
 
-  public void testGetResourceTypes() {
+  public void testHasBrowseDialog() {
     Map<String, NlProperty> props = getPropertyMap(Collections.singletonList(myTextView));
     assertThat(BrowsePanel.hasBrowseDialog(props.get(SdkConstants.ATTR_ID))).isFalse();
     assertThat(BrowsePanel.hasBrowseDialog(props.get(SdkConstants.ATTR_TEXT))).isTrue();
@@ -41,14 +50,20 @@ public class BrowsePanelTest extends PropertyTestCase {
     assertThat(BrowsePanel.hasBrowseDialog(props.get(SdkConstants.ATTR_TYPEFACE))).isFalse();
   }
 
-  public void testGetResourceTypesForView() {
+  public void testHasBrowseDialogForView() {
     Map<String, NlProperty> props = getPropertyMap(Collections.singletonList(myViewTag));
     assertThat(BrowsePanel.hasBrowseDialog(props.get(SdkConstants.ATTR_CLASS))).isTrue();
   }
 
-  public void testGetResourceTypesForFragment() {
+  public void testHasBrowseDialogForFragment() {
     Map<String, NlProperty> props = getPropertyMap(Collections.singletonList(myFragment));
     assertThat(BrowsePanel.hasBrowseDialog(props.get(SdkConstants.ATTR_NAME))).isTrue();
+  }
+
+  public void testGetResourceTypes() {
+    assertThat(getResourceTypes(ATTR_MENU)).containsExactly(ResourceType.MENU);
+    assertThat(getResourceTypes(ATTR_SHOW_MOTION_SPEC)).containsExactly(ResourceType.ANIM);
+    assertThat(getResourceTypes(ATTR_HIDE_MOTION_SPEC)).containsExactly(ResourceType.ANIM);
   }
 
   public void testMouseMovedLeftOfButtons() {
@@ -82,5 +97,11 @@ public class BrowsePanelTest extends PropertyTestCase {
 
     panel.setProperty(EmptyProperty.INSTANCE);
     assertThat(browseButton.isVisible()).isFalse();
+  }
+
+  private static Set<ResourceType> getResourceTypes(@NotNull String attributeName) {
+    NlPropertyItem property = mock(NlPropertyItem.class);
+    when(property.getName()).thenReturn(attributeName);
+    return BrowsePanel.getResourceTypes(property);
   }
 }

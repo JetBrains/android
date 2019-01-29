@@ -206,6 +206,9 @@ public class AndroidMenuTest extends AndroidDomTestCase {
   public void testActionViewClass() throws Throwable {
     copyFileToProject("MyProvider.java", "src/p1/p2/MyProvider.java");
     copyFileToProject("MyView.java", "src/p1/p2/MyView.java");
+    copyFileToProject("MyPackagePrivateView.java", "src/p1/p2/MyPackagePrivateView.java");
+
+    // There are two View subclasses in the project, but only one is public and it should be inserted.
     toTestCompletion("actionView.xml", "actionView_after.xml");
   }
 }

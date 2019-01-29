@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.common.model;
 
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.util.ListenerCollection;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents a selection of components
@@ -35,7 +31,6 @@ public class SelectionModel {
   private ImmutableList<NlComponent> mySelection = ImmutableList.of();
   private NlComponent myPrimary;
   private final ListenerCollection<SelectionListener> myListeners = ListenerCollection.createWithDirectExecutor();
-  private Map<NlComponent, SelectionHandles> myHandles;
 
   @NotNull
   public ImmutableList<NlComponent> getSelection() {
@@ -52,10 +47,10 @@ public class SelectionModel {
   }
 
   public void setSelection(@NotNull List<NlComponent> components, @Nullable NlComponent primary) {
+    //noinspection EqualsBetweenInconvertibleTypes   This currentlly erroneously shows on this line during psq
     if (components.equals(mySelection)) {
       return;
     }
-    myHandles = null;
     mySelection = ImmutableList.copyOf(components);
     myPrimary = primary;
     notifySelectionChanged();
@@ -65,7 +60,6 @@ public class SelectionModel {
     if (mySelection.isEmpty()) {
       return;
     }
-    myHandles = null;
     mySelection = ImmutableList.of();
     myPrimary = null;
     notifySelectionChanged();
@@ -121,49 +115,8 @@ public class SelectionModel {
     return mySelection.isEmpty();
   }
 
-  @Nullable
-  public SelectionHandle findHandle(@AndroidDpCoordinate int x,
-                                    @AndroidDpCoordinate int y,
-                                    @AndroidDpCoordinate int maxDistance,
-                                    @NotNull DesignSurface surface) {
-    if (myHandles == null) {
-      return null;
-    }
-
-    for (SelectionHandles handles : myHandles.values()) {
-      SelectionHandle handle = handles.findHandle(x, y, maxDistance, surface);
-      if (handle != null) {
-        return handle;
-      }
-    }
-
-    return null;
-  }
-
-  @NotNull
-  public SelectionHandles getHandles(@NotNull NlComponent component) {
-    if (myHandles == null) {
-      myHandles = Maps.newHashMap();
-    }
-    SelectionHandles handles = myHandles.get(component);
-    if (handles == null) {
-      handles = new SelectionHandles(component);
-      myHandles.put(component, handles);
-    }
-    return handles;
-  }
-
   /** Returns true if the given component is part of the selection */
   public boolean isSelected(@NotNull NlComponent component) {
     return mySelection.contains(component);
-  }
-
-  public ItemTransferable getTransferable(long modelId) {
-    ImmutableList<DnDTransferComponent> components =
-      mySelection.stream().map(component -> new DnDTransferComponent(component.getTagName(), component.getTag().getText(),
-                                                                     NlComponentHelperKt.getW(component),
-                                                                     NlComponentHelperKt.getH(component))).collect(
-        ImmutableCollectors.toImmutableList());
-    return new ItemTransferable(new DnDTransferItem(modelId, components));
   }
 }

@@ -19,17 +19,23 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ActionTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.EDIT_BASELINE_ACTION_TOOLTIP;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Test basic connection interactions
  */
 public class SceneBasicConnectionsTest extends SceneTest {
+
+  private static final Predicate<Target> BASELINE_ACTION_SELECTOR = target -> EDIT_BASELINE_ACTION_TOOLTIP.equals(target.getToolTipText());
 
   public void testConnectLeft() {
     myInteraction.select("button", true);
@@ -40,8 +46,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        android:layout_marginStart=\"8dp\"\n" +
+                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
   }
@@ -96,8 +102,7 @@ public class SceneBasicConnectionsTest extends SceneTest {
 
   public void testConnectBaseline() {
     myInteraction.select("button2", true);
-    myInteraction.mouseDown("button2", ActionTarget.class, 1);
-    myInteraction.mouseRelease("button2", ActionTarget.class, 1);
+    myInteraction.clickAction("button2", BASELINE_ACTION_SELECTOR);
     myInteraction.mouseDown("button2", AnchorTarget.Type.BASELINE);
     myInteraction.mouseRelease("button", AnchorTarget.Type.BASELINE);
     myScreen.get("@id/button2")
@@ -116,8 +121,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "        android:id=\"@id/button2\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        android:layout_marginStart=\"8dp\"\n" +
+                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        app:layout_constraintBaseline_toBaselineOf=\"@+id/button\"\n" +
                  "        app:layout_constraintStart_toEndOf=\"@+id/button\" />");
   }
@@ -131,8 +136,7 @@ public class SceneBasicConnectionsTest extends SceneTest {
     }
     assertThat(noIdComponent).isNotNull();
     myInteraction.select(noIdComponent, true);
-    myInteraction.mouseDown(noIdComponent, ActionTarget.class, 1);
-    myInteraction.mouseRelease(noIdComponent, ActionTarget.class, 1);
+    myInteraction.clickAction(noIdComponent, BASELINE_ACTION_SELECTOR);
     myInteraction.mouseDown(noIdComponent, AnchorTarget.Type.BASELINE);
     myInteraction.mouseRelease("button", AnchorTarget.Type.BASELINE);
     assertThat(noIdComponent.getNlComponent().getTag().getText())
@@ -147,7 +151,7 @@ public class SceneBasicConnectionsTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .id("@id/root")
                                    .withBounds(0, 0, 1000, 1000)
                                    .width("1000dp")

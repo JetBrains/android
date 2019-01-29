@@ -17,24 +17,42 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_APP
 import com.android.tools.apk.analyzer.AaptInvoker
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.projectsystem.*
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.res.AndroidInnerClassFinder
+import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
+import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
+import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.GradleFilePsiMerger
 import com.android.tools.idea.templates.GradleFileSimpleMerger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElementFinder
 import java.nio.file.Path
 
 class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
+
+  private val myPsiElementFinders: List<PsiElementFinder> = run {
+    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      listOf(
+        AndroidInnerClassFinder.INSTANCE,
+        AndroidManifestClassPsiElementFinder.getInstance(project),
+        AndroidResourceClassPsiElementFinder(getLightResourceClassService())
+      )
+    } else {
+      listOf(AndroidInnerClassFinder.INSTANCE)
+    }
+  }
 
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
 
@@ -76,4 +94,10 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return GradleModuleSystem(module)
   }
+
+  override fun getPsiElementFinders(): List<PsiElementFinder> = myPsiElementFinders
+
+  override fun getAugmentRClasses() = !StudioFlags.IN_MEMORY_R_CLASSES.get()
+
+  override fun getLightResourceClassService() = ProjectLightResourceClassService.getInstance(project)
 }

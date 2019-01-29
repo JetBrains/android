@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wizard.model;
 
-import com.android.tools.idea.observable.BatchInvoker;
+import com.android.tools.idea.observable.BatchInvokerStrategyRule;
 import com.android.tools.idea.observable.TestInvokeStrategy;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
@@ -23,8 +23,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -37,18 +36,10 @@ import static org.junit.Assert.fail;
 
 public class ModelWizardTest {
 
-  private static TestInvokeStrategy ourInvokeStrategy;
+  private TestInvokeStrategy myInvokeStrategy = new TestInvokeStrategy();
 
-  @BeforeClass
-  public static void setUpBatchInvoker() {
-    ourInvokeStrategy = new TestInvokeStrategy();
-    BatchInvoker.setOverrideStrategy(ourInvokeStrategy);
-  }
-
-  @AfterClass
-  public static void restoreBatchInvoker() {
-    BatchInvoker.clearOverrideStrategy();
-  }
+  @Rule
+  public BatchInvokerStrategyRule myStrategyRule = new BatchInvokerStrategyRule(myInvokeStrategy);
 
   @Test
   public void wizardCanProgressThroughAllStepsAsExpected() throws Exception {
@@ -69,7 +60,7 @@ public class ModelWizardTest {
       }
     });
 
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(NameStep.class);
     assertThat(wizard.canGoBack().get()).isFalse();
     assertThat(wizard.canGoForward().get()).isTrue();
@@ -77,21 +68,21 @@ public class ModelWizardTest {
 
     runInvokerAndGoForward(wizard);
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(AgeStep.class);
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(wizard.canGoBack().get()).isTrue();
     assertThat(wizard.canGoForward().get()).isTrue();
     assertThat(wizard.onLastStep().get()).isFalse();
 
     runInvokerAndGoForward(wizard);
     assertThat(wizard.getCurrentStep().getClass()).isEqualTo(TitleStep.class);
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(wizard.canGoBack().get()).isTrue();
     assertThat(wizard.canGoForward().get()).isTrue();
     assertThat(wizard.onLastStep().get()).isTrue();
 
     assertThat(wizardResult[0]).isNull();
     runInvokerAndGoForward(wizard);
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
 
     assertThat(wizard.isFinished()).isTrue();
     assertThat(wizard.canGoBack().get()).isFalse();
@@ -570,8 +561,8 @@ public class ModelWizardTest {
    * Note: The wizard waits for internal bindings to settle before being able to go forward. Tests
    * should therefore call this method instead of {@link ModelWizard#goForward()} directly.
    */
-  private static boolean runInvokerAndGoForward(ModelWizard wizard) {
-    ourInvokeStrategy.updateAllSteps();
+  private boolean runInvokerAndGoForward(ModelWizard wizard) {
+    myInvokeStrategy.updateAllSteps();
     return wizard.goForward();
   }
 
@@ -579,8 +570,8 @@ public class ModelWizardTest {
    * Note: The wizard waits for internal bindings to settle before being able to go back. Tests
    * should therefore call this method instead of {@link ModelWizard#goBack()} directly.
    */
-  private static boolean runInvokerAndGoBack(ModelWizard wizard) {
-    ourInvokeStrategy.updateAllSteps();
+  private boolean runInvokerAndGoBack(ModelWizard wizard) {
+    myInvokeStrategy.updateAllSteps();
     return wizard.goBack();
   }
 

@@ -9,7 +9,7 @@ android {
             storePassword 'test123'
         }
     }
-    compileSdkVersion 26
+    compileSdkVersion 27
     buildToolsVersion "26.0.0"
     defaultConfig {
         applicationId "com.example.nishanthkumarg.myapplication"
@@ -38,12 +38,12 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:+', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:+'
-    compile 'com.android.support.constraint:constraint-layout:+'
-    testCompile 'junit:junit:4.+'
-    compile 'com.android.support:design:+'
+    implementation 'com.android.support:appcompat-v7:+'
+    implementation 'com.android.support.constraint:constraint-layout:+'
+    testImplementation 'junit:junit:4.+'
+    implementation 'com.android.support:design:+'
 }

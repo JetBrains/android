@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,6 +30,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link DependenciesModelImpl} and {@link FileDependencyModelImpl}.
  */
 public class FileDependencyTest extends GradleFileModelTestCase {
+  @Test
   public void testParseSingleFileDependency() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib.jar')\n" +
@@ -39,9 +41,10 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
     List<FileDependencyModel> fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(1);
-    assertEquals("lib.jar", fileDependencies.get(0).file());
+    assertEquals("lib.jar", fileDependencies.get(0).file().toString());
   }
 
+  @Test
   public void testParseMultipleFileDependencies() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar', 'lib2.jar')\n" +
@@ -53,11 +56,12 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
     List<FileDependencyModel> fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(3);
-    assertEquals("lib1.jar", fileDependencies.get(0).file());
-    assertEquals("lib2.jar", fileDependencies.get(1).file());
-    assertEquals("lib3.jar", fileDependencies.get(2).file());
+    assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
+    assertEquals("lib2.jar", fileDependencies.get(1).file().toString());
+    assertEquals("lib3.jar", fileDependencies.get(2).file().toString());
   }
 
+  @Test
   public void testParseFileDependenciesWithClosure() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar', 'lib2.jar') {\n" +
@@ -70,10 +74,11 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
     List<FileDependencyModel> fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(2);
-    assertEquals("lib1.jar", fileDependencies.get(0).file());
-    assertEquals("lib2.jar", fileDependencies.get(1).file());
+    assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
+    assertEquals("lib2.jar", fileDependencies.get(1).file().toString());
   }
 
+  @Test
   public void testSetFile() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar')\n" +
@@ -86,18 +91,19 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertThat(fileDependencies).hasSize(1);
 
     FileDependencyModel fileDependency = fileDependencies.get(0);
-    assertEquals("lib1.jar", fileDependency.file());
+    assertEquals("lib1.jar", fileDependency.file().toString());
 
-    fileDependency.setFile("lib2.jar");
+    fileDependency.file().setValue("lib2.jar");
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
 
     fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(1);
-    assertEquals("lib2.jar", fileDependencies.get(0).file());
+    assertEquals("lib2.jar", fileDependencies.get(0).file().toString());
   }
 
+  @Test
   public void testUpdateOneOfFileDependency() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar', 'lib2.jar')\n" +
@@ -108,22 +114,23 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
     List<FileDependencyModel> fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(2);
-    assertEquals("lib1.jar", fileDependencies.get(0).file());
+    assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
 
     FileDependencyModel fileDependency = fileDependencies.get(1);
-    assertEquals("lib2.jar", fileDependency.file());
+    assertEquals("lib2.jar", fileDependency.file().toString());
 
-    fileDependency.setFile("lib3.jar");
+    fileDependency.file().setValue("lib3.jar");
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
 
     fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(2);
-    assertEquals("lib1.jar", fileDependencies.get(0).file());
-    assertEquals("lib3.jar", fileDependencies.get(1).file());
+    assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
+    assertEquals("lib3.jar", fileDependencies.get(1).file().toString());
   }
 
+  @Test
   public void testAddFileDependency() throws IOException {
     String text = "dependencies {\n" +
                   "}";
@@ -141,9 +148,10 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
     List<FileDependencyModel> fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(1);
-    assertEquals("lib1.jar", fileDependencies.get(0).file());
+    assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
   }
 
+  @Test
   public void testRemoveFileDependency() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar')\n" +
@@ -156,7 +164,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertThat(fileDependencies).hasSize(1);
 
     FileDependencyModel file = fileDependencies.get(0);
-    assertEquals("lib1.jar", file.file());
+    assertEquals("lib1.jar", file.file().toString());
 
     dependencies.remove(file);
     assertTrue(buildModel.isModified());
@@ -164,6 +172,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertThat(buildModel.dependencies().files()).isEmpty();
   }
 
+  @Test
   public void testRemoveOneOfFileDependency() throws IOException {
     String text = "dependencies {\n" +
                   "    compile files('lib1.jar', 'lib2.jar')\n" +
@@ -174,10 +183,10 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     DependenciesModel dependencies = buildModel.dependencies();
     List<FileDependencyModel> fileDependencies = dependencies.files();
     assertThat(fileDependencies).hasSize(2);
-    assertEquals("lib1.jar", fileDependencies.get(0).file());
+    assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
 
     FileDependencyModel file = fileDependencies.get(1);
-    assertEquals("lib2.jar", file.file());
+    assertEquals("lib2.jar", file.file().toString());
 
     dependencies.remove(file);
     assertTrue(buildModel.isModified());
@@ -185,6 +194,6 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
     fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(1);
-    assertEquals("lib1.jar", fileDependencies.get(0).file());
+    assertEquals("lib1.jar", fileDependencies.get(0).file().toString());
   }
 }

@@ -51,6 +51,7 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
     super(ThemeEditorFixture.class, robot, themeEditorComponent);
     myThemesComboBox = new JComboBoxFixture(robot(), robot().finder()
       .findByName(this.target().getSecondComponent(), AttributesPanel.THEME_SELECTOR_NAME, JComboBox.class));
+    Wait.seconds(5).expecting("Wait JComboBox to be enabled.").until(() -> myThemesComboBox.isEnabled());
   }
 
   @NotNull
@@ -149,7 +150,7 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
 
   @NotNull
   public ThemeEditorFixture chooseApiLevel(@NotNull String apiLevel, @NotNull String expectedLabel) {
-    ActionButtonFixture apiButton = findToolbarButton("API Version in Editor");
+    ActionButtonFixture apiButton = findToolbarButton("API Version for Preview");
     apiButton.click();
     clickPopupMenuItemMatching(new ApiLevelPredicate(apiLevel), expectedLabel, apiButton.target(), robot());
     return this;
@@ -157,7 +158,7 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
 
   @NotNull
   public ThemeEditorFixture chooseDevice(@NotNull String device, @NotNull String expectedLabel) {
-    ActionButtonFixture deviceButton = findToolbarButton("Device in Editor");
+    ActionButtonFixture deviceButton = findToolbarButton("Device for Preview");
     deviceButton.click();
     clickPopupMenuItemMatching(new DeviceNamePredicate(device), expectedLabel, deviceButton.target(), robot());
     return this;
@@ -165,7 +166,7 @@ public class ThemeEditorFixture extends ComponentFixture<ThemeEditorFixture, The
 
   @NotNull
   public ThemeEditorFixture switchOrientation(@NotNull String orientation) {
-    ActionButtonFixture actionButtonFixture = findToolbarButton("Orientation in Editor").click();
+    ActionButtonFixture actionButtonFixture = findToolbarButton("Orientation for Preview").click();
     GuiTests.clickPopupMenuItem(orientation, actionButtonFixture.target(), robot());
     Wait.seconds(1).expecting("configuration to be updated").until(() -> {
       Configuration configuration = getPreviewComponent().getThemePreviewPanel().target().getConfiguration();

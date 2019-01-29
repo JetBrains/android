@@ -36,6 +36,8 @@ public class AndroidModelFeaturesTest {
     assertFalse(features.isConstraintLayoutSdkLocationSupported());
     assertFalse(features.isLayoutRenderingIssuePresent());
     assertTrue(features.shouldExportDependencies());
+    assertTrue(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
   }
 
   @Test
@@ -50,6 +52,8 @@ public class AndroidModelFeaturesTest {
     assertFalse(features.isConstraintLayoutSdkLocationSupported());
     assertFalse(features.isLayoutRenderingIssuePresent());
     assertTrue(features.shouldExportDependencies());
+    assertTrue(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
   }
 
   @Test
@@ -64,6 +68,8 @@ public class AndroidModelFeaturesTest {
     assertFalse(features.isConstraintLayoutSdkLocationSupported());
     assertFalse(features.isLayoutRenderingIssuePresent());
     assertTrue(features.shouldExportDependencies());
+    assertTrue(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
   }
 
   @Test
@@ -78,6 +84,8 @@ public class AndroidModelFeaturesTest {
     assertFalse(features.isConstraintLayoutSdkLocationSupported());
     assertTrue(features.isLayoutRenderingIssuePresent());
     assertTrue(features.shouldExportDependencies());
+    assertTrue(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
   }
 
   @Test
@@ -92,6 +100,8 @@ public class AndroidModelFeaturesTest {
     assertFalse(features.isConstraintLayoutSdkLocationSupported());
     assertTrue(features.isLayoutRenderingIssuePresent());
     assertTrue(features.shouldExportDependencies());
+    assertTrue(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
   }
 
   @Test
@@ -106,6 +116,8 @@ public class AndroidModelFeaturesTest {
     assertFalse(features.isConstraintLayoutSdkLocationSupported());
     assertTrue(features.isLayoutRenderingIssuePresent());
     assertTrue(features.shouldExportDependencies());
+    assertTrue(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
   }
 
   @Test
@@ -120,6 +132,8 @@ public class AndroidModelFeaturesTest {
     assertFalse(features.isConstraintLayoutSdkLocationSupported());
     assertFalse(features.isLayoutRenderingIssuePresent());
     assertTrue(features.shouldExportDependencies());
+    assertTrue(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
   }
 
   @Test
@@ -134,6 +148,8 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.isConstraintLayoutSdkLocationSupported());
     assertFalse(features.isLayoutRenderingIssuePresent());
     assertTrue(features.shouldExportDependencies());
+    assertTrue(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
   }
 
   @Test
@@ -149,6 +165,8 @@ public class AndroidModelFeaturesTest {
     assertFalse(features.isPostBuildSyncSupported());
     assertFalse(features.isLayoutRenderingIssuePresent());
     assertTrue(features.shouldExportDependencies());
+    assertTrue(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
   }
 
   @Test
@@ -164,6 +182,8 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.isLayoutRenderingIssuePresent());
     assertTrue(features.shouldExportDependencies());
+    assertTrue(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
   }
 
   @Test
@@ -179,5 +199,41 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.isLayoutRenderingIssuePresent());
     assertFalse(features.shouldExportDependencies());
+    assertFalse(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
+  }
+
+  @Test
+  public void withPluginVersion3_2_0() {
+    GradleVersion version = GradleVersion.parse("3.2.0");
+    AndroidModelFeatures features = new AndroidModelFeatures(version);
+    assertTrue(features.isIssueReportingSupported());
+    assertTrue(features.isShadersSupported());
+    assertTrue(features.isTestedTargetVariantsSupported());
+    assertTrue(features.isProductFlavorVersionSuffixSupported());
+    assertTrue(features.isExternalBuildSupported());
+    assertTrue(features.isConstraintLayoutSdkLocationSupported());
+    assertTrue(features.isPostBuildSyncSupported());
+    assertFalse(features.isLayoutRenderingIssuePresent());
+    assertFalse(features.shouldExportDependencies());
+    assertFalse(features.isVfsRefreshAfterBuildRequired());
+    assertFalse(features.isSingleVariantSyncSupported());
+  }
+
+  @Test
+  public void withPluginVersion3_3_0() {
+    GradleVersion version = GradleVersion.parse("3.3.0");
+    AndroidModelFeatures features = new AndroidModelFeatures(version);
+    assertTrue(features.isIssueReportingSupported());
+    assertTrue(features.isShadersSupported());
+    assertTrue(features.isTestedTargetVariantsSupported());
+    assertTrue(features.isProductFlavorVersionSuffixSupported());
+    assertTrue(features.isExternalBuildSupported());
+    assertTrue(features.isConstraintLayoutSdkLocationSupported());
+    assertTrue(features.isPostBuildSyncSupported());
+    assertFalse(features.isLayoutRenderingIssuePresent());
+    assertFalse(features.shouldExportDependencies());
+    assertFalse(features.isVfsRefreshAfterBuildRequired());
+    assertTrue(features.isSingleVariantSyncSupported());
   }
 }

@@ -20,8 +20,10 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
+import org.junit.Test;
 
 public class CompileOptionsModelTest extends GradleFileModelTestCase {
+  @Test
   public void testCompileOptionsBlock() throws Exception {
     String text = "android {\n" +
                   "  compileOptions {\n" +
@@ -38,12 +40,13 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
-    assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility());
-    assertEquals("UTF8", compileOptions.encoding());
-    assertEquals(Boolean.TRUE, compileOptions.incremental());
+    assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility().toLanguageLevel());
+    assertEquals("encoding", "UTF8", compileOptions.encoding());
+    assertEquals("incremental", Boolean.TRUE, compileOptions.incremental());
   }
 
+  @Test
   public void testCompileOptionsBlockUsingAssignment() throws Exception {
     String text = "android {\n" +
                   "  compileOptions {\n" +
@@ -60,12 +63,13 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
-    assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility());
-    assertEquals("UTF8", compileOptions.encoding());
-    assertEquals(Boolean.FALSE, compileOptions.incremental());
+    assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility().toLanguageLevel());
+    assertEquals("encoding", "UTF8", compileOptions.encoding());
+    assertEquals("incremental", Boolean.FALSE, compileOptions.incremental());
   }
 
+  @Test
   public void testCompileOptionsApplicationStatement() throws Exception {
     String text = "android.compileOptions.sourceCompatibility 1.6\n" + "android.compileOptions.targetCompatibility 1.6\n";
     writeToBuildFile(text);
@@ -74,11 +78,12 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
-    assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility());
+    assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility().toLanguageLevel());
   }
 
   // TODO test the case of remove sourceCompatibility with override
+  @Test
   public void testCompileOptionsBlockWithOverrideStatement() throws Exception {
     String text = "android {\n" +
                   "  compileOptions {\n" +
@@ -94,10 +99,11 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
-    assertEquals(LanguageLevel.JDK_1_7, compileOptions.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility());
+    assertEquals(LanguageLevel.JDK_1_7, compileOptions.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, compileOptions.targetCompatibility().toLanguageLevel());
   }
 
+  @Test
   public void testCompileOptionsRemoveApplicationStatement() throws Exception {
     String text = "android {\n" +
                   "  compileSdkVersion 23\n" +
@@ -116,10 +122,10 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
-    compileOptions.removeSourceCompatibility();
-    compileOptions.removeTargetCompatibility();
-    compileOptions.removeEncoding();
-    compileOptions.removeIncremental();
+    compileOptions.sourceCompatibility().delete();
+    compileOptions.targetCompatibility().delete();
+    compileOptions.encoding().delete();
+    compileOptions.incremental().delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -127,12 +133,13 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
 
     compileOptions = android.compileOptions();
     checkForInValidPsiElement(compileOptions, CompileOptionsModelImpl.class);
-    assertNull(compileOptions.sourceCompatibility());
-    assertNull(compileOptions.targetCompatibility());
-    assertNull(compileOptions.encoding());
-    assertNull(compileOptions.incremental());
+    assertMissingProperty(compileOptions.sourceCompatibility());
+    assertMissingProperty(compileOptions.targetCompatibility());
+    assertMissingProperty(compileOptions.encoding());
+    assertMissingProperty(compileOptions.incremental());
   }
 
+  @Test
   public void testCompileOptionsModify() throws Exception {
     String text = "android {\n" +
                   "  compileOptions {\n" +
@@ -150,27 +157,28 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
-    assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_7, compileOptions.targetCompatibility());
-    assertEquals("UTF8", compileOptions.encoding());
-    assertEquals(Boolean.FALSE, compileOptions.incremental());
+    assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_7, compileOptions.targetCompatibility().toLanguageLevel());
+    assertEquals("encoding", "UTF8", compileOptions.encoding());
+    assertEquals("incremental", Boolean.FALSE, compileOptions.incremental());
 
-    compileOptions.setSourceCompatibility(LanguageLevel.JDK_1_8);
-    compileOptions.setTargetCompatibility(LanguageLevel.JDK_1_9);
-    compileOptions.setEncoding("ISO-2022-JP");
-    compileOptions.setIncremental(true);
+    compileOptions.sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_8);
+    compileOptions.targetCompatibility ().setLanguageLevel(LanguageLevel.JDK_1_9);
+    compileOptions.encoding().setValue("ISO-2022-JP");
+    compileOptions.incremental().setValue(true);
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
     assertNotNull(android);
 
     compileOptions = android.compileOptions();
-    assertEquals(LanguageLevel.JDK_1_8, compileOptions.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_9, compileOptions.targetCompatibility());
-    assertEquals("ISO-2022-JP", compileOptions.encoding());
-    assertEquals(Boolean.TRUE, compileOptions.incremental());
+    assertEquals(LanguageLevel.JDK_1_8, compileOptions.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_9, compileOptions.targetCompatibility().toLanguageLevel());
+    assertEquals("encoding", "ISO-2022-JP", compileOptions.encoding());
+    assertEquals("incremental", Boolean.TRUE, compileOptions.incremental());
   }
 
+  @Test
   public void testCompileOptionsAdd() throws Exception {
     String text = "android {\n" +
                   "  compileSdkVersion 23\n" +
@@ -183,24 +191,24 @@ public class CompileOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     CompileOptionsModel compileOptions = android.compileOptions();
-    assertNull(compileOptions.sourceCompatibility());
-    assertNull(compileOptions.targetCompatibility());
-    assertNull(compileOptions.encoding());
-    assertNull(compileOptions.incremental());
+    assertMissingProperty(compileOptions.sourceCompatibility());
+    assertMissingProperty(compileOptions.targetCompatibility());
+    assertMissingProperty(compileOptions.encoding());
+    assertMissingProperty(compileOptions.incremental());
 
-    compileOptions.setSourceCompatibility(LanguageLevel.JDK_1_6);
-    compileOptions.setTargetCompatibility(LanguageLevel.JDK_1_7);
-    compileOptions.setEncoding("UTF8");
-    compileOptions.setIncremental(true);
+    compileOptions.sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_6);
+    compileOptions.targetCompatibility().setLanguageLevel(LanguageLevel.JDK_1_7);
+    compileOptions.encoding().setValue("UTF8");
+    compileOptions.incremental().setValue(true);
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
     assertNotNull(android);
 
     compileOptions = android.compileOptions();
-    assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_7, compileOptions.targetCompatibility());
-    assertEquals("UTF8", compileOptions.encoding());
-    assertEquals(Boolean.TRUE, compileOptions.incremental());
+    assertEquals(LanguageLevel.JDK_1_6, compileOptions.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_7, compileOptions.targetCompatibility().toLanguageLevel());
+    assertEquals("encoding" ,"UTF8", compileOptions.encoding());
+    assertEquals("incremental", Boolean.TRUE, compileOptions.incremental());
   }
 }

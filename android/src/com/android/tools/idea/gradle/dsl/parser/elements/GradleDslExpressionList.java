@@ -15,84 +15,112 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Represents an element which consists a list of {@link GradleDslExpression}s.
+ * Represents an element which consists a list of {@link GradleDslSimpleExpression}s.
  */
-public final class GradleDslExpressionList extends GradleDslElement {
-  @NotNull private final List<GradleDslExpression> myExpressions = Lists.newArrayList();
-  @NotNull private final List<GradleDslExpression> myToBeAddedExpressions = Lists.newArrayList();
-  @NotNull private final List<GradleDslExpression> myToBeRemovedExpressions = Lists.newArrayList();
-
+public final class GradleDslExpressionList extends GradlePropertiesDslElement implements GradleDslExpression {
   private final boolean myAppendToArgumentListWithOneElement;
+  // This boolean controls whether of not the empty list element should be deleted on a call to delete in one of
+  // its children. For non-literal lists (e.g merges "merge1", "merge2") #shouldBeDeleted() always returns true since we
+  // never want to preserve these lists. However literal lists (e.g merges = ['merge1', 'merge2']) should only be deleted
+  // if the #delete() method on the list element is called, not when there are no more elements left. This is due to
+  // merges = [] possibly having important semantic meaning.
+  private boolean myShouldBeDeleted;
 
-  public GradleDslExpressionList(@Nullable GradleDslElement parent, @NotNull String name) {
+  // Is this GradleDslExpressionList being used as an actual list. This is used when creating the element to
+  // work out whether we need to wrap this list in brackets. For example expression lists are used for literals lists
+  // like "prop = ['value1', 'value2']" but can also be used for thing such as lint options "check 'check-id-1', 'check-id-2'"
+  private boolean myIsLiteralList;
+
+  public GradleDslExpressionList(@Nullable GradleDslElement parent, @NotNull GradleNameElement name, boolean isLiteralList) {
     super(parent, null, name);
     myAppendToArgumentListWithOneElement = false;
-  }
-
-  public GradleDslExpressionList(@NotNull GradleDslElement parent, @NotNull PsiElement psiElement, @NotNull String name) {
-    this(parent, psiElement, name, false);
+    myIsLiteralList = isLiteralList;
   }
 
   public GradleDslExpressionList(@NotNull GradleDslElement parent,
                                  @NotNull PsiElement psiElement,
-                                 @NotNull String name,
+                                 boolean isLiteralList,
+                                 @NotNull GradleNameElement name) {
+    super(parent, psiElement, name);
+    myAppendToArgumentListWithOneElement = false;
+    myIsLiteralList = isLiteralList;
+  }
+
+  public GradleDslExpressionList(@NotNull GradleDslElement parent,
+                                 @NotNull PsiElement psiElement,
+                                 @NotNull GradleNameElement name,
                                  boolean appendToArgumentListWithOneElement) {
     super(parent, psiElement, name);
     myAppendToArgumentListWithOneElement = appendToArgumentListWithOneElement;
+    myIsLiteralList = false;
   }
 
   public void addParsedExpression(@NotNull GradleDslExpression expression) {
-    expression.myParent = this;
-    myExpressions.add(expression);
+    super.addParsedElement(expression);
   }
 
   public void addNewExpression(@NotNull GradleDslExpression expression) {
-    expression.myParent = this;
-    myToBeAddedExpressions.add(expression);
-    setModified(true);
+    setNewElement(expression);
   }
 
+  public void addNewExpression(@NotNull GradleDslExpression expression, int index) {
+    addNewElementAt(index, expression);
+  }
+
+  @SuppressWarnings("SuspiciousMethodCalls") // We pass in a superclass instance to remove.
   public void removeElement(@NotNull GradleDslElement element) {
-    for (GradleDslExpression expression : getExpressions()) {
-      if (expression == element) {
-        myToBeRemovedExpressions.add(expression);
-        setModified(true);
-        return;
+    super.removeProperty(element);
+  }
+
+  public GradleDslExpression getElementAt(int index) {
+    List<GradleDslExpression> expressions = getPropertyElements(GradleDslExpression.class);
+    if (index < 0 || index > expressions.size()) {
+      return null;
+    }
+    return expressions.get(index);
+  }
+
+  @SuppressWarnings("SuspiciousMethodCalls") // We pass in a superclass instance to remove.
+  public int findIndexOf(@NotNull GradleDslElement element) {
+    List<GradleDslExpression> expressions = getPropertyElements(GradleDslExpression.class);
+    for (int i = 0; i < expressions.size(); i++) {
+      if (expressions.get(i).equals(element)) {
+        return i;
       }
     }
+    return -1;
   }
 
   void addNewLiteral(@NotNull Object value) {
     GradleDslLiteral literal = new GradleDslLiteral(this, myName);
     literal.setValue(value);
-    myToBeAddedExpressions.add(literal);
+    addNewExpression(literal);
   }
 
+  /**
+   * This method does not support removing maps or lists by value. Use removeElement for that.
+   */
   void removeExpression(@NotNull Object value) {
-    for (GradleDslExpression expression : getExpressions()) {
+    for (GradleDslSimpleExpression expression : getSimpleExpressions()) {
       if (value.equals(expression.getValue())) {
-        myToBeRemovedExpressions.add(expression);
-        setModified(true);
+        super.removeProperty(expression);
+        updateDependenciesOnRemoveElement(expression);
         return;
       }
     }
   }
 
   void replaceExpression(@NotNull Object oldValue, @NotNull Object newValue) {
-    for (GradleDslExpression expression : getExpressions()) {
+    for (GradleDslSimpleExpression expression : getSimpleExpressions()) {
       if (oldValue.equals(expression.getValue())) {
         expression.setValue(newValue);
         return;
@@ -100,69 +128,32 @@ public final class GradleDslExpressionList extends GradleDslElement {
     }
   }
 
-  @NotNull
-  public List<GradleDslExpression> getExpressions() {
-    if (myToBeAddedExpressions.isEmpty() && myToBeRemovedExpressions.isEmpty()) {
-      return ImmutableList.copyOf(myExpressions);
-    }
-
-    List<GradleDslExpression> result = Lists.newArrayList();
-    result.addAll(myExpressions);
-    result.addAll(myToBeAddedExpressions);
-    for (GradleDslExpression expression : myToBeRemovedExpressions) {
-      result.remove(expression);
-    }
-    return result;
+  public void replaceExpression(@NotNull GradleDslExpression oldExpression, @NotNull GradleDslExpression newExpression) {
+    super.replaceElement(oldExpression, newExpression);
   }
 
   @NotNull
-  public List<GradleDslExpression> getToBeAddedExpressions() {
-    return myToBeAddedExpressions;
+  public List<GradleDslExpression> getExpressions() {
+    return getPropertyElements(GradleDslExpression.class);
+  }
+
+  @NotNull
+  public List<GradleDslSimpleExpression> getSimpleExpressions() {
+    return getExpressions().stream().filter(e -> e instanceof GradleDslSimpleExpression).map(e -> (GradleDslSimpleExpression)e).collect(
+      Collectors.toList());
+  }
+
+  @NotNull
+  public <T> List<T> getLiterals(@NotNull Class<T> clazz) {
+    return getSimpleExpressions().stream().map(e -> e.getValue(clazz)).filter(e -> e != null).collect(Collectors.toList());
+  }
+
+  public boolean isLiteralList() {
+    return myIsLiteralList;
   }
 
   public boolean isAppendToArgumentListWithOneElement() {
     return myAppendToArgumentListWithOneElement;
-  }
-
-  /**
-   * This method should <b>not</b> be called outside of the GradleDslWriter classes.
-   * <p>
-   * If you need to add expressions to this GradleDslExpressionList please use
-   * {@link #addNewExpression(GradleDslExpression) addNewExpression} followed by a call to {@link #apply() apply}
-   * to ensure the changes are written to the underlying file.
-   */
-  public void commitExpressions(@NotNull PsiElement psiElement) {
-    for (GradleDslExpression expression : myToBeAddedExpressions) {
-      expression.setPsiElement(psiElement);
-      expression.applyChanges();
-      myExpressions.add(expression);
-    }
-    myToBeAddedExpressions.clear();
-  }
-
-  /**
-   * Returns the list of values of type {@code clazz}.
-   *
-   * <p>Returns an empty list when there are no elements of type {@code clazz}.
-   */
-  @NotNull
-  public <E> List<GradleNotNullValue<E>> getValues(Class<E> clazz) {
-    List<GradleNotNullValue<E>> result = Lists.newArrayList();
-    for (GradleDslExpression expression : getExpressions()) {
-      if (expression instanceof GradleDslReference) {
-        // See if the reference itself is pointing to a list.
-        GradleDslExpressionList referenceList = expression.getValue(GradleDslExpressionList.class);
-        if (referenceList != null) {
-          result.addAll(referenceList.getValues(clazz));
-          continue;
-        }
-      }
-      E value = expression.getValue(clazz);
-      if (value != null) {
-        result.add(new GradleNotNullValueImpl<>(expression, value));
-      }
-    }
-    return result;
   }
 
   @Override
@@ -172,50 +163,81 @@ public final class GradleDslExpressionList extends GradleDslElement {
   }
 
   @Override
-  protected void apply() {
-    PsiElement psiElement = create();
-    if (psiElement != null) {
-      for (GradleDslExpression expression : myToBeAddedExpressions) {
-        expression.setPsiElement(psiElement);
-        expression.applyChanges();
-        myExpressions.add(expression);
-      }
-    }
-    myToBeAddedExpressions.clear();
-
-    for (GradleDslExpression expression : myToBeRemovedExpressions) {
-      if (myExpressions.remove(expression)) {
-        expression.delete();
-      }
-    }
-    myToBeRemovedExpressions.clear();
-
-    for (GradleDslExpression expression : myExpressions) {
-      if (expression.isModified()) {
-        expression.applyChanges();
-      }
-    }
+  public void delete() {
+    myShouldBeDeleted = true;
+    super.delete();
   }
 
   @Override
-  protected void reset() {
-    myToBeAddedExpressions.clear();
-    myToBeRemovedExpressions.clear();
-    for (GradleDslExpression expression : myExpressions) {
-      if (expression.isModified()) {
-        expression.resetState();
-      }
-    }
+  protected void apply() {
+    getDslFile().getWriter().applyDslExpressionList(this);
+
+    super.apply();
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getExpression() {
+    return getPsiElement();
+  }
+
+  public boolean shouldBeDeleted() {
+    return !isLiteralList() || myShouldBeDeleted;
   }
 
   @Override
   @NotNull
-  public Collection<GradleDslElement> getChildren() {
-    List<GradleDslExpression> expressions = getExpressions();
-    List<GradleDslElement> children = new ArrayList<>(expressions.size());
-    for (GradleDslExpression expression : expressions) {
-      children.add(expression);
+  public List<GradleReferenceInjection> getResolvedVariables() {
+    return getDependencies().stream().filter(e -> e.isResolved()).collect(Collectors.toList());
+  }
+
+  // The following methods ensure that only GradleDslExpressions can be added to this GradlePropertiesDslElement.
+
+  @Override
+  public void setParsedElement(@NotNull GradleDslElement element) {
+    assert element instanceof GradleDslExpression;
+    super.setParsedElement(element);
+  }
+
+  @Override
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    assert element instanceof GradleDslExpression;
+    super.addParsedElement(element);
+  }
+
+  @Override
+  protected void addParsedResettingElement(@NotNull GradleDslElement element, @NotNull String propertyToReset) {
+    assert element instanceof GradleDslExpression;
+    super.addParsedResettingElement(element, propertyToReset);
+  }
+
+  @Override
+  public void addToParsedExpressionList(@NotNull String property, @NotNull GradleDslElement element) {
+    assert element instanceof GradleDslExpression;
+    super.addToParsedExpressionList(property, element);
+  }
+
+  @NotNull
+  @Override
+  public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
+    assert newElement instanceof GradleDslExpression;
+    return super.setNewElement(newElement);
+  }
+
+  @Override
+  public void addNewElementAt(int index, @NotNull GradleDslElement newElement) {
+    assert newElement instanceof GradleDslExpression;
+    List<GradleDslExpression> expressions = getPropertyElements(GradleDslExpression.class);
+    if (index > expressions.size()) {
+      throw new IndexOutOfBoundsException(index + " is out of bounds for size " + expressions.size());
     }
-    return children;
+    super.addNewElementAt(index, newElement);
+  }
+
+  @NotNull
+  @Override
+  public GradleDslElement replaceElement(@NotNull GradleDslElement oldElement, @NotNull GradleDslElement newElement) {
+    assert newElement instanceof GradleDslExpression && oldElement instanceof GradleDslExpression;
+    return super.replaceElement(oldElement, newElement);
   }
 }

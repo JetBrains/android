@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,16 +31,15 @@ import java.util.Locale;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith (GuiTestRunner.class)
+@RunIn(TestGroup.PROJECT_WIZARD)
+@RunWith(GuiTestRemoteRunner.class)
 public class NewKotlinModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String APP_NAME = "app";
   private static final String NEW_KOTLIN_MDULE_NAME = "KotlinModule";
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/71823499
   @Test
   public void addNewKotlinModuleToNonKotlinProject() throws Exception {
     createNewBasicProject(false);
@@ -54,21 +53,35 @@ public class NewKotlinModuleTest {
   }
 
   private void createNewBasicProject(boolean hasKotlinSupport) {
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
-      .createNewProject();
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      guiTest
+        .welcomeFrame()
+        .createNewProject()
+        .clickNext()
+        .getConfigureNewAndroidProjectStep()
+        .enterName(APP_NAME)
+        .enterPackageName("android.com")
+        .setSourceLanguage(hasKotlinSupport ? "Kotlin" : "Java")
+        .wizard()
+        .clickFinish();
+    }
+    else {
+      guiTest
+        .welcomeFrame()
+        .createNewProject()
+        .getConfigureAndroidProjectStep()
+        .enterPackageName("android.com")
+        .enterApplicationName(APP_NAME)
+        .setCppSupport(false)
+        .setKotlinSupport(hasKotlinSupport) // Default "App name", "company domain" and "package name"
+        .wizard()
+        .clickNext()
+        .clickNext() // Skip "Select minimum SDK Api" step
+        .clickNext() // Skip "Add Activity" step
+        .clickFinish();
+    }
 
-    newProjectWizard.getConfigureAndroidProjectStep()
-      .enterPackageName("android.com")
-      .enterApplicationName(APP_NAME)
-      .setCppSupport(false)
-      .setKotlinSupport(hasKotlinSupport); // Default "App name", "company domain" and "package name"
-
-    newProjectWizard.clickNext()
-      .clickNext() // Skip "Select minimum SDK Api" step
-      .clickNext() // Skip "Add Activity" step
-      .clickFinish();
-
-    guiTest.ideFrame().waitForGradleImportProjectSync();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
 
     if (hasKotlinSupport) {
       assertModuleSupportsKotlin(APP_NAME);
@@ -98,8 +111,7 @@ public class NewKotlinModuleTest {
       .clickFinish();
 
     ideFrame
-      .waitForGradleImportProjectSync()
-      .waitForGradleProjectSyncToFinish();
+      .waitForGradleProjectSyncToFinish(Wait.seconds(30)); // Kotlin projects take longer to sync
 
     assertModuleSupportsKotlin(NEW_KOTLIN_MDULE_NAME);
   }

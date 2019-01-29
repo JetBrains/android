@@ -17,14 +17,14 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,7 +60,11 @@ public class EnumSupportFactory {
       case ATTR_STYLE:
         String tagName = property.getTagName();
         ResourceResolver resolver = property.getResolver();
-        return tagName != null && resolver != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), resolver, tagName);
+        if (tagName == null || resolver == null) {
+          return false;
+        }
+        StyleFilter filter = new StyleFilter(property.getModel().getFacet(), resolver);
+        return filter.hasWidgetStyles(tagName);
       default:
         if (property.getName().endsWith(TEXT_APPEARANCE_SUFFIX)) {
           return true;
@@ -70,7 +74,7 @@ public class EnumSupportFactory {
         }
         AttributeDefinition definition = property.getDefinition();
         Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
-        return formats.contains(AttributeFormat.Enum);
+        return formats.contains(AttributeFormat.ENUM);
     }
   }
 

@@ -17,8 +17,9 @@ package com.android.tools.idea.common.model;
 
 import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.rendering.AttributeSnapshot;
+import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.LayoutParamsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.Maps;
@@ -28,7 +29,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -67,6 +67,14 @@ public class AttributesTransaction implements NlAttributesHolder {
     List<AttributeSnapshot> attributes = myComponent.getAttributes();
     myOriginalValues = Maps.newHashMapWithExpectedSize(attributes.size());
     attributes.stream().forEach((attribute) -> myOriginalValues.put(attributeKey(attribute.namespace, attribute.name), attribute.value));
+  }
+
+  // TODO: fix this.
+  // Temporary fix -- we should not use AttributeTransaction instead.
+  public void applyToModification(ComponentModification modification) {
+    for (PendingAttribute attribute : myPendingAttributes.values()) {
+      modification.setAttribute(attribute.namespace, attribute.name, attribute.value);
+    }
   }
 
   @NotNull
@@ -174,7 +182,7 @@ public class AttributesTransaction implements NlAttributesHolder {
     return myComponent;
   }
 
-  private boolean finishTransaction() {
+  boolean finishTransaction() {
     assert isValid;
     isValid = false;
 

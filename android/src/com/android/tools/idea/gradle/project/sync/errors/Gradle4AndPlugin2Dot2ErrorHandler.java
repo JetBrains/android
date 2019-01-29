@@ -51,14 +51,13 @@ public class Gradle4AndPlugin2Dot2ErrorHandler extends SyncErrorHandler {
       NotificationHyperlink fixGradleVersion = FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project, "3.5");
 
       String text = "The versions of the Android Gradle plugin and Gradle are not compatible.\n" +
-                    "Please do one of the following:<ul>" +
-                    "<li>Update your plugin to version 2.4. This will require changes to build.gradle due to API changes.\n" +
-                    "<a href='" + migrationDocUrl + "'>Open migration guide</a></li>" +
-                    "<li>Downgrade Gradle to version 3.5.";
+                    "Please do one of the following:\n" +
+                    "Update your plugin to version 2.4. This will require changes to build.gradle due to API changes.\n" +
+                    "<a href='" + migrationDocUrl + "'>Open migration guide\n" +
+                    "Downgrade Gradle to version 3.5.";
       if (fixGradleVersion != null) {
         text += "\n" + fixGradleVersion.toHtml();
       }
-      text += "</li></ul>";
       notification.setTitle(SyncMessage.DEFAULT_GROUP);
       notification.setMessage(text);
       notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));

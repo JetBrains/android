@@ -42,7 +42,7 @@ public class AndroidLintMissingSuperCallInspection extends AndroidLintInspection
                                              @NotNull String message,
                                              @Nullable LintFix fixData) {
     return new AndroidLintQuickFix[]{
-      new DefaultLintQuickFix("Add super call") {
+      new DefaultLintQuickFix("Add super call", true) {
         @Override
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,

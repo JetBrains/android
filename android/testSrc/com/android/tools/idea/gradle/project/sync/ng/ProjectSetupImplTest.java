@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.sync.ng.ProjectSetup.ProjectSetupImpl;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModelsSetup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -34,8 +36,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class ProjectSetupImplTest extends IdeaTestCase {
   @Mock private ModuleSetup.Factory myModuleSetupFactory;
-  @Mock private ModuleSetup myModuleSetup;
+  @Mock private SyncProjectModelsSetup myModuleSetup;
+  @Mock private VariantOnlyProjectModelsSetup myVariantOnlyModuleSetup;
   @Mock private SyncProjectModels myModels;
+  @Mock private VariantOnlyProjectModels myVariantOnlyModels;
 
   private IdeModifiableModelsProviderStub myModelsProvider;
   private ProgressIndicator myIndicator;
@@ -51,7 +55,8 @@ public class ProjectSetupImplTest extends IdeaTestCase {
     myModelsProvider = new IdeModifiableModelsProviderStub(project);
     myIndicator = new EmptyProgressIndicator();
 
-    when(myModuleSetupFactory.create(project, myModelsProvider)).thenReturn(myModuleSetup);
+    when(myModuleSetupFactory.createForFullSync(project, myModelsProvider)).thenReturn(myModuleSetup);
+    when(myModuleSetupFactory.createForVariantOnlySync(project, myModelsProvider)).thenReturn(myVariantOnlyModuleSetup);
 
     myProjectSetup = new ProjectSetupImpl(project, myModelsProvider, myModuleSetupFactory);
   }
@@ -61,7 +66,7 @@ public class ProjectSetupImplTest extends IdeaTestCase {
     verify(myModuleSetup).setUpModules(myModels, myIndicator);
   }
 
-  public void testSetUpProjectWitError() {
+  public void testSetUpProjectWithError() {
     RuntimeException error = new RuntimeException("Test");
     doThrow(error).when(myModuleSetup).setUpModules(myModels, myIndicator);
 
@@ -96,6 +101,11 @@ public class ProjectSetupImplTest extends IdeaTestCase {
 
     myModelsProvider.assertCommitWasInvoked();
     myModelsProvider.assertDisposeWasInvoked();
+  }
+
+  public void testSetUpProjectWithVariantOnlySync() {
+    myProjectSetup.setUpProject(myVariantOnlyModels, myIndicator);
+    verify(myVariantOnlyModuleSetup).setUpModules(myVariantOnlyModels, myIndicator);
   }
 
   private static class IdeModifiableModelsProviderStub extends IdeModifiableModelsProviderImpl {

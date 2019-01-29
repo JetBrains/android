@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.theme.attributes;
 
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ColorPalette;
@@ -71,7 +72,7 @@ public class AttributesModelColorPaletteModel implements ColorPalette.ColorPalet
   public String getToolTipAt(int i) {
     StringBuilder tooltip = new StringBuilder("This color is used in:\n\n");
     for(EditedStyleItem item : myColorReferences.get(myColorList.get(i))) {
-      tooltip.append(item.getName()).append('\n');
+      tooltip.append(item.getAttrName()).append('\n');
     }
     return  tooltip.toString();
   }

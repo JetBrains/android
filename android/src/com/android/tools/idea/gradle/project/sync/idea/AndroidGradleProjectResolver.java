@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.NativeAndroidProject;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProjectImpl;
@@ -87,6 +84,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isI
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
+import static java.util.Collections.emptyList;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleConfigPath;
 
 /**
@@ -142,7 +140,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
            .setGradleVersion(androidProject.getModelVersion());
       // @formatter:on
 
-      UsageTracker.getInstance().log(event);
+      UsageTracker.log(event);
 
       String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
       throw new IllegalStateException(msg);
@@ -195,6 +193,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
 
     boolean androidProjectWithoutVariants = false;
+    // This stores the sync issues that should be attached to a Java module if we have a AndroidProject without variants.
+    Collection<SyncIssue> syncIssues = new ArrayList<>();
     String moduleName = gradleModule.getName();
 
     if (androidProject != null) {
@@ -206,6 +206,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         // per Android project, and changing that in the code base is too risky, for very little benefit.
         // See https://code.google.com/p/android/issues/detail?id=170722
         androidProjectWithoutVariants = true;
+        syncIssues = androidProject.getSyncIssues();
       }
       else {
         String variantName = selectedVariant.getName();
@@ -218,7 +219,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
     if (nativeAndroidProject != null) {
       IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
-      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, copy);
+      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, copy, emptyList());
       ideModule.createChild(NDK_MODEL, ndkModuleModel);
     }
 
@@ -229,7 +230,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(gradleModule, ideModule, false);
+      createJavaProject(gradleModule, ideModule, syncIssues /* empty list */, false);
       return;
     }
 
@@ -244,12 +245,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     catch (UnsupportedOperationException ignore) {
     }
     File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
-    GradleModuleModel gradleModuleModel = new GradleModuleModel(moduleName, gradleProject, buildFilePath, gradleVersion);
+    GradleModuleModel gradleModuleModel = new GradleModuleModel(moduleName, gradleProject, emptyList(), buildFilePath, gradleVersion);
     ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
 
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
       // This is a Java lib module.
-      createJavaProject(gradleModule, ideModule, androidProjectWithoutVariants);
+      createJavaProject(gradleModule, ideModule, syncIssues, androidProjectWithoutVariants);
     }
   }
 
@@ -260,9 +261,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   private void createJavaProject(@NotNull IdeaModule gradleModule,
                                  @NotNull DataNode<ModuleData> ideModule,
+                                 @NotNull Collection<SyncIssue> syncIssues,
                                  boolean androidProjectWithoutVariants) {
     ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, model, androidProjectWithoutVariants);
+    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, model, syncIssues, androidProjectWithoutVariants);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 
@@ -295,6 +297,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @Override
+  @NotNull
+  public Collection<TaskData> populateModuleTasks(@NotNull IdeaModule gradleModule,
+                                                  @NotNull DataNode<ModuleData> ideModule,
+                                                  @NotNull DataNode<ProjectData> ideProject)
+    throws IllegalArgumentException, IllegalStateException {
+    // Gradle doesn't support running tasks for included projects. Don't create task node if this module belongs to an included projects.
+    if (resolverCtx.getModels().getIncludedBuilds().contains(gradleModule.getProject())) {
+      return emptyList();
+    }
+    return nextResolver.populateModuleTasks(gradleModule, ideModule, ideProject);
+  }
+
+  @Override
   public void populateProjectExtraModels(@NotNull IdeaProject gradleProject, @NotNull DataNode<ProjectData> projectDataNode) {
     populateModuleBuildDirs(gradleProject);
     populateGlobalLibraryMap(gradleProject);
@@ -308,16 +323,33 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
    * Set map from project path to build directory for all modules.
    * It will be used to check if a {@link AndroidLibrary} is sub-module that wraps local aar.
    */
-  private void populateModuleBuildDirs(@NotNull IdeaProject ideaProject) {
-    for (IdeaModule ideaModule : ideaProject.getChildren()) {
+  private void populateModuleBuildDirs(@NotNull IdeaProject rootIdeaProject) {
+    // Set root build id.
+    for (IdeaModule ideaModule : rootIdeaProject.getChildren()) {
       GradleProject gradleProject = ideaModule.getGradleProject();
       if (gradleProject != null) {
-        try {
-          myDependenciesFactory.findAndAddBuildFolderPath(gradleProject.getPath(), gradleProject.getBuildDirectory());
-        }
-        catch (UnsupportedOperationException exception) {
-          // getBuildDirectory is available for Gradle versions older than 2.0.
-          // For older versions of gradle, there's no way to get build directory.
+        String rootBuildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
+        myDependenciesFactory.setRootBuildId(rootBuildId);
+        break;
+      }
+    }
+
+    // Set build folder for root and included projects.
+    List<IdeaProject> ideaProjects = new ArrayList<>();
+    ideaProjects.add(rootIdeaProject);
+    ideaProjects.addAll(resolverCtx.getModels().getIncludedBuilds());
+    for (IdeaProject ideaProject : ideaProjects) {
+      for (IdeaModule ideaModule : ideaProject.getChildren()) {
+        GradleProject gradleProject = ideaModule.getGradleProject();
+        if (gradleProject != null) {
+          try {
+            String buildId = gradleProject.getProjectIdentifier().getBuildIdentifier().getRootDir().getPath();
+            myDependenciesFactory.findAndAddBuildFolderPath(buildId, gradleProject.getPath(), gradleProject.getBuildDirectory());
+          }
+          catch (UnsupportedOperationException exception) {
+            // getBuildDirectory is not available for Gradle older than 2.0.
+            // For older versions of gradle, there's no way to get build directory.
+          }
         }
       }
     }
@@ -326,21 +358,30 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   /**
    * Find and set global library map.
    */
-  private void populateGlobalLibraryMap(@NotNull IdeaProject ideaProject) {
-    GlobalLibraryMap globalLibraryMap = null;
-    // Since GlobalLibraryMap is requested on each module, we need to find the map that was
-    // requested at the last, which is the one that contains the most of items.
-    for (IdeaModule ideaModule : ideaProject.getChildren()) {
-      GlobalLibraryMap moduleMap = resolverCtx.getExtraProject(ideaModule, GlobalLibraryMap.class);
-      if (globalLibraryMap == null ||
-          (moduleMap != null && moduleMap.getLibraries().size() > globalLibraryMap.getLibraries().size())) {
-        globalLibraryMap = moduleMap;
+  private void populateGlobalLibraryMap(@NotNull IdeaProject rootIdeaProject) {
+    List<GlobalLibraryMap> globalLibraryMaps = new ArrayList<>();
+
+    // Request GlobalLibraryMap for root and included projects.
+    List<IdeaProject> ideaProjects = new ArrayList<>();
+    ideaProjects.add(rootIdeaProject);
+    ideaProjects.addAll(resolverCtx.getModels().getIncludedBuilds());
+
+    for (IdeaProject ideaProject : ideaProjects) {
+      GlobalLibraryMap mapOfCurrentBuild = null;
+      // Since GlobalLibraryMap is requested on each module, we need to find the map that was
+      // requested at the last, which is the one that contains the most of items.
+      for (IdeaModule ideaModule : ideaProject.getChildren()) {
+        GlobalLibraryMap moduleMap = resolverCtx.getExtraProject(ideaModule, GlobalLibraryMap.class);
+        if (mapOfCurrentBuild == null ||
+            (moduleMap != null && moduleMap.getLibraries().size() > mapOfCurrentBuild.getLibraries().size())) {
+          mapOfCurrentBuild = moduleMap;
+        }
+      }
+      if (mapOfCurrentBuild != null) {
+        globalLibraryMaps.add(mapOfCurrentBuild);
       }
     }
-    // GlobalLibraryMap will be null for pre 3.0 plugins, or for 3.0 plugin with VERSION_3 model.
-    if (globalLibraryMap != null) {
-      myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMap);
-    }
+    myDependenciesFactory.setUpGlobalLibraryMap(globalLibraryMaps);
   }
 
   @Override
@@ -378,7 +419,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
       return args;
     }
-    return Collections.emptyList();
+    return emptyList();
   }
 
   @NotNull
@@ -418,7 +459,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                .setKind(GRADLE_SYNC_FAILURE)
                .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION);
           // @formatter:on;
-          UsageTracker.getInstance().log(event);
+          UsageTracker.log(event);
 
           return new ExternalSystemException("The project is using an unsupported version of Gradle.");
         }

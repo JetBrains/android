@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
@@ -26,6 +25,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.Consumer;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
@@ -45,9 +45,8 @@ import static java.util.regex.Pattern.DOTALL;
 import static org.fest.swing.util.Strings.match;
 import static org.junit.Assert.assertTrue;
 
-@Ignore("b/70684215")
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GradleTasksTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
@@ -75,7 +74,7 @@ public class GradleTasksTest {
     runTask(
       taskName, runContent -> {
         for (int i = 0; i < 7; i++) {
-          runContent.waitForOutput(new PatternTextMatcher(Pattern.compile(".*output entry " + i + ".*", DOTALL)), 2);
+          runContent.waitForOutput(new PatternTextMatcher(Pattern.compile(".*output entry " + i + ".*", DOTALL)), 10);
           assertTrue(runContent.isExecutionInProgress());
         }
         Wait.seconds(10).expecting("task execution to finish").until(() -> !runContent.isExecutionInProgress());
@@ -89,22 +88,21 @@ public class GradleTasksTest {
     //   2. Start 'build' task once again (assuming that it takes some time for it to finish)
     //   3. Stop the task
     //   4. Ensure that the task is really finished
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     guiTest.ideFrame().requestProjectSync();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     final Pattern buildSuccessfulPattern = Pattern.compile(".*BUILD SUCCESSFUL.*", DOTALL);
     runTask(
       "build", runContent -> {
-        boolean askedToStop = runContent.stop();
-        assertTrue(askedToStop);
+        runContent.stop();
         Wait.seconds(1).expecting("'build' task to stop").until(
           () -> !runContent.isExecutionInProgress() && runContent.outputMatches(new NotMatchingPatternMatcher(buildSuccessfulPattern)));
       });
   }
 
   private void openProjectAndAddToGradleConfig(@NotNull final String textToAdd) throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     Module module = guiTest.ideFrame().getModule("app");
 
     // Add a long-running task and refresh the project.
@@ -124,7 +122,7 @@ public class GradleTasksTest {
     gradleToolWindow.runTask(taskName);
 
     // Ensure that task output is shown and updated.
-    String regex = ".*SimpleApplication \\[" + taskName + "\\].*";
+    String regex = ".*\\[" + taskName + "\\].*";
     PatternTextMatcher matcher = new PatternTextMatcher(Pattern.compile(regex, DOTALL));
     closure.consume(guiTest.ideFrame().getRunToolWindow().findContent(matcher));
   }

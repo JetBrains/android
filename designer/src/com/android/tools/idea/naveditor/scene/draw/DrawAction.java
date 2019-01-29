@@ -15,38 +15,45 @@
  */
 package com.android.tools.idea.naveditor.scene.draw;
 
+import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.ACTION_STROKE;
+import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.DASHED_ACTION_STROKE;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_LEVEL;
+import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getArrowPoint;
+import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getCurvePoints;
+import static com.android.tools.idea.naveditor.scene.NavActionHelperKt.getDestinationDirection;
+import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
+
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.ArrowDirection;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.scene.draw.DrawArrow;
 import com.android.tools.idea.common.scene.draw.DrawCommand;
+import com.android.tools.idea.common.scene.draw.DrawCommandBase;
 import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
-import com.android.tools.idea.naveditor.scene.NavColorSet;
-import com.android.tools.idea.naveditor.scene.decorator.ActionDecoratorKt;
-import com.android.tools.idea.naveditor.scene.targets.ActionTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.naveditor.model.ActionType;
+import com.android.tools.idea.naveditor.scene.ConnectionDirection;
+import com.android.tools.idea.naveditor.scene.CurvePoints;
+import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.geom.GeneralPath;
-
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION_LEVEL;
-import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.setRenderingHints;
-import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.HOVER;
-import static com.android.tools.idea.naveditor.scene.draw.DrawAction.DrawMode.SELECTED;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link DrawCommand} that draw a nav editor action (an arrow between two screens).
  */
-public class DrawAction extends NavBaseDrawCommand {
+public class DrawAction extends DrawCommandBase {
   private static final GeneralPath PATH = new GeneralPath();
-  private final ActionTarget.ConnectionType myConnectionType;
-  @SwingCoordinate private final Rectangle mySource = new Rectangle();
-  @SwingCoordinate private final Rectangle myDest = new Rectangle();
-  private static final int ARCH_LEN = 10;
+  private final ActionType myActionType;
+  @SwingCoordinate private final Rectangle2D.Float mySource = new Rectangle2D.Float();
+  @SwingCoordinate private final Rectangle2D.Float myDest = new Rectangle2D.Float();
 
-  private final DrawMode myMode;
-
-  public enum DrawMode {NORMAL, SELECTED, HOVER}
+  private final Color myColor;
 
   public DrawAction(@NotNull String s) {
     this(DrawCommandSerializationHelperKt.parse(s, 4));
@@ -60,76 +67,83 @@ public class DrawAction extends NavBaseDrawCommand {
   @Override
   public String serialize() {
     return DrawCommandSerializationHelperKt
-      .buildString(getClass().getSimpleName(), myConnectionType, DrawCommandSerializationHelperKt.rectToString(mySource),
-                   DrawCommandSerializationHelperKt.rectToString(myDest), myMode);
+      .buildString(getClass().getSimpleName(), myActionType, DrawCommandSerializationHelperKt.rect2DToString(mySource),
+                   DrawCommandSerializationHelperKt.rect2DToString(myDest), DrawCommandSerializationHelperKt.colorToString(myColor));
   }
 
   @Override
   protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     setRenderingHints(g);
-    NavColorSet color = (NavColorSet)sceneContext.getColorSet();
-    draw(g, color, myConnectionType, mySource, myDest, myMode, sceneContext);
+    draw(g, myColor, myActionType, mySource, myDest, sceneContext);
   }
 
-  public DrawAction(@NotNull ActionTarget.ConnectionType connectionType,
-                    @SwingCoordinate Rectangle source,
-                    @SwingCoordinate Rectangle dest,
-                    @NotNull DrawMode mode) {
-    mySource.setBounds(source);
-    myDest.setBounds(dest);
-    myConnectionType = connectionType;
-    myMode = mode;
+  public DrawAction(@NotNull ActionType actionType,
+                    @SwingCoordinate Rectangle2D.Float source,
+                    @SwingCoordinate Rectangle2D.Float dest,
+                    @NotNull Color color) {
+    mySource.setRect(source);
+    myDest.setRect(dest);
+    myActionType = actionType;
+    myColor = color;
   }
 
   private DrawAction(@NotNull String[] s) {
-    this(ActionTarget.ConnectionType.valueOf(s[0]), DrawCommandSerializationHelperKt.stringToRect(s[1]),
-         DrawCommandSerializationHelperKt.stringToRect(s[2]), DrawMode.valueOf(s[3]));
+    this(ActionType.valueOf(s[0]), DrawCommandSerializationHelperKt.stringToRect2D(s[1]),
+         DrawCommandSerializationHelperKt.stringToRect2D(s[2]), DrawCommandSerializationHelperKt.stringToColor(s[3]));
   }
 
   public static void buildDisplayList(@NotNull DisplayList list,
-                                      @NotNull ActionTarget.ConnectionType connectionType,
-                                      @SwingCoordinate Rectangle source,
-                                      @SwingCoordinate Rectangle dest,
-                                      @NotNull DrawMode mode) {
-    list.add(new DrawAction(connectionType, source, dest, mode));
+                                      @NotNull SceneView sceneView,
+                                      @NotNull ActionType connectionType,
+                                      @SwingCoordinate Rectangle2D.Float source,
+                                      @SwingCoordinate Rectangle2D.Float dest,
+                                      @NotNull Color color) {
+    SceneContext sceneContext = SceneContext.get(sceneView);
+    list.add(new DrawAction(connectionType, source, dest, color));
+    ConnectionDirection direction = getDestinationDirection(source, dest);
+    Point2D.Float arrowPoint = getArrowPoint(sceneContext, dest, direction);
+
+    ArrowDirection arrowDirection = getArrowDirection(direction);
+    Rectangle2D.Float arrowRectangle = NavActionHelperKt.getArrowRectangle(sceneView, arrowPoint, direction);
+
+
+    list.add(new DrawArrow(DRAW_ACTION_LEVEL, arrowDirection, arrowRectangle, color));
   }
 
   private static void draw(@NotNull Graphics2D g,
-                           @NotNull NavColorSet color,
-                           @NotNull ActionTarget.ConnectionType connectionType,
-                           @SwingCoordinate Rectangle source,
-                           @SwingCoordinate Rectangle dest,
-                           @NotNull DrawMode mode,
+                           @NotNull Color color,
+                           @NotNull ActionType connectionType,
+                           @SwingCoordinate Rectangle2D.Float source,
+                           @SwingCoordinate Rectangle2D.Float dest,
                            @NotNull SceneContext sceneContext) {
-    Color actionColor = (mode == SELECTED) ? color.getSelectedActions()
-                                           : (mode == HOVER) ? color.getHighlightedActions() : color.getActions();
     PATH.reset();
 
-    switch (connectionType) {
-      case SELF:
-        ActionTarget.SelfActionPoints selfActionPoints = ActionTarget.getSelfActionPoints(source, sceneContext);
-        PATH.moveTo(selfActionPoints.x[0], selfActionPoints.y[0]);
-        DrawConnectionUtils
-          .drawRound(PATH, selfActionPoints.x, selfActionPoints.y, selfActionPoints.x.length, sceneContext.getSwingDimension(ARCH_LEN));
+    CurvePoints points = getCurvePoints(source, dest, sceneContext);
+    PATH.moveTo(points.p1.x, points.p1.y);
+    PATH.curveTo(points.p2.x, points.p2.y, points.p3.x, points.p3.y, points.p4.x, points.p4.y);
 
-        break;
-      case NORMAL:
-      case EXIT:
-        ActionTarget.CurvePoints points = ActionTarget.getCurvePoints(source, dest, sceneContext);
-        PATH.moveTo(points.p1.x, points.p1.y);
-        PATH.curveTo(points.p2.x, points.p2.y, points.p3.x, points.p3.y, points.p4.x, points.p4.y);
-
-        break;
-      default:
-        return;
-    }
-
-    BasicStroke actionStroke = (connectionType == ActionTarget.ConnectionType.EXIT)
-                               ? ActionDecoratorKt.DASHED_ACTION_STROKE
-                               : ActionDecoratorKt.ACTION_STROKE;
+    BasicStroke actionStroke = (connectionType == ActionType.EXIT_DESTINATION)
+                               ? DASHED_ACTION_STROKE
+                               : ACTION_STROKE;
 
     g.setStroke(actionStroke);
-    g.setColor(actionColor);
+    g.setColor(color);
     g.draw(PATH);
+  }
+
+  @NotNull
+  private static ArrowDirection getArrowDirection(@NotNull ConnectionDirection direction) {
+    switch (direction) {
+      case LEFT:
+        return ArrowDirection.RIGHT;
+      case RIGHT:
+        return ArrowDirection.LEFT;
+      case TOP:
+        return ArrowDirection.DOWN;
+      case BOTTOM:
+        return ArrowDirection.UP;
+    }
+
+    throw new IllegalArgumentException();
   }
 }

@@ -110,18 +110,17 @@ public class GradleDslMethodNotFoundErrorHandler extends SyncErrorHandler {
     NotificationHyperlink applyGradlePluginHyperlink = getApplyGradlePluginHyperlink(virtualFile, notification);
     NotificationHyperlink upgradeAndroidPluginHyperlink = new FixAndroidGradlePluginVersionHyperlink();
 
-    String newMsg = text + "\nPossible causes:<ul>";
+    String newMsg = text + "\nPossible causes:\n";
     if (!gradleModelIsRecent(project)) {
       newMsg = newMsg +
-               String.format("<li>The project '%1$s' may be using a version of the Android Gradle plug-in that does" +
+               String.format("The project '%1$s' may be using a version of the Android Gradle plug-in that does" +
                              " not contain the method (e.g. 'testCompile' was added in 1.1.0).\n", project.getName()) +
-               upgradeAndroidPluginHyperlink.toHtml() +
-               "</li>";
+               upgradeAndroidPluginHyperlink.toHtml() + "\n\n";
     }
     newMsg = newMsg +
-             String.format("<li>The project '%1$s' may be using a version of Gradle that does not contain the method.\n",
-                           project.getName()) + gradleSettingsHyperlink.toHtml() + "</li>" +
-             "<li>The build file may be missing a Gradle plugin.\n" + applyGradlePluginHyperlink.toHtml() + "</li>";
+             String.format("The project '%1$s' may be using a version of Gradle that does not contain the method.\n",
+                           project.getName()) + gradleSettingsHyperlink.toHtml() + "\n\n" +
+             "The build file may be missing a Gradle plugin.\n" + applyGradlePluginHyperlink.toHtml();
     notification.setTitle(SyncMessage.DEFAULT_GROUP);
     notification.setMessage(newMsg);
     notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));

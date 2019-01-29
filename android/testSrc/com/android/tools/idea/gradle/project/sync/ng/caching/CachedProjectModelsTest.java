@@ -44,11 +44,11 @@ public class CachedProjectModelsTest extends IdeaTestCase {
   }
 
   public void testSaveToDisk() throws Exception {
-    CachedModuleModels module1 = myCache.addModule(myModule, ":module1");
+    CachedModuleModels module1 = myCache.addModule(createModule("module1"));
     Person p1 = new Person("Luke");
     module1.addModel(p1);
 
-    CachedModuleModels module2 = myCache.addModule(myModule, ":module2");
+    CachedModuleModels module2 = myCache.addModule(createModule("module2"));
     Person p2 = new Person("Leia");
     module2.addModel(p2);
 
@@ -63,11 +63,11 @@ public class CachedProjectModelsTest extends IdeaTestCase {
     assertEquals(myCache, deserialized);
     assertThat(deserialized).isNotSameAs(myCache);
 
-    CachedModuleModels deserializedModule1 = deserialized.findCacheForModule(":module1");
+    CachedModuleModels deserializedModule1 = deserialized.findCacheForModule("module1");
     Person deserializedP1 = deserializedModule1.findModel(Person.class);
     assertEquals(p1, deserializedP1);
 
-    CachedModuleModels deserializedModule2 = deserialized.findCacheForModule(":module2");
+    CachedModuleModels deserializedModule2 = deserialized.findCacheForModule("module2");
     Person deserializedP2 = deserializedModule2.findModel(Person.class);
     assertEquals(p2, deserializedP2);
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.instructions;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
@@ -42,7 +43,7 @@ public class InstructionsPanel extends JPanel {
   @Nullable private Consumer<InstructionsPanel> myEaseOutCompletionCallback;
 
   private InstructionsPanel(@NotNull Builder builder) {
-    super(new TabularLayout("*,Fit,*", "*,Fit,*"));
+    super(new TabularLayout("*,Fit-,*", "*,Fit-,*"));
 
     setOpaque(false);
     setBackground(builder.myBackgroundColor);
@@ -68,6 +69,14 @@ public class InstructionsPanel extends JPanel {
       myEaseOutCompletionCallback.accept(this);
       myEaseOutCompletionCallback = null;
     }
+  }
+
+  @VisibleForTesting
+  @NotNull
+  public List<RenderInstruction> getRenderInstructionsForComponent(int component) {
+    assert component >= 0 && component < getComponentCount();
+    InstructionsComponent instructionsComponent = (InstructionsComponent)getComponent(component);
+    return instructionsComponent.getRenderInstructions();
   }
 
   private static class InstructionsComponent extends AnimatedComponent {
@@ -109,6 +118,12 @@ public class InstructionsPanel extends JPanel {
           delegateMouseEvent(e);
         }
       });
+    }
+
+    @VisibleForTesting
+    @NotNull
+    public List<RenderInstruction> getRenderInstructions() {
+      return myRenderer.getInstructions();
     }
 
     /**

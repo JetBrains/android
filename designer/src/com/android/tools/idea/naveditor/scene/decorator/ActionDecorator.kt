@@ -19,58 +19,79 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.ArrowDirection
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawArrow
 import com.android.tools.idea.common.scene.draw.DrawLine
 import com.android.tools.idea.naveditor.model.ActionType
-import com.android.tools.idea.naveditor.model.actionType
+import com.android.tools.idea.naveditor.model.effectiveDestination
+import com.android.tools.idea.naveditor.model.getActionType
+import com.android.tools.idea.naveditor.model.getEffectiveSource
+import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.DRAW_ACTION_LEVEL
+import com.android.tools.idea.naveditor.scene.NavColorSet
 import com.android.tools.idea.naveditor.scene.NavSceneManager
-import com.android.tools.idea.naveditor.scene.actionColor
-import java.awt.BasicStroke
-import java.awt.Point
-import java.awt.Rectangle
+import com.android.tools.idea.naveditor.scene.draw.DrawAction
+import com.android.tools.idea.naveditor.scene.draw.DrawSelfAction
+import java.awt.Color
+import java.awt.geom.Point2D
+import java.awt.geom.Rectangle2D
+
+const val HIGHLIGHTED_CLIENT_PROPERTY = "actionHighlighted"
 
 /**
  * [ActionDecorator] responsible for creating draw commands for actions.
  */
-
-@SwingCoordinate private const val ACTION_STROKE_WIDTH = 3f
-@SwingCoordinate private const val DASHED_STROKE_CYCLE = 5f
-@JvmField
-val ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
-@JvmField
-val DASHED_ACTION_STROKE = BasicStroke(ACTION_STROKE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
-    DASHED_STROKE_CYCLE, floatArrayOf(DASHED_STROKE_CYCLE), DASHED_STROKE_CYCLE)
-
-class ActionDecorator : SceneDecorator() {
-  override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
-  }
-
+object ActionDecorator : NavBaseDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
-    // TODO: Add support for other action types
-    when (component.nlComponent.actionType) {
+    val nlComponent = component.nlComponent
+    val color = actionColor(sceneContext, component)
+    val view = component.scene.designSurface.currentSceneView ?: return
+    val actionType = nlComponent.getActionType(component.scene.root?.nlComponent)
+    when (actionType) {
+      ActionType.NONE -> return
       ActionType.GLOBAL, ActionType.EXIT -> {
-        val color = actionColor(sceneContext, component)
-
-        @SwingCoordinate val drawRect = Coordinates.getSwingRectDip(sceneContext, component.fillRect(null))
+        @SwingCoordinate val drawRect = Coordinates.getSwingRectDip(view, component.fillDrawRect2D(0, null))
         @SwingCoordinate val x1 = drawRect.x
-        @SwingCoordinate val x2 = x1 + drawRect.width - sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL)
+        @SwingCoordinate val x2 = x1 + drawRect.width - Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PARALLEL)
         @SwingCoordinate val y = drawRect.y + drawRect.height / 2
-        list.add(DrawLine(DRAW_ACTION_LEVEL, Point(x1, y), Point(x2, y), color, ACTION_STROKE))
+        list.add(DrawLine(DRAW_ACTION_LEVEL, Point2D.Float(x1, y), Point2D.Float(x2, y), color, ACTION_STROKE))
 
-        val arrowRect = Rectangle()
+        val arrowRect = Rectangle2D.Float()
         arrowRect.x = x2
         arrowRect.y = drawRect.y
-        arrowRect.width = sceneContext.getSwingDimension(NavSceneManager.ACTION_ARROW_PARALLEL)
+        arrowRect.width = Coordinates.getSwingDimension(view, NavSceneManager.ACTION_ARROW_PARALLEL)
         arrowRect.height = drawRect.height
         list.add(DrawArrow(DRAW_ACTION_LEVEL, ArrowDirection.RIGHT, arrowRect, color))
+      }
+      else -> {
+        val scene = component.scene
+
+        val sourceNlComponent = scene.root?.nlComponent?.let { nlComponent.getEffectiveSource(it) } ?: return
+        val sourceSceneComponent = scene.getSceneComponent(sourceNlComponent) ?: return
+        val sourceRect = Coordinates.getSwingRectDip(view, sourceSceneComponent.fillDrawRect2D(0, null))
+
+        if (actionType == ActionType.SELF) {
+          DrawSelfAction.buildDisplayList(list, view, sourceRect, color)
+        }
+        else {
+          val targetNlComponent = nlComponent.effectiveDestination ?: return
+          val destinationSceneComponent = scene.getSceneComponent(targetNlComponent) ?: return
+          val destRect = Coordinates.getSwingRectDip(view, destinationSceneComponent.fillDrawRect2D(0, null))
+
+          DrawAction.buildDisplayList(list, view, actionType, sourceRect, destRect, color)
+        }
       }
     }
   }
 
-  override fun addFrame(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
+  private fun actionColor(context: SceneContext, component: SceneComponent): Color {
+    val colorSet = context.colorSet as NavColorSet
+
+    return when {
+      component.isSelected || component.nlComponent.getClientProperty(HIGHLIGHTED_CLIENT_PROPERTY) == true -> colorSet.selectedActions
+      component.drawState == SceneComponent.DrawState.HOVER || component.targets.any { it.isMouseHovered } -> colorSet.highlightedActions
+      else -> colorSet.actions
+    }
   }
 }

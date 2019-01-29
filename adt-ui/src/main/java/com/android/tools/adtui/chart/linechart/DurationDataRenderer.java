@@ -17,12 +17,22 @@ package com.android.tools.adtui.chart.linechart;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.DurationDataModel;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
@@ -31,8 +41,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A custom renderer to support drawing {@link DurationData} over line charts
@@ -41,59 +57,72 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
   static final float EPSILON = 1e-6f;
 
-  /**
-   * Percentage of screen dimension the icon+label for the DurationData will be offset.
-   */
-  private static final int CLICK_REGION_PADDING_Y = 2;
-  private static final int CLICK_REGION_PADDING_X = 4;
-
   @NotNull private DurationDataModel<E> myModel;
+
+  /**
+   * Cached rectangles calculated during updateData used for detecting if a DurationData label has been clicked on.
+   * Note that the x+y values (unknown actual component dimension at updateData time) stored are normalized,
+   * but the width+height values (predetermined by the icon+label dimensions) are not.
+   * Note that {@link #myClickRegionCache} is 1:1 with {@link #myDataCache}.
+   */
+  @NotNull private final List<Rectangle2D.Float> myClickRegionCache = new ArrayList<>();
+  /**
+   * Note that {@link #myDataCache} is 1:1 with {@link #myClickRegionCache}.
+   */
+  @NotNull private final List<SeriesData<E>> myDataCache = new ArrayList<>();
 
   @NotNull private final Color myColor;
   @Nullable private final Color myDurationBgColor;
 
-  @Nullable private Icon myIcon = null;
-  @Nullable private Stroke myStroke = null;
-  @Nullable private Function<E, String> myLabelProvider = null;
-  @Nullable private Consumer<E> myClickHandler = null;
-  @Nullable private Color myLabelBgColor = null;
-  @Nullable private Color myLabelHoveredBgColor = null;
-  @Nullable private Color myLabelClickedBgColor = null;
-  @Nullable private Color myLabelTextColor = null;
+  @Nullable private Icon myIcon;
+  @Nullable private Function<E, Icon> myIconMapper;
+  @Nullable private Stroke myStroke;
+  @Nullable private Function<E, String> myLabelProvider;
+  @Nullable private Consumer<E> myClickHandler;
+  @Nullable private Consumer<E> myHoverHandler;
+  @Nullable private Color myLabelBgColor;
+  @Nullable private Color myLabelHoveredBgColor;
+  @Nullable private Color myLabelClickedBgColor;
+  @Nullable private Color myLabelTextColor;
   private float myLineStrokeOffset;
   private float myLabelXOffset;
   private float myLabelYOffset;
+  @NotNull private final Insets myHostInsets;
+  /**
+   * Percentage of screen dimension the icon+label for the DurationData will be offset. Initial values are defaults.
+   */
+  private int myClickRegionPaddingX;
+  private int myClickRegionPaddingY;
 
   @NotNull private final List<Rectangle2D.Float> myPathCache = new ArrayList<>();
-  @NotNull private final List<E> myDataCache = new ArrayList<>();
   @NotNull private final List<JLabel> myLabelCache = new ArrayList<>();
 
   @NotNull private final Map<RangedContinuousSeries, LineConfig> myCustomLineConfigs = new HashMap<>();
 
-  /**
-   * Cached rectangles calculated during updataData used for detecting if a DurationData label has been clicked on.
-   * Note that the x+y values (unknown actual component dimension at updateData time) stored are normalized,
-   * but the width+height values (predetermined by the icon+label dimensions) are not.
-   */
-  @NotNull private final List<Rectangle2D.Float> myClickRegionCache = new ArrayList<>();
-
   private Point myMousePosition;
+  private Component myMouseComponent;
   private boolean myClick;
+  private boolean myInComponentRegion;
 
-  public DurationDataRenderer(@NotNull DurationDataModel<E> model, @NotNull Builder builder) {
+  public DurationDataRenderer(@NotNull DurationDataModel<E> model, @NotNull Builder<E> builder) {
     myModel = model;
     myColor = builder.myColor;
     myDurationBgColor = builder.myDurationBgColor;
     myIcon = builder.myIcon;
+    myIconMapper = builder.myIconMapper;
     myStroke = builder.myStroke;
     myLabelProvider = builder.myLabelProvider;
     myClickHandler = builder.myClickHandler;
+    myHoverHandler = builder.myHoverHandler;
     myLabelBgColor = builder.myLabelBgColor;
     myLabelHoveredBgColor = builder.myLabelHoveredBgColor;
     myLabelClickedBgColor = builder.myLabelClickedBgColor;
     myLabelTextColor = builder.myLabelTextColor;
     myLabelXOffset = builder.myLabelXOffset;
     myLabelYOffset = builder.myLabelYOffset;
+    myHostInsets = builder.myHostInsets;
+    myClickRegionPaddingX = builder.myClickRegionPaddingX;
+    myClickRegionPaddingY = builder.myClickRegionPaddingY;
     if (myStroke instanceof BasicStroke) {
       BasicStroke stroke = (BasicStroke)myStroke;
       myLineStrokeOffset = stroke.getLineWidth() / 2f;
@@ -114,6 +143,12 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     return myCustomLineConfigs.get(series);
   }
 
+  @VisibleForTesting
+  @NotNull
+  public List<Rectangle2D.Float> getClickRegionCache() {
+    return myClickRegionCache;
+  }
+
   private void modelChanged() {
     // Generate the rectangle regions for the duration data series
     myDataCache.clear();
@@ -123,53 +158,62 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
 
     RangedSeries<E> series = myModel.getSeries();
     RangedContinuousSeries attached = myModel.getAttachedSeries();
+    Predicate<SeriesData<E>> attachedPredicate = myModel.getAttachPredicate();
     double xMin = series.getXRange().getMin();
     double xLength = series.getXRange().getLength();
     List<SeriesData<E>> seriesList = series.getSeries();
     List<SeriesData<Long>> attachedSeriesList = attached != null ? attached.getSeries() : null;
+    double yMin = attached == null ? 0.0 : attached.getYRange().getMin(); // TODO What happens if yMax - yMin == 0?
+    double yMax = attached == null ? 0.0 : attached.getYRange().getMax();
+
     int j = 0;
     SeriesData<Long> lastFoundData = null;
-    for (int i = 0; i < seriesList.size(); i++) {
+    for (SeriesData<E> data : seriesList) {
       Rectangle2D.Float rect = new Rectangle2D.Float();
-      SeriesData<E> data = seriesList.get(i);
       double yStart = 1;
       double xStart = (data.x - xMin) / xLength;
-      double xDuration = data.value.getDuration() / xLength;
+      double xDuration = data.value.getDurationUs() / xLength;
       rect.setRect(xStart, 0, xDuration, 1);
       myPathCache.add(rect);
-      myDataCache.add(data.value);
 
       Rectangle2D.Float clickRegion = new Rectangle2D.Float();
+      myDataCache.add(data);
       myClickRegionCache.add(clickRegion);
-      // If the DurationData series is attached to a line series, finds the Y value on the line series matching the current DurationData.
+      // If the DurationData needs to attach to a line series, finds the Y value on the line series matching the current DurationData.
       // This will be used as the y position to draw the icon +/ label.
       if (attachedSeriesList != null) {
-        double yMin = attached.getYRange().getMin();
-        double yMax = attached.getYRange().getMax();
-        for (; j < attachedSeriesList.size(); j++) {
-          SeriesData<Long> seriesData = attachedSeriesList.get(j);
-          if (seriesData.x - data.x > EPSILON) {
-            // Stop as soon as we found a point on the attached series greater than the duration data's start point.
-            if (lastFoundData == null) {
-              // If the duraiton data is before the first data point on the attached series, simply places the DurationData
-              // at the bottom (yStart == 1), as we have nothing to attach to.
+        if (attachedPredicate == null || attachedPredicate.test(data)) {
+          for (; j < attachedSeriesList.size(); j++) {
+            SeriesData<Long> seriesData = attachedSeriesList.get(j);
+            if (seriesData.x - data.x > EPSILON) {
+              // Stop as soon as we found a point on the attached series greater than the duration data's start point.
+              if (lastFoundData == null) {
+                // If the duration data is before the first data point on the attached series, simply places the DurationData
+                // at the bottom (yStart == 1), as we have nothing to attach to.
+                break;
+              }
+              // Interpolate the y value in case the attached series and the duration data series do not match.
+              assert myModel.getInterpolatable() != null;
+              double adjustedY = myModel.getInterpolatable().interpolate(lastFoundData, seriesData, data.x);
+              yStart = 1 - (adjustedY - yMin) / (yMax - yMin);
               break;
             }
-            // Interpolate the y value in case the attached series and the duration data series do not match.
-            assert myModel.getInterpolatable() != null;
-            double adjustedY = myModel.getInterpolatable().interpolate(lastFoundData, seriesData, data.x);
-            yStart = 1 - (adjustedY - yMin) / (yMax - yMin);
-            break;
+            else if (j == attachedSeriesList.size() - 1) {
+              // The duration data is after the last data point on the attached series. We assume the lastFoundData to continue to extend
+              // indefinitely, so place the DurationData at that data's y value.
+              yStart = 1 - (seriesData.value - yMin) / (yMax - yMin);
+            }
+            lastFoundData = seriesData;
           }
-          lastFoundData = seriesData;
         }
       }
 
       double regionWidth = 0;
       double regionHeight = 0;
-      if (myIcon != null) {
-        regionWidth += myIcon.getIconWidth();
-        regionHeight += myIcon.getIconHeight();
+      Icon icon = getIcon(data.value);
+      if (icon != null) {
+        regionWidth += icon.getIconWidth();
+        regionHeight += icon.getIconHeight();
       }
 
       if (myLabelProvider != null) {
@@ -190,6 +234,12 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
         clickRegion.setRect(xStart, yStart, regionWidth, regionHeight);
       }
     }
+
+    if (myHoverHandler != null) {
+      // Re-pick based on cached mouse data and newly updated model data.
+      E pickData = calculatePickData();
+      myHoverHandler.accept(pickData);
+    }
   }
 
   @Override
@@ -197,7 +247,8 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
                           @NotNull Graphics2D g2d,
                           @NotNull List<Path2D> transformedPaths,
                           @NotNull List<RangedContinuousSeries> series) {
-    if (myDurationBgColor != null || !myCustomLineConfigs.isEmpty()) {
+    BiPredicate<SeriesData<E>, RangedContinuousSeries> renderSeriesPredicate = myModel.getRenderSeriesPredicate();
+    if (myDurationBgColor != null || !myCustomLineConfigs.isEmpty() || renderSeriesPredicate != null) {
       Shape originalClip = g2d.getClip();
       Dimension dim = lineChart.getSize();
 
@@ -218,114 +269,128 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
         configs.add(config);
       }
 
-      for (Rectangle2D.Float rect : myPathCache) {
+      for (int i = 0; i < myPathCache.size(); i++) {
+        Rectangle2D.Float rect = myPathCache.get(i);
+        SeriesData<E> data = myDataCache.get(i);
         double scaledXStart = rect.x * dim.getWidth();
         double scaledXDuration = rect.width * dim.getWidth();
         double newX = Math.max(scaledXStart, originalClip.getBounds().getX());
         clipRect.setRect(newX,
-                         0,
+                         originalClip.getBounds().getY(),
                          Math.min(scaledXDuration + scaledXStart - newX,
                                   originalClip.getBounds().getX() + originalClip.getBounds().getWidth() - newX),
-                         dim.getHeight());
+                         Math.min(originalClip.getBounds().getHeight(), dim.getHeight()));
 
         // Paint the background
         g2d.setColor(myDurationBgColor == null ? lineChart.getBackground() : myDurationBgColor);
-        g2d.fill(clipRect);
         g2d.setClip(clipRect);
+        g2d.fill(clipRect);
         // Redraw lines in clipRect.
-        LineChart.drawLines(g2d, transformedPaths, configs);
+        for (int j = 0; j < transformedPaths.size(); ++j) {
+          RangedContinuousSeries rangedSeries = series.get(j);
+          // Skip rendering the line if the DurationDataModel decides to not show the series within the current data's duration.
+          if (renderSeriesPredicate != null && !renderSeriesPredicate.test(data, rangedSeries)) {
+            continue;
+          }
+          LineChart.drawLine(g2d, transformedPaths.get(j), configs.get(j));
+        }
         g2d.setClip(originalClip);
-      }
-    }
-
-    // Draw the start/end lines if stroke has been set.
-    if (myStroke != null) {
-      g2d.setColor(myColor);
-      g2d.setStroke(myStroke);
-      Line2D eventLine = new Line2D.Float();
-      for (int i = 0; i < myPathCache.size(); i++) {
-        Rectangle2D.Float rect = myPathCache.get(i);
-        double scaledXStart = rect.x * lineChart.getWidth();
-        double scaledXDuration = rect.width * lineChart.getWidth();
-        g2d.translate(scaledXStart, 0);
-        eventLine.setLine(0, 0, 0, lineChart.getHeight());
-        g2d.draw(eventLine);
-        eventLine.setLine(scaledXDuration, 0, scaledXDuration, lineChart.getHeight());
-        g2d.draw(eventLine);
-        g2d.translate(-scaledXStart, 0);
       }
     }
   }
 
-  public void renderOverlay(@NotNull Component host, @NotNull Graphics2D g2d) {
-    assert myClickRegionCache.size() == myDataCache.size();
+  @VisibleForTesting Rectangle2D.Float getScaledClickRegion(@NotNull Rectangle2D.Float rect, int componentWidth, int componentHeight) {
+    float paddedHeight = rect.height + myClickRegionPaddingY * 2;
+    float paddedWidth = rect.width + myClickRegionPaddingX * 2;
+    int totalXInsets = myHostInsets.left + myHostInsets.right;
+    float scaledStartX = myHostInsets.left + rect.x * (componentWidth - totalXInsets) + myLabelXOffset + myLineStrokeOffset;
+    float scaledStartY = getClampedLabelY(rect.y, paddedHeight, componentHeight);
+    return new Rectangle2D.Float(scaledStartX, scaledStartY, paddedWidth, paddedHeight);
+  }
 
+  public void renderOverlay(@NotNull Component host, @NotNull Graphics2D g2d) {
     for (int i = 0; i < myClickRegionCache.size(); i++) {
-      Rectangle2D.Float rect = myClickRegionCache.get(i);
-      float paddedHeight = rect.height + CLICK_REGION_PADDING_Y * 2;
-      float paddedWidth = rect.width + CLICK_REGION_PADDING_X * 2;
-      float scaledStartX = rect.x * host.getWidth() + myLabelXOffset + myLineStrokeOffset;
-      float scaledStartY = getClampedLabelY(rect.y, paddedHeight, host.getHeight());
+      Rectangle2D.Float rect = getScaledClickRegion(myClickRegionCache.get(i), host.getWidth(), host.getHeight());
       if (myLabelBgColor != null) {
         g2d.setColor(myLabelBgColor);
-        Rectangle2D scaledRect = new Rectangle2D.Float(scaledStartX,
-                                                       scaledStartY,
-                                                       paddedWidth,
-                                                       paddedHeight);
-        if (myMousePosition != null && scaledRect.contains(myMousePosition)) {
-          g2d.setColor(myClick && myClickHandler != null ? myLabelClickedBgColor : myLabelHoveredBgColor);
+        if (myMousePosition != null && rect.contains(myMousePosition)) {
+          g2d.setColor((myHoverHandler != null || (myClick && myClickHandler != null)) ? myLabelClickedBgColor : myLabelHoveredBgColor);
         }
-        g2d.fill(scaledRect);
+        g2d.fill(rect);
       }
 
-      scaledStartX += CLICK_REGION_PADDING_X;
-      scaledStartY += CLICK_REGION_PADDING_Y;
-      g2d.translate(scaledStartX, scaledStartY);
-      if (myIcon != null) {
-        myIcon.paintIcon(host, g2d, 0, 0);
-        float shift = myIcon.getIconWidth();
+      rect.x += myClickRegionPaddingX;
+      rect.y += myClickRegionPaddingY;
+      g2d.translate(rect.x, rect.y);
+      Icon icon = getIcon(myDataCache.get(i).value);
+      if (icon != null) {
+        icon.paintIcon(host, g2d, 0, 0);
+        float shift = icon.getIconWidth();
         g2d.translate(shift, 0);
-        scaledStartX += shift;  // keep track of the amount of shift to revert the translate at the end.
+        rect.x += shift;  // keep track of the amount of shift to revert the translate at the end.
       }
 
       if (myLabelProvider != null) {
         myLabelCache.get(i).paint(g2d);
       }
 
-      g2d.translate(-scaledStartX, -scaledStartY);
+      g2d.translate(-rect.x, -rect.y);
     }
 
     myClick = false;
-  }
 
-  public boolean handleMouseEvent(@NotNull MouseEvent event) {
-    myMousePosition = event.getPoint();
-    myClick = event.getClickCount() > 0;
-    if (myClickHandler == null || !myClick) {
-      return false;
-    }
-
-    assert myDataCache.size() == myClickRegionCache.size();
-    E hitData = null;
-    Dimension dim = event.getComponent().getSize();
-    for (int i = 0; i < myClickRegionCache.size(); i++) {
-      Rectangle2D.Float rect = myClickRegionCache.get(i);
-      float paddedHeight = rect.height + CLICK_REGION_PADDING_Y * 2;
-      float paddedWidth = rect.width + CLICK_REGION_PADDING_X * 2;
-      float scaledY = getClampedLabelY(rect.y, paddedHeight, dim.height);
-      Rectangle2D.Float scaledRect = new Rectangle2D.Float(rect.x * dim.width + myLabelXOffset + myLineStrokeOffset,
-                                                           scaledY,
-                                                           paddedWidth,
-                                                           paddedWidth);
-      if (scaledRect.contains(myMousePosition)) {
-        // Return the first hit region.
-        hitData = myDataCache.get(i);
-        break;
+    // Draw the start/end lines if stroke has been set.
+    if (myStroke != null) {
+      g2d.setColor(myColor);
+      g2d.setStroke(myStroke);
+      Line2D eventLine = new Line2D.Float();
+      for (Rectangle2D.Float rect : myPathCache) {
+        double scaledXStart = rect.x * host.getWidth();
+        double scaledXDuration = rect.width * host.getWidth();
+        g2d.translate(scaledXStart, 0);
+        eventLine.setLine(0, 0, 0, host.getHeight());
+        g2d.draw(eventLine);
+        eventLine.setLine(scaledXDuration, 0, scaledXDuration, host.getHeight());
+        g2d.draw(eventLine);
+        g2d.translate(-scaledXStart, 0);
       }
     }
+  }
 
-    if (hitData != null) {
-      myClickHandler.accept(hitData);
+  private boolean isHoveringOverClickRegion(@NotNull Component overlayComponent, @NotNull MouseEvent event) {
+    for (Rectangle2D.Float clickRegionCache : myClickRegionCache) {
+      Rectangle2D.Float rect = getScaledClickRegion(clickRegionCache, overlayComponent.getWidth(), overlayComponent.getHeight());
+      if (myMousePosition != null && rect.contains(myMousePosition)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean handleMouseEvent(@NotNull Component overlayComponent, @NotNull Component selectionComponent, @NotNull MouseEvent event) {
+    myMousePosition = event.getPoint();
+    if (event.getID() == MouseEvent.MOUSE_ENTERED) {
+      myInComponentRegion = true;
+    }
+    else if (event.getID() == MouseEvent.MOUSE_EXITED) {
+      myInComponentRegion = false;
+    }
+
+    myMouseComponent = event.getComponent();
+    E pickData = calculatePickData();
+
+    if (myHoverHandler != null) {
+      myHoverHandler.accept(pickData);
+    }
+
+    myClick = event.getClickCount() > 0;
+    if (myClickHandler != null && myClick && pickData != null) {
+      myClickHandler.accept(pickData);
+      return true;
+    }
+
+    if (isHoveringOverClickRegion(overlayComponent, event)) {
+      selectionComponent.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
       return true;
     }
 
@@ -333,17 +398,67 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
   }
 
   /**
+   * "Picking" is an old term for "detecting what is under the cursor during rendering".
+   */
+  @Nullable
+  private E calculatePickData() {
+    if (!myInComponentRegion || myMouseComponent == null) {
+      return null;
+    }
+
+    E closestData = null;
+    double closestManhattanDistance = Float.MAX_VALUE;
+    Dimension dim = myMouseComponent.getSize();
+    for (int i = 0; i < myDataCache.size(); i++) {
+      Rectangle2D.Float rect = myClickRegionCache.get(i);
+      float paddedWidth = rect.width + myClickRegionPaddingX * 2;
+      float paddedHeight = rect.height + myClickRegionPaddingY * 2;
+      float scaledY = getClampedLabelY(rect.y, paddedHeight, dim.height);
+      Rectangle2D.Float scaledRect = new Rectangle2D.Float(rect.x * dim.width + myLabelXOffset + myLineStrokeOffset,
+                                                           scaledY,
+                                                           paddedWidth,
+                                                           paddedWidth);
+      if (scaledRect.contains(myMousePosition)) {
+        // Since we're using Manhattan distance, we can rearrange all the terms.
+        double manhattanDistance = Math.abs(myMousePosition.getX() + myMousePosition.getY() -
+                                            scaledRect.getX() -
+                                            scaledRect.getY() -
+                                            (scaledRect.getWidth() + scaledRect.getHeight()) * 0.5);
+        if (manhattanDistance < closestManhattanDistance) {
+          closestManhattanDistance = manhattanDistance;
+          closestData = myDataCache.get(i).value;
+        }
+      }
+    }
+
+    return closestData;
+  }
+
+  /**
    * Clamp and return the y position (accounting for height + custom offsets) of the label so that it is always within bounds of the host.
    */
   private float getClampedLabelY(float normalizedY, float height, int hostHeight) {
-    float maxScaledY = hostHeight - height;
-    float scaledY = normalizedY * hostHeight - height + myLabelYOffset;
-    return Math.max(0, Math.min(scaledY, maxScaledY));
+    float totalYInsets = myHostInsets.top + myHostInsets.bottom;
+    float maxScaledY = hostHeight - myHostInsets.bottom - height;
+    float scaledY = myHostInsets.top + normalizedY * (hostHeight - totalYInsets) - height + myLabelYOffset;
+    return Math.max(myHostInsets.top, Math.min(scaledY, maxScaledY));
   }
 
+  /**
+   * If an icon mapper is set, return the icon mapped from the given duration data.
+   * If an icon is set, return the icon.
+   * Otherwise return null.
+   */
   @VisibleForTesting
-  List<Rectangle2D.Float> GetDurationDataRegions() {
-    return myClickRegionCache;
+  @Nullable
+  Icon getIcon(E durationData) {
+    if (myIconMapper != null) {
+      return myIconMapper.apply(durationData);
+    }
+    if (myIcon != null) {
+      return myIcon;
+    }
+    return null;
   }
 
   public static class Builder<E extends DurationData> {
@@ -352,15 +467,20 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     @NotNull private final Color myColor;
     @Nullable private Color myDurationBgColor;
     @Nullable private Icon myIcon = null;
+    @Nullable private Function<E, Icon> myIconMapper = null;
     @Nullable private Stroke myStroke = null;
     @Nullable private Function<E, String> myLabelProvider = null;
     @Nullable private Consumer<E> myClickHandler = null;
+    @Nullable private Consumer<E> myHoverHandler = null;
     @Nullable private Color myLabelBgColor = null;
     @Nullable private Color myLabelHoveredBgColor = null;
     @Nullable private Color myLabelClickedBgColor = null;
     @Nullable private Color myLabelTextColor = null;
     private float myLabelXOffset;
     private float myLabelYOffset;
+    @NotNull private Insets myHostInsets = new Insets(0, 0, 0, 0);
+    private int myClickRegionPaddingX = 4;
+    private int myClickRegionPaddingY = 2;
 
     public Builder(@NotNull DurationDataModel<E> model, @NotNull Color color) {
       myModel = model;
@@ -377,6 +497,14 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
      */
     public Builder<E> setIcon(@NotNull Icon icon) {
       myIcon = icon;
+      return this;
+    }
+
+    /**
+     * Sets the icon mapper which maps a data point to an icon.
+     */
+    public Builder<E> setIconMapper(@Nullable Function<E, Icon> iconMapper) {
+      myIconMapper = iconMapper;
       return this;
     }
 
@@ -405,6 +533,14 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     }
 
     /**
+     * If set, the handler will get triggered when the user hovers on the icon+label region of the DurationData.
+     */
+    public Builder<E> setHoverHandler(@NotNull Consumer<E> handler) {
+      myHoverHandler = handler;
+      return this;
+    }
+
+    /**
      * Sets the colors to use for the label.
      */
     public Builder<E> setLabelColors(@NotNull Color bgColor,
@@ -421,6 +557,17 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     public Builder<E> setLabelOffsets(float xOffset, float yOffset) {
       myLabelXOffset = xOffset;
       myLabelYOffset = yOffset;
+      return this;
+    }
+
+    public Builder<E> setHostInsets(@NotNull Insets insets) {
+      myHostInsets = insets;
+      return this;
+    }
+
+    public Builder<E> setClickRegionPadding(int xPadding, int yPadding) {
+      myClickRegionPaddingX = xPadding;
+      myClickRegionPaddingY = yPadding;
       return this;
     }
 

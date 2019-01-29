@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -65,5 +70,18 @@ public class SdkBuildToolsTooLowErrorHandlerTest extends AndroidGradleTestCase {
 
     assertThat(quickFixes.get(0)).isInstanceOf(InstallBuildToolsHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(OpenFileHyperlink.class);
+  }
+
+  public void testInstallHyperlinksForSyncIssues() throws Exception {
+    loadSimpleApplication();
+
+    SdkBuildToolsTooLowErrorHandler handler = SdkBuildToolsTooLowErrorHandler.getInstance();
+
+    Module module = getModule("app");
+    VirtualFile file = getGradleBuildFile(module);
+
+    List<NotificationHyperlink> links = handler.getQuickFixHyperlinks("23.0.2", ImmutableList.of(module), ImmutableMap.of(module, file));
+    assertSize(1, links);
+    assertThat(links.get(0)).isInstanceOf(InstallBuildToolsHyperlink.class);
   }
 }

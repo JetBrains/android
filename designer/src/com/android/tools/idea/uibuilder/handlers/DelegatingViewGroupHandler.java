@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -31,8 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.dnd.DropTargetDropEvent;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -87,16 +87,6 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
 
   @Override
   @Nullable
-  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
-                                           @NotNull NlComponent component,
-                                           @Nullable SegmentType horizontalEdgeType,
-                                           @Nullable SegmentType verticalEdgeType) {
-    return myHandler.createResizeHandler(editor, component, horizontalEdgeType, verticalEdgeType);
-  }
-
-
-  @Override
-  @Nullable
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
     return myHandler.createScrollHandler(editor, component);
   }
@@ -115,11 +105,6 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView, @NotNull NlComponent component) {
-    return myHandler.drawGroup(gc, screenView, component);
-  }
-
-  @Override
   public void clearAttributes(@NotNull NlComponent component) {
     myHandler.clearAttributes(component);
   }
@@ -131,7 +116,7 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
 
   @Override
   public void performDrop(@NotNull NlModel model,
-                          @NotNull DropTargetDropEvent event,
+                          @NotNull NlDropEvent event,
                           @NotNull NlComponent receiver,
                           @NotNull List<NlComponent> dragged,
                           @Nullable NlComponent before, @NotNull InsertType type) {
@@ -154,11 +139,6 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
-    return myHandler.paintConstraints(screenView, graphics, component);
-  }
-
-  @Override
   public FillPolicy getFillPolicy() {
     return myHandler.getFillPolicy();
   }
@@ -169,8 +149,8 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
-    myHandler.addPopupMenuActions(actions);
+  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
+    return myHandler.addPopupMenuActions(component, actions);
   }
 
   // Component Tree
@@ -237,12 +217,6 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   @NotNull
   public Icon getIcon(@NotNull String tagName) {
     return myHandler.getIcon(tagName);
-  }
-
-  @Override
-  @NotNull
-  public Icon getLargeIcon(@NotNull String tagName) {
-    return myHandler.getLargeIcon(tagName);
   }
 
   @Override

@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.sampledata;
 
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+
+import com.android.ide.common.util.PathString;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sampledata.datasource.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -41,8 +46,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.util.function.Function;
-
-import static com.android.tools.idea.res.SampleDataResourceRepository.getSampleDataDir;
 
 public class AddSampleDataDialog extends DialogWrapper {
   private static Logger LOG = Logger.getInstance(AddSampleDataDialog.class);
@@ -154,16 +157,19 @@ public class AddSampleDataDialog extends DialogWrapper {
     }
 
     final String rootFileName = dataSource.myFileNameRoot;
-    VirtualFile sampleDataDir;
+
+    PathString sampleDataDirPath;
     try {
-      sampleDataDir = getSampleDataDir(myFacet, true);
-    }
-    catch (IOException e) {
-      LOG.error("Unable to find sample data directory", e);
+      sampleDataDirPath = WriteAction.computeAndWait(
+        () -> ProjectSystemUtil.getModuleSystem(myFacet.getModule()).getOrCreateSampleDataDirectory()
+      );
+    } catch (IOException e) {
+      LOG.error("Unable to create sample data directory for module " + myFacet.getModule().getName(), e);
       return;
     }
 
-    if (sampleDataDir == null) {
+    VirtualFile sampleDataDir = toVirtualFile(sampleDataDirPath);
+    if (sampleDataDir == null || !sampleDataDir.exists()) {
       LOG.error("Unable to find sample data directory");
       return;
     }

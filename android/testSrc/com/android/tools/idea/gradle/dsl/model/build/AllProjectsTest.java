@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.dsl.model.build;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
+import org.junit.Test;
 
 /**
  * Tests allprojects section of the build.gradle file.
  */
 public class AllProjectsTest extends GradleFileModelTestCase {
+  @Test
   public void testAllProjectsSection() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -38,14 +40,15 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     JavaModel java = getGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
 
     JavaModel subModuleJavaModel = getSubModuleGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.targetCompatibility());
+    assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.targetCompatibility().toLanguageLevel());
   }
 
+  @Test
   public void testOverrideWithAllProjectsSection() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -63,14 +66,15 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     JavaModel java = getGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility()); // 1_4 is overridden with 1_5
-    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility()); // 1_5 is overridden with 1_6
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel()); // 1_4 is overridden with 1_5
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel()); // 1_5 is overridden with 1_6
 
     JavaModel subModuleJavaModel = getSubModuleGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.sourceCompatibility()); // Subproject got 1_5 from allprojects section
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.targetCompatibility()); // Subproject got 1_5 from allprojects section
+    assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.sourceCompatibility().toLanguageLevel()); // Subproject got 1_5 from allprojects section
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.targetCompatibility().toLanguageLevel()); // Subproject got 1_5 from allprojects section
   }
 
+  @Test
   public void testOverrideAllProjectsSection() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -88,14 +92,15 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     JavaModel java = getGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility()); // 1_4 is overridden with 1_5
-    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility()); // 1_5 is overridden with 1_6
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel()); // 1_4 is overridden with 1_5
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel()); // 1_5 is overridden with 1_6
 
     JavaModel subModuleJavaModel = getSubModuleGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_4, subModuleJavaModel.sourceCompatibility()); // Subproject got 1_4 from allprojects section
-    assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.targetCompatibility()); // Subproject got 1_5 from allprojects section
+    assertEquals(LanguageLevel.JDK_1_4, subModuleJavaModel.sourceCompatibility().toLanguageLevel()); // Subproject got 1_4 from allprojects section
+    assertEquals(LanguageLevel.JDK_1_5, subModuleJavaModel.targetCompatibility().toLanguageLevel()); // Subproject got 1_5 from allprojects section
   }
 
+  @Test
   public void testOverrideAllProjectsSectionInSubproject() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -114,11 +119,11 @@ public class AllProjectsTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     JavaModel java = getGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility()); // 1_4 is overridden with 1_5
-    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility()); // 1_5 is overridden with 1_6
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel()); // 1_4 is overridden with 1_5
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel()); // 1_5 is overridden with 1_6
 
     JavaModel subModuleJavaModel = getSubModuleGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.sourceCompatibility()); // 1_4 is overridden with 1_6
-    assertEquals(LanguageLevel.JDK_1_7, subModuleJavaModel.targetCompatibility()); // 1_5 is overridden with 1_7
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJavaModel.sourceCompatibility().toLanguageLevel()); // 1_4 is overridden with 1_6
+    assertEquals(LanguageLevel.JDK_1_7, subModuleJavaModel.targetCompatibility().toLanguageLevel()); // 1_5 is overridden with 1_7
   }
 }

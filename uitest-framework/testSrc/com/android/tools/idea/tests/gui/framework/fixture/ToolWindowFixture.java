@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -31,11 +32,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.concurrent.TimeUnit;
 
 public abstract class ToolWindowFixture {
 
-  private static final int SECONDS_TO_WAIT = 120;
+  private static final Logger LOG = Logger.getInstance(ToolWindowFixture.class);
 
   @NotNull protected final String myToolWindowId;
   @NotNull protected final Project myProject;
@@ -46,7 +46,7 @@ public abstract class ToolWindowFixture {
     myToolWindowId = toolWindowId;
     myProject = project;
     final Ref<ToolWindow> toolWindowRef = new Ref<>();
-    Wait.seconds(SECONDS_TO_WAIT).expecting("tool window with ID '" + toolWindowId + "' to be found")
+    Wait.seconds(120).expecting("tool window with ID '" + toolWindowId + "' to be found")
       .until(() -> {
         ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
         toolWindowRef.set(toolWindow);
@@ -58,9 +58,10 @@ public abstract class ToolWindowFixture {
 
   @Nullable
   protected Content getContent(@NotNull final String displayName) {
-    activateAndWaitUntilIsVisible();
+    activate();
+    waitUntilIsVisible();
     final Ref<Content> contentRef = new Ref<>();
-    Wait.seconds(SECONDS_TO_WAIT).expecting("content '" + displayName + "' to be found")
+    Wait.seconds(120).expecting("content '" + displayName + "' to be found")
       .until(() -> {
         Content[] contents = getContents();
         for (Content content : contents) {
@@ -76,11 +77,10 @@ public abstract class ToolWindowFixture {
 
   @Nullable
   protected Content getContent(@NotNull final TextMatcher displayNameMatcher) {
-    long startTime = System.currentTimeMillis();
-    activateAndWaitUntilIsVisible(SECONDS_TO_WAIT);
-    long secondsRemaining = SECONDS_TO_WAIT - TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
+    activate();
+    waitUntilIsVisible();
     final Ref<Content> contentRef = new Ref<>();
-    Wait.seconds(secondsRemaining).expecting("content matching " + displayNameMatcher.formattedValues() + " to be found")
+    Wait.seconds(120).expecting("content matching " + displayNameMatcher.formattedValues() + " to be found")
       .until(() -> {
         Content[] contents = getContents();
         for (Content content : contents) {
@@ -95,17 +95,6 @@ public abstract class ToolWindowFixture {
     return contentRef.get();
   }
 
-  private void activateAndWaitUntilIsVisible() {
-    activateAndWaitUntilIsVisible(SECONDS_TO_WAIT);
-  }
-
-  private void activateAndWaitUntilIsVisible(long secondsToWait) {
-    long startTime = System.currentTimeMillis();
-    activate();
-    long secondsRemaining = secondsToWait - TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
-    waitUntilIsVisible(secondsRemaining);
-  }
-
   @NotNull
   protected Content[] getContents() {
     return myToolWindow.getContentManager().getContents();
@@ -115,32 +104,56 @@ public abstract class ToolWindowFixture {
     return GuiQuery.getNonNull(() -> {
       Content content = myToolWindow.getContentManager().getSelectedContent();
       Component owner = IdeFocusManager.getInstance(myProject).getFocusOwner();
-      return myToolWindow.isActive() && content != null && UIUtil.isDescendingFrom(owner, content.getPreferredFocusableComponent());
-    });
-  }
 
-  public void activate() {
-    Wait.seconds(SECONDS_TO_WAIT).expecting("ToolWindow '" + myToolWindowId + "' to be activated").until(() -> {
-      boolean isActive = isActive();
+      boolean activeWindow = myToolWindow.isActive();
+      boolean nonNullContent = content != null;
+
+      boolean isDescendant;
+      if (nonNullContent) {
+        isDescendant = UIUtil.isDescendingFrom(owner, content.getPreferredFocusableComponent());
+      } else {
+        isDescendant = false;
+      }
+
+      boolean isActive = activeWindow && nonNullContent && isDescendant;
       if (!isActive) {
-        GuiTask.execute(() -> myToolWindow.activate(null));
+        LOG.info("isActive = " + Boolean.toString(activeWindow) +
+                  ", contentIsNotNull = " + Boolean.toString(nonNullContent) +
+                  ", isDescending = " + Boolean.toString(isDescendant));
       }
       return isActive;
     });
   }
 
-  protected void waitUntilIsVisible() {
-    waitUntilIsVisible(30);
+  public ToolWindowFixture activate() {
+    return activate(120);
   }
 
-  protected void waitUntilIsVisible(long secondsToWait) {
-    Wait.seconds(secondsToWait).expecting("ToolWindow '" + myToolWindowId + "' to be visible")
+  public ToolWindowFixture activate(long secondsToWait) {
+    Wait.seconds(secondsToWait)
+      .expecting("ToolWindow '" + myToolWindowId + "' to be activated")
       .until(() -> {
-        if (!isActive()) {
-          activate();
+        boolean isActive = isActive();
+        if (!isActive) {
+          GuiTask.execute(() -> myToolWindow.activate(null));
         }
-        return GuiQuery.getNonNull(
-          () -> myToolWindow.isVisible() && myToolWindow.getComponent().isVisible() && myToolWindow.getComponent().isShowing());
+        return isActive;
       });
+    return this;
+  }
+
+  protected ToolWindowFixture waitUntilIsVisible() {
+    return waitUntilIsVisible(30);
+  }
+
+  protected ToolWindowFixture waitUntilIsVisible(long secondsToWait) {
+    Wait.seconds(secondsToWait).expecting("ToolWindow '" + myToolWindowId + "' to be visible")
+      .until(this::isVisible);
+    return this;
+  }
+
+  protected  boolean isVisible() {
+    return GuiQuery.getNonNull(
+      () -> myToolWindow.isVisible() && myToolWindow.getComponent().isVisible() && myToolWindow.getComponent().isShowing());
   }
 }

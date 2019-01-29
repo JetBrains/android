@@ -18,11 +18,13 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
-import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -75,9 +77,9 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private LegendComponent mLegendComponent;
   private LineChartModel mLineChartModel;
-  private AxisComponentModel mTimeAxisModel;
-  private AxisComponentModel mMemoryAxisModel1;
-  private AxisComponentModel mMemoryAxisModel2;
+  private ResizingAxisComponentModel mTimeAxisModel;
+  private ResizingAxisComponentModel mMemoryAxisModel1;
+  private ClampedAxisComponentModel mMemoryAxisModel2;
   private LegendComponentModel mLegendComponentModel;
 
   private AxisComponentModel mTimeAxisGuideModel;
@@ -97,15 +99,15 @@ public class AxisLineChartVisualTest extends VisualTest {
     mScrollbar = new RangeTimeScrollBar(mTimeGlobalRangeUs, mTimeViewRangeUs, TimeUnit.MICROSECONDS);
 
     // add horizontal time axis
-    mTimeAxisModel = new AxisComponentModel(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT);
-    mTimeAxisModel.setGlobalRange(mTimeGlobalRangeUs);
+    mTimeAxisModel =
+      new ResizingAxisComponentModel.Builder(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT).setGlobalRange(mTimeGlobalRangeUs).build();
 
     mTimeAxis = new AxisComponent(mTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     mTimeAxis.setMargins(AXIS_SIZE, AXIS_SIZE);
 
     // add axis guide to time axis
-    mTimeAxisGuideModel = new AxisComponentModel(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS);
-    mTimeAxisGuideModel.setGlobalRange(mTimeGlobalRangeUs);
+    mTimeAxisGuideModel = new ResizingAxisComponentModel.Builder(mTimeViewRangeUs, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS)
+      .setGlobalRange(mTimeGlobalRangeUs).build();
 
     mTimeAxisGuide = new AxisComponent(mTimeAxisGuideModel, AxisComponent.AxisOrientation.BOTTOM);
     mTimeAxisGuide.setMargins(AXIS_SIZE, AXIS_SIZE);
@@ -121,8 +123,8 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     // left memory data + axis
     Range yRange1Animatable = new Range(0, 100);
-    mMemoryAxisModel1 = new AxisComponentModel(yRange1Animatable, MemoryAxisFormatter.DEFAULT);
-    mMemoryAxisModel1.setLabel(SERIES1_LABEL);
+    mMemoryAxisModel1 =
+      new ResizingAxisComponentModel.Builder(yRange1Animatable, MemoryAxisFormatter.DEFAULT).setLabel(SERIES1_LABEL).build();
     mMemoryAxis1 = new AxisComponent(mMemoryAxisModel1, AxisComponent.AxisOrientation.LEFT);
     mMemoryAxis1.setShowMax(true);
     mMemoryAxis1.setShowUnitAtMax(true);
@@ -135,8 +137,8 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     // right memory data + axis
     Range yRange2Animatable = new Range(0, 100);
-    mMemoryAxisModel2 = new AxisComponentModel(yRange2Animatable, MemoryAxisFormatter.DEFAULT);
-    mMemoryAxisModel2.setLabel(SERIES2_LABEL);
+    mMemoryAxisModel2 =
+      new ClampedAxisComponentModel.Builder(yRange2Animatable, MemoryAxisFormatter.DEFAULT).setLabel(SERIES2_LABEL).build();
     mMemoryAxis2 = new AxisComponent(mMemoryAxisModel2, AxisComponent.AxisOrientation.RIGHT);
     mMemoryAxis2.setShowMax(true);
     mMemoryAxis2.setShowUnitAtMax(true);
@@ -149,7 +151,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     mLineChartModel.addAll(mRangedData);
 
-    mLegendComponentModel = new LegendComponentModel(100);
+    mLegendComponentModel = new LegendComponentModel(mTimeViewRangeUs);
     SeriesLegend legend = new SeriesLegend(mRangedData.get(0), MemoryAxisFormatter.DEFAULT, mTimeGlobalRangeUs);
     mLegendComponentModel.add(legend);
     mLegendComponent = new LegendComponent(mLegendComponentModel);
@@ -164,11 +166,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     // The comment on each line highlights why the component needs to be in that position.
     return Arrays.asList(mAnimatedTimeRange, // Update global time range immediate.
                          mLineChartModel, // Set y's interpolation values.
-                         mMemoryAxisModel1, // Clamp/interpolate ranges to major ticks if enabled.
-                         mMemoryAxisModel2, // Sync with mMemoryAxis1 if enabled.
-                         mTimeAxisModel, // Read ranges.
-                         mTimeAxisGuideModel,
-                         mLegendComponentModel); // Reset flags.
+                         mMemoryAxisModel2); // Sync with mMemoryAxis1 if enabled.
   }
 
   @Override
@@ -249,9 +247,6 @@ public class AxisLineChartVisualTest extends VisualTest {
         return (int)TimeUnit.MICROSECONDS.toSeconds((long)mTimeViewRangeUs.getLength());
       }
     }));
-
-    controls.add(VisualTest.createCheckbox("Clamp To Major Ticks",
-                  itemEvent -> mMemoryAxisModel1.setClampToMajorTicks(itemEvent.getStateChange() == ItemEvent.SELECTED)));
 
     controls.add(VisualTest.createCheckbox("Show Axis Guide",
                                            itemEvent -> mTimeAxisGuide.setVisible(itemEvent.getStateChange() == ItemEvent.SELECTED), true));

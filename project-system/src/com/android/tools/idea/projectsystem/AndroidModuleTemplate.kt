@@ -39,7 +39,11 @@ interface AndroidModuleTemplate {
    */
   fun getTestDirectory(packageName: String?): File?
 
-  val resDirectory: File?
+  /**
+   * Resource directories in order of increasing precedence. A resource in the last directory overrides
+   * resources with the same name and type in earlier directories.
+   */
+  val resDirectories: List<File>
 
   /**
    * Similar to [AndroidModuleTemplate.getSrcDirectory], except for new aidl files.

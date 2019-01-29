@@ -16,6 +16,8 @@
 package com.android.tools.idea.profilers.profilingconfig;
 
 import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -46,21 +48,22 @@ import java.util.function.Consumer;
 
 public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
-  private final CpuProfilerConfigModel myProfilerModel;
-  private Consumer<ProfilingConfiguration> myOnCloseCallback;
+  @NotNull private final CpuProfilerConfigModel myProfilerModel;
+
+  @NotNull private Consumer<ProfilingConfiguration> myOnCloseCallback;
+
   private final int myDeviceLevel;
 
-  public CpuProfilingConfigurationsDialog(final Project project,
+  public CpuProfilingConfigurationsDialog(@NotNull final Project project,
                                           int deviceLevel,
-                                          CpuProfilerConfigModel model,
-                                          Consumer<ProfilingConfiguration> onCloseCallback,
-                                          FeatureTracker featureTracker) {
+                                          @NotNull CpuProfilerConfigModel model,
+                                          @NotNull Consumer<ProfilingConfiguration> onCloseCallback,
+                                          @NotNull FeatureTracker featureTracker) {
     super(project, new ProfilingConfigurable(project, model, deviceLevel, featureTracker), IdeModalityType.IDE);
     myProfilerModel = model;
     myOnCloseCallback = onCloseCallback;
     myDeviceLevel = deviceLevel;
     setHorizontalStretch(1.3F);
-    // TODO: add help button on the bottom-left corner when we have the URL for it.
   }
 
   @Nullable
@@ -164,7 +167,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
       // Add default configurations
       for (ProfilingConfiguration configuration : myProfilerModel.getDefaultProfilingConfigurations()) {
-          myConfigurationsModel.addElement(configuration);
+        myConfigurationsModel.addElement(configuration);
       }
       myDefaultConfigurationsCount = myProfilerModel.getDefaultProfilingConfigurations().size();
     }
@@ -222,16 +225,13 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     @Override
     public void apply() throws ConfigurationException {
-      CpuProfilingConfigService profilingConfigService = CpuProfilingConfigService.getInstance(myProject);
 
       // Check for configs with repeated names
       Set<String> configNames = new HashSet<>();
-      List<ProfilingConfiguration> configsToSave = new ArrayList<>();
+      List<CpuProfilerConfig> configsToSave = new ArrayList<>();
+
       for (int i = 0; i < myConfigurationsModel.getSize(); i++) {
         ProfilingConfiguration config = myConfigurationsModel.getElementAt(i);
-        if (config.isDefault()) {
-          continue;
-        }
         String configName = config.getName();
         if (StringUtil.isEmpty(configName)) {
           throw new ConfigurationException("Empty configuration names are not allowed. Please rename or delete them before continuing.");
@@ -239,18 +239,26 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         if (configNames.contains(configName)) {
           throw new ConfigurationException("Configuration with name \"" + configName + "\" already exists.");
         }
-
         configNames.add(configName);
-        configsToSave.add(config);
+
+        if (!isDefaultConfig(config)) {
+          configsToSave.add(CpuProfilerConfigConverter.fromProto(config.toProto()));
+        }
       }
 
-      profilingConfigService.setConfigurations(configsToSave);
+      CpuProfilerConfigsState.getInstance(myProject).setUserConfigs(configsToSave);
     }
 
     @Override
     public boolean isModified() {
       // TODO: Handle that properly.
       return true;
+    }
+
+    private static boolean isDefaultConfig(@NotNull ProfilingConfiguration configuration) {
+      return CpuProfilerConfigsState.getDefaultConfigs()
+        .stream()
+        .anyMatch(c -> c.getName().equals(configuration.getName()));
     }
 
     private class ProfilingConfigurationsListCellRenderer implements ListCellRenderer<ProfilingConfiguration> {
@@ -276,9 +284,6 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, 25));
         panel.setBackground(list.getBackground());
         String cellText = value.getName();
-        if (index >= getCustomConfigurationCount()) {
-          cellText += " - Default";
-        }
 
         // TODO(b/69367377): Update the design for features that are supported outside the current device level.
         if (!value.isDeviceLevelSupported(myDeviceLevel)) {
@@ -322,7 +327,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       private void addConfiguration() {
         ProfilingConfiguration configuration = new ProfilingConfiguration(getUniqueName("Unnamed"),
                                                                           CpuProfiler.CpuProfilerType.ART,
-                                                                          CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+                                                                          CpuProfiler.CpuProfilerMode.SAMPLED);
         int lastConfigurationIndex = getCustomConfigurationCount();
         myConfigurationsModel.insertElementAt(configuration, lastConfigurationIndex);
         // Select the newly added configuration

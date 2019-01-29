@@ -15,16 +15,24 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.run.tasks.AndroidDeepLinkLaunchTask;
 import junit.framework.TestCase;
+
+import static com.android.tools.idea.run.tasks.AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand;
 
 public class AndroidDeepLinkLaunchTaskTest extends TestCase {
   public void testAmStartCommandForDeepLink() {
-    assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path",
-                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", ""));
-    assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path -D",
-                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", "-D"));
-    assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d example://host/path -D --es aa 'bb'",
-                 AndroidDeepLinkLaunchTask.getLaunchDeepLinkCommand("example://host/path", "-D --es aa 'bb'"));
+    assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path'",
+                 getLaunchDeepLinkCommand("example://host/path", ""));
+    assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path' -D",
+                 getLaunchDeepLinkCommand("example://host/path", "-D"));
+    assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path' -D --es aa 'bb'",
+                 getLaunchDeepLinkCommand("example://host/path", "-D --es aa 'bb'"));
+  }
+
+  public void testEscapeAdbShell() {
+    assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'https://example.com/example?foo=bar&baz=duck'",
+                 getLaunchDeepLinkCommand("https://example.com/example?foo=bar&baz=duck", ""));
+    assertEquals("am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'text'\\''with'\\''single'\\''quotes'",
+                 getLaunchDeepLinkCommand("text'with'single'quotes", ""));
   }
 }

@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package android.support.annotation
-
-annotation class UiThread
-
-annotation class WorkerThread
+import androidx.annotation.UiThread
+import androidx.annotation.WorkerThread
 
 class Test {
+
+  // Make sure the old annotation names still work.
+  @android.support.annotation.UiThread fun oldAnnotationA() { oldAnnotationB() }
+  fun oldAnnotationB() { oldAnnotationC() }
+  @android.support.annotation.WorkerThread fun oldAnnotationC() {}
 
   @UiThread fun uiThread() { unannotated() }
   fun unannotated() { workerThread() }

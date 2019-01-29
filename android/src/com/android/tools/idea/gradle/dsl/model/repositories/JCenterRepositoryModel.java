@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  * Represents a repository defined with jcenter {}.
  */
 public class JCenterRepositoryModel extends MavenRepositoryModelImpl {
-  public JCenterRepositoryModel(@NotNull MavenRepositoryDslElement dslElement) {
-    super(dslElement, "BintrayJCenter2", "https://jcenter.bintray.com/");
+  public JCenterRepositoryModel(@NotNull GradlePropertiesDslElement holder, @NotNull MavenRepositoryDslElement dslElement) {
+    super(holder, dslElement, "BintrayJCenter2", "https://jcenter.bintray.com/");
   }
 }

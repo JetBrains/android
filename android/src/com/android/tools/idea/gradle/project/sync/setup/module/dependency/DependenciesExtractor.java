@@ -28,7 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.getModuleId;
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -99,9 +99,9 @@ public class DependenciesExtractor {
       if (isNotEmpty(gradlePath)) {
         Module module = null;
         String moduleId = gradlePath;
-        String projectFolder = library.getBuildId();
-        if (isNotEmpty(projectFolder)) {
-          moduleId = getModuleId(projectFolder, gradlePath);
+        String projectFolderPath = library.getBuildId();
+        if (isNotEmpty(projectFolderPath)) {
+          moduleId = createUniqueModuleId(projectFolderPath, gradlePath);
           module = moduleFinder.findModuleByModuleId(moduleId);
         }
         if (module == null) {
@@ -117,9 +117,8 @@ public class DependenciesExtractor {
   @NotNull
   private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull Library library,
                                                                              @NotNull DependencyScope scope) {
-    LibraryDependency dependency =
-      new LibraryDependency(library.getArtifact(), getDependencyName(library, "-"), scope);
-    dependency.addBinaryPath(library.getJarFile());
+    LibraryDependency dependency = new LibraryDependency(library.getArtifact(), library.getArtifactAddress(), scope);
+    dependency.addBinaryPath(library.getCompileJarFile());
     dependency.addBinaryPath(library.getResFolder());
 
     for (String localJar : library.getLocalJars()) {
@@ -129,37 +128,7 @@ public class DependenciesExtractor {
   }
 
   /**
-   * Get user friendly name of a level2 library dependency.
-   *
-   * @param library   Level 2 library instance.
-   * @param separator String to connect artifact id and version, for example, "-" or ":".
-   * @return User friendly name of the dependency.
-   * For example, artifactId[:/-]version for external library dependency, and moduleName::variant for module dependency.
-   */
-  @NotNull
-  private static String getDependencyName(@NotNull Library library, @NotNull String separator) {
-    String artifactAddress = library.getArtifactAddress();
-    GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(artifactAddress);
-    // Artifact address for external libraries are in the format of groupId:artifactId:version@packing, thus can be converted to GradleCoordinate.
-    // But artifact address for module dependency is in the format of :moduleName::variant, trim the leading : for module dependency.
-    if (coordinates != null) {
-      String name = coordinates.getArtifactId();
-
-      GradleVersion version = coordinates.getVersion();
-      if (version != null && !"unspecified".equals(version.toString())) {
-        name += separator + version;
-      }
-      assert name != null;
-      if (isNotEmpty(coordinates.getGroupId())) {
-        return coordinates.getGroupId() + ":" + name;
-      }
-      return name;
-    }
-    return trimLeading(artifactAddress, ':');
-  }
-
-  /**
-   * Like {@link #getDependencyName(Library, String)} but intended for display purposes; names may not be unique
+   * Computes a library name intended for display purposes; names may not be unique
    * (and separator is always ":"). It will only show the artifact id, if that id contains slashes, otherwise
    * it will include the last component of the group id (unless identical to the artifact id).
    *

@@ -20,6 +20,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
+import java.awt.geom.Rectangle2D;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -74,5 +75,10 @@ public abstract class NavBaseTarget extends BaseTarget {
   @SwingCoordinate
   protected int getSwingCenterY(@NotNull SceneContext sceneContext) {
     return sceneContext.getSwingY((int)getCenterY());
+  }
+
+  @NavCoordinate
+  public Rectangle2D.Float getBounds() {
+    return new Rectangle2D.Float(myLeft, myTop, myRight - myLeft, myBottom - myTop);
   }
 }

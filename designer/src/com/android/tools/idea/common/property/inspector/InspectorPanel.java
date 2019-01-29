@@ -74,7 +74,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
   private final InspectorExpandableItemsHandler myExpandableItemsHandler;
   private final Disposable myParentDisposable;
 
-  private InspectorProviders myInspectorProviders;
+  private InspectorProviders<PropMgr> myInspectorProviders;
   private List<InspectorComponent<PropMgr>> myInspectors = Collections.emptyList();
   private ExpandableGroup myGroup;
   private GridConstraints myConstraints = new GridConstraints();
@@ -170,6 +170,13 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     event.consume();
   }
 
+  public void expandGroup(@NotNull JLabel label) {
+    ExpandableGroup group = myLabel2GroupMap.get(label);
+    if (group != null) {
+      group.setExpanded(true, true);
+    }
+  }
+
   private void updateAfterFilterChange() {
     if (myFilter.isEmpty()) {
       restoreGroups();
@@ -256,7 +263,11 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
         rows += inspector.getMaxNumberOfRows();
       }
       rows += myInspectors.size(); // 1 row for each divider (including 1 after the last property)
-      rows += 2; // 1 Line with a link to all properties + 1 row with a spacer on the bottom
+      rows++; // 1 row with a spacer on the bottom
+
+      if (myBottomLink != null) {
+        rows++; // 1 Line with a link to all properties +
+      }
 
       myInspector.setLayout(createLayoutManager(rows));
       for (InspectorComponent<PropMgr> inspector : myInspectors) {
@@ -329,10 +340,22 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
   }
 
   public JLabel addTitle(@NotNull String title) {
+    return addTitle(title, null);
+  }
+
+  public JLabel addTitle(@NotNull String title, @Nullable Component rightComponent) {
     JLabel label = createLabel(title, null, null);
     label.setFont(myBoldLabelFont);
-    addLineComponent(label, myRow++);
-    myLabel2ComponentMap.put(myDefaultLabel, label);
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(false);
+    panel.add(label, BorderLayout.WEST);
+    if (rightComponent != null) {
+      panel.add(rightComponent, BorderLayout.EAST);
+    }
+    addLineComponent(panel, myRow++);
+    myLabel2ComponentMap.put(myDefaultLabel, panel);
+    startGroup(label, true, null);
+    myLabel2GroupMap.put(label, myGroup);
     return label;
   }
 
@@ -362,7 +385,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     JLabel label = createLabel(labelText, tooltip, component);
     addLabelComponent(label, myRow);
     addValueComponent(component, myRow++);
-    startGroup(label, keySource);
+    startGroup(label, false, keySource);
     myLabel2GroupMap.put(label, myGroup);
     myLabel2ComponentMap.put(label, component);
     return label;
@@ -388,7 +411,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
 
   private static JLabel createLabel(@NotNull String labelText, @Nullable String tooltip, @Nullable Component component) {
     // Use html such that we avoid ellipses in JLabels when the text is too large to fit on the left side of the inspector.
-    JLabel label = new JBLabel("<html>" + HtmlEscapers.htmlEscaper().escape(labelText) + "</html>");
+    JLabel label = new JBLabel("<html><nobr>" + HtmlEscapers.htmlEscaper().escape(labelText) + "</nobr></html>");
     label.setLabelFor(component);
     label.setToolTipText(tooltip);
     label.setSize(label.getPreferredSize());
@@ -424,10 +447,11 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     panel.add(component, myConstraints);
   }
 
-  private void startGroup(@NotNull JLabel label, @NotNull Component keySource) {
-    assert myGroup == null;
-    myGroup = new ExpandableGroup(label);
-    mySource2GroupMap.put(keySource, myGroup);
+  private void startGroup(@NotNull JLabel label, boolean initiallyExpanded, @Nullable Component keySource) {
+    myGroup = new ExpandableGroup(label, myGroup, initiallyExpanded);
+    if (keySource != null) {
+      mySource2GroupMap.put(keySource, myGroup);
+    }
   }
 
   private void endGroup() {
@@ -439,13 +463,17 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     private static final Icon EXPANDED_ICON = (Icon)UIManager.get("Tree.expandedIcon");
     private static final Icon COLLAPSED_ICON = (Icon)UIManager.get("Tree.collapsedIcon");
     private final JLabel myLabel;
+    private final ExpandableGroup myParent;
     private final List<Component> myComponents;
+    private final List<ExpandableGroup> myChildren;
     private boolean myExpanded;
 
-    ExpandableGroup(@NotNull JLabel label) {
+    public ExpandableGroup(@NotNull JLabel label, @Nullable ExpandableGroup parent, boolean defaultValue) {
       myLabel = label;
+      myParent = parent;
       myComponents = new ArrayList<>(4);
-      myExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + StringUtil.removeHtmlTags(label.getText()));
+      myChildren = new ArrayList<>();
+      myExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + StringUtil.removeHtmlTags(label.getText()), defaultValue);
       label.setIcon(myExpanded ? EXPANDED_ICON : COLLAPSED_ICON);
       label.addMouseListener(new MouseAdapter() {
         @Override
@@ -455,11 +483,19 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
           }
         }
       });
+      if (parent != null) {
+        parent.myChildren.add(this);
+      }
     }
 
     public void addComponent(@NotNull Component component) {
+      if (myParent != null) {
+        myParent.addComponent(component);
+      }
       myComponents.add(component);
-      component.setVisible(myExpanded);
+      if (!myExpanded) {
+        component.setVisible(false);
+      }
     }
 
     public boolean isExpanded() {
@@ -470,6 +506,11 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
       myExpanded = expanded;
       myLabel.setIcon(expanded ? EXPANDED_ICON : COLLAPSED_ICON);
       myComponents.forEach(component -> component.setVisible(expanded));
+      if (expanded) {
+        for (ExpandableGroup group : myChildren) {
+          group.setExpanded(group.isExpanded(), false);
+        }
+      }
       if (updateProperties) {
         PropertiesComponent.getInstance().setValue(KEY_PREFIX + StringUtil.removeHtmlTags(myLabel.getText()), expanded);
       }

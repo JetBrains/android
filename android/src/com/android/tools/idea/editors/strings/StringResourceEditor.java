@@ -24,6 +24,7 @@ import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -82,6 +83,11 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
         myPreviewFeature.setText(((JTextComponent)event.getSource()).getText());
       }
     });
+  }
+
+  @NotNull
+  public StringResourceViewPanel getPanel() {
+    return myPanel;
   }
 
   @NotNull
@@ -192,8 +198,11 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
         myPreview.setText(myPreviewString);
       }
 
-      ToolWindow toolWindow = ToolWindowManager.getInstance(myModule.getProject())
-        .registerToolWindow(TOOL_WINDOW_ID, false, ToolWindowAnchor.RIGHT, myModule.getProject(), true);
+      Project project = myModule.getProject();
+      ToolWindowManager manager = ToolWindowManager.getInstance(project);
+
+      ToolWindow toolWindow = manager.registerToolWindow(TOOL_WINDOW_ID, false, ToolWindowAnchor.RIGHT, project, true);
+
       toolWindow.setIcon(AndroidIcons.AndroidPreview);
       toolWindow.setStripeTitle("Preview");
       toolWindow.getContentManager().addContent(ContentFactory.SERVICE.getInstance().createContent(myPreview.getComponent(), "", false));

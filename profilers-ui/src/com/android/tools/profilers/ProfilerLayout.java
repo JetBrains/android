@@ -15,15 +15,14 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.LayoutManager;
+import javax.swing.BorderFactory;
 import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Common layout constants that are shared across profiler views.
@@ -37,31 +36,14 @@ public class ProfilerLayout {
 
   public static final int TIME_AXIS_HEIGHT = JBUI.scale(15);
 
-  public static final float TOOLTIP_FONT_SIZE = 11f;
-
   /**
    * Common space left on top of a vertical axis to make sure label text can fit there
    */
   public static final int Y_AXIS_TOP_MARGIN = JBUI.scale(30);
 
-  public static final Border MONITOR_LABEL_PADDING = BorderFactory.createEmptyBorder(5, 10, 5, 10);
+  public static final Border MONITOR_LABEL_PADDING = JBUI.Borders.empty(5, 10);
 
   public static final Border MONITOR_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER);
-
-  public static final int TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING = JBUI.scale(2);
-  public static final int TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING = JBUI.scale(1);
-
-  public static final Border TOOLTIP_BORDER = new JBEmptyBorder(5, 10, 5, 10);
-
-  public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER = JBUI.scale(16);
-  public static final int PROFILING_INSTRUCTIONS_ICON_PADDING = JBUI.scale(1);
-  public static final Font PROFILING_INSTRUCTIONS_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(15f);
-  public static final Font INFO_MESSAGE_HEADER_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(14f);
-  public static final Font INFO_MESSAGE_DESCRIPTION_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(12f);
-
-  public static final int FILTER_TEXT_FIELD_WIDTH = JBUI.scale(245);
-  public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 250;
-  public static final int FILTER_TEXT_HISTORY_SIZE = 5;
 
   public static final int MONITOR_LEGEND_RIGHT_PADDING = JBUI.scale(12);
 
@@ -72,22 +54,50 @@ public class ProfilerLayout {
 
   public static final int ROW_HEIGHT_PADDING = JBUI.scale(4);
 
-  public static final Border TABLE_ROW_BORDER = new EmptyBorder(0, 10, 0, 0);
-  public static final Border TABLE_COLUMN_HEADER_BORDER = new EmptyBorder(3, 10, 3, 0);
-  public static final Border TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER = new EmptyBorder(3, 0, 3, 10);
+  public static final Border TABLE_ROW_BORDER = JBUI.Borders.emptyLeft(10);
+  public static final Border TABLE_COLUMN_HEADER_BORDER = JBUI.Borders.empty(3, 10, 3, 0);
+  public static final Border TABLE_COLUMN_RIGHT_ALIGNED_HEADER_BORDER = JBUI.Borders.empty(3, 0, 3, 10);
 
-  public static final Insets TABLE_ROW_INSETS = new Insets(0, 10, 0, 0);
   public static final Insets TABLE_COLUMN_CELL_INSETS = new Insets(3, 10, 3, 0);
   public static final Insets TABLE_COLUMN_RIGHT_ALIGNED_CELL_INSETS = new Insets(3, 0, 3, 10);
 
+  public static final int TABLE_COLUMN_CELL_SPARKLINE_LEFT_PADDING = JBUI.scale(2);
+  public static final int TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING = JBUI.scale(1);
+
   public static final Insets LIST_ROW_INSETS = new Insets(2, 10, 0, 0);
+
+  public static final Border TOOLTIP_BORDER = new JBEmptyBorder(8, 10, 8, 10);
+
+  public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER = JBUI.scale(16);
+  public static final int PROFILING_INSTRUCTIONS_ICON_PADDING = JBUI.scale(1);
+
+  public static final int FILTER_TEXT_FIELD_WIDTH = JBUI.scale(245);
+  public static final int FILTER_TEXT_FIELD_TRIGGER_DELAY_MS = 250;
+  public static final int FILTER_TEXT_HISTORY_SIZE = 5;
+
+  // The total usable height of the toolbar is 30px the 1px is for a 1px border at the bottom of the toolbar.
+  public static final int TOOLBAR_HEIGHT = JBUI.scale(31);
+  public static final Border TOOLBAR_LABEL_BORDER = JBUI.Borders.empty(3, 8, 3, 3);
+  public static final Border TOOLBAR_ICON_BORDER = JBUI.Borders.empty(4);
+
+  /**
+   * Used in the CPU threads/kernel cell renderer's to set the preferred height.
+   */
+  public static final int CPU_STATE_LIST_ITEM_HEIGHT = 21;
+  public static final Border CPU_THREADS_BORDER = JBUI.Borders.empty();
+
+  // To be combined with CPU threads/kernel cell label border to draw a vertical right border.
+  public static final Border CPU_THREADS_RIGHT_BORDER = JBUI.Borders.customLine(ProfilerColors.CPU_AXIS_GUIDE_COLOR, 0, 0, 0, 2);
+  public static final int CPU_HIDEABLE_PANEL_TITLE_LEFT_PADDING = 7;
+  public static final int CPU_HIDEABLE_PANEL_TITLE_ICON_TEXT_GAP = 6;
 
   private ProfilerLayout() {
     // Static class designed to hold constants only
   }
 
   @NotNull
-  public static FlowLayout createToolbarLayout() {
-    return new FlowLayout(FlowLayout.CENTER, 0, 1);
+  public static LayoutManager createToolbarLayout() {
+    // We use a GridBagLayout because by default it acts like a FlowLayout that is vertically aligned.
+    return new GridBagLayout();
   }
 }

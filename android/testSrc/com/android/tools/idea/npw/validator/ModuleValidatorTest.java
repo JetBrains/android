@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.npw.validator;
 
-import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.ui.validation.validators.PathValidator;
+import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.List;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -37,9 +35,6 @@ public final class ModuleValidatorTest {
   public void createModuleValidator() {
     myTmpDir = Files.createTempDir();
     myModuleValidator = new ModuleValidator(new StringValueProperty(myTmpDir.getAbsolutePath()));
-
-    // Hack for build bots. The directory used to run the tests in a sand box is very very long
-    ((List<PathValidator.Rule>) myModuleValidator.getPathValidator().getErrors()).remove(PathValidator.PATH_TOO_LONG);
   }
 
   @After
@@ -51,6 +46,7 @@ public final class ModuleValidatorTest {
   public void testIsValidModuleName() {
     assertValidModuleName("app");
     assertValidModuleName("lib");
+    assertValidModuleName("lib_LIB0");
   }
 
   @Test
@@ -64,6 +60,7 @@ public final class ModuleValidatorTest {
     assertInvalidModuleName("a'b");
     assertInvalidModuleName("'");
     assertInvalidModuleName("'''");
+    assertInvalidModuleName("lib-");
   }
 
   @Test

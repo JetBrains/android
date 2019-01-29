@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
@@ -22,22 +24,30 @@ import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.JDOMExternalizable;
 import com.intellij.openapi.util.WriteExternalException;
-import org.jdom.Element;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
+import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
 
 public class DeployTargetContext implements JDOMExternalizable {
   private static final Logger LOG = Logger.getInstance(DeployTargetContext.class);
 
   public String TARGET_SELECTION_MODE = TargetSelectionMode.SHOW_DIALOG.name();
 
+  private final Supplier<Boolean> mySelectDeviceSnapshotComboBoxVisible;
   private final List<DeployTargetProvider> myDeployTargetProviders; // all available deploy targets
   private final Map<String, DeployTargetState> myDeployTargetStates;
 
   public DeployTargetContext() {
+    this(() -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get());
+  }
+
+  @VisibleForTesting
+  DeployTargetContext(@NotNull Supplier<Boolean> selectDeviceSnapshotComboBoxVisible) {
+    mySelectDeviceSnapshotComboBoxVisible = selectDeviceSnapshotComboBoxVisible;
     myDeployTargetProviders = DeployTargetProvider.getProviders();
 
     ImmutableMap.Builder<String, DeployTargetState> builder = ImmutableMap.builder();
@@ -54,24 +64,29 @@ public class DeployTargetContext implements JDOMExternalizable {
 
   @NotNull
   public DeployTargetProvider getCurrentDeployTargetProvider() {
-    DeployTargetProvider target = getDeployTargetProvider(TARGET_SELECTION_MODE);
-    if (target == null) {
-      target = getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG.name());
+    if (mySelectDeviceSnapshotComboBoxVisible.get()) {
+      return getDeployTargetProvider(TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX);
     }
 
-    assert target != null;
-    return target;
+    if (TARGET_SELECTION_MODE.equals(TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name())) {
+      return getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG);
+    }
+
+    Optional<DeployTargetProvider> provider = getDeployTargetProvider(myDeployTargetProviders, TARGET_SELECTION_MODE);
+    return provider.orElse(getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG));
   }
 
-  @Nullable
-  private DeployTargetProvider getDeployTargetProvider(@NotNull String id) {
-    for (DeployTargetProvider target : myDeployTargetProviders) {
-      if (target.getId().equals(id)) {
-        return target;
-      }
-    }
+  @NotNull
+  private DeployTargetProvider getDeployTargetProvider(@NotNull TargetSelectionMode mode) {
+    return getDeployTargetProvider(myDeployTargetProviders, mode.name()).orElseThrow(AssertionError::new);
+  }
 
-    return null;
+  @NotNull
+  @VisibleForTesting
+  static Optional<DeployTargetProvider> getDeployTargetProvider(@NotNull Collection<DeployTargetProvider> providers, @NotNull String id) {
+    return providers.stream()
+                    .filter(provider -> provider.getId().equals(id))
+                    .findFirst();
   }
 
   @NotNull

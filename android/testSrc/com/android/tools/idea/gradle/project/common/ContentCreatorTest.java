@@ -16,12 +16,14 @@
 package com.android.tools.idea.gradle.project.common;
 
 import com.intellij.testFramework.IdeaTestCase;
+import kotlin.reflect.KType;
 import org.mockito.Mock;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.application.PathManager.getJarPathForClass;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -93,5 +95,12 @@ public class ContentCreatorTest extends IdeaTestCase {
 
     String content = myContentCreator.createApplyJavaLibraryPluginInitScriptContent();
     assertEquals(expected, content);
+  }
+
+  public void testGetJarPathContainsKotlinRuntime() {
+    GradleInitScripts.JavaLibraryPluginJars javaLibraryPluginJars = new GradleInitScripts.JavaLibraryPluginJars();
+    List<String> jarPaths = javaLibraryPluginJars.getJarPaths();
+    assertThat(jarPaths).hasSize(3);
+    assertThat(jarPaths).contains(getJarPathForClass(KType.class));
   }
 }

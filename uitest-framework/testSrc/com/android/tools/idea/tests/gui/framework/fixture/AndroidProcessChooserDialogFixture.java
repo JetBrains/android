@@ -58,5 +58,8 @@ public class AndroidProcessChooserDialogFixture extends ComponentFixture<Android
 
   public void clickOk() {
     findAndClickOkButton(this);
+    Wait.seconds(10)
+      .expecting("dialog to go away")
+      .until(() -> !target().isShowing());
   }
 }

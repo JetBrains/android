@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Guideline anchors
  */
-public class BarrierAnchorTarget extends AnchorTarget {
+public class BarrierAnchorTarget extends ConstraintAnchorTarget {
   int myDirection;
 
   @Override

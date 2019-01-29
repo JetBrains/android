@@ -74,7 +74,7 @@ which is stored as user data on the `AndroidFacet` and has fields for all three 
 ## ResourceManager
 
 IntelliJ had its own existing resource “repository”. This is the ResourceManager class, with its subclasses LocalResourceManager
-(for project resources) and SystemResourceManager (for framework resources). These managers are used for resource lookup driven by the
+(for project resources) and FrameworkResourceManager (for framework resources). These managers are used for resource lookup driven by the
 editor machinery in IntelliJ, e.g. code completing @string/, resolving symbols, and so on.
 
 Longer term, I’d like to rewrite all the editor features to be driven off of our resource repositories instead, and once that’s done,

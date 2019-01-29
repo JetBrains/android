@@ -15,6 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
+import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.intellij.openapi.ui.Messages.OK;
+import static com.intellij.openapi.ui.Messages.getQuestionIcon;
+import static com.intellij.openapi.ui.Messages.showOkCancelDialog;
+import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
+
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
@@ -24,22 +36,12 @@ import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-
-import java.io.File;
-import java.io.IOException;
-
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.gradle.util.GradleUtil.isSupportedGradleVersion;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.intellij.openapi.ui.Messages.*;
-import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 class GradleDistributionCleanUpTask extends ProjectCleanUpTask {
   private static final String GRADLE_SYNC_MSG_TITLE = "Gradle Sync";
@@ -66,12 +68,13 @@ class GradleDistributionCleanUpTask extends ProjectCleanUpTask {
                                            @Nullable DistributionType distributionType) {
     boolean createWrapper = false;
     boolean chooseLocalGradleHome = false;
+    File projectPath = getBaseDirPath(project);
 
     if (distributionType == null) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
         return true;
       }
-      String msg = createUseWrapperQuestion("Gradle settings for this project are not configured yet.");
+      String msg = createOverwriteWrapperQuestion(projectPath);
       int answer = showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, getQuestionIcon());
       createWrapper = answer == OK;
     }
@@ -111,7 +114,6 @@ class GradleDistributionCleanUpTask extends ProjectCleanUpTask {
     }
 
     if (createWrapper) {
-      File projectPath = getBaseDirPath(project);
 
       // attempt to delete the whole gradle wrapper folder.
       File gradleDirPath = new File(projectPath, SdkConstants.FD_GRADLE);
@@ -149,5 +151,13 @@ class GradleDistributionCleanUpTask extends ProjectCleanUpTask {
            "Would you like the project to use the Gradle wrapper?\n" +
            "(The wrapper will automatically download the latest supported Gradle version).\n\n" +
            "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
+  }
+
+  @NotNull
+  private static String createOverwriteWrapperQuestion(@NotNull File projectPath) {
+    return "Unable to get Gradle wrapper properties from:\n" +
+           getDefaultPropertiesFilePath(projectPath) + "\n\n" +
+           "Would you like to recreate the wrapper using the latest supported Gradle version?\n\n" +
+           "Click 'OK' to recreate files, or 'Cancel' to manually set the path of a local Gradle distribution.";
   }
 }

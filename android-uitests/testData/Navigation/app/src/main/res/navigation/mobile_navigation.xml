@@ -15,7 +15,7 @@
             xmlns:app="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools"
             app:startDestination="@+id/main_activity">
-    <deeplink app:uri="www.example.com" />
+    <deepLink app:uri="www.example.com" />
     <activity android:id="@+id/main_activity"
               android:icon="@mipmap/ic_launcher"
               android:label="@string/title_activity_main"

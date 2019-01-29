@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.HyperlinkLabelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -28,6 +29,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixtu
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,17 +40,29 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
+import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItemMatching;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Unit test for the layout theme editor
  */
 @RunIn(TestGroup.THEME)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ThemeEditorTest {
 
   @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Before
+  public void setup() {
+    StudioFlags.THEME_EDITOR_ENABLED.override(true);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.THEME_EDITOR_ENABLED.clearOverride();
+  }
 
   /**
    * Checks that no errors are present in the event log
@@ -71,29 +87,51 @@ public class ThemeEditorTest {
     List<String> themeList = themeEditor.getThemesList();
     // The expected elements are:
     // 0. AppTheme
-    // 1. -- Separator
-    // 2. AppCompat Light
-    // 3. AppCompat
-    // 4. Show all themes
-    // 5. -- Separator
-    // 6. Create New Theme
-    // 7. Rename AppTheme
-    assertThat(themeList).hasSize(9);
+    // 1. Preview Theme
+    // 2. -- Separator
+    // 3. Material Light
+    // 4. Material Dark
+    // 5. AppCompat Light
+    // 6. AppCompat Dark
+    // 7. Show all themes
+    // 8. -- Separator
+    // 9. Create New Theme
+    // 10. Rename AppTheme
+    assertThat(themeList).hasSize(11);
     assertThat(themeList.get(0)).isEqualTo("AppTheme");
-    assertThat(themeList.get(3)).isEqualTo("Theme.AppCompat.Light.NoActionBar");
-    assertThat(themeList.get(4)).isEqualTo("Theme.AppCompat.NoActionBar");
-    assertThat(themeList.get(5)).isEqualTo("Show all themes");
-    assertThat(themeList.get(7)).isEqualTo("Create New Theme");
-    assertThat(themeList.get(8)).isEqualTo("Rename AppTheme");
-
+    assertThat(themeList.get(1)).isEqualTo("PreviewTheme");
     assertThat(themeList.get(2)).startsWith("javax.swing.JSeparator");
-    assertThat(themeList.get(6)).startsWith("javax.swing.JSeparator");
+    assertThat(themeList.get(3)).isEqualTo("android:Theme.Material.Light.NoActionBar");
+    assertThat(themeList.get(4)).isEqualTo("android:Theme.Material.NoActionBar");
+    assertThat(themeList.get(5)).isEqualTo("Theme.AppCompat.Light.NoActionBar");
+    assertThat(themeList.get(6)).isEqualTo("Theme.AppCompat.NoActionBar");
+    assertThat(themeList.get(7)).isEqualTo("Show all themes");
+    assertThat(themeList.get(8)).startsWith("javax.swing.JSeparator");
+    assertThat(themeList.get(9)).isEqualTo("Create New Theme");
+    assertThat(themeList.get(10)).isEqualTo("Rename AppTheme");
 
     // Check the attributes table is populated
     assertThat(themeEditor.getPropertiesTable().rowCount()).isGreaterThan(0);
 
     guiTest.ideFrame().getEditor().close();
     checkNoErrors();
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void testConfigurationToolbar() throws IOException {
+    guiTest.importSimpleLocalApplication();
+    ThemeEditorFixture themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
+
+    ActionButtonFixture apiButtonFixture = themeEditor.findToolbarButton("API Version for Preview");
+    apiButtonFixture.click();
+    clickPopupMenuItem("API 21", "21", apiButtonFixture.target(), guiTest.robot());
+
+    ActionButtonFixture deviceButtonFixture = themeEditor.findToolbarButton("Device for Preview");
+    deviceButtonFixture.click();
+    clickPopupMenuItemMatching((text) -> text.contains("Nexus 6P"), "Nexus 6P", deviceButtonFixture.target(), guiTest.robot());
+
+    themeEditor.getPreviewComponent().requireApi(21).requireDevice("Nexus 6P");
   }
 
   @Test

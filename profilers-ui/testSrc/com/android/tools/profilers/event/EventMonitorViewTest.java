@@ -15,12 +15,10 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.SimpleEventComponent;
-import com.android.tools.adtui.StackedEventComponent;
+import com.android.tools.adtui.EventComponent;
+import com.android.tools.adtui.ActivityComponent;
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
-import com.intellij.ui.HyperlinkLabel;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,6 +27,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -47,9 +47,9 @@ public class EventMonitorViewTest {
   public void setUp() {
     myTimer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
-
+    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
     // constructed. If the StudioMonitorStageView is constructed as well, grpc exceptions will be thrown due to lack of various services
     // in the channel, and the tick loop would not complete properly to set the process and agent status.
@@ -58,23 +58,20 @@ public class EventMonitorViewTest {
   }
 
   @Test
-  public void testDisabledMonitorMessage() throws Exception {
+  public void testDisabledMonitorMessage() {
     // First verify the enabled hierarchy is correct.
     Component[] children = myMonitorView.getComponent().getComponents();
     assertEquals(2, children.length);
-    assertTrue(children[0] instanceof SimpleEventComponent);
-    assertTrue(children[1] instanceof StackedEventComponent);
+    assertTrue(children[0] instanceof EventComponent);
+    assertTrue(children[1] instanceof ActivityComponent);
 
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.DETACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_DETACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
 
     children = myMonitorView.getComponent().getComponents();
-    assertEquals(2, children.length);
+    assertEquals(1, children.length);
     assertTrue(children[0] instanceof JLabel);
     JLabel label = (JLabel)children[0];
     assertEquals(myMonitorView.getDisabledMessage(), label.getText());
-
-    // TODO: verify content on HyperLinkLabel? There is no public API to get that at the moment.
-    assertTrue(children[1] instanceof HyperlinkLabel);
   }
 }

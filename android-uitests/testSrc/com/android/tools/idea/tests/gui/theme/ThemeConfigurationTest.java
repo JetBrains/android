@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.AndroidThemePreviewPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,11 +36,21 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ThemeConfigurationTest {
 
   @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Before
+  public void setup() {
+    StudioFlags.THEME_EDITOR_ENABLED.override(true);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.THEME_EDITOR_ENABLED.clearOverride();
+  }
 
   /**
    * Tests that the theme editor deals well with themes defined only in certain configurations
@@ -68,7 +80,7 @@ public class ThemeConfigurationTest {
 
     parentComboBox.selectItem("Show all themes");
     ThemeSelectionDialogFixture.find(guiTest.robot())
-      .selectsTheme("Material Dark", "android:Theme.Material")
+      .selectTheme("Material Dark", "android:Theme.Material")
       .clickOk();
     parentComboBox.requireSelection("android:Theme.Material");
 
@@ -82,7 +94,7 @@ public class ThemeConfigurationTest {
     AndroidThemePreviewPanelFixture themePreviewPanel = themeEditor.getPreviewComponent().getThemePreviewPanel();
     themePreviewPanel.requirePreviewPanel();
 
-    ActionButtonFixture button = themeEditor.findToolbarButton("API Version in Editor");
+    ActionButtonFixture button = themeEditor.findToolbarButton("API Version for Preview");
     button.click();
     clickPopupMenuItem("API 19", "19", button.target(), guiTest.robot());
 

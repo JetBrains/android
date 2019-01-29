@@ -15,9 +15,18 @@
  */
 package com.android.tools.idea.profilers;
 
+import static com.android.ddmlib.IDevice.CHANGE_STATE;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+import com.android.ddmlib.NullOutputReceiver;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.SyncException;
+import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.datastore.DataStoreService;
@@ -27,9 +36,14 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.profiler.proto.Agent;
+import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -38,21 +52,21 @@ import com.intellij.util.net.NetUtils;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
-import org.jetbrains.android.download.AndroidProfilerDownloader;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.ddmlib.IDevice.CHANGE_STATE;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Manages the interactions between DDMLIB provided devices, and what is needed to spawn ProfilerClient's.
@@ -60,7 +74,7 @@ import static com.android.ddmlib.IDevice.CHANGE_STATE;
  * a new device has been connected. *ALL* interaction with IDevice is encapsulated in this class.
  */
 class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener,
-                                             IdeSdks.IdeSdkChangeListener {
+                                             IdeSdks.IdeSdkChangeListener, Disposable {
 
   private static Logger getLogger() {
     return Logger.getInstance(StudioProfilerDeviceManager.class);
@@ -76,22 +90,24 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   // On-device daemon uses Unix abstract socket for O and future devices.
   private static final String DEVICE_SOCKET_NAME = "AndroidStudioProfiler";
   private static final String AGENT_CONFIG_FILE = "agent.config";
+  private static final String DEVICE_DIR = "/data/local/tmp/perfd/";
 
   @NotNull
   private final DataStoreService myDataStoreService;
   private boolean isAdbInitialized;
-  /**
-   * Maps a device to its correspondent {@link PerfdProxy}.
-   */
-  private Map<IDevice, PerfdProxy> myDeviceProxies;
 
-  StudioProfilerDeviceManager(@NotNull DataStoreService dataStoreService) {
+  /**
+   * We rely on the concurrency guarantees of the {@link ConcurrentHashMap} to synchronize our {@link DeviceContext} accesses.
+   * All accesses to the {@link DeviceContext} must be through its synchronization methods.
+   */
+  private final Map<String, DeviceContext> mySerialToDeviceContextMap = new ConcurrentHashMap<>();
+
+  public StudioProfilerDeviceManager(@NotNull DataStoreService dataStoreService) {
     myDataStoreService = dataStoreService;
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
     // TODO: Once adb API doesn't require a project, move initialization to constructor and remove this flag.
     isAdbInitialized = false;
-    myDeviceProxies = new HashMap<>();
   }
 
   @Override
@@ -113,7 +129,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         }
 
         @Override
-        public void onFailure(Throwable t) {
+        public void onFailure(@NotNull Throwable t) {
           getLogger().warn(String.format("getDebugBridge %s failed", adb.getAbsolutePath()));
         }
       }, EdtExecutor.INSTANCE);
@@ -123,9 +139,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     }
   }
 
+  @Override
   public void dispose() {
     AndroidDebugBridge.removeDebugBridgeChangeListener(this);
     AndroidDebugBridge.removeDeviceChangeListener(this);
+    disconnectProxies();
   }
 
   @Override
@@ -139,14 +157,14 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       // Perfd must be spawned through ADB. When |bridge| is null, it means the ADB that was available earlier
       // becomes invalid and every running perfd it had spawned is being killed. As a result, we should kill the
       // corresponding proxies, too.
-      for (PerfdProxy proxy : myDeviceProxies.values()) {
-        proxy.disconnect();
-      }
+      disconnectProxies();
     }
   }
 
   @Override
   public void deviceConnected(@NonNull IDevice device) {
+    mySerialToDeviceContextMap.computeIfAbsent(device.getSerialNumber(), serial -> new DeviceContext());
+
     if (device.isOnline()) {
       spawnPerfd(device);
     }
@@ -154,28 +172,130 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
   @Override
   public void deviceDisconnected(@NonNull IDevice device) {
+    disconnectProxy(device);
   }
 
   @Override
   public void deviceChanged(@NonNull IDevice device, int changeMask) {
-    if ((changeMask & CHANGE_STATE) != 0 && device.isOnline()) {
-      spawnPerfd(device);
+    if ((changeMask & CHANGE_STATE) != 0) {
+      if (device.isOnline()) {
+        spawnPerfd(device);
+      }
+      else {
+        disconnectProxy(device);
+      }
     }
   }
 
-  private void spawnPerfd(@NonNull IDevice device) {
-    PerfdThread thread = new PerfdThread(device, myDataStoreService);
-    thread.start();
+  @NotNull
+  private Runnable getDisconnectRunnable(@NotNull String serialNumber) {
+    return () -> mySerialToDeviceContextMap.compute(serialNumber, (unused, context) -> {
+      assert context != null;
+      PerfdProxy proxy = context.myLastKnownPerfdProxy;
+      if (proxy != null) {
+        proxy.disconnect();
+      }
+      context.myLastKnownPerfdProxy = null;
+      return context;
+    });
   }
 
-  private class PerfdThread extends Thread {
-    private final DataStoreService myDataStore;
-    private final IDevice myDevice;
-    private int myLocalPort;
-    private PerfdProxy myPerfdProxy;
+  private void disconnectProxy(@NonNull IDevice device) {
+    mySerialToDeviceContextMap.compute(device.getSerialNumber(), (serial, context) -> {
+      assert context != null;
+      if (context.myLastKnowPerfdThreadfuture != null) {
+        context.myLastKnowPerfdThreadfuture.cancel(true);
+        context.myLastKnowPerfdThreadfuture = null;
+      }
+      context.myExecutor.execute(getDisconnectRunnable(serial));
+      return context;
+    });
+  }
 
-    PerfdThread(@NotNull IDevice device, @NotNull DataStoreService datastore) {
-      super("Perfd Thread: " + device.getSerialNumber());
+  private void disconnectProxies() {
+    mySerialToDeviceContextMap.forEach((serial, context) -> {
+      assert context != null;
+      if (context.myLastKnowPerfdThreadfuture != null) {
+        context.myLastKnowPerfdThreadfuture.cancel(true);
+        context.myLastKnowPerfdThreadfuture = null;
+      }
+      context.myExecutor.execute(getDisconnectRunnable(serial));
+    });
+  }
+
+  private void spawnPerfd(@NonNull IDevice device) {
+    mySerialToDeviceContextMap.compute(device.getSerialNumber(), (serial, context) -> {
+      assert context != null && (context.myLastKnownPerfdProxy == null || context.myLastKnownPerfdProxy.getDevice() != device);
+      context.myLastKnowPerfdThreadfuture = context.myExecutor.submit(new PerfdThread(device, myDataStoreService));
+      return context;
+    });
+  }
+
+  /**
+   * Whether the device is running O or higher APIs
+   */
+  private static boolean isAtLeastO(IDevice device) {
+    return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
+  }
+
+  /**
+   * Creates and pushes a config file that lives in perfd but is shared between both perfd + perfa
+   */
+  static void pushAgentConfig(IDevice device, boolean isMemoryLiveAllocationEnabledAtStartup)
+    throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
+    int liveAllocationSamplingRate;
+    if (StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get()) {
+      // If memory live allocation is enabled, read sampling rate from preferences. Otherwise suspend live allocation.
+      if (isMemoryLiveAllocationEnabledAtStartup) {
+        liveAllocationSamplingRate = PropertiesComponent.getInstance().getInt(
+          IntellijProfilerPreferences.getProfilerPropertyName(
+            MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF),
+          MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
+      }
+      else {
+        liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
+      }
+    }
+    else {
+      // Sampling feature is disabled, use full mode.
+      liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
+    }
+    Agent.SocketType socketType = isAtLeastO(device) ? Agent.SocketType.ABSTRACT_SOCKET : Agent.SocketType.UNSPECIFIED_SOCKET;
+    Agent.AgentConfig agentConfig =
+      Agent.AgentConfig.newBuilder()
+                       .setMemConfig(
+                         Agent.AgentConfig.MemoryConfig
+                           .newBuilder()
+                           .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
+                           .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
+                           .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
+                           .setSamplingRate(
+                             MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
+                           .build())
+                       .setSocketType(socketType).setServiceAddress("127.0.0.1:" + DEVICE_PORT)
+                       // Using "@" to indicate an abstract socket in unix.
+                       .setServiceSocketName("@" + DEVICE_SOCKET_NAME)
+                       .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
+                       .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
+                       .setAndroidFeatureLevel(device.getVersion().getFeatureLevel())
+                       .setCpuConfig(
+                         Agent.AgentConfig.CpuConfig.newBuilder().setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC))
+                       .build();
+
+    File configFile = FileUtil.createTempFile(AGENT_CONFIG_FILE, null, true);
+    OutputStream oStream = new FileOutputStream(configFile);
+    agentConfig.writeTo(oStream);
+    device.executeShellCommand("rm -f " + DEVICE_DIR + AGENT_CONFIG_FILE, new NullOutputReceiver());
+    device.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + AGENT_CONFIG_FILE);
+  }
+
+  private class PerfdThread implements Runnable {
+    @NotNull private final DataStoreService myDataStore;
+    @NotNull private final IDevice myDevice;
+    private int myLocalPort;
+    private volatile PerfdProxy myPerfdProxy;
+
+    public PerfdThread(@NotNull IDevice device, @NotNull DataStoreService datastore) {
       myDataStore = datastore;
       myDevice = device;
       myLocalPort = 0;
@@ -183,7 +303,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
     @Override
     public void run() {
-      if (!AndroidProfilerDownloader.makeSureProfilerIsInPlace()) return;
       try {
         // Waits to make sure the device has completed boot sequence.
         if (!waitForBootComplete()) {
@@ -192,45 +311,53 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
         // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
         // in AndroidStudioProperties.groovy to package in release.
-        String deviceDir = "/data/local/tmp/perfd/";
-        copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", deviceDir,
+        copyFileToDevice("perfd", "plugins/android/resources/perfd", "../../bazel-bin/tools/base/profiler/native/perfd/android", DEVICE_DIR,
                          true);
         if (isAtLeastO(myDevice)) {
-          if (StudioFlags.PROFILER_USE_JVMTI.get()) {
-            String productionRoot = "plugins/android/resources";
-            String devRoot = "../../bazel-genfiles/tools/base/profiler/app";
-            copyFileToDevice("perfa.jar", productionRoot, devRoot, deviceDir, false);
-            copyFileToDevice("perfa_okhttp.dex", productionRoot, devRoot, deviceDir, false);
-            pushJvmtiAgentNativeLibraries(deviceDir);
-          }
-          if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
-            // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
-            pushSimpleperfIfSupported(deviceDir);
-          }
+          String productionRoot = "plugins/android/resources";
+          String devRoot = "../../bazel-genfiles/tools/base/profiler/app";
+          copyFileToDevice("perfa.jar", productionRoot, devRoot, DEVICE_DIR, false);
+          copyFileToDevice("perfa_okhttp.dex", productionRoot, devRoot, DEVICE_DIR, false);
+          pushJvmtiAgentNativeLibraries(DEVICE_DIR);
+          // Simpleperf can be used by CPU profiler for method tracing, if it is supported by target device.
+          pushSimpleperf(DEVICE_DIR);
         }
-        pushAgentConfig(AGENT_CONFIG_FILE, deviceDir);
+        pushAgentConfig(myDevice, true);
 
-        myDevice.executeShellCommand(deviceDir + "perfd -config_file=" + deviceDir + AGENT_CONFIG_FILE, new IShellOutputReceiver() {
+        myDevice.executeShellCommand(DEVICE_DIR + "perfd -config_file=" + DEVICE_DIR + AGENT_CONFIG_FILE, new IShellOutputReceiver() {
           @Override
           public void addOutput(byte[] data, int offset, int length) {
             String s = new String(data, offset, length, Charsets.UTF_8);
             getLogger().info("[perfd]: " + s);
-            if (myDeviceProxies.containsKey(myDevice)) {
-              getLogger().info(String.format("PerfdProxy was already created for device: %s", myDevice));
-              return;
-            }
 
             // On supported API levels (Lollipop+), we should only start the proxy once perfd has successfully launched the grpc server.
             // This is indicated by a "Server listening on ADDRESS" printout from perfd (ADDRESS can vary depending on pre-O vs JVMTI).
             // The reason for this check is because we get linker warnings when starting perfd on pre-M devices (an issue which would not
             // be fixed by now), and we need to avoid starting the proxy in those cases.
-            if (myDevice.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP
-              && !s.startsWith("Server listening on")) {
+            if (myDevice.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP && !s.startsWith("Server listening on")) {
               return;
             }
 
-            createPerfdProxy();
-            getLogger().info(String.format("PerfdProxy successfully created for device: %s", myDevice));
+            boolean[] alreadyExists = new boolean[]{false};
+            mySerialToDeviceContextMap.compute(myDevice.getSerialNumber(), (serial, context) -> {
+              assert context != null;
+              if (context.myLastKnownPerfdProxy != null) {
+                getLogger().info(String.format("PerfdProxy was already created for device: %s", myDevice));
+                alreadyExists[0] = true;
+              }
+              return context;
+            });
+            if (alreadyExists[0]) {
+              return;
+            }
+
+            try {
+              createPerfdProxy();
+              getLogger().info(String.format("PerfdProxy successfully created for device: %s", myDevice));
+            }
+            catch (AdbCommandRejectedException | IOException | TimeoutException e) {
+              getLogger().warn(String.format("PerfdProxy failed for device: %s", myDevice), e);
+            }
           }
 
           @Override
@@ -240,6 +367,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
           @Override
           public boolean isCancelled() {
+            if (Thread.interrupted()) {
+              Thread.currentThread().interrupt();
+              return true;
+            }
             return false;
           }
         }, 0, null);
@@ -267,10 +398,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       if (!dir.exists()) {
         // Development mode
         dir = new File(PathManager.getHomePath(), hostDevDir);
-        if (!dir.exists()) {
-          // IDEA development mode
-          dir = AndroidProfilerDownloader.getHostDir(hostReleaseDir);
-        }
       }
 
       File file = null;
@@ -300,7 +427,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         if (file == null) {
           throw new RuntimeException(String.format("File %s could not be found for device: %s", fileName, myDevice));
         }
-        // TODO: Add debug support for development
         /*
          * If copying the agent fails, we will attach the previous version of the agent
          * Hence we first delete old agent before copying new one
@@ -338,21 +464,23 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       String libperfaFilename = "libperfa.so";
       String libperfaDeviceFilenameFormat = "libperfa_%s.so"; // e.g. libperfa_arm64.so
 
-      pushAbiDependentBinaryFiles(devicePath, jvmtiResourcesReleasePath, jvmtiResourcesDevPath, libperfaFilename, libperfaDeviceFilenameFormat);
+      pushAbiDependentBinaryFiles(devicePath, jvmtiResourcesReleasePath, jvmtiResourcesDevPath, libperfaFilename,
+                                  libperfaDeviceFilenameFormat);
     }
 
     /**
      * Push one binary for each supported ABI CPU architecture, i.e. CPU family. ABI of same CPU family can share the same binary,
      * like "armeabi" and "armeabi-v7a", which share the "arm".
-     * @param devicePath            Device path where the binaries should be pushed to.
-     * @param hostReleaseDir        Host release path containing the binaries to be pushed to device.
-     * @param hostDevDir            Host development path containing the binaries to be pushed to device.
-     * @param hostFilename          Filename of the original binaries on the host.
-     * @param deviceFilenameFormat  Format of the binaries filename on device. The binaries have the same name in the host because they're
-     *                              usually placed on different folders. On the device, however, the binaries are all placed inside
-     *                              {@code devicePath}, so they need different names, each one identifying the ABI corresponding to the
-     *                              binary. For instance, the format "libperfa_%s.so" can generate binaries named "libperfa_arm.so",
-     *                              "libperfa_x86_64.so", etc.
+     *
+     * @param devicePath           Device path where the binaries should be pushed to.
+     * @param hostReleaseDir       Host release path containing the binaries to be pushed to device.
+     * @param hostDevDir           Host development path containing the binaries to be pushed to device.
+     * @param hostFilename         Filename of the original binaries on the host.
+     * @param deviceFilenameFormat Format of the binaries filename on device. The binaries have the same name in the host because they're
+     *                             usually placed on different folders. On the device, however, the binaries are all placed inside
+     *                             {@code devicePath}, so they need different names, each one identifying the ABI corresponding to the
+     *                             binary. For instance, the format "libperfa_%s.so" can generate binaries named "libperfa_arm.so",
+     *                             "libperfa_x86_64.so", etc.
      * @throws AdbCommandRejectedException
      * @throws IOException
      */
@@ -379,7 +507,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     /**
      * Pushes simpleperf binaries to device. It needs to be consistent with app's abi, so we use {@link #pushAbiDependentBinaryFiles}.
      */
-    private void pushSimpleperfIfSupported(String devicePath) throws AdbCommandRejectedException, IOException {
+    private void pushSimpleperf(String devicePath) throws AdbCommandRejectedException, IOException {
       String simpleperfBinariesReleasePath = "plugins/android/resources/simpleperf";
       String simpleperfBinariesDevPath = "../../prebuilts/tools/common/simpleperf";
       String simpleperfFilename = "simpleperf";
@@ -389,44 +517,15 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
                                   simpleperfDeviceFilenameFormat);
     }
 
-    /**
-     * Creates and pushes a config file that lives in perfd but is shared bewteen both perfd + perfa
-     */
-    private void pushAgentConfig(@NotNull String fileName, @NotNull String devicePath)
-      throws AdbCommandRejectedException, IOException, TimeoutException, SyncException, ShellCommandUnresponsiveException {
-      // TODO: remove profiler.jvmti after agent uses only JVMTI to instrument bytecode on O+ devices.
-      Agent.SocketType socketType = StudioFlags.PROFILER_USE_JVMTI.get() && isAtLeastO(myDevice)
-                                    ? Agent.SocketType.ABSTRACT_SOCKET
-                                    : Agent.SocketType.UNSPECIFIED_SOCKET;
-      Agent.AgentConfig agentConfig = Agent.AgentConfig.newBuilder().setUseJvmti(StudioFlags.PROFILER_USE_JVMTI.get())
-        .setMemConfig(Agent.AgentConfig.MemoryConfig.newBuilder()
-                        .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
-                        .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
-                        .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
-                        .build())
-        .setProfilerNetworkRequestPayload(StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get())
-        .setSocketType(socketType)
-        .setServiceAddress("127.0.0.1:" + DEVICE_PORT)
-        // Using "@" to indicate an abstract socket in unix.
-        .setServiceSocketName("@" + DEVICE_SOCKET_NAME).build();
-
-      File configFile = FileUtil.createTempFile(fileName, null, true);
-      OutputStream oStream = new FileOutputStream(configFile);
-      agentConfig.writeTo(oStream);
-      myDevice.executeShellCommand("rm -f " + devicePath + fileName, new NullOutputReceiver());
-      myDevice.pushFile(configFile.getAbsolutePath(), devicePath + fileName);
-    }
-
-    private void createPerfdProxy() {
+    private void createPerfdProxy() throws TimeoutException, AdbCommandRejectedException, IOException {
       try {
         myLocalPort = NetUtils.findAvailableSocketPort();
         if (myLocalPort < 0) {
           throw new RuntimeException("Unable to find available socket port");
         }
 
-        if (isAtLeastO(myDevice) && StudioFlags.PROFILER_USE_JVMTI.get()) {
-          myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME,
-                                 IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+        if (isAtLeastO(myDevice)) {
+          myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME, IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         }
         else {
           myDevice.createForward(myLocalPort, DEVICE_PORT);
@@ -453,12 +552,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         String channelName = myDevice.getSerialNumber();
         myPerfdProxy = new PerfdProxy(myDevice, perfdChannel, channelName);
         myPerfdProxy.connect();
-        // Add the proxy to the proxies map.
-        myDeviceProxies.put(myDevice, myPerfdProxy);
-        myPerfdProxy.setOnDisconnectCallback(() -> {
-          if (myDeviceProxies.containsKey(myDevice)) {
-            myDeviceProxies.remove(myDevice);
-          }
+
+        mySerialToDeviceContextMap.compute(myDevice.getSerialNumber(), (serial, context) -> {
+          assert context != null;
+          context.myLastKnownPerfdProxy = myPerfdProxy;
+          return context;
         });
 
         // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
@@ -471,15 +569,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         if (myPerfdProxy != null) {
           myPerfdProxy.disconnect();
         }
-        throw new RuntimeException(e);
+        throw e;
       }
-    }
-
-    /**
-     * Whether the device is running O or higher APIs
-     */
-    private boolean isAtLeastO(IDevice device) {
-      return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
     }
 
     /**
@@ -532,5 +623,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     private boolean hasErrors() {
       return myHasErrors;
     }
+  }
+
+  private static class DeviceContext {
+    @NotNull private final ExecutorService myExecutor = new ThreadPoolExecutor(0, 1, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+    @Nullable private PerfdProxy myLastKnownPerfdProxy;
+    @Nullable private Future<?> myLastKnowPerfdThreadfuture;
   }
 }

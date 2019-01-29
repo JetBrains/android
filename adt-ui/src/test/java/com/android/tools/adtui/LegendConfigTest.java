@@ -16,11 +16,15 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import icons.StudioIcons;
+import java.util.function.Function;
+import javax.swing.Icon;
 import org.junit.Test;
 
 import java.awt.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class LegendConfigTest {
 
@@ -29,27 +33,41 @@ public class LegendConfigTest {
     LineConfig line = new LineConfig(Color.PINK).setFilled(true).setLegendIconType(LegendConfig.IconType.BOX);
     LegendConfig legend = new LegendConfig(line);
     assertEquals(Color.PINK, legend.getColor());
-    assertEquals(LegendConfig.IconType.BOX, legend.getIcon());
+    assertEquals(LegendConfig.IconType.BOX, legend.getIconType());
+    assertNull(legend.getIconGetter());
 
     line.setColor(Color.ORANGE).setLegendIconType(LegendConfig.IconType.LINE);
     legend = new LegendConfig(line);
     assertEquals(Color.ORANGE, legend.getColor());
-    assertEquals(LegendConfig.IconType.LINE, legend.getIcon());
+    assertEquals(LegendConfig.IconType.LINE, legend.getIconType());
+    assertNull(legend.getIconGetter());
 
     line.setLegendIconType(LegendConfig.IconType.DASHED_LINE);
     legend = new LegendConfig(line);
     assertEquals(Color.ORANGE, legend.getColor());
-    assertEquals(LegendConfig.IconType.DASHED_LINE, legend.getIcon());
+    assertEquals(LegendConfig.IconType.DASHED_LINE, legend.getIconType());
+    assertNull(legend.getIconGetter());
 
     legend = new LegendConfig(new LineConfig(Color.PINK));
     // If legendIconType is not set, LegendConfig.IconType.NONE should be used
-    assertEquals(LegendConfig.IconType.NONE, legend.getIcon());
+    assertEquals(LegendConfig.IconType.NONE, legend.getIconType());
+    assertNull(legend.getIconGetter());
   }
 
   @Test
   public void correctSettingsFromDefaultConstructor() {
     LegendConfig legend = new LegendConfig(LegendConfig.IconType.DASHED_LINE, Color.BLACK);
-    assertEquals(LegendConfig.IconType.DASHED_LINE, legend.getIcon());
+    assertEquals(LegendConfig.IconType.DASHED_LINE, legend.getIconType());
     assertEquals(Color.BLACK, legend.getColor());
+    assertNull(legend.getIconGetter());
+  }
+
+  @Test
+  public void correctSettingsFromIconGetterConstructor() {
+    Function<String, Icon> iconGetter = s -> StudioIcons.Common.ADD;
+    LegendConfig legendConfig = new LegendConfig( iconGetter, Color.BLACK);
+    assertEquals(LegendConfig.IconType.CUSTOM, legendConfig.getIconType());
+    assertEquals(Color.BLACK, legendConfig.getColor());
+    assertEquals(iconGetter, legendConfig.getIconGetter());
   }
 }

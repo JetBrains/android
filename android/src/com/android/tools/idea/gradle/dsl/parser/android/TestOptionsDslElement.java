@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +25,6 @@ public class TestOptionsDslElement extends GradleDslBlockElement {
   @NonNls public static final String TEST_OPTIONS_BLOCK_NAME = "testOptions";
 
   public TestOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, TEST_OPTIONS_BLOCK_NAME);
+    super(parent, GradleNameElement.create(TEST_OPTIONS_BLOCK_NAME));
   }
 }

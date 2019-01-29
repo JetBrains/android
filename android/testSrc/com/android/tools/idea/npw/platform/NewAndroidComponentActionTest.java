@@ -19,58 +19,51 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.facet.FacetManager;
-import com.intellij.facet.FacetTypeRegistry;
-import com.intellij.mock.MockApplicationEx;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetConfiguration;
-import org.jetbrains.android.facet.AndroidFacetType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public final class NewAndroidComponentActionTest {
-  private Disposable myDisposable;
   private AnActionEvent myActionEvent;
-  private MockAndroidFacet mySelectedAndroidFacet;
+  private AndroidFacet mySelectedAndroidFacet;
+
+  @Rule
+  public AndroidProjectRule projectRule = AndroidProjectRule.inMemory();
 
   @Before
-  public void setUp() throws Exception {
-    myDisposable = Disposer.newDisposable();
+  public void setUp() {
+    mySelectedAndroidFacet = AndroidFacet.getInstance(projectRule.getModule());
+    mySelectedAndroidFacet.getConfiguration().setModel(mock(AndroidModel.class));
 
-    FacetTypeRegistry facetTypeRegistry = mock(FacetTypeRegistry.class);
-    when(facetTypeRegistry.findFacetType(AndroidFacet.ID)).thenReturn(mock(AndroidFacetType.class));
+    AndroidModuleInfo mockAndroidModuleInfo = mock(AndroidModuleInfo.class);
+    when(mockAndroidModuleInfo.getMinSdkVersion()).thenReturn(new AndroidVersion(1));
+    when(mockAndroidModuleInfo.getBuildSdkVersion()).thenReturn(new AndroidVersion(1));
 
-    MockApplicationEx mockApplication = new MockApplicationEx(myDisposable);
-    ApplicationManager.setApplication(mockApplication, myDisposable);
-    mockApplication.getPicoContainer().registerComponentInstance(FacetTypeRegistry.class.getName(), facetTypeRegistry);
+    AndroidFacet mockAndroidFacet = spy(mySelectedAndroidFacet);
+    doReturn(mockAndroidModuleInfo).when(mockAndroidFacet).getUserData(any(Key.class));
 
-    Project project = mock(Project.class);
-    Disposer.register(myDisposable, project);
-    when(project.getPicoContainer()).thenReturn(mockApplication.getPicoContainer());
+    FacetManager mockFacetManager = mock(FacetManager.class);
+    when(mockFacetManager.getFacetByType(AndroidFacet.ID)).thenReturn(mockAndroidFacet);
 
-    mySelectedAndroidFacet = new MockAndroidFacet(project);
+    Module mockModel = mock(Module.class);
+    doReturn(mockFacetManager).when(mockModel).getComponent(FacetManager.class);
 
     DataContext dataContext = mock(DataContext.class);
-    when(dataContext.getData(LangDataKeys.MODULE.getName())).thenReturn(mySelectedAndroidFacet.getModule());
+    when(dataContext.getData(LangDataKeys.MODULE.getName())).thenReturn(mockModel);
 
     Presentation presentation = new Presentation();
     presentation.setEnabled(false);
@@ -78,11 +71,6 @@ public final class NewAndroidComponentActionTest {
     myActionEvent = mock(AnActionEvent.class);
     when(myActionEvent.getDataContext()).thenReturn(dataContext);
     when(myActionEvent.getPresentation()).thenReturn(presentation);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    Disposer.dispose(myDisposable);
   }
 
   @Test
@@ -93,7 +81,7 @@ public final class NewAndroidComponentActionTest {
   }
 
   @Test
-  public void lowLevelApiPresentationShouldBeDisabled() {
+  public void lowMinSdkApiPresentationShouldBeDisabled() {
     new NewAndroidComponentAction("templateCategory", "templateName", HIGHEST_KNOWN_API + 1).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
@@ -101,8 +89,16 @@ public final class NewAndroidComponentActionTest {
   }
 
   @Test
+  public void lowMinBuildSdkApiPresentationShouldBeDisabled() {
+    new NewAndroidComponentAction("templateCategory", "templateName", 0, HIGHEST_KNOWN_API + 1).update(myActionEvent);
+
+    assertThat(myActionEvent.getPresentation().isEnabled()).isFalse();
+    assertThat(myActionEvent.getPresentation().getText()).contains("Requires compileSdkVersion");
+  }
+
+  @Test
   public void appTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_APP);
+    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_APP);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 
@@ -111,7 +107,7 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void instantTypePresentationShouldBeDisabledForIapp() {
-    mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_INSTANTAPP);
+    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_INSTANTAPP);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 
@@ -120,7 +116,7 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void libraryTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_LIBRARY);
+    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 
@@ -129,7 +125,7 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void testTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_TEST);
+    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_TEST);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 
@@ -138,53 +134,10 @@ public final class NewAndroidComponentActionTest {
 
   @Test
   public void featureTypePresentationShouldBeEnabledForIapp() {
-    mySelectedAndroidFacet.setProjectType(PROJECT_TYPE_FEATURE);
+    mySelectedAndroidFacet.getConfiguration().setProjectType(PROJECT_TYPE_FEATURE);
 
     new NewAndroidComponentAction("templateCategory", "templateName", 0).update(myActionEvent);
 
     assertThat(myActionEvent.getPresentation().isEnabled()).isTrue();
-  }
-
-
-  private static class MockAndroidFacet extends AndroidFacet {
-    private int myProjectType = PROJECT_TYPE_APP;
-
-    protected MockAndroidFacet(Project project) {
-      super(mock(Module.class), AndroidFacet.NAME, mock(AndroidFacetConfiguration.class));
-
-      FacetManager facetManager = mock(FacetManager.class);
-
-      Module module = getModule();
-      Disposer.register(project, module);
-      when(module.getComponent(FacetManager.class)).thenReturn(facetManager);
-      when(module.getProject()).thenReturn(project);
-
-      when(facetManager.getFacetByType(AndroidFacet.ID)).thenReturn(this);
-    }
-
-    @Override
-    public <T> T getUserData(@NotNull Key<T> key) {
-      AndroidModuleInfo androidModuleInfo = mock(AndroidModuleInfo.class);
-      when(androidModuleInfo.getMinSdkVersion()).thenReturn(new AndroidVersion(HIGHEST_KNOWN_API));
-
-      //noinspection unchecked
-      return (T)androidModuleInfo;
-    }
-
-    @Nullable
-    @Override
-    public AndroidModel getAndroidModel() {
-      return mock(AndroidModel.class);
-    }
-
-    @Override
-    public int getProjectType() {
-      return myProjectType;
-    }
-
-    @Override
-    public void setProjectType(int type) {
-      myProjectType = type;
-    }
   }
 }

@@ -15,17 +15,18 @@
  */
 package com.android.tools.profilers.stacktrace;
 
-import com.android.tools.profilers.ContextMenuInstaller;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+/**
+ * A component that shows an interactive callstack, where interacting with it can jump the user to
+ * the relevant location in code.
+ */
 public interface StackTraceView {
   @NotNull
   StackTraceModel getModel();
 
   @NotNull
   JComponent getComponent();
-
-  void installNavigationContextMenu(@NotNull ContextMenuInstaller contextMenuInstaller);
 }

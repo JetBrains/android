@@ -48,11 +48,11 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
 
     PsiAnnotation annotation = AndroidResolveHelper.getAnnotationForLocal(element, "c");
     assertNotNull(annotation);
-    assertEquals(ResourceEvaluator.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
+    assertEquals(ResourceEvaluator.COLOR_INT_ANNOTATION.defaultName(), annotation.getQualifiedName());
 
     annotation = AndroidResolveHelper.getAnnotationForField(element, "p1.p2.Foo", "mColor");
     assertNotNull(annotation);
-    assertEquals(ResourceEvaluator.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
+    assertEquals(ResourceEvaluator.COLOR_INT_ANNOTATION.defaultName(), annotation.getQualifiedName());
   }
 
   public void testIntDefResolution() {
@@ -85,7 +85,7 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
 
     PsiAnnotation annotation = AndroidResolveHelper.getAnnotationForLocal(element, "v");
     assertNotNull(annotation);
-    assertEquals(SdkConstants.INT_DEF_ANNOTATION, annotation.getQualifiedName());
+    assertEquals(SdkConstants.INT_DEF_ANNOTATION.defaultName(), annotation.getQualifiedName());
 
     AndroidResolveHelper.IntDefResolution result = AndroidResolveHelper.resolveIntDef(annotation);
     assertFalse(result.canBeOred);
@@ -181,7 +181,7 @@ public class AndroidResolveHelperTest extends AndroidTestCase {
 
     PsiAnnotation annotation = AndroidResolveHelper.getAnnotationForLocal(element, "color");
     assertNotNull(annotation);
-    assertEquals(ResourceEvaluator.COLOR_INT_ANNOTATION, annotation.getQualifiedName());
+    assertEquals(ResourceEvaluator.COLOR_INT_ANNOTATION.defaultName(), annotation.getQualifiedName());
   }
 
   private PsiElement getPsiElement(String text) {

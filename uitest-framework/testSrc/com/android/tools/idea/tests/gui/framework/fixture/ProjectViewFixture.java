@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.LibFolderNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.LibraryNode;
@@ -27,7 +26,6 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
-import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.ide.projectView.impl.ProjectViewTree;
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
@@ -40,6 +38,7 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.ui.tree.AsyncTreeModel;
@@ -73,12 +72,12 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   @NotNull
   public PaneFixture selectProjectPane() {
-    return selectPane(ProjectViewPane.ID, "Project");
+    return selectPane("Project");
   }
 
   @NotNull
   public PaneFixture selectAndroidPane() {
-    return selectPane(AndroidProjectViewPane.ID, "Android");
+    return selectPane("Android");
   }
 
   @NotNull
@@ -102,14 +101,17 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   private void changePane(@NotNull String paneName) {
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
+    if (SystemInfo.isMac) {
+      myRobot.click(projectDropDown.getParent());
+    }
+    else {
+      Shortcut shortcut = KeymapManager.getInstance().getActiveKeymap().getShortcuts("ShowContent")[0];
+      KeyStroke firstKeyStroke = ((KeyboardShortcut)shortcut).getFirstKeyStroke();
+      myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
+    }
 
-    myRobot.click(projectDropDown.getParent());
-    // In case the focus is not given to the dropdown at first, use the keyboard shortcut to ensure that it gets it.
-    Shortcut shortcut = KeymapManager.getInstance().getActiveKeymap().getShortcuts("ShowContent")[0];
-    KeyStroke firstKeyStroke = ((KeyboardShortcut)shortcut).getFirstKeyStroke();
-    myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
-
-    GuiTests.clickPopupMenuItem("Content name=" + paneName, projectDropDown, myRobot);
+    String paneFullName = "Content name=" + paneName;
+    GuiTests.clickPopupMenuItemMatching(s -> s.equals(paneFullName), projectDropDown, myRobot);
   }
 
   @NotNull
@@ -117,14 +119,11 @@ public class ProjectViewFixture extends ToolWindowFixture {
     return ProjectView.getInstance(myProject).getCurrentViewId();
   }
 
-  @NotNull public PaneFixture selectPane(String viewId, String name) {
+  @NotNull
+  private PaneFixture selectPane(String name) {
     activate();
+    changePane(name);
     final ProjectView projectView = ProjectView.getInstance(myProject);
-
-    if (!viewId.equals(projectView.getCurrentViewId())) {
-      changePane(name);
-    }
-
     return new PaneFixture(ideFrameFixture, projectView.getCurrentProjectViewPane(), myRobot).waitForTreeToFinishLoading();
   }
 
@@ -143,17 +142,27 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     @NotNull
     private PaneFixture waitForTreeToFinishLoading() {
+      return waitForTreeToFinishLoading(5);
+    }
+
+    @NotNull
+    private PaneFixture waitForTreeToFinishLoading(long secondsToWait) {
       TreeModel model = myTree.target().getModel();
       if (model instanceof AsyncTreeModel) { // otherwise there's nothing to wait for, as the tree loading should be synchronous
-        Wait.seconds(5).expecting("tree to load").until(() -> !(((AsyncTreeModel) model).isProcessing()));
+        Wait.seconds(secondsToWait).expecting("tree to load").until(() -> !(((AsyncTreeModel) model).isProcessing()));
       }
       return this;
     }
 
     @NotNull
     public PaneFixture expand() {
+      return expand(5);
+    }
+
+    @NotNull
+    public PaneFixture expand(long secondsToWait) {
       GuiTask.execute(() -> TreeUtil.expandAll(myPane.getTree()));
-      waitForTreeToFinishLoading();
+      waitForTreeToFinishLoading(secondsToWait);
       return this;
     }
 

@@ -40,10 +40,10 @@ class RoomPairedBraceMatcher : PairedBraceMatcher {
  * [com.intellij.codeInsight.editorActions.QuoteHandler] for RoomSql. Makes the IDE insert the matching quote when typing.
  */
 class RoomQuoteHandler : SimpleTokenSetQuoteHandler(
-    RoomPsiTypes.SINGLE_QUOTE_STRING_LITERAL,
-    RoomPsiTypes.DOUBLE_QUOTE_STRING_LITERAL,
-    RoomPsiTypes.BACKTICK_LITERAL,
-    UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL,
-    UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL,
-    UNTERMINATED_BACKTICK_LITERAL
+  RoomPsiTypes.SINGLE_QUOTE_STRING_LITERAL,
+  RoomPsiTypes.DOUBLE_QUOTE_STRING_LITERAL,
+  RoomPsiTypes.BACKTICK_LITERAL,
+  UNTERMINATED_SINGLE_QUOTE_STRING_LITERAL,
+  UNTERMINATED_DOUBLE_QUOTE_STRING_LITERAL,
+  UNTERMINATED_BACKTICK_LITERAL
 )

@@ -76,7 +76,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
     if (isMyFile(facet, (XmlFile)file)) {
       MyVisitor visitor = new MyVisitor(manager, isOnTheFly);
       file.accept(visitor);
-      return visitor.myResult.toArray(new ProblemDescriptor[visitor.myResult.size()]);
+      return visitor.myResult.toArray(ProblemDescriptor.EMPTY_ARRAY);
     }
     return ProblemDescriptor.EMPTY_ARRAY;
   }

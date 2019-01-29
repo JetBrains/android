@@ -27,8 +27,8 @@ class ParameterReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -46,8 +46,8 @@ class ParameterReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -63,8 +63,8 @@ class ParameterReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -82,8 +82,8 @@ class ParameterReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -99,8 +99,8 @@ class ParameterReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -114,8 +114,8 @@ class ParameterReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -131,8 +131,8 @@ class ParameterReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -150,8 +150,8 @@ class ParameterReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -175,8 +175,8 @@ class ParameterReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -200,8 +200,8 @@ class ParameterReferencesTest : RoomLightTestCase() {
     myFixture.configureByText(JavaFileType.INSTANCE, """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -215,8 +215,8 @@ class ParameterReferencesTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {

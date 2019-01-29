@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -62,6 +63,8 @@ public class CardViewHandler extends FrameLayoutHandler {
   @Override
   @NotNull
   public String getGradleCoordinateId(@NotNull String viewTag) {
-    return CARD_VIEW_LIB_ARTIFACT;
+    return viewTag.startsWith(ANDROIDX_PKG_PREFIX) ?
+           AndroidxNameUtils.getCoordinateMapping(CARD_VIEW_LIB_ARTIFACT) :
+           CARD_VIEW_LIB_ARTIFACT;
   }
 }

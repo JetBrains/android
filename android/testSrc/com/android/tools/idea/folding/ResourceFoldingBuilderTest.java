@@ -27,7 +27,7 @@ public class ResourceFoldingBuilderTest extends AndroidTestCase {
   public void testStaticImports() { performTest(".java"); }
 
   private void performTest(String extension) {
-    myFixture.copyFileToProject("/R.java", "src/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     myFixture.copyFileToProject("/folding/values.xml", "res/values/values.xml");
 
     final String fileName = getTestName(true) + extension;

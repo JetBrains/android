@@ -60,7 +60,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Entity;
+        import androidx.room.Entity;
 
         @Entity(tableName = "addresses" + Address.SUFFIX)
         public class Address {
@@ -79,7 +79,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Entity;
+        import androidx.room.Entity;
 
         public class Address {}
         """.trimIndent())
@@ -108,7 +108,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Entity;
+        import androidx.room.Entity;
 
         @Entity
         public class Address {}
@@ -142,7 +142,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Database;
+        import androidx.room.Database;
 
         @Database(entities = {User.class, Address.class}, version = 1)
         public class AppDatabase {}
@@ -172,7 +172,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Database;
+        import androidx.room.Database;
 
         @Database(entities = {User.class, Address.class}, version = 1)
         public class UserDatabase {}
@@ -182,7 +182,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Database;
+        import androidx.room.Database;
 
         @Database(entities = {Order.class, Address.class}, version = 1)
         public class OrderDatabase {}
@@ -215,8 +215,8 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public class UserDao {
@@ -235,9 +235,9 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
 
   fun testRoomMissing() {
     ApplicationManager.getApplication().runWriteAction {
-      myFixture.findClass("android.arch.persistence.room.Dao").containingFile.virtualFile.delete(this)
-      myFixture.findClass("android.arch.persistence.room.Database").containingFile.virtualFile.delete(this)
-      myFixture.findClass("android.arch.persistence.room.Entity").containingFile.virtualFile.delete(this)
+      myFixture.findClass("androidx.room.Dao").containingFile.virtualFile.delete(this)
+      myFixture.findClass("androidx.room.Database").containingFile.virtualFile.delete(this)
+      myFixture.findClass("androidx.room.Entity").containingFile.virtualFile.delete(this)
     }
 
     val psiClass = myFixture.addClass("class SomeClass {}")
@@ -267,8 +267,8 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Entity;
-        import android.arch.persistence.room.Ignore;
+        import androidx.room.Entity;
+        import androidx.room.Ignore;
 
         @Entity
         public class User {
@@ -293,8 +293,8 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Entity;
-        import android.arch.persistence.room.Ignore;
+        import androidx.room.Entity;
+        import androidx.room.Ignore;
 
         @Entity
         public class User {
@@ -319,7 +319,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Entity;
+        import androidx.room.Entity;
 
         public abstract class NamedBase {
           private String name;
@@ -330,7 +330,7 @@ class RoomSchemaManagerTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Entity;
+        import androidx.room.Entity;
 
         @Entity
         public class User extends NamedBase {

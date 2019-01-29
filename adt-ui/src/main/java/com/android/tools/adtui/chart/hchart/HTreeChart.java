@@ -21,20 +21,30 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A chart which renders nodes using a horizontal flow. That is, while normal trees are vertical,
@@ -52,8 +62,10 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   private static final String ACTION_MOVE_LEFT = "move left";
   private static final String ACTION_MOVE_RIGHT = "move right";
   private static final int ACTION_MOVEMENT_FACTOR = 5;
-  private static final int BORDER_PLUS_PADDING = 2;
+  private static final int PADDING = 1;
   private static final int INITIAL_Y_POSITION = 0;
+  private static final int HEIGHT_PADDING = 15;
+  private static final int MOUSE_WHEEL_SCROLL_FACTOR = 8;
 
   private final Orientation myOrientation;
 
@@ -107,23 +119,22 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   private int myCachedMaxHeight;
 
   /**
-   * Create a Horizontal Tree Chart.
-   * @param globalXRange the bounding range of chart visible area, if not null.
-   * @param viewXRange the range of the chart's visible area.
+   * Creates a Horizontal Tree Chart.
    */
-  @VisibleForTesting
-  public HTreeChart(@Nullable Range globalXRange, @NotNull Range viewXRange, Orientation orientation, @NotNull HTreeChartReducer<N> reducer) {
+  private HTreeChart(@NotNull Builder<N> builder) {
+    myGlobalXRange = builder.myGlobalXRange;
+    myXRange = builder.myXRange;
+    myRoot = builder.myRoot;
+    myReducer = builder.myReducer;
+    myRenderer = builder.myRenderer;
+    myOrientation = builder.myOrientation;
+    myRootVisible = builder.myRootVisible;
+
+    myYRange = new Range(INITIAL_Y_POSITION, INITIAL_Y_POSITION);
     myRectangles = new ArrayList<>();
     myNodes = new ArrayList<>();
     myDrawnNodes = new ArrayList<>();
     myDrawnRectangles = new ArrayList<>();
-    myGlobalXRange = globalXRange != null ? globalXRange : new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
-    myXRange = viewXRange;
-    myRoot = null;
-    myReducer = reducer;
-    myYRange = new Range(INITIAL_Y_POSITION, INITIAL_Y_POSITION);
-    myOrientation = orientation;
-    myRootVisible = true;
 
     setFocusable(true);
     initializeInputMap();
@@ -134,19 +145,10 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     changed();
   }
 
-  public HTreeChart(@Nullable Range globalXRange, @NotNull Range viewXRange, Orientation orientation) {
-    this(globalXRange, viewXRange, orientation, new DefaultHTreeChartReducer<>());
-  }
-
-  public void setRootVisible(boolean rootVisible) {
-    myRootVisible = rootVisible;
-    changed();
-  }
-
   /**
    * Normally, the focused node is set by mouse hover. However, for tests, it can be a huge
    * convenience to set this directly.
-   *
+   * <p>
    * It is up to the caller to make sure that the node specified here actually belongs to this
    * chart. Otherwise, the call will have no effect.
    */
@@ -170,7 +172,6 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       myDataUpdated = false;
     }
     g.setFont(getFont());
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     if (myRoot == null || myRoot.getChildCount() == 0) {
       g.drawString(NO_HTREE, dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_HTREE),
@@ -194,16 +195,18 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   }
 
   private void redrawToCanvas(@NotNull Dimension dim) {
-    final Graphics2D g;
-    if (myCanvas != null && ImageUtil.getUserWidth(myCanvas) >= dim.width && ImageUtil.getUserHeight(myCanvas) >= dim.height) {
-      g = (Graphics2D)myCanvas.getGraphics();
-      g.setColor(getBackground());
-      g.fillRect(0, 0, dim.width, dim.height);
-    } else {
-      myCanvas = UIUtil.createImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
-      g = (Graphics2D)myCanvas.getGraphics();
+    if (myCanvas == null || (ImageUtil.getUserWidth(myCanvas) < dim.width || ImageUtil.getUserHeight(myCanvas) < dim.height)) {
+      // Note: We intentionally create an RGB image, not an ARGB image, because this allows nodes
+      // to render their text clearly (ARGB prevents LCD rendering from working).
+      myCanvas = UIUtil.createImage(dim.width, dim.height, BufferedImage.TYPE_INT_RGB);
     }
+    final Graphics2D g = (Graphics2D)myCanvas.getGraphics();
+    g.setColor(getBackground());
+    g.fillRect(0, 0, dim.width, dim.height);
+
+    UISettings.setupAntialiasing(g);
     g.setFont(getFont());
+
     myDrawnNodes.clear();
     myDrawnNodes.addAll(myNodes);
 
@@ -213,7 +216,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       Rectangle2D.Float newRect = new Rectangle2D.Float();
       newRect.x = rect.x * (float)dim.getWidth();
       newRect.y = rect.y;
-      newRect.width = Math.max(0, rect.width * (float)dim.getWidth() - BORDER_PLUS_PADDING);
+      newRect.width = Math.max(0, rect.width * (float)dim.getWidth() - PADDING);
       newRect.height = rect.height;
 
       if (myOrientation == HTreeChart.Orientation.BOTTOM_UP) {
@@ -229,7 +232,13 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     assert myRenderer != null;
     for (int i = 0; i < myDrawnNodes.size(); ++i) {
       N node = myDrawnNodes.get(i);
-      myRenderer.render(g, node, myDrawnRectangles.get(i), node == myFocusedNode);
+      Rectangle2D.Float drawingArea = myDrawnRectangles.get(i);
+      Rectangle2D.Float clampedDrawingArea = new Rectangle2D.Float(Math.max(0, drawingArea.x),
+                                                                   drawingArea.y,
+                                                                   Math.min(drawingArea.x + drawingArea.width, dim.width - PADDING) -
+                                                                   Math.max(0, drawingArea.x),
+                                                                   drawingArea.height);
+      myRenderer.render(g, node, drawingArea, clampedDrawingArea, node == myFocusedNode);
     }
 
     g.dispose();
@@ -272,11 +281,11 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
   @NotNull
   private Rectangle2D.Float createRectangle(@NotNull N node) {
-    float left = (float)Math.max(0, (node.getStart() - myXRange.getMin()) / myXRange.getLength());
-    float right = (float)Math.min(1, (node.getEnd() - myXRange.getMin()) / myXRange.getLength());
+    float left = (float)((node.getStart() - myXRange.getMin()) / myXRange.getLength());
+    float right = (float)((node.getEnd() - myXRange.getMin()) / myXRange.getLength());
     Rectangle2D.Float rect = new Rectangle2D.Float();
     rect.x = left;
-    rect.y = (float)((mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * node.getDepth()
+    rect.y = (float)((mDefaultFontMetrics.getHeight() + PADDING) * node.getDepth()
                      - getYRange().getMin());
     rect.width = right - left;
     rect.height = mDefaultFontMetrics.getHeight();
@@ -285,10 +294,6 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
   private double positionToRange(double x) {
     return x / getWidth() * myXRange.getLength() + myXRange.getMin();
-  }
-
-  public void setHRenderer(@NotNull HRenderer<N> r) {
-    this.myRenderer = r;
   }
 
   public void setHTree(@Nullable N root) {
@@ -320,9 +325,13 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
   private void initializeInputMap() {
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), ACTION_ZOOM_IN);
+    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0), ACTION_ZOOM_IN);
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), ACTION_ZOOM_OUT);
+    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), ACTION_ZOOM_OUT);
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), ACTION_MOVE_LEFT);
+    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0), ACTION_MOVE_LEFT);
     getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), ACTION_MOVE_RIGHT);
+    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), ACTION_MOVE_RIGHT);
 
     getActionMap().put(ACTION_ZOOM_IN, new AbstractAction() {
       @Override
@@ -388,22 +397,9 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       @Override
       public void mouseDragged(MouseEvent e) {
         // First, handle Y range.
-        // The height of the contents we can show, including those not currently shown because of vertical scrollbar's position.
-        int contentHeight = getMaximumHeight();
-        // The height of the GUI component to draw the contents.
-        int viewHeight = getHeight();
         double deltaY = e.getPoint().y - myLastPoint.y;
         deltaY = getOrientation() == Orientation.BOTTOM_UP ? deltaY : -deltaY;
-        if (myYRange.getMin() + deltaY < INITIAL_Y_POSITION) {
-          // User attempts to drag the chart's head (the outermost frame on call stacks) away from the boundary. No.
-          deltaY = INITIAL_Y_POSITION - myYRange.getMin();
-        }
-        else if (myYRange.getMin() + viewHeight + deltaY > contentHeight) {
-          // User attempts to drag the chart's toe (the innermost frame on call stacks) away from the boundary. No.
-          // Note that the chart may be taller than the stacks, so we need to limit the delta.
-          deltaY = Math.max(0, contentHeight - viewHeight - myYRange.getMin());
-        }
-        getYRange().shift(deltaY);
+        shiftYRange(deltaY);
 
         // Second, handle X Range.
         double deltaX = e.getPoint().x - myLastPoint.x;
@@ -421,13 +417,37 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
         myLastPoint = e.getPoint();
       }
 
+      private void shiftYRange(double deltaY) {
+        // The height of the contents we can show, including those not currently shown because of vertical scrollbar's position.
+        int contentHeight = getMaximumHeight();
+        // The height of the GUI component to draw the contents.
+        int viewHeight = getHeight();
+        if (myYRange.getMin() + deltaY < INITIAL_Y_POSITION) {
+          // User attempts to drag the chart's head (the outermost frame on call stacks) away from the boundary. No.
+          deltaY = INITIAL_Y_POSITION - myYRange.getMin();
+        }
+        else if (myYRange.getMin() + viewHeight + deltaY > contentHeight) {
+          // User attempts to drag the chart's toe (the innermost frame on call stacks) away from the boundary. No.
+          // Note that the chart may be taller than the stacks, so we need to limit the delta.
+          deltaY = Math.max(0, contentHeight - viewHeight - myYRange.getMin());
+        }
+        getYRange().shift(deltaY);
+      }
+
       @Override
       public void mouseWheelMoved(MouseWheelEvent e) {
-        double cursorRange = positionToRange(e.getX());
-        double leftDelta = (cursorRange - myXRange.getMin()) / ZOOM_FACTOR * e.getWheelRotation();
-        double rightDelta = (myXRange.getMax() - cursorRange) / ZOOM_FACTOR * e.getWheelRotation();
-        myXRange.set(Math.max(myGlobalXRange.getMin(), myXRange.getMin() - leftDelta),
-                     Math.min(myGlobalXRange.getMax(), myXRange.getMax() + rightDelta));
+        if (AdtUiUtils.isActionKeyDown(e)) {
+          double cursorRange = positionToRange(e.getX());
+          double leftDelta = (cursorRange - myXRange.getMin()) / ZOOM_FACTOR * e.getWheelRotation();
+          double rightDelta = (myXRange.getMax() - cursorRange) / ZOOM_FACTOR * e.getWheelRotation();
+          myXRange.set(Math.max(myGlobalXRange.getMin(), myXRange.getMin() - leftDelta),
+                       Math.min(myGlobalXRange.getMax(), myXRange.getMax() + rightDelta));
+        }
+        else {
+          double deltaY = e.getPreciseWheelRotation() * MOUSE_WHEEL_SCROLL_FACTOR;
+          deltaY = getOrientation() == Orientation.TOP_DOWN ? deltaY : -deltaY;
+          shiftYRange(deltaY);
+        }
       }
     };
     addMouseWheelListener(adapter);
@@ -435,6 +455,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     addMouseMotionListener(adapter);
   }
 
+  @NotNull
   public Range getYRange() {
     return myYRange;
   }
@@ -454,6 +475,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
 
     while (!queue.isEmpty()) {
       N n = queue.poll();
+      assert n != null;
       if (n.getDepth() > maxDepth) {
         maxDepth = n.getDepth();
       }
@@ -463,7 +485,66 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
       }
     }
     maxDepth += 1;
-    return (mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * maxDepth;
+    // The HEIGHT_PADDING is for the chart's toe (the innermost frame on call stacks).
+    // We have this because the padding near the chart's head (the outermost frame on call stacks)
+    // is there because the root node of the tree is invisible.
+    return (mDefaultFontMetrics.getHeight() + PADDING) * maxDepth + HEIGHT_PADDING;
+  }
+
+  public static class Builder<N extends HNode<N>> {
+    @Nullable private final N myRoot;
+    @NotNull private final Range myXRange;
+    @NotNull private final HRenderer<N> myRenderer;
+
+    @NotNull private Orientation myOrientation = Orientation.TOP_DOWN;
+    @NotNull private Range myGlobalXRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
+    private boolean myRootVisible = true;
+    @NotNull private HTreeChartReducer<N> myReducer = new DefaultHTreeChartReducer<>();
+
+    /**
+     * Creates a builder for {@link HTreeChart<N>}
+     *
+     * @param xRange   - the range of the chart's visible area
+     * @param renderer - a {@link HRenderer<N>} which is responsible for rendering a single node.
+     */
+    public Builder(@Nullable N root, @NotNull Range xRange, @NotNull HRenderer<N> renderer) {
+      myRoot = root;
+      myXRange = xRange;
+      myRenderer = renderer;
+    }
+
+    @NotNull
+    public Builder<N> setOrientation(@NotNull Orientation orientation) {
+      myOrientation = orientation;
+      return this;
+    }
+
+    @NotNull
+    public Builder<N> setRootVisible(boolean visible) {
+      myRootVisible = visible;
+      return this;
+    }
+
+    /**
+     * @param globalXRange the bounding range of chart's visible area,
+     *                     if it's not set, it assumes that there is no bounding range of chart.
+     */
+    @NotNull
+    public Builder<N> setGlobalXRange(@NotNull Range globalXRange) {
+      myGlobalXRange = globalXRange;
+      return this;
+    }
+
+    @VisibleForTesting
+    public Builder<N> setReducer(@NotNull HTreeChartReducer<N> reducer) {
+      myReducer = reducer;
+      return this;
+    }
+
+    @NotNull
+    public HTreeChart<N> build() {
+      return new HTreeChart<>(this);
+    }
   }
 
   public enum Orientation {TOP_DOWN, BOTTOM_UP}

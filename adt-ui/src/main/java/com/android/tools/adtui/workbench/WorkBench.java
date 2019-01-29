@@ -18,7 +18,6 @@ package com.android.tools.adtui.workbench;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.google.common.base.Splitter;
@@ -31,12 +30,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
-import com.intellij.ui.ColorUtil;
 import com.intellij.ui.components.JBLayeredPane;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.accessibility.ScreenReader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -78,7 +76,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final List<ToolWindowDefinition<T>> myToolDefinitions;
   private final SideModel<T> myModel;
   private final ThreeComponentsSplitter mySplitter;
-  private final MyLoadingPanel myLoadingPanel;
+  private final WorkBenchLoadingPanel myLoadingPanel;
   private final JPanel myMainPanel;
   private final MinimizedPanel<T> myLeftMinimizePanel;
   private final MinimizedPanel<T> myRightMinimizePanel;
@@ -107,13 +105,17 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   public void init(@NotNull JComponent content,
                    @NotNull T context,
                    @NotNull List<ToolWindowDefinition<T>> definitions) {
+    if (ScreenReader.isActive()) {
+      setFocusCycleRoot(true);
+      setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
+    }
     myLoadingPanel.stopLoading();
     myMainPanel.setVisible(true);
     content.addComponentListener(createWidthUpdater());
     mySplitter.setInnerComponent(content);
+    myToolDefinitions.addAll(definitions);
     mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));
     mySplitter.setLastSize(getInitialSideWidth(Side.RIGHT));
-    myToolDefinitions.addAll(definitions);
     myModel.setContext(context);
     addToolsToModel();
     myWorkBenchManager.register(this);
@@ -125,8 +127,22 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myLoadingPanel.setLoadingText(loadingText);
   }
 
+  public void showLoading(@NotNull String message) {
+    setLoadingText(message);
+    myLoadingPanel.startLoading();
+  }
+
+  public void hideLoading() {
+    myLoadingPanel.stopLoading();
+  }
+
   public void loadingStopped(@NotNull String message) {
     myLoadingPanel.abortLoading(message, AllIcons.General.Warning);
+  }
+
+  @TestOnly
+  public WorkBenchLoadingPanel getLoadingPanel() {
+    return myLoadingPanel;
   }
 
   /**
@@ -155,6 +171,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myWorkBenchManager.unregister(this);
     myDetachedToolWindowManager.unregister(myFileEditor);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myMyPropertyChangeListener);
+    setToolContext(null);
   }
 
   // ----------------------------------- Implementation --------------------------------------------------------------- //
@@ -183,7 +200,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myMainPanel.add(myLeftMinimizePanel, BorderLayout.WEST);
     myMainPanel.add(layeredPanel, BorderLayout.CENTER);
     myMainPanel.add(myRightMinimizePanel, BorderLayout.EAST);
-    myLoadingPanel = new MyLoadingPanel(new BorderLayout(), this, 1000);
+    myLoadingPanel = new WorkBenchLoadingPanel(new BorderLayout(), this, 1000);
     myLoadingPanel.add(myMainPanel);
     Disposer.register(this, mySplitter);
     Disposer.register(this, layeredPanel);
@@ -551,102 +568,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     @SuppressWarnings("SameParameterValue")
     private int translate(int pos, int offset, int min, int max) {
       return Math.min(Math.max(pos - offset, min), max);
-    }
-  }
-
-  /**
-   * Drop-in replacement for JBLoadingPanel with ability to display a message when loading
-   * of the widget failed.
-   */
-  private static class MyLoadingPanel extends JPanel {
-    private final JBLoadingPanel myLoadingPanel;
-    private final MyMessagePanel myMessagePanel;
-    private boolean myShowingMessagePanel;
-
-    MyLoadingPanel(@Nullable LayoutManager manager, @NotNull Disposable parent, @SuppressWarnings("SameParameterValue") int startDelayMs) {
-      super(new BorderLayout());
-      myMessagePanel = new MyMessagePanel();
-      myLoadingPanel = new JBLoadingPanel(manager, parent, startDelayMs);
-      super.add(myLoadingPanel);
-    }
-
-    public void startLoading() {
-      resumeLoading();
-      myLoadingPanel.startLoading();
-    }
-
-    public void stopLoading() {
-      resumeLoading();
-      myLoadingPanel.stopLoading();
-    }
-
-    public void setLoadingText(String text) {
-      myLoadingPanel.setLoadingText(text);
-    }
-
-    @Override
-    public Component add(Component comp) {
-      return myLoadingPanel.add(comp);
-    }
-
-    @Override
-    public Component add(Component comp, int index) {
-      return myLoadingPanel.add(comp, index);
-    }
-
-    @Override
-    public void add(Component comp, Object constraints) {
-      myLoadingPanel.add(comp, constraints);
-    }
-
-    @Override
-    public Dimension getPreferredSize() {
-      return myLoadingPanel.getPreferredSize();
-    }
-
-    /**
-     * Replaces loading animation with the given message.
-     */
-    void abortLoading(String message, @SuppressWarnings("SameParameterValue") Icon icon) {
-      myMessagePanel.setText(message);
-      myMessagePanel.setIcon(icon);
-      if (!myShowingMessagePanel) {
-        super.remove(myLoadingPanel);
-        super.add(myMessagePanel);
-        myShowingMessagePanel = true;
-      }
-    }
-
-    private void resumeLoading() {
-      if (myShowingMessagePanel) {
-        super.remove(myMessagePanel);
-        super.add(myLoadingPanel);
-        myShowingMessagePanel = false;
-      }
-    }
-  }
-
-  private static class MyMessagePanel extends JPanel {
-    private final JLabel myText = new JLabel("", SwingConstants.CENTER);
-
-    MyMessagePanel() {
-      super(new BorderLayout());
-      setOpaque(false);
-
-      // Similar to JBLoadingPanel.customizeStatusText but with a smaller font.
-      Font font = myText.getFont();
-      myText.setFont(font.deriveFont(font.getStyle(), font.getSize() + 4));
-      myText.setForeground(ColorUtil.toAlpha(UIUtil.getLabelForeground(), 150));
-
-      add(myText);
-    }
-
-    public void setText(String text) {
-      myText.setText(text);
-    }
-
-    public void setIcon(Icon icon) {
-      myText.setIcon(icon);
     }
   }
 

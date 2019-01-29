@@ -15,27 +15,40 @@
  */
 package com.android.tools.adtui.common;
 
+import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.META_DOWN_MASK;
+
+import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
+import com.android.tools.adtui.TabularLayout;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import java.awt.event.InputEvent;
 import java.util.function.Predicate;
-
-import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.border.Border;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * ADT-UI utility class to hold constants and function used across the ADT-UI framework.
  */
 public final class AdtUiUtils {
-
   /**
    * Default font to be used in the profiler UI.
    */
-  public static final JBFont DEFAULT_FONT = JBFont.create(new Font(null, Font.PLAIN, 10));
+  public static final JBFont DEFAULT_FONT = JBUI.Fonts.label(10f);
 
   /**
    * Default font color of charts, and component labels.
@@ -57,20 +70,21 @@ public final class AdtUiUtils {
   }
 
   /**
-   * Collapses a line of text to fit the availableSpace by truncating the string and pad the end with ellipsis.
-   *
-   * @param text              the original text.
-   * @param metrics           the {@link FontMetrics} used to measure the text's width.
-   * @param availableSpace    the available space to render the text.
-   * @return the fitted text. If the available space is too small to fit an ellipsys, an empty string is returned.
+   * Similar to {@link #shrinkToFit(String, Predicate<String>)},
+   * but instead of a predicate to fit space it uses the font metrics compared to available space.
    */
   public static String shrinkToFit(String text, FontMetrics metrics, float availableSpace) {
     return shrinkToFit(text, s -> metrics.stringWidth(s) <= availableSpace);
   }
 
   /**
-   * Similar to {@link #shrinkToFit(String, FontMetrics, float)},
-   * but takes a predicate method to determine whether the text should fit or not.
+   * Collapses a line of text to fit the availableSpace by truncating the string and pad the end with ellipsis.
+   *
+   * @param text              the original text.
+   * @param metrics           the {@link FontMetrics} used to measure the text's width.
+   * @param availableSpace    the available space to render the text.
+   * @param options           options to format the fitted string.
+   * @return the fitted text.
    */
   public static String shrinkToFit(String text, Predicate<String> textFitPredicate) {
     if (textFitPredicate.test(text)) {
@@ -96,7 +110,8 @@ public final class AdtUiUtils {
       }
     } while (smallestLength <= largestLength);
 
-    return text.substring(0, bestLength) + ELLIPSIS;
+    // Note: Don't return "..." if that's all we could show
+    return (bestLength > 0) ? text.substring(0, bestLength) + ELLIPSIS : "";
   }
 
   /**
@@ -121,5 +136,45 @@ public final class AdtUiUtils {
       Math.round(background.getRed() * (1 - foregroundOpacity) + forground.getRed() * foregroundOpacity),
       Math.round(background.getGreen() * (1 - foregroundOpacity) + forground.getGreen() * foregroundOpacity),
       Math.round(background.getBlue() * (1 - foregroundOpacity) + forground.getBlue() * foregroundOpacity));
+  }
+
+  /**
+   * Returns if the action key is held by the user for the given event. The action key is defined as the
+   * meta key on mac, and control on other platforms.
+   */
+  public static boolean isActionKeyDown(@NotNull InputEvent event) {
+    return SystemInfo.isMac ? event.isMetaDown() : event.isControlDown();
+  }
+
+  /**
+   * returns the action mask for the current platform. On mac it's {@link META_DOWN_MASK} everything else is {@link CTRL_DOWN_MASK}.
+   */
+  public static int getActionMask() {
+    return SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
+  }
+
+  /**
+   * Returns a separator that is vertically centered. It has a consistent size among Mac and Linux platforms, as {@link JSeparator} on
+   * different platforms has different UI and different sizes.
+   */
+  public static JComponent createHorizontalSeparator() {
+    JPanel separatorWrapper = new JPanel(new TabularLayout("*", "*,Fit,*"));
+    separatorWrapper.add(new JSeparator(), new TabularLayout.Constraint(1, 0));
+    Dimension size = new Dimension(1, 12);
+    separatorWrapper.setMinimumSize(size);
+    separatorWrapper.setPreferredSize(size);
+    separatorWrapper.setOpaque(false);
+    return separatorWrapper;
+  }
+
+  /**
+   * Creates a scroll pane that the vertical scrolling is delegated to upper level scroll pane and its own vertical scroll bar is hidden.
+   * This is needed when the outer pane has vertical scrolling and the inner pane has horizontal scrolling.
+   */
+  @NotNull
+  public static JBScrollPane createNestedVScrollPane(@NotNull JComponent component) {
+    JBScrollPane scrollPane = new JBScrollPane(component);
+    NestedScrollPaneMouseWheelListener.installOn(scrollPane);
+    return scrollPane;
   }
 }

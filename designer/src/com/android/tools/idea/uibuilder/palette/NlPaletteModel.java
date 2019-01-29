@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.handlers.ActionMenuViewHandler;
 import com.android.tools.idea.uibuilder.handlers.CustomViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.CustomViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceCategoryHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.PreferenceHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
@@ -201,7 +202,7 @@ public class NlPaletteModel implements Disposable {
       }
 
       addAdditionalComponent(type, PROJECT_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
-                             StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW_LARGE, tagName, className, null, null, "",
+                             tagName, className, null, null, "",
                              null, Collections.emptyList(), Collections.emptyList());
 
       return true;
@@ -216,7 +217,6 @@ public class NlPaletteModel implements Disposable {
                                  @NotNull String groupName,
                                  @NotNull Palette palette,
                                  @Nullable Icon icon16,
-                                 @Nullable Icon icon24,
                                  @NotNull String tagName,
                                  @NotNull String className,
                                  @Nullable @Language("XML") String xml,
@@ -227,7 +227,7 @@ public class NlPaletteModel implements Disposable {
                                  @NotNull List<String> layoutProperties) {
     if (tagName.indexOf('.') < 0 ||
         !NlComponentHelper.INSTANCE.viewClassToTag(tagName).equals(tagName) ||
-        tagName.equals(CONSTRAINT_LAYOUT)) {
+        CONSTRAINT_LAYOUT.isEquals(tagName)) {
       // Do NOT allow third parties to overwrite predefined Google handlers
       return false;
     }
@@ -255,12 +255,16 @@ public class NlPaletteModel implements Disposable {
         return false;
       }
 
+      if (handler instanceof ConstraintHelperHandler) {
+        return false; // temporary hack
+      }
+
       if (handler instanceof ViewGroupHandler) {
-        handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, icon24, tagName, className, xml, previewXml,
+        handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, tagName, className, xml, previewXml,
                                              libraryCoordinate, preferredProperty, properties, layoutProperties);
       }
       else {
-        handler = new CustomViewHandler(handler, icon16, icon24, tagName, className, xml, previewXml,
+        handler = new CustomViewHandler(handler, icon16, tagName, className, xml, previewXml,
                                         libraryCoordinate, preferredProperty, properties);
       }
     }

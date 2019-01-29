@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
@@ -30,16 +30,19 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import java.io.IOException;
 import org.gradle.tooling.model.GradleProject;
-import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.mockito.Mock;
 
 import java.io.File;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -49,7 +52,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class GradleModuleSetupTest extends IdeaTestCase {
   @Mock private GradleModuleModels myModuleModels;
-  @Mock private BuildScriptClasspathModel myClasspathModel;
   @Mock private GradleSyncState mySyncState;
 
   private Module myModule;
@@ -65,7 +67,7 @@ public class GradleModuleSetupTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
-    IdeComponents.replaceService(project, GradleSyncState.class, mySyncState);
+    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
 
     String moduleName = "app";
     myModule = createModule(moduleName);
@@ -73,7 +75,7 @@ public class GradleModuleSetupTest extends IdeaTestCase {
     myBuildFile = new File(findModuleRootFolderPath(myModule), SdkConstants.FN_BUILD_GRADLE);
     createIfNotExists(myBuildFile);
 
-    myGradleProject = new GradleProjectStub("app", ":app", myBuildFile, "assemble");
+    myGradleProject = new GradleProjectStub("app", ":app", getBaseDirPath(project), myBuildFile, "assemble");
 
     mySyncSummary = new GradleSyncSummary(project);
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
@@ -82,12 +84,12 @@ public class GradleModuleSetupTest extends IdeaTestCase {
     myModuleSetup = new GradleModuleSetup();
   }
 
-  public void testSetUpModule() {
+  public void testSetUpModule() throws IOException {
     when(myModuleModels.findModel(GradleProject.class)).thenReturn(myGradleProject);
-    when(myModuleModels.findModel(BuildScriptClasspathModel.class)).thenReturn(myClasspathModel);
-
+    File propertiesFilePath = getDefaultPropertiesFilePath(new File(myProject.getBasePath()));
     String gradleVersion = "2.14.1";
-    when(myClasspathModel.getGradleVersion()).thenReturn(gradleVersion);
+    writeToFile(propertiesFilePath,
+                String.format("distributionUrl=https\\://services.gradle.org/distributions/gradle-%s-all.zip", gradleVersion));
 
     myModuleSetup.setUpModule(myModule, myModelsProvider, myModuleModels);
 

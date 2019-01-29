@@ -152,7 +152,7 @@ public class LayoutInspectorProvider implements InspectorProvider<NlPropertiesMa
         String propertyName = property.getName();
         JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), editor.getComponent());
         if (TOOLS_URI.equals(property.getNamespace())) {
-          label.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
+          label.setIcon(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE);
         }
         editor.setLabel(label);
       }

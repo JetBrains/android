@@ -18,7 +18,8 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import org.mockito.Mock;
@@ -33,12 +34,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleSyncState}.
  */
-public class GradleSyncStateTest extends PlatformTestCase {
+public class GradleSyncStateTest extends IdeaTestCase {
   @Mock private GradleSyncListener myGradleSyncListener;
   @Mock private GradleSyncState.StateChangeNotification myChangeNotification;
   @Mock private GradleSyncSummary mySummary;
   @Mock private GradleFiles myGradleFiles;
   @Mock private ProjectStructure myProjectStructure;
+  @Mock private ExternalSystemTaskId myTaskId;
 
   private GradleSyncState mySyncState;
 
@@ -49,7 +51,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
 
     MessageBus messageBus = mock(MessageBus.class);
 
-    mySyncState = new GradleSyncState(getProject(), AndroidProjectInfo.getInstance(getProject()), GradleProjectInfo.getInstance(getProject()),
+    mySyncState = new GradleSyncState(myProject, AndroidProjectInfo.getInstance(myProject), GradleProjectInfo.getInstance(myProject),
                                       myGradleFiles, messageBus, myProjectStructure, myChangeNotification, mySummary);
 
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
@@ -57,7 +59,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
 
   public void testSyncStartedWithSyncSkipped() {
     mySyncState.skippedSyncStarted(false /* no user notification */, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
-    verify(myGradleSyncListener, times(1)).syncStarted(getProject(), true, true);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, true, true);
   }
 
   public void testSyncStartedWithoutUserNotification() {
@@ -74,7 +76,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
 
     verify(myChangeNotification, never()).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(myGradleSyncListener, times(1)).syncStarted(getProject(), false, true);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false, true);
   }
 
   public void testSyncStartedWithUserNotification() {
@@ -88,7 +90,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
 
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).reset(); // 'reset' should have been called only once.
-    verify(myGradleSyncListener, times(1)).syncStarted(getProject(), false, true);
+    verify(myGradleSyncListener, times(1)).syncStarted(myProject, false, true);
   }
 
   public void testSyncSkipped() {
@@ -98,7 +100,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
 
     verify(myChangeNotification, never()).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(timestamp);
-    verify(myGradleSyncListener, times(1)).syncSkipped(getProject());
+    verify(myGradleSyncListener, times(1)).syncSkipped(myProject);
   }
 
   public void testSyncSkippedAfterSyncStarted() {
@@ -118,7 +120,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
     verify(mySummary, times(1)).setSyncErrorsFound(true);
-    verify(myGradleSyncListener, times(1)).syncFailed(getProject(), msg);
+    verify(myGradleSyncListener, times(1)).syncFailed(myProject, msg);
     verify(myProjectStructure, times(1)).clearData();
   }
 
@@ -127,7 +129,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
     mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_PROJECT_MODIFIED);
     mySyncState.syncFailed(msg);
     verify(mySummary, never()).setSyncErrorsFound(true);
-    verify(myGradleSyncListener, never()).syncFailed(getProject(), msg);
+    verify(myGradleSyncListener, never()).syncFailed(myProject, msg);
   }
 
   public void testSyncEnded() {
@@ -135,19 +137,19 @@ public class GradleSyncStateTest extends PlatformTestCase {
     mySyncState.syncEnded();
     verify(myChangeNotification, times(1)).notifyStateChanged();
     verify(mySummary, times(1)).setSyncTimestamp(anyLong());
-    verify(myGradleSyncListener, times(1)).syncSucceeded(getProject());
+    verify(myGradleSyncListener, times(1)).syncSucceeded(myProject);
   }
 
   public void testSyncEndedWithoutSyncStarted() {
     mySyncState.setSyncStartedTimeStamp(-1, TRIGGER_PROJECT_MODIFIED);
     mySyncState.syncEnded();
-    verify(myGradleSyncListener, never()).syncSucceeded(getProject());
+    verify(myGradleSyncListener, never()).syncSucceeded(myProject);
   }
 
   public void testSetupStarted() {
     mySyncState.setupStarted();
 
-    verify(myGradleSyncListener, times(1)).setupStarted(getProject());
+    verify(myGradleSyncListener, times(1)).setupStarted(myProject);
   }
 
   public void testGetSyncTimesSuccess() {
@@ -167,15 +169,15 @@ public class GradleSyncStateTest extends PlatformTestCase {
 
     // Gradle part finished
     mySyncState.setSyncSetupStartedTimeStamp(base + gradleTimeMs);
-    assertEquals("Total time should be " + gradleTimeMs, gradleTimeMs, mySyncState.getSyncTotalTimeMs());
-    assertEquals("Gradle time should be " + gradleTimeMs, gradleTimeMs, mySyncState.getSyncGradleTimeMs());
+    assertEquals("Total time should be " + String.valueOf(gradleTimeMs), gradleTimeMs, mySyncState.getSyncTotalTimeMs());
+    assertEquals("Gradle time should be " + String.valueOf(gradleTimeMs), gradleTimeMs, mySyncState.getSyncGradleTimeMs());
     assertEquals("IDE time should be -1 (not finished)", -1L, mySyncState.getSyncIdeTimeMs());
 
     // Ide part finished
     mySyncState.setSyncEndedTimeStamp(base + totalTimeMs);
-    assertEquals("Total time should be " + totalTimeMs, totalTimeMs, mySyncState.getSyncTotalTimeMs());
-    assertEquals("Gradle time should be " + gradleTimeMs, gradleTimeMs, mySyncState.getSyncGradleTimeMs());
-    assertEquals("IDE time should be " + ideTimeMs, ideTimeMs, mySyncState.getSyncIdeTimeMs());
+    assertEquals("Total time should be " + String.valueOf(totalTimeMs), totalTimeMs, mySyncState.getSyncTotalTimeMs());
+    assertEquals("Gradle time should be " + String.valueOf(gradleTimeMs), gradleTimeMs, mySyncState.getSyncGradleTimeMs());
+    assertEquals("IDE time should be " + String.valueOf(ideTimeMs), ideTimeMs, mySyncState.getSyncIdeTimeMs());
   }
 
   public void testGetSyncTimesFailedGradle() {
@@ -192,7 +194,7 @@ public class GradleSyncStateTest extends PlatformTestCase {
 
     // Gradle part failed
     mySyncState.setSyncFailedTimeStamp(base + failTimeMs);
-    assertEquals("Total time should be " + failTimeMs, failTimeMs, mySyncState.getSyncTotalTimeMs());
+    assertEquals("Total time should be " + String.valueOf(failTimeMs), failTimeMs, mySyncState.getSyncTotalTimeMs());
     assertEquals("Gradle time should be -1 (failed)", -1L, mySyncState.getSyncGradleTimeMs());
     assertEquals("IDE time should be -1 (not started)", -1L, mySyncState.getSyncIdeTimeMs());
   }
@@ -214,14 +216,14 @@ public class GradleSyncStateTest extends PlatformTestCase {
 
     // Gradle part finished
     mySyncState.setSyncSetupStartedTimeStamp(base + gradleTimeMs);
-    assertEquals("Total time should be " + gradleTimeMs, gradleTimeMs, mySyncState.getSyncTotalTimeMs());
-    assertEquals("Gradle time should be " + gradleTimeMs, gradleTimeMs, mySyncState.getSyncGradleTimeMs());
+    assertEquals("Total time should be " + String.valueOf(gradleTimeMs), gradleTimeMs, mySyncState.getSyncTotalTimeMs());
+    assertEquals("Gradle time should be " + String.valueOf(gradleTimeMs), gradleTimeMs, mySyncState.getSyncGradleTimeMs());
     assertEquals("IDE time should be -1 (not finished)", -1L, mySyncState.getSyncIdeTimeMs());
 
     // Ide part failed
     mySyncState.setSyncFailedTimeStamp(base + totalTimeMs);
-    assertEquals("Total time should be " + totalTimeMs, totalTimeMs, mySyncState.getSyncTotalTimeMs());
-    assertEquals("Gradle time should be " + gradleTimeMs, gradleTimeMs, mySyncState.getSyncGradleTimeMs());
+    assertEquals("Total time should be " + String.valueOf(totalTimeMs), totalTimeMs, mySyncState.getSyncTotalTimeMs());
+    assertEquals("Gradle time should be " + String.valueOf(gradleTimeMs), gradleTimeMs, mySyncState.getSyncGradleTimeMs());
     assertEquals("IDE time should be -1 (failed)", -1L, mySyncState.getSyncIdeTimeMs());
   }
 
@@ -239,18 +241,18 @@ public class GradleSyncStateTest extends PlatformTestCase {
 
     // Sync was skipped
     mySyncState.setSyncEndedTimeStamp(base + skippedTimeMs);
-    assertEquals("Total time should be " + skippedTimeMs, skippedTimeMs, mySyncState.getSyncTotalTimeMs());
+    assertEquals("Total time should be " + String.valueOf(skippedTimeMs), skippedTimeMs, mySyncState.getSyncTotalTimeMs());
     assertEquals("Gradle time should be -1 (not started)", -1L, mySyncState.getSyncGradleTimeMs());
     assertEquals("IDE time should be -1 (not started)", -1L, mySyncState.getSyncIdeTimeMs());
   }
 
   public void testGetFormattedSyncDuration() {
     mySyncState.setSyncStartedTimeStamp(0, TRIGGER_PROJECT_MODIFIED);
-    assertEquals("10s", mySyncState.getFormattedSyncDuration(10000));
-    assertEquals("2m", mySyncState.getFormattedSyncDuration(120000));
-    assertEquals("2m 10s", mySyncState.getFormattedSyncDuration(130000));
-    assertEquals("2m 10s 100ms", mySyncState.getFormattedSyncDuration(130100));
-    assertEquals("1h 2m 10s 100ms", mySyncState.getFormattedSyncDuration(3730100));
+    assertEquals("10 s", mySyncState.getFormattedSyncDuration(10000));
+    assertEquals("2 m", mySyncState.getFormattedSyncDuration(120000));
+    assertEquals("2 m 10 s", mySyncState.getFormattedSyncDuration(130000));
+    assertEquals("2 m 10 s 100 ms", mySyncState.getFormattedSyncDuration(130100));
+    assertEquals("1 h 2 m 10 s 100 ms", mySyncState.getFormattedSyncDuration(3730100));
   }
 
   public void testIsSyncNeeded_IfNeverSynced() {
@@ -263,4 +265,34 @@ public class GradleSyncStateTest extends PlatformTestCase {
     assertThat(mySyncState.isSyncNeeded()).isSameAs(ThreeState.NO);
   }
 
+  /**
+   * Check that myExternalSystemTaskId is set to null (if it was ever set) when sync finishes
+   */
+  public void testExternalSystemTaskIdEnded() {
+    mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
+    mySyncState.setExternalSystemTaskId(myTaskId);
+    assertEquals(myTaskId, mySyncState.getExternalSystemTaskId());
+    mySyncState.syncEnded();
+    assertNull(mySyncState.getExternalSystemTaskId());
+  }
+
+  /**
+   * Check that myExternalSystemTaskId is set to null (if it was ever set) when sync finishes
+   */
+  public void testExternalSystemTaskIdSkipped() {
+    long timestamp = -1231231231299L; // Some random number
+
+    // TODO Add trigger for testing?
+    mySyncState.syncStarted(false, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED));
+    mySyncState.setExternalSystemTaskId(myTaskId);
+    assertEquals(myTaskId, mySyncState.getExternalSystemTaskId());
+    mySyncState.syncSkipped(timestamp);
+    assertNull(mySyncState.getExternalSystemTaskId());
+  }
+
+  public void testSourceGenerationFinished() {
+    mySyncState.sourceGenerationFinished();
+
+    verify(myGradleSyncListener, times(1)).sourceGenerationFinished(myProject);
+  }
 }

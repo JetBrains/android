@@ -1,0 +1,8 @@
+<resources>
+    <string name="title_activity_main">Photos</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="app_name">Photos</string>
+    <string name="error_sending_request">Something went wrong while talking to the server. :(</string>
+
+</resources>

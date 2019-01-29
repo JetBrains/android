@@ -1,0 +1,23 @@
+<<error descr="This action resource should be registered in the manifest under the `<application>` tag as `<meta-data android:name=\"com.google.android.actions\" android:resource=\"@xml/actions\" />`">actions</error>>
+    <action intentName="com.taxiapp.my.GET_ESTIMATE">
+        <fulfillment urlTemplate="<error descr="The parameter missingParameter is not defined as a `<parameter-mapping>` element below">https://m.taxiapp.com/ul/?action=getRide{&amp;destLat,destLong,missingParameter,url}</error>">
+            <parameter-mapping
+                intentParameter="destination.latitude"
+                urlParameter="destLat" />
+            <parameter-mapping
+                intentParameter="destination.longitude"
+                urlParameter="destLong" />
+            <<error descr="The parameter `extraParameter` is not present in the `urlTemplate`">parameter-mapping</error>
+                intentParameter="destination.extra"
+                urlParameter="extraParameter" />
+        </fulfillment>
+        <parameter name="destination" type="shared.types.Location" />
+        <parameter name="serviceClass" type="com.taxiapp.types.ServiceClass" />
+        <parameter name="song" type="org.schema.MusicRecording">
+            <entity-set-reference
+                type="org.schema.MusicRecording"
+                actionType="schema.org/PlayAction"
+                urlFilter="https://provider.com/track/.*" />
+        </parameter>
+    </action>
+</actions>

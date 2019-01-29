@@ -32,7 +32,7 @@ public class ScoutTest5 extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT)
+                 component(CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/content_main")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
@@ -43,7 +43,7 @@ public class ScoutTest5 extends SceneTest {
                        .withBounds(100, 750, 200, 40)
                        .width("100dp")
                        .height("40dp"),
-                     component(CONSTRAINT_LAYOUT_GUIDELINE)
+                     component(CONSTRAINT_LAYOUT_GUIDELINE.defaultName())
                        .id("@+id/guide1")
                        .withBounds(100, 0, 1, 1000)
                        .withAttribute("android:orientation","vertical")

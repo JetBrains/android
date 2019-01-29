@@ -18,17 +18,15 @@ package com.android.tools.idea.javadoc;
 
 import com.android.SdkConstants;
 import com.android.builder.model.*;
-import com.android.ide.common.rendering.api.ArrayResourceValue;
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.res2.AbstractResourceRepository;
-import com.android.ide.common.res2.ResourceFile;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.*;
+import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceItemResolver;
+import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ResourceQualifier;
+import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -73,12 +71,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
-import static com.android.SdkConstants.DOT_PNG;
-import static com.android.SdkConstants.DOT_WEBP;
-import static com.android.SdkConstants.PREFIX_ANDROID;
+import static com.android.SdkConstants.*;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 import static com.android.utils.SdkUtils.hasImageExtension;
 import static com.intellij.codeInsight.documentation.DocumentationComponent.COLOR_KEY;
@@ -93,7 +88,8 @@ public class AndroidJavaDocRenderer {
 
   /** Renders the Javadoc for a resource of given type and name. If configuration is not null, it will be used to resolve the resource.  */
   @Nullable
-  public static String render(@NotNull Module module, @Nullable Configuration configuration, @NotNull ResourceType type, @NotNull String name, boolean framework) {
+  public static String render(@NotNull Module module, @Nullable Configuration configuration, @NotNull ResourceType type,
+                              @NotNull String name, boolean framework) {
     return render(module, configuration, ResourceUrl.create(type, name, framework));
   }
 
@@ -107,14 +103,14 @@ public class AndroidJavaDocRenderer {
   @Nullable
   public static String render(@NotNull Module module, @Nullable Configuration configuration, @NotNull ResourceUrl url) {
     ResourceValueRenderer renderer = ResourceValueRenderer.create(url.type, module, configuration);
-    boolean framework = url.framework;
+    boolean framework = url.isFramework();
     if (renderer == null || framework && renderer.getFrameworkResources() == null || !framework && renderer.getAppResources() == null) {
       return null;
     }
 
     String valueDoc = renderer.render(url);
-    if (url.theme) {
-      String attrDoc = renderAttributeDoc(module, configuration, (url.framework ? SdkConstants.ANDROID_NS_NAME_PREFIX : "") + url.name);
+    if (url.isTheme()) {
+      String attrDoc = renderAttributeDoc(module, configuration, (url.isFramework() ? ANDROID_NS_NAME_PREFIX : "") + url.name);
       if (valueDoc == null) {
         return attrDoc;
       }
@@ -126,7 +122,7 @@ public class AndroidJavaDocRenderer {
   @NotNull
   private static String renderAttributeDoc(@NotNull Module module, @Nullable Configuration configuration, @NotNull String name) {
     AttributeDefinition def = ResolutionUtils.getAttributeDefinition(module, configuration, name);
-    String doc = (def == null) ? null : def.getDocValue(null);
+    String doc = (def == null) ? null : def.getDescription(null);
     HtmlBuilder builder = new HtmlBuilder();
     builder.openHtmlBody();
     builder.beginBold();
@@ -210,7 +206,7 @@ public class AndroidJavaDocRenderer {
   private static abstract class ResourceValueRenderer implements ResourceItemResolver.ResourceProvider {
     protected final Module myModule;
     protected final Configuration myConfiguration;
-    protected AppResourceRepository myAppResources;
+    protected LocalResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
     protected boolean mySmall;
     protected ResourceRepository myFrameworkResources;
@@ -255,10 +251,11 @@ public class AndroidJavaDocRenderer {
     }
 
     /**
-     * Returns a {@link FrameworkResources} instance that allows accessing the framework public resources of the highest available SDK.
+     * Returns a {@link ResourceRepository} instance that allows accessing the framework public resources of the highest available
+     * SDK.
      */
     @Nullable
-    private static FrameworkResources getLatestPublicFrameworkResources(Module module) {
+    private static ResourceRepository getLatestPublicFrameworkResources(Module module) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet == null) {
         return null;
@@ -271,12 +268,7 @@ public class AndroidJavaDocRenderer {
 
       AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
       if (targetData != null) {
-        try {
-          return targetData.getFrameworkResources(true);
-        }
-        catch (IOException e) {
-          // Ignore docs
-        }
+        return targetData.getFrameworkResources(true);
       }
 
       return null;
@@ -298,7 +290,7 @@ public class AndroidJavaDocRenderer {
     private List<ItemInfo> gatherItems(@NotNull ResourceUrl url) {
       ResourceType type = url.type;
       String resourceName = url.name;
-      boolean framework = url.framework;
+      boolean framework = url.isFramework();
 
       if (framework) {
         List<ItemInfo> results = new ArrayList<>();
@@ -313,7 +305,7 @@ public class AndroidJavaDocRenderer {
 
       List<ItemInfo> results = new ArrayList<>();
 
-      AppResourceRepository resources = getAppResources();
+      LocalResourceRepository resources = getAppResources();
 
       List<AndroidFacet> dependencies =  AndroidUtils.getAllAndroidDependencies(myModule, true);
       boolean hasGradleModel = false;
@@ -381,13 +373,13 @@ public class AndroidJavaDocRenderer {
       if (resources != null) {
         if (hasGradleModel) {
           // Go through all the binary libraries and look for additional resources there
-          for (LocalResourceRepository dependency : resources.getLibraries()) {
-            addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, type, resourceName, results);
+          for (LocalResourceRepository dependency : ResourceRepositoryManager.getOrCreateInstance(facet).getLibraryResources()) {
+            addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
           }
         }
         else {
           // If we do not have any gradle model, get the resources from the app repository
-          addItemsFromRepository(null, MASK_NORMAL, 0, resources, type, resourceName, results);
+          addItemsFromRepository(null, MASK_NORMAL, 0, resources, false, type, resourceName, results);
         }
       }
 
@@ -407,8 +399,8 @@ public class AndroidJavaDocRenderer {
       for (File dir : resDirectories) {
         VirtualFile virtualFile = fileSystem.findFileByIoFile(dir);
         if (virtualFile != null) {
-          ResourceFolderRepository resources = ResourceFolderRegistry.get(facet, virtualFile);
-          addItemsFromRepository(flavor, mask, rank, resources, type, name, results);
+          ResourceFolderRepository resources = ResourceFolderRegistry.getInstance(facet.getModule().getProject()).get(facet, virtualFile);
+          addItemsFromRepository(flavor, mask, rank, resources, false, type, name, results);
         }
       }
     }
@@ -424,40 +416,32 @@ public class AndroidJavaDocRenderer {
         return;
       }
 
-      if (frameworkResources.hasResourceItem(type, name)) {
-        com.android.ide.common.resources.ResourceItem item = frameworkResources.getResourceItem(type, name);
-        for (com.android.ide.common.resources.ResourceFile resourceFile : item.getSourceFileList()) {
-          FolderConfiguration configuration = resourceFile.getConfiguration();
-          ResourceValue value = resourceFile.getValue(type, name);
-
-          String folderName = resourceFile.getFolder().getFolder().getName();
-          String folder = renderFolderName(folderName);
-          ItemInfo info = new ItemInfo(value, configuration, folder, flavor, rank, mask);
-          results.add(info);
-        }
-      }
+      addItemsFromRepository(flavor, mask, rank, frameworkResources, true, type, name, results);
     }
 
     private static void addItemsFromRepository(@Nullable String flavor,
                                                int mask,
                                                int rank,
-                                               @NotNull AbstractResourceRepository resources,
+                                               @NotNull ResourceRepository resources,
+                                               boolean isFramework,
                                                @NotNull ResourceType type,
                                                @NotNull String name,
                                                @NotNull List<ItemInfo> results) {
-      List<ResourceItem> items = resources.getResourceItem(type, name);
-      if (items != null) {
-        for (ResourceItem item : items) {
-          String folderName = "?";
-          ResourceFile source = item.getSource();
-          if (source != null) {
-            folderName = source.getFile().getParentFile().getName();
-          }
-          String folder = renderFolderName(folderName);
-          ResourceValue value = item.getResourceValue(resources.isFramework());
-          ItemInfo info = new ItemInfo(value, item.getConfiguration(), folder, flavor, rank, mask);
-          results.add(info);
+      ResourceNamespace namespace = isFramework ? ResourceNamespace.ANDROID : ResourceNamespace.TODO();
+      List<ResourceItem> items = resources.getResources(namespace, type, name);
+      for (ResourceItem item : items) {
+        String folderName = null;
+        PathString source = item.getSource();
+        if (source != null) {
+          folderName = source.getParentFileName();
         }
+        if (folderName == null) {
+          folderName = "?";
+        }
+        String folder = renderFolderName(folderName);
+        ResourceValue value = item.getResourceValue();
+        ItemInfo info = new ItemInfo(value, item.getConfiguration(), folder, flavor, rank, mask);
+        results.add(info);
       }
     }
 
@@ -583,9 +567,9 @@ public class AndroidJavaDocRenderer {
 
     @Override
     @Nullable
-    public AppResourceRepository getAppResources() {
+    public LocalResourceRepository getAppResources() {
       if (myAppResources == null) {
-        myAppResources = AppResourceRepository.getOrCreateInstance(myModule);
+        myAppResources = ResourceRepositoryManager.getAppResources(myModule);
       }
 
       return myAppResources;
@@ -673,7 +657,7 @@ public class AndroidJavaDocRenderer {
         if (value != null) {
           ResourceUrl parsed = ResourceUrl.parse(value);
           if (parsed != null) {
-            ResourceValue v = new ResourceValue(url, null);
+            ResourceValue v = new ResourceValueImpl(urlToReference(url), null);
             v.setValue(url.toString());
             ResourceValue resourceValue = resolver.resolveResValue(v);
             if (resourceValue != null && resourceValue.getValue() != null) {
@@ -682,7 +666,7 @@ public class AndroidJavaDocRenderer {
           }
           return value;
         } else {
-          ResourceValue v = new ResourceValue(url, null);
+          ResourceValue v = new ResourceValueImpl(urlToReference(url), null);
           v.setValue(url.toString());
           ResourceValue resourceValue = resolver.resolveResValue(v);
           if (resourceValue != null && resourceValue.getValue() != null) {
@@ -709,7 +693,7 @@ public class AndroidJavaDocRenderer {
 
       if (value != null) {
         boolean found = false;
-        if (url.theme) {
+        if (url.isTheme()) {
           // If it's a theme attribute such as ?foo, it might resolve to a value we can
           // preview in a better way, such as a drawable, color or array. In that case,
           // look at the resolution chain and figure out the type of the resolved value,
@@ -720,7 +704,7 @@ public class AndroidJavaDocRenderer {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.COLOR, myModule, myConfiguration);
               assert renderer != null;
-              ResourceValue resolved = new ResourceValue(url, null);
+              ResourceValueImpl resolved = new ResourceValueImpl(urlToReference(url), null);
               resolved.setValue(value);
               renderer.renderToHtml(builder, item, url, false, resolved);
               builder.newline();
@@ -731,7 +715,7 @@ public class AndroidJavaDocRenderer {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule, myConfiguration);
               assert renderer != null;
-              ResourceValue resolved = new ResourceValue(url, null);
+              ResourceValueImpl resolved = new ResourceValueImpl(urlToReference(url), null);
               resolved.setValue(value);
               renderer.renderToHtml(builder, item, url, false, resolved);
               builder.newline();
@@ -746,11 +730,11 @@ public class AndroidJavaDocRenderer {
                 String value2 = rv.getValue();
                 if (value2 != null) {
                   ResourceUrl resourceUrl = ResourceUrl.parse(value2, rv.isFramework());
-                  if (resourceUrl != null && !resourceUrl.theme) {
+                  if (resourceUrl != null && !resourceUrl.isTheme()) {
                     ResourceValueRenderer renderer = create(resourceUrl.type, myModule, myConfiguration);
                     if (renderer != null && renderer.getClass() != this.getClass()) {
                       found = true;
-                      ResourceValue resolved = new ResourceValue(resourceUrl, null);
+                      ResourceValue resolved = new ResourceValueImpl(urlToReference(resourceUrl), null);
                       resolved.setValue(value);
                       renderer.renderToHtml(builder, item, resourceUrl, false, resolved);
                       builder.newline();
@@ -794,18 +778,25 @@ public class AndroidJavaDocRenderer {
       while (styleValue != null) {
         // Make sure the contents for the style are always generated in the same order. Helps with testing and the
         // user will know where to find attributes.
-        ImmutableList<ItemResourceValue> values = Ordering.usingToString().immutableSortedCopy(styleValue.getValues());
-        for (ItemResourceValue itemResourceValue : values) {
-          String name = itemResourceValue.getName();
+        ImmutableList<StyleItemResourceValue> values = Ordering.usingToString().immutableSortedCopy(styleValue.getDefinedItems());
+        for (StyleItemResourceValue itemResourceValue : values) {
+          String name = itemResourceValue.getAttrName();
           if (masked.contains(name)) {
             continue;
           }
           masked.add(name);
-          final ResourceValue v = styleValue.getItem(name, itemResourceValue.isFrameworkAttr());
-          String value = v == null ? null : v.getValue();
+          String value = null;
+          ResourceReference attr = itemResourceValue.getAttr();
+          if (attr != null) {
+            final ResourceValue v = styleValue.getItem(attr);
+            if (v != null) {
+              value = v.getValue();
+            }
+          }
 
           builder.addNbsps(4);
-          if (itemResourceValue.isFrameworkAttr()) {
+          if (attr != null && attr.getNamespace() == ResourceNamespace.ANDROID) {
+            // TODO: namespaces
             builder.add(PREFIX_ANDROID);
           }
           builder.addBold(name).add(" = ").add(value == null ? "null" : value);
@@ -819,18 +810,20 @@ public class AndroidJavaDocRenderer {
                   lookupChain.clear();
                 }
                 ResourceValue resourceValue;
-                if (resolvedUrl.theme) {
-                  resourceValue = resolver.findItemInTheme(resolvedUrl.name, resolvedUrl.framework);
+                if (resolvedUrl.isTheme()) {
+                  ResourceReference ref =
+                      new ResourceReference(ResourceNamespace.fromBoolean(resolvedUrl.isFramework()), ResourceType.ATTR, resolvedUrl.name);
+                  resourceValue = resolver.findItemInTheme(ref);
                 }
                 else {
-                  resourceValue = resolver.findResValue(resolvedUrl.toString(), resolvedUrl.framework);
+                  resourceValue = resolver.findResValue(resolvedUrl.toString(), resolvedUrl.isFramework());
                 }
                 if (resourceValue == null || resourceValue.getValue() == null) {
                   break;
                 }
                 url = resolvedUrl;
                 value = resourceValue.getValue();
-                resolvedUrl = ResourceUrl.parse(value, resolvedUrl.framework);
+                resolvedUrl = ResourceUrl.parse(value, resolvedUrl.isFramework());
                 if (count++ == MAX_RESOURCE_INDIRECTION) { // prevent deep recursion (likely an invalid resource cycle)
                   break;
                 }
@@ -840,8 +833,7 @@ public class AndroidJavaDocRenderer {
               if (renderer != null && renderer.getClass() != this.getClass()) {
                 builder.newline();
                 renderer.setSmall(true);
-                ResourceValue resolved = new ResourceValue(url, null);
-                resolved.setValue(value);
+                ResourceValue resolved = new ResourceValueImpl(urlToReference(url), value);
                 //noinspection ConstantConditions
                 renderer.renderToHtml(builder, item, url, false, resolved);
               }
@@ -873,6 +865,12 @@ public class AndroidJavaDocRenderer {
         }
       }
     }
+  }
+
+  @NotNull
+  private static ResourceReference urlToReference(ResourceUrl url) {
+    // TODO: namespaces.
+    return new ResourceReference(ResourceNamespace.fromBoolean(url.isFramework()), url.type, url.name);
   }
 
   private static class ArrayRenderer extends ResourceValueRenderer {
@@ -980,16 +978,16 @@ public class AndroidJavaDocRenderer {
         return;
       }
 
-      ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(resolver, resolvedValue, myModule.getProject());
+      StateList stateList = ResourceHelper.resolveStateList(resolver, resolvedValue, myModule.getProject());
       if (stateList != null) {
-        List<ResourceHelper.StateListState> states = stateList.getStates();
+        List<StateListState> states = stateList.getStates();
         if (states.isEmpty()) {
           // user error
           renderError(builder, "Empty StateList");
         }
         else {
           builder.addHtml("<table>");
-          for (ResourceHelper.StateListState state : states) {
+          for (StateListState state : states) {
             builder.addHtml("<tr>");
             builder.addHtml("<td>");
 
@@ -1208,16 +1206,16 @@ public class AndroidJavaDocRenderer {
         return;
       }
 
-      ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(resolver, resourceValue, myModule.getProject());
+      StateList stateList = ResourceHelper.resolveStateList(resolver, resourceValue, myModule.getProject());
       if (stateList != null) {
-        List<ResourceHelper.StateListState> states = stateList.getStates();
+        List<StateListState> states = stateList.getStates();
         if (states.isEmpty()) {
           // user error
           renderError(builder, "Empty StateList");
         }
         else {
           builder.addHtml("<table>");
-          for (ResourceHelper.StateListState state : states) {
+          for (StateListState state : states) {
             builder.addHtml("<tr>");
             builder.addHtml("<td>");
 

@@ -15,28 +15,25 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.utils.Pair;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Disposer;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The context used for graphic generation.
  */
-public class GraphicGeneratorContext implements Disposable {
+public class GraphicGeneratorContext {
   private final Cache<Object, ListenableFuture<BufferedImage>> myImageCache;
   private final DrawableRenderer myDrawableRenderer;
 
@@ -54,13 +51,6 @@ public class GraphicGeneratorContext implements Disposable {
   public GraphicGeneratorContext(int maxCacheSize, @Nullable DrawableRenderer drawableRenderer) {
     myImageCache = CacheBuilder.newBuilder().maximumSize(maxCacheSize).build();
     myDrawableRenderer = drawableRenderer;
-    if (myDrawableRenderer != null) {
-      Disposer.register(this, myDrawableRenderer);
-    }
-  }
-
-  @Override
-  public void dispose() {
   }
 
   /**
@@ -72,7 +62,7 @@ public class GraphicGeneratorContext implements Disposable {
    */
   @NotNull
   public final ListenableFuture<BufferedImage> getFromCacheOrCreate(@NotNull Object key,
-                                                                    @NotNull Callable<ListenableFuture<BufferedImage>> creator) {
+                                                                    @NotNull Callable<? extends ListenableFuture<BufferedImage>> creator) {
     try {
       return myImageCache.get(key, creator);
     }
@@ -89,11 +79,11 @@ public class GraphicGeneratorContext implements Disposable {
   /**
    * Loads the given image resource, as requested by the graphic generator.
    *
-   * @param path The path to the resource, relative to the general "resources" path
-   * @return The loaded image resource, or null if there was an error
+   * @param path the path to the resource, relative to the general "resources" path
+   * @return the loaded image resource, or null if there was an error
    */
   @Nullable
-  public BufferedImage loadImageResource(@NonNull String path) {
+  public BufferedImage loadImageResource(@NotNull String path) {
     try {
       ListenableFuture<BufferedImage> imageFuture = getFromCacheOrCreate(path, () -> getStencilImage(path));
       return imageFuture.get();
@@ -112,14 +102,23 @@ public class GraphicGeneratorContext implements Disposable {
    * @return the raster image that is created asynchronously
    * @throws IllegalStateException if a drawable renderer was not provided to the constructor
    */
-  @NonNull
-  public ListenableFuture<BufferedImage> renderDrawable(@NonNull String xmlDrawableText, @NonNull Dimension size) {
-    if (myDrawableRenderer == null) {
-      throw new IllegalStateException("Cannot render a drawable without a renderer");
-    }
+  @NotNull
+  public ListenableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
     Pair<String, Dimension> key = Pair.of(xmlDrawableText, size);
-    Callable<ListenableFuture<BufferedImage>> renderer = () -> myDrawableRenderer.renderDrawable(xmlDrawableText, size);
+    Callable<ListenableFuture<BufferedImage>> renderer = myDrawableRenderer == null ?
+                                                         () -> renderVectorDrawable(xmlDrawableText, size) :
+                                                         () -> myDrawableRenderer.renderDrawable(xmlDrawableText, size);
     return getFromCacheOrCreate(key, renderer);
+  }
+
+  @NotNull
+  private static ListenableFuture<BufferedImage> renderVectorDrawable(@NotNull String vectorDrawableText, @NotNull Dimension size) {
+    VdPreview.TargetSize targetSize = VdPreview.TargetSize.createFromMaxDimension(Math.max(size.width, size.height));
+    BufferedImage image = VdPreview.getPreviewFromVectorXml(targetSize, vectorDrawableText, null);
+    if (image == null) {
+      image = AssetStudioUtils.createDummyImage();
+    }
+    return Futures.immediateFuture(image);
   }
 
   @NotNull

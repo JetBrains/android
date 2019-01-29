@@ -15,23 +15,34 @@
  */
 package com.android.tools.idea.uibuilder.palette2;
 
+import static com.android.SdkConstants.ANDROIDX_PKG;
+import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.MATERIAL2_PKG;
+import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.SCROLL_VIEW;
+import static com.android.SdkConstants.SWITCH;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Conditions;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * The Palette UI will interact exclusively with this data model.
@@ -48,7 +59,8 @@ public class DataModel {
 
   private final CategoryListModel myListModel;
   private final ItemListModel myItemModel;
-  private final ItemFilter myItemFilter;
+  private final Condition<Palette.Item> myFilterCondition;
+  private final PatternFilter myFilterPattern;
   private final DependencyManager myDependencyManager;
   private final List<String> myFavoriteItems;
   private NlLayoutType myLayoutType;
@@ -58,12 +70,27 @@ public class DataModel {
   public DataModel(@NotNull DependencyManager dependencyManager) {
     myListModel = new CategoryListModel();
     myItemModel = new ItemListModel();
-    myItemFilter = new ItemFilter();
     myFavoriteItems = readFavoriteItems();
     myDependencyManager = dependencyManager;
     myLayoutType = NlLayoutType.UNKNOWN;
     myPalette = Palette.EMPTY;
     myCurrentSelectedGroup = COMMON;
+    myDependencyManager.addDependencyChangeListener(() -> onDependenciesChanged());
+
+    myFilterPattern = new PatternFilter();
+    // This filter will hide or display the androidx.* components in the palette depending on whether the
+    // project supports the androidx libraries.
+    Condition<Palette.Item> androidxFilter = item -> {
+      String tagName = item.getTagName();
+      boolean isAndroidxTag = tagName.startsWith(ANDROIDX_PKG) || tagName.startsWith(MATERIAL2_PKG);
+      boolean isOldSupportLibTag = !isAndroidxTag && tagName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
+      if (!isAndroidxTag && !isOldSupportLibTag) {
+        return true;
+      }
+
+      return myDependencyManager.useAndroidXDependencies() ? isAndroidxTag : isOldSupportLibTag;
+    };
+    myFilterCondition = Conditions.and(androidxFilter, myFilterPattern);
   }
 
   @NotNull
@@ -88,16 +115,13 @@ public class DataModel {
   }
 
   public void setFilterPattern(@NotNull String pattern) {
-    if (myItemFilter.getPattern().equals(pattern)) {
-      return;
+    if (myFilterPattern.setPattern(pattern)) {
+      update();
     }
-    myItemFilter.setPattern(pattern);
-    update();
   }
 
-  @NotNull
-  public String getFilterPattern() {
-    return myItemFilter.getPattern();
+  public boolean hasFilterPattern() {
+    return myFilterPattern.hasPattern();
   }
 
   public int getMatchCount() {
@@ -105,12 +129,7 @@ public class DataModel {
   }
 
   public void categorySelectionChanged(@NotNull Palette.Group selectedGroup) {
-    if (myItemFilter.getPattern().isEmpty()) {
-      createUnFilteredItems(selectedGroup);
-    }
-    else {
-      createFilteredItems(selectedGroup);
-    }
+    createFilteredItems(selectedGroup);
     myCurrentSelectedGroup = selectedGroup;
   }
 
@@ -135,7 +154,7 @@ public class DataModel {
     PropertiesComponent.getInstance().setValues(FAVORITE_ITEMS, ArrayUtil.toStringArray(myFavoriteItems));
     update();
     if (myCurrentSelectedGroup == COMMON) {
-      createUnFilteredItems(COMMON);
+      createFilteredItems(COMMON);
     }
   }
 
@@ -149,45 +168,24 @@ public class DataModel {
   private static List<String> readFavoriteItems() {
     String[] favorites = PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS);
     if (favorites == null) {
-      favorites = new String[]{TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW, VIEW_FRAGMENT, SCROLL_VIEW, SWITCH};
+      favorites = new String[]{TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT, SCROLL_VIEW, SWITCH};
     }
     return Lists.newArrayList(favorites);
   }
 
   private void update() {
-    if (myItemFilter.getPattern().isEmpty()) {
-      createUnFilteredGroups();
-    }
-    else {
-      createFilteredGroups();
-    }
-  }
-
-  private void createUnFilteredGroups() {
+    boolean isUserSearch = myFilterPattern.hasPattern();
     List<Palette.Group> groups = new ArrayList<>();
+    List<Integer> matchCounts = isUserSearch ? new ArrayList<>() : Collections.emptyList();
 
-    groups.add(COMMON);
-    myPalette.accept(new Palette.Visitor() {
-      @Override
-      public void visit(@NotNull Palette.Item item) {}
+    groups.add(isUserSearch ? RESULTS : COMMON);
 
-      @Override
-      public void visit(@NotNull Palette.Group group) {
-        groups.add(group);
-      }
-    });
-    updateCategoryModel(groups, Collections.emptyList());
-  }
-
-  private void createFilteredGroups() {
-    List<Palette.Group> groups = new ArrayList<>();
-    List<Integer> matchCounts = new ArrayList<>();
-
-    groups.add(RESULTS);
-    matchCounts.add(0); // Updated later
+    if (isUserSearch) {
+      matchCounts.add(0); // Updated later
+    }
 
     myPalette.accept(new Palette.Visitor() {
-      private Palette.Group currentGroup = RESULTS;
+      private Palette.Group currentGroup = isUserSearch ? RESULTS : COMMON;
       private int matchCount;
 
       @Override
@@ -198,7 +196,7 @@ public class DataModel {
 
       @Override
       public void visit(@NotNull Palette.Item item) {
-        if (currentGroup.equals(item.getParent()) && myItemFilter.value(item)) {
+        if (currentGroup.equals(item.getParent()) && myFilterCondition.value(item)) {
           matchCount++;
         }
       }
@@ -207,50 +205,51 @@ public class DataModel {
       public void visitAfter(@NotNull Palette.Group group) {
         if (matchCount > 0) {
           groups.add(group);
-          matchCounts.add(matchCount);
-          matchCounts.set(0, matchCounts.get(0) + matchCount);
+          if (isUserSearch) {
+            matchCounts.add(matchCount);
+            matchCounts.set(0, matchCounts.get(0) + matchCount);
+          }
         }
       }
     });
     updateCategoryModel(groups, matchCounts);
   }
 
-  private void updateCategoryModel(@NotNull List<Palette.Group> groups, @NotNull List<Integer> matchCounts) {
-    UIUtil.invokeLaterIfNeeded(() -> myListModel.update(groups, matchCounts));
+  /**
+   * The dependencies have changed so the items might need to be re-filtered.
+   */
+  private void onDependenciesChanged() {
+    update();
+    categorySelectionChanged(myCurrentSelectedGroup);
   }
 
-  private void createUnFilteredItems(@NotNull Palette.Group selectedGroup) {
-    List<Palette.Item> items = new ArrayList<>();
-    if (selectedGroup != COMMON && selectedGroup != RESULTS) {
-      selectedGroup.accept(items::add);
-    }
-    else if (myListModel.getSize() <= 1) {
-      myPalette.accept(items::add);
-    }
-    else {
-      for (String id : myFavoriteItems) {
-        Palette.Item item = myPalette.getItemById(id);
-        if (item != null) {
-          items.add(item);
-        }
-      }
-    }
-    updateItemModel(items);
+  private void updateCategoryModel(@NotNull List<Palette.Group> groups, @NotNull List<Integer> matchCounts) {
+    UIUtil.invokeLaterIfNeeded(() -> myListModel.update(groups, matchCounts));
   }
 
   private void createFilteredItems(@NotNull Palette.Group selectedGroup) {
     List<Palette.Item> items = new ArrayList<>();
     Palette.Visitor visitor = item -> {
-      if (myItemFilter.value(item)) {
+      if (myFilterCondition.value(item)) {
         items.add(item);
       }
     };
+
     if (selectedGroup != COMMON && selectedGroup != RESULTS) {
       selectedGroup.accept(visitor);
     }
-    else {
+    else if (myListModel.getSize() <= 1 || selectedGroup == RESULTS) {
       myPalette.accept(visitor);
     }
+    else {
+      for (String id : myFavoriteItems) {
+        Palette.Item item = myPalette.getItemById(id);
+        if (item != null) {
+          visitor.visit(item);
+        }
+      }
+    }
+
     updateItemModel(items);
   }
 

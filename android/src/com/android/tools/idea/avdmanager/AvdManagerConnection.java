@@ -36,13 +36,19 @@ import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.stats.RunStatsService;
 import com.android.utils.ILogger;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
@@ -66,10 +72,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
@@ -209,7 +212,7 @@ public class AvdManagerConnection {
     return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, filename));
   }
 
-  private File getEmulatorBinary() {
+  public File getEmulatorBinary() {
     return getBinaryLocation(SdkConstants.FN_EMULATOR);
   }
 
@@ -355,6 +358,16 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
+
+    final String avdName = info.getName();
+    final String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
+    if (skinPath != null) {
+      File skinFile = new File(skinPath);
+      File baseSkinFile = new File(skinFile.getName());
+      // Ensure the skin files are up-to-date
+      AvdWizardUtils.pathToUpdatedSkins(baseSkinFile, null, myFileOp);
+    }
+
     AccelerationErrorCode error = checkAcceleration();
     ListenableFuture<IDevice> errorResult = handleAccelerationError(project, info, error);
     if (errorResult != null) {
@@ -366,13 +379,6 @@ public class AvdManagerConnection {
       IJ_LOG.error("No emulator binary found!");
       return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
     }
-
-    final String avdName = info.getName();
-
-    File skinFile = new File(info.getProperties().get(AVD_INI_SKIN_PATH));
-    File baseSkinFile = new File(skinFile.getName());
-    // Ensure the skin files are up-to-date
-    AvdWizardUtils.pathToUpdatedSkins(baseSkinFile, null, myFileOp);
 
     // TODO: The emulator stores pid of the running process inside the .lock file (userdata-qemu.img.lock in Linux and
     // userdata-qemu.img.lock/pid on Windows). We should detect whether those lock files are stale and if so, delete them without showing
@@ -401,6 +407,14 @@ public class AvdManagerConnection {
     commandLine.setExePath(emulatorBinary.getPath());
 
     addParameters(info, commandLine);
+
+    // The AVD Manager UI does not allow for passing additional command line parameters.
+    // For now, this environment variable allows users to specify any such parameters they need
+    //   e.g. export studio.emu.params=-dns-server,8.8.8.8 && studio.sh
+    String additionalParams = System.getenv("studio.emu.params");
+    if (additionalParams != null) {
+      commandLine.addParameters(Splitter.on(',').splitToList(additionalParams));
+    }
 
     EmulatorRunner runner = new EmulatorRunner(commandLine, info);
     addListeners(runner);
@@ -482,7 +496,12 @@ public class AvdManagerConnection {
         // No fast boot now, but do store a snapshot on exit for next time
         commandLine.addParameter("-no-snapshot-load");
       }
-      // We could use "-snapstorage" for the "no" case, but don't bother. It is the default.
+      else if ("yes".equals(properties.get(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT))) {
+        // Fast boot with the specific file that was requested. Don't save on exit.
+        commandLine.addParameters("-snapshot", StringUtil.notNullize(properties.get(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE)));
+        commandLine.addParameter("-no-snapshot-save");
+      }
+      // We could use "-snapstorage" for the "normal" case, but don't bother. It is the default.
     }
 
     writeParameterFile(commandLine);
@@ -494,7 +513,6 @@ public class AvdManagerConnection {
    * Indicates if the Emulator's version is at least {@code desired}
    * @return true if the Emulator version is the desired version or higher
    */
-  @VisibleForTesting
   public boolean emulatorVersionIsAtLeast(@NotNull Revision desired) {
     if (mySdkHandler == null) return false; // Don't know, so guess
     ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
@@ -545,38 +563,73 @@ public class AvdManagerConnection {
       return; // No values to send
     }
 
-    File emuTempFile = null;
+    File tempFile = writeTempFile(proxyParameters);
+    if (tempFile != null) {
+        commandLine.addParameters("-studio-params", tempFile.getAbsolutePath());
+    }
+  }
+
+  /** Create a directory under $ANDROID_HOME where we can write
+   * temporary files.
+   *
+   * @return The directory file. This will be null if we
+   * could not find, create, or write the directory.
+   */
+  @Nullable
+  public static File tempFileDirectory() {
+    // Create a temporary file in /temp under $ANDROID_HOME.
+    String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
+    if (androidHomeValue == null) {
+      // Fall back to the user's home directory
+      androidHomeValue = System.getProperty("user.home");
+    }
+    File tempDir = new File(androidHomeValue, "temp");
+    tempDir.mkdirs(); // Create if necessary
+    if (!tempDir.exists()) {
+      return null; // Give up
+    }
+    return tempDir;
+  }
+
+  /** Create a temporary file and write some parameters into it.
+   * This is how we pass parameters to the Emulator (other than
+   * on the command line).
+   * The file is marked to be deleted when Studio exits. This is
+   * to increase security in case the file contains sensitive
+   * information.
+   *
+   * @param fileContents What should be written to the file.
+   * @return The temporary file. This will be null
+   * if we could not create or write the file.
+   */
+  @Nullable
+  public static File writeTempFile(List<String> fileContents) {
+    File tempFile = null;
     try {
-      // Create a temporary file in /temp under $ANDROID_HOME.
-      String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
-      if (androidHomeValue == null) {
-        // Fall back to the user's home directory
-        androidHomeValue = System.getProperty("user.home");
+      File tempDir = tempFileDirectory();
+      if (tempDir == null) {
+        return null; // Fail
       }
-      File tempDir = new File(androidHomeValue + "/temp");
-      tempDir.mkdirs(); // Create if necessary
-      if (!tempDir.exists()) {
-        return; // Give up
-      }
-      emuTempFile = File.createTempFile("emu", ".tmp", tempDir);
-      emuTempFile.deleteOnExit(); // File disappears when Studio exits
-      emuTempFile.setReadable(false, false); // Non-owner cannot read
-      emuTempFile.setReadable(true, true); // Owner can read
+      tempFile = File.createTempFile("emu", ".tmp", tempDir);
+      tempFile.deleteOnExit(); // File disappears when Studio exits
+      tempFile.setReadable(false, false); // Non-owner cannot read
+      tempFile.setReadable(true, true); // Owner can read
 
-      BufferedWriter tempFileWriter = new BufferedWriter(new FileWriter(emuTempFile));
-
-      for (String proxyLine : proxyParameters) {
-        tempFileWriter.write(proxyLine);
-      }
-      tempFileWriter.close();
-      // Put the name of this file on the emulator's command line
-      commandLine.addParameters("-studio-params", emuTempFile.getAbsolutePath());
-    } catch (IOException ex) {
-      // Try to remove the temporary file
-      if (emuTempFile != null) {
-        emuTempFile.delete(); // Ignore the return value
+      final FileWriter fileWriter = new FileWriter(tempFile);
+      try (BufferedWriter tempFileWriter = new BufferedWriter(fileWriter)) {
+        for (String fileLine : fileContents) {
+          tempFileWriter.write(fileLine);
+        }
       }
     }
+    catch (IOException ex) {
+      // Try to remove the temporary file
+      if (tempFile != null) {
+        tempFile.delete(); // Ignore the return value
+        tempFile = null;
+      }
+    }
+    return tempFile;
   }
 
   /**
@@ -786,7 +839,7 @@ public class AvdManagerConnection {
     String[] files = fileOp.list(location, null);
     if (files != null) {
       for (String filename : files) {
-        if (FileUtil.getNameWithoutExtension(filename).equals("kernel-ranchu")) {
+        if (filename.startsWith("kernel-ranchu")) {
           return true;
         }
       }
@@ -922,7 +975,7 @@ public class AvdManagerConnection {
     private final IdDisplay myTag;
     private final int myRequiredMajorRevision;
 
-    SystemImageUpdateDependency(int featureLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
+    public SystemImageUpdateDependency(int featureLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
       myFeatureLevel = featureLevel;
       myTag = tag;
       myRequiredMajorRevision = requiredMajorRevision;

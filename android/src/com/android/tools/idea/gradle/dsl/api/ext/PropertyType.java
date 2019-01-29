@@ -20,11 +20,15 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 /**
  * Represents the property type for a {@link GradleDslElement}.
  * <ul>
- *   <li>{@code REGULAR} - this is a Gradle property, e.g "ext.prop1 = 'value'"</li>
- *   <li>{@code VARIABLE} - this is a DSL variable, e.g "def prop1 = 'value'"</li>
- *   <li>{@code DERIVED} - this is a internal property derived from values an a map of list, e.g property "key"
- *                          in "prop1 = ["key" : 'value']"</li>
- *   <li>{@code GLOBAL}   - this is a global property defined by Gradle e.g projectDir</li>
+ * <li>{@code REGULAR} - this is a Gradle property, e.g "ext.prop1 = 'value'"</li>
+ * <li>{@code VARIABLE} - this is a DSL variable, e.g "def prop1 = 'value'"</li>
+ * <li>{@code DERIVED} - this is a internal property derived from values an a map or list, e.g property "key"
+ * in "prop1 = ["key" : 'value']"</li>
+ * <li>{@code GLOBAL}   - this is a global property defined by Gradle e.g projectDir</li>
+ * <li>{@code PROPERTIES_FILE} - a Gradle property from a gradle.properties file</li>
+ * <li>{@code FAKE} - a fake property is used to represent some "part" of another property to make it easier to work with,
+ * some operations (such as making them lists of maps) are disabled for these properties. An example of a FAKE
+ * property is a component of a Gradle coordinate in compact notation e.g ('com.android.support:appcompat-v7:22.1.1')</li>
  * </ul>
  */
 public enum PropertyType {
@@ -32,4 +36,6 @@ public enum PropertyType {
   VARIABLE,
   DERIVED,
   GLOBAL,
+  PROPERTIES_FILE,
+  FAKE,
 }

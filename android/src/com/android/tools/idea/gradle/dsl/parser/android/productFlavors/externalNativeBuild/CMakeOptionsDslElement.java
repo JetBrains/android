@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE_BLOCK_NAME;
 
 public final class CMakeOptionsDslElement extends AbstractBuildOptionsDslElement {
   public CMakeOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, CMAKE_BLOCK_NAME);
+    super(parent, GradleNameElement.create(CMAKE_BLOCK_NAME));
   }
 }

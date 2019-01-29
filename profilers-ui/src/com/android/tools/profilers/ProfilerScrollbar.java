@@ -16,10 +16,10 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.RangeScrollBarUI;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.JBScrollBar;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,9 +33,14 @@ import java.util.concurrent.TimeUnit;
  */
 public final class ProfilerScrollbar extends JBScrollBar {
   /**
-   * The percentage of the current view range's length to zoom/pan per mouse wheel click.
+   * The percentage of the current view range's length to zoom per mouse wheel click.
    */
-  private static final float VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR = 0.005f;
+  private static final float VIEW_ZOOM_PER_MOUSEWHEEL_FACTOR = 0.125f;
+
+  /**
+   * The percentage of the current view range's length to pan per mouse wheel click.
+   */
+  private static final float VIEW_PAN_PERCENTAGE_PER_MOUSEHWEEL_FACTOR = 0.005f;
 
   /**
    * Work in ms to keep things compatible with scrollbar's integer api.
@@ -81,26 +86,30 @@ public final class ProfilerScrollbar extends JBScrollBar {
       }
     });
     zoomPanComponent.addMouseWheelListener(e -> {
-      if (isScrollable()) {
-        int count = e.getWheelRotation();
-        double deltaUs = getWheelDelta() * count;
-        boolean isMenuKeyDown = SystemInfo.isMac ? e.isMetaDown() : e.isControlDown();
-        if (isMenuKeyDown) {
-          double anchor = ((float)e.getX() / e.getComponent().getWidth());
-          myTimeline.zoom(deltaUs, anchor);
-          myCheckStream = deltaUs > 0;
-        }
-        else {
-          myTimeline.pan(deltaUs);
-        }
-        myCheckStream = deltaUs > 0;
+      double count = e.getPreciseWheelRotation();
+      boolean isMenuKeyDown = AdtUiUtils.isActionKeyDown(e);
+      if (isMenuKeyDown) {
+        double anchor = ((float)e.getX() / e.getComponent().getWidth());
+        myTimeline.zoom(getZoomWheelDelta() * count, anchor);
       }
+      else if (isScrollable()) {
+        myTimeline.pan(getPanWheelDelta() * count);
+      }
+      myCheckStream = count > 0;
     });
+
+    // Ensure the scrollbar is set to the correct initial state.
+    modelChanged();
   }
 
   @VisibleForTesting
-  public double getWheelDelta() {
-    return myTimeline.getViewRange().getLength() * VIEW_PERCENTAGE_PER_MOUSEHWEEL_FACTOR;
+  public double getZoomWheelDelta() {
+    return myTimeline.getViewRange().getLength() * VIEW_ZOOM_PER_MOUSEWHEEL_FACTOR;
+  }
+
+  @VisibleForTesting
+  public double getPanWheelDelta() {
+    return myTimeline.getViewRange().getLength() * VIEW_PAN_PERCENTAGE_PER_MOUSEHWEEL_FACTOR;
   }
 
   private void modelChanged() {
@@ -141,9 +150,11 @@ public final class ProfilerScrollbar extends JBScrollBar {
     myCheckStream = false;
   }
 
-  private boolean isScrollable() {
-    BoundedRangeModel model = getModel();
-    return model.getMaximum() > model.getExtent();
+  @VisibleForTesting
+  public boolean isScrollable() {
+    Range viewRange = myTimeline.getViewRange();
+    Range dataRange = myTimeline.getDataRange();
+    return viewRange.getMin() >= dataRange.getMin() && viewRange.getMax() <= dataRange.getMax();
   }
 
   private boolean isCloseToMax() {

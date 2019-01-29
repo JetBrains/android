@@ -1,0 +1,8 @@
+This module contains the What's New Assistant for Android Studio.
+
+The goal is to make release notes more visible and actionable for users.
+
+To show release notes inside AS instead of going to DAC, place the xml file under the resources folder. Match the file name to the studio
+version. (i.e 3.2.xml).
+
+

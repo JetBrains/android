@@ -41,12 +41,17 @@ public class MessagesFixture {
 
   @NotNull
   public static MessagesFixture findByTitle(@NotNull Robot robot, @NotNull String title) {
+        return findByTitle(robot, title, 10);
+  }
+
+  @NotNull
+  public static MessagesFixture findByTitle(@NotNull Robot robot, @NotNull String title, long secondsToWait) {
     if (Messages.canShowMacSheetPanel()) {
       JPanelFixture panelFixture = findMacSheetByTitle(robot, title);
       JDialog dialog = (JDialog)SwingUtilities.getWindowAncestor(panelFixture.target());
       return new MessagesFixture(panelFixture, dialog);
     }
-    MessageDialogFixture dialog = MessageDialogFixture.findByTitle(robot, title);
+    MessageDialogFixture dialog = MessageDialogFixture.findByTitle(robot, title, secondsToWait);
     return new MessagesFixture(dialog, dialog.target());
   }
 

@@ -21,45 +21,42 @@ import org.jetbrains.annotations.NotNull;
 import java.util.EventListener;
 
 public interface GradleSyncListener extends EventListener {
-  void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested);
+  /**
+   * Invoked when sync task has been created and sync is going to happen some time soon. Useful in situations when
+   * sync gets executed asynchronously so syncStarted() isn't called yet but it's necessary to know that sync is
+   * imminent.
+   *
+   * @param project Project which sync has been requested for.
+   * @param request Sync request to be fulfilled.
+   */
+  default void syncTaskCreated(@NotNull Project project, @NotNull GradleSyncInvoker.Request request) {
+  }
 
-  void setupStarted(@NotNull Project project);
+  default void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
+  }
+
+  default void setupStarted(@NotNull Project project) {
+  }
 
   /**
    * Invoked when a Gradle project has been synced. It is not guaranteed that the created IDEA project has been compiled.
    *
    * @param project the IDEA project created from the Gradle one.
    */
-  void syncSucceeded(@NotNull Project project);
+  default void syncSucceeded(@NotNull Project project) {
+  }
 
-  void syncFailed(@NotNull Project project, @NotNull String errorMessage);
+  default void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+  }
 
   /**
    * Invoked when the state of a project has been loaded from a disk cache, instead of syncing with Gradle.
    *
    * @param project the project.
    */
-  void syncSkipped(@NotNull Project project);
+  default void syncSkipped(@NotNull Project project) {
+  }
 
-  abstract class Adapter implements GradleSyncListener {
-    @Override
-    public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
-    }
-
-    @Override
-    public void setupStarted(@NotNull Project project) {
-    }
-
-    @Override
-    public void syncSucceeded(@NotNull Project project) {
-    }
-
-    @Override
-    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-    }
-
-    @Override
-    public void syncSkipped(@NotNull Project project) {
-    }
+  default void sourceGenerationFinished(@NotNull Project project) {
   }
 }

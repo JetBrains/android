@@ -49,7 +49,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static javax.swing.event.HyperlinkEvent.EventType.ACTIVATED;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.awt.AWT.visibleCenterOf;
-import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 
 public class MessagesToolWindowFixture extends ToolWindowFixture {
@@ -136,7 +135,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
         @Override
         public String toString() {
-          return "first line starting with " + quote(prefix);
+          return "first line starting with '" + prefix + "'";
         }
       };
     }
@@ -186,7 +185,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
           }
         }
       }
-      assertNotNull("Failed to find URL for hyperlink " + quote(hyperlinkText), url);
+      assertNotNull("Failed to find URL for hyperlink '" + hyperlinkText + "'", url);
       return url;
     }
 
@@ -205,7 +204,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
           }
         }
       }
-      assertNotNull("Failed to find URL for hyperlink " + quote(hyperlinkText), url);
+      assertNotNull("Failed to find URL for hyperlink '" + hyperlinkText + "'", url);
       return url;
     }
 

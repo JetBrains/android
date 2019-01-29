@@ -55,7 +55,7 @@ public class MissingBuildToolsErrorHandler extends BaseSyncErrorHandler {
     Matcher matcher = MISSING_BUILD_TOOLS_PATTERN.matcher(getFirstLineMessage(text));
     if (matcher.matches()) {
       String version = matcher.group(3);
-      hyperlinks.add(new InstallBuildToolsHyperlink(version, null));
+      hyperlinks.add(new InstallBuildToolsHyperlink(version));
     }
     return hyperlinks;
   }

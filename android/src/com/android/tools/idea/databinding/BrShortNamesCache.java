@@ -156,7 +156,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
         result.add(field);
       }
     }
-    return result.toArray(new PsiField[result.size()]);
+    return result.toArray(PsiField.EMPTY_ARRAY);
   }
 
   @NotNull
@@ -186,7 +186,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
     if (selected.isEmpty()) {
       return PsiClass.EMPTY_ARRAY;
     }
-    return selected.toArray(new PsiClass[selected.size()]);
+    return selected.toArray(PsiClass.EMPTY_ARRAY);
   }
 
   private boolean isEnabled() {

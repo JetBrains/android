@@ -17,9 +17,11 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.instructions.InstructionsPanel;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -34,7 +36,6 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.tree.TreePath;
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
@@ -44,7 +45,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class MemoryClassifierViewTest {
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeMemoryService());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeProfilerService(), new FakeMemoryService());
 
   private FakeIdeProfilerServices myFakeIdeProfilerServices;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
@@ -57,7 +58,7 @@ public class MemoryClassifierViewTest {
     loader.setReturnImmediateFuture(true);
     myFakeIdeProfilerServices = new FakeIdeProfilerServices();
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myFakeIdeProfilerServices), loader);
+    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myFakeIdeProfilerServices, new FakeTimer()), loader);
     myClassifierView = new MemoryClassifierView(myStage, myFakeIdeProfilerComponents);
   }
 
@@ -871,7 +872,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Add a filter to remove That.is.Bar
-    myStage.selectCaptureFilter(Pattern.compile("^.*Foo.*$"));
+    myStage.getFilterHandler().setFilter(new Filter("Foo"));
 
     expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 1, 1, 1, 1));
@@ -937,7 +938,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Apply an invalid filter
-    myStage.selectCaptureFilter(Pattern.compile("^.*BLAH.*$"));
+    myStage.getFilterHandler().setFilter(new Filter("BLAH"));
     Queue<MemoryObjectTreeNodeTestData> expect_none = new LinkedList<>();
     expect_none.add(new MemoryObjectTreeNodeTestData(0, "default heap", 0, 0, 0, 0, 0));
     verifyLiveAllocRenderResult(treeInfo, rootNode, expect_none, 0);
@@ -1057,7 +1058,7 @@ public class MemoryClassifierViewTest {
     assertThat(myStage.getSelectedInstanceObject()).isEqualTo(selectedInstance);
 
     // Apply an invalid filter
-    myStage.selectCaptureFilter(Pattern.compile("^.*BLAH.*$"));
+    myStage.getFilterHandler().setFilter(new Filter("BLAH"));
     // No path is selected and selected ClassSet is set to EMPTY_CLASS_SET
     assertThat(tree.getSelectionPath()).isNull();
     assertThat(myStage.getSelectedClassSet()).isEqualTo(ClassSet.EMPTY_SET);
@@ -1121,10 +1122,10 @@ public class MemoryClassifierViewTest {
         expected.poll();
         testInfo.verifyRendererValues(node,
                                       new String[]{testData.name},
-                                      new String[]{Integer.toString(testData.allocations)},
-                                      new String[]{Integer.toString(testData.deallocations)},
-                                      new String[]{Integer.toString(testData.total)},
-                                      new String[]{Long.toString(testData.shallowSize)});
+                                      new String[]{NumberFormatter.formatInteger(testData.allocations)},
+                                      new String[]{NumberFormatter.formatInteger(testData.deallocations)},
+                                      new String[]{NumberFormatter.formatInteger(testData.total)},
+                                      new String[]{NumberFormatter.formatInteger(testData.shallowSize)});
 
         // Children's size
         assertThat(node.getChildCount()).isEqualTo(testData.childrenSize);

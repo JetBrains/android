@@ -33,15 +33,26 @@ import org.jetbrains.annotations.NotNull;
 import static org.mockito.Mockito.mock;
 
 public class NlDefaultRendererTest extends PropertyTestCase {
-  public void testSimple() {
+  private XmlFile myXmlFile;
+
+  @Override
+  public void addFiles() {
     @Language("XML")
     String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                     "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\" >" +
                     "  <TextView android:id=\"@+id/textView\"/>" +
                     "</RelativeLayout>";
-    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
+    myXmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
+  }
 
-    XmlTag[] subTags = xmlFile.getRootTag().getSubTags();
+  @Override
+  public void tearDown() throws Exception {
+    myXmlFile = null;
+    super.tearDown();
+  }
+
+  public void testSimple() {
+    XmlTag[] subTags = myXmlFile.getRootTag().getSubTags();
     assertEquals(1, subTags.length);
 
     PropertiesManager manager = mock(PropertiesManager.class);

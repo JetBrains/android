@@ -39,6 +39,7 @@ public final class FormFactorApiComboBox extends JComboBox<AndroidVersionsInfo.V
 
   public void init(@NotNull FormFactor formFactor, @NotNull List<AndroidVersionsInfo.VersionItem> items) {
     myFormFactor = formFactor;
+    setName(myFormFactor.id + ".minSdk"); // Name used for testing
 
     removeItemListener(myItemListener);
     removeAllItems();

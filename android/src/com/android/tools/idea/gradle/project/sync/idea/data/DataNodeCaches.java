@@ -26,9 +26,11 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
+import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManagerImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -40,11 +42,10 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
 
 public class DataNodeCaches {
   @NotNull private final Project myProject;
@@ -60,10 +61,15 @@ public class DataNodeCaches {
 
   @Nullable
   public DataNode<ProjectData> getCachedProjectData() {
+    ExternalProjectInfo projectInfo = getExternalProjectInfo();
+    return projectInfo != null ? projectInfo.getExternalProjectStructure() : null;
+  }
+
+  @Nullable
+  private ExternalProjectInfo getExternalProjectInfo() {
     ProjectDataManager dataManager = ProjectDataManager.getInstance();
     String projectPath = getBaseDirPath(myProject).getPath();
-    ExternalProjectInfo projectInfo = dataManager.getExternalProjectData(myProject, GradleConstants.SYSTEM_ID, projectPath);
-    return projectInfo != null ? projectInfo.getExternalProjectStructure() : null;
+    return dataManager.getExternalProjectData(myProject, GradleConstants.SYSTEM_ID, projectPath);
   }
 
   public boolean isCacheMissingModels(@NotNull DataNode<ProjectData> cache) {
@@ -133,5 +139,33 @@ public class DataNodeCaches {
       }
     }
     return false;
+  }
+
+  public void clearCaches() {
+    ExternalProjectInfo projectInfo = getExternalProjectInfo();
+    if (projectInfo == null) {
+      return;
+    }
+    DataNode<ProjectData> cache = projectInfo.getExternalProjectStructure();
+    if (cache == null) {
+      return;
+    }
+    clearCaches(cache);
+    // Call updateExternalProjectData to trigger refresh of DataNode, then save project data to disk.
+    ProjectDataManagerImpl.getInstance().updateExternalProjectData(myProject, projectInfo);
+    myProject.save();
+  }
+
+  private static void clearCaches(@NotNull DataNode<ProjectData> cache) {
+    clearCachesOfType(cache, GRADLE_MODULE_MODEL);
+    clearCachesOfType(cache, ANDROID_MODEL);
+    clearCachesOfType(cache, JAVA_MODULE_MODEL);
+    clearCachesOfType(cache, NDK_MODEL);
+  }
+
+  private static <T> void clearCachesOfType(@NotNull DataNode<ProjectData> cache, @NotNull Key<T> type) {
+    for (DataNode<T> dataNode : findAllRecursively(cache, type)) {
+      dataNode.clear(true);
+    }
   }
 }

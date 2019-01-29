@@ -53,7 +53,7 @@ public class JavaModuleModelDataServiceTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    IdeComponents.replaceService(getProject(), GradleSyncState.class, mySyncState);
+    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, mySyncState);
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     myService = new JavaModuleModelDataService(myModuleSetupContextFactory, myModuleSetup, myCleanupStep);
   }

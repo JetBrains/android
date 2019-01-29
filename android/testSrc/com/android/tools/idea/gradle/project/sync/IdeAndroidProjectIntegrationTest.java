@@ -21,6 +21,7 @@ import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.Projects;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -41,22 +42,30 @@ import static com.google.common.truth.Truth.assertThat;
  */
 public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
   public void testSyncFromCachedModel() throws Exception {
-    loadSimpleApplication();
+    boolean originalUseSingleVariantSync = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
+    try {
+      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
 
-    AndroidProject androidProject = getAndroidProjectInApp();
-    // Verify AndroidProject was copied.
-    assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
+      loadSimpleApplication();
 
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
-    request.useCachedGradleModels = true;
-    SyncListener syncListener = requestSync(request);
-    assertTrue(syncListener.isSyncSkipped());
+      AndroidProject androidProject = getAndroidProjectInApp();
+      // Verify AndroidProject was copied.
+      assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
 
-    AndroidProject cached = getAndroidProjectInApp();
-    // Verify AndroidProject was deserialized.
-    assertThat(cached).isInstanceOf(IdeAndroidProjectImpl.class);
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      request.useCachedGradleModels = true;
+      SyncListener syncListener = requestSync(request);
+      assertTrue(syncListener.isSyncSkipped());
 
-    assertEquals(androidProject, cached);
+      AndroidProject cached = getAndroidProjectInApp();
+      // Verify AndroidProject was deserialized.
+      assertThat(cached).isInstanceOf(IdeAndroidProjectImpl.class);
+
+      assertEquals(androidProject, cached);
+    }
+    finally {
+      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = originalUseSingleVariantSync;
+    }
   }
 
   public void ignore_testSyncWithGradle2Dot2() throws Exception {

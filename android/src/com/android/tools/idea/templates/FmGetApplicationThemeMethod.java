@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_EXISTS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_IS_APP_COMPAT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_THEME_NAME;
+
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.npw.ThemeHelper;
@@ -22,12 +26,10 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import freemarker.template.TemplateMethodModelEx;
-import freemarker.template.TemplateModelException;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 public class FmGetApplicationThemeMethod implements TemplateMethodModelEx {
   private final Map<String, Object> myParamMap;
@@ -37,7 +39,7 @@ public class FmGetApplicationThemeMethod implements TemplateMethodModelEx {
   }
 
   @Override
-  public Object exec(List arguments) throws TemplateModelException {
+  public Object exec(List arguments) {
     String modulePath = (String)myParamMap.get(TemplateMetadata.ATTR_PROJECT_OUT);
     if (modulePath == null) {
       return null;
@@ -65,9 +67,9 @@ public class FmGetApplicationThemeMethod implements TemplateMethodModelEx {
     }
 
     Map<String, Object> map = Maps.newHashMap();
-    map.put("name", themeName);
-    map.put("isAppCompat", helper.isAppCompatTheme(themeName));
-    map.put("exists", true);
+    map.put(ATTR_APP_THEME_NAME, themeName);
+    map.put(ATTR_APP_THEME_IS_APP_COMPAT, helper.isAppCompatTheme(themeName));
+    map.put(ATTR_APP_THEME_EXISTS, true);
     Boolean hasActionBar = ThemeHelper.hasActionBar(configuration, themeName);
     addDerivedTheme(map, themeName, "NoActionBar", hasActionBar == Boolean.FALSE, helper, configuration);
     addDerivedTheme(map, themeName, "AppBarOverlay", false, helper, configuration);

@@ -19,18 +19,10 @@ import com.android.tools.profilers.ProfilerTooltip;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuUsageTooltip implements ProfilerTooltip {
-  @NotNull private final CpuProfilerStage myStage;
   @NotNull private final CpuProfilerStage.CpuStageLegends myLegends;
 
   public CpuUsageTooltip(@NotNull CpuProfilerStage stage) {
-    myStage = stage;
     myLegends = new CpuProfilerStage.CpuStageLegends(stage.getCpuUsage(), stage.getStudioProfilers().getTimeline().getTooltipRange());
-    myStage.getStudioProfilers().getUpdater().register(myLegends);
-  }
-
-  @Override
-  public void dispose() {
-    myStage.getStudioProfilers().getUpdater().unregister(myLegends);
   }
 
   @NotNull

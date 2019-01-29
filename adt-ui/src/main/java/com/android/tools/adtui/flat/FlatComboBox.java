@@ -17,6 +17,9 @@ package com.android.tools.adtui.flat;
 
 import com.intellij.openapi.ui.ComboBox;
 
+/**
+ * TODO deprecate in preference of {@link com.android.tools.adtui.stdui.CommonComboBox}
+ */
 public class FlatComboBox<E> extends ComboBox<E> {
 
   public FlatComboBox() {

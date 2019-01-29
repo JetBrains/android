@@ -47,13 +47,14 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    myFixture.copyFileToProject("annotator/color_test.xml", "res/layout/color_test.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors1.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors2.xml");
-    myFixture.copyFileToProject("annotator/selector.xml", "res/color/selector.xml");
-    myFixture.copyFileToProject("annotator/color_test.xml", "res/layout/color_test.xml");
     myFixture.copyFileToProject("annotator/ColorTest.java", "src/p1/p2/ColorTest.java");
-    myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("annotator/ic_tick.xml", "res/drawable/ic_tick.xml");
+    myFixture.copyFileToProject("annotator/layer_list.xml", "res/drawable/layer_list.xml");
+    myFixture.copyFileToProject("annotator/selector.xml", "res/color/selector.xml");
+    myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
   }
 
@@ -65,8 +66,8 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
 
   public void testColorInValues2() {
     // Color definition in a values file
-    Annotation annotatation = findAnnotation("res/values/colors2.xml", "303F9F", XmlTag.class);
-    checkAnnotationColor(annotatation, new Color(0x303F9F));
+    Annotation annotation = findAnnotation("res/values/colors2.xml", "303F9F", XmlTag.class);
+    checkAnnotationColor(annotation, new Color(0x303F9F));
   }
 
   public void testColorStateListInValues() {
@@ -102,8 +103,14 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
   }
 
   public void testVectorReferenceInXml() throws IOException {
-    // Reference to vector a color from a layout file
+    // Reference to a vector drawable from a layout file.
     Annotation annotation = findAnnotation("res/layout/color_test.xml", "@drawable/ic_tick", XmlAttributeValue.class);
+    checkAnnotationImage(annotation, "annotator/ic_tick_thumbnail.png");
+  }
+
+  public void testLayerList() throws Exception {
+    // Reference to a layer-list drawable from a layout file.
+    Annotation annotation = findAnnotation("res/layout/color_test.xml", "@drawable/layer_list", XmlAttributeValue.class);
     checkAnnotationImage(annotation, "annotator/ic_tick_thumbnail.png");
   }
 
@@ -111,13 +118,12 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
     String layoutPath = "res/layout/color_test.xml";
     Annotation annotation = findAnnotation(layoutPath, "@android:drawable/ic_lock_lock", XmlAttributeValue.class);
 
-    // Find the icon we should be rendering in layoutlib data
-    Configuration configuration = AndroidColorAnnotator.pickConfiguration(myFacet, myModule, getPsiFile(layoutPath));
+    // Find the icon we should be rendering in layoutlib data.
+    Configuration configuration = AndroidAnnotatorUtil.pickConfiguration(myFacet, myModule, getPsiFile(layoutPath));
     assertThat(configuration).isNotNull();
     IAndroidTarget target = configuration.getTarget();
     assertThat(target).isNotNull();
     String resPath = target.getPath(IAndroidTarget.RESOURCES);
-
     checkAnnotationImage(annotation, resPath + "/drawable-ldpi/ic_lock_lock_alpha.png");
   }
 

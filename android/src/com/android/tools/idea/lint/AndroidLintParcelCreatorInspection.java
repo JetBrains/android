@@ -16,10 +16,13 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.ParcelDetector;
+import com.android.tools.lint.detector.api.LintFix;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintParcelCreatorInspection extends AndroidLintInspectionBase {
   public AndroidLintParcelCreatorInspection() {
@@ -28,9 +31,16 @@ public class AndroidLintParcelCreatorInspection extends AndroidLintInspectionBas
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{
-      new ParcelableQuickFix(AndroidBundle.message("implement.parcelable.intention.text"), ParcelableQuickFix.Operation.IMPLEMENT),
-    };
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable LintFix fixData) {
+    if (fixData != null) {
+      return super.getQuickFixes(startElement, endElement, message, fixData);
+    } else {
+      return new AndroidLintQuickFix[]{
+        new ParcelableQuickFix(AndroidBundle.message("implement.parcelable.intention.text"), ParcelableQuickFix.Operation.IMPLEMENT),
+      };
+    }
   }
 }

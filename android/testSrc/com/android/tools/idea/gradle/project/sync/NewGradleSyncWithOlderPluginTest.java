@@ -67,6 +67,11 @@ public class NewGradleSyncWithOlderPluginTest extends GradleSyncWithOlderPluginT
     notifySkippedTest();
   }
 
+  @Override
+  public void testSyncWithGradleBuildCacheUninitialized() throws Exception {
+    notifySkippedTest();
+  }
+
   private void notifySkippedTest() {
     System.out.println(String.format("Skipped '%1$s#%2$s'. See http://b/67390792 .", getClass().getSimpleName(), getName()));
   }

@@ -20,7 +20,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.adtui.ImageUtils;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
@@ -441,7 +441,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
           }
         }
         else if (isEligibleForConversion(file, null)) { // null settings: don't skip transparent/nine patches etc: we want to count those
-          if (launcherIconNames.contains(LintUtils.getBaseName(file.getName())) &&
+          if (launcherIconNames.contains(Lint.getBaseName(file.getName())) &&
               file.getParent() != null && (
                 file.getParent().getName().startsWith(FD_RES_DRAWABLE)
                 || file.getParent().getName().startsWith(FD_RES_MIPMAP))) {

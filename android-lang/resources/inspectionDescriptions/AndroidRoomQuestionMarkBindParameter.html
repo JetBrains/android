@@ -1,5 +1,7 @@
 <html>
 <body>
-Checks RoomSql queries for unresolved references.
+Reports Room SQL queries that use unnamed query parameters (e.g. <code>WHERE id = ?</code>). This is not supported by the Room query
+analyzer which requires named query parameters (e.g. <code>WHERE id = :id</code>) that correspond to arguments of the method annotated with
+<code>@Query</code>.
 </body>
 </html>

@@ -51,6 +51,7 @@ public class PlatformComponentsPanel {
   private TreeTableView myPlatformDetailTable;
   private JPanel myPlatformPanel;
   private JCheckBox myPlatformDetailsCheckbox;
+  private JCheckBox myHideObsoletePackagesCheckbox;
   private JPanel myPlatformLoadingPanel;
   private JBLabel myPlatformLoadingLabel;
   @SuppressWarnings("unused") private AsyncProcessIcon myPlatformLoadingIcon;
@@ -77,12 +78,8 @@ public class PlatformComponentsPanel {
     myPlatformSummaryTable.setColumnSelectionAllowed(false);
     myPlatformLoadingLabel.setForeground(JBColor.GRAY);
 
-    myPlatformDetailsCheckbox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        updatePlatformTable();
-      }
-    });
+    myPlatformDetailsCheckbox.addActionListener(e -> updatePlatformTable());
+    myHideObsoletePackagesCheckbox.addActionListener(e -> updatePlatformItems());
   }
 
   private void updatePlatformTable() {
@@ -98,24 +95,23 @@ public class PlatformComponentsPanel {
     for (AndroidVersion version : versions) {
       Set<UpdaterTreeNode> versionNodes = Sets.newHashSet();
       UpdaterTreeNode marker = new ParentTreeNode(version);
-      myPlatformDetailsRootNode.add(marker);
-      boolean obsolete = false;
       for (UpdatablePackage info : myCurrentPackages.get(version)) {
         RepoPackage pkg = info.getRepresentative();
+        if (pkg.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
+          continue;
+        }
         PackageNodeModel model = new PackageNodeModel(info);
         myStates.add(model);
         UpdaterTreeNode node = new DetailsTreeNode(model, myModificationListener, myConfigurable);
         marker.add(node);
         versionNodes.add(node);
-        if (pkg.obsolete() && pkg.getTypeDetails() instanceof DetailsTypes.PlatformDetailsType) {
-          obsolete = true;
-        }
       }
-      if (!obsolete) {
-        SummaryTreeNode node = SummaryTreeNode.createNode(version, versionNodes);
-        if (node != null) {
-          myPlatformSummaryRootNode.add(node);
-        }
+      if (marker.getChildCount() > 0) {
+        myPlatformDetailsRootNode.add(marker);
+      }
+      SummaryTreeNode node = SummaryTreeNode.createNode(version, versionNodes);
+      if (node != null) {
+        myPlatformSummaryRootNode.add(node);
       }
     }
     refreshModified();

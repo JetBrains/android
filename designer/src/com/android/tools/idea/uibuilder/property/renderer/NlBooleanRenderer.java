@@ -24,7 +24,7 @@ import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ThreeStateCheckBox;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,6 +119,6 @@ public class NlBooleanRenderer extends NlAttributeRenderer {
 
   @Override
   public boolean canRender(@NotNull NlProperty item, @NotNull Set<AttributeFormat> formats) {
-    return formats.contains(AttributeFormat.Boolean);
+    return formats.contains(AttributeFormat.BOOLEAN);
   }
 }

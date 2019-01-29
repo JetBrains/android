@@ -22,7 +22,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileDescription;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +62,8 @@ public abstract class AndroidResourceDomFileDescription<T extends DomElement> ex
 
   @Override
   protected void initializeFileDescription() {
-    registerNamespacePolicy(AndroidUtils.NAMESPACE_KEY, SdkConstants.NS_RESOURCES);
+    registerNamespacePolicy(SdkConstants.ANDROID_NS_NAME, SdkConstants.ANDROID_URI);
+    registerNamespacePolicy(SdkConstants.APP_PREFIX, SdkConstants.AUTO_URI);
   }
 
   @NotNull

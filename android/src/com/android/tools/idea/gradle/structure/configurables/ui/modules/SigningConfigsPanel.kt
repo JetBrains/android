@@ -15,27 +15,51 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.modules
 
-import com.android.tools.idea.gradle.structure.configurables.android.modules.SigningConfigsTreeModel
+import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
+import com.android.tools.idea.gradle.structure.configurables.findChildFor
+import com.android.tools.idea.gradle.structure.configurables.getModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ConfigurablesMasterDetailsPanel
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
+import com.android.tools.idea.gradle.structure.configurables.ui.validateAndShow
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.InputValidator
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.Messages.YES
 import com.intellij.util.IconUtil
-import javax.swing.tree.TreePath
 
-class SigningConfigsPanel(val treeModel: SigningConfigsTreeModel) :
+const val SIGNING_CONFIGS_DISPLAY_NAME = "Signing Configs"
+class SigningConfigsPanel(
+  val module: PsAndroidModule,
+  val treeModel: ConfigurablesTreeModel,
+  psUiSettings: PsUISettings
+) :
     ConfigurablesMasterDetailsPanel<PsSigningConfig>(
-        "Signing Configs",
-        "android.psd.signing_config",
-        treeModel
+      SIGNING_CONFIGS_DISPLAY_NAME,
+      "android.psd.signing_config",
+      treeModel,
+      psUiSettings
     ) {
   override fun getRemoveAction(): AnAction? {
-    return object : DumbAwareAction("Remove Signing Config", "Remove Signing Config", IconUtil.getRemoveIcon()) {
+    return object : DumbAwareAction("Remove Signing Config", "Removes a Signing Config", IconUtil.getRemoveIcon()) {
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = selectedConfigurable != null
+      }
+
       override fun actionPerformed(e: AnActionEvent) {
-        TODO("Implement remove signing config")
+        if (Messages.showYesNoDialog(
+            e.project,
+            "Remove signing config '${selectedConfigurable?.displayName}' from the module?",
+            "Remove Signing Config",
+            Messages.getQuestionIcon()
+          ) == YES) {
+          val nodeToSelectAfter = selectedNode.nextSibling ?: selectedNode.previousSibling
+          module.removeSigningConfig(selectedNode.getModel() ?: return)
+          selectNode(nodeToSelectAfter)
+        }
       }
     }
   }
@@ -52,14 +76,22 @@ class SigningConfigsPanel(val treeModel: SigningConfigsTreeModel) :
                   null,
                   "", object : InputValidator {
                   override fun checkInput(inputString: String?): Boolean = !inputString.isNullOrBlank()
-                  override fun canClose(inputString: String?): Boolean = !inputString.isNullOrBlank()
+                  override fun canClose(inputString: String?): Boolean =
+                    validateAndShow { module.validateSigningConfigName(inputString.orEmpty()) }
                 })
             if (newName != null) {
-              val (_, node) = treeModel.createSigningConfig(newName)
-              tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
+              val signingConfig = module.addNewSigningConfig(newName)
+              val node = treeModel.rootNode.findChildFor(signingConfig)
+              selectNode(node)
             }
           }
         }
     )
+  }
+
+  override fun PsUISettings.getLastEditedItem(): String? = LAST_EDITED_SIGNING_CONFIG
+
+  override fun PsUISettings.setLastEditedItem(value: String?) {
+    LAST_EDITED_SIGNING_CONFIG = value
   }
 }

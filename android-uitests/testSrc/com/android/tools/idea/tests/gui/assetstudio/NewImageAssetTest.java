@@ -23,9 +23,11 @@ import com.android.testutils.filesystemdiff.Script;
 import com.android.testutils.filesystemdiff.TreeBuilder;
 import com.android.testutils.filesystemdiff.TreeDifferenceEngine;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAssetStepFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,13 +38,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NewImageAssetTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/77269384
   @Test
   public void testAdaptiveIconsPreviewPanelContents() throws Exception {
     AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()
@@ -60,6 +64,7 @@ public class NewImageAssetTest {
     wizard.clickCancel();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/77269384
   @Test
   public void testNotificationImageCount() throws Exception {
     NewImageAssetStepFixture<AssetStudioWizardFixture> step = guiTest.importSimpleApplication()
@@ -74,7 +79,7 @@ public class NewImageAssetTest {
 
     step.selectIconType("Notification Icons");
     assertThat(step.getPreviewPanelCount()).isEqualTo(1);
-    assertThat(step.getPreviewPanelIconNames(0)).containsExactly("xxhdpi", "xhdpi", "hdpi", "mdpi").inOrder();
+    assertThat(step.getPreviewPanelIconNames(0)).containsExactly("anydpi", "xxhdpi", "xhdpi", "hdpi", "mdpi").inOrder();
     step.wizard()
       .clickNext()
       .clickFinish();
@@ -85,53 +90,8 @@ public class NewImageAssetTest {
     assertThat(newFiles).containsExactly("app/src/main/res/drawable-mdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-hdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-xhdpi/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxhdpi/ic_stat_name.png");
-  }
-
-  @Test
-  public void testNotificationImageCountForOldApi() throws Exception {
-    AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()
-      .getProjectView()
-      .selectAndroidPane()
-      .clickPath("app")
-      .getEditor()
-      .open("app/build.gradle")
-      .select("minSdkVersion (21)")
-      .enterText("4")
-      .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-      .performAction("Sync Now")
-      .waitForGradleProjectSyncToFinish()
-      .getEditor()
-      .moveBetween("minSdkVersion ", "4")
-      .getIdeFrame()
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
-
-    Path projectDir = guiTest.getProjectPath().toPath();
-    FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
-
-    wizard.getImageAssetStep()
-      .selectIconType("Notification Icons");
-    wizard.clickNext()
-      .clickFinish();
-
-    FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);
-
-    List<String> newFiles = getNewFiles(projectDir, TreeDifferenceEngine.computeEditScript(original, changed));
-    assertThat(newFiles).containsExactly("app/src/main/res/drawable-mdpi/ic_stat_name.png",
-                                         "app/src/main/res/drawable-hdpi/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xhdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-xxhdpi/ic_stat_name.png",
-
-                                         "app/src/main/res/drawable-mdpi-v9/ic_stat_name.png",
-                                         "app/src/main/res/drawable-hdpi-v9/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xhdpi-v9/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxhdpi-v9/ic_stat_name.png",
-
-                                         "app/src/main/res/drawable-mdpi-v11/ic_stat_name.png",
-                                         "app/src/main/res/drawable-hdpi-v11/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xhdpi-v11/ic_stat_name.png",
-                                         "app/src/main/res/drawable-xxhdpi-v11/ic_stat_name.png"
-      );
+                                         "app/src/main/res/drawable-anydpi-v24/ic_stat_name.xml");
   }
 
   @NotNull
@@ -143,9 +103,8 @@ public class NewImageAssetTest {
         newFiles.add(toString(root, action.getSourceEntry().getPath()));
       }
       if (action instanceof CreateDirectoryAction) {
-        try {
-          Files.walk(action.getSourceEntry().getPath())
-            .filter(Files::isRegularFile)
+        try (Stream<Path> stream = Files.walk(action.getSourceEntry().getPath())) {
+          stream.filter(Files::isRegularFile)
             .forEach(path -> newFiles.add(toString(root, path)));
         }
         catch (IOException ex) {

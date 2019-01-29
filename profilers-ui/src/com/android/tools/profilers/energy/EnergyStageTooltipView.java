@@ -17,32 +17,81 @@ package com.android.tools.profilers.energy;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipView;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 
 class EnergyStageTooltipView extends ProfilerTooltipView {
-  @NotNull private final EnergyProfilerStage myStage;
+  @NotNull private final EnergyStageTooltip myTooltip;
 
-  EnergyStageTooltipView(@NotNull EnergyProfilerStage stage) {
-    super(stage.getStudioProfilers().getTimeline(), "Energy");
-    myStage = stage;
+  public EnergyStageTooltipView(@NotNull EnergyProfilerStageView stageView, @NotNull EnergyStageTooltip tooltip) {
+    super(stageView.getTimeline());
+    myTooltip = tooltip;
   }
 
   @NotNull
   @Override
   protected JComponent createTooltip() {
-    EnergyProfilerStage.EnergyLegends legends = myStage.getTooltipLegends();
-    LegendComponent legend = new LegendComponent.Builder(legends)
+    EnergyProfilerStage.EnergyUsageLegends usageLegends = myTooltip.getUsageLegends();
+    LegendComponent usageLegendComponent = new LegendComponent.Builder(usageLegends)
       .setVerticalPadding(0)
       .setOrientation(LegendComponent.Orientation.VERTICAL)
       .build();
 
-    legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_CPU));
-    legend.configure(legends.getNetworkLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_NETWORK));
+    usageLegendComponent.configure(usageLegends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_CPU));
+    usageLegendComponent
+      .configure(usageLegends.getNetworkLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_NETWORK));
+    usageLegendComponent
+      .configure(usageLegends.getLocationLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_LOCATION));
 
-    return legend;
+    EnergyProfilerStage.EnergyEventLegends eventLegends = myTooltip.getEventLegends();
+    LegendComponent eventLegendComponent = new LegendComponent.Builder(eventLegends)
+      .setVerticalPadding(0)
+      .setOrientation(LegendComponent.Orientation.VERTICAL)
+      .build();
+    eventLegendComponent
+      .configure(eventLegends.getLocationLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_LOCATION));
+    eventLegendComponent
+      .configure(eventLegends.getWakeLockLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_WAKE_LOCK));
+    eventLegendComponent
+      .configure(eventLegends.getAlarmAndJobLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.ENERGY_BACKGROUND));
+    eventLegends.changed(LegendComponentModel.Aspect.LEGEND);
+
+
+    JPanel legendPanel = new JPanel(new TabularLayout("*", "Fit,8px,Fit,8px,Fit,Fit,Fit"));
+    legendPanel.setOpaque(false);
+    legendPanel.add(usageLegendComponent, new TabularLayout.Constraint(0, 0));
+
+    JLabel eventLabel = new JLabel("System Events");
+    eventLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    eventLabel.setFont(ProfilerFonts.STANDARD_FONT);
+    Color color = eventLabel.getForeground();
+    eventLabel.setForeground(new Color(color.getRed(), color.getGreen(), color.getBlue(), (int)(255*0.6)));
+    JPanel labelWithSeparator = new JPanel(new TabularLayout("Fit,8px,*", "Fit"));
+    labelWithSeparator.add(eventLabel, new TabularLayout.Constraint(0, 0));
+    labelWithSeparator.add(AdtUiUtils.createHorizontalSeparator(), new TabularLayout.Constraint(0, 2));
+    labelWithSeparator.setOpaque(false);
+    legendPanel.add(labelWithSeparator, new TabularLayout.Constraint(2, 0));
+
+    legendPanel.add(eventLegendComponent, new TabularLayout.Constraint(4, 0));
+
+    legendPanel.add(AdtUiUtils.createHorizontalSeparator(), new TabularLayout.Constraint(5, 0));
+
+    JLabel callToActionLabel = new JLabel("Select range to inspect");
+    callToActionLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
+    callToActionLabel.setFont(ProfilerFonts.STANDARD_FONT);
+    callToActionLabel.setForeground(eventLabel.getForeground());
+    legendPanel.add(callToActionLabel, new TabularLayout.Constraint(6, 0));
+
+
+    return legendPanel;
   }
 }

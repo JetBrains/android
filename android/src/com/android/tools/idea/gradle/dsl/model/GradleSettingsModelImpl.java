@@ -17,7 +17,11 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.collect.Lists;
@@ -31,6 +35,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -38,20 +43,28 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 public class GradleSettingsModelImpl extends GradleFileModelImpl implements GradleSettingsModel {
   public static final String INCLUDE = "include";
 
+  /**
+   * @deprecated Use {@link ProjectBuildModel#getProjectSettingsModel()} instead.
+   */
+  @Deprecated
   @Nullable
   public static GradleSettingsModel get(@NotNull Project project) {
     VirtualFile file = getGradleSettingsFile(getBaseDirPath(project));
     return file != null ? parseBuildFile(file, project, "settings") : null;
   }
 
+  /**
+   * @deprecated Use {@link ProjectBuildModel#getProjectSettingsModel()} instead.
+   */
+  @Deprecated
   @NotNull
   public static GradleSettingsModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    GradleSettingsFile settingsFile = new GradleSettingsFile(file, project, moduleName);
+    GradleSettingsFile settingsFile = new GradleSettingsFile(file, project, moduleName, BuildModelContext.create(project));
     settingsFile.parse();
     return new GradleSettingsModelImpl(settingsFile);
   }
 
-  private GradleSettingsModelImpl(@NotNull GradleSettingsFile parsedModel) {
+  public GradleSettingsModelImpl(@NotNull GradleSettingsFile parsedModel) {
     super(parsedModel);
   }
 
@@ -67,39 +80,37 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     List<String> result = Lists.newArrayList();
     result.add(":"); // Indicates the root module.
 
-    List<GradleNotNullValue<String>> includePaths = myGradleDslFile.getListProperty(INCLUDE, String.class);
+    GradleDslExpressionList includePaths = myGradleDslFile.getPropertyElement(INCLUDE, GradleDslExpressionList.class);
     if (includePaths == null) {
       return result;
     }
 
-    for (GradleNotNullValue<String> includePath : includePaths) {
-      result.add(standardiseModulePath(includePath.value()));
+    for (GradleDslSimpleExpression includePath : includePaths.getSimpleExpressions()) {
+      String value = includePath.getValue(String.class);
+      if (value != null) {
+        result.add(standardiseModulePath(value));
+      }
     }
     return result;
   }
 
-  @NotNull
   @Override
-  public GradleSettingsModelImpl addModulePath(@NotNull String modulePath) {
+  public void addModulePath(@NotNull String modulePath) {
     modulePath = standardiseModulePath(modulePath);
     myGradleDslFile.addToNewLiteralList(INCLUDE, modulePath);
-    return this;
   }
 
-  @NotNull
   @Override
-  public GradleSettingsModelImpl removeModulePath(@NotNull String modulePath) {
+  public void removeModulePath(@NotNull String modulePath) {
     // Try to remove the module path whether it has ":" prefix or not.
     if (!modulePath.startsWith(":")) {
       myGradleDslFile.removeFromExpressionList(INCLUDE, ":" + modulePath);
     }
     myGradleDslFile.removeFromExpressionList(INCLUDE, modulePath);
-    return this;
   }
 
-  @NotNull
   @Override
-  public GradleSettingsModelImpl replaceModulePath(@NotNull String oldModulePath, @NotNull String newModulePath) {
+  public void replaceModulePath(@NotNull String oldModulePath, @NotNull String newModulePath) {
     // Try to replace the module path whether it has ":" prefix or not.
     if (!newModulePath.startsWith(":")) {
       newModulePath = ":" + newModulePath;
@@ -108,18 +119,20 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
       myGradleDslFile.replaceInExpressionList(INCLUDE, ":" + oldModulePath, newModulePath);
     }
     myGradleDslFile.replaceInExpressionList(INCLUDE, oldModulePath, newModulePath);
-    return this;
   }
 
   @Nullable
   @Override
   public File moduleDirectory(String modulePath) {
     modulePath = standardiseModulePath(modulePath);
-
     if (!modulePaths().contains(modulePath)) {
       return null;
     }
+    return moduleDirectoryNoCheck(modulePath);
+  }
 
+  @Nullable
+  private File moduleDirectoryNoCheck(String modulePath) {
     File rootDirPath = getBaseDirPath(myGradleDslFile.getProject());
     if (modulePath.equals(":")) {
       return rootDirPath;
@@ -139,11 +152,11 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
       parentDir = rootDirPath;
     }
     else {
-      String parentModule = parentModule(modulePath);
+      String parentModule = parentModuleNoCheck(modulePath);
       if (parentModule == null) {
         return null;
       }
-      parentDir = moduleDirectory(parentModule);
+      parentDir = moduleDirectoryNoCheck(parentModule);
     }
     String moduleName = modulePath.substring(modulePath.lastIndexOf(':') + 1);
     return new File(parentDir, moduleName);
@@ -171,31 +184,38 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     if (buildFile == null) {
       return null;
     }
-    return GradleBuildModelImpl
-      .parseBuildFile(buildFile, myGradleDslFile.getProject(), modulePath.substring(modulePath.lastIndexOf(':') + 1));
+    GradleBuildFile dslFile =
+      myGradleDslFile.getContext().getOrCreateBuildFile(buildFile, modulePath.substring(modulePath.lastIndexOf(':') + 1));
+    return new GradleBuildModelImpl(dslFile);
   }
 
   @Nullable
   @Override
   public String parentModule(@NotNull String modulePath) {
     modulePath = standardiseModulePath(modulePath);
-
     List<String> allModulePaths = modulePaths();
     if (!allModulePaths.contains(modulePath)) {
       return null;
     }
+    String currentPath = modulePath;
+    do {
+      currentPath = parentModuleNoCheck(currentPath);
+      if (allModulePaths.contains(currentPath)) {
+        return currentPath;
+      }
+    }
+    while (currentPath != null && !currentPath.equals(":"));
+    return null;
+  }
 
+  @Nullable
+  private String parentModuleNoCheck(@NotNull String modulePath) {
+    modulePath = standardiseModulePath(modulePath);
     if (modulePath.equals(":")) {
       return null;
     }
-
     int lastPathElementIndex = modulePath.lastIndexOf(':');
-    String parentModulePath = lastPathElementIndex == 0 ? ":" : modulePath.substring(0, lastPathElementIndex);
-
-    if (allModulePaths.contains(parentModulePath)) {
-      return parentModulePath;
-    }
-    return null;
+    return lastPathElementIndex == 0 ? ":" : modulePath.substring(0, lastPathElementIndex);
   }
 
   @Nullable
@@ -220,7 +240,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     String projectKey = "project('" + modulePath + "')";
     ProjectPropertiesDslElement projectProperties = myGradleDslFile.getPropertyElement(projectKey, ProjectPropertiesDslElement.class);
     if (projectProperties != null) {
-      buildFileName = projectProperties.buildFileName().value();
+      buildFileName =  projectProperties.getLiteral(BUILD_FILE_NAME, String.class);
     }
 
     if (buildFileName == null) {

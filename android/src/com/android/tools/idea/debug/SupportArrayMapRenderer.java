@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.debug;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.support.AndroidxName;
 
 public class SupportArrayMapRenderer extends ArrayMapRendererBase {
+  static final AndroidxName ARRAY_MAP_NAME = AndroidxName.of("android.support.v4.util.", "ArrayMap");
+
   public SupportArrayMapRenderer() {
-    super("android.support.v4.util.ArrayMap");
+    super(ARRAY_MAP_NAME.oldName());
   }
 }

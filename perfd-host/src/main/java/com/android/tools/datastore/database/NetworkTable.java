@@ -18,7 +18,6 @@ package com.android.tools.datastore.database;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -148,7 +147,7 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
                                                                         NetworkProfiler.HttpDetailsRequest.Type type) {
     NetworkProfiler.HttpDetailsResponse.Builder responseBuilder = NetworkProfiler.HttpDetailsResponse.newBuilder();
     try {
-      ResultSet results = executeQuery(NetworkStatements.FIND_CONNECTION_DATA, connId, session);
+      ResultSet results = executeQuery(NetworkStatements.FIND_CONNECTION_DATA, connId, session.getSessionId());
       if (results.next()) {
         Optional<Integer> column = columnFor(type);
         if (column.isPresent()) {
@@ -201,7 +200,7 @@ public class NetworkTable extends DataStoreTable<NetworkTable.NetworkStatements>
     byte[] requestBodyData = requestBody == null ? null : requestBody.toByteArray();
     byte[] responseBodyData = responseBody == null ? null : responseBody.toByteArray();
     byte[] threadsData = threads == null ? null : threads.toByteArray();
-    execute(NetworkStatements.INSERT_CONNECTION_DATA, session, id, startTime, endTime, commonData, requestData, responseData,
+    execute(NetworkStatements.INSERT_CONNECTION_DATA, session.getSessionId(), id, startTime, endTime, commonData, requestData, responseData,
             requestBodyData, responseBodyData, threadsData);
   }
 }

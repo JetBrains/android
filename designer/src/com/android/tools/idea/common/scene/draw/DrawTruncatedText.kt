@@ -17,28 +17,32 @@ package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
-import java.awt.*
+import java.awt.Color
+import java.awt.Font
+import java.awt.FontMetrics
+import java.awt.Graphics2D
+import java.awt.geom.Rectangle2D
 
 /**
  * [DrawTruncatedText] draws a string in the specified rectangle and truncates if necessary
  */
 private const val ELLIPSIS = "..."
 
-class DrawTruncatedText(private var myLevel: Int,
-                        private var myText: String,
-                        @SwingCoordinate private val myRectangle: Rectangle,
-                        private val myColor: Color,
-                        private val myFont: Font,
-                        private val myIsCentered: Boolean) : DrawCommand {
+data class DrawTruncatedText(private var myLevel: Int,
+                             private var myText: String,
+                             @SwingCoordinate private val myRectangle: Rectangle2D.Float,
+                             private val myColor: Color,
+                             private val myFont: Font,
+                             private val myIsCentered: Boolean) : DrawCommandBase() {
 
   private var myTruncatedText = ""
-  @SwingCoordinate private var myX = 0
-  @SwingCoordinate private var myY = 0
+  @SwingCoordinate private var myX = 0f
+  @SwingCoordinate private var myY = 0f
 
   constructor(s: String) : this(parse(s, 6))
 
   private constructor(sp: Array<String>) : this(sp[0].toInt(), sp[1],
-      stringToRect(sp[2]), stringToColor(sp[3]), stringToFont(sp[4]), sp[5].toBoolean())
+    stringToRect2D(sp[2]), stringToColor(sp[3]), stringToFont(sp[4]), sp[5].toBoolean())
 
   override fun getLevel(): Int {
     return myLevel
@@ -48,13 +52,13 @@ class DrawTruncatedText(private var myLevel: Int,
     return buildString(javaClass.simpleName,
         myLevel,
         myText,
-        rectToString(myRectangle),
+        rect2DToString(myRectangle),
         colorToString(myColor),
         fontToString(myFont),
         myIsCentered)
   }
 
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val fontMetrics = g.getFontMetrics(myFont)
 
     if (myTruncatedText.isEmpty()) {
@@ -65,17 +69,13 @@ class DrawTruncatedText(private var myLevel: Int,
 
       if (myIsCentered) {
         myX += (myRectangle.width - fontMetrics.stringWidth(myTruncatedText)) / 2
-        myY -= (myRectangle.height - fontMetrics.ascent) / 2
+        myY -= (myRectangle.height - fontMetrics.ascent + fontMetrics.descent) / 2
       }
     }
 
-    val g2 = g.create()
-
-    g2.color = myColor
-    g2.font = myFont
-    g2.drawString(myTruncatedText, myX, myY)
-
-    g2.dispose()
+    g.color = myColor
+    g.font = myFont
+    g.drawString(myTruncatedText, myX, myY)
   }
 
   // TODO: use AdtUiUtils.shrinkToFit

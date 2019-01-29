@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
+import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
-import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.TemplateManager;
@@ -26,7 +28,6 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -49,16 +50,29 @@ public class NewAndroidComponentAction extends AnAction {
   // These categories will be using a new wizard
   public static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google");
 
+  public static final DataKey<List<File>> CREATED_FILES = DataKey.create("CreatedFiles");
+
   private final String myTemplateCategory;
   private final String myTemplateName;
-  private final int myMinSdkVersion;
+  private final int myMinSdkApi;
+  private final int myMinBuildSdkApi;
+  private boolean myShouldOpenFiles = true;
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion) {
+    this(templateCategory, templateName, minSdkVersion, minSdkVersion);
+  }
+
+  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, int minSdkVersion, int minBuildSdkApi) {
     super(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
     getTemplatePresentation().setIcon(isActivityTemplate() ? AndroidIcons.Activity : AndroidIcons.AndroidFile);
-    myMinSdkVersion = minSdkVersion;
+    myMinSdkApi = minSdkVersion;
+    myMinBuildSdkApi = minBuildSdkApi;
+  }
+
+  public void setShouldOpenFiles(boolean shouldOpenFiles) {
+    myShouldOpenFiles = shouldOpenFiles;
   }
 
   private boolean isActivityTemplate() {
@@ -78,14 +92,18 @@ public class NewAndroidComponentAction extends AnAction {
     }
 
     Presentation presentation = e.getPresentation();
-    int moduleMinSdkVersion = moduleInfo.getMinSdkVersion().getApiLevel();
-    if (myMinSdkVersion > moduleMinSdkVersion) {
-      presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", myTemplateName, myMinSdkVersion));
+    AndroidVersion buildSdkVersion = moduleInfo.getBuildSdkVersion();
+    if (myMinSdkApi > moduleInfo.getMinSdkVersion().getFeatureLevel()) {
+      presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", myTemplateName, myMinSdkApi));
+      presentation.setEnabled(false);
+    }
+    else if (buildSdkVersion != null && myMinBuildSdkApi > buildSdkVersion.getFeatureLevel()) {
+      presentation.setText(AndroidBundle.message("android.wizard.action.requires.minbuildsdk", myTemplateName, myMinBuildSdkApi));
       presentation.setEnabled(false);
     }
     else {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
-      boolean isProjectReady = facet != null && facet.getAndroidModel() != null && facet.getProjectType() != PROJECT_TYPE_INSTANTAPP;
+      boolean isProjectReady = facet != null && facet.getConfiguration().getModel() != null && facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP;
       presentation.setEnabled(isProjectReady);
     }
   }
@@ -94,17 +112,12 @@ public class NewAndroidComponentAction extends AnAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     DataContext dataContext = e.getDataContext();
 
-    IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
-    if (view == null) {
-      return;
-    }
-
     Module module = LangDataKeys.MODULE.getData(dataContext);
     if (module == null) {
       return;
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || facet.getAndroidModel() == null) {
+    if (facet == null || facet.getConfiguration().getModel() == null) {
       return;
     }
 
@@ -128,17 +141,22 @@ public class NewAndroidComponentAction extends AnAction {
     Project project = module.getProject();
 
     RenderTemplateModel templateModel = new RenderTemplateModel(
-      module, new TemplateHandle(file), initialPackageSuggestion, moduleTemplates.get(0), "New " + activityDescription);
+      facet, new TemplateHandle(file), initialPackageSuggestion, moduleTemplates.get(0), "New " + activityDescription,
+      new ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+      myShouldOpenFiles);
 
     boolean isActivity = isActivityTemplate();
     String dialogTitle = AndroidBundle.message(isActivity ? "android.wizard.new.activity.title" : "android.wizard.new.component.title");
     String stepTitle = AndroidBundle.message(isActivity ? "android.wizard.config.activity.title" : "android.wizard.config.component.title");
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates, facet));
+    wizardBuilder.addStep(new ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates));
     ModelWizardDialog dialog = new StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(project).build();
     dialog.show();
-
+    List<File> createdFiles = dataContext.getData(CREATED_FILES);
+    if (createdFiles != null) {
+      createdFiles.addAll(templateModel.getCreatedFiles());
+    }
     /*
     // TODO: Implement the getCreatedElements call for the wizard
     final PsiElement[] createdElements = dialog.getCreatedElements();

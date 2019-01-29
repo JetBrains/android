@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 
 import android.widget.ListView;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;

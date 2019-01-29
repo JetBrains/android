@@ -16,7 +16,7 @@ package com.android.tools.profilers.energy;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse.EnergySample;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,18 +24,27 @@ public class DetailedEnergyUsage extends LineChartModel {
 
   @NotNull private final RangedContinuousSeries myCpuUsageSeries;
   @NotNull private final RangedContinuousSeries myNetworkUsageSeries;
+  @NotNull private final RangedContinuousSeries myLocationUsageSeries;
   @NotNull private final Range myUsageRange;
 
   public DetailedEnergyUsage(@NotNull StudioProfilers profilers) {
-    myUsageRange = new Range(0, 100);
+    myUsageRange = new Range(0, EnergyMonitor.MAX_EXPECTED_USAGE);
+
+    EnergyUsageDataSeries locationDataSeries =
+      new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), EnergySample::getLocationUsage);
+    myLocationUsageSeries =
+      new RangedContinuousSeries("Location", profilers.getTimeline().getViewRange(), myUsageRange, locationDataSeries);
+    add(myLocationUsageSeries);
+
+    EnergyUsageDataSeries networkDataSeries =
+      new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), EnergySample::getNetworkUsage);
+    myNetworkUsageSeries = new RangedContinuousSeries("Network", profilers.getTimeline().getViewRange(), myUsageRange, networkDataSeries);
+    add(myNetworkUsageSeries);
+
     EnergyUsageDataSeries cpuDataSeries =
       new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), EnergySample::getCpuUsage);
     myCpuUsageSeries = new RangedContinuousSeries("CPU", profilers.getTimeline().getViewRange(), myUsageRange, cpuDataSeries);
     add(myCpuUsageSeries);
-    EnergyUsageDataSeries networkDataSeries =
-      new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), EnergySample::getNetworkUsage);
-    myNetworkUsageSeries = new RangedContinuousSeries("NETWORK", profilers.getTimeline().getViewRange(), myUsageRange, networkDataSeries);
-    add(myNetworkUsageSeries);
   }
 
   @NotNull
@@ -51,5 +60,10 @@ public class DetailedEnergyUsage extends LineChartModel {
   @NotNull
   public RangedContinuousSeries getNetworkUsageSeries() {
     return myNetworkUsageSeries;
+  }
+
+  @NotNull
+  public RangedContinuousSeries getLocationUsageSeries() {
+    return myLocationUsageSeries;
   }
 }

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.SdkConstants;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
@@ -48,8 +47,8 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
     super.setUp();
 
     scheduler = new VirtualTimeScheduler();
-    myUsageTracker = new TestUsageTracker(new AnalyticsSettings(), scheduler);
-    UsageTracker.setInstanceForTest(myUsageTracker);
+    myUsageTracker = new TestUsageTracker(scheduler);
+    UsageTracker.setWriterForTest(myUsageTracker);
   }
 
   @Override
@@ -63,7 +62,8 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
     }
   }
 
-  public void testProductStructureUsageTrackingBasic() throws Exception {
+  // b/72260139
+  public void ignore_testProductStructureUsageTrackingBasic() throws Exception {
     trackGradleProject(PROJECT_WITH_APPAND_LIB);
 
     List<LoggedUsage> usages = myUsageTracker.getUsages();
@@ -117,11 +117,6 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
     assertEquals(GradleBuildDetails.newBuilder()
                    //TODO: add once reenabled
                    .build(), usage.getStudioEvent().getGradleBuildDetails());
-  }
-
-  public void testGetApplicationId() throws Exception {
-    loadProject(PROJECT_WITH_APPAND_LIB);
-    assertEquals("com.example.projectwithappandlib.app", ProjectStructureUsageTracker.getApplicationId(getProject()));
   }
 
   public void testStringToBuildSystemType() {

@@ -37,7 +37,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.execution.ParametersListUtil;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.sdk.MessageBuildingSdkLog;
@@ -62,7 +61,7 @@ public class AndroidCommonUtils {
   @NonNls public static final String PROGUARD_CFG_FILE_NAME = "proguard-project.txt";
   public static final String SDK_HOME_MACRO = "%MODULE_SDK_HOME%";
   public static final String PROGUARD_SYSTEM_CFG_FILE_URL =
-    "file://" + SDK_HOME_MACRO + "/tools/proguard/proguard-android.txt";
+      "file://" + SDK_HOME_MACRO + "/tools/proguard/proguard-android.txt";
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidCommonUtils");
 
   @NonNls public static final String MANIFEST_JAVA_FILE_NAME = "Manifest.java";
@@ -131,7 +130,7 @@ public class AndroidCommonUtils {
   }
 
   public static String command2string(@NotNull Collection<String> command) {
-    final StringBuilder builder = new StringBuilder();
+    StringBuilder builder = new StringBuilder();
     for (Iterator<String> it = command.iterator(); it.hasNext(); ) {
       String s = it.next();
       builder.append('[');
@@ -150,7 +149,7 @@ public class AndroidCommonUtils {
       newFiles.add(to);
     }
     else {
-      final File[] children = from.listFiles();
+      File[] children = from.listFiles();
 
       if (children != null) {
         for (File child : children) {
@@ -163,8 +162,8 @@ public class AndroidCommonUtils {
   public static void handleDexCompilationResult(@NotNull Process process,
                                                 @NotNull String commandLine,
                                                 @NotNull String outputFilePath,
-                                                @NotNull final Map<AndroidCompilerMessageKind, List<String>> messages, boolean multiDex) {
-    final BaseOSProcessHandler handler = new BaseOSProcessHandler(process, commandLine, null);
+                                                @NotNull Map<AndroidCompilerMessageKind, List<String>> messages, boolean multiDex) {
+    BaseOSProcessHandler handler = new BaseOSProcessHandler(process, commandLine, null);
     handler.addProcessListener(new ProcessAdapter() {
       private AndroidCompilerMessageKind myCategory = null;
 
@@ -197,7 +196,7 @@ public class AndroidCommonUtils {
     handler.startNotify();
     handler.waitFor();
 
-    final List<String> errors = messages.get(AndroidCompilerMessageKind.ERROR);
+    List<String> errors = messages.get(AndroidCompilerMessageKind.ERROR);
 
     if (new File(outputFilePath).isFile()) {
       // if compilation finished correctly, show all errors as warnings
@@ -213,23 +212,23 @@ public class AndroidCommonUtils {
   public static List<String> packClassFilesIntoJar(@NotNull String[] firstPackageDirPaths,
                                                  @NotNull String[] libFirstPackageDirPaths,
                                                  @NotNull File jarFile) throws IOException {
-    final List<Pair<File, String>> files = new ArrayList<Pair<File, String>>();
+    List<Pair<File, String>> files = new ArrayList<>();
     for (String path : firstPackageDirPaths) {
-      final File firstPackageDir = new File(path);
+      File firstPackageDir = new File(path);
       if (firstPackageDir.exists()) {
         packClassFilesIntoJar(firstPackageDir, firstPackageDir.getParentFile(), true, files);
       }
     }
 
     for (String path : libFirstPackageDirPaths) {
-      final File firstPackageDir = new File(path);
+      File firstPackageDir = new File(path);
       if (firstPackageDir.exists()) {
         packClassFilesIntoJar(firstPackageDir, firstPackageDir.getParentFile(), false, files);
       }
     }
 
     if (!files.isEmpty()) {
-      final JarOutputStream jos = new JarOutputStream(new FileOutputStream(jarFile));
+      JarOutputStream jos = new JarOutputStream(new FileOutputStream(jarFile));
       try {
         for (Pair<File, String> pair : files) {
           packIntoJar(jos, pair.getFirst(), pair.getSecond());
@@ -244,7 +243,7 @@ public class AndroidCommonUtils {
         throw new IOException("Cannot delete file " + FileUtil.toSystemDependentName(jarFile.getPath()));
       }
     }
-    final List<String> srcFiles = new ArrayList<String>();
+    List<String> srcFiles = new ArrayList<>();
 
     for (Pair<File, String> pair : files) {
       srcFiles.add(pair.getFirst().getPath());
@@ -255,11 +254,9 @@ public class AndroidCommonUtils {
   private static void packClassFilesIntoJar(@NotNull File file,
                                             @NotNull File rootDirectory,
                                             boolean packRAndManifestClasses,
-                                            @NotNull List<Pair<File, String>> files)
-    throws IOException {
-
+                                            @NotNull List<Pair<File, String>> files) {
     if (file.isDirectory()) {
-      final File[] children = file.listFiles();
+      File[] children = file.listFiles();
 
       if (children != null) {
         for (File child : children) {
@@ -279,7 +276,7 @@ public class AndroidCommonUtils {
         return;
       }
 
-      final String rootPath = rootDirectory.getAbsolutePath();
+      String rootPath = rootDirectory.getAbsolutePath();
 
       String path = file.getAbsolutePath();
       path = FileUtil.toSystemIndependentName(path.substring(rootPath.length()));
@@ -292,44 +289,29 @@ public class AndroidCommonUtils {
   }
 
   public static void packIntoJar(@NotNull JarOutputStream jar, @NotNull File file, @NotNull String path) throws IOException {
-    final JarEntry entry = new JarEntry(path);
+    JarEntry entry = new JarEntry(path);
     entry.setTime(file.lastModified());
     jar.putNextEntry(entry);
 
-    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-    try {
-      final byte[] buffer = new byte[1024];
+    try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+      byte[] buffer = new byte[1024];
       int count;
       while ((count = bis.read(buffer)) != -1) {
         jar.write(buffer, 0, count);
       }
       jar.closeEntry();
     }
-    finally {
-      bis.close();
-    }
   }
 
   @NotNull
   public static String getResourceName(@NotNull String resourceType, @NotNull String fileName) {
-    final String s = FileUtil.getNameWithoutExtension(fileName);
+    String s = FileUtil.getNameWithoutExtension(fileName);
 
     return resourceType.equals("drawable") &&
            s.endsWith(".9") &&
            FileUtilRt.extensionEquals(fileName, PNG_EXTENSION)
            ? s.substring(0, s.length() - 2)
            : s;
-  }
-
-  @NotNull
-  public static String getResourceTypeByTagName(@NotNull String tagName) {
-    if (tagName.equals("declare-styleable")) {
-      tagName = "styleable";
-    }
-    else if (tagName.endsWith("-array")) {
-      tagName = "array";
-    }
-    return tagName;
   }
 
   @NotNull
@@ -344,15 +326,15 @@ public class AndroidCommonUtils {
                                                                              @NotNull String[] providedJarOsPaths,
                                                                              @NotNull String outputJarFileOsPath,
                                                                              @Nullable String logDirOutputOsPath) throws IOException {
-    final List<String> commands = new ArrayList<String>();
+    List<String> commands = new ArrayList<>();
     commands.add(javaExecutablePath);
 
     if (!proguardVmOptions.isEmpty()) {
       commands.addAll(ParametersListUtil.parse(proguardVmOptions));
     }
     commands.add("-jar");
-    final String proguardHome = getProguardHomeDirOsPath(sdkOsPath);
-    final String proguardJarOsPath = proguardHome + File.separator + "lib" + File.separator + "proguard.jar";
+    String proguardHome = getProguardHomeDirOsPath(sdkOsPath);
+    String proguardJarOsPath = proguardHome + File.separator + "lib" + File.separator + "proguard.jar";
     commands.add(proguardJarOsPath);
 
     if (isIncludingInProguardSupported(sdkToolsRevision)) {
@@ -408,7 +390,7 @@ public class AndroidCommonUtils {
     }
 
     LOG.info(command2string(commands));
-    final Map<String, String> home = System.getenv().containsKey(PROGUARD_HOME_ENV_VARIABLE)
+    Map<String, String> home = System.getenv().containsKey(PROGUARD_HOME_ENV_VARIABLE)
                                      ? Collections.emptyMap()
                                      : Collections.singletonMap(PROGUARD_HOME_ENV_VARIABLE, proguardHome);
     return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(commands), home);
@@ -429,7 +411,7 @@ public class AndroidCommonUtils {
   }
 
   private static String quotePath(String path) {
-    if (path.indexOf(' ') != -1) {
+    if (path.indexOf(' ') >= 0) {
       path = '\'' + path + '\'';
     }
     return path;
@@ -437,7 +419,7 @@ public class AndroidCommonUtils {
 
   public static String buildTempInputJar(@NotNull String[] classFilesDirOsPaths, @NotNull String[] libClassFilesDirOsPaths)
     throws IOException {
-    final File inputJar = FileUtil.createTempFile("proguard_input", ".jar");
+    File inputJar = FileUtil.createTempFile("proguard_input", ".jar");
 
     packClassFilesIntoJar(classFilesDirOsPaths, libClassFilesDirOsPaths, inputJar);
 
@@ -464,10 +446,10 @@ public class AndroidCommonUtils {
    */
   @Nullable
   public static Revision parsePackageRevision(@NotNull String sdkDirOsPath, @NotNull String packageDirName) {
-    final File propFile =
+    File propFile =
       new File(sdkDirOsPath + File.separatorChar + packageDirName + File.separatorChar + SdkConstants.FN_SOURCE_PROP);
     if (propFile.exists() && propFile.isFile()) {
-      final Map<String, String> map =
+      Map<String, String> map =
         ProjectProperties.parsePropertyFile(new BufferingFileWrapper(propFile), new MessageBuildingSdkLog());
       if (map == null) {
         return null;
@@ -496,8 +478,8 @@ public class AndroidCommonUtils {
       return false;
     }
 
-    final File[] children1 = getFilteredChildren(dir1, filter);
-    final File[] children2 = getFilteredChildren(dir2, filter);
+    File[] children1 = getFilteredChildren(dir1, filter);
+    File[] children2 = getFilteredChildren(dir2, filter);
 
     if (children1 == null || children2 == null) {
       return Arrays.equals(children1, children2);
@@ -508,14 +490,14 @@ public class AndroidCommonUtils {
     }
 
     for (int i = 0; i < children1.length; i++) {
-      final File child1 = children1[i];
-      final File child2 = children2[i];
+      File child1 = children1[i];
+      File child2 = children2[i];
 
       if (!Comparing.equal(child1.getName(), child2.getName())) {
         return false;
       }
 
-      final boolean childDir = child1.isDirectory();
+      boolean childDir = child1.isDirectory();
       if (childDir != child2.isDirectory()) {
         return false;
       }
@@ -526,8 +508,8 @@ public class AndroidCommonUtils {
         }
       }
       else {
-        final String content1 = readFile(child1);
-        final String content2 = readFile(child2);
+        String content1 = readFile(child1);
+        String content2 = readFile(child2);
 
         if (!Comparing.equal(content1, content2)) {
           return false;
@@ -539,28 +521,28 @@ public class AndroidCommonUtils {
 
   @Nullable
   private static File[] getFilteredChildren(@NotNull File dir, @Nullable FileFilter filter) {
-    final File[] children = dir.listFiles();
+    File[] children = dir.listFiles();
     if (children == null || children.length == 0 || filter == null) {
       return children;
     }
 
-    final List<File> result = new ArrayList<File>();
+    List<File> result = new ArrayList<>();
     for (File child : children) {
       if (child.isDirectory() || filter.accept(child)) {
         result.add(child);
       }
     }
-    return result.toArray(new File[result.size()]);
+    return result.toArray(ArrayUtil.EMPTY_FILE_ARRAY);
   }
 
   @NotNull
   public static String addSuffixToFileName(@NotNull String path, @NotNull String suffix) {
-    final int dot = path.lastIndexOf('.');
+    int dot = path.lastIndexOf('.');
     if (dot < 0) {
       return path + suffix;
     }
-    final String a = path.substring(0, dot);
-    final String b = path.substring(dot);
+    String a = path.substring(0, dot);
+    String b = path.substring(dot);
     return a + suffix + b;
   }
 
@@ -592,19 +574,6 @@ public class AndroidCommonUtils {
     }
   }
 
-  @NotNull
-  public static String getStackTrace(@NotNull Throwable t) {
-    final StringWriter stringWriter = new StringWriter();
-    final PrintWriter writer = new PrintWriter(stringWriter);
-    try {
-      t.printStackTrace(writer);
-      return stringWriter.toString();
-    }
-    finally {
-      writer.close();
-    }
-  }
-
   public static boolean hasXmxParam(@NotNull List<String> parameters) {
     for (String param : parameters) {
       if (param.startsWith("-Xmx")) {
@@ -617,7 +586,7 @@ public class AndroidCommonUtils {
   @Nullable
   public static String executeZipAlign(@NotNull String zipAlignPath, @NotNull File source, @NotNull File destination) {
     List<String> commandLine = Arrays.asList(zipAlignPath, "-f", "4", source.getAbsolutePath(), destination.getAbsolutePath());
-    final ProcessBuilder processBuilder = new ProcessBuilder(commandLine);
+    ProcessBuilder processBuilder = new ProcessBuilder(commandLine);
 
     BaseOSProcessHandler handler;
     try {
@@ -626,7 +595,7 @@ public class AndroidCommonUtils {
     catch (IOException e) {
       return e.getMessage();
     }
-    final StringBuilder builder = new StringBuilder();
+    StringBuilder builder = new StringBuilder();
     handler.addProcessListener(new ProcessAdapter() {
       @Override
       public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
@@ -650,35 +619,35 @@ public class AndroidCommonUtils {
                                                                             @Nullable String keyStorePassword,
                                                                             @Nullable String keyPassword)
     throws GeneralSecurityException, IOException {
-    final Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<AndroidCompilerMessageKind, List<String>>();
-    messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<String>());
-    messages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<String>());
-    messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<String>());
+    Map<AndroidCompilerMessageKind, List<String>> messages = new HashMap<>();
+    messages.put(AndroidCompilerMessageKind.ERROR, new ArrayList<>());
+    messages.put(AndroidCompilerMessageKind.WARNING, new ArrayList<>());
+    messages.put(AndroidCompilerMessageKind.INFORMATION, new ArrayList<>());
 
-    final Pair<PrivateKey, X509Certificate> pair = getPrivateKeyAndCertificate(messagePrefix, messages, keyAlias, keyStorePath,
+    Pair<PrivateKey, X509Certificate> pair = getPrivateKeyAndCertificate(messagePrefix, messages, keyAlias, keyStorePath,
                                                                                keyStorePassword, keyPassword);
     if (pair == null) {
       return messages;
     }
-    final String prefix = "Cannot sign artifact " + artifactName + ": ";
+    String prefix = "Cannot sign artifact " + artifactName + ": ";
 
     if (artifactFilePath == null) {
       messages.get(AndroidCompilerMessageKind.ERROR).add(prefix + "output path is not specified");
       return messages;
     }
 
-    final File artifactFile = new File(artifactFilePath);
+    File artifactFile = new File(artifactFilePath);
     if (!artifactFile.exists()) {
       messages.get(AndroidCompilerMessageKind.ERROR).add(prefix + "file " + artifactFilePath + " hasn't been generated");
       return messages;
     }
-    final String zipAlignPath = getZipAlign(sdkLocation, target);
-    final boolean runZipAlign = new File(zipAlignPath).isFile();
+    String zipAlignPath = getZipAlign(sdkLocation, target);
+    boolean runZipAlign = new File(zipAlignPath).isFile();
 
     File tmpDir = null;
     try {
       tmpDir = FileUtil.createTempDirectory("android_artifact", "tmp");
-      final File tmpArtifact = new File(tmpDir, "tmpArtifact.apk");
+      File tmpArtifact = new File(tmpDir, "tmpArtifact.apk");
 
       signApk(artifactFile, tmpArtifact, pair.getFirst(), pair.getSecond());
 
@@ -688,7 +657,7 @@ public class AndroidCommonUtils {
       }
 
       if (runZipAlign) {
-        final String errorMessage = executeZipAlign(zipAlignPath, tmpArtifact, artifactFile);
+        String errorMessage = executeZipAlign(zipAlignPath, tmpArtifact, artifactFile);
         if (errorMessage != null) {
           messages.get(AndroidCompilerMessageKind.ERROR).add(messagePrefix + "zip-align: " + errorMessage);
           return messages;
@@ -717,7 +686,7 @@ public class AndroidCommonUtils {
                                                                                @Nullable String keyPasswordStr)
     throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableEntryException {
 
-    if (keyStoreFilePath == null || keyStoreFilePath.length() == 0) {
+    if (keyStoreFilePath == null || keyStoreFilePath.isEmpty()) {
       messages.get(AndroidCompilerMessageKind.ERROR).add(errorPrefix + "Key store file is not specified");
       return null;
     }
@@ -725,7 +694,7 @@ public class AndroidCommonUtils {
       messages.get(AndroidCompilerMessageKind.ERROR).add(errorPrefix + "Key store password is not specified");
       return null;
     }
-    if (keyAlias == null || keyAlias.length() == 0) {
+    if (keyAlias == null || keyAlias.isEmpty()) {
       messages.get(AndroidCompilerMessageKind.ERROR).add(errorPrefix + "Key alias is not specified");
       return null;
     }
@@ -733,11 +702,11 @@ public class AndroidCommonUtils {
       messages.get(AndroidCompilerMessageKind.ERROR).add(errorPrefix + "Key password is not specified");
       return null;
     }
-    final File keyStoreFile = new File(keyStoreFilePath);
-    final char[] keystorePassword = keyStorePasswordStr.toCharArray();
-    final char[] plainKeyPassword = keyPasswordStr.toCharArray();
+    File keyStoreFile = new File(keyStoreFilePath);
+    char[] keystorePassword = keyStorePasswordStr.toCharArray();
+    char[] plainKeyPassword = keyPasswordStr.toCharArray();
 
-    final KeyStore keyStore;
+    KeyStore keyStore;
     InputStream is = null;
     try {
       //noinspection IOResourceOpenedButNotSafelyClosed
@@ -745,7 +714,7 @@ public class AndroidCommonUtils {
       keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
       keyStore.load(is, keystorePassword);
 
-      final KeyStore.PrivateKeyEntry entry =
+      KeyStore.PrivateKeyEntry entry =
         (KeyStore.PrivateKeyEntry)keyStore.getEntry(keyAlias, new KeyStore.PasswordProtection(plainKeyPassword));
       if (entry == null) {
         messages.get(AndroidCompilerMessageKind.ERROR).add(errorPrefix + AndroidCommonBundle.message(
@@ -753,8 +722,8 @@ public class AndroidCommonUtils {
         return null;
       }
 
-      final PrivateKey privateKey = entry.getPrivateKey();
-      final Certificate certificate = entry.getCertificate();
+      PrivateKey privateKey = entry.getPrivateKey();
+      Certificate certificate = entry.getCertificate();
       if (privateKey == null || certificate == null) {
         messages.get(AndroidCompilerMessageKind.ERROR).add(errorPrefix + AndroidCommonBundle.message(
           "android.artifact.building.cannot.find.key.error", keyAlias));
@@ -776,7 +745,7 @@ public class AndroidCommonUtils {
 
   @NotNull
   public static String getZipAlign(@NotNull String sdkPath, @NotNull IAndroidTarget target) {
-    final BuildToolInfo buildToolInfo = target.getBuildToolInfo();
+    BuildToolInfo buildToolInfo = target.getBuildToolInfo();
 
     if (buildToolInfo != null) {
       String path = null;

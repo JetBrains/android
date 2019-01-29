@@ -3,6 +3,12 @@
   <item name="android.service.dreams.DreamService T findViewById(int) 0">
     <annotation name="android.support.annotation.IdRes" />
   </item>
+  <item name="android.service.dreams.DreamService T requireViewById(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.service.dreams.DreamService T requireViewById(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
   <item name="android.service.dreams.DreamService void setContentView(int) 0">
     <annotation name="android.support.annotation.LayoutRes" />
   </item>

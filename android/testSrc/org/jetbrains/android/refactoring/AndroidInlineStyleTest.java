@@ -238,7 +238,7 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
     final String testName = getTestName(true);
     myFixture.copyFileToProject(BASE_PATH + testName + "_styles.xml", "res/values/styles.xml");
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + testName + ".xml", "res/layout/test.xml");
     myFixture.configureFromExistingVirtualFile(f);
     final AndroidInlineTestConfig testConfig = new AndroidInlineTestConfig(false);

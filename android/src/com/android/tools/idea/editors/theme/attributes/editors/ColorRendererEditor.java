@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.editors.theme.*;
+import com.android.tools.idea.editors.theme.ColorUtils;
+import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.idea.editors.theme.ThemeEditorContext;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
@@ -26,7 +30,7 @@ import com.android.tools.idea.ui.resourcechooser.ResourceSwatchComponent;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -62,7 +66,7 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
 
     if (!colors.isEmpty()) {
       Color color = Iterables.getLast(colors);
-      String attributeName = item.getName();
+      String attributeName = item.getAttrName();
       ImmutableMap<String, Color> contrastColorsWithDescription = ColorUtils.getContrastColorsWithDescription(context, attributeName);
       component.setWarning(
         ColorUtils.getContrastWarningMessage(contrastColorsWithDescription, color, ColorUtils.isBackgroundAttribute(attributeName)));
@@ -77,11 +81,11 @@ public class ColorRendererEditor extends GraphicalResourceRendererEditor {
   protected EnumSet<ResourceType> getAllowedResourceTypes() {
     AttributeDefinition attrDefinition = ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), myItem.getSelectedValue());
 
-    String attributeName = myItem.getName().toLowerCase(Locale.ENGLISH);
-    if (attributeName.contains("color") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference)) {
+    String attributeName = myItem.getAttrName().toLowerCase(Locale.ENGLISH);
+    if (attributeName.contains("color") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.REFERENCE)) {
       return COLORS_ONLY;
     }
-    else if (attributeName.contains("drawable") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color)) {
+    else if (attributeName.contains("drawable") || !ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.COLOR)) {
       return DRAWABLES_ONLY;
     }
     else {

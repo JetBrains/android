@@ -16,22 +16,28 @@
 package com.android.tools.datastore.database;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.datastore.LogService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
-import com.intellij.openapi.diagnostic.Logger;
+import gnu.trove.TLongHashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static com.android.tools.datastore.database.MemoryLiveAllocationTable.MemoryStatements.*;
 
 public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocationTable.MemoryStatements> {
+  @NotNull private final LogService myLogService;
+
   public enum MemoryStatements {
     INSERT_CLASS("INSERT OR IGNORE INTO Memory_AllocatedClass (Session, Tag, AllocTime, Name) VALUES (?, ?, ?, ?)"),
     INSERT_ALLOC("INSERT OR IGNORE INTO Memory_AllocationEvents " +
@@ -69,12 +75,12 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
                 ")"),
     INSERT_JNI_REF(
       "INSERT OR IGNORE INTO Memory_JniGlobalReferences " +
-      "(Session, Tag, RefValue, AllocTime, AllocThreadId, AllocStackHash, FreeThreadId, FreeStackHash, FreeTime) " +
-      "VALUES (?, ?, ?, ?, ?, ?, 0, '', " + Long.MAX_VALUE + ")"),
+      "(Session, Tag, RefValue, AllocTime, AllocThreadId, AllocBacktrace, FreeThreadId, FreeTime) " +
+      "VALUES (?, ?, ?, ?, ?, ?, 0, " + Long.MAX_VALUE + ")"),
 
     UPDATE_JNI_REF(
       "UPDATE Memory_JniGlobalReferences " +
-      "SET FreeTime = ?, FreeStackHash = ?, FreeThreadId = ?" +
+      "SET FreeTime = ?, FreeBacktrace = ?, FreeThreadId = ?" +
       "WHERE Session = ? AND Tag = ? AND RefValue = ?"),
 
     COUNT_JNI_REF_RECORDS("SELECT COUNT(1) FROM Memory_JniGlobalReferences"),
@@ -87,20 +93,30 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
                           ")"),
 
     QUERY_JNI_REF_CREATE_EVENTS(
-      "SELECT Refs.Tag, Refs.RefValue, Refs.AllocTime AS Timestamp, Refs.AllocThreadId AS ThreadId, AllockStack.Backtrace AS Backtrace " +
-      "FROM Memory_JniGlobalReferences AS Refs " +
-      "LEFT JOIN Memory_NativeStackInfos AS AllockStack ON Refs.Session = AllockStack.Session AND Refs.AllocStackHash = AllockStack.StackHash " +
-      "WHERE Refs.Session = ? AND Refs.AllocTime >= ? AND Refs.AllocTime <= ? AND Refs.FreeTime >= ? AND Refs.FreeTime <= ? " +
-      "ORDER BY Refs.AllocTime"),
+      "SELECT Tag, RefValue, AllocTime AS Timestamp, AllocThreadId AS ThreadId, AllocBacktrace AS Backtrace " +
+      "FROM Memory_JniGlobalReferences " +
+      "WHERE Session = ? AND AllocTime >= ? AND AllocTime <= ? AND FreeTime >= ? AND FreeTime <= ? " +
+      "ORDER BY AllocTime"),
 
     QUERY_JNI_REF_DELETE_EVENTS(
-      "SELECT Refs.Tag, Refs.RefValue, Refs.FreeTime AS Timestamp, Refs.FreeThreadId AS ThreadId, FreeStack.Backtrace AS Backtrace " +
-      "FROM Memory_JniGlobalReferences AS Refs " +
-      "LEFT JOIN Memory_NativeStackInfos AS FreeStack ON Refs.Session = FreeStack.Session AND Refs.FreeStackHash = FreeStack.StackHash " +
-      "WHERE Refs.Session = ? AND Refs.AllocTime >= ? AND Refs.AllocTime <= ? AND Refs.FreeTime >= ? AND Refs.FreeTime <= ? " +
-      "ORDER BY Refs.FreeTime"),
+      "SELECT Tag, RefValue, FreeTime AS Timestamp, FreeThreadId AS ThreadId, FreeBacktrace AS Backtrace " +
+      "FROM Memory_JniGlobalReferences " +
+      "WHERE Session = ? AND AllocTime >= ? AND AllocTime <= ? AND FreeTime >= ? AND FreeTime <= ? " +
+      "ORDER BY FreeTime"),
 
-    INSERT_NATIVE_STACK("INSERT OR IGNORE INTO Memory_NativeStackInfos (Session, StackHash, Backtrace) VALUES (?, ?, ?)");
+    INSERT_NATIVE_FRAME("INSERT OR IGNORE INTO Memory_NativeFrames (Session, Address, Offset, Module, Symbolized) " +
+                        "VALUES (?, ?, ?, ?, 0)"),
+    UPDATE_NATIVE_FRAME("UPDATE Memory_NativeFrames SET NativeFrame = ?, Symbolized = 1 WHERE Session = ? AND Address = ?"),
+    QUERY_NATIVE_FRAME("SELECT NativeFrame FROM Memory_NativeFrames " +
+                       "WHERE (Session = ?) AND (Address = ?)"),
+    QUERY_NATIVE_FRAMES_TO_SYMBOLIZE("SELECT Address, Offset, Module FROM Memory_NativeFrames " +
+                                     "WHERE (Session = ?) AND Symbolized = 0 " +
+                                     "LIMIT ?"),
+
+    INSERT_OR_REPLACE_ALLOCATION_SAMPLING_RATE_EVENT(
+      "INSERT OR REPLACE INTO Memory_AllocationSamplingRateEvent (Session, Timestamp, Data) VALUES (?, ?, ?)"),
+    QUERY_ALLOCATION_SAMPLING_RATE_EVENTS_BY_TIME(
+      "SELECT Data FROM Memory_AllocationSamplingRateEvent WHERE Session = ? AND Timestamp > ? AND Timestamp <= ? ORDER BY Timestamp ASC");
 
 
     @NotNull private final String mySqlStatement;
@@ -118,9 +134,15 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   // 5M ought to be enough for anybody (~300MB of data)
   // Note - Google Search app can easily allocate 100k+ temporary objects in an relatively short amount of time (e.g. one search query)
   private int myAllocationCountLimit = 5000000;
+  private final static byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
-  private static Logger getLogger() {
-    return Logger.getInstance(MemoryLiveAllocationTable.class);
+  @NotNull
+  private LogService.Logger getLogger() {
+    return myLogService.getLogger(MemoryLiveAllocationTable.class);
+  }
+
+  public MemoryLiveAllocationTable(@NotNull LogService logService) {
+    myLogService = logService;
   }
 
   @Override
@@ -139,18 +161,22 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
                   "StackData BLOB", "PRIMARY KEY(Session, StackId)");
       createTable("Memory_ThreadInfos", "Session INTEGER NOT NULL", "ThreadId INTEGER", "AllocTime INTEGER",
                   "ThreadName TEXT", "PRIMARY KEY(Session, ThreadId)");
-      createTable("Memory_NativeStackInfos", "Session INTEGER NOT NULL", "StackHash TEXT",
-                  "Backtrace BLOB", "PRIMARY KEY(Session, StackHash)");
+      createTable("Memory_NativeFrames", "Session INTEGER NOT NULL", "Address INTEGER NOT NULL",
+                  "Symbolized INTEGER NOT NULL", "Offset INTEGER", "Module TEXT",
+                  "NativeFrame BLOB", "PRIMARY KEY(Session, Address)");
       createTable("Memory_JniGlobalReferences", "Session INTEGER NOT NULL", "Tag INTEGER",
                   "RefValue INTEGER", "AllocTime INTEGER", "FreeTime INTEGER", "AllocThreadId INTEGER", "FreeThreadId INTEGER",
-                  "AllocStackHash INTEGER", "FreeStackHash INTEGER", "PRIMARY KEY(Session, Tag, RefValue)");
+                  "AllocBacktrace BLOB", "FreeBacktrace BLOB", "PRIMARY KEY(Session, Tag, RefValue)");
+      createTable("Memory_AllocationSamplingRateEvent", "Session INTEGER NOT NULL", "Timestamp INTEGER", "Data BLOB",
+                  "PRIMARY KEY(Session, Timestamp)");
 
       createIndex("Memory_AllocationEvents", 0, "Session", "AllocTime");
       createIndex("Memory_AllocationEvents", 1, "Session", "FreeTime");
       createIndex("Memory_AllocatedClass", 0, "Session", "AllocTime");
       createIndex("Memory_StackInfos", 0, "Session", "AllocTime");
       createIndex("Memory_ThreadInfos", 0, "Session", "AllocTime");
-      createIndex("Memory_NativeStackInfos", 0, "Session", "StackHash");
+      createIndex("Memory_NativeFrames", 0, "Session", "Address");
+      createIndex("Memory_NativeFrames", 1, "Session", "Symbolized");
       createIndex("Memory_JniGlobalReferences", 0, "Session", "AllocTime");
       createIndex("Memory_JniGlobalReferences", 1, "Session", "FreeTime");
     }
@@ -183,11 +209,14 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       long timestamp = Long.MIN_VALUE;
       while (allocResult.next()) {
         long allocTime = allocResult.getLong(3);
-        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
+        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent
+          .newBuilder()
           .setAllocData(
-            MemoryProfiler.AllocationEvent.Allocation.newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2))
-              .setSize(allocResult.getLong(4)).setLength(allocResult.getInt(5)).setThreadId(allocResult.getInt(6))
-              .setStackId(allocResult.getInt(7)).setHeapId(allocResult.getInt(8)).build())
+            MemoryProfiler.AllocationEvent.Allocation
+              .newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2))
+              .setSize(allocResult.getLong(4)).setLength(allocResult.getInt(5))
+              .setThreadId(allocResult.getInt(6)).setStackId(allocResult.getInt(7))
+              .setHeapId(allocResult.getInt(8)).build())
           .setTimestamp(allocTime).build();
         sampleBuilder.addEvents(event);
         timestamp = Math.max(timestamp, allocTime);
@@ -210,11 +239,13 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
 
       while (allocResult.next()) {
         long allocTime = allocResult.getLong(3);
-        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
+        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent
+          .newBuilder()
           .setAllocData(
-            MemoryProfiler.AllocationEvent.Allocation.newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2))
-              .setSize(allocResult.getLong(5)).setLength(allocResult.getInt(6)).setThreadId(allocResult.getInt(7))
-              .setStackId(allocResult.getInt(8)).setHeapId(allocResult.getInt(9)).build())
+            MemoryProfiler.AllocationEvent.Allocation
+              .newBuilder().setTag(allocResult.getInt(1)).setClassTag(allocResult.getInt(2)).setSize(allocResult.getLong(5))
+              .setLength(allocResult.getInt(6)).setThreadId(allocResult.getInt(7)).setStackId(allocResult.getInt(8))
+              .setHeapId(allocResult.getInt(9)).build())
           .setTimestamp(allocTime).build();
         sampleBuilder.addEvents(event);
         timestamp = Math.max(timestamp, allocTime);
@@ -223,11 +254,13 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       ResultSet freeResult = executeQuery(QUERY_ALLOC_BY_FREE_TIME, session.getSessionId(), startTime, endTime);
       while (freeResult.next()) {
         long freeTime = freeResult.getLong(4);
-        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent.newBuilder()
-          .setFreeData(
-            MemoryProfiler.AllocationEvent.Deallocation.newBuilder().setTag(freeResult.getInt(1)).setClassTag(freeResult.getInt(2))
-              .setSize(freeResult.getLong(5)).setLength(freeResult.getInt(6)).setThreadId(freeResult.getInt(7))
-              .setStackId(freeResult.getInt(8)).setHeapId(freeResult.getInt(9)).build())
+        MemoryProfiler.AllocationEvent event = MemoryProfiler.AllocationEvent
+          .newBuilder().setFreeData(
+            MemoryProfiler.AllocationEvent.Deallocation
+              .newBuilder().setTag(freeResult.getInt(1)).setClassTag(freeResult.getInt(2)).setSize(freeResult.getLong(5))
+              .setLength(freeResult.getInt(6)).setThreadId(freeResult.getInt(7)).setStackId(freeResult.getInt(8))
+              .setHeapId(freeResult.getInt(9))
+              .build())
           .setTimestamp(freeTime).build();
         sampleBuilder.addEvents(event);
         timestamp = Math.max(timestamp, freeTime);
@@ -295,7 +328,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
           // Instead, they will be fetched on demand as needed by the UI.
           AllocationStack.SmallFrame frame =
             AllocationStack.SmallFrame.newBuilder().setMethodId(encodedStack.getMethodIds(i)).setLineNumber(encodedStack.getLineNumbers(i))
-              .build();
+                                      .build();
           frameBuilder.addFrames(frame);
         }
         stackBuilder.setSmallStack(frameBuilder);
@@ -318,7 +351,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return resultBuilder.build();
   }
 
-  private JNIGlobalReferenceEvent readJniEventFromResultSet(ResultSet resultset, JNIGlobalReferenceEvent.Type type) throws SQLException {
+  private static JNIGlobalReferenceEvent readJniEventFromResultSet(ResultSet resultset, JNIGlobalReferenceEvent.Type type)
+    throws SQLException {
     int objectTag = resultset.getInt("Tag");
     long refValue = resultset.getLong("RefValue");
     long timestamp = resultset.getLong("Timestamp");
@@ -331,7 +365,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     event.setRefValue(refValue);
     event.setTimestamp(timestamp);
     event.setThreadId(threadId);
-    if (backtrace != null) {
+    if (backtrace != null && backtrace.length != 0) {
       try {
         event.setBacktrace(NativeBacktrace.parseFrom(backtrace));
       }
@@ -340,6 +374,27 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       }
     }
     return event.build();
+  }
+
+  public NativeCallStack resolveNativeBacktrace(@NotNull Common.Session session, @NotNull NativeBacktrace backtrace) {
+    NativeCallStack.Builder resultBuilder = NativeCallStack.newBuilder();
+    try {
+      for (Long address : backtrace.getAddressesList()) {
+        NativeCallStack.NativeFrame frame = NativeCallStack.NativeFrame.getDefaultInstance();
+        ResultSet result = executeQuery(QUERY_NATIVE_FRAME, session.getSessionId(), address);
+        if (result.next()) {
+          byte[] frameBytes = result.getBytes(1);
+          if (frameBytes != null && frameBytes.length != 0) {
+            frame = NativeCallStack.NativeFrame.parseFrom(frameBytes);
+          }
+        }
+        resultBuilder.addFrames(frame);
+      }
+    }
+    catch (SQLException | InvalidProtocolBufferException ex) {
+      onError(ex);
+    }
+    return resultBuilder.build();
   }
 
   public BatchJNIGlobalRefEvent getJniReferencesSnapshot(Common.Session session, long endTime) {
@@ -386,39 +441,81 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     return resultBuilder.build();
   }
 
+  private static TreeMap<Long, MemoryMap.MemoryRegion> buildAddressMap(MemoryMap map) {
+    TreeMap<Long, MemoryMap.MemoryRegion> result = new TreeMap<>();
+    if (map == null) {
+      return result;
+    }
+    for (MemoryMap.MemoryRegion region : map.getRegionsList()) {
+      result.put(region.getStartAddress(), region);
+    }
+    return result;
+  }
+
+  private static MemoryMap.MemoryRegion getRegionByAddress(TreeMap<Long, MemoryMap.MemoryRegion> addressMap, Long address) {
+    Map.Entry<Long, MemoryMap.MemoryRegion> entry = addressMap.floorEntry(address);
+    if (entry == null) {
+      return null;
+    }
+    MemoryMap.MemoryRegion region = entry.getValue();
+    if (address >= region.getStartAddress() && address < region.getEndAddress()) {
+      return region;
+    }
+    return null;
+  }
+
   public void insertJniReferenceData(@NotNull Common.Session session, @NotNull BatchJNIGlobalRefEvent batch) {
     PreparedStatement insertRefStatement = null;
     PreparedStatement updateRefStatement = null;
-    PreparedStatement insertStackStatement = null;
+    PreparedStatement insertFrameStatement = null;
+    if (isClosed()) {
+      return;
+    }
     try {
+      TreeMap<Long, MemoryMap.MemoryRegion> addressMap = buildAddressMap(batch.getMemoryMap());
+      TLongHashSet insertedAddresses = new TLongHashSet();
       for (JNIGlobalReferenceEvent event : batch.getEventsList()) {
         long refValue = event.getRefValue();
         int objectTag = event.getObjectTag();
         long timestamp = event.getTimestamp();
         int threadId = event.getThreadId();
-        String stackHash = "";
+        byte[] backtrace = EMPTY_BYTE_ARRAY;
+
         if (event.hasBacktrace()) {
-          byte[] backtrace = event.getBacktrace().toByteArray();
-          stackHash = org.apache.commons.codec.digest.DigestUtils.md5Hex(backtrace);
-          if (insertStackStatement == null) {
-            insertStackStatement = getStatementMap().get(INSERT_NATIVE_STACK);
+          backtrace = event.getBacktrace().toByteArray();
+          for (Long address : event.getBacktrace().getAddressesList()) {
+            if (!insertedAddresses.contains(address)) {
+              String module = "";
+              long offset = 0;
+              MemoryMap.MemoryRegion region = getRegionByAddress(addressMap, address);
+              if (region != null) {
+                module = region.getName();
+                // Adjust address to represent module offset.
+                offset = address + region.getFileOffset() - region.getStartAddress();
+              }
+              if (insertFrameStatement == null) {
+                insertFrameStatement = getStatementMap().get(INSERT_NATIVE_FRAME);
+              }
+              applyParams(insertFrameStatement, session.getSessionId(), address, offset, module);
+              insertFrameStatement.addBatch();
+              insertedAddresses.add(address);
+            }
           }
-          applyParams(insertStackStatement, session.getSessionId(), stackHash, backtrace);
-          insertStackStatement.addBatch();
         }
+
         switch (event.getEventType()) {
           case CREATE_GLOBAL_REF:
             if (insertRefStatement == null) {
               insertRefStatement = getStatementMap().get(INSERT_JNI_REF);
             }
-            applyParams(insertRefStatement, session.getSessionId(), objectTag, refValue, timestamp, threadId, stackHash);
+            applyParams(insertRefStatement, session.getSessionId(), objectTag, refValue, timestamp, threadId, backtrace);
             insertRefStatement.addBatch();
             break;
           case DELETE_GLOBAL_REF:
             if (updateRefStatement == null) {
               updateRefStatement = getStatementMap().get(UPDATE_JNI_REF);
             }
-            applyParams(updateRefStatement, timestamp, stackHash, threadId, session.getSessionId(), objectTag, refValue);
+            applyParams(updateRefStatement, timestamp, backtrace, threadId, session.getSessionId(), objectTag, refValue);
             updateRefStatement.addBatch();
             break;
           default:
@@ -426,8 +523,8 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
         }
       }
 
-      if (insertStackStatement != null) {
-        insertStackStatement.executeBatch();
+      if (insertFrameStatement != null) {
+        insertFrameStatement.executeBatch();
       }
       if (insertRefStatement != null) {
         insertRefStatement.executeBatch();
@@ -444,10 +541,53 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     }
   }
 
+  public @NotNull
+  List<NativeCallStack.NativeFrame> queryNotsymbolizedNativeFrames(@NotNull Common.Session session, int maxCount) {
+    List<NativeCallStack.NativeFrame> records = new ArrayList<>();
+    try {
+      ResultSet result = executeQuery(QUERY_NATIVE_FRAMES_TO_SYMBOLIZE, session.getSessionId(), maxCount);
+      while (result.next()) {
+        NativeCallStack.NativeFrame frame = NativeCallStack.NativeFrame
+          .newBuilder()
+          .setModuleName(result.getString("Module"))
+          .setModuleOffset(result.getLong("Offset"))
+          .setAddress(result.getLong("Address"))
+          .build();
+        records.add(frame);
+      }
+    }
+    catch (SQLException ex) {
+      onError(ex);
+    }
+    return records;
+  }
+
+  public void updateSymbolizedNativeFrames(@NotNull Common.Session session, @NotNull List<NativeCallStack.NativeFrame> frames) {
+    if (frames.isEmpty() || isClosed()) {
+      return;
+    }
+    try {
+      PreparedStatement updateFramesStatement = getStatementMap().get(UPDATE_NATIVE_FRAME);
+      for (NativeCallStack.NativeFrame frame : frames) {
+        applyParams(updateFramesStatement, frame.toByteArray(), session.getSessionId(), frame.getAddress());
+        updateFramesStatement.addBatch();
+      }
+      updateFramesStatement.executeBatch();
+    }
+    catch (SQLException ex) {
+      onError(ex);
+    }
+  }
+
   public void insertAllocationData(Common.Session session, MemoryProfiler.BatchAllocationSample sample) {
     MemoryProfiler.AllocationEvent.EventCase currentCase = null;
     PreparedStatement currentStatement = null;
     int allocAndFreeCount = 0;
+    // If we don't do a closed check it is possible for this function to assert instead of handling
+    // the connection being closed gracefully.
+    if (isClosed()) {
+      return;
+    }
     try {
       for (MemoryProfiler.AllocationEvent event : sample.getEventsList()) {
         if (currentCase != event.getEventCase()) {
@@ -511,6 +651,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   }
 
   public void insertMethodInfo(Common.Session session, List<AllocationStack.StackFrame> methods) {
+    if (isClosed()) {
+      return;
+    }
     try {
       PreparedStatement statement = getStatementMap().get(INSERT_METHOD);
       assert statement != null;
@@ -542,6 +685,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   }
 
   public void insertStackInfo(Common.Session session, List<EncodedAllocationStack> stacks) {
+    if (isClosed()) {
+      return;
+    }
     try {
       PreparedStatement statement = getStatementMap().get(INSERT_ENCODED_STACK);
       assert statement != null;
@@ -557,6 +703,9 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
   }
 
   public void insertThreadInfo(Common.Session session, List<ThreadInfo> threads) {
+    if (isClosed()) {
+      return;
+    }
     try {
       PreparedStatement statement = getStatementMap().get(INSERT_THREAD_INFO);
       assert statement != null;
@@ -569,6 +718,25 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
     catch (SQLException ex) {
       onError(ex);
     }
+  }
+
+  public void insertOrReplaceAllocationSamplingRateEvent(@NotNull Common.Session session, @NotNull AllocationSamplingRateEvent event) {
+    execute(INSERT_OR_REPLACE_ALLOCATION_SAMPLING_RATE_EVENT, session.getSessionId(), event.getTimestamp(), event.toByteArray());
+  }
+
+  @NotNull
+  public List<AllocationSamplingRateEvent> getAllocationSamplingRateEvents(long sessionId, long startTime, long endTime) {
+    List<AllocationSamplingRateEvent> results = new ArrayList<>();
+    try {
+      ResultSet resultSet = executeQuery(QUERY_ALLOCATION_SAMPLING_RATE_EVENTS_BY_TIME, sessionId, startTime, endTime);
+      while (resultSet.next()) {
+        results.add(AllocationSamplingRateEvent.newBuilder().mergeFrom(resultSet.getBytes(1)).build());
+      }
+    }
+    catch (SQLException | InvalidProtocolBufferException ex) {
+      onError(ex);
+    }
+    return results;
   }
 
   /**
@@ -613,7 +781,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
    * Converts jni class names into java names
    * e.g. Ljava/lang/String; -> java.lang.String
    * e.g. [[Ljava/lang/Object; -> java.lang.Object[][]
-   *
+   * <p>
    * JNI primitive type names are converted too
    * e.g. Z -> boolean
    */

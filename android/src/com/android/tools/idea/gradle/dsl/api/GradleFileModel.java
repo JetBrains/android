@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-public interface GradleFileModel {
+import java.util.List;
+import java.util.Map;
+
+public interface GradleFileModel extends GradleDslModel {
   @NotNull
   Project getProject();
 
@@ -33,4 +37,6 @@ public interface GradleFileModel {
   VirtualFile getVirtualFile();
 
   void applyChanges();
+
+  Map<String, List<BuildModelNotification>> getNotifications();
 }

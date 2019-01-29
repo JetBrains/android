@@ -17,10 +17,21 @@
       <val name="value" val="{android.view.View.AUTOFILL_TYPE_NONE, android.view.View.AUTOFILL_TYPE_TEXT, android.view.View.AUTOFILL_TYPE_TOGGLE, android.view.View.AUTOFILL_TYPE_LIST, android.view.View.AUTOFILL_TYPE_DATE}" />
     </annotation>
   </item>
+  <item name="android.app.assist.AssistStructure.ViewNode int getImportantForAutofill()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.IMPORTANT_FOR_AUTOFILL_AUTO, android.view.View.IMPORTANT_FOR_AUTOFILL_YES, android.view.View.IMPORTANT_FOR_AUTOFILL_NO, android.view.View.IMPORTANT_FOR_AUTOFILL_YES_EXCLUDE_DESCENDANTS, android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS}" />
+    </annotation>
+  </item>
   <item name="android.app.assist.AssistStructure.ViewNode java.lang.CharSequence[] getAutofillOptions()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.app.assist.AssistStructure.ViewNode java.lang.String getTextIdEntry()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.assist.AssistStructure.ViewNode java.lang.String getWebDomain()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.assist.AssistStructure.ViewNode java.lang.String getWebScheme()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.assist.AssistStructure.ViewNode java.lang.String[] getAutofillHints()">

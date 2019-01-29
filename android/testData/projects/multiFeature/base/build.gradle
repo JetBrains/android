@@ -16,5 +16,5 @@ dependencies {
     feature project(':feature1')
     feature project(':feature2')
 
-    api("com.android.support:appcompat-v7:26.1.0")
+    api("com.android.support:appcompat-v7:+")
 }

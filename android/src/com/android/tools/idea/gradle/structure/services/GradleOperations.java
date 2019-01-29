@@ -60,7 +60,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       if (dependenciesModel != null) {
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts()) {
-          String name = dependency.name().value();
+          String name = dependency.name().forceString();
           moduleDependencyNames.add(name);
         }
       }
@@ -142,7 +142,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
   public void initializeServices(@NotNull Module module, @NotNull Runnable initializationTask) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    GradleSyncState.subscribe(module.getProject(), new GradleSyncListener.Adapter() {
+    GradleSyncState.subscribe(module.getProject(), new GradleSyncListener() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
         initializationTask.run();

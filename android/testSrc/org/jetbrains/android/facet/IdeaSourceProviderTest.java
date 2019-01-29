@@ -21,13 +21,10 @@ import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModelTest;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -44,7 +41,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAN
 
 /**
  * Test for utility functions provided by IdeaSourceProvider
- *
+ * <p>
  * This test uses the Gradle model as source data to test the implementation.
  */
 public class IdeaSourceProviderTest extends AndroidGradleTestCase {
@@ -66,7 +63,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     for (Module m : ModuleManager.getInstance(getProject()).getModules()) {
       if (m.getName().equals("lib")) {
         myLibModule = m;
-      } else if (m.getName().equals("app")) {
+      }
+      else if (m.getName().equals("app")) {
         myAppModule = m;
       }
     }
@@ -79,16 +77,16 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(myAppFacet);
     assertNotNull(myLibFacet);
 
-    Sdk sdk1 = addLatestAndroidSdk(myLibModule);
-    Sdk sdk2 = addLatestAndroidSdk(myAppModule);
-    Disposer.register(getTestRootDisposable(), ()-> WriteAction.run(()-> ProjectJdkTable.getInstance().removeJdk(sdk1)));
-    Disposer.register(getTestRootDisposable(), ()-> WriteAction.run(()-> ProjectJdkTable.getInstance().removeJdk(sdk2)));
+    Sdks.addLatestAndroidSdk(getTestRootDisposable(), myLibModule);
+    Sdks.addLatestAndroidSdk(getTestRootDisposable(), myAppModule);
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
     assertNotNull(AndroidPlatform.getInstance(myLibModule));
   }
 
-  /** TODO: Move this test to {@link AndroidModuleModelTest}. */
+  /**
+   * TODO: Move this test to {@link AndroidModuleModelTest}.
+   */
   public void testGetCurrentSourceProviders() throws Exception {
     StringBuilder sb = new StringBuilder();
     VirtualFile baseDir = getProject().getBaseDir();
@@ -150,7 +148,9 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Resources Directories: []\n", sb.toString());
   }
 
-  /** TODO: Move this test to {@link AndroidModuleModelTest}. */
+  /**
+   * TODO: Move this test to {@link AndroidModuleModelTest}.
+   */
   public void testGetAllSourceProviders() throws Exception {
     StringBuilder sb = new StringBuilder();
     File baseDir = new File(getProject().getBaseDir().getPath());
@@ -202,24 +202,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "Renderscript Directories: [app/src/release/rs]\n" +
                  "Jni Directories: [app/src/release/jni]\n" +
                  "Resources Directories: [app/src/release/resources]\n" +
-                 "Name: paidDebug\n" +
-                 "Manifest File: app/src/paidDebug/AndroidManifest.xml\n" +
-                 "Java Directories: [app/src/paidDebug/java]\n" +
-                 "Res Directories: [app/src/paidDebug/res]\n" +
-                 "Assets Directories: [app/src/paidDebug/assets]\n" +
-                 "AIDL Directories: [app/src/paidDebug/aidl]\n" +
-                 "Renderscript Directories: [app/src/paidDebug/rs]\n" +
-                 "Jni Directories: [app/src/paidDebug/jni]\n" +
-                 "Resources Directories: [app/src/paidDebug/resources]\n" +
-                 "Name: paidRelease\n" +
-                 "Manifest File: app/src/paidRelease/AndroidManifest.xml\n" +
-                 "Java Directories: [app/src/paidRelease/java]\n" +
-                 "Res Directories: [app/src/paidRelease/res]\n" +
-                 "Assets Directories: [app/src/paidRelease/assets]\n" +
-                 "AIDL Directories: [app/src/paidRelease/aidl]\n" +
-                 "Renderscript Directories: [app/src/paidRelease/rs]\n" +
-                 "Jni Directories: [app/src/paidRelease/jni]\n" +
-                 "Resources Directories: [app/src/paidRelease/resources]\n" +
                  "Name: basicDebug\n" +
                  "Manifest File: app/src/basicDebug/AndroidManifest.xml\n" +
                  "Java Directories: [app/src/basicDebug/java]\n" +
@@ -228,16 +210,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  "AIDL Directories: [app/src/basicDebug/aidl]\n" +
                  "Renderscript Directories: [app/src/basicDebug/rs]\n" +
                  "Jni Directories: [app/src/basicDebug/jni]\n" +
-                 "Resources Directories: [app/src/basicDebug/resources]\n" +
-                 "Name: basicRelease\n" +
-                 "Manifest File: app/src/basicRelease/AndroidManifest.xml\n" +
-                 "Java Directories: [app/src/basicRelease/java]\n" +
-                 "Res Directories: [app/src/basicRelease/res]\n" +
-                 "Assets Directories: [app/src/basicRelease/assets]\n" +
-                 "AIDL Directories: [app/src/basicRelease/aidl]\n" +
-                 "Renderscript Directories: [app/src/basicRelease/rs]\n" +
-                 "Jni Directories: [app/src/basicRelease/jni]\n" +
-                 "Resources Directories: [app/src/basicRelease/resources]\n", sb.toString());
+                 "Resources Directories: [app/src/basicDebug/resources]\n", sb.toString());
 
     sb = new StringBuilder();
     for (SourceProvider provider : IdeaSourceProvider.getAllSourceProviders(myLibFacet)) {
@@ -273,8 +246,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   }
 
   public void testFindSourceProvider() throws Exception {
-    assertNotNull(myAppFacet.getAndroidModel());
-    VirtualFile moduleFile = myAppFacet.getAndroidModel().getRootDir();
+    assertNotNull(myAppFacet.getConfiguration().getModel());
+    VirtualFile moduleFile = myAppFacet.getConfiguration().getModel().getRootDir();
     assertNotNull(moduleFile);
 
     // Try finding main flavor
@@ -305,7 +278,6 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     actualProvider = providers.iterator().next();
     assertEquals(paidFlavorSourceProvider.getManifestFile(),
                  actualProvider.getManifestFile());
-
   }
 
   public String getStringRepresentation(@NotNull SourceProvider sourceProvider, @Nullable File baseFile) {
@@ -318,7 +290,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     if (manifestFile != null) {
       if (baseFile != null) {
         manifestPath = FileUtil.getRelativePath(baseFile, manifestFile);
-      } else {
+      }
+      else {
         manifestPath = manifestFile.getPath();
       }
     }
@@ -360,7 +333,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     if (manifestFile != null) {
       if (baseFile != null) {
         manifestPath = VfsUtilCore.getRelativePath(manifestFile, baseFile, File.separatorChar);
-      } else {
+      }
+      else {
         manifestPath = manifestFile.getPath();
       }
     }
@@ -401,7 +375,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
       String path = baseFile != null ? VfsUtilCore.getRelativePath(vf, baseFile, File.separatorChar) : vf.getPath();
       if (!isFirst) {
         sb.append(", ");
-      } else {
+      }
+      else {
         isFirst = false;
       }
       sb.append(PathUtil.toSystemIndependentName(path));
@@ -419,7 +394,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
       String path = baseFile != null ? FileUtil.getRelativePath(baseFile, f) : f.getPath();
       if (!isFirst) {
         sb.append(", ");
-      } else {
+      }
+      else {
         isFirst = false;
       }
       sb.append(PathUtil.toSystemIndependentName(path));
@@ -429,13 +405,13 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   }
 
   public void testSourceProviderContainsFile() throws Exception {
-    assertNotNull(myAppFacet.getAndroidModel());
+    assertNotNull(myAppFacet.getConfiguration().getModel());
     ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
 
-    VirtualFile moduleFile = myAppFacet.getAndroidModel().getRootDir();
+    VirtualFile moduleFile = myAppFacet.getConfiguration().getModel().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);
@@ -450,13 +426,13 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
 
   public void testSourceProviderIsContainedByFolder() throws Exception {
-    assertNotNull(myAppFacet.getAndroidModel());
+    assertNotNull(myAppFacet.getConfiguration().getModel());
     ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
 
-    VirtualFile moduleFile = myAppFacet.getAndroidModel().getRootDir();
+    VirtualFile moduleFile = myAppFacet.getConfiguration().getModel().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);

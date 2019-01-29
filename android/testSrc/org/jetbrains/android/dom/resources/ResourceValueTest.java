@@ -36,23 +36,23 @@ public class ResourceValueTest {
 
     value = ResourceValue.parse("@sample/test", true, true, false);
     assertValue("test", value);
-    assertNull(value.getNamespace());
+    assertNull(value.getPackage());
 
     value = ResourceValue.parse("@sample/test[1]", true, true, false);
     assertValue("test[1]", value);
-    assertNull(value.getNamespace());
+    assertNull(value.getPackage());
 
     value = ResourceValue.parse("@sample/test[:1]", true, true, false);
     assertValue("test[:1]", value);
-    assertNull(value.getNamespace());
+    assertNull(value.getPackage());
 
     value = ResourceValue.parse("@tools:sample/test[1:]", true, true, false);
     assertValue("test[1:]", value);
-    assertEquals("tools", value.getNamespace());
+    assertEquals("tools", value.getPackage());
 
     value = ResourceValue.parse("@tools:sample/test", true, true, false);
     assertValue("test", value);
-    assertEquals("tools", value.getNamespace());
+    assertEquals("tools", value.getPackage());
 
     value = ResourceValue.parse("@tools:sample/test.json/data[:10]", true, true, false);
     assertValue("test.json/data[:10]", value);

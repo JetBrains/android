@@ -21,7 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 
 /**
- * Property representing all the actions (possibly zero) for a destinations.
+ * Property representing all the deep links (possibly zero) for a destinations.
  */
 class NavDeeplinkProperty(components: List<NlComponent>) : ListProperty("Deeplinks", components) {
 
@@ -33,7 +33,7 @@ class NavDeeplinkProperty(components: List<NlComponent>) : ListProperty("Deeplin
     properties.clear()
 
     components.flatMap { it.children }
-        .filter { it.tagName == SdkConstants.TAG_DEEPLINK }
+        .filter { it.tagName == SdkConstants.TAG_DEEP_LINK }
         .forEach { child ->
           child.resolveAttribute(SdkConstants.AUTO_URI, ATTR_URI)?.let {
             properties.put(it, SimpleProperty(it, listOf(child)))

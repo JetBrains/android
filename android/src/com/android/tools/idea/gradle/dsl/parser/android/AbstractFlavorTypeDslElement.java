@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,14 +23,22 @@ import org.jetbrains.annotations.NotNull;
  * Common base class for {@link BuildTypeDslElement} and {@link ProductFlavorDslElement}.
  */
 public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement {
-  protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
+  protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("consumerProguardFiles") && element instanceof GradleDslExpression) {
-      addAsParsedDslExpressionList(property, (GradleDslExpression)element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    String property = element.getName();
+    if (property.equals("consumerProguardFiles") && element instanceof GradleDslSimpleExpression) {
+      addAsParsedDslExpressionList((GradleDslSimpleExpression)element);
+      return;
+    }
+
+    if (property.equals("setProguardFiles")) {
+      // Clear the property since setProguardFiles overwrites these.
+      removeProperty("proguardFiles");
+      addToParsedExpressionList("proguardFiles", element);
       return;
     }
 
@@ -43,24 +52,17 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
         return;
       }
       GradleDslExpressionList listElement = (GradleDslExpressionList)element;
-      if (listElement.getExpressions().size() != 3 || listElement.getValues(String.class).size() != 3) {
+      if (listElement.getExpressions().size() != 3 || listElement.getLiterals(String.class).size() != 3) {
         return;
       }
-
-      GradleDslElementList elementList = getPropertyElement("resValue", GradleDslElementList.class);
-      if (elementList == null) {
-        elementList = new GradleDslElementList(this, "resValue");
-        setParsedElement("resValue", elementList);
-      }
-      elementList.addParsedElement(element);
-      return;
     }
 
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 
   @Override
   public boolean isInsignificantIfEmpty() {
-    return false;
+    // defaultConfig is special in that is can be deleted if it is empty.
+    return myName.name().equals(AndroidModelImpl.DEFAULT_CONFIG);
   }
 }

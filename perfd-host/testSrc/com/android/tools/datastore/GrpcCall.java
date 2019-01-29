@@ -33,10 +33,8 @@ public class GrpcCall {
   /**
    * Gets the value of the message property.
    *
-   * @return
-   *     possible object is
-   *     {@link String }
-   *
+   * @return possible object is
+   * {@link String }
    */
   public String getMessage() {
     return myMessage;
@@ -45,10 +43,8 @@ public class GrpcCall {
   /**
    * Sets the message property. The message should be the raw rpc message format as string.
    *
-   * @param value
-   *     allowed object is
-   *     {@link String }
-   *
+   * @param value allowed object is
+   *              {@link String }
    */
   public void setMessage(String value) {
     this.myMessage = value;
@@ -57,10 +53,8 @@ public class GrpcCall {
   /**
    * Gets the function called on the rpc.
    *
-   * @return
-   *     possible object is
-   *     {@link String }
-   *
+   * @return possible object is
+   * {@link String }
    */
   public String getFunctionCalled() {
     return myFunctionCalled;
@@ -69,10 +63,8 @@ public class GrpcCall {
   /**
    * Sets the function called on the rpc.
    *
-   * @param value
-   *     allowed object is
-   *     {@link String }
-   *
+   * @param value allowed object is
+   *              {@link String }
    */
   public void setFunctionCalled(String value) {
     this.myFunctionCalled = value;
@@ -81,10 +73,8 @@ public class GrpcCall {
   /**
    * Gets the class name.
    *
-   * @return
-   *     possible object is
-   *     {@link String }
-   *
+   * @return possible object is
+   * {@link String }
    */
   public String getClazz() {
     return myClazz;
@@ -93,10 +83,8 @@ public class GrpcCall {
   /**
    * Sets the class name of the calling rpc.
    *
-   * @param value
-   *     allowed object is
-   *     {@link String }
-   *
+   * @param value allowed object is
+   *              {@link String }
    */
   public void setClazz(String value) {
     this.myClazz = value;

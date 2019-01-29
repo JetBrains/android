@@ -70,7 +70,7 @@ public class NlPropertyTableFixture extends AbstractJPopupMenuInvokerFixture<NlP
 
   @NotNull
   public NlPropertyTableFixture type(char character) {
-    robot().type(character, target());
+    robot().type(character);
     return this;
   }
 

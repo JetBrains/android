@@ -15,27 +15,40 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
-import com.google.common.collect.Maps;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslExpression}.
+ * Represents an element which consists of a map from properties of type {@link String} and values of type {@link GradleDslSimpleExpression}.
  */
-public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
-  public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull String name) {
+public final class GradleDslExpressionMap extends GradlePropertiesDslElement implements GradleDslExpression {
+  // This boolean controls whether of not the empty map element should be deleted on a call to delete in one of
+  // its children. For non-literal maps (e.g func key: 'val', key1: 'val') #shouldBeDeleted() always returns true since we
+  // never want to preserve these maps. However literal maps (e.g prop = [key: 'merge1', key1: 'merge2']) should only be deleted
+  // if the #delete() method on the map element is called, not when there are no more elements left. This is due to
+  // prop = [:] possibly having important semantic meaning.
+  private boolean myShouldBeDeleted;
+
+  public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
   }
 
+  public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull GradleNameElement name, boolean isLiteralMap) {
+    super(parent, null, name);
+    myUseAssignment = isLiteralMap;
+  }
+
   public GradleDslExpressionMap(@Nullable GradleDslElement parent,
-                                @NotNull PsiElement psiElement,
-                                @NotNull String name) {
+                                @Nullable PsiElement psiElement,
+                                @NotNull GradleNameElement name,
+                                boolean isLiteralMap) {
     super(parent, psiElement, name);
+    myUseAssignment = isLiteralMap;
   }
 
   public void addNewLiteral(String key, Object value) {
@@ -44,34 +57,47 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
       ((GradleDslLiteral)propertyElement).setValue(value);
       return;
     }
-    GradleDslLiteral gradleDslLiteral = new GradleDslLiteral(this, key);
-    setNewElement(key, gradleDslLiteral);
+    GradleNameElement name = GradleNameElement.create(key);
+    GradleDslLiteral gradleDslLiteral = new GradleDslLiteral(this, name);
+    setNewElement(gradleDslLiteral);
     gradleDslLiteral.setValue(value);
-  }
-
-  /**
-   * Returns the map from properties of the type {@link String} and values of the type {@code clazz}.
-   *
-   * <p>Returns an empty map when the given there are no values of type {@code clazz}.
-   */
-  @NotNull
-  public <V> Map<String, GradleNotNullValue<V>> getValues(@NotNull Class<V> clazz) {
-    Map<String, GradleNotNullValue<V>> result = Maps.newLinkedHashMap();
-    for (Map.Entry<String, GradleDslElement> entry : getPropertyElements().entrySet()) {
-      GradleDslElement propertyElement = entry.getValue();
-      if (propertyElement instanceof GradleDslExpression) {
-        V value = ((GradleDslExpression)propertyElement).getValue(clazz);
-        if (value != null) {
-          result.put(entry.getKey(), new GradleNotNullValueImpl<>(propertyElement, value));
-        }
-      }
-    }
-    return result;
   }
 
   @Override
   @Nullable
   public PsiElement create() {
     return getDslFile().getWriter().createDslExpressionMap(this);
+  }
+
+  @Override
+  public void delete() {
+    myShouldBeDeleted = true;
+    super.delete();
+  }
+
+  @Override
+  public void apply() {
+    getDslFile().getWriter().applyDslExpressionMap(this);
+    super.apply();
+  }
+
+  public boolean isLiteralMap() {
+    return myUseAssignment;
+  }
+
+  @Override
+  @Nullable
+  public PsiElement getExpression() {
+    return getPsiElement();
+  }
+
+  public boolean shouldBeDeleted() {
+    return !isLiteralMap() || myShouldBeDeleted;
+  }
+
+  @Override
+  @NotNull
+  public List<GradleReferenceInjection> getResolvedVariables() {
+    return getDependencies().stream().filter(e -> e.isResolved()).collect(Collectors.toList());
   }
 }

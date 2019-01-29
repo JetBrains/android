@@ -15,16 +15,5 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-
 public interface CMakeModel extends AbstractBuildModel {
-  @Override
-  @NotNull
-  CMakeModel setPath(@NotNull File path);
-
-  @Override
-  @NotNull
-  CMakeModel removePath();
 }

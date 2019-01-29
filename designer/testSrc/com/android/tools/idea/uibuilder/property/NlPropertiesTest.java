@@ -15,35 +15,55 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_CARD_ELEVATION;
+import static com.android.SdkConstants.ATTR_ELEVATION;
+import static com.android.SdkConstants.ATTR_FONT_FAMILY;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.ATTR_ON_CLICK;
+import static com.android.SdkConstants.ATTR_PADDING_BOTTOM;
+import static com.android.SdkConstants.ATTR_SRC;
+import static com.android.SdkConstants.ATTR_SRC_COMPAT;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.ATTR_VISIBILITY;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.ptable.StarState;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.ProjectSystemComponent;
-import com.android.tools.idea.projectsystem.gradle.GradleDependencyVersion;
+import com.android.tools.idea.projectsystem.LightResourceClassService;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.ArgumentMatcher;
+import org.mockito.Mockito;
 
 public class NlPropertiesTest extends PropertyTestCase {
-  private static final String CUSTOM_NAMESPACE = "http://schemas.android.com/apk/res/com.example";
+  private static final String APPCOMPAT_IMAGE_VIEW = "android.support.v7.widget.AppCompatImageView";
+  private static final String APPCOMPAT_TEXT_VIEW = "android.support.v7.widget.AppCompatTextView";
   private static final String[] NO_NAMESPACE_VIEW_ATTRS = {"style"};
   private static final String[] ANDROID_VIEW_ATTRS = {"id", "padding", "visibility", "textAlignment", "translationZ", "elevation"};
   private static final String[] TEXT_VIEW_ATTRS = {"text", "hint", "textColor", "textSize"};
@@ -53,37 +73,53 @@ public class NlPropertiesTest extends PropertyTestCase {
   private static final String[] LINEAR_LAYOUT_ATTRS = {"layout_weight"};
   private static final String[] RELATIVE_LAYOUT_ATTRS = {"layout_toLeftOf", "layout_above", "layout_alignTop"};
 
-  private void setUpAppCompat() {
-    GradleVersion gradleVersion = GradleVersion.parse(String.format("%1$d.0.0", MOST_RECENT_API_LEVEL));
-    GradleDependencyVersion version = new GradleDependencyVersion(gradleVersion);
-    ProjectSystemComponent projectSystem = mock(ProjectSystemComponent.class);
-    AndroidProjectSystem androidProjectSystem = mock(AndroidProjectSystem.class);
-    AndroidModuleSystem androidModuleSystem = mock(AndroidModuleSystem.class);
-    when(projectSystem.getProjectSystem()).thenReturn(androidProjectSystem);
-    when(androidProjectSystem.getModuleSystem(any(Module.class))).thenReturn(androidModuleSystem);
-    when(androidModuleSystem.getResolvedVersion(eq(GoogleMavenArtifactId.APP_COMPAT_V7))).thenReturn(version);
-    registerProjectComponentImplementation(ProjectSystemComponent.class, projectSystem);
-    myFixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY);
-    myFixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGEVIEW);
-    myFixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXTVIEW);
-    myFixture.addFileToProject("res/values/attrs.xml", APPCOMPAT_ATTRS);
-    myFixture.addFileToProject("src/com/example/MyActivity.java", MY_ACTIVITY);
+  private XmlFile myCustomFile;
+  private XmlFile myCustomAppCompatFile;
+
+  @Override
+  public void addFiles() {
+    if (getName().contains("AppCompat")) {
+      setUpAppCompat();
+    }
+    myCustomFile = setUpCustomView();
+    myCustomAppCompatFile = setUpCustomAppCompatExtension();
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    myCustomFile = null;
+    myCustomAppCompatFile = null;
+    super.tearDown();
   }
 
   public void testFontFamilyFromAppCompatForMinApi14() {
-    setUpAppCompat();
+    NlModel model = model("example.xml",
+                          component(TEXT_VIEW)
+                            .withBounds(0, 0, 1000, 1500)
+                            .id("@id/text")
+                            .matchParentWidth()
+                            .matchParentHeight()
+                            .viewObjectClassName(APPCOMPAT_TEXT_VIEW)).build();
+
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myTextView));
-    assertPresent(myTextView.getTagName(), properties, AUTO_URI, ATTR_FONT_FAMILY);
-    assertAbsent(myTextView.getTagName(), properties, ANDROID_URI, ATTR_FONT_FAMILY);
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, model.getComponents());
+    assertPresent(TEXT_VIEW, properties, AUTO_URI, ATTR_FONT_FAMILY);
+    assertAbsent(TEXT_VIEW, properties, ANDROID_URI, ATTR_FONT_FAMILY);
   }
 
-  public void testFontFamilyFromAndroidForMinApi16() {
-    setUpAppCompat();
+  public void testFontFamilyFromAndroidWithAppCompatForMinApi16() {
+    NlModel model = model("example.xml",
+                          component(TEXT_VIEW)
+                            .withBounds(0, 0, 1000, 1500)
+                            .id("@id/text")
+                            .matchParentWidth()
+                            .matchParentHeight()
+                            .viewObjectClassName(APPCOMPAT_TEXT_VIEW)).build();
+
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myTextView));
-    assertAbsent(myTextView.getTagName(), properties, AUTO_URI, ATTR_FONT_FAMILY);
-    assertPresent(myTextView.getTagName(), properties, ANDROID_URI, ATTR_FONT_FAMILY);
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, model.getComponents());
+    assertAbsent(TEXT_VIEW, properties, AUTO_URI, ATTR_FONT_FAMILY);
+    assertPresent(TEXT_VIEW, properties, ANDROID_URI, ATTR_FONT_FAMILY);
   }
 
   public void testViewAttributes() {
@@ -148,11 +184,7 @@ public class NlPropertiesTest extends PropertyTestCase {
   }
 
   public void testCustomViewAttributes() {
-    XmlFile xmlFile = setupCustomViewProject();
-
-    String tag = "com.example.PieChart";
-
-    XmlTag rootTag = xmlFile.getRootTag();
+    XmlTag rootTag = myCustomFile.getRootTag();
     assert rootTag != null;
 
     XmlTag[] subTags = rootTag.getSubTags();
@@ -162,6 +194,7 @@ public class NlPropertiesTest extends PropertyTestCase {
       NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(MockNlComponent.create(myModel, subTags[0])));
     assertTrue("# of properties lesser than expected: " + properties.size(), properties.size() > 90);
 
+    String tag = "com.example.PieChart";
     assertPresent(tag, properties, ANDROID_URI, ANDROID_VIEW_ATTRS);
     assertPresent(tag, properties, "", NO_NAMESPACE_VIEW_ATTRS);
     assertPresent(tag, properties, ANDROID_URI, LINEAR_LAYOUT_ATTRS);
@@ -169,9 +202,7 @@ public class NlPropertiesTest extends PropertyTestCase {
   }
 
   public void testPropertyNames() {
-    XmlFile xmlFile = setupCustomViewProject();
-
-    XmlTag rootTag = xmlFile.getRootTag();
+    XmlTag rootTag = myCustomFile.getRootTag();
     assert rootTag != null;
 
     XmlTag[] subTags = rootTag.getSubTags();
@@ -185,7 +216,7 @@ public class NlPropertiesTest extends PropertyTestCase {
 
     assertEquals("id", p.getName());
 
-    String expected = "@android:id:  Supply an identifier name for this view, to later retrieve it\n" +
+    String expected = "@android:id: Supply an identifier name for this view, to later retrieve it\n" +
                       "             with {@link android.view.View#findViewById View.findViewById()} or\n" +
                       "             {@link android.app.Activity#findViewById Activity.findViewById()}.\n" +
                       "             This must be a\n" +
@@ -193,88 +224,19 @@ public class NlPropertiesTest extends PropertyTestCase {
                       "             <code>@+</code> syntax to create a new ID resources.\n" +
                       "             For example: <code>android:id=\"@+id/my_id\"</code> which\n" +
                       "             allows you to later retrieve the view\n" +
-                      "             with <code>findViewById(R.id.my_id)</code>. ";
+                      "             with <code>findViewById(R.id.my_id)</code>.";
 
     assertEquals(expected, p.getTooltipText());
 
-    p = properties.get(CUSTOM_NAMESPACE, "legend");
+    p = properties.get(AUTO_URI, "legend");
     assertNotNull(p);
 
     assertEquals("legend", p.getName());
-    assertEquals("legend", p.getTooltipText());
-  }
-
-  private XmlFile setupCustomViewProject() {
-    @Language("XML")
-    String layoutSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                       "<LinearLayout>" +
-                       "  <com.example.PieChart />" +
-                       "</LinearLayout>";
-
-    @Language("XML")
-    String attrsSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                      "<resources>\n" +
-                      "    <declare-styleable name=\"PieChart\">\n" +
-                      "        <attr name=\"legend\" format=\"boolean\" />\n" +
-                      "        <attr name=\"labelPosition\" format=\"enum\">\n" +
-                      "            <enum name=\"left\" value=\"0\"/>\n" +
-                      "            <enum name=\"right\" value=\"1\"/>\n" +
-                      "        </attr>\n" +
-                      "    </declare-styleable>\n" +
-                      "</resources>";
-
-    @Language("JAVA")
-    String javaSrc = "package com.example;\n" +
-                     "\n" +
-                     "import android.content.Context;\n" +
-                     "import android.view.View;\n" +
-                     "\n" +
-                     "public class PieChart extends View {\n" +
-                     "    public PieChart(Context context) {\n" +
-                     "        super(context);\n" +
-                     "    }\n" +
-                     "}\n";
-
-    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", layoutSrc);
-    myFixture.addFileToProject("res/values/attrs.xml", attrsSrc);
-    myFixture.addFileToProject("src/com/example/PieChart.java", javaSrc);
-    return xmlFile;
+    assertEquals("@app:legend", p.getTooltipText());
   }
 
   public void testAppCompatIssues() {
-    @Language("JAVA")
-    String java = "package com.example;\n" +
-                  "\n" +
-                  "import android.content.Context;\n" +
-                  "import android.widget.TextView;\n" +
-                  "\n" +
-                  "public class MyTextView extends TextView {\n" +
-                  "    public MyTextView(Context context) {\n" +
-                  "        super(context);\n" +
-                  "    }\n" +
-                  "}\n";
-    myFixture.addFileToProject("src/com/example/MyTextView.java", java);
-
-    @Language("XML")
-    String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                    "<RelativeLayout>" +
-                    "  <com.example.MyTextView />" +
-                    "</RelativeLayout>";
-    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
-
-    @Language("XML")
-    String attrsSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                      "<resources>\n" +
-                      "    <declare-styleable name=\"MyTextView\">\n" +
-                      "        <attr name=\"android:focusable\" />\n" +
-                      "        <attr name=\"theme\" format=\"reference\" />\n" +
-                      "        <attr name=\"android:theme\" />\n" +
-                      "        <attr name=\"custom\" />\n" +
-                      "    </declare-styleable>\n" +
-                      "</resources>";
-    myFixture.addFileToProject("res/values/attrs.xml", attrsSrc);
-
-    XmlTag rootTag = xmlFile.getRootTag();
+    XmlTag rootTag = myCustomAppCompatFile.getRootTag();
     assert rootTag != null;
 
     XmlTag[] subTags = rootTag.getSubTags();
@@ -287,7 +249,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     // The attrs.xml in appcompat-22.0.0 includes android:focusable, theme and android:theme.
     // The android:focusable refers to the platform attribute, and hence should not be duplicated..
     assertPresent("com.example.MyTextView", properties, ANDROID_URI, "focusable", "theme");
-    assertPresent("com.example.MyTextView", properties, CUSTOM_NAMESPACE, "custom");
+    assertPresent("com.example.MyTextView", properties, AUTO_URI, "custom");
     assertAbsent("com.example.MyTextView", properties, ANDROID_URI, "android:focusable", "android:theme");
   }
 
@@ -321,7 +283,6 @@ public class NlPropertiesTest extends PropertyTestCase {
     NlProperties.saveStarState(null, ATTR_NAME, true, myPropertiesManager);
     List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION, ATTR_NAME);
     assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
-    verify(myUsageTracker).logFavoritesChange(ATTR_NAME, "", expected, myFacet);
   }
 
   public void testAddStarredToolsProperty() {
@@ -329,7 +290,6 @@ public class NlPropertiesTest extends PropertyTestCase {
     NlProperties.saveStarState(TOOLS_URI, ATTR_TEXT, true, myPropertiesManager);
     List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, TOOLS_NS_NAME_PREFIX + ATTR_TEXT);
     assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
-    verify(myUsageTracker).logFavoritesChange(TOOLS_NS_NAME_PREFIX + ATTR_TEXT, "", expected, myFacet);
   }
 
   public void testRemoveStarredProperty() {
@@ -337,7 +297,6 @@ public class NlPropertiesTest extends PropertyTestCase {
     NlProperties.saveStarState(ANDROID_URI, ATTR_CARD_ELEVATION, false, myPropertiesManager);
     List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK);
     assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
-    verify(myUsageTracker).logFavoritesChange("", ATTR_CARD_ELEVATION, expected, myFacet);
   }
 
   @NotNull
@@ -351,10 +310,16 @@ public class NlPropertiesTest extends PropertyTestCase {
   }
 
   public void testSrcCompatIncludedWhenUsingAppCompat() {
-    setUpAppCompat();
+    NlModel model = model("example.xml",
+                          component(IMAGE_VIEW)
+                            .withBounds(0, 0, 1000, 1500)
+                            .id("@id/image")
+                            .matchParentWidth()
+                            .matchParentHeight()
+                            .viewObjectClassName(APPCOMPAT_IMAGE_VIEW)).build();
 
     Table<String, String, NlPropertyItem> properties =
-      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myImageView));
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, model.getComponents());
 
     assertPresent("ImageView", properties, ANDROID_URI, ATTR_SRC);
     assertPresent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
@@ -368,6 +333,15 @@ public class NlPropertiesTest extends PropertyTestCase {
     assertAbsent("ImageView", properties, AUTO_URI, ATTR_SRC_COMPAT);
   }
 
+  public void testIgnoreDataBindingProperty() {
+    // Regression test for: b/77234265
+    Table<String, String, NlPropertyItem> properties =
+      NlProperties.getInstance().getProperties(myFacet, myPropertiesManager, ImmutableList.of(myCheckBox3));
+    assertAbsent("CheckBox", properties, "", "onCheckedChanged");
+    assertAbsent("CheckBox", properties, ANDROID_URI, "onCheckedChanged");
+    assertAbsent("CheckBox", properties, AUTO_URI, "onCheckedChanged");
+  }
+
   private static void assertPresent(String tag, Table<String, String, NlPropertyItem> properties, String namespace, String... names) {
     for (String n : names) {
       assertNotNull("Missing attribute " + n + " for " + tag, properties.get(namespace, n));
@@ -378,6 +352,100 @@ public class NlPropertiesTest extends PropertyTestCase {
     for (String n : names) {
       assertNull("Attribute " + n + " not applicable for a " + tag, properties.get(namespace, n));
     }
+  }
+
+  private XmlFile setUpCustomView() {
+    @Language("XML")
+    String layoutSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                       "<LinearLayout>" +
+                       "  <com.example.PieChart />" +
+                       "</LinearLayout>";
+
+    @Language("XML")
+    String attrsSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<resources>\n" +
+                      "    <declare-styleable name=\"PieChart\">\n" +
+                      "        <attr name=\"legend\" format=\"boolean\" />\n" +
+                      "        <attr name=\"labelPosition\" format=\"enum\">\n" +
+                      "            <enum name=\"left\" value=\"0\"/>\n" +
+                      "            <enum name=\"right\" value=\"1\"/>\n" +
+                      "        </attr>\n" +
+                      "    </declare-styleable>\n" +
+                      "</resources>";
+
+    @Language("JAVA")
+    String javaSrc = "package com.example;\n" +
+                     "\n" +
+                     "import android.content.Context;\n" +
+                     "import android.view.View;\n" +
+                     "\n" +
+                     "public class PieChart extends View {\n" +
+                     "    public PieChart(Context context) {\n" +
+                     "        super(context);\n" +
+                     "    }\n" +
+                     "}\n";
+
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/pie_chart.xml", layoutSrc);
+    myFixture.addFileToProject("res/values/pie_chart.xml", attrsSrc);
+    myFixture.addFileToProject("src/com/example/PieChart.java", javaSrc);
+    return xmlFile;
+  }
+
+  private XmlFile setUpCustomAppCompatExtension() {
+    @Language("JAVA")
+    String java = "package com.example;\n" +
+                  "\n" +
+                  "import android.content.Context;\n" +
+                  "import android.widget.TextView;\n" +
+                  "\n" +
+                  "public class MyTextView extends TextView {\n" +
+                  "    public MyTextView(Context context) {\n" +
+                  "        super(context);\n" +
+                  "    }\n" +
+                  "}\n";
+    myFixture.addFileToProject("src/com/example/MyTextView.java", java);
+
+    @Language("XML")
+    String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                    "<RelativeLayout>" +
+                    "  <com.example.MyTextView />" +
+                    "</RelativeLayout>";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/relative.xml", source);
+
+    @Language("XML")
+    String attrsSrc = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<resources>\n" +
+                      "    <declare-styleable name=\"MyTextView\">\n" +
+                      "        <attr name=\"android:focusable\" />\n" +
+                      "        <attr name=\"theme\" format=\"reference\" />\n" +
+                      "        <attr name=\"android:theme\" />\n" +
+                      "        <attr name=\"custom\" />\n" +
+                      "    </declare-styleable>\n" +
+                      "</resources>";
+    myFixture.addFileToProject("res/values/my_text_view_attrs.xml", attrsSrc);
+
+    return xmlFile;
+  }
+
+  private void setUpAppCompat() {
+    GradleVersion gradleVersion = GradleVersion.parse(String.format("%1$d.0.0", MOST_RECENT_API_LEVEL));
+    GradleCoordinate appCompatCoordinate = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate(gradleVersion.toString());
+    ProjectSystemService projectSystemService = mock(ProjectSystemService.class);
+    AndroidProjectSystem androidProjectSystem = mock(AndroidProjectSystem.class);
+    AndroidModuleSystem androidModuleSystem = mock(AndroidModuleSystem.class);
+    LightResourceClassService lightResourceClassService = mock(LightResourceClassService.class, Mockito.RETURNS_SMART_NULLS);
+    when(projectSystemService.getProjectSystem()).thenReturn(androidProjectSystem);
+    when(androidProjectSystem.getModuleSystem(any(Module.class))).thenReturn(androidModuleSystem);
+    when(androidProjectSystem.getLightResourceClassService()).thenReturn(lightResourceClassService);
+    ArgumentMatcher<GradleCoordinate> appCompatMatcher =
+      arg ->  arg instanceof GradleCoordinate && arg.isSameArtifact(appCompatCoordinate);
+    when(androidModuleSystem.getResolvedDependency(argThat(appCompatMatcher))).thenReturn(appCompatCoordinate);
+    replaceProjectService(ProjectSystemService.class, projectSystemService);
+    myFixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY);
+    myFixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGE_VIEW_SOURCE);
+    myFixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXT_VIEW_SOURCE);
+    myFixture.addFileToProject("res/values/attrs.xml", APPCOMPAT_ATTRS);
+    myFixture.addFileToProject("src/com/example/MyActivity.java", MY_ACTIVITY);
   }
 
   private static final String MY_ACTIVITY =
@@ -394,7 +462,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     "}";
 
   @Language("Java")
-  private static final String APPCOMPAT_IMAGEVIEW =
+  private static final String APPCOMPAT_IMAGE_VIEW_SOURCE =
     "package android.support.v7.widget;\n" +
     "\n" +
     "import android.content.Context;\n" +
@@ -417,7 +485,7 @@ public class NlPropertiesTest extends PropertyTestCase {
     "}\n";
 
   @Language("Java")
-  private static final String APPCOMPAT_TEXTVIEW =
+  private static final String APPCOMPAT_TEXT_VIEW_SOURCE =
     "package android.support.v7.widget;\n" +
     "\n" +
     "import android.content.Context;\n" +

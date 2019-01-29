@@ -36,7 +36,7 @@ open class SimpleProperty(private val _name: String, private val _components: Li
 
   override fun setValue(value: Any?) {}
 
-  override fun resolveValue(value: String?) = null
+  override fun resolveValue(value: String?) = value
 
   override fun getTooltipText() = ""
 

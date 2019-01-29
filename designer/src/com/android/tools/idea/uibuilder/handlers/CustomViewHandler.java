@@ -31,7 +31,6 @@ import static com.android.SdkConstants.*;
 
 public class CustomViewHandler extends DelegatingViewHandler {
   private final Icon myIcon16;
-  private final Icon myIcon24;
   private final String myTagName;
   private final String myClassName;
   @Language("XML")
@@ -44,7 +43,6 @@ public class CustomViewHandler extends DelegatingViewHandler {
 
   public CustomViewHandler(@NotNull ViewHandler handler,
                            @Nullable Icon icon16,
-                           @Nullable Icon icon24,
                            @NotNull String tagName,
                            @NotNull String className,
                            @Nullable @Language("XML") String xml,
@@ -54,7 +52,6 @@ public class CustomViewHandler extends DelegatingViewHandler {
                            @NotNull List<String> properties) {
     super(handler);
     myIcon16 = icon16;
-    myIcon24 = icon24;
     myTagName = tagName;
     myClassName = className;
     myXml = xml;
@@ -70,12 +67,6 @@ public class CustomViewHandler extends DelegatingViewHandler {
   @NotNull
   public Icon getIcon(@NotNull String tagName) {
     return myIcon16 != null && tagName.equals(myTagName) ? myIcon16 : super.getIcon(tagName);
-  }
-
-  @Override
-  @NotNull
-  public Icon getLargeIcon(@NotNull String tagName) {
-    return myIcon24 != null && tagName.equals(myTagName) ? myIcon24 : super.getIcon(tagName);
   }
 
   @Override

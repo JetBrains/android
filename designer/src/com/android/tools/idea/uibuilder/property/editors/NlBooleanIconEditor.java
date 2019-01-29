@@ -75,7 +75,7 @@ public class NlBooleanIconEditor {
   private void updateDescription(@NotNull NlProperty property) {
     AttributeDefinition definition = property.getDefinition();
     if (definition != null) {
-      String description = definition.getValueDoc(myAction.myTrueValue);
+      String description = definition.getValueDescription(myAction.myTrueValue);
       if (description != null) {
         // TODO: Add a getter of the presentation instance in ActionButton. Then we can get rid of myPresentation.
         myPresentation.setDescription(description);

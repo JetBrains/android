@@ -17,20 +17,24 @@ package com.android.tools.idea.npw.project;
 
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.PluginModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.templates.Parameter;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidGradleModuleUtils {
 
@@ -76,5 +80,23 @@ public class AndroidGradleModuleUtils {
       }
       FileUtil.setExecutableAttribute(gradlewFile.getPath(), true);
     }
+  }
+
+  /**
+   * Given a project, return whether or not the project contains a module that uses the feature plugin. This method is used to
+   * determine if a project is an old version of an instant app project.
+   */
+  public static boolean projectContainsFeatureModule(@NotNull Project project) {
+    ProjectBuildModel projectBuildModel = ProjectBuildModel.get(project);
+    for(Module module : ModuleManager.getInstance(project).getModules()) {
+      GradleBuildModel gradleBuildModel = projectBuildModel.getModuleBuildModel(module);
+      if (gradleBuildModel != null) {
+        List<String> plugins = PluginModel.extractNames(gradleBuildModel.plugins());
+        if (plugins.contains("com.android.feature")) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

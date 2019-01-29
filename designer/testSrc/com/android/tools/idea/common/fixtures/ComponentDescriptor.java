@@ -17,7 +17,7 @@ package com.android.tools.idea.common.fixtures;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.rendering.api.ViewType;
-import com.android.tools.idea.rendering.TagSnapshot;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Splitter;
@@ -51,6 +51,7 @@ public class ComponentDescriptor {
   @AndroidCoordinate private int myWidth;
   @AndroidCoordinate private int myHeight;
 
+  @NotNull private String myViewObjectClassName;
   @Nullable private Object myViewObject;
   @Nullable private Object myLayoutParamsObject;
   private ViewType myViewType;
@@ -58,6 +59,7 @@ public class ComponentDescriptor {
 
   public ComponentDescriptor(@NotNull String tagName) {
     myTagName = tagName;
+    myViewObjectClassName = tagName;
   }
 
   /**
@@ -108,11 +110,13 @@ public class ComponentDescriptor {
     return this;
   }
 
+  @NotNull
   public ComponentDescriptor withAttribute(@NotNull String name, @NotNull String value) {
     myAttributes.add(Pair.create(name, value));
     return this;
   }
 
+  @NotNull
   public ComponentDescriptor id(@NotNull String id) {
     if (id.isEmpty()) {
       // Allow id to be specified as optional in the fluent API, e.g.
@@ -122,34 +126,55 @@ public class ComponentDescriptor {
     return withAttribute(ANDROID_URI, ATTR_ID, id);
   }
 
+  @NotNull
+  public String getTagName() {
+    return myTagName;
+  }
+
+  @Nullable
+  public String getId() {
+    return myAttributes.stream()
+      .filter(attr -> attr.first.equals(PREFIX_ANDROID + ATTR_ID))
+      .map(attr -> attr.second)
+      .findFirst().orElse(null);
+  }
+
+  @NotNull
   public ComponentDescriptor text(@NotNull String text) {
     return withAttribute(ANDROID_URI, ATTR_TEXT, text);
   }
 
+  @NotNull
   public ComponentDescriptor width(@NotNull String width) {
     return withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, width);
   }
 
+  @NotNull
   public ComponentDescriptor height(@NotNull String height) {
     return withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, height);
   }
 
+  @NotNull
   public ComponentDescriptor matchParentWidth() {
     return width(VALUE_MATCH_PARENT);
   }
 
+  @NotNull
   public ComponentDescriptor matchParentHeight() {
     return height(VALUE_MATCH_PARENT);
   }
 
+  @NotNull
   public ComponentDescriptor wrapContentWidth() {
     return width(VALUE_WRAP_CONTENT);
   }
 
+  @NotNull
   public ComponentDescriptor wrapContentHeight() {
     return height(VALUE_WRAP_CONTENT);
   }
 
+  @NotNull
   public ComponentDescriptor withAttribute(@NotNull String namespace, @NotNull String name, @NotNull String value) {
     switch (namespace) {
       case ANDROID_URI:
@@ -163,10 +188,12 @@ public class ComponentDescriptor {
     return this;
   }
 
+  @NotNull
   private Rectangle getBounds() {
     return new Rectangle(myX, myY, myWidth, myHeight);
   }
 
+  @NotNull
   public ComponentDescriptor children(@NotNull ComponentDescriptor... children) {
     // Make sure that all the children have bounds that fit within this component
     Rectangle bounds = getBounds();
@@ -187,16 +214,19 @@ public class ComponentDescriptor {
     return this;
   }
 
+  @NotNull
   public ComponentDescriptor tags(@NotNull ComponentDescriptor... children) {
     myChildren = children;
     return this;
   }
 
+  @NotNull
   public ComponentDescriptor unboundedChildren(@NotNull ComponentDescriptor... children) {
     myChildren = children;
     return this;
   }
 
+  @NotNull
   public ComponentDescriptor viewObject(@Nullable Object viewObject) {
     assert !myUseMockView : "You can not set a view object if you already called withMockView()";
 
@@ -204,16 +234,25 @@ public class ComponentDescriptor {
     return this;
   }
 
+  @NotNull
+  public ComponentDescriptor viewObjectClassName(@NotNull String className) {
+    myViewObjectClassName = className;
+    return this;
+  }
+
+  @NotNull
   public ComponentDescriptor layoutParamsObject(@Nullable Object layoutParamsObject) {
     myLayoutParamsObject = layoutParamsObject;
     return this;
   }
 
+  @NotNull
   public ComponentDescriptor viewType(@NotNull ViewType viewType) {
     myViewType = viewType;
     return this;
   }
 
+  @NotNull
   public ComponentDescriptor removeChild(ComponentDescriptor child) {
     assertThat(myChildren).asList().contains(child);
     List<ComponentDescriptor> list = Lists.newArrayList(myChildren);
@@ -222,6 +261,7 @@ public class ComponentDescriptor {
     return this;
   }
 
+  @NotNull
   public ComponentDescriptor addChild(@NotNull ComponentDescriptor child, @Nullable ComponentDescriptor before) {
     assertThat(myChildren).asList().doesNotContain(child);
     List<ComponentDescriptor> list = Lists.newArrayList(myChildren);
@@ -408,7 +448,7 @@ public class ComponentDescriptor {
     int bottom = top + myHeight;
     TagSnapshot snapshot = TagSnapshot.createTagSnapshotWithoutChildren(tag);
 
-    TestViewInfo viewInfo = new TestViewInfo(myTagName, snapshot, left, top, right, bottom, myViewObject, myLayoutParamsObject);
+    TestViewInfo viewInfo = new TestViewInfo(myViewObjectClassName, snapshot, left, top, right, bottom, myViewObject, myLayoutParamsObject);
     viewInfo.setExtendedInfo((int) (0.8 * (bottom - top)), 0, 0, 0, 0);
     if (myViewType != null) {
       viewInfo.setViewType(myViewType);

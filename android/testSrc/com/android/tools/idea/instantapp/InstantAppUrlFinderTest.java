@@ -18,9 +18,13 @@ package com.android.tools.idea.instantapp;
 import com.google.common.collect.ImmutableList;
 import org.hamcrest.CoreMatchers;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -32,15 +36,31 @@ import java.io.StringReader;
 import java.util.Collection;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class InstantAppUrlFinderTest {
 
   @Rule
   public final ExpectedException myException = ExpectedException.none();
 
+  @Mock InstantAppUrlFinder.AttributesResolver myResolver;
+
+  @Before
+  public void setUp() {
+    initMocks(this);
+    when(myResolver.resolveResource(anyString(), anyString())).thenAnswer(new Answer<String>() {
+      @Override
+      public String answer(InvocationOnMock invocation) throws Throwable {
+        return invocation.getArgument(1);
+      }
+    });
+  }
+
   @Test
   public void testGetAllUrls() throws Exception {
-    InstantAppUrlFinder finder = new InstantAppUrlFinder(createDummyValidData());
+    InstantAppUrlFinder finder = new InstantAppUrlFinder(myResolver, createDummyValidData());
 
     assertEquals(4, finder.getAllUrls().size());
     Collection<String> urls = finder.getAllUrls();
@@ -58,14 +78,14 @@ public class InstantAppUrlFinderTest {
 
   @Test
   public void testGetAllUrlsInvalidInput() throws Exception {
-    InstantAppUrlFinder invalidFinder = new InstantAppUrlFinder(ImmutableList.of((Element)createXMLContent("<intent-filter/>")));
+    InstantAppUrlFinder invalidFinder = new InstantAppUrlFinder(myResolver, ImmutableList.of((Element)createXMLContent("<intent-filter/>")));
 
     assertEquals(0, invalidFinder.getAllUrls().size());
   }
 
   @Test
   public void testGetDefaultUrl() throws Exception {
-    InstantAppUrlFinder finder = new InstantAppUrlFinder(createDummyValidData());
+    InstantAppUrlFinder finder = new InstantAppUrlFinder(myResolver, createDummyValidData());
 
     assertEquals("scheme1://domainB/pathPatternB", finder.getDefaultUrl());
   }
@@ -109,7 +129,7 @@ public class InstantAppUrlFinderTest {
 
   @Test
   public void testGetDefaultUrlInvalidInput() throws Exception {
-    InstantAppUrlFinder invalidFinder = new InstantAppUrlFinder(ImmutableList.of((Element)createXMLContent("<intent-filter/>")));
+    InstantAppUrlFinder invalidFinder = new InstantAppUrlFinder(myResolver, ImmutableList.of((Element)createXMLContent("<intent-filter/>")));
 
     assertEquals("", invalidFinder.getDefaultUrl());
   }
@@ -125,7 +145,7 @@ public class InstantAppUrlFinderTest {
                                                        "      android:scheme=\"scheme2\" />" +
                                                        "</intent-filter>");
 
-    InstantAppUrlFinder.InstantAppIntentFilterWrapper wrapper = InstantAppUrlFinder.InstantAppIntentFilterWrapper.of(intentWithData);
+    InstantAppUrlFinder.InstantAppIntentFilterWrapper wrapper = new InstantAppUrlFinder.InstantAppIntentFilterWrapper(myResolver, intentWithData);
 
     assertNotNull(wrapper.getUrlData());
     assertTrue(wrapper.getUrlData().isValid());
@@ -198,7 +218,7 @@ public class InstantAppUrlFinderTest {
     Node dataNode = createXMLContent("<data android:host=\"domain\"\n" +
                                      "      android:pathPattern=\"/pathPattern\"\n" +
                                      "      android:scheme=\"scheme\" />");
-    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData();
+    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData(myResolver);
     urlData.addFromNode(dataNode);
 
     assertTrue(urlData.isValid());
@@ -209,7 +229,7 @@ public class InstantAppUrlFinderTest {
     Node dataNode1 = createXMLContent("<data android:host=\"domain\" />");
     Node dataNode2 = createXMLContent("<data android:pathPattern=\"/pathPattern\" />");
     Node dataNode3 = createXMLContent("<data android:scheme=\"scheme\" />");
-    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData();
+    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData(myResolver);
     urlData.addFromNode(dataNode1);
     urlData.addFromNode(dataNode2);
     urlData.addFromNode(dataNode3);
@@ -223,7 +243,7 @@ public class InstantAppUrlFinderTest {
                                       "       instant:pathPattern=\"/pathPattern\"\n" +
                                       "       android:scheme=\"scheme\" />");
 
-    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData();
+    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData(myResolver);
     urlData.addFromNode(wrongNode);
 
     assertFalse(urlData.isValid());
@@ -235,7 +255,7 @@ public class InstantAppUrlFinderTest {
                                            "      android:pathPattern=\"/pathPattern\"\n" +
                                            "      instant:scheme=\"scheme\" />");
 
-    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData();
+    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData(myResolver);
     urlData.addFromNode(wrongNamespace);
 
     assertFalse(urlData.isValid());
@@ -245,7 +265,7 @@ public class InstantAppUrlFinderTest {
   public void testUrlDataNotAnElement() throws Exception {
     Node notAnElement = createXMLContent("<data test=\"test\" />").getAttributes().item(0);
 
-    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData();
+    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData(myResolver);
     urlData.addFromNode(notAnElement);
 
     assertFalse(urlData.isValid());
@@ -256,7 +276,7 @@ public class InstantAppUrlFinderTest {
     Node missingData = createXMLContent("<data android:host=\"domain\"\n" +
                                         "      android:pathPattern=\"/pathPattern\"\n/>");
 
-    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData();
+    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData(myResolver);
     urlData.addFromNode(missingData);
 
     assertFalse(urlData.isValid());
@@ -363,8 +383,8 @@ public class InstantAppUrlFinderTest {
   }
 
   @NotNull
-  private static InstantAppUrlFinder.UrlData urlDataFromStrings(@NotNull String scheme, @NotNull String host, @NotNull String path, @NotNull String pathPrefix, @NotNull String pathPattern) {
-    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData();
+  private InstantAppUrlFinder.UrlData urlDataFromStrings(@NotNull String scheme, @NotNull String host, @NotNull String path, @NotNull String pathPrefix, @NotNull String pathPattern) {
+    InstantAppUrlFinder.UrlData urlData = new InstantAppUrlFinder.UrlData(myResolver);
     urlData.addFromStrings(scheme, host, path, pathPrefix, pathPattern);
     return urlData;
   }

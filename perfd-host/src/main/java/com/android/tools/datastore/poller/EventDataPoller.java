@@ -45,9 +45,9 @@ public class EventDataPoller extends PollRunner {
   @Override
   public void poll() throws StatusRuntimeException {
     EventDataRequest.Builder dataRequestBuilder = EventDataRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTimestamp(myDataRequestStartTimestampNs)
-      .setEndTimestamp(Long.MAX_VALUE);
+                                                                  .setSession(mySession)
+                                                                  .setStartTimestamp(myDataRequestStartTimestampNs)
+                                                                  .setEndTimestamp(Long.MAX_VALUE);
     // Query for and cache activity data that has changed since our last polling.
     ActivityDataResponse activityResponse = myEventPollingService.getActivityData(dataRequestBuilder.build());
     for (ActivityData data : activityResponse.getDataList()) {

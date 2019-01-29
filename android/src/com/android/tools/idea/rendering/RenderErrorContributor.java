@@ -16,11 +16,13 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.layoutlib.bridge.impl.RenderSessionImpl;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -61,16 +63,17 @@ import com.intellij.problems.WolfTheProblemSolver;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -96,8 +99,8 @@ import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFI
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
 import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
 import static com.android.tools.idea.res.ResourceHelper.isViewPackageNeeded;
-import static com.android.tools.lint.detector.api.LintUtils.editDistance;
-import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
+import static com.android.tools.lint.detector.api.Lint.editDistance;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * Class that finds {@link RenderErrorModel.Issue}s in a {@link RenderResult}.
@@ -118,10 +121,12 @@ public class RenderErrorContributor {
   private final HyperlinkListener myLinkHandler;
   private final RenderResult myResult;
   private final DataContext myDataContext;
+  private final EditorDesignSurface myDesignSurface;
 
-  protected RenderErrorContributor(@NotNull RenderResult result, @Nullable DataContext dataContext) {
+  protected RenderErrorContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
     myResult = result;
 
+    myDesignSurface = surface;
     myLinkManager = myResult.getLogger().getLinkManager();
     myLinkHandler = e -> {
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -322,8 +327,8 @@ public class RenderErrorContributor {
     }
   }
 
-  private void reportOldNinePathRenderLib(@NotNull RenderLogger logger, @NotNull RenderTask renderTask) {
-    if (renderTask.getConfiguration().getDensity() != Density.TV) {
+  private void reportOldNinePathRenderLib(@NotNull RenderLogger logger, @NotNull RenderTaskContext renderTaskContext) {
+    if (renderTaskContext.getConfiguration().getDensity() != Density.TV) {
       return;
     }
 
@@ -367,7 +372,9 @@ public class RenderErrorContributor {
       .newline();
   }
 
-  private void reportMissingSizeAttributes(@NotNull final RenderLogger logger, @NotNull RenderTask renderTask) {
+  private void reportMissingSizeAttributes(@NotNull final RenderLogger logger,
+                                           @NotNull RenderTaskContext renderTaskContext,
+                                           @Nullable XmlFile psiFile) {
     Module module = logger.getModule();
     if (module == null) {
       return;
@@ -379,15 +386,11 @@ public class RenderErrorContributor {
       // Emit hyperlink about missing attributes; the action will operate on all of them
       builder.addBold("NOTE: One or more layouts are missing the layout_width or layout_height attributes. " +
                       "These are required in most layouts.").newline();
-      final ResourceResolver resourceResolver = renderTask.getResourceResolver();
-      XmlFile psiFile = renderTask.getPsiFile();
+      final ResourceResolver resourceResolver = renderTaskContext.getConfiguration().getResourceResolver();
       if (psiFile == null) {
         LOG.error("PsiFile is missing in RenderTask used in RenderErrorPanel!");
         return;
       }
-      AddMissingAttributesFix fix = new AddMissingAttributesFix(project, psiFile, resourceResolver);
-
-      List<XmlTag> missing = fix.findViewsMissingSizes();
 
       // See whether we should offer match_parent instead of fill_parent
       AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
@@ -396,32 +399,40 @@ public class RenderErrorContributor {
                           || moduleInfo.getBuildSdkVersion().getApiLevel() >= 8
                           ? VALUE_MATCH_PARENT : VALUE_FILL_PARENT;
 
-      for (final XmlTag tag : missing) {
-        ApplicationManager.getApplication().runReadAction(() -> {
-          boolean missingWidth = !AddMissingAttributesFix.definesWidth(tag, resourceResolver);
-          boolean missingHeight = !AddMissingAttributesFix.definesHeight(tag, resourceResolver);
-          assert missingWidth || missingHeight;
+      ApplicationManager.getApplication()
+                        .runReadAction(() -> AddMissingAttributesFix.findViewsMissingSizes(psiFile, resourceResolver).stream()
+                                                                    .map(SmartPsiElementPointer::getElement)
+                                                                    .filter(Objects::nonNull)
+                                                                    .filter(XmlTag::isValid)
+                                                                    .forEach(tag -> {
+                                                                      boolean missingWidth =
+                                                                        !AddMissingAttributesFix.definesWidth(tag, resourceResolver);
+                                                                      boolean missingHeight =
+                                                                        !AddMissingAttributesFix.definesHeight(tag, resourceResolver);
+                                                                      assert missingWidth || missingHeight;
 
-          String id = tag.getAttributeValue(ATTR_ID);
-          if (id == null || id.isEmpty()) {
-            id = '<' + tag.getName() + '>';
-          }
-          else {
-            id = '"' + stripIdPrefix(id) + '"';
-          }
+                                                                      String id = tag.getAttributeValue(ATTR_ID);
+                                                                      if (id == null || id.isEmpty()) {
+                                                                        id = '<' + tag.getName() + '>';
+                                                                      }
+                                                                      else {
+                                                                        id = '"' + stripIdPrefix(id) + '"';
+                                                                      }
 
-          if (missingWidth) {
-            reportMissingSize(builder, logger, fill, tag, id, ATTR_LAYOUT_WIDTH);
-          }
-          if (missingHeight) {
-            reportMissingSize(builder, logger, fill, tag, id, ATTR_LAYOUT_HEIGHT);
-          }
-        });
-      }
+                                                                      if (missingWidth) {
+                                                                        reportMissingSize(builder, logger, fill, tag, id,
+                                                                                          ATTR_LAYOUT_WIDTH);
+                                                                      }
+                                                                      if (missingHeight) {
+                                                                        reportMissingSize(builder, logger, fill, tag, id,
+                                                                                          ATTR_LAYOUT_HEIGHT);
+                                                                      }
+                                                                    }));
 
       builder.newline()
         .add("Or: ")
-        .addLink("Automatically add all missing attributes", myLinkManager.createCommandLink(fix)).newline()
+        .addLink("Automatically add all missing attributes",
+                 myLinkManager.createCommandLink(new AddMissingAttributesFix(project, psiFile, resourceResolver))).newline()
         .newline().newline();
 
       addIssue()
@@ -457,7 +468,7 @@ public class RenderErrorContributor {
     Module module = result.getModule();
     PsiFile file = result.getFile();
 
-    myLinkManager.handleUrl(url, module, file, myDataContext, result);
+    myLinkManager.handleUrl(url, module, file, myDataContext, result, myDesignSurface);
   }
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger, @NotNull RenderTask renderTask) {
@@ -580,10 +591,6 @@ public class RenderErrorContributor {
     if (end == -1 || !haveInterestingFrame) {
       // Not a recognized stack trace range: just skip it
       if (hideIfIrrelevant) {
-        if (RenderLogger.isLoggingAllErrors()) {
-          ShowExceptionFix detailsFix = new ShowExceptionFix(myResult.getModule().getProject(), throwable);
-          builder.addLink("Show Exception", myLinkManager.createRunnableLink(detailsFix));
-        }
         return true;
       }
       else {
@@ -643,7 +650,9 @@ public class RenderErrorContributor {
           String url = null;
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
-              IAndroidTarget target = myResult.getRenderTask() != null ? myResult.getRenderTask().getConfiguration().getRealTarget() : null;
+              IAndroidTarget target = myResult.getRenderTask() != null ?
+                                      myResult.getRenderTask().getContext().getConfiguration().getRealTarget() :
+                                      null;
               platformSource = target != null ? AndroidSdks.getInstance().findPlatformSources(target) : null;
               platformSourceExists = platformSource != null;
             }
@@ -724,9 +733,8 @@ public class RenderErrorContributor {
         .addLink("Add android:supportsRtl=\"true\" to the manifest", logger.getLinkManager().createRunnableLink(() -> {
           new SetAttributeFix(project, applicationTag, AndroidManifest.ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, VALUE_TRUE).execute();
 
-          EditorDesignSurface surface = task != null ? task.getDesignSurface() : null;
-          if (surface != null) {
-            surface.forceUserRequestedRefresh();
+          if (myDesignSurface != null) {
+            myDesignSurface.forceUserRequestedRefresh();
           }
         })).add(")");
 
@@ -752,27 +760,24 @@ public class RenderErrorContributor {
     if (renderTask == null) {
       return;
     }
-    IAndroidTarget target = renderTask.getConfiguration().getRealTarget();
+    IAndroidTarget target = renderTask.getContext().getConfiguration().getRealTarget();
     if (target == null) {
       return;
     }
-    AndroidPlatform platform = renderTask.getPlatform();
+    AndroidPlatform platform = renderTask.getContext().getPlatform();
     if (platform == null) {
       return;
     }
     AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
     AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(result.getFile().getProject());
-    final String attributeName = strings[0];
-    final String currentValue = strings[1];
-    if (definitionLookup == null) {
-      return;
-    }
+    String attributeName = strings[0];
+    String currentValue = strings[1];
     AttributeDefinition definition = definitionLookup.getAttrDefByName(attributeName);
     if (definition == null) {
       return;
     }
     Set<AttributeFormat> formats = definition.getFormats();
-    if (formats.contains(AttributeFormat.Flag) || formats.contains(AttributeFormat.Enum)) {
+    if (formats.contains(AttributeFormat.FLAGS) || formats.contains(AttributeFormat.ENUM)) {
       String[] values = definition.getValues();
       if (values.length > 0) {
         HtmlBuilder builder = new HtmlBuilder();
@@ -801,7 +806,7 @@ public class RenderErrorContributor {
   private void reportOtherProblems(@NotNull RenderLogger logger, RenderTask task) {
     List<RenderProblem> messages = logger.getMessages();
 
-    if (messages == null || messages.isEmpty()) {
+    if (messages.isEmpty()) {
       return;
     }
 
@@ -929,7 +934,7 @@ public class RenderErrorContributor {
         return true;
       }
 
-      if (editDistance(match, matchWith) <= maxDistance) {
+      if (editDistance(match, matchWith, maxDistance + 1) <= maxDistance) {
         // Suggest this class as a typo for the given class
         String labelClass = (suggestedBase.equals(actual) || actual.indexOf('.') != -1) ? suggested : suggestedBase;
         builder.addLink(String.format("Change to %1$s", labelClass),
@@ -944,7 +949,7 @@ public class RenderErrorContributor {
     return false;
   }
 
-  private void reportRenderingFidelityProblems(@NotNull RenderLogger logger, @NotNull final RenderTask renderTask) {
+  private void reportRenderingFidelityProblems(@NotNull RenderLogger logger) {
     List<RenderProblem> fidelityWarnings = logger.getFidelityWarnings();
     if (fidelityWarnings.isEmpty()) {
       return;
@@ -961,9 +966,8 @@ public class RenderErrorContributor {
       if (clientData != null) {
         builder.addLink(" (Ignore for this session)", myLinkManager.createRunnableLink(() -> {
           RenderLogger.ignoreFidelityWarning(clientData);
-          EditorDesignSurface surface = renderTask.getDesignSurface();
-          if (surface != null) {
-            surface.forceUserRequestedRefresh();
+          if (myDesignSurface != null) {
+            myDesignSurface.forceUserRequestedRefresh();
           }
         }));
       }
@@ -982,9 +986,8 @@ public class RenderErrorContributor {
     builder.endList();
     builder.addLink("Ignore all fidelity warnings for this session", myLinkManager.createRunnableLink(() -> {
       RenderLogger.ignoreAllFidelityWarnings();
-      EditorDesignSurface surface = renderTask.getDesignSurface();
-      if (surface != null) {
-        surface.forceUserRequestedRefresh();
+      if (myDesignSurface != null) {
+        myDesignSurface.forceUserRequestedRefresh();
       }
     }));
     builder.newline();
@@ -1060,10 +1063,15 @@ public class RenderErrorContributor {
         return;
       }
 
-      if (CLASS_CONSTRAINT_LAYOUT.equals(className)) {
+      if (CLASS_CONSTRAINT_LAYOUT.isEquals(className)) {
         builder.newline().addNbsps(3);
+        Project project = logger.getProject();
+        boolean useAndroidX = project != null ? MigrateToAndroidxUtil.isAndroidx(project) : StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get();
+        GoogleMavenArtifactId artifact = useAndroidX ?
+                                         GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
+                                         GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
         builder.addLink("Add constraint-layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.CONSTRAINT_LAYOUT));
+                        myLinkManager.createAddDependencyUrl(artifact));
         builder.add(", ");
       }
       if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
@@ -1398,19 +1406,17 @@ public class RenderErrorContributor {
     reportMissingStyles(logger);
     reportAppCompatRequired(logger);
     if (renderTask != null) {
-      reportOldNinePathRenderLib(logger, renderTask);
+      reportOldNinePathRenderLib(logger, renderTask.getContext());
       reportRelevantCompilationErrors(logger, renderTask);
-      reportMissingSizeAttributes(logger, renderTask);
+      reportMissingSizeAttributes(logger, renderTask.getContext(), renderTask.getXmlFile());
       reportMissingClasses(logger);
     }
     reportBrokenClasses(logger);
     reportInstantiationProblems(logger);
     reportOtherProblems(logger, renderTask);
     reportUnknownFragments(logger);
+    reportRenderingFidelityProblems(logger);
 
-    if (renderTask != null) {
-      reportRenderingFidelityProblems(logger, renderTask);
-    }
     return getIssues();
   }
 
@@ -1484,8 +1490,8 @@ public class RenderErrorContributor {
       return true;
     }
 
-    public RenderErrorContributor getContributor(@NotNull RenderResult result, @Nullable DataContext dataContext) {
-      return new RenderErrorContributor(result, dataContext);
+    public RenderErrorContributor getContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
+      return new RenderErrorContributor(surface, result, dataContext);
     }
   }
 }

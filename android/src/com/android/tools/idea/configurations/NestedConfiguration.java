@@ -163,7 +163,7 @@ public class NestedConfiguration extends Configuration implements ConfigurationL
   }
 
   @Override
-  @Nullable
+  @NotNull
   public String getTheme() {
     if (isOverridingTarget()) {
       return super.getTheme();

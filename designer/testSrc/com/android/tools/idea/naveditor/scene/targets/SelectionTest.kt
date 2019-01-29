@@ -105,10 +105,11 @@ class SelectionTest : NavTestCase() {
                      sceneView: SceneView) {
     val modifiers = if (shiftKey) InputEvent.SHIFT_DOWN_MASK else 0
 
-    LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, Coordinates.getSwingX(sceneView, x),
-        Coordinates.getSwingY(sceneView, y), modifiers)
+    val swingX = Coordinates.getSwingX(sceneView, x)
+    val swingY = Coordinates.getSwingX(sceneView, y)
 
-    LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, Coordinates.getSwingX(sceneView, x),
-        Coordinates.getSwingY(sceneView, y), modifiers)
+    LayoutTestUtilities.moveMouse(interactionManager, 0, 0, swingX, swingY)
+    LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, swingX, swingY, modifiers)
+    LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, swingX, swingY, modifiers)
   }
 }

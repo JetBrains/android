@@ -1,0 +1,59 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.uibuilder.surface
+
+import com.android.annotations.VisibleForTesting
+import com.android.tools.idea.common.model.ItemTransferable
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.intellij.openapi.ide.CopyPasteManager
+import java.awt.datatransfer.DataFlavor
+
+class NlDesignSurfaceActionHandler @JvmOverloads constructor(
+  surface: NlDesignSurface,
+  @VisibleForTesting copyPasteManager: CopyPasteManager = CopyPasteManager.getInstance()
+) : DesignSurfaceActionHandler(surface, copyPasteManager) {
+
+  override fun getFlavor(): DataFlavor = ItemTransferable.DESIGNER_FLAVOR
+
+  override fun getPasteTarget(): NlComponent? {
+    val sceneView = mySurface.currentSceneView ?: return null
+
+    val selection = mySurface.selectionModel.selection
+    if (selection.size > 1) {
+      return null
+    }
+    var receiver: NlComponent? = if (!selection.isEmpty()) selection[0] else null
+
+    if (receiver == null) {
+      // In the case where there is no selection but we only have a root component, use that one
+      val components = sceneView.sceneManager.model.components
+      if (components.size == 1) {
+        receiver = components[0]
+      }
+    }
+    return receiver
+  }
+
+  override fun canHandleChildren(component: NlComponent,
+                                 pasted: MutableList<NlComponent>): Boolean {
+    val handlerManager = ViewHandlerManager.get(component.model.project)
+    val handler = handlerManager.getHandler(component)
+    return handler is ViewGroupHandler
+  }
+}

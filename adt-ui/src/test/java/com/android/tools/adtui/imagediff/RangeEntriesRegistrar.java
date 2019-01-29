@@ -43,7 +43,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSimpleHorizontalRange() {
-    register(new RangeImageDiffEntry("simple_horizontal_range_baseline.png") {
+    register(new RangeImageDiffEntry("range_simple_horizontal_baseline.png") {
       @Override
       protected void generateComponent() {
         addLine(new LineConfig(Color.RED).setFilled(true));
@@ -63,7 +63,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerMultipleSeriesHorizontalRange() {
-    register(new RangeImageDiffEntry("multiple_series_horizontal_range_baseline.png") {
+    register(new RangeImageDiffEntry("range_multiple_series_horizontal_baseline.png") {
       @Override
       protected void generateComponent() {
         addLine(new LineConfig(Color.RED).setFilled(true));
@@ -92,7 +92,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSimpleVerticalRange() {
-    register(new RangeImageDiffEntry("simple_vertical_range_baseline.png") {
+    register(new RangeImageDiffEntry("range_simple_vertical_baseline.png") {
       @Override
       protected void generateComponent() {
         addLine(new LineConfig(Color.RED).setFilled(true));
@@ -112,7 +112,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerMultipleSeriesVerticalRange() {
-    register(new RangeImageDiffEntry("multiple_series_vertical_range_baseline.png") {
+    register(new RangeImageDiffEntry("range_multiple_series_vertical_baseline.png") {
       @Override
       protected void generateComponent() {
         addLine(new LineConfig(Color.RED).setFilled(true));
@@ -148,7 +148,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerAnimatedTimeRange() {
-    register(new RangeImageDiffEntry("animated_time_range_baseline.png") {
+    register(new RangeImageDiffEntry("range_animated_time_baseline.png") {
 
       private Range myMockTimeRange;
 
@@ -189,7 +189,7 @@ class RangeEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerAnimatedTimeNoAnimationRange() {
-    register(new RangeImageDiffEntry("animated_time_range_no_animation_baseline.png") {
+    register(new RangeImageDiffEntry("range_animated_time_no_animation_baseline.png") {
 
       private Range myMockTimeRange;
 

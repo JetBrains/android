@@ -16,15 +16,15 @@
 package com.android.tools.idea.res;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ClassField;
-import com.android.builder.model.Variant;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.ResourceNamespaces;
-import com.android.ide.common.res2.ResourceTable;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
@@ -35,6 +35,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,12 +58,12 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT
  * repositories.
  */
 public class DynamicResourceValueRepository extends LocalResourceRepository
-  implements BuildVariantView.BuildVariantSelectionChangeListener {
+    implements BuildVariantView.BuildVariantSelectionChangeListener, SingleNamespaceResourceRepository {
   private final AndroidFacet myFacet;
   private final ResourceTable myFullTable = new ResourceTable();
-  private final String myNamespace;
+  @NotNull private final ResourceNamespace myNamespace;
 
-  private DynamicResourceValueRepository(@NotNull AndroidFacet facet, @Nullable String namespace) {
+  private DynamicResourceValueRepository(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     super("Gradle Dynamic");
     myFacet = facet;
     myNamespace = namespace;
@@ -77,7 +78,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     });
 
     Disposer.register(parent, this);
-    BuildVariantView.getInstance(myFacet.getModule().getProject()).addListener(this);
+    BuildVariantUpdater.getInstance(myFacet.getModule().getProject()).addSelectionChangeListener(this);
   }
 
   @Override
@@ -86,21 +87,26 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
 
     Project project = myFacet.getModule().getProject();
     if (!project.isDisposed()) {
-      BuildVariantView.getInstance(project).removeListener(this);
+      BuildVariantUpdater.getInstance(project).removeSelectionChangeListener(this);
     }
   }
 
+  @Nullable
+  @Override
+  public String getPackageName() {
+    return AndroidManifestUtils.getPackageName(myFacet);
+  }
+
   @NotNull
-  // TODO: namespaces
   public static DynamicResourceValueRepository create(@NotNull AndroidFacet facet) {
-    return new DynamicResourceValueRepository(facet, null);
+    return new DynamicResourceValueRepository(facet, ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace());
   }
 
   @NotNull
   @VisibleForTesting
   public static DynamicResourceValueRepository createForTest(@NotNull AndroidFacet facet,
-                                                             @Nullable String namespace,
-                                                             @NotNull Map<String, ClassField> values) {
+                                                             @NotNull ResourceNamespace namespace,
+                                                             @NotNull Map<String, DynamicResourceValue> values) {
     DynamicResourceValueRepository repository = new DynamicResourceValueRepository(facet, namespace);
     repository.addValues(values);
 
@@ -111,21 +117,12 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   @NonNull
   protected ResourceTable getFullTable() {
     if (myFullTable.isEmpty()) {
-      // TODO: b/23032391
-      AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
+      AndroidModel androidModel = AndroidModel.get(myFacet.getModule());
       if (androidModel == null) {
         return myFullTable;
       }
 
-      Variant selectedVariant = androidModel.getSelectedVariant();
-
-      // Reverse overlay order because when processing lower order ones, we ignore keys already processed
-      BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
-      if (buildType != null) {
-        addValues(buildType.getBuildType().getResValues());
-      }
-      // flavors and default config:
-      addValues(selectedVariant.getMergedFlavor().getResValues());
+      addValues(androidModel.getResValues());
     }
 
     return myFullTable;
@@ -136,13 +133,12 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     super.invalidateParentCaches();
   }
 
-  private void addValues(Map<String, ClassField> resValues) {
-    for (Map.Entry<String, ClassField> entry : resValues.entrySet()) {
-      ClassField field = entry.getValue();
-      String name = field.getName();
-      assert entry.getKey().equals(name) : entry.getKey() + " vs " + name;
+  private void addValues(Map<String, DynamicResourceValue> resValues) {
+    for (Map.Entry<String, DynamicResourceValue> entry : resValues.entrySet()) {
+      DynamicResourceValue field = entry.getValue();
+      String name = entry.getKey();
 
-      ResourceType type = ResourceType.getEnum(field.getType());
+      ResourceType type = field.getType();
       if (type == null) {
         LOG.warn("Ignoring field " + name + "(" + field + "): unknown type " + field.getType());
         continue;
@@ -156,15 +152,15 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
         // Masked by higher priority source provider
         continue;
       }
-      ResourceItem item = new DynamicResourceValueItem(myNamespace, type, field);
+      ResourceItem item = new DynamicResourceValueItem(myNamespace, type, name, field.getValue());
       map.put(name, item);
     }
   }
 
   @Override
   @Nullable
-  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NotNull ResourceType type, boolean create) {
-    if (!ResourceNamespaces.isSameNamespace(namespace, myNamespace)) {
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
+    if (!namespace.equals(myNamespace)) {
       return create ? ArrayListMultimap.create() : null;
     }
 
@@ -180,10 +176,10 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
     return multimap;
   }
 
-  @Override
   @NotNull
-  public Set<String> getNamespaces() {
-    return Collections.singleton(myNamespace);
+  @Override
+  public ResourceNamespace getNamespace() {
+    return myNamespace;
   }
 
   // ---- Implements BuildVariantView.BuildVariantSelectionChangeListener ----

@@ -18,7 +18,6 @@ package com.android.tools.datastore.database;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -92,7 +91,7 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
     catch (SQLException ex) {
       onError(ex);
     }
-    return null;
+    return new ArrayList<>();
   }
 
   public void insertOrReplace(long id, Common.Session session, EventProfiler.SystemData activity) {
@@ -118,7 +117,7 @@ public class EventsTable extends DataStoreTable<EventsTable.EventStatements> {
     return events;
   }
 
-  private List<EventProfiler.ActivityData> getActivityDataFromResultSet(ResultSet results) {
+  private static List<EventProfiler.ActivityData> getActivityDataFromResultSet(ResultSet results) {
     List<EventProfiler.ActivityData> activities = new ArrayList<>();
     try {
       while (results.next()) {

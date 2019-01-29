@@ -18,12 +18,12 @@ package com.android.tools.idea.rendering;
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
@@ -43,25 +43,25 @@ public class IncludeReference {
   public static final IncludeReference NONE = new IncludeReference(null, null, null);
 
   /**
-   * The source file of the reference (included from)
+   * The source file of the reference (included from).
    */
   @NotNull
   private final VirtualFile myFromFile;
 
   /**
-   * The destination file of the reference (the file being included)
+   * The destination file of the reference (the file being included).
    */
   @Nullable
   private final VirtualFile myToFile;
 
   /**
-   * The module containing the file
+   * The module containing the file.
    */
   @NotNull
   private final Module myModule;
 
   /**
-   * Creates a new include reference
+   * Creates a new include reference.
    */
   private IncludeReference(@NonNull Module module, @NonNull VirtualFile fromFile, @Nullable VirtualFile toFile) {
     myModule = module;
@@ -70,14 +70,14 @@ public class IncludeReference {
   }
 
   /**
-   * Creates a new include reference
+   * Creates a new include reference.
    */
   public static IncludeReference create(@NonNull Module module, @NonNull VirtualFile fromFile, @Nullable VirtualFile toFile) {
     return new IncludeReference(module, fromFile, toFile);
   }
 
   /**
-   * Returns the associated module
+   * Returns the associated module.
    *
    * @return the module
    */
@@ -97,7 +97,7 @@ public class IncludeReference {
   }
 
   /**
-   * Returns the path for the include reference
+   * Returns the path for the include reference.
    *
    * @return the path
    */
@@ -107,7 +107,7 @@ public class IncludeReference {
   }
 
   /**
-   * Returns the destination file for the include reference
+   * Returns the destination file for the include reference.
    *
    * @return the destination file
    */
@@ -117,7 +117,7 @@ public class IncludeReference {
   }
 
   /**
-   * Returns the destination path for the include reference
+   * Returns the destination path for the include reference.
    *
    * @return the destination path, if known
    */
@@ -127,7 +127,7 @@ public class IncludeReference {
   }
 
   /**
-   * Returns a description of this reference, suitable to be shown to the user
+   * Returns a description of this reference, suitable to be shown to the user.
    *
    * @return a display name for the reference
    */
@@ -145,7 +145,7 @@ public class IncludeReference {
   }
 
   /**
-   * Returns the resource name of this layout
+   * Returns the resource name of this layout.
    *
    * @return the resource name
    */
@@ -165,7 +165,7 @@ public class IncludeReference {
   }
 
   @Nullable
-  public static String getIncludingLayout(@NotNull final XmlFile file) {
+  public static String getIncludingLayout(@NotNull XmlFile file) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
       return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> getIncludingLayout(file));
     }
@@ -186,11 +186,11 @@ public class IncludeReference {
   }
 
   /**
-   * Returns an {@link IncludeReference} specified for the given file, or {@link #NONE} if no include should be performed from the
-   * given file
+   * Returns an {@link IncludeReference} specified for the given file, or {@link #NONE} if no include should be performed from
+   * the given file.
    */
   @NotNull
-  public static IncludeReference get(@NotNull final Module module, @NotNull final XmlFile file, @NotNull final RenderResources resolver) {
+  public static IncludeReference get(@NotNull Module module, @NotNull XmlFile file, @NotNull RenderResources resolver) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
       return ApplicationManager.getApplication().runReadAction((Computable<IncludeReference>)() -> get(module, file, resolver));
     }
@@ -198,16 +198,16 @@ public class IncludeReference {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     XmlTag rootTag = file.getRootTag();
     if (rootTag != null) {
-      String layout = rootTag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI);
-      if (layout != null) {
-        ResourceValue resValue = resolver.findResValue(layout, false);
-        if (resValue != null) {
-          // TODO: Do some sort of picking based on best configuration!!
-          // I should make sure I also get a configuration that is compatible with
-          // my target include! I could stash it in the include reference!
-          File path = ResourceHelper.resolveLayout(resolver, resValue);
-          if (path != null) {
-            VirtualFile source = LocalFileSystem.getInstance().findFileByIoFile(path);
+      String layoutRef = rootTag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI);
+      if (layoutRef != null) {
+        ResourceUrl layoutUrl = ResourceUrl.parse(layoutRef);
+        if (layoutUrl != null) {
+          ResourceValue resValue = ResourceHelper.resolve(resolver, layoutUrl, rootTag);
+          if (resValue != null) {
+            // TODO: Do some sort of picking based on best configuration.
+            // I should make sure I also get a configuration that is compatible with
+            // my target include. I could stash it in the include reference.
+            VirtualFile source = ResourceHelper.resolveLayout(resolver, resValue);
             if (source != null) {
               VirtualFile target = file.getVirtualFile();
               return create(module, source, target);

@@ -1,0 +1,30 @@
+new_local_repository(
+    name = "com_google_guava",
+    path = "%LOCAL_TEST_REPOSITORY%/com/google/guava/guava/18.0",
+    build_file_content =
+"""
+java_import(
+    name = "jar",
+    jars = ["guava-18.0.jar"],
+    visibility = ["//visibility:public"],
+)
+""",
+)
+
+new_local_repository(
+    name = "junit",
+    path = "%LOCAL_TEST_REPOSITORY%/junit/junit/4.12",
+    build_file_content =
+"""
+java_import(
+    name = "jar",
+    jars = ["junit-4.12.jar"],
+    visibility = ["//visibility:public"],
+)
+""",
+)
+
+android_sdk_repository(
+    name = "androidsdk",
+    path = "%ANDROID_SDK_PATH%",
+)

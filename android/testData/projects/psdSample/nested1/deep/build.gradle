@@ -1,0 +1,16 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        resConfigs (["en", "fr"])
+    }
+}
+
+configurations {
+}
+
+dependencies {
+}
+
+

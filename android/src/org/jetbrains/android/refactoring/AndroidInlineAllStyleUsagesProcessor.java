@@ -85,7 +85,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
     for (PsiField field : AndroidResourceUtil.findResourceFieldsForValueResource(myStyleTag, false)) {
       AndroidInlineUtil.addReferences(field, usages);
     }
-    return usages.toArray(new UsageInfo[usages.size()]);
+    return usages.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
 

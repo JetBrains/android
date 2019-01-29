@@ -15,22 +15,25 @@
  */
 package com.android.tools.idea.npw;
 
+import static com.intellij.openapi.util.text.StringUtil.trimStart;
+
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.intellij.openapi.util.text.StringUtil.trimStart;
 
 /**
  * Theme utility class for use with templates.
@@ -41,11 +44,11 @@ public class ThemeHelper {
   private static final String APP_COMPAT = "Theme.AppCompat.";    //$NON-NLS-1$
 
   private final Module myModule;
-  private final ProjectResourceRepository myProjectRepository;
+  private final LocalResourceRepository myProjectRepository;
 
   public ThemeHelper(@NotNull Module module) {
     myModule = module;
-    myProjectRepository = ProjectResourceRepository.getOrCreateInstance(module);
+    myProjectRepository = ResourceRepositoryManager.getProjectResources(module);
   }
 
   @Nullable
@@ -84,7 +87,10 @@ public class ThemeHelper {
     }
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
-    ResourceValue value = resolver.findItemInStyle(theme, "windowActionBar", theme.isFramework());
+
+    // TODO(namespaces): resolve themeName in the context of the right manifest file.
+    ResourceValue value =
+      resolver.resolveResValue(resolver.findItemInStyle(theme, ResourceReference.attr(ResourceNamespace.TODO(), "windowActionBar")));
     if (value == null || value.getValue() == null) {
       return true;
     }
@@ -96,11 +102,17 @@ public class ThemeHelper {
     configuration.setTheme(themeName);
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
-    boolean isFramework = themeName.startsWith(SdkConstants.PREFIX_ANDROID);
-    if (isFramework) {
-      themeName = themeName.substring(SdkConstants.PREFIX_ANDROID.length());
+
+    ResourceUrl url = ResourceUrl.parse(themeName);
+    if (url == null) {
+      return null;
     }
-    return resolver.getStyle(themeName, isFramework);
+    // TODO(namespaces): resolve themeName in the context of the right manifest file.
+    ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
+    if (reference == null) {
+      return null;
+    }
+    return resolver.getStyle(reference);
   }
 
   @Nullable
@@ -108,16 +120,17 @@ public class ThemeHelper {
     if (theme == null) {
       return null;
     }
-    List<ResourceItem> items = myProjectRepository.getResourceItem(ResourceType.STYLE, theme);
-    if (items == null || items.isEmpty()) {
+    List<ResourceItem> items = myProjectRepository.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, theme);
+    if (items.isEmpty()) {
       return null;
     }
-    return (StyleResourceValue)items.get(0).getResourceValue(false);
+    return (StyleResourceValue)items.get(0).getResourceValue();
   }
 
   private boolean isAppCompatTheme(@NotNull String themeName, @Nullable StyleResourceValue localTheme) {
     while (localTheme != null) {
-      String parentThemeName = localTheme.getParentStyle();
+      // TODO: namespaces
+      String parentThemeName = localTheme.getParentStyleName();
       if (parentThemeName == null) {
         if (themeName.lastIndexOf('.') > 0) {
           parentThemeName = themeName.substring(0, themeName.lastIndexOf('.'));

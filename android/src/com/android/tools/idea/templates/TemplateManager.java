@@ -22,10 +22,11 @@ import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
+import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
-import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -48,7 +49,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.platform.templates.github.ZipUtil;
-import icons.AndroidArtworkIcons;
+import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
@@ -79,7 +80,7 @@ public class TemplateManager {
   private static final String EXPLODED_AAR_PATH = "build/intermediates/exploded-aar";
 
   public static final String CATEGORY_OTHER = "Other";
-  private static final String CATEGORY_ACTIVITY = "Activity";
+  public static final String CATEGORY_ACTIVITY = "Activity";
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
   public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of();
@@ -447,7 +448,7 @@ public class TemplateManager {
         // Create the menu group item
         NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
           @Override
-          public void update(@NotNull AnActionEvent e) {
+          public void update(AnActionEvent e) {
             updateAction(e, category, getChildrenCount() > 0, false);
           }
         };
@@ -464,7 +465,7 @@ public class TemplateManager {
     final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
     final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
     Presentation presentation = event.getPresentation();
-    boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
+    boolean isProjectReady = facet != null && facet.getConfiguration().getModel() != null;
     presentation.setText(text + (isProjectReady ? "" : " (Project not ready)"));
     presentation.setVisible(visible && view != null && facet != null && facet.requiresAndroidModel());
     presentation.setEnabled(disableIfNotReady ? isProjectReady : true);
@@ -476,12 +477,14 @@ public class TemplateManager {
     if (CATEGORY_ACTIVITY.equals(category)) {
       AnAction galleryAction = new AnAction() {
         @Override
-        public void update(@NotNull AnActionEvent e) {
+        public void update(AnActionEvent e) {
           updateAction(e, "Gallery...", true, true);
         }
 
         @Override
-        public void actionPerformed(@NotNull AnActionEvent e) {
+        public void actionPerformed(AnActionEvent e) {
+          ProjectSyncInvoker projectSyncInvoker = new ProjectSyncInvoker.DefaultProjectSyncInvoker();
+
           DataContext dataContext = e.getDataContext();
           Module module = LangDataKeys.MODULE.getData(dataContext);
           assert module != null;
@@ -496,7 +499,7 @@ public class TemplateManager {
           }
 
           AndroidFacet facet = AndroidFacet.getInstance(module);
-          assert facet != null && facet.getAndroidModel() != null;
+          assert facet != null && facet.getConfiguration().getModel() != null;
 
           List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(facet, targetDirectory);
           assert (!moduleTemplates.isEmpty());
@@ -504,12 +507,14 @@ public class TemplateManager {
           String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, moduleTemplates, targetDirectory);
           Project project = facet.getModule().getProject();
 
-          RenderTemplateModel renderModel = new RenderTemplateModel(module, null, initialPackageSuggestion, moduleTemplates.get(0),
-            AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id));
+          RenderTemplateModel renderModel = new RenderTemplateModel(facet, null, initialPackageSuggestion, moduleTemplates.get(0),
+                                                                    AndroidBundle
+                                                                      .message("android.wizard.activity.add", FormFactor.MOBILE.id),
+                                                                    projectSyncInvoker, true);
 
-          NewModuleModel moduleModel = new NewModuleModel(project);
+          NewModuleModel moduleModel = new NewModuleModel(project, projectSyncInvoker);
           ChooseActivityTypeStep chooseActivityTypeStep =
-            new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, facet, targetDirectory);
+            new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, targetDirectory);
           ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
 
           new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();
@@ -525,9 +530,11 @@ public class TemplateManager {
       }
       TemplateMetadata metadata = getTemplateMetadata(myCategoryTable.get(category, templateName));
       int minSdkVersion = metadata == null ? 0 : metadata.getMinSdk();
-      NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName, minSdkVersion);
+      int minBuildSdkApi = metadata == null ? 0 : metadata.getMinBuildApi();
+      NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName, minSdkVersion, minBuildSdkApi);
       String actionId = ACTION_ID_PREFIX + category + templateName;
-      am.replaceAction(actionId, templateAction);
+      am.unregisterAction(actionId);
+      am.registerAction(actionId, templateAction);
       categoryGroup.add(templateAction);
 
     }
@@ -535,7 +542,7 @@ public class TemplateManager {
 
   private static void setPresentation(String category, AnAction categoryGroup) {
     Presentation presentation = categoryGroup.getTemplatePresentation();
-    presentation.setIcon(AndroidArtworkIcons.Icons.Android);
+    presentation.setIcon(AndroidIcons.Android);
     presentation.setText(category);
   }
 

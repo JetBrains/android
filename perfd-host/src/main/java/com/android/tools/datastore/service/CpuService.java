@@ -17,11 +17,11 @@ package com.android.tools.datastore.service;
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DeviceId;
+import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.datastore.poller.CpuDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.stub.StreamObserver;
@@ -46,6 +46,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   private final CpuTable myCpuTable;
   @NotNull
   private final DataStoreService myService;
+  @NotNull
+  private final LogService myLogService;
 
   @SuppressWarnings("unchecked")
   private ResponseData<CpuDataResponse> myLastCpuResponse = ResponseData.createEmpty();
@@ -55,9 +57,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   private ResponseData<GetTraceInfoResponse> myLastTraceInfoResponse = ResponseData.createEmpty();
 
   public CpuService(@NotNull DataStoreService dataStoreService,
-                    Consumer<Runnable> fetchExecutor) {
+                    Consumer<Runnable> fetchExecutor,
+                    LogService logService) {
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
+    myLogService = logService;
     myCpuTable = new CpuTable();
   }
 
@@ -128,7 +132,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       long sessionId = request.getSession().getSessionId();
       myRunners
         .put(sessionId,
-             new CpuDataPoller(request.getSession(), myCpuTable, myService.getCpuClient(DeviceId.fromSession(request.getSession()))));
+             new CpuDataPoller(request.getSession(), myCpuTable, myService.getCpuClient(DeviceId.fromSession(request.getSession())), myLogService));
       myFetchExecutor.accept(myRunners.get(sessionId));
     }
     else {
@@ -179,7 +183,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       response = client.stopProfilingApp(request);
       // Only add successfully captured traces to the database
       if (response.getStatus() == CpuProfilingAppStopResponse.Status.SUCCESS) {
-        myCpuTable.insertTrace(request.getSession(), response.getTraceId(), request.getProfilerType(), response.getTrace());
+        myCpuTable.insertTrace(
+          request.getSession(), response.getTraceId(), request.getProfilerType(), request.getProfilerMode(), response.getTrace());
       }
     }
     observer.onNext(response);
@@ -189,12 +194,33 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   @Override
   public void checkAppProfilingState(ProfilingStateRequest request,
                                      StreamObserver<ProfilingStateResponse> observer) {
-    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
-    if (client != null) {
-      observer.onNext(client.checkAppProfilingState(request));
+    ProfilingStateResponse response = myCpuTable.getProfilingStateData(request.getSession());
+    if (response != null) {
+      observer.onNext(response);
     }
     else {
-      observer.onNext(ProfilingStateResponse.getDefaultInstance());
+      // When Profiler opens CpuProfilerStage directly (e.g when startup profiling was started),
+      // we're expecting to hit this, because we haven't inserted any data in the DB yet.
+      CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.fromSession(request.getSession()));
+      if (client != null) {
+        observer.onNext(client.checkAppProfilingState(request));
+      }
+      else {
+        observer.onNext(ProfilingStateResponse.getDefaultInstance());
+      }
+    }
+    observer.onCompleted();
+  }
+
+  @Override
+  public void startStartupProfiling(StartupProfilingRequest request,
+                                    StreamObserver<StartupProfilingResponse> observer) {
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.of(request.getDeviceId()));
+    if (client != null) {
+      observer.onNext(client.startStartupProfiling(request));
+    }
+    else {
+      observer.onNext(StartupProfilingResponse.getDefaultInstance());
     }
     observer.onCompleted();
   }
@@ -207,10 +233,22 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       builder.setStatus(GetTraceResponse.Status.FAILURE);
     }
     else {
-      builder.setStatus(GetTraceResponse.Status.SUCCESS).setData(data.getTraceBytes()).setProfilerType(data.getProfilerType());
+      builder.setStatus(GetTraceResponse.Status.SUCCESS)
+             .setData(data.getTraceBytes())
+             .setProfilerType(data.getProfilerType())
+             .setProfilerMode(data.getProfilerMode());
     }
 
     observer.onNext(builder.build());
+    observer.onCompleted();
+  }
+
+  @Override
+  public void getCpuCoreConfig(CpuCoreConfigRequest request, StreamObserver<CpuCoreConfigResponse> observer) {
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(DeviceId.of(request.getDeviceId()));
+    if (client != null) {
+      observer.onNext(client.getCpuCoreConfig(request));
+    }
     observer.onCompleted();
   }
 
@@ -224,43 +262,5 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
     assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
     myCpuTable.initialize(connection);
-  }
-
-  /**
-   * Stores a response of a determined type to avoid making unnecessary queries to the database.
-   *
-   * Often, there is no need for querying the database to get the response corresponding to the request made.
-   * For example, in the threads monitor each thread has a ThreadStateDataSeries that will call
-   * {@link #getThreads(GetThreadsRequest, StreamObserver)} passing a request with the same arguments (start/end timestamp,
-   * pid, and session). In these cases, we can query the database once and return a cached result for the subsequent calls.
-   *
-   * @param <T> type of the response stored
-   */
-  private static class ResponseData<T> {
-    private Common.Session mySession;
-    private long myStart;
-    private long myEnd;
-    private T myResponse;
-
-    private ResponseData(Common.Session session, long startTimestamp, long endTimestamp, T response) {
-      mySession = session;
-      myStart = startTimestamp;
-      myEnd = endTimestamp;
-      myResponse = response;
-    }
-
-    public boolean matches(Common.Session session, long startTimestamp, long endTimestamp) {
-      boolean isSessionEquals = (mySession == null && session == null) || (mySession != null && mySession.equals(session));
-      return isSessionEquals && myStart == startTimestamp && myEnd == endTimestamp;
-    }
-
-    public T getResponse() {
-      return myResponse;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static ResponseData createEmpty() {
-      return new ResponseData(null, 0, 0, null);
-    }
   }
 }

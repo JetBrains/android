@@ -27,8 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.lint.detector.api.TextFormat.RAW;
-
 public class AndroidLintWrongCaseInspection extends AndroidLintInspectionBase {
   public AndroidLintWrongCaseInspection() {
     super(AndroidBundle.message("android.lint.inspections.wrong.case"), WrongCaseDetector.WRONG_CASE);
@@ -45,7 +43,7 @@ public class AndroidLintWrongCaseInspection extends AndroidLintInspectionBase {
     if (oldAndNew != null && oldAndNew.size() == 2) {
       String current = oldAndNew.get(0);
       String proposed = oldAndNew.get(1);
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, current, proposed) {
+      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, null, current, proposed) {
         @Override
         protected void editAfter(@SuppressWarnings("UnusedParameters") @NotNull Document document) {
           String text = document.getText();

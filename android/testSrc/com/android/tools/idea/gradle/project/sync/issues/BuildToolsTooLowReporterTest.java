@@ -19,9 +19,12 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowErrorHandler;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.project.messages.SyncMessage;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -29,9 +32,6 @@ import java.util.List;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -40,7 +40,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link BuildToolsTooLowReporter}.
  */
-public class BuildToolsTooLowReporterTest extends LightPlatformTestCase {
+public class BuildToolsTooLowReporterTest extends IdeaTestCase {
   @Mock private SyncIssue mySyncIssue;
   @Mock private SdkBuildToolsTooLowErrorHandler myErrorHandler;
   private GradleSyncMessagesStub mySyncMessages;
@@ -70,20 +70,20 @@ public class BuildToolsTooLowReporterTest extends LightPlatformTestCase {
     Module module = getModule();
     List<NotificationHyperlink> quickFixes = new ArrayList<>();
     quickFixes.add(mock(NotificationHyperlink.class));
-    when(myErrorHandler.getQuickFixHyperlinks(minVersion, getProject(), module)).thenReturn(quickFixes);
+
+    when(myErrorHandler.getQuickFixHyperlinks(minVersion, ImmutableList.of(module), ImmutableMap.of()))
+      .thenReturn(quickFixes);
 
     myIssueReporter.report(mySyncIssue, module, null);
 
-    List<SyncMessage> messages = mySyncMessages.getReportedMessages();
+    List<NotificationData> messages = mySyncMessages.getNotifications();
     assertThat(messages).hasSize(1);
 
-    SyncMessage message = messages.get(0);
+    NotificationData message = messages.get(0);
 
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasType(ERROR)
-                                            .hasMessageLine(text, 0);
-    // @formatter:on
+    assertEquals(NotificationCategory.ERROR, message.getNotificationCategory());
+    assertEquals("Upgrade Build Tools!\nAffected Modules: testReport", message.getMessage());
 
-    assertEquals(quickFixes, message.getQuickFixes());
+    assertEquals(quickFixes, mySyncMessages.getNotificationUpdate().getFixes());
   }
 }

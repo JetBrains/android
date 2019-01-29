@@ -99,7 +99,7 @@ public class JavaLanguageLevelModuleSetupStepTest extends IdeaTestCase {
 
     Module module = createModule(name);
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.setAndroidModel(androidModel);
+    facet.getConfiguration().setModel(androidModel);
   }
 
   public void testSetUpModuleWithNoLanguageLevel() {

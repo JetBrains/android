@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear;
 
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.target.Target;
@@ -24,6 +27,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.BaselineAction;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.ClearWeightsAction;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.DistributeWeightsAction;
@@ -41,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -294,8 +299,9 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
+  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
     addToolbarActionsToMenu("LinearLayout", actions);
+    return true;
   }
 
   @Nullable
@@ -472,7 +478,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     NlComponent before = !separatorTarget.isAtEnd() ? separatorTarget.getComponent().getNlComponent() : null;
     NlModel model = parent.getModel();
     model.addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE_WITHIN,
-                        component.getScene().getSceneManager().getViewEditor());
+                        component.getScene().getDesignSurface());
     return true;
   }
 
@@ -483,5 +489,39 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     else if (!isDragging && myDraggingComponents.containsKey(draggedComponent.getParent())) {
       myDraggingComponents.remove(draggedComponent.getParent());
     }
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    boolean vertical = isVertical(component.getNlComponent());
+    List<Placeholder> list = new ArrayList<>();
+
+    if (vertical) {
+      int bottomOfChildren = component.getDrawY();
+
+      int left = component.getDrawX();
+      int right = component.getDrawX() + component.getDrawWidth();
+
+      for (SceneComponent child : component.getChildren()) {
+        list.add(LinearPlaceholderFactory.createVerticalPlaceholder(component, child, child.getDrawY(), left, right));
+        bottomOfChildren = Math.max(bottomOfChildren, child.getDrawY() + child.getDrawHeight());
+      }
+      list.add(LinearPlaceholderFactory.createVerticalPlaceholder(component, null, bottomOfChildren, left, right));
+    }
+    else {
+      // horizontal case
+      int rightOfChildren = component.getDrawX();
+
+      int top = component.getDrawY();
+      int bottom = component.getDrawY() + component.getDrawHeight();
+
+      for (SceneComponent child : component.getChildren()) {
+        list.add(LinearPlaceholderFactory.createHorizontalPlaceholder(component, child, child.getDrawX(), top, bottom));
+        rightOfChildren = Math.max(rightOfChildren, child.getDrawX() + child.getDrawWidth());
+      }
+      list.add(LinearPlaceholderFactory.createHorizontalPlaceholder(component, null, rightOfChildren, top, bottom));
+    }
+    list.add(new ViewGroupPlaceholder(component));
+    return list;
   }
 }

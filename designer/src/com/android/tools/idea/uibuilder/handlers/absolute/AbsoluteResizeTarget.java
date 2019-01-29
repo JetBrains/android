@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.absolute;
 
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,24 +29,24 @@ public class AbsoluteResizeTarget extends ResizeWithSnapBaseTarget {
     super(type);
   }
 
-  private static void updateXPos(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x) {
+  private static void updateXPos(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x) {
     attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, String.format(VALUE_N_DP, Math.max(x, 0)));
   }
 
-  private static void updateYPos(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int y) {
+  private static void updateYPos(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int y) {
     attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, String.format(VALUE_N_DP, Math.max(y, 0)));
   }
 
-  protected static void updateWidth(@NotNull AttributesTransaction attributes, @NotNull String width) {
+  protected static void updateWidth(@NotNull NlAttributesHolder attributes, @NotNull String width) {
     attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, width);
   }
 
-  protected static void updateHeight(@NotNull AttributesTransaction attributes, @NotNull String height) {
+  protected static void updateHeight(@NotNull NlAttributesHolder attributes, @NotNull String height) {
     attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, height);
   }
 
   @Override
-  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     switch (myType) {
       case LEFT:
       case RIGHT:

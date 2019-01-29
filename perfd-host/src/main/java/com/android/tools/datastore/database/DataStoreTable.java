@@ -15,26 +15,19 @@
  */
 package com.android.tools.datastore.database;
 
-import com.android.tools.profiler.proto.Common;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.sql.*;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * Interface a {@link com.android.tools.datastore.ServicePassThrough} object returns to indicate this object is
  * storing results in a database.
  */
 public abstract class DataStoreTable<T extends Enum> {
-  private static final Logger LOG = Logger.getInstance(DataStoreTable.class.getCanonicalName());
-  private static final Set<DataStoreTableErrorCallback> ERROR_CALLBACKS = new HashSet();
+  private static final Set<DataStoreTableErrorCallback> ERROR_CALLBACKS = ConcurrentHashMap.newKeySet();
 
   private Connection myConnection;
   private final ThreadLocal<Map<T, PreparedStatement>> myStatementMap = new ThreadLocal<>();
@@ -67,6 +60,9 @@ public abstract class DataStoreTable<T extends Enum> {
   }
 
   /**
+   * A connection represents a link between code and the database layer. This link is accessed via multiple threads
+   * as such means the only guarantee this function offers is the state of the connection at the time of the call.
+   * If the connection is closed at any time this function will always return false since we never attempt to reestablish.
    * @return true if the underlying connection is closed, false otherwise.
    */
   public boolean isClosed() {
@@ -77,10 +73,12 @@ public abstract class DataStoreTable<T extends Enum> {
       return true;
     }
   }
+
   /**
    * Error handling is handled in the callbacks. One of the callbacks is
    * expected in the {@link DataStoreService}. One of the callbacks will log all errors
    * without being elided.
+   *
    * @param t A throwable object that contains information about the error encountered.
    */
   protected static void onError(Throwable t) {
@@ -129,11 +127,45 @@ public abstract class DataStoreTable<T extends Enum> {
     getStatementMap().put(statement, myConnection.prepareStatement(stmt, statementFlags));
   }
 
-  protected void execute(@NotNull T statement, Object... params) {
+  /**
+   * Executes a bulk operation on the table. This is an optimization when inserting / deleting multiple items from
+   * the database.
+   * @param statement which statement to execute
+   * @param batchParams a list of objects to be put into the database.
+   * @param paramConverter a callback that converts each object to an array of data. The array of data will be applied to the input params
+   *                       of the specified statement.
+   */
+  protected <K> void executeBatch(@NotNull T statement, @NotNull List<K> batchParams, @NotNull Function<K, Object[]> paramConverter) {
+    if (isClosed()) {
+      return;
+    }
     try {
-      if (isClosed()) {
-        return;
+      PreparedStatement stmt = getStatementMap().get(statement);
+      batchParams.forEach((object) -> {
+        try {
+          applyParams(stmt, paramConverter.apply(object));
+          stmt.addBatch();
+        } catch (SQLException ex) {
+          onError(ex);
+        }
+      });
+      int[] results = stmt.executeBatch();
+      for(int i = 0; i < results.length; i++) {
+        if (results[i] == Statement.EXECUTE_FAILED) {
+          throw new SQLException(String.format("Failed to insert batch element %d with result %d", i, results[i]));
+        }
       }
+    }
+    catch (SQLException ex) {
+      onError(ex);
+    }
+  }
+
+  protected void execute(@NotNull T statement, Object... params) {
+    if (isClosed()) {
+      return;
+    }
+    try {
       PreparedStatement stmt = getStatementMap().get(statement);
       applyParams(stmt, params);
       stmt.execute();
@@ -144,12 +176,21 @@ public abstract class DataStoreTable<T extends Enum> {
   }
 
   protected ResultSet executeQuery(@NotNull T statement, Object... params) throws SQLException {
-    PreparedStatement stmt = getStatementMap().get(statement);
-    if (isClosed() || stmt.isClosed()) {
+    if (isClosed()) {
       return new EmptyResultSet();
     }
+    PreparedStatement stmt = getStatementMap().get(statement);
     applyParams(stmt, params);
     return stmt.executeQuery();
+  }
+
+  protected ResultSet executeOneTimeQuery(@NotNull String sql, Object[] params) throws SQLException {
+    if (isClosed()) {
+      return new EmptyResultSet();
+    }
+    PreparedStatement statement = myConnection.prepareStatement(sql);
+    applyParams(statement, params);
+    return statement.executeQuery();
   }
 
   protected void applyParams(@NotNull PreparedStatement statement, Object... params) throws SQLException {
@@ -169,14 +210,12 @@ public abstract class DataStoreTable<T extends Enum> {
       else if (params[i] instanceof byte[]) {
         statement.setBytes(i + 1, (byte[])params[i]);
       }
-      // TODO remove once queries uses Session#sessionId directly
-      else if (params[i] instanceof Common.Session) {
-        Common.Session session = (Common.Session)params[i];
-        statement.setLong(i + 1, session.getSessionId());
+      else if (params[i] instanceof Boolean) {
+        statement.setBoolean(i + 1, (boolean)params[i]);
       }
       else {
         //Not implemented type cast
-        assert false;
+        assert false : "No DataStoreTable support for arguments of type: " + params[i].getClass();
       }
     }
   }

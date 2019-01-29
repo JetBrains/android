@@ -59,8 +59,8 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     when(myPluginInfo.getPluginGeneration()).thenReturn(myPluginGeneration);
 
     Project project = getProject();
-    IdeComponents.replaceService(project, GradleSyncState.class, mySyncState);
-    IdeComponents.replaceService(project, AndroidPluginVersionUpdater.class, myVersionUpdater);
+    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
+    new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     myVersionUpgrade = new ForcedPluginPreviewVersionUpgradeStep();

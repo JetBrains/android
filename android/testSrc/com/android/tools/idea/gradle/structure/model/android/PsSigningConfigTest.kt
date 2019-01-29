@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.ResolvedValue
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import org.hamcrest.CoreMatchers.equalTo
@@ -27,14 +26,11 @@ import java.io.File
 
 class PsSigningConfigTest : AndroidGradleTestCase() {
 
-  private fun <T> ResolvedValue<T>.asTestValue(): T? = (this as? ResolvedValue.Set<T>)?.resolved
-  private fun <T> ParsedValue<T>.asTestValue(): T? = (this as? ParsedValue.Set.Parsed<T>)?.value
-
-  fun testProperties() {
+  fun testDescriptor() {
     loadProject(TestProjectPaths.PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
@@ -42,19 +38,122 @@ class PsSigningConfigTest : AndroidGradleTestCase() {
     val signingConfig = appModule.findSigningConfig("myConfig")
     assertThat(appModule, notNullValue()); signingConfig!!
 
-    val keyAlias = PsSigningConfig.SigningConfigDescriptors.keyAlias.getValue(signingConfig)
-    // TODO(b/70501607): Decide on val keyPassword = PsSigningConfig.SigningConfigDescriptors.keyPassword.getValue(signingConfig)
-    val storeFile = PsSigningConfig.SigningConfigDescriptors.storeFile.getValue(signingConfig)
-    val storePassword = PsSigningConfig.SigningConfigDescriptors.storePassword.getValue(signingConfig)
+    assertThat(signingConfig.descriptor.testEnumerateProperties(),
+               equalTo(PsSigningConfig.SigningConfigDescriptors.testEnumerateProperties()))
+  }
+
+  fun testProperties() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val signingConfig = appModule.findSigningConfig("myConfig")
+    assertThat(appModule, notNullValue()); signingConfig!!
+
+    val keyAlias = PsSigningConfig.SigningConfigDescriptors.keyAlias.bind(signingConfig).getValue()
+    val keyPassword = PsSigningConfig.SigningConfigDescriptors.keyPassword.bind(signingConfig).getValue()
+    val storeFile = PsSigningConfig.SigningConfigDescriptors.storeFile.bind(signingConfig).getValue()
+    val storePassword = PsSigningConfig.SigningConfigDescriptors.storePassword.bind(signingConfig).getValue()
     // TODO(b/70501607): Decide on val storeType = PsSigningConfig.SigningConfigDescriptors.storeType.getValue(signingConfig)
 
     assertThat(keyAlias.resolved.asTestValue(), equalTo("androiddebugkey"))
     assertThat(keyAlias.parsedValue.asTestValue(), equalTo("androiddebugkey"))
 
-    assertThat(storeFile.resolved.asTestValue(), equalTo(File(File(project.resolvedModel.basePath, "app"), "debug.keystore")))
+    // TODO(b/70501607): assertThat(keyPassword.resolved.asTestValue(), equalTo("android"))
+    assertThat(keyPassword.parsedValue.asTestValue(), equalTo("android"))
+
+    assertThat(storeFile.resolved.asTestValue(), equalTo(File(File(project.ideProject.basePath, "app"), "debug.keystore")))
     assertThat(storeFile.parsedValue.asTestValue(), equalTo(File("debug.keystore")))
 
     assertThat(storePassword.resolved.asTestValue(), equalTo("android"))
     assertThat(storePassword.parsedValue.asTestValue(), equalTo("android"))
+  }
+
+  fun testSetProperties() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val signingConfig = appModule.findSigningConfig("myConfig")
+    assertThat(appModule, notNullValue()); signingConfig!!
+
+    signingConfig.keyAlias = "ka".asParsed()
+    signingConfig.keyPassword = "kp".asParsed()
+    signingConfig.storeFile = File("sf").asParsed()
+    signingConfig.storePassword = "sp".asParsed()
+
+    fun verifyValues(signingConfig: PsSigningConfig, afterSync: Boolean = false) {
+
+      val keyAlias = PsSigningConfig.SigningConfigDescriptors.keyAlias.bind(signingConfig).getValue()
+      val keyPassword = PsSigningConfig.SigningConfigDescriptors.keyPassword.bind(signingConfig).getValue()
+      val storeFile = PsSigningConfig.SigningConfigDescriptors.storeFile.bind(signingConfig).getValue()
+      val storePassword = PsSigningConfig.SigningConfigDescriptors.storePassword.bind(signingConfig).getValue()
+      // TODO(b/70501607): Decide on val storeType = PsSigningConfig.SigningConfigDescriptors.storeType.getValue(signingConfig)
+
+      assertThat(keyAlias.parsedValue.asTestValue(), equalTo("ka"))
+      // TODO(b/70501607): assertThat(keyPassword.resolved.asTestValue(), equalTo("android"))
+      assertThat(keyPassword.parsedValue.asTestValue(), equalTo("kp"))
+      assertThat(storeFile.parsedValue.asTestValue(), equalTo(File("sf")))
+      assertThat(storePassword.parsedValue.asTestValue(), equalTo("sp"))
+
+      if (afterSync) {
+        assertThat(keyAlias.parsedValue.asTestValue(), equalTo(keyAlias.resolved.asTestValue()))
+        // TODO(b/70501607): assertThat(keyPassword.parsedValue.asTestValue(), equalTo(keyPassword.resolved.asTestValue()))
+        // TODO(b/73716779): assertThat(storeFile.parsedValue.asTestValue(), equalTo(storeFile.resolved.asTestValue()))
+        assertThat(storePassword.parsedValue.asTestValue(), equalTo(storePassword.resolved.asTestValue()))
+      }
+    }
+
+    verifyValues(signingConfig)
+
+    appModule.applyChanges()
+    requestSyncAndWait()
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    appModule = project.findModuleByName("app") as PsAndroidModule
+    // Verify nothing bad happened to the values after the re-parsing.
+    verifyValues(appModule.findSigningConfig("myConfig")!!, afterSync = true)
+  }
+
+  fun testSetProperties_undeclaredDebug() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    var appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    val signingConfig = appModule.findSigningConfig("debug")
+    assertThat(appModule, notNullValue()); signingConfig!!
+
+    signingConfig.keyAlias = "ka".asParsed()
+
+    fun verifyValues(signingConfig: PsSigningConfig, afterSync: Boolean = false) {
+
+      val keyAlias = PsSigningConfig.SigningConfigDescriptors.keyAlias.bind(signingConfig).getValue()
+
+      assertThat(keyAlias.parsedValue.asTestValue(), equalTo("ka"))
+
+      if (afterSync) {
+        assertThat(keyAlias.parsedValue.asTestValue(), equalTo(keyAlias.resolved.asTestValue()))
+      }
+    }
+
+    verifyValues(signingConfig)
+
+    appModule.applyChanges()
+    requestSyncAndWait()
+    project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    appModule = project.findModuleByName("app") as PsAndroidModule
+    // Verify nothing bad happened to the values after the re-parsing.
+    verifyValues(appModule.findSigningConfig("debug")!!, afterSync = true)
   }
 }

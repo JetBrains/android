@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.lang.databinding.model;
 
-import android.databinding.Bindable;
+import android.databinding.tool.BindableCompat;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelField;
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiModifier;
@@ -25,9 +26,9 @@ import com.intellij.psi.PsiModifierList;
 import org.jetbrains.annotations.NotNull;
 
 public class PsiModelField extends ModelField {
-  @SuppressWarnings("SpellCheckingInspection") private static final String BINDABLE_CLASS_NAME = Bindable.class.getName();
-
   @NotNull PsiField myPsiField;
+
+  private static final BindableCompat BINDABLE_COMPAT = new BindableCompat(new String[0]);
 
   public PsiModelField(@NotNull PsiField psiField) {
     myPsiField = psiField;
@@ -39,17 +40,19 @@ public class PsiModelField extends ModelField {
   }
 
   @Override
-  public boolean isBindable() {
+  public BindableCompat getBindableAnnotation() {
     PsiModifierList modifierList = myPsiField.getModifierList();
     if (modifierList != null) {
       PsiAnnotation[] annotations = modifierList.getAnnotations();
       for (PsiAnnotation annotation : annotations) {
-        if (BINDABLE_CLASS_NAME.equals(annotation.getQualifiedName())) {
-          return true;
+        if (DataBindingMode.SUPPORT.bindable.equals(annotation.getQualifiedName()) ||
+            DataBindingMode.ANDROIDX.bindable.equals(annotation.getQualifiedName())) {
+          // we don't care about dependencies in studio so we can return a shared instance.
+          return BINDABLE_COMPAT;
         }
       }
     }
-    return false;
+    return null;
   }
 
   @Override

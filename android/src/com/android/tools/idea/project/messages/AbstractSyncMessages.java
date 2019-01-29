@@ -16,13 +16,16 @@
 package com.android.tools.idea.project.messages;
 
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEventResult;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
+import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueOutputEvent;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.build.SyncViewManager;
+import com.intellij.build.events.Failure;
 import com.intellij.openapi.Disposable;
-import com.intellij.build.events.MessageEvent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -36,54 +39,67 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
-import static com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync.LAST_SYNC_TASK_ID_KEY;
 import static com.intellij.openapi.util.text.StringUtil.join;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public abstract class AbstractSyncMessages implements Disposable {
-  private static final NotificationSource NOTIFICATION_SOURCE = PROJECT_SYNC;
 
   private Project myProject;
-  @NotNull private final List<AndroidSyncIssueEvent> myCurrentEvents = new ArrayList<>();
+  @NotNull private final ConcurrentHashMap<Object, List<NotificationData>> myCurrentNotifications = new ConcurrentHashMap<>();
+  @NotNull private final ConcurrentHashMap<Object, List<Failure>> myShownFailures = new ConcurrentHashMap<>();
+  @NotNull private static final String PENDING_TASK_ID = "Pending taskId";
 
   protected AbstractSyncMessages(@NotNull Project project) {
     myProject = project;
-    myCurrentEvents.clear();
   }
 
   public int getErrorCount() {
-    int total = 0;
-    for (AndroidSyncIssueEvent event : myCurrentEvents) {
-      if (event.getKind() == MessageEvent.Kind.ERROR) {
-        total++;
-      }
-    }
-    return total;
+    return countNotifications(notification -> notification.getNotificationCategory() == NotificationCategory.ERROR);
   }
 
   public int getMessageCount(@NotNull String groupName) {
+    return countNotifications(notification -> notification.getTitle().equals(groupName));
+  }
+
+  private int countNotifications(@NotNull Predicate<NotificationData> condition) {
     int total = 0;
-    for (AndroidSyncIssueEvent event : myCurrentEvents) {
-      if (event.getGroup() == groupName) {
-        total++;
+
+    for (List<NotificationData> notificationDataList : myCurrentNotifications.values()) {
+      for (NotificationData notificationData : notificationDataList) {
+        if (condition.test(notificationData)) {
+          total++;
+        }
       }
     }
     return total;
+
   }
 
   public boolean isEmpty() {
-    return myCurrentEvents.isEmpty();
+    return myCurrentNotifications.isEmpty();
   }
 
   public void removeAllMessages() {
-    clearEvents();
+    myCurrentNotifications.clear();
   }
 
   public void removeMessages(@NotNull String... groupNames) {
     Set<String> groupSet = new HashSet<>(Arrays.asList(groupNames));
-    myCurrentEvents.removeIf(event -> groupSet.contains(event.getGroup()));
+    LinkedList<Object> toRemove = new LinkedList<>();
+    for (Object id : myCurrentNotifications.keySet()) {
+      List<NotificationData> taskNotifications = myCurrentNotifications.get(id);
+      taskNotifications.removeIf(notification -> groupSet.contains(notification.getTitle()));
+      if (taskNotifications.isEmpty()) {
+        toRemove.add(id);
+      }
+    }
+    for (Object taskId : toRemove) {
+      myCurrentNotifications.remove(taskId);
+    }
   }
 
   public void report(@NotNull SyncMessage message) {
@@ -146,25 +162,61 @@ public abstract class AbstractSyncMessages implements Disposable {
     }
   }
 
-  public void report(@NotNull NotificationData notificationData) {
-    ExternalSystemTaskId id = myProject.getUserData(LAST_SYNC_TASK_ID_KEY);
-    if (id != null) {
-      String title = notificationData.getTitle();
-      // Since the title of the notification data is the grooup, it is better to display the first line of the message
-      String[] lines = notificationData.getMessage().split(SystemProperties.getLineSeparator());
-      if (lines.length > 0) {
-        title = lines[0];
-      }
-      AndroidSyncIssueEvent issueEvent;
-      if (notificationData.getFilePath() != null) {
-        issueEvent = new AndroidSyncIssueFileEvent(id, notificationData, title);
-      }
-      else {
-        issueEvent = new AndroidSyncIssueEvent(id, notificationData, title);
-      }
-      myCurrentEvents.add(issueEvent);
-      ServiceManager.getService(myProject, SyncViewManager.class).onEvent(issueEvent);
+  public void report(@NotNull NotificationData notification) {
+    // Save on array to be shown by build view later.
+    Object taskId = GradleSyncState.getInstance(myProject).getExternalSystemTaskId();
+    if (taskId == null) {
+      taskId = PENDING_TASK_ID;
     }
+    else {
+      showNotification(notification, taskId);
+    }
+    myCurrentNotifications.computeIfAbsent(taskId, key -> new ArrayList<>()).add(notification);
+  }
+
+  /**
+   * Show all pending events on the Build View, using the given taskId as parent. It clears the pending notifications after showing them.
+   * @param taskId id of task associated with this sync.
+   * @return The list of failures on the events associated to taskId.
+   */
+  @NotNull
+  public List<Failure> showEvents(@NotNull ExternalSystemTaskId taskId) {
+    // Show notifications created without a taskId
+    for (NotificationData notification : myCurrentNotifications.getOrDefault(PENDING_TASK_ID, Collections.emptyList())) {
+      showNotification(notification, taskId);
+    }
+    myCurrentNotifications.remove(taskId);
+    myCurrentNotifications.remove(PENDING_TASK_ID);
+    List<Failure> result = myShownFailures.remove(taskId);
+    if (result == null) {
+      result = Collections.emptyList();
+    }
+    return result;
+  }
+
+  private void showNotification(@NotNull NotificationData notification, @NotNull Object taskId) {
+    String title = notification.getTitle();
+    // Since the title of the notification data is the group, it is better to display the first line of the message
+    String[] lines = notification.getMessage().split(SystemProperties.getLineSeparator());
+    if (lines.length > 0) {
+      title = lines[0];
+    }
+
+    // Since we have no way of changing the text attributes in the BuildConsole we prefix the message with
+    // ERROR or WARNING to indicate to the user the severity of each message.
+    notification.setMessage(notification.getNotificationCategory().name() + ": " + notification.getMessage());
+
+    AndroidSyncIssueEvent issueEvent;
+    if (notification.getFilePath() != null) {
+      issueEvent = new AndroidSyncIssueFileEvent(taskId, notification, title);
+    }
+    else {
+      issueEvent = new AndroidSyncIssueEvent(taskId, notification, title);
+    }
+    SyncViewManager syncViewManager = ServiceManager.getService(myProject, SyncViewManager.class);
+    syncViewManager.onEvent(issueEvent);
+    syncViewManager.onEvent(new AndroidSyncIssueOutputEvent(taskId, notification));
+    myShownFailures.computeIfAbsent(taskId, key -> new ArrayList<>()).addAll(((AndroidSyncIssueEventResult)issueEvent.getResult()).getFailures());
   }
 
   @NotNull
@@ -173,15 +225,6 @@ public abstract class AbstractSyncMessages implements Disposable {
   @NotNull
   protected Project getProject() {
     return myProject;
-  }
-
-  @NotNull
-  public List<AndroidSyncIssueEvent> getEvents() {
-    return myCurrentEvents;
-  }
-
-  protected void clearEvents() {
-    myCurrentEvents.clear();
   }
 
   @Override

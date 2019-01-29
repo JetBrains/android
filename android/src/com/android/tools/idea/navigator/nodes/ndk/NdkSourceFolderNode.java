@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.intellij.icons.AllIcons.Nodes.Folder;
 import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
@@ -88,7 +89,9 @@ public class NdkSourceFolderNode extends PsiDirectoryNode {
 
     Collection<AbstractTreeNode> folderChildren =
       ProjectViewDirectoryHelper.getInstance(myProject).getDirectoryChildren(folder, getSettings(), true /* with subdirectories */);
-
+    if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
+      return folderChildren;
+    }
     List<AbstractTreeNode> result = new ArrayList<>();
     for (AbstractTreeNode child : folderChildren) {
       Object value = child.getValue();

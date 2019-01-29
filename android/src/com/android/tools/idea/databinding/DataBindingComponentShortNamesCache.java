@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding;
 
 
 import com.android.SdkConstants;
+import com.android.support.AndroidxName;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
@@ -47,7 +48,11 @@ public class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
     if (!check(name, scope)) {
       return PsiClass.EMPTY_ARRAY;
     }
-    return myClassFinder.findClasses(SdkConstants.CLASS_DATA_BINDING_COMPONENT, scope);
+    // we need to search for both old and new. Class finder knows which one to generate.
+    final AndroidxName componentClass = SdkConstants.CLASS_DATA_BINDING_COMPONENT;
+    final PsiClass[] support = myClassFinder.findClasses(componentClass.oldName(), scope);
+    final PsiClass[] androidX = myClassFinder.findClasses(componentClass.newName(), scope);
+    return ArrayUtil.mergeArrays(support, androidX);
   }
 
   private boolean check(String name, GlobalSearchScope scope) {

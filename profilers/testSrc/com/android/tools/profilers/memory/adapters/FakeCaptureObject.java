@@ -38,13 +38,18 @@ public final class FakeCaptureObject implements CaptureObject {
   private final boolean myIsLoadSuccessful;
   private final boolean myIsDoneLoading;
   private final boolean myIsError;
+  private final String myInfoMessage;
 
   private FakeCaptureObject(@NotNull String captureName,
                             @NotNull List<ClassifierAttribute> classifierAttributes,
                             @NotNull List<InstanceAttribute> instanceAttributes,
                             @NotNull Map<Integer, String> heapIdToName,
-                            long startTime, long endTime,
-                            boolean isLoadSuccessful, boolean isDoneLoading, boolean isError) {
+                            long startTime,
+                            long endTime,
+                            boolean isLoadSuccessful,
+                            boolean isDoneLoading,
+                            boolean isError,
+                            String infoMessage) {
     myCaptureName = captureName;
     myClassifierAttributes = classifierAttributes;
     myInstanceAttributes = instanceAttributes;
@@ -54,6 +59,7 @@ public final class FakeCaptureObject implements CaptureObject {
     myIsLoadSuccessful = isLoadSuccessful;
     myIsDoneLoading = isDoneLoading;
     myIsError = isError;
+    myInfoMessage = infoMessage;
   }
 
   @NotNull
@@ -151,8 +157,12 @@ public final class FakeCaptureObject implements CaptureObject {
   }
 
   @Override
-  public void unload() {
+  public void unload() { }
 
+  @Nullable
+  @Override
+  public String getInfoMessage() {
+    return myInfoMessage;
   }
 
   public static class Builder {
@@ -168,6 +178,7 @@ public final class FakeCaptureObject implements CaptureObject {
     private boolean myIsLoadSuccessful = true;
     private boolean myIsDoneLoading = true;
     private boolean myIsError = false;
+    private String myInfoMessage = null;
 
     @NotNull
     public Builder setCaptureName(@NotNull String captureName) {
@@ -224,9 +235,15 @@ public final class FakeCaptureObject implements CaptureObject {
     }
 
     @NotNull
+    public Builder setInfoMessage(String infoMessage) {
+      myInfoMessage = infoMessage;
+      return this;
+    }
+
+    @NotNull
     public FakeCaptureObject build() {
       return new FakeCaptureObject(myCaptureName, myClassifierAttributes, myInstanceAttributes, myHeapIdToNameMap, myStartTime, myEndTime,
-                                   myIsLoadSuccessful, myIsDoneLoading, myIsError);
+                                   myIsLoadSuccessful, myIsDoneLoading, myIsError, myInfoMessage);
     }
   }
 }

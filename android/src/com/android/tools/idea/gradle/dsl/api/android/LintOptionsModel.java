@@ -15,270 +15,81 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.List;
-
-public interface LintOptionsModel {
+public interface LintOptionsModel extends GradleDslModel {
   @NotNull
-  GradleNullableValue<Boolean> abortOnError();
+  ResolvedPropertyModel abortOnError();
 
   @NotNull
-  LintOptionsModel setAbortOnError(boolean abortOnError);
-
-  @NotNull
-  LintOptionsModel removeAbortOnError();
-
-  @NotNull
-  GradleNullableValue<Boolean> absolutePaths();
-
-  @NotNull
-  LintOptionsModel setAbsolutePaths(boolean absolutePaths);
-
-  @NotNull
-  LintOptionsModel removeAbsolutePaths();
+  ResolvedPropertyModel absolutePaths();
 
   @Nullable
-  List<GradleNotNullValue<String>> check();
+  ResolvedPropertyModel check();
 
   @NotNull
-  LintOptionsModel addCheck(@NotNull String check);
+  ResolvedPropertyModel checkAllWarnings();
 
   @NotNull
-  LintOptionsModel removeCheck(@NotNull String check);
+  ResolvedPropertyModel checkReleaseBuilds();
 
   @NotNull
-  LintOptionsModel removeAllCheck();
+  ResolvedPropertyModel disable();
 
   @NotNull
-  LintOptionsModel replaceCheck(@NotNull String oldCheck, @NotNull String newCheck);
+  ResolvedPropertyModel enable();
 
   @NotNull
-  GradleNullableValue<Boolean> checkAllWarnings();
+  ResolvedPropertyModel error();
 
   @NotNull
-  LintOptionsModel setCheckAllWarnings(boolean checkAllWarnings);
+  ResolvedPropertyModel explainIssues();
 
   @NotNull
-  LintOptionsModel removeCheckAllWarnings();
+  ResolvedPropertyModel fatal();
 
   @NotNull
-  GradleNullableValue<Boolean> checkReleaseBuilds();
+  ResolvedPropertyModel htmlOutput();
 
   @NotNull
-  LintOptionsModel setCheckReleaseBuilds(boolean checkReleaseBuilds);
+  ResolvedPropertyModel htmlReport();
 
   @NotNull
-  LintOptionsModel removeCheckReleaseBuilds();
+  ResolvedPropertyModel ignore();
 
-  @Nullable
-  List<GradleNotNullValue<String>> disable();
-
-  @NotNull
-  LintOptionsModel addDisable(@NotNull String disable);
-
-  @NotNull
-  LintOptionsModel removeDisable(@NotNull String disable);
-
-  @NotNull
-  LintOptionsModel removeAllDisable();
-
-  @NotNull
-  LintOptionsModel replaceDisable(@NotNull String oldDisable, @NotNull String newDisable);
-
-  @Nullable
-  List<GradleNotNullValue<String>> enable();
-
-  @NotNull
-  LintOptionsModel addEnable(@NotNull String enable);
-
-  @NotNull
-  LintOptionsModel removeEnable(@NotNull String enable);
-
-  @NotNull
-  LintOptionsModel removeAllEnable();
-
-  @NotNull
-  LintOptionsModel replaceEnable(@NotNull String oldEnable, @NotNull String newEnable);
-
-  @Nullable
-  List<GradleNotNullValue<String>> error();
-
-  @NotNull
-  LintOptionsModel addError(@NotNull String error);
-
-  @NotNull
-  LintOptionsModel removeError(@NotNull String error);
-
-  @NotNull
-  LintOptionsModel removeAllError();
-
-  @NotNull
-  LintOptionsModel replaceError(@NotNull String oldError, @NotNull String newError);
-
-  @NotNull
-  GradleNullableValue<Boolean> explainIssues();
-
-  @NotNull
-  LintOptionsModel setExplainIssues(boolean explainIssues);
-
-  @NotNull
-  LintOptionsModel removeExplainIssues();
-
-  @Nullable
-  List<GradleNotNullValue<String>> fatal();
-
-  @NotNull
-  LintOptionsModel addFatal(@NotNull String fatal);
-
-  @NotNull
-  LintOptionsModel removeFatal(@NotNull String fatal);
-
-  @NotNull
-  LintOptionsModel removeAllFatal();
-
-  @NotNull
-  LintOptionsModel replaceFatal(@NotNull String oldFatal, @NotNull String newFatal);
-
-  @NotNull
-  GradleNullableValue<File> htmlOutput();
-
-  @NotNull
-  LintOptionsModel setHtmlOutput(@NotNull File htmlOutput);
-
-  @NotNull
-  LintOptionsModel removeHtmlOutput();
-
-  @NotNull
-  GradleNullableValue<Boolean> htmlReport();
-
-  @NotNull
-  LintOptionsModel setHtmlReport(boolean htmlReport);
-
-  @NotNull
-  LintOptionsModel removeHtmlReport();
-
-  @Nullable
-  List<GradleNotNullValue<String>> ignore();
-
-  @NotNull
-  LintOptionsModel addIgnore(@NotNull String ignore);
-
-  @NotNull
-  LintOptionsModel removeIgnore(@NotNull String ignore);
-
-  @NotNull
-  LintOptionsModel removeAllIgnore();
-
-  @NotNull
-  LintOptionsModel replaceIgnore(@NotNull String oldIgnore, @NotNull String newIgnore);
-
-  @NotNull
-  GradleNullableValue<Boolean> ignoreWarnings();
-
-  @NotNull
-  LintOptionsModel setIgnoreWarnings(boolean ignoreWarnings);
-
-  @NotNull
-  LintOptionsModel removeIgnoreWarnings();
-
-  @NotNull
-  GradleNullableValue<File> lintConfig();
-
-  @NotNull
-  LintOptionsModel setLintConfig(@NotNull File lintConfig);
-
-  @NotNull
-  LintOptionsModel removeLintConfig();
-
-  @NotNull
-  GradleNullableValue<Boolean> noLines();
-
-  @NotNull
-  LintOptionsModel setNoLines(boolean noLines);
-
-  @NotNull
-  LintOptionsModel removeNoLines();
-
-  @NotNull
-  GradleNullableValue<Boolean> quiet();
-
-  @NotNull
-  LintOptionsModel setQuiet(boolean quiet);
-
-  @NotNull
-  LintOptionsModel removeQuiet();
-
-  @NotNull
-  GradleNullableValue<Boolean> showAll();
-
-  @NotNull
-  LintOptionsModel setShowAll(boolean showAll);
-
-  @NotNull
-  LintOptionsModel removeShowAll();
-
-  @NotNull
-  GradleNullableValue<File> textOutput();
-
-  @NotNull
-  LintOptionsModel setTextOutput(@NotNull File textOutput);
-
-  @NotNull
-  LintOptionsModel removeTextOutput();
-
-  @NotNull
-  GradleNullableValue<Boolean> textReport();
-
-  @NotNull
-  LintOptionsModel setTextReport(boolean textReport);
-
-  @NotNull
-  LintOptionsModel removeTextReport();
-
-  @Nullable
-  List<GradleNotNullValue<String>> warning();
-
-  @NotNull
-  LintOptionsModel addWarning(@NotNull String warning);
-
-  @NotNull
-  LintOptionsModel removeWarning(@NotNull String warning);
-
   @NotNull
-  LintOptionsModel removeAllWarning();
+  ResolvedPropertyModel ignoreWarnings();
 
   @NotNull
-  LintOptionsModel replaceWarning(@NotNull String oldWarning, @NotNull String newWarning);
+  ResolvedPropertyModel lintConfig();
 
   @NotNull
-  GradleNullableValue<Boolean> warningsAsErrors();
+  ResolvedPropertyModel noLines();
 
   @NotNull
-  LintOptionsModel setWarningsAsErrors(boolean warningsAsErrors);
+  ResolvedPropertyModel quiet();
 
   @NotNull
-  LintOptionsModel removeWarningsAsErrors();
+  ResolvedPropertyModel showAll();
 
   @NotNull
-  GradleNullableValue<File> xmlOutput();
+  ResolvedPropertyModel textOutput();
 
   @NotNull
-  LintOptionsModel setXmlOutput(@NotNull File xmlOutput);
+  ResolvedPropertyModel textReport();
 
   @NotNull
-  LintOptionsModel removeXmlOutput();
+  ResolvedPropertyModel warning();
 
   @NotNull
-  GradleNullableValue<Boolean> xmlReport();
+  ResolvedPropertyModel warningsAsErrors();
 
   @NotNull
-  LintOptionsModel setXmlReport(boolean xmlReport);
+  ResolvedPropertyModel xmlOutput();
 
   @NotNull
-  LintOptionsModel removeXmlReport();
+  ResolvedPropertyModel xmlReport();
 }

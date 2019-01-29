@@ -14,22 +14,21 @@
 package com.android.tools.datastore.database
 
 import com.android.tools.datastore.DataStoreDatabase
-import org.junit.Before
-import org.junit.Test
-
-import java.io.*
-import java.sql.SQLException
-
+import com.android.tools.datastore.FakeLogService
 import com.google.common.truth.Truth.assertThat
+import org.junit.Test
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 class DataStoreDatabaseTest {
 
   private val myDatabaseFile = File.createTempFile("fakedbfile", "sql")
-  
+
   @Test
   fun testDatabaseCreatesDBFile() {
     myDatabaseFile.delete()
-    val db = DataStoreDatabase(myDatabaseFile.absolutePath, DataStoreDatabase.Characteristic.DURABLE)
+    val db = DataStoreDatabase(myDatabaseFile.absolutePath, DataStoreDatabase.Characteristic.DURABLE, FakeLogService())
     db.disconnect()
     assertThat(myDatabaseFile.exists()).isTrue()
   }
@@ -40,7 +39,7 @@ class DataStoreDatabaseTest {
     outputStream.write(ByteArray(1024))
     outputStream.close()
     assertThat(myDatabaseFile.length()).isEqualTo(1024)
-    val db = DataStoreDatabase(myDatabaseFile.absolutePath, DataStoreDatabase.Characteristic.DURABLE)
+    val db = DataStoreDatabase(myDatabaseFile.absolutePath, DataStoreDatabase.Characteristic.DURABLE, FakeLogService())
     assertThat(myDatabaseFile.length()).isEqualTo(0)
     db.disconnect()
     assertThat(myDatabaseFile.exists()).isTrue()
@@ -49,7 +48,7 @@ class DataStoreDatabaseTest {
   @Test
   fun testConnectionIsOpen() {
     // Verify persistent database
-    var db = DataStoreDatabase(myDatabaseFile.absolutePath, DataStoreDatabase.Characteristic.DURABLE)
+    var db = DataStoreDatabase(myDatabaseFile.absolutePath, DataStoreDatabase.Characteristic.DURABLE, FakeLogService())
     assertThat(db.connection.isClosed).isFalse()
     assertThat(db.connection.autoCommit).isFalse()
     assertThat(db.connection.metaData.url).matches("jdbc:sqlite:${myDatabaseFile.absolutePath}")
@@ -57,7 +56,7 @@ class DataStoreDatabaseTest {
     assertThat(db.connection.isClosed).isTrue()
 
     // Verify memory database.
-    db = DataStoreDatabase(myDatabaseFile.absolutePath, DataStoreDatabase.Characteristic.PERFORMANT)
+    db = DataStoreDatabase(myDatabaseFile.absolutePath, DataStoreDatabase.Characteristic.PERFORMANT, FakeLogService())
     assertThat(db.connection.isClosed).isFalse()
     assertThat(db.connection.autoCommit).isFalse()
     assertThat(db.connection.metaData.url).matches("jdbc:sqlite::memory:")

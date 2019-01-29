@@ -41,6 +41,7 @@ public abstract class StopwatchTimer {
   public abstract void start();
   public abstract boolean isRunning();
   public abstract void stop();
+  public abstract long getCurrentTimeNs();
 
   /**
    * Child classes are responsible for signaling when and how much time has elapsed.

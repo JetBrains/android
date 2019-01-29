@@ -70,7 +70,7 @@ public class AndroidExtractColorActionTest extends AndroidTestCase {
                                            @NotNull String colorsAfter,
                                            @NotNull VirtualFile editedFile) {
     myFixture.copyFileToProject(BASE_PATH + stringsXml, "res/values/colors.xml");
-    myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     myFixture.configureFromExistingVirtualFile(editedFile);
     final PsiFile editedPsiFile = myFixture.getFile();
     assertTrue(new AndroidExtractColorAction().isAvailable(myFixture.getProject(), myFixture.getEditor(), editedPsiFile));

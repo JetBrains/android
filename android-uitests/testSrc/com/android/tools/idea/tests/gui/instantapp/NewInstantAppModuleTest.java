@@ -15,26 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidModuleStepFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.util.xml.GenericAttributeValue;
-import org.fest.swing.timing.Wait;
-import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.Nullable;
-import org.junit.*;
-import org.junit.runner.RunWith;
-
-import java.io.IOException;
-
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
@@ -42,11 +22,33 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureAndroidModuleStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import com.intellij.util.xml.GenericAttributeValue;
+import java.io.IOException;
+import org.fest.swing.timing.Wait;
+import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Nullable;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 /**
  * Test that newly created Instant App modules do not have errors in them
  */
 @RunIn(TestGroup.PROJECT_WIZARD)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NewInstantAppModuleTest {
   private static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
 
@@ -58,42 +60,43 @@ public class NewInstantAppModuleTest {
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
     myOldSavedCompanyDomain = propertiesComponent.getValue(SAVED_COMPANY_DOMAIN);
     propertiesComponent.setValue(SAVED_COMPANY_DOMAIN, "aia.example.com");
+    SdkReplacer.replaceSdkLocationAndActivate(null, true);
   }
 
   @After
   public void after() {
     PropertiesComponent.getInstance().setValue(SAVED_COMPANY_DOMAIN, myOldSavedCompanyDomain);
+    SdkReplacer.putBack();
   }
 
   // TODO: add tests for warnings in code - requires way to separate warnings from SimpleApplication out from warnings in new module
 
   @Test
   public void testCanBuildDefaultNewInstantAppFeatureModules() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
     addNewFeatureModule("feature1");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
   public void testCanBuildEmptyNewInstantAppFeatureModules() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
     addNewFeatureModule("feature1", "Add No Activity");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/71515856
   @Test
   public void testCanBuildProjectWithMultipleFeatureModules() throws IOException {
-    guiTest.importSimpleLocalApplication();
-    addNewFeatureModule(null, null);
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
+    addNewFeatureModule("base1", null);
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
-    addNewFeatureModule(null, null);
+    addNewFeatureModule("feature1", null);
     assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
 
     // Check that the modules are correctly added to the project
-    assertValidFeatureModule(ideFrame.getModule("base"));
-    assertValidFeatureModule(ideFrame.getModule("feature"));
+    assertValidFeatureModule(ideFrame.getModule("base1"));
+    assertValidFeatureModule(ideFrame.getModule("feature1"));
     assertNotNull(ideFrame.getModule("instantapp"));
 
     // Verify application attributes are in feature1 (the base feature) and not in feature2
@@ -109,7 +112,7 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testCanBuildProjectWithEmptySecondFeatureModule() throws IOException {
-    guiTest.importSimpleLocalApplication();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
     addNewFeatureModule("feature1");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
     addNewFeatureModule("feature2", "Add No Activity");
@@ -119,10 +122,10 @@ public class NewInstantAppModuleTest {
 
   @Test
   public void testPackageGeneratedCorrectly() throws IOException {
-    guiTest.importSimpleLocalApplication();
-    addNewFeatureModule("feature");
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
+    addNewFeatureModule("feature1");
 
-    Module module = guiTest.ideFrame().getModule("feature");
+    Module module = guiTest.ideFrame().getModule("feature1");
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull(facet);
     Manifest manifest = facet.getManifest();
@@ -132,30 +135,29 @@ public class NewInstantAppModuleTest {
       GenericAttributeValue<String> packageAttribute = manifest.getPackage();
       assertNotNull(packageAttribute);
       assertThat(packageAttribute.isValid()).isTrue();
-      assertThat(packageAttribute.getStringValue()).isEqualTo("com.example.aia.feature");
+      assertThat(packageAttribute.getStringValue()).isEqualTo("com.thebigg.aia.simpleoldinstantapp.feature1");
     });
   }
 
   @Test
-  @Ignore("http://b/69534580")
   public void testAddNewInstantAppModule() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleOldInstantApp");
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType("Instant App")
-      .clickNext() // Selected App
-      .clickFinish();
+    NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
+
+   newModuleWizardFixture.chooseModuleType("Instant App")
+    .clickNext() // Selected App
+    .clickFinish();
 
     ideFrame
       .waitForGradleProjectSyncToFinish(Wait.seconds(20))
       .waitForBuildToFinish(SOURCE_GEN);
-    assertThat(ideFrame.invokeProjectMake().isBuildSuccessful()).isTrue();
 
-    Module module = ideFrame.getModule("instantapp");
+    Module module = ideFrame.getModule("instantapp2");
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull(facet);
-    assertEquals(PROJECT_TYPE_INSTANTAPP, facet.getProjectType());
+    assertEquals(PROJECT_TYPE_INSTANTAPP, facet.getConfiguration().getProjectType());
   }
 
   private void addNewFeatureModule(@Nullable String moduleName) {
@@ -167,7 +169,7 @@ public class NewInstantAppModuleTest {
     NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
 
     ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> configureAndroidModuleStep = newModuleWizardFixture
-      .chooseModuleType("Feature Module")
+      .chooseModuleType("Instant App Feature Module")
       .clickNext() // Selected App
       .getConfigureAndroidModuleStep()
       .selectMinimumSdkApi("23");
@@ -199,6 +201,6 @@ public class NewInstantAppModuleTest {
   private static void assertValidFeatureModule(Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assertNotNull(facet);
-    assertEquals(PROJECT_TYPE_FEATURE, facet.getProjectType());
+    assertEquals(PROJECT_TYPE_FEATURE, facet.getConfiguration().getProjectType());
   }
 }

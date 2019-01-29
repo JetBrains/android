@@ -20,10 +20,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.ExtendClass;
-import org.jetbrains.android.dom.AndroidAttributeValue;
-import org.jetbrains.android.dom.AndroidResourceType;
-import org.jetbrains.android.dom.Styleable;
-import org.jetbrains.android.dom.converters.CompleteNonModuleClass;
+import org.jetbrains.android.dom.*;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
@@ -52,20 +49,44 @@ public interface MenuItem extends MenuElement {
 
   @Attribute("actionViewClass")
   @Convert(PackageClassConverter.class)
+  @ExtendClass(
+    value = "android.view.View",
+    instantiatable = false,
+    allowAbstract = false,
+    allowInterface = false,
+    allowEnum = false)
+  AndroidAttributeValue<PsiClass> getAndroidActionViewClass();
+
+  @Attribute("actionViewClass")
+  @Convert(PackageClassConverter.class)
+  @CompleteLibraryClasses
   @ExtendClass(value = "android.view.View",
-               instantiatable = false,
-               allowAbstract = false,
-               allowInterface = false,
-               allowEnum = false)
-  AndroidAttributeValue<PsiClass> getActionViewClass();
+    instantiatable = false,
+    allowAbstract = false,
+    allowInterface = false,
+    allowEnum = false)
+  ResAutoAttributeValue<PsiClass> getResAutoActionViewClass();
 
   @Attribute("actionProviderClass")
   @Convert(PackageClassConverter.class)
-  @CompleteNonModuleClass
-  @ExtendClass(value = "android.view.ActionProvider",
-               instantiatable = false,
-               allowAbstract = false,
-               allowInterface = false,
-               allowEnum = false)
-  AndroidAttributeValue<PsiClass> getActionProviderClass();
+  @CompleteLibraryClasses
+  @ExtendClass(
+    value = "android.view.ActionProvider",
+    instantiatable = false,
+    allowAbstract = false,
+    allowInterface = false,
+    allowEnum = false)
+  AndroidAttributeValue<PsiClass> getAndroidActionProviderClass();
+
+  @Attribute("actionProviderClass")
+  @Convert(PackageClassConverter.class)
+  @CompleteLibraryClasses
+  @ExtendClass(
+    // TODO(b/80457341): Support the androidx name as well.
+    value = "android.support.v4.view.ActionProvider",
+    instantiatable = false,
+    allowAbstract = false,
+    allowInterface = false,
+    allowEnum = false)
+  ResAutoAttributeValue<PsiClass> getResAutoActionProviderClass();
 }

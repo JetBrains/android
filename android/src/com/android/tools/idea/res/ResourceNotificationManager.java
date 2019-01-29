@@ -134,7 +134,7 @@ public class ResourceNotificationManager {
 
   @NotNull
   public ResourceVersion getCurrentVersion(@NotNull AndroidFacet facet, @Nullable PsiFile file, @Nullable Configuration configuration) {
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(facet);
     if (file != null) {
       long fileStamp = file.getModificationStamp();
       if (configuration != null) {
@@ -313,7 +313,7 @@ public class ResourceNotificationManager {
 
     private ModuleEventObserver(@NotNull AndroidFacet facet) {
       myFacet = facet;
-      myGeneration = AppResourceRepository.getOrCreateInstance(facet).getModificationCount();
+      myGeneration = ResourceRepositoryManager.getAppResources(facet).getModificationCount();
     }
 
     @Override
@@ -342,19 +342,22 @@ public class ResourceNotificationManager {
         // we want it to add its own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
         // before our own update listener attempts a re-render)
-        ModuleResourceRepository.getOrCreateInstance(myFacet);
-        myFacet.getResourceFolderManager().addListener(this);
+        ResourceRepositoryManager.getModuleResources(myFacet);
+        ResourceFolderManager.getInstance(myFacet).addListener(this);
       }
     }
 
     private void unregisterListeners() {
-      if (myFacet.requiresAndroidModel()) {
-        myFacet.getResourceFolderManager().removeListener(this);
+      if (!myFacet.isDisposed() && myFacet.requiresAndroidModel()) {
+        ResourceFolderManager.getInstance(myFacet).removeListener(this);
       }
     }
 
     private void notifyListeners(@NonNull EnumSet<Reason> reason) {
-      long generation = AppResourceRepository.getOrCreateInstance(myFacet).getModificationCount();
+      if (myFacet.isDisposed()) {
+        return;
+      }
+      long generation = ResourceRepositoryManager.getAppResources(myFacet).getModificationCount();
       if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,

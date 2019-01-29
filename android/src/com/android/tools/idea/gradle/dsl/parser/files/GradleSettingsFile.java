@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.files;
 
+import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -23,16 +24,19 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl.INCLUDE;
 
 public class GradleSettingsFile extends GradleDslFile {
-  public GradleSettingsFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
-    super(file, project, moduleName);
+  public GradleSettingsFile(@NotNull VirtualFile file,
+                            @NotNull Project project,
+                            @NotNull String moduleName,
+                            @NotNull BuildModelContext context) {
+    super(file, project, moduleName, context);
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (INCLUDE.equals(property)) {
-      addToParsedExpressionList(property, element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (INCLUDE.equals(element.getName())) {
+      addToParsedExpressionList(element.getName(), element);
       return;
     }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

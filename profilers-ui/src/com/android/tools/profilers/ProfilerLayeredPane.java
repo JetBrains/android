@@ -16,23 +16,33 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.TooltipComponent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 
 /**
- * This class is needed by {@link TooltipComponent}, so that it can add itself to this container.
+ * This class is essentially a Swing wrapper for the contents of the main profiler tool window.
+ * This class is also needed by {@link TooltipComponent}, so that it can add itself to this container.
  * By doing so, {@link TooltipComponent} will have the same bounds as {@link ProfilerLayeredPane}
  * when used across profilers UI.
  */
 public class ProfilerLayeredPane extends JLayeredPane {
+
+  /**
+   *
+   * @param content The one and only non-tooltip {@link JComponent} this layered pane shall ever have.
+   */
+  public ProfilerLayeredPane(@NotNull JComponent content) {
+    add(content, JLayeredPane.DEFAULT_LAYER);
+  }
+
   /**
    * Traverses up to the ProfilerLayeredPane and sets the cursor on it.
    *
    * @param container where traversal starts.
    * @param cursor    the cursor to set on the ProfilerLayeredPane.
-   *
    * @return the ProfilerLayeredPane if found. Null otherwise.
    */
   @Nullable
@@ -44,5 +54,23 @@ public class ProfilerLayeredPane extends JLayeredPane {
       }
     }
     return null;
+  }
+
+  @Override
+  public void setBounds(int x, int y, int width, int height) {
+    Rectangle oldBounds = getBounds();
+
+    super.setBounds(x, y, width, height);
+
+    if (x == oldBounds.x && y == oldBounds.y && width == oldBounds.width && height == oldBounds.height) {
+      return;
+    }
+
+    for (int i = 0; i < getComponentCount(); i++) {
+      Component component = getComponent(i);
+      component.setBounds(0, 0, width, height);
+    }
+    revalidate();
+    repaint();
   }
 }

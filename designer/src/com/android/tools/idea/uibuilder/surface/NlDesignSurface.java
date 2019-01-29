@@ -15,13 +15,33 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.annotations.VisibleForTesting.Visibility;
+import static com.android.resources.Density.DEFAULT_DENSITY;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RULER_SIZE_PX;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.surface.*;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
+import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -32,40 +52,37 @@ import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
+import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
-import static com.android.annotations.VisibleForTesting.Visibility;
-import static com.android.resources.Density.DEFAULT_DENSITY;
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 
 /**
  * The {@link DesignSurface} for the layout editor, which contains the full background, rulers, one
  * or more device renderings, etc
  */
-public class NlDesignSurface extends DesignSurface {
-
-  @NotNull private static SceneMode
-    ourDefaultSceneMode = SceneMode.Companion.loadPreferredMode();
-
-  @NotNull private SceneMode mySceneMode = ourDefaultSceneMode;
+public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility {
+  @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
   @SwingCoordinate private int myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
   @SwingCoordinate private int myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
   private boolean myIsCanvasResizing = false;
@@ -75,10 +92,14 @@ public class NlDesignSurface extends DesignSurface {
   private boolean myCentered;
   private final boolean myInPreview;
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
+  private final RenderListener myRenderListener = this::modelRendered;
+  private RenderIssueProvider myRenderIssueProvider;
+  private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
-    super(project, parentDisposable);
+    super(project, new SelectionModel(), parentDisposable);
     myInPreview = inPreview;
+    myAccessoryPanel.setSurface(this);
   }
 
   public boolean isPreviewSurface() {
@@ -115,12 +136,7 @@ public class NlDesignSurface extends DesignSurface {
   public void setScreenMode(@NotNull SceneMode sceneMode, boolean setAsDefault) {
 
     if (setAsDefault) {
-      if (ourDefaultSceneMode != sceneMode) {
-        //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourDefaultSceneMode = sceneMode;
-
-        SceneMode.Companion.savePreferredMode(sceneMode);
-      }
+      SceneMode.Companion.savePreferredMode(sceneMode);
     }
 
     if (sceneMode != mySceneMode) {
@@ -134,21 +150,27 @@ public class NlDesignSurface extends DesignSurface {
       if (!contentResizeSkipped()) {
         zoomToFit();
       }
+      layoutContent();
       updateScrolledAreaSize();
-      repaint();
     }
   }
 
   @NotNull
   @Override
   protected SceneManager createSceneManager(@NotNull NlModel model) {
-    return new LayoutlibSceneManager(model, this);
+    LayoutlibSceneManager manager = new LayoutlibSceneManager(model, this);
+    manager.addRenderListener(myRenderListener);
+    return manager;
   }
 
   @Nullable
   @Override
   public LayoutlibSceneManager getSceneManager() {
     return (LayoutlibSceneManager)super.getSceneManager();
+  }
+
+  private int getSceneViewNumber() {
+    return myModelToSceneManagers.size() * (getSceneMode() == SceneMode.BOTH ? 2 : 1);
   }
 
   /**
@@ -159,11 +181,6 @@ public class NlDesignSurface extends DesignSurface {
    */
   public void forceLayersPaint(boolean value) {
     for (Layer layer : getLayers()) {
-      if (layer instanceof ConstraintsLayer) {
-        ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
-        constraintsLayer.setTemporaryShow(value);
-        repaint();
-      }
       if (layer instanceof SceneLayer) {
         SceneLayer sceneLayer = (SceneLayer)layer;
         sceneLayer.setTemporaryShow(value);
@@ -219,19 +236,20 @@ public class NlDesignSurface extends DesignSurface {
     Dimension size = primarySceneView.getSize();
     // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
     // to the side or below based on the form factor and the available size
-    Dimension dimension = new Dimension(size.width + 2 * DEFAULT_SCREEN_OFFSET_X,
-                                        size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
-    if (mySceneMode == SceneMode.BOTH) {
-      if (isStackVertically()) {
-        dimension.setSize(dimension.getWidth(),
-                          dimension.getHeight() + size.height + SCREEN_DELTA);
-      }
-      else {
-        dimension.setSize(dimension.getWidth() + size.width + SCREEN_DELTA,
-                          dimension.getHeight());
-      }
+    int contentWidth;
+    int contentHeight;
+
+    // TODO: adjust it to better result.
+    if (isStackVertically()) {
+      contentWidth = size.width;
+      contentHeight = (size.height + SCREEN_DELTA) * getSceneViewNumber() - SCREEN_DELTA;
     }
-    return dimension;
+    else {
+      contentWidth = (size.width + SCREEN_DELTA) * getSceneViewNumber() - SCREEN_DELTA;
+      contentHeight = size.height;
+    }
+    return new Dimension(contentWidth + 2 * DEFAULT_SCREEN_OFFSET_X,
+                         contentHeight + 2 * DEFAULT_SCREEN_OFFSET_Y);
   }
 
   public void setAdaptiveIconShape(@NotNull ShapeMenuAction.AdaptiveIconShape adaptiveIconShape) {
@@ -243,10 +261,28 @@ public class NlDesignSurface extends DesignSurface {
     return myAdaptiveIconShape;
   }
 
+  @NotNull
+  public JPanel getAccessoryPanel() {
+    return myAccessoryPanel;
+  }
+
+  public void showInspectorAccessoryPanel(boolean show) {
+    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+      listener.showAccessoryPanel(this, show);
+    }
+  }
+
+  @Override
+  public void show(@NotNull AccessoryPanel.Type type, boolean show) {
+    showInspectorAccessoryPanel(show);
+  }
+
   /**
    * Returns true if we want to arrange screens vertically instead of horizontally
    */
-  private static boolean isVerticalScreenConfig(int availableWidth, int availableHeight, @NotNull Dimension preferredSize) {
+  private static boolean isVerticalScreenConfig(@SwingCoordinate int availableWidth,
+                                                @SwingCoordinate int availableHeight,
+                                                @SwingCoordinate @NotNull Dimension preferredSize) {
     boolean stackVertically = preferredSize.width > preferredSize.height;
     if (availableWidth > 10 && availableHeight > 3 * availableWidth / 2) {
       stackVertically = true;
@@ -290,12 +326,12 @@ public class NlDesignSurface extends DesignSurface {
 
   @Override
   protected void layoutContent() {
-    LayoutlibSceneManager manager = getSceneManager();
-    SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
-    if (primarySceneView == null) {
+    Iterator<SceneManager> iterator = myModelToSceneManagers.values().iterator();
+    if (!iterator.hasNext()) {
       return;
     }
-
+    LayoutlibSceneManager manager = (LayoutlibSceneManager) iterator.next();
+    SceneView primarySceneView = manager.getSceneView();
     Dimension screenViewSize = primarySceneView.getSize();
 
     // Position primary screen
@@ -344,6 +380,15 @@ public class NlDesignSurface extends DesignSurface {
     }
 
     manager.getScene().needsRebuildList();
+
+    int nextX = myScreenX + screenViewSize.width + SCREEN_DELTA;
+    while (iterator.hasNext()) {
+      LayoutlibSceneManager additionalManager = (LayoutlibSceneManager) iterator.next();
+      SceneView view = additionalManager.getSceneView();
+      view.setLocation(nextX, myScreenY);
+      nextX += screenViewSize.width + SCREEN_DELTA;
+    }
+
     revalidate();
     repaint();
   }
@@ -393,9 +438,18 @@ public class NlDesignSurface extends DesignSurface {
         getCurrentSceneView().getSize().getWidth(),
         getCurrentSceneView().getSize().getHeight());
     }
+
+    // TODO: adjust it to better result.
+    if (isStackVertically()) {
+      dimension.height *= myModelToSceneManagers.size();
+    }
+    else {
+      dimension.width *= myModelToSceneManagers.size();
+    }
     return dimension;
   }
 
+  @SwingCoordinate
   @Override
   protected Dimension getDefaultOffset() {
     return new Dimension(2 * DEFAULT_SCREEN_OFFSET_X + RULER_SIZE_PX, 2 * DEFAULT_SCREEN_OFFSET_Y + RULER_SIZE_PX);
@@ -404,9 +458,9 @@ public class NlDesignSurface extends DesignSurface {
   @SwingCoordinate
   @NotNull
   @Override
-  protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
-    SceneManager manager = getSceneManager();
-    SceneView primarySceneView = manager != null ? manager.getSceneView() : null;
+  protected Dimension getPreferredContentSize(@SwingCoordinate int availableWidth, @SwingCoordinate int availableHeight) {
+    SceneManager primarySceneManager = getSceneManager();
+    SceneView primarySceneView = primarySceneManager != null ? primarySceneManager.getSceneView() : null;
     if (primarySceneView == null) {
       return JBUI.emptySize();
     }
@@ -414,6 +468,26 @@ public class NlDesignSurface extends DesignSurface {
 
     int requiredWidth = preferredSize.width;
     int requiredHeight = preferredSize.height;
+
+    // TODO: adjust it to better result.
+    for (SceneManager sceneManager: myModelToSceneManagers.values()) {
+      if (sceneManager == primarySceneManager) {
+        continue;
+      }
+      Dimension size = sceneManager.getSceneView().getPreferredSize();
+      if (isStackVertically()) {
+        requiredWidth = Math.max(requiredWidth, size.width);
+
+        requiredHeight += size.height;
+        requiredHeight += SCREEN_DELTA;
+      }
+      else {
+        requiredWidth += size.width;
+        requiredWidth += SCREEN_DELTA;
+
+        requiredHeight = Math.max(requiredHeight, size.height);
+      }
+    }
 
     if (mySceneMode == SceneMode.BOTH) {
       if (isVerticalScreenConfig(availableWidth, availableHeight, preferredSize)) {
@@ -430,11 +504,23 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @Override
+  public void setModel(@Nullable NlModel model) {
+    myAccessoryPanel.setModel(model);
+    super.setModel(model);
+  }
+
+  @Override
+  public void dispose() {
+    myAccessoryPanel.setSurface(null);
+    super.dispose();
+  }
+
+  @Override
   public void notifyComponentActivate(@NotNull NlComponent component, int x, int y) {
     ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
 
     if (handler != null) {
-      handler.onActivateInDesignSurface(component, x, y);
+      handler.onActivateInDesignSurface(component, getSceneManager().getViewEditor(), x, y);
     }
     super.notifyComponentActivate(component, x, y);
   }
@@ -476,18 +562,23 @@ public class NlDesignSurface extends DesignSurface {
           return;
         }
 
-        Project project = getProject();
+        ReadAction.run(() -> {
+          Project project = getProject();
+          if (project.isDisposed()) {
+            return;
+          }
 
-        if (project.isDisposed()) {
-          return;
-        }
-
-        BuildMode gradleBuildMode = BuildSettings.getInstance(project).getBuildMode();
-        RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
-                                 ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
-                                 : RenderErrorModelFactory
-                                   .createErrorModel(result, DataManager.getInstance().getDataContext(getIssuePanel()));
-        getIssueModel().setRenderErrorModel(model);
+          BuildMode gradleBuildMode = BuildSettings.getInstance(project).getBuildMode();
+          RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
+                                   ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
+                                   : RenderErrorModelFactory
+                                     .createErrorModel(NlDesignSurface.this, result, DataManager.getInstance().getDataContext(getIssuePanel()));
+          if (myRenderIssueProvider != null) {
+            getIssueModel().removeIssueProvider(myRenderIssueProvider);
+          }
+          myRenderIssueProvider = new RenderIssueProvider(model);
+          getIssueModel().addIssueProvider(myRenderIssueProvider);
+        });
       }
 
       @Override
@@ -497,19 +588,19 @@ public class NlDesignSurface extends DesignSurface {
     });
   }
 
-  @Override
-  protected void modelRendered() {
+  private void modelRendered() {
     if (getCurrentSceneView() != null) {
       updateErrorDisplay();
+      repaint();
+      layoutContent();
     }
-    super.modelRendered();
   }
 
   @Override
   public void forceUserRequestedRefresh() {
-    LayoutlibSceneManager sceneManager = getSceneManager();
-    if (sceneManager != null) {
-      sceneManager.requestUserInitatedRender();
+    for (SceneManager sceneManager : myModelToSceneManagers.values()) {
+      LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager) sceneManager;
+      layoutlibSceneManager.requestUserInitiatedRender();
     }
   }
 
@@ -571,12 +662,6 @@ public class NlDesignSurface extends DesignSurface {
         return null;
       }
     }
-    // Check if we have a ViewGroupHandler that might want
-    // to handle the entire interaction
-    ViewGroupHandler viewGroupHandler = component != null ? NlComponentHelperKt.getViewGroupHandler(component) : null;
-    if (viewGroupHandler == null) {
-      return null;
-    }
 
     Interaction interaction = null;
 
@@ -585,19 +670,24 @@ public class NlDesignSurface extends DesignSurface {
       NlComponent primary = screenView.getSelectionModel().getPrimary();
       NlComponent parent = primary != null ? primary.getParent() : null;
       if (parent != null) {
-        int ax = Coordinates.getAndroidX(screenView, mouseX);
-        int ay = Coordinates.getAndroidY(screenView, mouseY);
-        if (NlComponentHelperKt.containsX(primary, ax) && NlComponentHelperKt.containsY(primary, ay)) {
-          ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(parent);
-          if (handler != null) {
-            interaction = handler.createInteraction(screenView, primary);
-          }
+        ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(parent);
+        if (handler != null) {
+          interaction = handler.createInteraction(screenView, primary);
         }
       }
     }
 
     if (interaction == null) {
-      interaction = viewGroupHandler.createInteraction(screenView, component);
+      // Check if we have a ViewGroupHandler that might want
+      // to handle the entire interaction
+      ViewGroupHandler viewGroupHandler = component != null ? NlComponentHelperKt.getViewGroupHandler(component) : null;
+      if (viewGroupHandler != null) {
+        interaction = viewGroupHandler.createInteraction(screenView, component);
+      }
+    }
+
+    if (interaction == null) {
+      interaction = new SceneInteraction(screenView);
     }
     return interaction;
   }
@@ -633,5 +723,11 @@ public class NlDesignSurface extends DesignSurface {
       dragged = Collections.singletonList(primaryNlComponent);
     }
     return new DragDropInteraction(this, dragged);
+  }
+
+  @NotNull
+  @Override
+  protected DesignSurfaceActionHandler createActionHandler() {
+    return new NlDesignSurfaceActionHandler(this);
   }
 }

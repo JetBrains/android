@@ -34,10 +34,9 @@ class SqliteFileTypeDetector : FileTypeRegistry.FileTypeDetector {
       return null
     }
 
-    val j = 0
     @Suppress("LoopToCallChain") // call chain is less readable
     for (i in SQLITE3_FORMAT_HEADER.indices) {
-      if (SQLITE3_FORMAT_HEADER[i] != firstBytes.byteAt(i + j)) {
+      if (SQLITE3_FORMAT_HEADER[i] != firstBytes.toBytes()[i]) {
         return null
       }
     }

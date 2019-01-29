@@ -16,16 +16,13 @@
 package com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild;
 
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AbstractBuildModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValueImpl;
-import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 
 
 /**
@@ -40,43 +37,7 @@ public abstract class AbstractBuildModelImpl extends GradleDslBlockModel impleme
 
   @Override
   @NotNull
-  public GradleNullableValue<File> path() {
-    GradleDslElement pathElement = myDslElement.getPropertyElement(PATH);
-    if (pathElement == null) {
-      return new GradleNullableValueImpl<>(myDslElement, null);
-    }
-
-    File value = null;
-    if (pathElement instanceof GradleDslMethodCall || pathElement instanceof GradleDslNewExpression) {
-      value = ((GradleDslExpression)pathElement).getValue(File.class);
-    }
-    else if (pathElement instanceof GradleDslExpression) {
-      String path = ((GradleDslExpression)pathElement).getValue(String.class);
-      if (path != null) {
-        value = new File(path);
-      }
-    }
-
-    return new GradleNullableValueImpl<>(pathElement, value);
-  }
-
-  @Override
-  @NotNull
-  public AbstractBuildModel setPath(@NotNull File path) {
-    GradleDslElement pathElement = myDslElement.getPropertyElement(PATH);
-    if (pathElement == null) {
-      // Only adding new path element is supported. Updating an existing path entry is not supported as there is no use case right now.
-      GradleDslLiteral pathLiteral = new GradleDslLiteral(myDslElement, PATH);
-      pathLiteral.setValue(toSystemIndependentName(path.getPath()));
-      myDslElement.setNewElement(PATH, pathLiteral);
-    }
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public AbstractBuildModel removePath() {
-    myDslElement.removeProperty(PATH);
-    return this;
+  public ResolvedPropertyModel path() {
+    return GradlePropertyModelBuilder.create(myDslElement, PATH).asMethod(true).addTransform(PropertyUtil.FILE_TRANSFORM).buildResolved();
   }
 }

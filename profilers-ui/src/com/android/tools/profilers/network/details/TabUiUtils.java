@@ -16,24 +16,22 @@
 package com.android.tools.profilers.network.details;
 
 import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.ui.BreakWordWrapHtmlTextPane;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.text.Element;
-import javax.swing.text.View;
-import javax.swing.text.ViewFactory;
-import javax.swing.text.html.*;
 import java.awt.*;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 /**
  * A collection of common UI constants, components, and utility methods shared throughout the
@@ -42,13 +40,13 @@ import java.util.stream.Collectors;
 final class TabUiUtils {
 
   public static final int SCROLL_UNIT = JBUI.scale(10);
-  public static final float FIELD_FONT_SIZE = 11.f;
+  // Padding to be aligned with the tab title on the left.
+  public static final int HORIZONTAL_PADDING = 15;
 
+  // TODO(b/109661512): Move vgap scale into TabularLayout
   public static final int TAB_SECTION_VGAP = JBUI.scale(5);
   public static final int PAGE_VGAP = JBUI.scale(28);
   public static final int SECTION_VGAP = JBUI.scale(10);
-  public static final int HGAP = JBUI.scale(22);
-  public static final float TITLE_FONT_SIZE = 14.f;
 
   public static final String SECTION_TITLE_HEADERS = "Headers";
 
@@ -87,35 +85,17 @@ final class TabUiUtils {
   }
 
   /**
-   * Like {@link #createScrollPane(JComponent)} but this scroll pane vertical scrolling is
-   * delegated to upper level scroll pane and its own vertical scroll bar is hidden.
-   */
-  @NotNull
-  public static JBScrollPane createNestedScrollPane(@NotNull JComponent component) {
-    JBScrollPane scrollPane = createScrollPane(component);
-    scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-    scrollPane.addMouseWheelListener(new DelegateMouseWheelListener(scrollPane));
-    return scrollPane;
-  }
-
-  /**
-   * Creates a separator to visually divide areas of a panel.
-   */
-  @NotNull
-  public static JSeparator createSeparator() {
-    JSeparator separator = new JSeparator();
-    separator.setForeground(UIManager.getColor("Table.gridColor"));
-    return separator;
-  }
-
-  /**
    * Creates a {@link HideablePanel} with a consistent style.
    */
   @NotNull
   public static HideablePanel createHideablePanel(@NotNull String title, @NotNull JComponent content,
                                                   @Nullable JComponent northEastComponent) {
     title = String.format("<html><b>%s</b></html>", title);
-    return new HideablePanel.Builder(title, content).setNorthEastComponent(northEastComponent).build();
+    return new HideablePanel.Builder(title, content)
+      .setNorthEastComponent(northEastComponent)
+      .setPanelBorder(new JBEmptyBorder(10, 0, 0, 0))
+      .setContentBorder(new JBEmptyBorder(10, 12, 0, 0))
+      .build();
   }
 
   /**
@@ -125,64 +105,17 @@ final class TabUiUtils {
   @NotNull
   public static JComponent createStyledMapComponent(@NotNull Map<String, String> map) {
     if (map.isEmpty()) {
-      return new JLabel("No data available");
+      return new JLabel("Not available");
     }
 
-    JEditorPane htmlTextPane = new JEditorPane();
-    htmlTextPane.setContentType("text/html");
-    HTMLEditorKit editorKit = new BreakWordWrapHTMLEditorKit();
-    htmlTextPane.setEditorKit(editorKit);
-    StyleSheet styleSheet = editorKit.getStyleSheet();
-    Font labelFont = UIManager.getFont("Label.font");
-    styleSheet.addRule("body { font-family: " + labelFont.getFamily() + "; font-size: " + FIELD_FONT_SIZE + "pt; }");
-    styleSheet.addRule("p { margin: 4 0 4 0; }");
-
+    JTextPane textPane = new BreakWordWrapHtmlTextPane();
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append("<html>");
     for (Map.Entry<String, String> entry : map.entrySet()) {
-      stringBuilder.append("<p><b>").append(entry.getKey()).append(":&nbsp&nbsp</b>");
-      stringBuilder.append("<span>").append(entry.getValue()).append("</span></p>");
+      stringBuilder.append(String.format("<p><b>%s</b>:&nbsp;<span>%s</span></p>", entry.getKey(), entry.getValue()));
     }
     stringBuilder.append("</html>");
-    htmlTextPane.setText(stringBuilder.toString());
-    return htmlTextPane;
-  }
-
-  /**
-   * Create a component that shows a list of key/value pairs. If there are no values in the map,
-   * this returns a label indicating that no data is available.
-   */
-  @NotNull
-  public static JComponent createMapComponent(@NotNull Map<String, String> argsMap) {
-    if (argsMap.isEmpty()) {
-      return new JLabel("No data available");
-    }
-
-    StringBuilder stringBuilder = new StringBuilder();
-    stringBuilder.append("<html>");
-    for (Map.Entry<String, String> entry : argsMap.entrySet()) {
-      stringBuilder.append("<p><nobr><b>").append(entry.getKey()).append(":&nbsp&nbsp</b></nobr>");
-      stringBuilder.append("<span>").append(entry.getValue()).append("</span></p>");
-    }
-    stringBuilder.append("</html>");
-    return createTextPane(stringBuilder.toString());
-  }
-
-  /**
-   * Wraps a string with a read-only text panel, allowing users to select and copy the text if they
-   * want to.
-   */
-  @NotNull
-  private static JTextPane createTextPane(String text) {
-    JTextPane textPane = new JTextPane();
-    textPane.setContentType("text/html");
-    textPane.setBackground(null);
-    textPane.setBorder(null);
-    textPane.setEditable(false);
-    textPane.setText(text);
-    Font labelFont = UIManager.getFont("Label.font");
-    String rule = "body { font-family: " + labelFont.getFamily() + "; font-size: " + FIELD_FONT_SIZE + "pt; }";
-    ((HTMLDocument)textPane.getDocument()).getStyleSheet().addRule(rule);
+    textPane.setText(stringBuilder.toString());
     return textPane;
   }
 
@@ -194,7 +127,7 @@ final class TabUiUtils {
       // Some Swing components simply have no font set - skip over them
       return;
     }
-    c.setFont(c.getFont().deriveFont(Font.PLAIN, FIELD_FONT_SIZE));
+    c.setFont(c.getFont().deriveFont(Font.PLAIN, STANDARD_FONT.getSize2D()));
   }
 
   /**
@@ -214,119 +147,5 @@ final class TabUiUtils {
     }
 
     return (matches.size() == 1) ? (JComponent)matches.get(0) : null;
-  }
-
-  /**
-   * Delegates given scroll pane's vertical wheel event to the parent scroll pane.
-   */
-  static class DelegateMouseWheelListener implements MouseWheelListener {
-    @NotNull private final JScrollPane myScrollPane;
-    @Nullable private JScrollPane myParentScrollPane;
-    private int myLastScrollOffset = 0;
-
-    DelegateMouseWheelListener(@NotNull JScrollPane scrollPane) {
-      myScrollPane = scrollPane;
-    }
-
-    @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
-      setParentScrollPane();
-      if (myParentScrollPane == null) {
-        myScrollPane.removeMouseWheelListener(this);
-        return;
-      }
-
-      JScrollBar scrollBar = myScrollPane.getVerticalScrollBar();
-      int terminalValue = e.getWheelRotation() < 0 ? 0 : scrollBar.getMaximum() - scrollBar.getVisibleAmount();
-      if (scrollBar.getValue() == terminalValue && myLastScrollOffset == terminalValue) {
-        // Clone the event since this pane already consumes it.
-        myParentScrollPane.dispatchEvent(clone(myParentScrollPane, e));
-      }
-      myLastScrollOffset = scrollBar.getValue();
-    }
-
-    private void setParentScrollPane() {
-      if (myParentScrollPane == null) {
-        Component parent = myScrollPane.getParent();
-        while (parent != null && !(parent instanceof JScrollPane)) {
-          parent = parent.getParent();
-        }
-        myParentScrollPane = (JScrollPane) parent;
-      }
-    }
-
-    private static MouseWheelEvent clone(JScrollPane source, MouseWheelEvent e) {
-      return new MouseWheelEvent(source,
-                                 e.getID(),
-                                 e.getWhen(),
-                                 e.getModifiers(),
-                                 e.getX(),
-                                 e.getY(),
-                                 e.getClickCount(),
-                                 e.isPopupTrigger(),
-                                 e.getScrollType(),
-                                 e.getScrollAmount(),
-                                 e.getWheelRotation());
-    }
-  }
-
-  /**
-   * Customized HTML editor kit for {@link JEditorPane}, which make words content can be wrapped in the middle of word instead of space.
-   *
-   * See <a href="http://java-sl.com/tip_html_letter_wrap.html">this article</a> for more details.
-   */
-  private static class BreakWordWrapHTMLEditorKit extends HTMLEditorKit {
-
-    @Override
-    public ViewFactory getViewFactory() {
-      return new HTMLFactory() {
-
-        @Override
-        public View create(Element e) {
-          View v = super.create(e);
-          if (v instanceof InlineView) {
-            return new InlineView(e) {
-              @Override
-              public int getBreakWeight(int axis, float pos, float len) {
-                return GoodBreakWeight;
-              }
-
-              @Override
-              public View breakView(int axis, int p0, float pos, float len) {
-                if (axis == View.X_AXIS) {
-                  checkPainter();
-                  int p1 = getGlyphPainter().getBoundedPosition(this, p0, pos, len);
-                  if (p0 == getStartOffset() && p1 == getEndOffset()) {
-                    return this;
-                  }
-                  return createFragment(p0, p1);
-                }
-                return this;
-              }
-            };
-          }
-          else if (v instanceof ParagraphView) {
-            return new ParagraphView(e) {
-
-              @Override
-              protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
-                if (r == null) {
-                  r = new SizeRequirements();
-                }
-                float pref = layoutPool.getPreferredSpan(axis);
-                float min = layoutPool.getMinimumSpan(axis);
-                // Don't include insets, Box.getXXXSpan will include them.
-                r.minimum = (int)min;
-                r.preferred = Math.max(r.minimum, (int)pref);
-                r.maximum = Integer.MAX_VALUE;
-                r.alignment = 0.5f;
-                return r;
-              }
-            };
-          }
-          return v;
-        }
-      };
-    }
   }
 }

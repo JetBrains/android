@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates
 
 import com.android.ide.common.repository.GoogleMavenRepository
+import com.android.ide.common.repository.GoogleMavenRepository.Companion.MAVEN_GOOGLE_CACHE_DIR_KEY
 import com.android.tools.idea.ui.GuiTestingService
 import com.google.common.io.ByteStreams
 import com.intellij.openapi.application.ApplicationManager
@@ -54,4 +55,4 @@ private fun getCacheDir(): File? =
     if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode)
       null
     else
-      File(PathUtil.getCanonicalPath(PathManager.getSystemPath()), "maven.google")
+      File(PathUtil.getCanonicalPath(PathManager.getSystemPath()), MAVEN_GOOGLE_CACHE_DIR_KEY)

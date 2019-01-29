@@ -28,8 +28,10 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -93,17 +95,21 @@ public class GradleTaskFinder {
                                                        @NotNull Module[] modules,
                                                        @NotNull BuildMode buildMode,
                                                        @NotNull TestCompileType testCompileType) {
-    ListMultimap<Path, String> tasks = ArrayListMultimap.create();
-
+    LinkedHashMultimap<Path, String> tasks = LinkedHashMultimap.create();
     if (ASSEMBLE == buildMode) {
       if (!canAssembleModules(modules)) {
         // Just call "assemble" at the top-level. Without a model there are no other tasks we can call.
         tasks.put(projectPath.toPath(), DEFAULT_ASSEMBLE_TASK_NAME);
-        return tasks;
+        return ArrayListMultimap.create(tasks);
       }
     }
 
+    Set<Module> allModules = new HashSet<>();
     for (Module module : modules) {
+      allModules.addAll(DynamicAppUtils.getModulesToBuild(module));
+    }
+
+    for (Module module : allModules) {
       if (BUILD_SRC_FOLDER_NAME.equals(module.getName())) {
         // "buildSrc" is a special case handled automatically by Gradle.
         continue;
@@ -119,14 +125,14 @@ public class GradleTaskFinder {
 
       // Remove duplicates.
       Path keyPath = Paths.get(rootProjectPath);
-      List<String> existingTasks = tasks.get(keyPath);
-      moduleTasks.addAll(existingTasks);
+      moduleTasks.addAll(tasks.get(keyPath));
 
       tasks.removeAll(keyPath);
+      if (buildMode == REBUILD && !moduleTasks.isEmpty()) {
+        // Clean only if other tasks are needed
+        tasks.put(keyPath, CLEAN_TASK_NAME);
+      }
       tasks.putAll(keyPath, moduleTasks);
-    }
-    if (buildMode == REBUILD && !tasks.isEmpty()) {
-      tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
     }
 
     if (tasks.isEmpty()) {
@@ -134,7 +140,7 @@ public class GradleTaskFinder {
       String format = "Unable to find Gradle tasks for project '%1$s' using BuildMode %2$s";
       getLogger().info(String.format(format, modules[0].getProject().getName(), buildMode.name()));
     }
-    return tasks;
+    return ArrayListMultimap.create(tasks);
   }
 
   private static boolean canAssembleModules(@NotNull Module[] modules) {
@@ -202,6 +208,20 @@ public class GradleTaskFinder {
           // Add assemble tasks for tested variants in test-only modules
           addAssembleTasksForTargetVariants(tasks, module);
 
+          break;
+        case BUNDLE:
+          // The "Bundle" task is only valid for base (app) module, not for features, libraries, etc.
+          if (androidModel != null && androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
+            String taskName = androidModel.getSelectedVariant().getMainArtifact().getBundleTaskName();
+            addTaskIfSpecified(tasks, gradlePath, taskName);
+          }
+          break;
+        case APK_FROM_BUNDLE:
+          // The "ApkFromBundle" task is only valid for base (app) module, not for features, libraries, etc.
+          if (androidModel != null && androidModel.getAndroidProject().getProjectType() == AndroidProject.PROJECT_TYPE_APP) {
+            String taskName = androidModel.getSelectedVariant().getMainArtifact().getApkFromBundleTaskName();
+            addTaskIfSpecified(tasks, gradlePath, taskName);
+          }
           break;
         default:
           addAfterSyncTasks(tasks, gradlePath, properties);
@@ -299,9 +319,7 @@ public class GradleTaskFinder {
   private void addTaskIfSpecified(@NotNull Set<String> tasks, @NotNull String gradlePath, @Nullable String gradleTaskName) {
     if (isNotEmpty(gradleTaskName)) {
       String buildTask = createBuildTask(gradlePath, gradleTaskName);
-      if (!tasks.contains(buildTask)) {
-        tasks.add(buildTask);
-      }
+      tasks.add(buildTask);
     }
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -79,7 +80,7 @@ public class AndroidModuleProcessorTest extends IdeaTestCase {
     module.putUserData(MODULE_GRADLE_MODELS_KEY, moduleModels);
 
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.setAndroidModel(androidModel);
+    facet.getConfiguration().setModel(androidModel);
 
     return module;
   }

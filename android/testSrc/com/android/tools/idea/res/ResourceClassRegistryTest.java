@@ -15,65 +15,52 @@
  */
 package com.android.tools.idea.res;
 
-import com.intellij.testFramework.IdeaTestCase;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceRepository;
+import com.intellij.testFramework.LightProjectDescriptor;
+import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import org.jetbrains.android.AndroidFacetProjectDescriptor;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
-import static org.mockito.Mockito.*;
-
-public class ResourceClassRegistryTest extends IdeaTestCase {
+public class ResourceClassRegistryTest extends LightCodeInsightFixtureTestCase {
   ResourceClassRegistry myRegistry;
+  private ResourceIdManager myIdManager;
+
+  @NotNull
+  @Override
+  protected LightProjectDescriptor getProjectDescriptor() {
+    return AndroidFacetProjectDescriptor.INSTANCE;
+  }
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myRegistry = spy(ResourceClassRegistry.get(getProject()));
+    myIdManager = ResourceIdManager.get(myModule);
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      myIdManager.resetDynamicIds();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   public void testAddLibrary() {
     String pkg1 = "com.google.example1";
     String pkg2 = "com.google.example2";
-    AppResourceRepository repository = mock(AppResourceRepository.class);
-    myRegistry.addLibrary(repository, pkg1);
+    ResourceRepository repository = mock(ResourceRepository.class);
+    myRegistry.addLibrary(repository, myIdManager, pkg1, ResourceNamespace.fromPackageName(pkg1));
     assertSameElements(myRegistry.getGeneratorMap().keySet(), repository);
     assertSameElements(myRegistry.getPackages(), pkg1);
-    myRegistry.addLibrary(repository, pkg2);
+    myRegistry.addLibrary(repository, myIdManager, pkg2, ResourceNamespace.fromPackageName(pkg2));
     assertSameElements(myRegistry.getGeneratorMap().keySet(), repository);
-    assertSameElements(myRegistry.getPackages(), pkg1, pkg2);
-  }
-
-  public void testAarAddLibrary() {
-    String pkg1 = "com.google.example.aar1";
-    File aarDir1 = new File("/exploded-aar1");
-    doReturn(pkg1).when(myRegistry).getAarPackage(aarDir1);
-    String pkg2 = "com.google.example.aar2";
-    File aarDir2 = new File("/exploded-aar2");
-    doReturn(pkg2).when(myRegistry).getAarPackage(aarDir2);
-    AppResourceRepository appRepository = mock(AppResourceRepository.class);
-    FileResourceRepository fileRepository = mock(FileResourceRepository.class);
-    when(appRepository.findRepositoryFor(aarDir1)).thenReturn(fileRepository);
-    when(appRepository.findRepositoryFor(aarDir2)).thenReturn(fileRepository);
-    myRegistry.addAarLibrary(appRepository, aarDir1);
-    assertSameElements(myRegistry.getGeneratorMap().keySet(), appRepository);
-    assertSameElements(myRegistry.getPackages(), pkg1);
-    myRegistry.addAarLibrary(appRepository, aarDir2);
-    assertSameElements(myRegistry.getGeneratorMap().keySet(), appRepository);
-    assertSameElements(myRegistry.getPackages(), pkg1, pkg2);
-  }
-
-  public void testAddBothLibrary() {
-    String pkg1 = "com.google.example.aar";
-    File aarDir = new File("/exploded-aar");
-    doReturn(pkg1).when(myRegistry).getAarPackage(aarDir);
-    String pkg2 = "com.google.example";
-    AppResourceRepository appRepository = mock(AppResourceRepository.class);
-    FileResourceRepository fileRepository = mock(FileResourceRepository.class);
-    when(appRepository.findRepositoryFor(aarDir)).thenReturn(fileRepository);
-    myRegistry.addAarLibrary(appRepository, aarDir);
-    assertSameElements(myRegistry.getGeneratorMap().keySet(), appRepository);
-    assertSameElements(myRegistry.getPackages(), pkg1);
-    myRegistry.addLibrary(appRepository, pkg2);
-    assertSameElements(myRegistry.getGeneratorMap().keySet(), appRepository);
     assertSameElements(myRegistry.getPackages(), pkg1, pkg2);
   }
 }

@@ -15,11 +15,15 @@
  */
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.chart.statechart.StateChartConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -27,10 +31,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.util.Arrays;
-import java.util.EnumMap;
+import java.util.*;
 import java.util.List;
-import java.util.Random;
 
 public class StateChartReducerVisualTest extends VisualTest {
   private enum ColorState {
@@ -38,15 +40,27 @@ public class StateChartReducerVisualTest extends VisualTest {
     RED,
     BLACK
   }
-  @NotNull private static final EnumMap<ColorState, Color> COLOR_STATE_COLORS = new EnumMap<>(ColorState.class);
 
-  static {
-    COLOR_STATE_COLORS.put(ColorState.YELLOW, JBColor.YELLOW);
-    COLOR_STATE_COLORS.put(ColorState.RED, JBColor.RED);
-    COLOR_STATE_COLORS.put(ColorState.BLACK, JBColor.BLACK);
-  }
+  @NotNull private static final StateChartColorProvider<ColorState> COLOR_STATE_COLORS = new StateChartColorProvider<ColorState>() {
+    @NotNull
+    @Override
+    public Color getColor(boolean isMouseOver, @NotNull ColorState value) {
+      switch (value) {
+        case RED:
+          return JBColor.RED;
+        case BLACK:
+          return JBColor.BLACK;
+        case YELLOW:
+          return JBColor.YELLOW;
+        default:
+          return JBColor.BLUE;
+      }
+    }
+  };
 
   private Range myViewRange;
+  private StateChartModel<ColorState> myOptimizedColorChartModel;
+  private StateChartModel<ColorState> myColorChartModel;
   private StateChart<ColorState> myOptimizedColorChart;
   private StateChart<ColorState> myColorChart;
 
@@ -59,14 +73,14 @@ public class StateChartReducerVisualTest extends VisualTest {
     myViewRange = new Range(0, 0);
     myData = new DefaultDataSeries<>();
     RangedSeries<ColorState> series = new RangedSeries<>(myViewRange, myData);
-    StateChartModel<ColorState> model = new StateChartModel<>();
-    myColorChart = new StateChart<>(model, COLOR_STATE_COLORS, new StateChartConfig<>((rectangles, values) -> {}));
-    model.addSeries(series);
+    myColorChartModel = new StateChartModel<>();
+    myColorChart = new StateChart<>(myColorChartModel, new StateChartConfig<>((rectangles, values) -> {}), COLOR_STATE_COLORS);
+    myColorChartModel.addSeries(series);
 
-    StateChartModel<ColorState> optimizedModel = new StateChartModel<>();
-    myOptimizedColorChart = new StateChart<>(optimizedModel, COLOR_STATE_COLORS);
-    optimizedModel.addSeries(series);
-    return Arrays.asList(model, optimizedModel);
+    myOptimizedColorChartModel = new StateChartModel<>();
+    myOptimizedColorChart = new StateChart<>(myOptimizedColorChartModel, COLOR_STATE_COLORS);
+    myOptimizedColorChartModel.addSeries(series);
+    return Collections.emptyList();
   }
 
   @Override
@@ -97,8 +111,10 @@ public class StateChartReducerVisualTest extends VisualTest {
 
       long x = (myData.size() > 0) ? myData.getX(myData.size() - 1) + delta : 0;
       myData.add(x, values[random.nextInt(values.length)]);
-      myViewRange.setMax(x+1);
+      myViewRange.setMax(x + 1);
     }
+    myOptimizedColorChartModel.changed(StateChartModel.Aspect.MODEL_CHANGED);
+    myColorChartModel.changed(StateChartModel.Aspect.MODEL_CHANGED);
   }
 
   @Override

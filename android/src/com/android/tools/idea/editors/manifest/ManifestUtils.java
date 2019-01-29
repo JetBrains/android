@@ -22,8 +22,9 @@ import com.android.manifmerger.Actions;
 import com.android.manifmerger.IntentFilterNodeKeyResolver;
 import com.android.manifmerger.XmlNode;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.PositionXmlParser;
+import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,10 +43,7 @@ import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -241,7 +239,7 @@ public class ManifestUtils {
       Element element = attribute.getOwnerElement();
       // Can never mark name tag as removed, as we would need the name tag to ID the tag
       if ((ATTR_NAME.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespaceURI())) ||
-          (LintUtils.getChildCount(element) == 0 && element.getAttributes().getLength() == 1)) {
+          (Lint.getChildCount(element) == 0 && element.getAttributes().getLength() == 1)) {
         toolsRemove(manifest, element);
       }
       else {

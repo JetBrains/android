@@ -13,22 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.uipreview;
+
+import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
+import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.SdkConstants.R_CLASS;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import android.view.Gravity;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.LayoutLog;
-import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.layoutlib.bridge.MockView;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.InconvertibleClassError;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderSecurityManager;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.util.Pair;
+import com.android.tools.idea.res.ResourceIdManager;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
@@ -46,27 +52,15 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashSet;
-import gnu.trove.TIntObjectHashMap;
-import gnu.trove.TObjectIntHashMap;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
-import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * Handler for loading views for the layout editor on demand, and reporting issues with class
@@ -74,7 +68,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * If the project is indexing, the ViewLoader will not be able to detect the modification times
  * in the project so it will not report outdated classes.
  */
-@SuppressWarnings("deprecation") // The Pair class is required by the IProjectCallback
 public class ViewLoader {
   private static final Logger LOG = Logger.getInstance(ViewLoader.class);
   /** Number of instances of a custom view that are allowed to nest inside itself. */
@@ -129,85 +122,14 @@ public class ViewLoader {
     });
   }
 
-  private static boolean parseClass(@NotNull Class<?> rClass,
-                                    @NotNull TIntObjectHashMap<Pair<ResourceType, String>> id2res,
-                                    @NotNull Map<IntArrayWrapper, String> styleableId2Res,
-                                    @NotNull Map<ResourceType, TObjectIntHashMap<String>> res2id) throws ClassNotFoundException {
-    try {
-      final Class<?>[] nestedClasses;
-      try {
-        nestedClasses = rClass.getDeclaredClasses();
-      }
-      catch (LinkageError e) {
-        final Throwable cause = e.getCause();
-
-        LOG.debug(e);
-        if (cause instanceof ClassNotFoundException) {
-          throw (ClassNotFoundException)cause;
-        }
-        throw e;
-      }
-      for (Class<?> resClass : nestedClasses) {
-        final ResourceType resType = ResourceType.getEnum(resClass.getSimpleName());
-        if (resType == null) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("  '%s' is not a valid resource type", anonymizeClassName(resClass.getSimpleName())));
-          }
-          continue;
-        }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("  Defining resource type '%s'", anonymizeClassName(resClass.getSimpleName())));
-        }
-
-        final TObjectIntHashMap<String> resName2Id = new TObjectIntHashMap<>();
-        res2id.put(resType, resName2Id);
-
-        for (Field field : resClass.getDeclaredFields()) {
-          if (!Modifier.isStatic(field.getModifiers())) { // May not be final in library projects
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(String.format("  '%s' field is not static, skipping", field.getName()));
-            }
-
-            continue;
-          }
-
-          final Class<?> type = field.getType();
-          if (type.isArray() && type.getComponentType() == int.class) {
-            styleableId2Res.put(new IntArrayWrapper((int[])field.get(null)), field.getName());
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(String.format("  '%s' defined as int[]", field.getName()));
-            }
-          }
-          else if (type == int.class) {
-            final Integer value = (Integer)field.get(null);
-            id2res.put(value, Pair.of(resType, field.getName()));
-            resName2Id.put(field.getName(), value);
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(String.format("  '%s' defined as int", field.getName()));
-            }
-          }
-          else {
-            LOG.error("Unknown field type in R class: " + type);
-          }
-        }
-      }
-    }
-    catch (IllegalAccessException e) {
-      LOG.info(e);
-      return false;
-    }
-
-    return true;
-  }
-
   /**
    * Like loadView, but doesn't log  exceptions if failed and doesn't try to create a mock view.
    */
   @Nullable
-  public Object loadClass(String className, Class<?>[] constructorSignature, Object[] constructorArgs) throws ClassNotFoundException {
+  public Object loadClass(String className, Class<?>[] constructorSignature, Object[] constructorArgs) {
     // RecyclerView.Adapter is an abstract class, but its instance is needed for RecyclerView to work correctly. So, when LayoutLib asks for
     // its instance, we define a new class which extends the Adapter class.
-    if (RecyclerViewHelper.CN_RV_ADAPTER.equals(className)) {
+    if (CLASS_RECYCLER_VIEW_ADAPTER.isEquals(className)) {
       className = RecyclerViewHelper.CN_CUSTOM_ADAPTER;
       constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
       constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
@@ -581,7 +503,10 @@ public class ViewLoader {
 
   /**
    * Load and parse the R class such that resource references in the layout rendering can refer
-   * to local resources properly
+   * to local resources properly. Only needed if views are compiled against an R class with
+   * final fields.
+   *
+   * @see ResourceIdManager#getFinalIdsUsed()
    */
   public void loadAndParseRClassSilently() {
     final String rClassName = getRClassName(myModule);
@@ -609,7 +534,8 @@ public class ViewLoader {
     }
 
     Class<?> aClass = myLoadedClasses.get(className);
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(myModule);
+    ResourceIdManager idManager = ResourceIdManager.get(myModule);
+
     if (aClass == null) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("  The R class is not loaded.");
@@ -630,9 +556,7 @@ public class ViewLoader {
         ModuleClassLoader.clearCache(myModule);
         myModuleClassLoader = null;
         aClass = getModuleClassLoader().loadClass(className);
-        if (appResources != null) {
-          appResources.resetDynamicIds(true);
-        }
+        idManager.resetDynamicIds();
       }
       else {
         if (LOG.isDebugEnabled()) {
@@ -652,14 +576,9 @@ public class ViewLoader {
     }
 
     if (aClass != null) {
-      final Map<ResourceType, TObjectIntHashMap<String>> res2id = new EnumMap<>(ResourceType.class);
-      final TIntObjectHashMap<Pair<ResourceType, String>> id2res = new TIntObjectHashMap<>();
-      final Map<IntArrayWrapper, String> styleableId2res = new HashMap<>();
-
-      if (parseClass(aClass, id2res, styleableId2res, res2id)) {
-        if (appResources != null) {
-          appResources.setCompiledResources(id2res, styleableId2res, res2id);
-        }
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      if (facet != null) {
+        idManager.loadCompiledIds(aClass);
       }
     }
     if (LOG.isDebugEnabled()) {

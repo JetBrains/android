@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.plugin;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -33,7 +34,6 @@ import java.util.Objects;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
-import static com.android.tools.idea.gradle.dsl.api.values.GradleValue.getValues;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -129,7 +129,7 @@ public class AndroidPluginInfo {
     BuildFileProcessor.getInstance().processRecursively(project, buildModel -> {
       boolean keepSearchingForAppModule = searchForAppModule && result.appVirtualFile == null;
       if (keepSearchingForAppModule) {
-        List<String> pluginIds = getValues(buildModel.appliedPlugins());
+        List<String> pluginIds = PluginModel.extractNames(buildModel.plugins());
         for (AndroidPluginGeneration generation : AndroidPluginGeneration.values()) {
           if (generation.isApplicationPluginIdIn(pluginIds)) {
             result.appVirtualFile = buildModel.getVirtualFile();
@@ -145,8 +145,8 @@ public class AndroidPluginInfo {
         DependenciesModel dependencies = buildModel.buildscript().dependencies();
         for (ArtifactDependencyModel dependency : dependencies.artifacts(CLASSPATH)) {
           for (AndroidPluginGeneration generation : AndroidPluginGeneration.values()) {
-            if (generation.isAndroidPlugin(dependency.name().value(), dependency.group().value())) {
-              String version = dependency.version().value();
+            if (generation.isAndroidPlugin(dependency.name().forceString(), dependency.group().toString())) {
+              String version = dependency.version().toString();
               if (isNotEmpty(version)) {
                 result.pluginVirtualFile = buildModel.getVirtualFile();
                 result.pluginVersion = version;

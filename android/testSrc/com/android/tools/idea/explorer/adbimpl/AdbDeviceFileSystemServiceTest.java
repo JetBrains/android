@@ -17,6 +17,7 @@ package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
+import com.android.tools.idea.testing.Sdks;
 import com.android.tools.idea.util.FutureUtils;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,7 +40,7 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
     // Setup Android SDK path so that ddmlib can find adb.exe
     //noinspection CodeBlock2Expr
     ApplicationManager.getApplication().runWriteAction(() -> {
-      ProjectRootManager.getInstance(getProject()).setProjectSdk(createLatestAndroidSdk());
+      ProjectRootManager.getInstance(getProject()).setProjectSdk(Sdks.createLatestAndroidSdk());
     });
   }
 

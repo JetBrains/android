@@ -20,16 +20,18 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.fd.InstantRunUtils;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
+import com.android.tools.idea.run.editor.DeepLinkLaunch;
 import com.android.tools.idea.run.tasks.*;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -37,12 +39,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
+import static com.android.tools.idea.run.ApplyChangesAction.APPLY_CHANGES;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
@@ -73,8 +75,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @NotNull
   @Override
-  public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter)
-    throws ExecutionException {
+  public List<LaunchTask> getTasks(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter consolePrinter) {
     final List<LaunchTask> launchTasks = Lists.newArrayList();
 
     if (myLaunchOptions.isClearLogcatBeforeStart()) {
@@ -88,19 +89,28 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       packageName = myApplicationIdProvider.getPackageName();
       launchTasks.addAll(getDeployTasks(device, packageName));
 
+      StringBuilder amStartOptions = new StringBuilder();
       // launch the contributors before launching the application in case
       // the contributors need to start listening on logcat for the application launch itself
       for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
-        LaunchTask task = taskContributor.getTask(myFacet.getModule(), packageName);
+        String amOptions = taskContributor.getAmStartOptions(myFacet.getModule(), packageName, myLaunchOptions, device);
+        amStartOptions.append(amStartOptions.length() == 0 ? "" : " ").append(amOptions);
+
+        LaunchTask task = taskContributor.getTask(myFacet.getModule(), packageName, myLaunchOptions);
         if (task != null) {
           launchTasks.add(task);
         }
       }
 
-      LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
-                                                                      myLaunchOptions.isDebug(), launchStatus);
-      if (appLaunchTask != null) {
-        launchTasks.add(appLaunchTask);
+      if (!shouldDeployAsInstant()) {
+        // A separate deep link launch task is not necessary if launch will be handled by
+        // RunInstantAppTask
+        LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
+                                                                        amStartOptions.toString(),
+                                                                        myLaunchOptions.isDebug(), launchStatus);
+        if (appLaunchTask != null) {
+          launchTasks.add(appLaunchTask);
+        }
       }
     }
     catch (ApkProvisionException e) {
@@ -127,7 +137,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @NotNull
   @VisibleForTesting
-  List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ApkProvisionException, ExecutionException {
+  List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ApkProvisionException {
+    if (StudioFlags.JVMTI_REFRESH.get()) {
+      boolean swap = Boolean.TRUE.equals(myEnv.getCopyableUserData(APPLY_CHANGES));
+      return ImmutableList.of(new UnifiedDeployTask(myApkProvider.getApks(device), swap));
+    }
+
     if (myInstantRunBuildAnalyzer != null) {
       return myInstantRunBuildAnalyzer.getDeployTasks(device, myLaunchOptions);
     }
@@ -142,13 +157,51 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
       tasks.add(new UninstallIotLauncherAppsTask(myProject, packageName));
     }
-    if (myFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
-      tasks.add(new DeployInstantAppTask(myApkProvider.getApks(device)));
+    List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
+    if (shouldDeployAsInstant()) {
+      AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
+      DeepLinkLaunch.State state = (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
+      assert state != null;
+      tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
     } else {
-      InstantRunManager.LOG.info("Using legacy/main APK deploy task");
-      tasks.add(new DeployApkTask(myProject, myLaunchOptions, myApkProvider.getApks(device)));
+      InstantRunManager.LOG.info("Using non-instant run deploy tasks (single and split apks apps)");
+
+      // Add tasks for each apk (or split-apk) returned by the apk provider
+      tasks.addAll(createDeployTasks(myApkProvider.getApks(device),
+                                     apks -> new DeployApkTask(myProject, myLaunchOptions, ImmutableList.copyOf(apks)),
+                                     apkInfo -> new SplitApkDeployTask(myProject,
+                                                                       new DynamicAppDeployTaskContext(apkInfo, disabledFeatures))));
     }
     return ImmutableList.copyOf(tasks);
+  }
+
+  /**
+   * Returns a list of launch tasks, both single apk or split apk, required to deploy the given list of apks.
+   * Note: Since single apk launch task can handle more than one apk, single apk tasks are merged in batches.
+   */
+  @NotNull
+  private static List<LaunchTask> createDeployTasks(@NotNull Collection<ApkInfo> apks,
+                                                    @NotNull Function<List<ApkInfo>, LaunchTask> singleApkTaskFactory,
+                                                    @NotNull Function<ApkInfo, LaunchTask> splitApkTaskFactory) {
+    List<LaunchTask> result = new ArrayList<>();
+    List<ApkInfo> singleApkTasks = new ArrayList<>();
+    for (ApkInfo apkInfo : apks) {
+      if (apkInfo.getFiles().size() > 1) {
+        if (!singleApkTasks.isEmpty()) {
+          result.add(singleApkTaskFactory.apply(ImmutableList.copyOf(singleApkTasks)));
+          singleApkTasks.clear();
+        }
+        result.add(splitApkTaskFactory.apply(apkInfo));
+      }
+      else {
+        singleApkTasks.add(apkInfo);
+      }
+    }
+
+    if (!singleApkTasks.isEmpty()) {
+      result.add(singleApkTaskFactory.apply(singleApkTasks));
+    }
+    return result;
   }
 
   @Nullable
@@ -211,5 +264,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   @Override
   public boolean monitorRemoteProcess() {
     return myRunConfig.monitorRemoteProcess();
+  }
+
+  private boolean shouldDeployAsInstant() {
+    return (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP ||
+            myLaunchOptions.isDeployAsInstant());
   }
 }

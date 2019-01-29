@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.importing;
 
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.io.File;
@@ -30,7 +31,7 @@ public class SourceToGradleModuleStepTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myPage = new SourceToGradleModuleStep(new SourceToGradleModuleModel(getProject()));
+    myPage = new SourceToGradleModuleStep(new SourceToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker()));
   }
 
   @Override

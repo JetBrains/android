@@ -1,4 +1,7 @@
 <resources>
+  <style name="Theme" parent="android:Theme">
+
+  </style>
   <style name="Theme.Theme1">
     <item name="android:colorBackground">#FEFEFE</item>
   </style>

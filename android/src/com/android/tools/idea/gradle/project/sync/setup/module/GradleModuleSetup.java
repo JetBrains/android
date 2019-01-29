@@ -16,24 +16,29 @@
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.java.model.GradlePluginModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
+import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import java.io.IOException;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static java.util.Collections.emptyList;
 
 public class GradleModuleSetup {
   @NotNull
@@ -60,10 +65,13 @@ public class GradleModuleSetup {
 
     File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
 
-    BuildScriptClasspathModel classpathModel = models.findModel(BuildScriptClasspathModel.class);
-    String gradleVersion = classpathModel != null ? classpathModel.getGradleVersion() : null;
+    return new GradleModuleModel(module.getName(), gradleProject, getGradlePlugins(models), buildFilePath, getGradleVersion(module));
+  }
 
-    return new GradleModuleModel(module.getName(), gradleProject, buildFilePath, gradleVersion);
+  @NotNull
+  private static Collection<String> getGradlePlugins(@NotNull GradleModuleModels models) {
+    GradlePluginModel pluginModel = models.findModel(GradlePluginModel.class);
+    return pluginModel == null ? emptyList() : pluginModel.getGraldePluginList();
   }
 
   public void setUpModule(@NotNull Module module,
@@ -83,5 +91,20 @@ public class GradleModuleSetup {
     if (isNotEmpty(gradleVersion) && syncReport.getGradleVersion() == null) {
       syncReport.setGradleVersion(GradleVersion.parse(gradleVersion));
     }
+  }
+
+  // Retrieve Gradle version from wrapper file.
+  @Nullable
+  private static String getGradleVersion(@NotNull Module module) {
+    GradleWrapper gradleWrapper = GradleWrapper.find(module.getProject());
+    if (gradleWrapper != null) {
+      try {
+        return gradleWrapper.getGradleVersion();
+      }
+      catch (IOException ignore) {
+        return null;
+      }
+    }
+    return null;
   }
 }

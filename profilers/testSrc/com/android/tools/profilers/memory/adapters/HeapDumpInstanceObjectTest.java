@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Type;
@@ -25,10 +26,11 @@ import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeMemoryService;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,18 +49,14 @@ public class HeapDumpInstanceObjectTest {
   @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeMemoryService());
 
   private FakeHeapDumpCaptureObject myCaptureObject;
-  private StudioProfilers myProfilers;
 
   @Before
   public void setup() {
     FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices);
-    myCaptureObject = new FakeHeapDumpCaptureObject(myProfilers.getClient().getMemoryClient());
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    myProfilers.stop();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices, new FakeTimer());
+    MemoryProfilerStage stage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), profilerServices, new FakeTimer()),
+                                                        new FakeCaptureObjectLoader());
+    myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient().getMemoryClient(), stage);
   }
 
   /**
@@ -269,9 +267,10 @@ public class HeapDumpInstanceObjectTest {
   private static class FakeHeapDumpCaptureObject extends HeapDumpCaptureObject {
     private Map<Instance, HeapDumpInstanceObject> myInstanceObjectMap = new HashMap<>();
 
-    FakeHeapDumpCaptureObject(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client) {
+    public FakeHeapDumpCaptureObject(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+                                     MemoryProfilerStage stage) {
       super(client, Common.Session.getDefaultInstance(), HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build(), null,
-            new FakeFeatureTracker());
+            new FakeFeatureTracker(), stage);
     }
 
     public void addInstance(@NotNull Instance instance, @NotNull HeapDumpInstanceObject instanceObject) {

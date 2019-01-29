@@ -53,6 +53,46 @@
       <val name="value" val="android.content.Context.USB_SERVICE" />
     </annotation>
   </item>
+  <item name="android.hardware.usb.UsbManager android.hardware.usb.UsbAccessory[] getAccessoryList()">
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.hardware.usb.accessory&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.usb.UsbManager android.hardware.usb.UsbDeviceConnection openDevice(android.hardware.usb.UsbDevice)">
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.hardware.usb.host&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.usb.UsbManager android.os.ParcelFileDescriptor openAccessory(android.hardware.usb.UsbAccessory)">
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.hardware.usb.accessory&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.usb.UsbManager boolean hasPermission(android.hardware.usb.UsbAccessory)">
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.hardware.usb.accessory&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.usb.UsbManager boolean hasPermission(android.hardware.usb.UsbDevice)">
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.hardware.usb.host&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.usb.UsbManager java.util.HashMap&lt;java.lang.String,android.hardware.usb.UsbDevice&gt; getDeviceList()">
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.hardware.usb.host&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.usb.UsbManager void requestPermission(android.hardware.usb.UsbAccessory, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.hardware.usb.accessory&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.usb.UsbManager void requestPermission(android.hardware.usb.UsbDevice, android.app.PendingIntent)">
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.hardware.usb.host&quot;" />
+    </annotation>
+  </item>
   <item name="android.hardware.usb.UsbRequest boolean queue(java.nio.ByteBuffer) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>

@@ -28,6 +28,7 @@ import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import kotlin.Unit;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 
@@ -127,12 +128,13 @@ class ModuleDependenciesForm {
     PsProject project = module.getParent();
     List<PsModule> dependencies = Lists.newArrayList();
     if (module instanceof PsAndroidModule) {
-      ((PsAndroidModule)module).forEachModuleDependency(dependency -> {
+      ((PsAndroidModule)module).getDependencies().forEachModuleDependency(dependency -> {
         String name = dependency.getName();
         PsModule found = project.findModuleByName(name);
         if (found != null) {
           dependencies.add(found);
         }
+        return Unit.INSTANCE;
       });
     }
     return dependencies;

@@ -15,8 +15,9 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
@@ -30,7 +31,7 @@ public class CpuMonitor extends ProfilerMonitor {
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 2, 10, "%");
 
   @NotNull private final CpuUsage myThisProcessCpuUsage;
-  @NotNull private final AxisComponentModel myCpuUsageAxis;
+  @NotNull private final ClampedAxisComponentModel myCpuUsageAxis;
   @NotNull private final Legends myLegends;
   @NotNull private final Legends myTooltipLegends;
 
@@ -39,11 +40,9 @@ public class CpuMonitor extends ProfilerMonitor {
 
     myThisProcessCpuUsage = new CpuUsage(profilers);
 
-    myCpuUsageAxis = new AxisComponentModel(myThisProcessCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER);
-    myCpuUsageAxis.setClampToMajorTicks(true);
-
-    myLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getDataRange(), LEGEND_UPDATE_FREQUENCY_MS);
-    myTooltipLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getTooltipRange(), 0);
+    myCpuUsageAxis = new ClampedAxisComponentModel.Builder(myThisProcessCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER).build();
+    myLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getDataRange());
+    myTooltipLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getTooltipRange());
   }
 
   @Override
@@ -60,16 +59,12 @@ public class CpuMonitor extends ProfilerMonitor {
   public void exit() {
     myProfilers.getUpdater().unregister(myThisProcessCpuUsage);
     myProfilers.getUpdater().unregister(myCpuUsageAxis);
-    myProfilers.getUpdater().unregister(myLegends);
-    myProfilers.getUpdater().unregister(myTooltipLegends);
   }
 
   @Override
   public void enter() {
     myProfilers.getUpdater().register(myThisProcessCpuUsage);
     myProfilers.getUpdater().register(myCpuUsageAxis);
-    myProfilers.getUpdater().register(myLegends);
-    myProfilers.getUpdater().register(myTooltipLegends);
   }
 
   @Override
@@ -102,8 +97,8 @@ public class CpuMonitor extends ProfilerMonitor {
     @NotNull
     private final SeriesLegend myCpuLegend;
 
-    public Legends(@NotNull CpuUsage usage, @NotNull Range range, int updateFrequencyMs) {
-      super(updateFrequencyMs);
+    public Legends(@NotNull CpuUsage usage, @NotNull Range range) {
+      super(range);
       myCpuLegend = new SeriesLegend(usage.getCpuSeries(), CPU_USAGE_FORMATTER, range);
       add(myCpuLegend);
     }

@@ -1,0 +1,13 @@
+<resources
+    xmlns:other="http://schemas.android.com/apk/res/com.example.otherlib">
+
+    <style name="AttrsFromLib" parent="android:Theme.Holo.Light.DarkActionBar">
+        <item name="app_color">@other:color/other_color</item>
+        <item name="com.example.lib:lib_color">#0000ff</item>
+        <item name="other:other_color">@com.example.lib:color/lib_color</item>
+    </style>
+
+    <style name="ParentFromLib" parent="com.example.lib:LibTheme">
+        <item name="other:text">Text from app, color from lib!</item>
+    </style>
+</resources>

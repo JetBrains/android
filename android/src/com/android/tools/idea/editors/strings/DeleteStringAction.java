@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.command.WriteCommandAction;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JMenuItem;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DeleteStringAction extends AbstractAction {
 
@@ -36,19 +36,19 @@ public class DeleteStringAction extends AbstractAction {
     myPanel = panel;
   }
 
-  public void update(@NotNull JMenuItem delete, @NotNull MouseEvent e) {
+  public void update(@NotNull JMenuItem delete, @NotNull FrozenColumnTableEvent event) {
     StringResourceTable table = myPanel.getTable();
-    int[] rows = table.getSelectedRowModelIndices();
-    int[] cols = table.getSelectedColumnModelIndices();
-    int tableRow = table.rowAtPoint(e.getPoint());
-    int tableColumn = table.columnAtPoint(e.getPoint());
+    int[] rows = table.getSelectedModelRowIndices();
+    int[] cols = table.getSelectedModelColumnIndices();
+    int tableRow = event.getViewRowIndex();
+    int tableColumn = event.getViewColumnIndex();
 
     // nothing is selected, select cell under mouse
     if ((rows.length == 0 || cols.length == 0) && tableRow >= 0 && tableColumn >= 0) {
       table.setRowSelectionInterval(tableRow, tableRow);
       table.setColumnSelectionInterval(tableColumn, tableColumn);
-      rows = table.getSelectedRowModelIndices();
-      cols = table.getSelectedColumnModelIndices();
+      rows = table.getSelectedModelRowIndices();
+      cols = table.getSelectedModelColumnIndices();
     }
 
     for (int col : cols) {
@@ -84,7 +84,7 @@ public class DeleteStringAction extends AbstractAction {
   @Override
   public void actionPerformed(@Nullable ActionEvent event) {
     StringResourceTable table = myPanel.getTable();
-    int[] cols = table.getSelectedColumnModelIndices();
+    int[] cols = table.getSelectedModelColumnIndices();
     for (int col : cols) {
       if (col == StringResourceTableModel.KEY_COLUMN ||
           col == StringResourceTableModel.RESOURCE_FOLDER_COLUMN ||
@@ -94,22 +94,19 @@ public class DeleteStringAction extends AbstractAction {
         return;
       }
     }
-    int[] rows = table.getSelectedRowModelIndices();
+    int[] rows = table.getSelectedModelRowIndices();
     if (rows.length == 1 && cols.length == 1) {
       table.getModel().setValueAt("", rows[0], cols[0]);
     }
     else {
       // remove all in a single action (so we can undo it in 1 go)
-      new WriteCommandAction.Simple(myPanel.getFacet().getModule().getProject(), "Delete multiple strings") {
-        @Override
-        protected void run() throws Throwable {
-          for (int row : rows) {
-            for (int col : cols) {
-              table.getModel().setValueAt("", row, col);
-            }
+      WriteCommandAction.runWriteCommandAction(myPanel.getFacet().getModule().getProject(), "Delete multiple strings", null, () -> {
+        for (int row : rows) {
+          for (int col : cols) {
+            table.getModel().setValueAt("", row, col);
           }
         }
-      }.execute();
+      });
     }
   }
 }

@@ -51,13 +51,10 @@ public class Palette {
   private final List<BaseItem> myItems;
   // @formatter:on
 
-  private final Set<String> myGradleCoordinateIds;
-
   private final Map<String, Item> myItemsById;
 
   private Palette() {
     myItems = new ArrayList<>();
-    myGradleCoordinateIds = new HashSet<>();
     myItemsById = new HashMap<>();
   }
 
@@ -96,7 +93,9 @@ public class Palette {
 
   @NotNull
   public Set<String> getGradleCoordinateIds() {
-    return myGradleCoordinateIds;
+    Set<String> gradleCoordinateIds = new HashSet<>();
+    accept(item -> item.addGradleCoordinateId(gradleCoordinateIds));
+    return gradleCoordinateIds;
   }
 
   private static Palette unMarshal(@NotNull Reader xmlReader) throws JAXBException {
@@ -235,10 +234,6 @@ public class Palette {
     @Nullable
     private String myIconName;
 
-    @XmlAttribute(name = "icon24")
-    @Nullable
-    private String myIcon24Name;
-
     @XmlAttribute(name = "coordinate")
     @Nullable
     private String myGradleCoordinateId;
@@ -258,6 +253,10 @@ public class Palette {
     @XmlAttribute(name = "materialReference")
     @Nullable
     private String myMaterialReference;
+
+    @XmlAttribute(name = "info")
+    @Nullable
+    private String myInfo;
 
     @XmlElement(name = "xml", type = XmlValuePart.class)
     private XmlValuePart myXmlValuePart;
@@ -316,23 +315,6 @@ public class Palette {
       return myHandler.getIcon(myTagName);
     }
 
-    @NotNull
-    public Icon getLargeIcon() {
-      if (myIcon24Name != null) {
-        Icon icon = IconLoader.findIcon(myIcon24Name, getClass());
-        if (icon != null) {
-          return icon;
-        }
-      }
-      if (myIconName != null) {
-        Icon icon = IconLoader.findIcon(myIconName + "Large", getClass());
-        if (icon != null) {
-          return icon;
-        }
-      }
-      return myHandler.getLargeIcon(myTagName);
-    }
-
     @NonNull
     public String getGradleCoordinateId() {
       if (myGradleCoordinateId != null) {
@@ -356,6 +338,11 @@ public class Palette {
     @Nullable
     public String getMaterialReference() {
       return myMaterialReference;
+    }
+
+    @Nullable
+    public String getInfo() {
+      return myInfo;
     }
 
     @NotNull
@@ -395,7 +382,6 @@ public class Palette {
     void setUp(@NotNull Palette palette, @NotNull ViewHandlerManager manager) {
       resolve();
       initHandler(manager);
-      addGradleCoordinateId(palette.myGradleCoordinateIds);
       palette.myItemsById.put(getId(), this);
     }
 

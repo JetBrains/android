@@ -30,6 +30,7 @@ public class AndroidFileTemplateProvider implements FileTemplateGroupDescriptorF
   @NonNls public static final String RESOURCE_FILE_TEMPLATE = "resourceFile.xml";
   @NonNls public static final String LAYOUT_RESOURCE_FILE_TEMPLATE = "layoutResourceFile.xml";
   @NonNls public static final String LAYOUT_RESOURCE_VERTICAL_FILE_TEMPLATE = "layoutResourceFile_vertical.xml";
+  @NonNls public static final String NAVIGATION_RESOURCE_FILE_TEMPLATE = "navigationResourceFile.xml";
   @NonNls public static final String ACTIVITY = "Activity.java";
   @NonNls public static final String FRAGMENT = "Fragment.java";
   @NonNls public static final String APPLICATION = "Application.java";

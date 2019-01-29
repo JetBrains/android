@@ -19,7 +19,7 @@ import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.instantapp.InstantAppSdks;
-import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.validator.ModuleValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -36,7 +36,8 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 
 /**
- * This class configures Instant App specific data such as the name of the atom to be created and the path to assign to the default Activity
+ * This class configures Instant App specific data such as the name of the feature to be created and the path to assign to the default
+ * Activity.
  */
 public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleModel> {
   private final BindingsManager myBindings = new BindingsManager();
@@ -97,7 +98,7 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
   @Override
   protected void onEntering() {
     // Request user to install Instant App SDK, if not installed yet
-    InstantAppSdks.getInstance().getInstantAppSdk(true);
+    InstantAppSdks.getInstance().getOrInstallInstantAppSdk();
   }
 
   @Override

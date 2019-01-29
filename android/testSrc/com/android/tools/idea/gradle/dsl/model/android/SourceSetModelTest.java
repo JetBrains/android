@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceDirectoryM
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceFileModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -31,6 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link SourceSetModel}.
  */
 public class SourceSetModelTest extends GradleFileModelTestCase {
+  @Test
   public void testSetRootInSourceSetBlock() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -53,6 +55,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     verifySourceSetRoot(getGradleBuildModel(), "source");
   }
 
+  @Test
   public void testSetRootStatements() throws Exception {
     String text = "android.sourceSets.set1.root = \"source1\"\n" +
                   "android.sourceSets.set2.root \"source2\"\n" +
@@ -63,6 +66,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     verifySourceSetRoot(getGradleBuildModel(), "source");
   }
 
+  @Test
   public void testSetRootOverrideStatements() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -86,9 +90,11 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
                   "android.sourceSets.set4.root = \"override4\"";
 
     writeToBuildFile(text);
-    verifySourceSetRoot(getGradleBuildModel(), "override");
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifySourceSetRoot(buildModel, "override");
   }
 
+  @Test
   public void testSetRootEditAndReset() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -110,16 +116,17 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
-    sourceSets.get(0).setRoot("newRoot1");
-    sourceSets.get(1).setRoot("newRoot2");
-    sourceSets.get(2).setRoot("newRoot3");
-    sourceSets.get(3).setRoot("newRoot4");
+    sourceSets.get(0).root().setValue("newRoot1");
+    sourceSets.get(1).root().setValue("newRoot2");
+    sourceSets.get(2).root().setValue("newRoot3");
+    sourceSets.get(3).root().setValue("newRoot4");
     verifySourceSetRoot(buildModel, "newRoot");
 
     buildModel.resetState();
     verifySourceSetRoot(buildModel, "source");
   }
 
+  @Test
   public void testSetRootEditAndApply() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -141,19 +148,19 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     List<SourceSetModel> sourceSets = android.sourceSets();
-    sourceSets.get(0).setRoot("newRoot1");
-    sourceSets.get(1).setRoot("newRoot2");
-    sourceSets.get(2).setRoot("newRoot3");
-    sourceSets.get(3).setRoot("newRoot4");
+    sourceSets.get(0).root().setValue("newRoot1");
+    sourceSets.get(1).root().setValue("newRoot2");
+    sourceSets.get(2).root().setValue("newRoot3");
+    sourceSets.get(3).root().setValue("newRoot4");
     verifySourceSetRoot(buildModel, "newRoot");
 
     applyChanges(buildModel);
     verifySourceSetRoot(buildModel, "newRoot");
-
     buildModel.reparse();
     verifySourceSetRoot(buildModel, "newRoot");
   }
 
+  @Test
   public void testSetRootAddAndReset() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -173,15 +180,16 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     SourceSetModel sourceSet = sourceSets.get(0);
     assertEquals("name", "set", sourceSet.name());
-    assertNull("root", sourceSet.root());
+    assertMissingProperty("root", sourceSet.root());
 
-    sourceSet.setRoot("source");
+    sourceSet.root().setValue("source");
     assertEquals("root", "source", sourceSet.root());
 
     buildModel.resetState();
-    assertNull("root", sourceSet.root());
+    assertMissingProperty("root", sourceSet.root());
   }
 
+  @Test
   public void testSetRootAddAndApply() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -201,9 +209,9 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     SourceSetModel sourceSet = sourceSets.get(0);
     assertEquals("name", "set", sourceSet.name());
-    assertNull("root", sourceSet.root());
+    assertMissingProperty("root", sourceSet.root());
 
-    sourceSet.setRoot("source");
+    sourceSet.root().setValue("source");
     assertEquals("root", "source", sourceSet.root());
 
     applyChanges(buildModel);
@@ -221,6 +229,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertEquals("root", "source", sourceSet.root());
   }
 
+  @Test
   public void testSetRootRemoveAndReset() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -242,17 +251,18 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     for (SourceSetModel sourceSet : android.sourceSets()) {
-      sourceSet.removeRoot();
+      sourceSet.root().delete();
     }
 
     for (SourceSetModel sourceSet : android.sourceSets()) {
-      assertNull("root", sourceSet.root());
+      assertMissingProperty("root", sourceSet.root());
     }
 
     buildModel.resetState();
     verifySourceSetRoot(buildModel, "source");
   }
 
+  @Test
   public void testSetRootRemoveAndApply() throws Exception {
     String text = "android {\n" +
                   "  sourceSets {\n" +
@@ -275,11 +285,11 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     checkForValidPsiElement(android, AndroidModelImpl.class);
 
     for (SourceSetModel sourceSet : android.sourceSets()) {
-      sourceSet.removeRoot();
+      sourceSet.root().delete();
     }
 
     for (SourceSetModel sourceSet : android.sourceSets()) {
-      assertNull("root", sourceSet.root());
+      assertMissingProperty("root", sourceSet.root());
     }
 
     applyChangesAndReparse(buildModel);
@@ -308,6 +318,7 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     }
   }
 
+  @Test
   public void testAddAndApplyBlockElements() throws Exception {
     String text = "android { \n" +
                   "  sourceSets {\n" +
@@ -326,15 +337,15 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     SourceSetModel sourceSet = sourceSets.get(0);
     assertEquals("name", "main", sourceSet.name());
 
-    sourceSet.aidl().addSrcDir("aidlSource");
-    sourceSet.assets().addSrcDir("assetsSource");
-    sourceSet.java().addSrcDir("javaSource");
-    sourceSet.jni().addSrcDir("jniSource");
-    sourceSet.jniLibs().addSrcDir("jniLibsSource");
-    sourceSet.manifest().setSrcFile("manifestSource.xml");
-    sourceSet.renderscript().addSrcDir("renderscriptSource");
-    sourceSet.res().addSrcDir("resSource");
-    sourceSet.resources().addSrcDir("resourcesSource");
+    sourceSet.aidl().srcDirs().addListValue().setValue("aidlSource");
+    sourceSet.assets().srcDirs().addListValue().setValue("assetsSource");
+    sourceSet.java().srcDirs().addListValue().setValue("javaSource");
+    sourceSet.jni().srcDirs().addListValue().setValue("jniSource");
+    sourceSet.jniLibs().srcDirs().addListValue().setValue("jniLibsSource");
+    sourceSet.manifest().srcFile().addListValue().setValue("manifestSource.xml");
+    sourceSet.renderscript().srcDirs().addListValue().setValue("renderscriptSource");
+    sourceSet.res().srcDirs().addListValue().setValue("resSource");
+    sourceSet.resources().srcDirs().addListValue().setValue("resourcesSource");
     verifySourceSet(sourceSet, false /*to verify that the block elements are still not saved to the file*/);
 
     applyChangesAndReparse(buildModel);
@@ -350,27 +361,27 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
   private static void verifySourceSet(SourceSetModel sourceSet, boolean savedToFile) {
     SourceDirectoryModel aidl = sourceSet.aidl();
     assertEquals("name", "aidl", aidl.name());
-    assertThat(aidl.srcDirs()).hasSize(1);
+    assertThat(aidl.srcDirs().toList()).hasSize(1);
     assertEquals(savedToFile, hasPsiElement(aidl));
 
     SourceDirectoryModel assets = sourceSet.assets();
     assertEquals("name", "assets", assets.name());
-    assertThat(assets.srcDirs()).hasSize(1);
+    assertThat(assets.srcDirs().toList()).hasSize(1);
     assertEquals(savedToFile, hasPsiElement(aidl));
 
     SourceDirectoryModel java = sourceSet.java();
     assertEquals("name", "java", java.name());
-    assertThat(java.srcDirs()).hasSize(1);
+    assertThat(java.srcDirs().toList()).hasSize(1);
     assertEquals(savedToFile, hasPsiElement(java));
 
     SourceDirectoryModel jni = sourceSet.jni();
     assertEquals("name", "jni", jni.name());
-    assertThat(jni.srcDirs()).hasSize(1);
+    assertThat(jni.srcDirs().toList()).hasSize(1);
     assertEquals(savedToFile, hasPsiElement(java));
 
     SourceDirectoryModel jniLibs = sourceSet.jniLibs();
     assertEquals("name", "jniLibs", jniLibs.name());
-    assertThat(jniLibs.srcDirs()).hasSize(1);
+    assertThat(jniLibs.srcDirs().toList()).hasSize(1);
     assertEquals(savedToFile, hasPsiElement(jniLibs));
 
     SourceFileModel manifest = sourceSet.manifest();
@@ -380,20 +391,21 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
 
     SourceDirectoryModel renderscript = sourceSet.renderscript();
     assertEquals("name", "renderscript", renderscript.name());
-    assertThat(renderscript.srcDirs()).hasSize(1);
+    assertThat(renderscript.srcDirs().toList()).hasSize(1);
     assertEquals(savedToFile, hasPsiElement(renderscript));
 
     SourceDirectoryModel res = sourceSet.res();
     assertEquals("name", "res", res.name());
-    assertThat(res.srcDirs()).hasSize(1);
+    assertThat(res.srcDirs().toList()).hasSize(1);
     assertEquals(savedToFile, hasPsiElement(res));
 
     SourceDirectoryModel resources = sourceSet.resources();
     assertEquals("name", "resources", resources.name());
-    assertThat(resources.srcDirs()).hasSize(1);
+    assertThat(resources.srcDirs().toList()).hasSize(1);
     assertEquals(savedToFile, hasPsiElement(resources));
   }
 
+  @Test
   public void testRemoveAndApplyBlockElements() throws Exception {
     String text = "android { \n" +
                   "  sourceSets {\n" +

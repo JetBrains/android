@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CompletionFixture;
@@ -27,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPropertyTableFixture;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.data.TableCellInSelectedRow;
 import org.fest.swing.fixture.AbstractComponentFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
@@ -44,7 +44,7 @@ import static java.awt.event.KeyEvent.*;
 /**
  * UI test for the layout preview window
  */
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NlPropertyTableTest {
   private IdeFrameFixture myFrame;
   private Dimension myOriginalFrameSize;
@@ -62,7 +62,6 @@ public class NlPropertyTableTest {
     myFrame.setIdeFrameSize(myOriginalFrameSize);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/71956000
   @Test
   public void testScrollInViewDuringKeyboardNavigation() throws Exception {
     NlEditorFixture layout = myFrame.getEditor()
@@ -143,14 +142,15 @@ public class NlPropertyTableTest {
 
     NlComponentFixture textView = layout.findView("TextView", 0).click();
 
-    NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable();
-    table.waitForMinimumRowCount(10);
-    table.pressAndReleaseKeys(VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN);
-    table.type('a');
+    NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable()
+      .waitForMinimumRowCount(15)
+      .pressAndReleaseKeys(VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN)
+      .requireContent("text", "@string/hello_world")  // expect to be at the text property
+      .type('a');
     CompletionFixture completions = new CompletionFixture(myFrame);
     completions.waitForCompletionsToShow();
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
-    type(textEditor, "b");
+    textEditor.enterText("b");
     textEditor.pressAndReleaseKeys(VK_ESCAPE);
     completions.waitForCompletionsToHide();
     textEditor.pressAndReleaseKeys(VK_DOWN);
@@ -178,13 +178,14 @@ public class NlPropertyTableTest {
     NlComponentFixture textView = layout.findView("TextView", 0).click();
     NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable()
       .waitForMinimumRowCount(10)
-      .selectRows(6)
+      .selectRows(7)
+      .requireContent("text", "@string/hello_world")
       .type('s');
 
     CompletionFixture completions = new CompletionFixture(myFrame);
     completions.waitForCompletionsToShow();
     JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
-    type(textEditor, "tring/copy");
+    guiTest.robot().enterText("tring/copy");  // TODO: move this and previous few lines to fixtures
 
     textEditor.pressAndReleaseKeys(VK_ENTER);
 
@@ -223,6 +224,7 @@ public class NlPropertyTableTest {
   }
 
   @Test
+  @RunIn(TestGroup.UNRELIABLE) // b/111614586
   public void testSimpleKeyboardNavigationInTable() throws Exception {
     NlEditorFixture layout = myFrame.getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
@@ -325,15 +327,5 @@ public class NlPropertyTableTest {
 
   private static Component getFocusOwner() {
     return KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-  }
-
-  // JTextComponentFixture.enterText doesn't work on some Mac platforms.
-  // This is a workaround that does work on all platforms.
-  private static void type(@NotNull AbstractComponentFixture fixture, @NotNull String value) {
-    Component source = fixture.target();
-    for (int index = 0; index < value.length(); index++) {
-      char character = value.charAt(index);
-      fixture.robot().type(character, source);
-    }
   }
 }

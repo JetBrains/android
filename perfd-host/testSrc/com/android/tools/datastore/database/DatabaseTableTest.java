@@ -16,6 +16,7 @@
 package com.android.tools.datastore.database;
 
 import com.android.tools.datastore.DataStoreDatabase;
+import com.android.tools.datastore.FakeLogService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -46,7 +47,7 @@ public class DatabaseTableTest {
   @Before
   public void setUp() throws Exception {
     myDbFile = File.createTempFile("DatabaseTableTest", "sql");
-    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE);
+    myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath(), DataStoreDatabase.Characteristic.DURABLE, new FakeLogService());
     myTable = new ThreadTestTable();
     myTable.initialize(myDatabase.getConnection());
   }

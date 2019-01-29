@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
+import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
 import com.android.tools.idea.common.scene.target.BaseTarget
 import com.android.tools.idea.uibuilder.scene.target.Notch
 
-abstract class BaseRelativeTarget: BaseTarget(), Notch.Provider {
+abstract class BaseRelativeTarget: BaseTarget(), Notch.Provider, NonPlaceholderDragTarget {
   // TODO: Not all targets are renderable, refactor/improve the [Target] API to provide renderable condition.
   var myIsHighlight: Boolean = false
 }

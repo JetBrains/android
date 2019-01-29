@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
@@ -25,6 +24,7 @@ import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.Computable;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBList;
 import com.intellij.xdebugger.stepping.XSmartStepIntoVariant;
 import org.fest.swing.fixture.JListFixture;
@@ -42,7 +42,7 @@ import javax.swing.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class SmartStepIntoTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
@@ -78,16 +78,13 @@ public class SmartStepIntoTest extends DebuggerTestBase {
    *   3. Should be able to step over through the native code and then successfully resume the app.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   @Test
   public void testSmartStepIntoNativeMethodWithDualDebugger() throws Exception {
     IdeFrameFixture ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("SmartStepIntoCmakeApp");
 
-    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType("Dual")
-      .clickOk();
+    DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.DUAL);
 
     openAndToggleBreakPoints(
       ideFrame,
@@ -99,6 +96,9 @@ public class SmartStepIntoTest extends DebuggerTestBase {
     ideFrame.debugApp(DEBUG_CONFIG_NAME)
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
+
+    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
+    guiTest.waitForBackgroundTasks();
 
     Wait.seconds(EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS)
       .expecting("Java file should be opened when breakpoint hit")
@@ -126,7 +126,6 @@ public class SmartStepIntoTest extends DebuggerTestBase {
       out.set(methodsList);
       return true;
     });
-    assertThat(out.get()).isNotNull();
 
     // Get data model by reflection.
     JBList popupList = out.get();
@@ -159,20 +158,20 @@ public class SmartStepIntoTest extends DebuggerTestBase {
 
     // Select the 1st one, which is the native method.
     new JListFixture(ideFrame.robot(), out.get()).clickItem(chosenFunctionIndex);
-    
+
     Wait.seconds(60).expecting("Native file should be opened.")
       .until(() -> (NATIVE_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName())));
 
     ideFrame.stepOver();
-    String currentLine = ideFrame.getEditor().getCurrentLine().trim();
-    String expectedLine = "return (*env)->NewStringUTF(env, \"Smart Step Into\");";
-    assertThat(currentLine.equals(expectedLine)).isTrue();
+    String cCurrentLine = ideFrame.getEditor().getCurrentLine().trim();
+    String cExpectedLine = "return (*env)->NewStringUTF(env, \"Smart Step Into\");";
+    Wait.seconds(30).expecting("Current line in native code is expected").until(() -> (cCurrentLine.equals(cExpectedLine)));
 
     ideFrame.resumeProgram();
     Wait.seconds(60).expecting("Java file should be opened.")
       .until(() -> (JAVA_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName())));
-    currentLine = ideFrame.getEditor().getCurrentLine().trim();
-    expectedLine = "String myString = s;";
-    assertThat(currentLine.equals(expectedLine)).isTrue();
+    String javaCurrentLine = ideFrame.getEditor().getCurrentLine().trim();
+    String javaExpectedLine = "String myString = s;";
+    Wait.seconds(30).expecting("Current line in Java code is expected").until(() -> (javaCurrentLine.equals(javaExpectedLine)));
   }
 }

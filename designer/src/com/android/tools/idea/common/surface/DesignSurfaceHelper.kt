@@ -18,12 +18,13 @@ package com.android.tools.idea.common.surface
 
 import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.RenderResources
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons
-import com.android.tools.idea.res.ModuleResourceRepository
-import com.android.tools.idea.res.ResourceHelper
+import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.resolveLayout
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.google.common.io.CharStreams
@@ -33,10 +34,10 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager
 import java.io.IOException
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
@@ -49,29 +50,19 @@ import java.nio.charset.StandardCharsets
  * @return true if the resource was opened
  * @see RenderResources#findResValue(String, boolean)
  */
-fun openResource(project: Project, configuration: Configuration, reference: String, currentFile: VirtualFile?): Boolean {
+fun openResource(configuration: Configuration, reference: String, currentFile: VirtualFile?): Boolean {
   val resourceResolver = configuration.resourceResolver ?: return false
   val resValue = resourceResolver.findResValue(reference, false)
-  val path = ResourceHelper.resolveLayout(resourceResolver, resValue)
-  if (path != null) {
-    val file = LocalFileSystem.getInstance().findFileByIoFile(path)
-    if (file != null) {
-      if (currentFile != null) {
-        return LayoutNavigationManager.getInstance(project).pushFile(currentFile, file)
-      }
-      else {
-        val editors = FileEditorManager.getInstance(project).openFile(file, true, true)
-        if (editors.isNotEmpty()) {
-          return true
-        }
-      }
-    }
+  val file = resourceResolver.resolveLayout(resValue) ?: return false
+  if (currentFile != null) {
+    return LayoutNavigationManager.getInstance(configuration.module.project).pushFile(currentFile, file)
   }
-  return false
+  val editors = FileEditorManager.getInstance(configuration.module.project).openFile(file, true, true)
+  return editors.isNotEmpty()
 }
 
 fun moduleContainsResource(facet: AndroidFacet, type: ResourceType, name: String): Boolean {
-  return ModuleResourceRepository.getOrCreateInstance(facet).hasResourceItem(type, name)
+  return ResourceRepositoryManager.getModuleResources(facet).hasResources(ResourceNamespace.TODO(), type, name)
 }
 
 fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, asset: String) {
@@ -85,7 +76,6 @@ fun copyVectorAssetToMainModuleSourceSet(project: Project, facet: AndroidFacet, 
   catch (exception: IOException) {
     Logger.getInstance(ViewEditorImpl::class.java).warn(exception)
   }
-
 }
 
 fun copyLayoutToMainModuleSourceSet(project: Project, facet: AndroidFacet, layout: String, @Language("XML") xml: String) {
@@ -105,11 +95,7 @@ private fun createResourceFile(project: Project,
                                resourceFileContent: CharSequence) {
   WriteCommandAction.runWriteCommandAction(project) {
     try {
-      val directory = getResourceDirectoryChild(project, facet, resourceDirectory)
-
-      if (directory == null) {
-        return@runWriteCommandAction
-      }
+      val directory = getResourceDirectoryChild(project, facet, resourceDirectory) ?: return@runWriteCommandAction
 
       val document = FileDocumentManager.getInstance().getDocument(directory.createChildData(project, resourceFileName))!!
 
@@ -123,7 +109,7 @@ private fun createResourceFile(project: Project,
 
 @Throws(IOException::class)
 private fun getResourceDirectoryChild(project: Project, facet: AndroidFacet, child: String): VirtualFile? {
-  val resourceDirectory = facet.primaryResourceDir
+  val resourceDirectory = ResourceFolderManager.getInstance(facet).primaryFolder
 
   if (resourceDirectory == null) {
     Logger.getInstance("DesignSurfaceHelper").warn("resourceDirectory is null")

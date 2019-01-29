@@ -63,13 +63,22 @@ public class FirstRunWizardFixture extends AbstractWizardFixture<FirstRunWizardF
         WelcomeFrame.showNow();
       }
     });
+    // PSQ windows manager sometime can't get the focus back
+    robot.focus(WelcomeFrame.getInstance().getComponent());
   }
 
   public static FirstRunWizardFixture find(@NotNull Robot robot) {
     JFrame welcomeFrame = waitUntilShowing(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
       @Override
       protected boolean isMatching(@NotNull JFrame frame) {
-        return "Android Studio Setup Wizard".equals(frame.getTitle());
+        if ("Android Studio Setup Wizard".equals(frame.getTitle())) {
+          // Waiting for the dialog to be active allows the "dialog grow animation" to end
+          if (frame.isActive()) {
+            return true;
+          }
+          frame.requestFocus();
+        }
+        return false;
       }
     });
 

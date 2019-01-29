@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.JComponentFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.handlers.constraint.MarginWidget;
 import com.android.tools.idea.uibuilder.handlers.constraint.SingleWidgetView;
 import com.android.tools.idea.uibuilder.handlers.constraint.SingleWidgetView.KillButton;
-import org.fest.swing.core.GenericTypeMatcher;
+import java.awt.Container;
+import javax.swing.JComboBox;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 public final class ConstraintLayoutViewInspectorFixture {
   private final Robot myRobot;
@@ -39,43 +35,21 @@ public final class ConstraintLayoutViewInspectorFixture {
   }
 
   public void selectMarginStart(int margin) {
-    myRobot.moveMouse(myRobot.finder().findByName(myTarget, "marginStart"));
-
-    GenericTypeMatcher<JComboBox> matcher = Matchers.byName(JComboBox.class, "marginStartComboBox");
-    new JComboBoxFixture(myRobot, GuiTests.waitUntilShowing(myRobot, myTarget, matcher)).selectItem(Integer.toString(margin));
+    MarginWidget marginWidget = findMarginWidget(SingleWidgetView.TOP_MARGIN_WIDGET);
+    myRobot.moveMouse(marginWidget);
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(myRobot, myRobot.finder().findByType(marginWidget, JComboBox.class));
+    comboBoxFixture.selectItem(Integer.toString(margin));
   }
 
-  public void setAllMargins(int n) {
-    Component comp = myRobot.finder().findByName(SingleWidgetView.TOP_MARGIN_WIDGET);
-    if (comp != null) {
-      ((MarginWidget)comp).setMargin(n);
-    }
-
-    comp = myRobot.finder().findByName(SingleWidgetView.BOTTOM_MARGIN_WIDGET);
-    if (comp != null) {
-      ((MarginWidget)comp).setMargin(n);
-    }
-
-    comp = myRobot.finder().findByName(SingleWidgetView.RIGHT_MARGIN_WIDGET);
-    if (comp != null) {
-      ((MarginWidget)comp).setMargin(n);
-    }
-
-    comp = myRobot.finder().findByName(SingleWidgetView.LEFT_MARGIN_WIDGET);
-    if (comp != null) {
-      ((MarginWidget)comp).setMargin(n);
-    }
+  private void setMargin(String widgetName, int marginValue) {
+    MarginWidget widget = findMarginWidget(widgetName);
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(myRobot, myRobot.finder().findByType(widget, JComboBox.class));
+    comboBoxFixture.replaceText(Integer.toString(marginValue));
   }
 
-  public void scrollAllMargins(int scroll) {
-    Component comp = myRobot.finder().findByName(SingleWidgetView.TOP_MARGIN_WIDGET);
-    myRobot.rotateMouseWheel(comp, scroll);
-    comp = myRobot.finder().findByName(SingleWidgetView.BOTTOM_MARGIN_WIDGET);
-    myRobot.rotateMouseWheel(comp, scroll);
-    comp = myRobot.finder().findByName(SingleWidgetView.RIGHT_MARGIN_WIDGET);
-    myRobot.rotateMouseWheel(comp, scroll);
-    comp = myRobot.finder().findByName(SingleWidgetView.LEFT_MARGIN_WIDGET);
-    myRobot.rotateMouseWheel(comp, scroll);
+  @NotNull
+  private MarginWidget findMarginWidget(String name) {
+    return myRobot.finder().findByName(name, MarginWidget.class);
   }
 
   @NotNull

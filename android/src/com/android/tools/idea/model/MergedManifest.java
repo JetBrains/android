@@ -16,22 +16,29 @@
 package com.android.tools.idea.model;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
+import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -57,7 +64,6 @@ import static com.android.xml.AndroidManifest.*;
  * To get a {@linkplain MergedManifest} use {@link MergedManifest#get(AndroidFacet)} or {@link MergedManifest#get(Module)}
  */
 public class MergedManifest {
-
   private final Module myModule;
   private String myPackage;
   private String myApplicationId;
@@ -68,8 +74,8 @@ public class MergedManifest {
   private long myLastChecked;
   private AndroidVersion myMinSdk;
   private AndroidVersion myTargetSdk;
-  private String myApplicationIcon;
-  private String myApplicationLabel;
+  private ResourceValue myApplicationIcon;
+  private ResourceValue myApplicationLabel;
   private boolean myApplicationSupportsRtl;
   private Boolean myApplicationDebuggable;
   private @Nullable Map<String, XmlNode.NodeKey> myNodeKeys;
@@ -79,10 +85,11 @@ public class MergedManifest {
   private boolean myApplicationHasCode = true;
 
   /**
-   * Constructs a new MergedManifest
+   * Constructs a new MergedManifest.
+   *
    * @param module the module containing the manifest
    */
-  MergedManifest(@NotNull Module module) {
+  private MergedManifest(@NotNull Module module) {
     myModule = module;
   }
 
@@ -270,7 +277,7 @@ public class MergedManifest {
    * @return the application icon, or null
    */
   @Nullable
-  public String getApplicationIcon() {
+  public ResourceValue getApplicationIcon() {
     sync();
     return myApplicationIcon;
   }
@@ -281,7 +288,7 @@ public class MergedManifest {
    * @return the application label, or null
    */
   @Nullable
-  public String getApplicationLabel() {
+  public ResourceValue getApplicationLabel() {
     sync();
     return myApplicationLabel;
   }
@@ -365,10 +372,27 @@ public class MergedManifest {
     ApplicationManager.getApplication().runReadAction(this::syncWithReadPermission);
   }
 
-  static String getAttributeValue(@NotNull Element element,
-                                  @Nullable String namespace,
-                                  @NotNull String localName) {
-    return Strings.emptyToNull(element.getAttributeNS(namespace, localName));
+  @Nullable
+  private static String getAttributeValue(@NotNull Element element,
+                                          @Nullable String namespaceUri,
+                                          @NotNull String attributeName) {
+    return Strings.emptyToNull(element.getAttributeNS(namespaceUri, attributeName));
+  }
+
+  @Nullable
+  private static ResourceValue getResourceValue(@NotNull ResourceNamespace namespace,
+                                                @NotNull ResourceType type,
+                                                @NotNull Element element,
+                                                @Nullable String namespaceUri,
+                                                @NotNull String attributeName) {
+    String value = getAttributeValue(element, namespaceUri, attributeName);
+    if (value == null) {
+      return null;
+    }
+    ResourceUrl url = ResourceUrl.parse(value);
+    ResourceReference reference =
+        url == null ? null : url.resolve(namespace, namespacePrefix -> element.lookupNamespaceURI(namespacePrefix));
+    return new ManifestResourceValue(namespace, type, attributeName, value, reference);
   }
 
   /**
@@ -393,16 +417,16 @@ public class MergedManifest {
     myManifestTheme = null;
     myTargetSdk = AndroidVersion.DEFAULT;
     myMinSdk = AndroidVersion.DEFAULT;
-    myPackage = ""; //$NON-NLS-1$
-    myApplicationId = ""; //$NON-NLS-1$
+    myPackage = "";
+    myApplicationId = "";
     myVersionCode = null;
     myApplicationIcon = null;
     myApplicationLabel = null;
     myApplicationSupportsRtl = false;
     myNodeKeys = null;
-    myActivities = Lists.newArrayList();
-    myActivityAliases = Lists.newArrayListWithExpectedSize(4);
-    myServices = Lists.newArrayListWithExpectedSize(4);
+    myActivities = new ArrayList<>();
+    myActivityAliases = new ArrayList<>(4);
+    myServices = new ArrayList<>(4);
     Set<String> permissions = Sets.newHashSetWithExpectedSize(30);
     Set<String> revocable = Sets.newHashSetWithExpectedSize(2);
 
@@ -425,6 +449,10 @@ public class MergedManifest {
       Manifest manifest = facet.getManifest();
       myPackage = manifest == null ? myApplicationId : manifest.getPackage().getValue();
 
+      AaptOptions.Namespacing namespacing = ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing();
+      ResourceNamespace namespace =
+          namespacing == AaptOptions.Namespacing.DISABLED ? ResourceNamespace.RES_AUTO : ResourceNamespace.fromPackageName(myPackage);
+
       String versionCode = getAttributeValue(root, ANDROID_URI, ATTR_VERSION_CODE);
       try {
         myVersionCode = Integer.valueOf(versionCode);
@@ -437,8 +465,8 @@ public class MergedManifest {
           String nodeName = node.getNodeName();
           if (NODE_APPLICATION.equals(nodeName)) {
             Element application = (Element) node;
-            myApplicationIcon = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_ICON);
-            myApplicationLabel = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_LABEL);
+            myApplicationIcon = getResourceValue(namespace, ResourceType.DRAWABLE, application, ANDROID_URI, ATTRIBUTE_ICON);
+            myApplicationLabel = getResourceValue(namespace, ResourceType.STRING, application, ANDROID_URI, ATTRIBUTE_LABEL);
             myManifestTheme = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_THEME);
             myApplicationSupportsRtl = VALUE_TRUE.equals(getAttributeValue(application, ANDROID_URI, ATTRIBUTE_SUPPORTS_RTL));
 
@@ -446,7 +474,7 @@ public class MergedManifest {
             myApplicationDebuggable = debuggable == null ? null : VALUE_TRUE.equals(debuggable);
 
             String hasCode = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_HASCODE);
-            myApplicationHasCode = hasCode == null ? true : VALUE_TRUE.equals(hasCode);
+            myApplicationHasCode = hasCode == null || VALUE_TRUE.equals(hasCode);
 
             Node child = node.getFirstChild();
             while (child != null) {
@@ -454,7 +482,7 @@ public class MergedManifest {
                 String childNodeName = child.getNodeName();
                 if (NODE_ACTIVITY.equals(childNodeName)) {
                   Element element = (Element)child;
-                  ActivityAttributes attributes = new ActivityAttributes(element, myApplicationId);
+                  ActivityAttributes attributes = new ActivityAttributes(element, myApplicationId, namespace);
                   myActivityAttributesMap.put(attributes.getName(), attributes);
                   myActivities.add(element);
                 } else if (NODE_ACTIVITY_ALIAS.equals(childNodeName)) {
@@ -629,14 +657,14 @@ public class MergedManifest {
 
   public static class ActivityAttributes {
     @NotNull private final Element myElement;
-    @Nullable private final String myIcon;
-    @Nullable private final String myLabel;
+    @Nullable private final ResourceValue myIcon;
+    @Nullable private final ResourceValue myLabel;
     @NotNull private final String myName;
     @Nullable private final String myParentActivity;
     @Nullable private final String myTheme;
     @Nullable private final String myUiOptions;
 
-    public ActivityAttributes(@NotNull Element activity, @Nullable String packageName) {
+    public ActivityAttributes(@NotNull Element activity, @Nullable String packageName, @NotNull ResourceNamespace namespace) {
       myElement = activity;
 
       // Get activity name.
@@ -651,25 +679,13 @@ public class MergedManifest {
       myName = name;
 
       // Get activity icon.
-      String value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_ICON);
-      if (value != null && !value.isEmpty()) {
-        myIcon = value;
-      }
-      else {
-        myIcon = null;
-      }
+      myIcon = getResourceValue(namespace, ResourceType.DRAWABLE, activity, ANDROID_URI, ATTRIBUTE_ICON);
 
       // Get activity label.
-      value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_LABEL);
-      if (value != null && !value.isEmpty()) {
-        myLabel = value;
-      }
-      else {
-        myLabel = null;
-      }
+      myLabel = getResourceValue(namespace, ResourceType.STRING, activity, ANDROID_URI, ATTRIBUTE_LABEL);
 
       // Get activity parent. Also search the meta-data for parent info.
-      value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_PARENT_ACTIVITY_NAME);
+      String value = getAttributeValue(activity, ANDROID_URI, ATTRIBUTE_PARENT_ACTIVITY_NAME);
       if (value == null || value.isEmpty()) {
         Node child = activity.getFirstChild();
         // TODO: Not sure if meta data can be used for API Level > 16
@@ -723,12 +739,12 @@ public class MergedManifest {
     }
 
     @Nullable
-    public String getIcon() {
+    public ResourceValue getIcon() {
       return myIcon;
     }
 
     @Nullable
-    public String getLabel() {
+    public ResourceValue getLabel() {
       return myLabel;
     }
 
@@ -754,7 +770,6 @@ public class MergedManifest {
   }
 
   private class ModulePermissions implements PermissionHolder {
-
     @NotNull private final Set<String> myPermissions;
     @NotNull private final Set<String> myRevocable;
 
@@ -787,6 +802,29 @@ public class MergedManifest {
       AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myModule);
       return androidModuleInfo != null ?
              androidModuleInfo.getTargetSdkVersion() : MergedManifest.this.getTargetSdkVersion();
+    }
+  }
+
+  /**
+   * A resource value defined by the manifest. Unlike its base class, does not need to keep a reference
+   * to an XML DOM node in order to resolve the resource value to a {@link ResourceReference}.
+   */
+  private static class ManifestResourceValue extends ResourceValueImpl {
+    @Nullable private final ResourceReference myReference;
+
+    ManifestResourceValue(@NotNull ResourceNamespace namespace,
+                          @NotNull ResourceType type,
+                          @NotNull String name,
+                          @Nullable String value,
+                          @Nullable ResourceReference reference) {
+      super(namespace, type, name, value);
+      myReference = reference;
+    }
+
+    @Override
+    @Nullable
+    public ResourceReference getReference() {
+      return myReference;
     }
   }
 }

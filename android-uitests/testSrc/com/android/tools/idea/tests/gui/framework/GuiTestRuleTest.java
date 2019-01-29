@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.ui.UIUtil;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,19 +29,18 @@ import org.junit.runner.RunWith;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static com.google.common.truth.Truth.assertThat;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.containsString;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GuiTestRuleTest {
 
   private final Verifier guiTestVerifier = new Verifier() {
     @Override
-    protected void verify() throws Throwable {
+    protected void verify() {
       assertThat(GuiTests.windowsShowing()).containsExactly(WelcomeFrame.getInstance());
     }
   };
@@ -58,13 +58,13 @@ public class GuiTestRuleTest {
   }
 
   @Test
-  public void createNewProjectDialogLeftShowing() throws Exception {
+  public void createNewProjectDialogLeftShowing() {
     exception.expectMessage("Create New Project");
     guiTest.welcomeFrame().createNewProject();
   }
 
   @Test
-  public void testModalDialogsLeftOpen() throws IOException {
+  public void testModalDialogsLeftOpen() {
     exception.expectMessage(allOf(
       containsString("Modal dialog showing"),
       containsString("javax.swing.JDialog with title 'Surprise!'"),

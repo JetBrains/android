@@ -1,9 +1,15 @@
 package org.jetbrains.android.augment;
 
+import com.google.common.base.MoreObjects;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.ItemPresentationProviders;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Iconable;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.InheritanceImplUtil;
@@ -21,6 +27,8 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.java.JavaSourceRootType;
+import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import javax.swing.*;
 import java.util.Collection;
@@ -31,8 +39,58 @@ import java.util.List;
  * @author Eugene.Kudelevsky
  */
 public abstract class AndroidLightClassBase extends LightElement implements PsiClass, SyntheticElement {
-  protected AndroidLightClassBase(@NotNull PsiManager psiManager) {
+  private static final boolean KOTLIN_PLUGIN_AVAILABLE = isKotlinPluginAvailable();
+
+  private final LightModifierList myPsiModifierList;
+
+  protected AndroidLightClassBase(@NotNull PsiManager psiManager, @NotNull Collection<String> modifiers) {
     super(psiManager, JavaLanguage.INSTANCE);
+    myPsiModifierList = new LightModifierList(psiManager);
+    for (String modifier : modifiers) {
+      myPsiModifierList.addModifier(modifier);
+    }
+  }
+
+  /**
+   * Sets the forced {@link ModuleInfo} of the containing {@link PsiFile} to point to the given {@link Module}, so that the Kotlin IDE
+   * plugin knows how to handle this light class.
+   */
+  protected void setModuleInfo(@NotNull Module module, boolean isTest) {
+    this.putUserData(ModuleUtilCore.KEY_MODULE, module);
+    // Some scenarios move up to the file level and then attempt to get the module from the file.
+    PsiFile containingFile = getContainingFile();
+    if (containingFile != null) {
+      containingFile.putUserData(ModuleUtilCore.KEY_MODULE, module);
+      if (KOTLIN_PLUGIN_AVAILABLE) {
+        KotlinRegistrationHelper.setModuleInfo(containingFile, isTest);
+      }
+    }
+  }
+
+  /**
+   * Sets the forced {@link ModuleInfo} of the containing {@link PsiFile} to point to the given {@link Library}, so that the Kotlin IDE
+   * plugin knows how to handle this light class.
+   */
+  protected void setModuleInfo(@NotNull Library library) {
+    if (KOTLIN_PLUGIN_AVAILABLE) {
+      PsiFile containingFile = getContainingFile();
+      if (containingFile != null) {
+        KotlinRegistrationHelper.setModuleInfo(containingFile, library);
+      }
+    }
+  }
+
+  /**
+   * Sets the forced {@link ModuleInfo} of the containing {@link PsiFile} to point to the given {@link Sdk}, so that the Kotlin IDE
+   * plugin knows how to handle this light class.
+   */
+  protected void setModuleInfo(@NotNull Sdk sdk) {
+    if (KOTLIN_PLUGIN_AVAILABLE) {
+      PsiFile containingFile = getContainingFile();
+      if (containingFile != null) {
+        KotlinRegistrationHelper.setModelInfo(containingFile, sdk);
+      }
+    }
   }
 
   @Override
@@ -275,8 +333,8 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   }
 
   @Override
-  public PsiModifierList getModifierList() {
-    return new LightModifierList(myManager, getLanguage(), PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL);
+  public final PsiModifierList getModifierList() {
+    return myPsiModifierList;
   }
 
   @Override
@@ -324,5 +382,44 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
                                      final PsiElement lastParent,
                                      @NotNull final PsiElement place) {
     return PsiClassImplUtil.processDeclarationsInClass(this, processor, state, null, lastParent, place, PsiUtil.getLanguageLevel(place), false);
+  }
+
+  @Override
+  @NotNull
+  public String toString() {
+    return MoreObjects.toStringHelper(this).addValue(getQualifiedName()).toString();
+  }
+
+  private static boolean isKotlinPluginAvailable() {
+    try {
+      // Check if Kotlin IDE plugin classes can be loaded.
+      Class.forName("org.jetbrains.kotlin.idea.UserDataModuleInfoKt");
+      return true;
+    }
+    catch (ClassNotFoundException | LinkageError e) {
+      return false;
+    }
+  }
+
+  /**
+   * Encapsulates calls to Kotlin IDE plugin to prevent {@link NoClassDefFoundError} when Kotlin is not installed.
+   */
+  private static class KotlinRegistrationHelper {
+
+    static Key<Library> LIBRARY_KEY = Key.create("Kt_Library");
+    static Key<Sdk> SDK_KEY = Key.create("Kt_Sdk");
+    static Key<JpsModuleSourceRootType> MODULE_ROOT_TYPE_KEY = Key.create("Kt_SourceRootType");
+
+    static void setModuleInfo(@NotNull PsiFile file, boolean isTest) {
+      file.putUserData(MODULE_ROOT_TYPE_KEY, isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE);
+    }
+
+    static void setModuleInfo(@NotNull PsiFile file, @NotNull Library library) {
+      file.putUserData(LIBRARY_KEY, library);
+    }
+
+    static void setModelInfo(@NotNull PsiFile file, @NotNull Sdk sdk) {
+      file.putUserData(SDK_KEY, sdk);
+    }
   }
 }

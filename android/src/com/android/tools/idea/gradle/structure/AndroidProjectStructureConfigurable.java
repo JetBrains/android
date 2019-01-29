@@ -28,10 +28,15 @@ import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurabl
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.stats.AnonymizerUtil;
+import com.android.tools.idea.structure.services.DeveloperService;
+import com.android.tools.idea.structure.services.DeveloperServices;
+import com.android.tools.idea.structure.services.ServiceCategory;
 import com.android.tools.idea.structure.services.view.ServiceCategoryConfigurable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
@@ -85,12 +90,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
-import static com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
@@ -185,14 +187,13 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
   }
 
   private boolean doShowDialog(@Nullable Runnable advanceInit) {
-    String appId = getApplicationId(myProject);
-    if (appId != null) {
 
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                     .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
-                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
-    }
+    UsageTracker.log(
+      UsageTrackerUtils.withProjectId(
+        AndroidStudioEvent.newBuilder()
+          .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+          .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_OPEN),
+        myProject));
     return ShowSettingsUtil.getInstance().editConfigurable(myProject, this, advanceInit);
   }
 
@@ -267,13 +268,12 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
 
   @Override
   public void apply() throws ConfigurationException {
-    String appId = getApplicationId(myProject);
-    if (appId != null) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                     .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
-                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
-    }
+      UsageTracker.log(UsageTrackerUtils.withProjectId(
+        AndroidStudioEvent.newBuilder()
+          .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+          .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_SAVE),
+         myProject));
+
 
     validateState();
     if (myErrorsPanel.hasCriticalErrors()) {
@@ -281,17 +281,16 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
     }
 
     boolean dataChanged = false;
-    for (Configurable configurable: myConfigurables) {
+    for (Configurable configurable : myConfigurables) {
       if (configurable.isModified()) {
-        if (appId != null) {
-          UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                         .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                         .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE)
-                                         .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
+          UsageTracker.log(UsageTrackerUtils.withProjectId(
+            AndroidStudioEvent.newBuilder()
+             .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+             .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_SAVE),
+            myProject));
         }
         dataChanged = true;
         configurable.apply();
-      }
     }
 
     if (!myProject.isDefault() && (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES)) {
@@ -305,7 +304,7 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
     AccessToken token = HeavyProcessLatch.INSTANCE.processStarted("Resetting project structure");
 
     try {
-      for (Configurable configurable: myConfigurables) {
+      for (Configurable configurable : myConfigurables) {
         configurable.reset();
       }
 
@@ -337,15 +336,6 @@ public class AndroidProjectStructureConfigurable implements GradleSyncListener, 
             }
           }
 
-/* Developer services disabled:
-[  55563]   WARN - ture.services.DeveloperService - Caught exception while initializing services
-java.lang.IllegalArgumentException: could not find extension implementation class com.google.services.GoogleServiceLoginListener
-	at com.intellij.openapi.extensions.Extensions.findExtension(Extensions.java:113)
-	at com.google.services.GoogleServiceLoginListener.getInstance(GoogleServiceLoginListener.java:30)
-	at com.google.services.creators.GoogleServiceCreator.initializeContext(GoogleServiceCreator.java:41)
-	at com.android.tools.idea.structure.services.DeveloperServiceCreator.createService(DeveloperServiceCreator.java:174)
-	at com.android.tools.idea.structure.services.DeveloperServices.initializeFor(DeveloperServices.java:65)
-
           if (!myProject.isDefault() && moduleList.getSize() > 0) {
             // This may not be our first time opening the developer services dialog. User may have
             // modified developer service values last time but then pressed cancel. To be safe, we
@@ -372,7 +362,6 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
               myConfigurables.add(new ServiceCategoryConfigurable(moduleList, category));
             }
           }
-*/
         }
 
         // Populate the "Modules" section.
@@ -395,7 +384,8 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
         mySidePanel.reset();
         if (toSelect != null) {
           mySidePanel.select(toSelect);
-        } else {
+        }
+        else {
           mySidePanel.selectSdk();
         }
       }
@@ -451,13 +441,12 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
   }
 
   private void selectConfigurable(@NotNull Configurable configurable) {
-    String appId = getApplicationId(myProject);
-    if (appId != null) {
-      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
-                                     .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
-                                     .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
-                                     .setProjectId(AnonymizerUtil.anonymizeUtf8(appId)));
-    }
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
+      AndroidStudioEvent.newBuilder()
+         .setCategory(EventCategory.PROJECT_STRUCTURE_DIALOG)
+         .setKind(EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK),
+      myProject));
+
     JComponent content = configurable.createComponent();
     assert content != null;
     myDetails.setContent(content);
@@ -493,6 +482,10 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
   @Nullable
   public JComponent getPreferredFocusedComponent() {
     return mySidePanel != null ? mySidePanel.myList : null;
+  }
+
+  @Override
+  public void syncTaskCreated(@NotNull Project project, @NotNull GradleSyncInvoker.Request request) {
   }
 
   @Override
@@ -551,7 +544,8 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
     public Object getData(@NotNull @NonNls final String dataId) {
       if (KEY.is(dataId)) {
         return AndroidProjectStructureConfigurable.this;
-      } else {
+      }
+      else {
         return null;
       }
     }
@@ -585,7 +579,7 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
         @Nullable
         public String getTooltipFor(Object value) {
           if (value instanceof AndroidModuleConfigurable) {
-            Module module = (Module) ((AndroidModuleConfigurable)value).getEditableObject();
+            Module module = (Module)((AndroidModuleConfigurable)value).getEditableObject();
             return new File(module.getModuleFilePath()).getAbsolutePath();
           }
           return null;
@@ -595,7 +589,7 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
         @Nullable
         public Icon getIconFor(Object value) {
           if (value instanceof AndroidModuleConfigurable) {
-            Module module = (Module) ((AndroidModuleConfigurable)value).getEditableObject();
+            Module module = (Module)((AndroidModuleConfigurable)value).getEditableObject();
             return module.isDisposed() ? StudioIcons.Shell.Filetree.ANDROID_MODULE : GradleUtil.getModuleIcon(module);
           }
           return null;
@@ -633,7 +627,8 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
         DefaultActionGroup group = new DefaultActionGroup();
         group.add(createAddAction());
         group.add(new DeleteModuleAction(this));
-        JComponent toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true).getComponent();
+        JComponent toolbar =
+          ActionManager.getInstance().createActionToolbar("AndroidProjectStructureConfigurable", group, true).getComponent();
         add(toolbar, BorderLayout.NORTH);
       }
     }
@@ -691,8 +686,8 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
         Object object = myListModel.elementAt(i);
         if (object instanceof AndroidModuleConfigurable &&
             ((AndroidModuleConfigurable)object).getEditableObject() == module) {
-            myList.setSelectedValue(object, true);
-            return (AndroidModuleConfigurable)object;
+          myList.setSelectedValue(object, true);
+          return (AndroidModuleConfigurable)object;
         }
       }
       return null;
@@ -830,9 +825,12 @@ java.lang.IllegalArgumentException: could not find extension implementation clas
     }
 
     @Override
-    public void update(@NotNull AnActionEvent e) {
+    public void update(AnActionEvent e) {
+      Project project = e.getProject();
       Object selectedValue = mySidePanel.myList.getSelectedValue();
-      e.getPresentation().setEnabled(selectedValue instanceof AndroidModuleConfigurable);
+      e.getPresentation()
+       .setEnabled(
+         selectedValue instanceof AndroidModuleConfigurable && project != null && !GradleSyncState.getInstance(project).isSyncInProgress());
     }
   }
 }

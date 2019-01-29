@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.projectmodel.Library
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -22,7 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * Provides a build-system-agnostic interface to the build system. Instances of this interface
  * contain methods that apply to a specific [Module].
  */
-interface AndroidModuleSystem {
+interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider {
   /**
    * Requests information about the folder layout for the module. This can be used to determine
    * where files of various types should be written.
@@ -37,33 +39,62 @@ interface AndroidModuleSystem {
   fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate>
 
   /**
-   * Returns the version of the given [artifactId] as accessible to sources contained in this module, or null if that dependency is
-   * not available to sources contained in this module.
+   * Returns a [GradleCoordinate] of the latest compatible artifact of the given maven project.
+   * This function returns non-null only if the build system can find a version of the artifact that is
+   * compatible with the rest of this module's dependencies.
+   * When there are multiple versions of the artifact that satisfy the above conditions, the latest
+   * stable artifact is selected. In the event that a stable artifact does not exist this function
+   * will fallback to searching for preview artifacts.
+   * <p>
+   * **Note**: This function may perform read actions.
    */
-  @Throws(DependencyManagementException::class)
-  fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion?
+  fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate?
 
   /**
-   * Returns the version of the given [artifactId] accessible to sources contained in this module as declared in the build system,
-   * or null if it is not specified. Build systems such as Gradle allow users to specify a dependency such as x.y.+, which it will
-   * resolve to a specific version at build time. This method returns the version declared in the build script.
-   * Use [AndroidProjectSystem.getResolvedVersion] if you want the resolved version.
+   * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate] as registered with the
+   * build system (e.g. build.gradle for Gradle, BUILD for bazel, etc). Build systems such as Gradle allow users to specify a dependency
+   * such as x.y.+, which it will resolve to a specific version at sync time. This method returns the version registered in the build
+   * script.
+   * <p>
+   * This method will find a dependency that matches the given query coordinate. For example:
+   * Query coordinate a:b:+ will return a:b:+ if a:b:+ is registered with the build system.
+   * Query coordinate a:b:+ will return a:b:123 if a:b:123 is registered with the build system.
+   * Query coordinate a:b:456 will return null if a:b:456 is not registered, even if a:b:123 is.
+   * Use [AndroidModuleSystem.getResolvedDependency] if you want the resolved dependency.
+   * <p>
+   * **Note**: This function may perform read actions.
    */
   @Throws(DependencyManagementException::class)
-  fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion?
+  fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate?
 
   /**
-   * Adds an artifact of given [artifactId] as a dependency available to the sources contained in this module.
-   * The caller may specify a specific [version] of the artifact to add.  If no [version] is passed or the passed [version] is null,
-   * the artifact added will be of the latest version supported by the underlying build system of this project.
-   * @param artifactId  Id of artifact needed by the dependent.
-   * @param version Version of the artifact to add.  If left blank this parameter defaults to {@link GoogleMavenArtifact.VERSION_LATEST}
-   * @param includePreview Whether preview versions should be included when looking up the latest version.
-   * @throws DependencyManagementException if an error occurs when trying to add the dependency.
+   * Returns the dependency accessible to sources contained in this module referenced by its [GradleCoordinate].
+   * <p>
+   * This method will resolve version information to what is resolved. For example:
+   * Query coordinate a:b:+ will return a:b:123 if version 123 of that artifact is a resolved dependency.
+   * Query coordinate a:b:123 will return a:b:123 if version 123 of that artifact is a resolved dependency.
+   * Query coordinate a:b:456 will return null if version 123 is a resolved dependency but not version 456.
+   * Use [AndroidModuleSystem.getRegisteredDependency] if you want the registered dependency.
+   * <p>
+   * **Note**: This function will not acquire any locks during it's operation.
    */
   @Throws(DependencyManagementException::class)
-  fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion? = null,
-                               includePreview: Boolean = false)
+  fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate?
+
+  /**
+   * Register a requested dependency with the build system. Note that the requested dependency won't be available (a.k.a. resolved)
+   * until the next sync. To ensure the dependency is resolved and available for use, sync the project after calling this function.
+   * <p>
+   * **Note**: This function will perform a write action.
+   */
+  fun registerDependency(coordinate: GradleCoordinate)
+
+  /**
+   * Returns the resolved libraries that this module depends on.
+   * <p>
+   * **Note**: This function will not acquire read/write locks during it's operation.
+   */
+  fun getResolvedDependentLibraries(): Collection<Library>
 
   /**
    * Determines whether or not the underlying build system is capable of generating a PNG

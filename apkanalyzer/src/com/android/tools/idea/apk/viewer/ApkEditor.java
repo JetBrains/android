@@ -16,23 +16,18 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
-import com.android.tools.apk.analyzer.ApkSizeCalculator;
-import com.android.tools.apk.analyzer.Archive;
-import com.android.tools.apk.analyzer.Archives;
-import com.android.tools.apk.analyzer.BinaryXmlParser;
+import com.android.tools.apk.analyzer.*;
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
+import com.google.common.base.Charsets;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorLocation;
-import com.intellij.openapi.fileEditor.FileEditorProvider;
-import com.intellij.openapi.fileEditor.FileEditorState;
+import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
@@ -60,12 +55,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+
 public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkViewPanel.Listener {
   private final Project myProject;
   private final VirtualFile myBaseFile;
   private final VirtualFile myRoot;
   private ApkViewPanel myApkViewPanel;
-  private Archive myArchive;
+  private ArchiveContext myArchiveContext;
 
   private JBSplitter mySplitter;
   private ApkFileEditorComponent myCurrentEditor;
@@ -75,8 +72,23 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     myBaseFile = baseFile;
     myRoot = root;
 
+    DISABLE_GENERATED_FILE_NOTIFICATION_KEY.set(this, true);
+
     mySplitter = new JBSplitter(true, "android.apk.viewer", 0.62f);
     mySplitter.setName("apkViwerContainer");
+
+    // Setup focus root for a11y purposes
+    // Given that
+    // 1) IdeFrameImpl sets up a custom focus traversal policy that unconditionally set te focus to the preferred component
+    //    of the editor windows
+    // 2) IdeFrameImpl is the default focus cycle root for editor windows
+    // (see https://github.com/JetBrains/intellij-community/commit/65871b384739b52b1c0450235bc742d2ba7fb137#diff-5b11919bab177bf9ab13c335c32874be)
+    //
+    // We need to declare the root component of this custom editor to be a focus cycle root and
+    // setup the default focus traversal policy (layout) to ensure the TAB key cycles through all the
+    // components of this custom panel.
+    mySplitter.setFocusCycleRoot(true);
+    mySplitter.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
 
     // The APK Analyzer uses a copy of the APK to open it as an Archive. It does so far two reasons:
     // 1. We don't want the editor holding a lock on an APK (applies only to Windows)
@@ -85,7 +97,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     // But if we do a copy, we need to update it whenever the real file changes. So we listen to changes
     // in the VFS as long as this editor is open.
     MessageBusConnection connection = project.getMessageBus().connect(this);
-    connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener.Adapter() {
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {
         for (VFileEvent event : events) {
@@ -104,6 +116,11 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     mySplitter.setSecondComponent(new JPanel());
   }
 
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(ApkEditor.class);
+  }
+
   private void refreshApk(@NotNull VirtualFile apkVirtualFile) {
     disposeArchive();
 
@@ -111,14 +128,14 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       // this temporary copy is destroyed while disposing the archive, see #disposeArchive
       Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), "." + apkVirtualFile.getExtension());
       Files.copy(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk, StandardCopyOption.REPLACE_EXISTING);
-      myArchive = Archives.open(copyOfApk);
-      myApkViewPanel = new ApkViewPanel(myProject, new ApkParser(myArchive, ApkSizeCalculator.getDefault()));
+      myArchiveContext = Archives.open(copyOfApk);
+      myApkViewPanel = new ApkViewPanel(myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()));
       myApkViewPanel.setListener(this);
       mySplitter.setFirstComponent(myApkViewPanel.getContainer());
       selectionChanged(null);
     }
     catch (IOException e) {
-      Logger.getInstance(ApkEditor.class).error(e);
+      getLog().error(e);
       disposeArchive();
       mySplitter.setFirstComponent(new JBLabel(e.toString()));
     }
@@ -231,7 +248,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       Disposer.dispose(myCurrentEditor);
       myCurrentEditor = null;
     }
-    Logger.getInstance(ApkEditor.class).info("Disposing ApkEditor with ApkViewPanel: " + myApkViewPanel);
+    getLog().info("Disposing ApkEditor with ApkViewPanel: " + myApkViewPanel);
     disposeArchive();
   }
 
@@ -239,16 +256,16 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     if (myApkViewPanel != null){
       myApkViewPanel.clearArchive();
     }
-    if (myArchive != null) {
+    if (myArchiveContext != null) {
       try {
-        myArchive.close();
+        myArchiveContext.close();
         // the archive was constructed out of a temporary file
-        Files.deleteIfExists(myArchive.getPath());
+        Files.deleteIfExists(myArchiveContext.getArchive().getPath());
       }
       catch (IOException e) {
-        Logger.getInstance(ApkEditor.class).warn(e);
+        getLog().warn(e);
       }
-      myArchive = null;
+      myArchiveContext = null;
     }
   }
 
@@ -322,28 +339,50 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   }
 
   @Nullable
-  private static VirtualFile createVirtualFile(@NotNull Archive archive, @NotNull Path p) {
+  private VirtualFile createVirtualFile(@NotNull Archive archive, @NotNull Path p) {
     Path name = p.getFileName();
     if (name == null) {
       return null;
     }
 
+    // No virtual file for directories
+    if (Files.isDirectory(p)) {
+      return null;
+    }
+
+    // Read file contents and decode it
+    byte[] content;
     try {
-      byte[] content = Files.readAllBytes(p);
-      if (archive.isBinaryXml(p, content)) {
-        content = BinaryXmlParser.decodeXml(name.toString(), content);
-        return ApkVirtualFile.create(p, content);
-      } else {
-        VirtualFile file = JarFileSystem.getInstance().findLocalVirtualFileByPath(archive.getPath().toString());
-        if (file != null) {
-          return file.findFileByRelativePath(p.toString());
-        } else {
-          return ApkVirtualFile.create(p, content);
-        }
-      }
+      content = Files.readAllBytes(p);
     }
     catch (IOException e) {
+      getLog().warn(String.format("Error loading entry \"%s\" from archive", p.toString()), e);
       return null;
+    }
+
+    if (archive.isBinaryXml(p, content)) {
+      content = BinaryXmlParser.decodeXml(name.toString(), content);
+      return ApkVirtualFile.create(p, content);
+    }
+
+    if (archive.isProtoXml(p, content)) {
+      try {
+        ProtoXmlPrettyPrinter prettyPrinter = new ProtoXmlPrettyPrinterImpl();
+        content = prettyPrinter.prettyPrint(content).getBytes(Charsets.UTF_8);
+      }
+      catch (IOException e) {
+        // Ignore error, show encoded content
+        getLog().warn(String.format("Error decoding XML entry \"%s\" from archive", p.toString()), e);
+      }
+      return ApkVirtualFile.create(p, content);
+    }
+
+    VirtualFile file = JarFileSystem.getInstance().findLocalVirtualFileByPath(archive.getPath().toString());
+    if (file != null) {
+      return file.findFileByRelativePath(p.toString());
+    }
+    else {
+      return ApkVirtualFile.create(p, content);
     }
   }
 

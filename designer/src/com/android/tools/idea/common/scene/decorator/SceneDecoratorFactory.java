@@ -18,34 +18,9 @@ package com.android.tools.idea.common.scene.decorator;
 import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Constructor;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
 public abstract class SceneDecoratorFactory {
-  static Map<String, SceneDecorator> ourSceneMap = new HashMap<>();
   protected static final SceneDecorator BASIC_DECORATOR = new SceneDecorator();
 
   @NotNull
   public abstract SceneDecorator get(@NotNull NlComponent component);
-
-  @NotNull
-  protected Optional<SceneDecorator> get(@NotNull String key) {
-    if (getConstructorMap().containsKey(key)) {
-      if (!ourSceneMap.containsKey(key)) {
-        try {
-          ourSceneMap.put(key, getConstructorMap().get(key).newInstance());
-        }
-        catch (Exception e) {
-          ourSceneMap.put(key, null);
-        }
-      }
-      return Optional.of(ourSceneMap.get(key));
-    }
-    return Optional.empty();
-  }
-
-  @NotNull
-  protected abstract Map<String, Constructor<? extends SceneDecorator>> getConstructorMap();
 }

@@ -23,6 +23,7 @@ import com.android.tools.idea.naveditor.property.*
 import com.android.tools.idea.uibuilder.property.NlProperties
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.UsefulTestCase.assertDoesntContain
 import org.mockito.ArgumentCaptor
@@ -50,7 +51,9 @@ class NavInspectorPanelTest : NavTestCase() {
       }
     }
     panel = NavInspectorPanel(testRootDisposable)
-    manager = spy(NavPropertiesManager(myFacet, model.surface))
+    val realPropertiesManager = NavPropertiesManager(myFacet, model.surface)
+    manager = spy(realPropertiesManager)
+    Disposer.register(myRootDisposable, realPropertiesManager)
     inspectorProviders = mock(NavInspectorProviders::class.java)
     `when`(manager.getInspectorProviders(any() ?: testRootDisposable)).thenReturn(inspectorProviders)
 
@@ -69,7 +72,6 @@ class NavInspectorPanelTest : NavTestCase() {
     assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
     assertInstanceOf(captor.value["Arguments"], NavDestinationArgumentsProperty::class.java)
-    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
   }
 
   fun testMultipleTypes() {
@@ -82,8 +84,7 @@ class NavInspectorPanelTest : NavTestCase() {
     // Relevant properties will be there, but the specific inspectors can decline to show if different types are selected
     assertFalse(captor.value.containsKey("Actions"))
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
-    assertInstanceOf(captor.value["Arguments"], NavArgumentsProperty::class.java)
-    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavArgumentDefaultValuesProperty::class.java)
   }
 
   fun testInclude() {
@@ -96,7 +97,6 @@ class NavInspectorPanelTest : NavTestCase() {
     assertFalse(captor.value.containsKey("Actions"))
     assertFalse(captor.value.containsKey("Deeplinks"))
     assertFalse(captor.value.containsKey("Arguments"))
-    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
     validateProperties("include", captor.value.keys)
   }
 
@@ -109,8 +109,7 @@ class NavInspectorPanelTest : NavTestCase() {
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
     assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
-    assertInstanceOf(captor.value["Arguments"], NavDestinationArgumentsProperty::class.java)
-    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
+    assertInstanceOf(captor.value["Arguments"], NavArgumentDefaultValuesProperty::class.java)
     validateProperties("navigation", captor.value.keys)
   }
 
@@ -124,7 +123,6 @@ class NavInspectorPanelTest : NavTestCase() {
     assertFalse(captor.value.containsKey("Actions"))
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
     assertInstanceOf(captor.value["Arguments"], NavDestinationArgumentsProperty::class.java)
-    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
     validateProperties("activity", captor.value.keys)
   }
 
@@ -137,8 +135,7 @@ class NavInspectorPanelTest : NavTestCase() {
     verify(inspectorProviders).createInspectorComponents(any(), captor.capture(), any())
     assertFalse(captor.value.containsKey("Actions"))
     assertFalse(captor.value.containsKey("Deeplinks"))
-    assertInstanceOf(captor.value["Arguments"], NavActionArgumentsProperty::class.java)
-    assertFalse(captor.value.containsKey(SET_START_DESTINATION_PROPERTY_NAME))
+    assertInstanceOf(captor.value["Arguments"], NavArgumentDefaultValuesProperty::class.java)
     validateProperties("action", captor.value.keys)
   }
 
@@ -152,7 +149,6 @@ class NavInspectorPanelTest : NavTestCase() {
     assertInstanceOf(captor.value["Actions"], NavActionsProperty::class.java)
     assertInstanceOf(captor.value["Deeplinks"], NavDeeplinkProperty::class.java)
     assertInstanceOf(captor.value["Arguments"], NavDestinationArgumentsProperty::class.java)
-    assertInstanceOf(captor.value[SET_START_DESTINATION_PROPERTY_NAME], SetStartDestinationProperty::class.java)
     validateProperties("fragment", captor.value.keys)
   }
 }
@@ -167,7 +163,7 @@ private fun createPropertyMap(): Multimap<String, String> {
   map.putAll("include", listOf("graph"))
   map.keySet().forEach { map.putAll(it, listOf("id", "label"))}
 
-  map.putAll("action", listOf("id", "destination", "launchSingleTop", "launchDocument", "clearTask", "popUpTo",
+  map.putAll("action", listOf("id", "destination", "launchSingleTop", "popUpTo",
       "popUpToInclusive", "enterAnim", "exitAnim"))
   return map
 }

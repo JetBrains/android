@@ -16,10 +16,11 @@
 package com.android.tools.idea.common.editor;
 
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import org.jetbrains.annotations.NotNull;
 
-public class ToolbarActionGroups {
+public class ToolbarActionGroups implements Disposable {
   protected final DesignSurface mySurface;
 
   public ToolbarActionGroups(@NotNull DesignSurface surface) {
@@ -39,5 +40,10 @@ public class ToolbarActionGroups {
   @NotNull
   protected ActionGroup getNorthEastGroup() {
     return ActionGroup.EMPTY_GROUP;
+  }
+
+  @Override
+  public void dispose() {
+
   }
 }

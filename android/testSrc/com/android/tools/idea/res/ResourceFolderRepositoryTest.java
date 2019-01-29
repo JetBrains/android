@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.*;
-import com.android.ide.common.res2.DataBindingResourceType;
-import com.android.ide.common.res2.ResourceFile;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.databinding.DataBindingUtil;
+import com.google.common.collect.Collections2;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -44,19 +44,21 @@ import com.intellij.util.concurrency.SequentialTaskExecutor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
 import org.picocontainer.MutablePicoContainer;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.Callable;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ResourceFolderRepository.ourFullRescans;
 
 /**
@@ -82,11 +84,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String COLOR_STATELIST = "resourceRepository/statelist.xml";
 
   private ResourceFolderRepositoryFileCache myOldFileCacheService;
+  private ResourceFolderRegistry myRegistry;
 
   @Override
   public void tearDown() throws Exception {
     try {
-      ResourceFolderRegistry.reset();
       overrideCacheService(myOldFileCacheService);
     }
     finally {
@@ -97,14 +99,17 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    ResourceFolderRegistry.reset();
     // Use a file cache that has per-test root directories instead of sharing the system directory.
     ResourceFolderRepositoryFileCache cache = new ResourceFolderRepositoryFileCacheImpl(
       new File(myFixture.getTempDirPath()));
     myOldFileCacheService = overrideCacheService(cache);
+    myRegistry = ResourceFolderRegistry.getInstance(getProject());
   }
 
-  private static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
+  /**
+   * package private to be able to re-use from {@link ResourceFolderDataBindingTest}
+   */
+  static ResourceFolderRepositoryFileCache overrideCacheService(ResourceFolderRepositoryFileCache newCache) {
     MutablePicoContainer applicationContainer = (MutablePicoContainer)
       ApplicationManager.getApplication().getPicoContainer();
 
@@ -130,7 +135,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
   private VirtualFile getResourceDirectory() {
-    List<VirtualFile> resourceDirectories = myFacet.getAllResourceDirectories();
+    List<VirtualFile> resourceDirectories = ResourceFolderManager.getInstance(myFacet).getFolders();
     assertNotNull(resourceDirectories);
     assertSize(1, resourceDirectories);
     return resourceDirectories.get(0);
@@ -138,10 +143,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   private ResourceFolderRepository createRepository() {
     VirtualFile dir = getResourceDirectory();
-    return ResourceFolderRegistry.get(myFacet, dir);
+    return myRegistry.get(myFacet, dir);
   }
 
-  public void testComputeResourceStrings() throws Exception {
+  public void testComputeResourceStrings() {
     // Tests the handling of markup to raw strings
     // For example, for this strings definition
     //   <string name="title_template_step">Step <xliff:g id="step_number">%1$d</xliff:g>: Lorem Ipsum</string>
@@ -152,30 +157,30 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile1);
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    List<ResourceItem> labelList = resources.getResourceItem(ResourceType.STRING, "title_template_step");
+    List<ResourceItem> labelList = resources.getResources(RES_AUTO, ResourceType.STRING, "title_template_step");
     assertNotNull(labelList);
     assertEquals(1, labelList.size());
     ResourceItem label = labelList.get(0);
-    ResourceValue resourceValue = label.getResourceValue(false);
+    ResourceValue resourceValue = label.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Step ${step_number}: Lorem Ipsum", resourceValue.getValue()); // In the file, there's whitespace unlike example above
 
     // Test unicode escape handling: <string name="ellipsis">Here it is: \u2026!</string>
-    labelList = resources.getResourceItem(ResourceType.STRING, "ellipsis");
+    labelList = resources.getResources(RES_AUTO, ResourceType.STRING, "ellipsis");
     assertNotNull(labelList);
     assertEquals(1, labelList.size());
     label = labelList.get(0);
-    resourceValue = label.getResourceValue(false);
+    resourceValue = label.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Here it is: \u2026!", resourceValue.getValue());
 
     // Make sure we pick up id's defined using types
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "action_next2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next2"));
   }
 
   @SuppressWarnings("ConstantConditions")
-  public void testXliff() throws Exception {
+  public void testXliff() {
     // Tests the handling of xliff markup
     VirtualFile file1 = myFixture.copyFileToProject(XLIFF, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -183,38 +188,38 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     assertEquals("Share your score of (1337) with (Bluetooth)!",
-                 resources.getResourceItem(ResourceType.STRING, "share_with_application").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "share_with_application").get(0).getResourceValue().getValue());
     assertEquals("Call ${name}",
-                 resources.getResourceItem(ResourceType.STRING, "description_call").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "description_call").get(0).getResourceValue().getValue());
     assertEquals("(42) mins (28) secs",
-                 resources.getResourceItem(ResourceType.STRING, "callDetailsDurationFormat").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "callDetailsDurationFormat").get(0).getResourceValue().getValue());
     assertEquals("${number_of_sessions} sessions removed from your schedule",
-                 resources.getResourceItem(ResourceType.STRING, "other").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "other").get(0).getResourceValue().getValue());
   }
 
-  public void testInitialCreate() throws Exception {
+  public void testInitialCreate() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
 
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    Collection<String> layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(2, layouts.size());
 
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout1"));
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout2"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
   }
 
-  public void testAddFile() throws Exception {
+  public void testAddFile() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    Collection<String> layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(2, layouts.size());
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout1"));
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout2"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
 
     long generation = resources.getModificationCount();
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
@@ -226,19 +231,19 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile3);
     assertTrue(resources.getModificationCount() > generation);
 
-    layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(3, layouts.size());
   }
 
-  public void testAddUnrelatedFile() throws Exception {
+  public void testAddUnrelatedFile() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    Collection<String> layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(2, layouts.size());
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout1"));
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout2"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
 
     long generation = resources.getModificationCount();
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.unrelated");
@@ -254,7 +259,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    Collection<String> drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    Collection<String> drawables = resources.getResources(RES_AUTO, ResourceType.DRAWABLE).keySet();
     assertEquals(drawables.toString(), 0, drawables.size());
     long generation = resources.getModificationCount();
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/drawable-mdpi/foo.png");
@@ -263,17 +268,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.getModificationCount() > generation);
 
     // Delete a file and make sure the item is removed from the repository (and modification count bumped)
-    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    drawables = resources.getResources(RES_AUTO, ResourceType.DRAWABLE).keySet();
     assertEquals(1, drawables.size());
     generation = resources.getModificationCount();
     assertEquals("foo", drawables.iterator().next());
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        psiFile1.delete();
-      }
-    });
-    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    WriteCommandAction.runWriteCommandAction(null, () -> psiFile1.delete());
+    drawables = resources.getResources(RES_AUTO, ResourceType.DRAWABLE).keySet();
     assertEquals(0, drawables.size());
     assertTrue(resources.getModificationCount() > generation);
 
@@ -295,28 +295,23 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     final PsiFile psiFile2 = PsiManager.getInstance(getProject()).findFile(file2);
     assertNotNull(psiFile2);
-    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    drawables = resources.getResources(RES_AUTO, ResourceType.DRAWABLE).keySet();
     assertEquals(1, drawables.size());
-    Collection<String> ids = resources.getItemsOfType(ResourceType.ID);
+    Collection<String> ids = resources.getResources(RES_AUTO, ResourceType.ID).keySet();
     assertContainsElements(ids, "focused_state", "default_state", "pressed_state");
     assertTrue(resources.getModificationCount() > generation);
 
     generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        psiFile2.delete();
-      }
-    });
+    WriteCommandAction.runWriteCommandAction(null, () -> psiFile2.delete());
 
-    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    drawables = resources.getResources(RES_AUTO, ResourceType.DRAWABLE).keySet();
     assertEquals(0, drawables.size());
-    ids = resources.getItemsOfType(ResourceType.ID);
+    ids = resources.getResources(RES_AUTO, ResourceType.ID).keySet();
     assertEquals(0, ids.size());
     assertTrue(resources.getModificationCount() > generation);
   }
 
-  public void testDeleteResourceDirectory() throws Exception {
+  public void testDeleteResourceDirectory() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
     final VirtualFile file3 = myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout3.xml");
@@ -328,22 +323,17 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Try deleting a whole resource directory and ensure we remove the files within
     long generation = resources.getModificationCount();
-    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    Collection<String> layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(3, layouts.size());
     final PsiDirectory directory = psiFile3.getContainingDirectory();
     assertNotNull(directory);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        directory.delete();
-      }
-    });
-    layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    WriteCommandAction.runWriteCommandAction(null, () -> directory.delete());
+    layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(2, layouts.size());
     assertTrue(resources.getModificationCount() > generation);
   }
 
-  public void testDeleteRemainderResourceIDs() throws Exception {
+  public void testDeleteRemainderResourceIDs() {
     final VirtualFile file = myFixture.copyFileToProject(LAYOUT_ID_SCAN, "res/layout-xlarge-land/layout.xml");
     final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile1);
@@ -352,27 +342,22 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources);
 
     long generation = resources.getModificationCount();
-    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    Collection<String> layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(1, layouts.size());
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
     // nonExistent may be handled slightly different from other IDs, since it is introduced by a
     // non-ID-attribute="@+id/nonExistent", but the file does not define a tag with id="@id/nonExistent".
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "nonExistent"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "nonExistent"));
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        psiFile1.delete();
-      }
-    });
+    WriteCommandAction.runWriteCommandAction(null, () -> psiFile1.delete());
     assertTrue(resources.getModificationCount() > generation);
-    layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEmpty(layouts);
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "noteArea"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "nonExistent"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "nonExistent"));
   }
 
-  public void testRenameLayoutFile() throws Exception {
+  public void testRenameLayoutFile() {
     final VirtualFile file2 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
 
     ResourceFolderRepository resources = createRepository();
@@ -381,8 +366,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Check renames
     //  rename layout file
     long generation = resources.getModificationCount();
-    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout2"));
-    assertFalse(resources.hasResourceItem(ResourceType.LAYOUT, "layout2b"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2b"));
 
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
@@ -396,21 +381,21 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
 
-    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout2b"));
-    assertFalse(resources.hasResourceItem(ResourceType.LAYOUT, "layout2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2b"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
     assertTrue(resources.getModificationCount() > generation);
   }
 
-  public void testRenameDrawableFile() throws Exception {
+  public void testRenameDrawableFile() {
     //  rename drawable file
     final VirtualFile file5 = myFixture.copyFileToProject(LAYOUT1, "res/drawable-xhdpi/foo2.png");
     ResourceFolderRepository resources = createRepository();
 
-    assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "foo2"));
-    assertFalse(resources.hasResourceItem(ResourceType.DRAWABLE, "foo3"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo2"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo3"));
     ResourceItem item = getOnlyItem(resources, ResourceType.DRAWABLE, "foo2");
-    assertTrue(item.getResourceValue(false) instanceof DensityBasedResourceValue);
-    DensityBasedResourceValue rv = (DensityBasedResourceValue)item.getResourceValue(false);
+    assertTrue(item.getResourceValue() instanceof DensityBasedResourceValue);
+    DensityBasedResourceValue rv = (DensityBasedResourceValue)item.getResourceValue();
     assertNotNull(rv);
     assertSame(Density.XHIGH, rv.getResourceDensity());
 
@@ -426,24 +411,24 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     });
-    assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "foo3"));
-    assertFalse(resources.hasResourceItem(ResourceType.DRAWABLE, "foo2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo3"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "foo2"));
     assertTrue(resources.getModificationCount() > generation);
   }
 
-  public void testRenameValueFile() throws Exception {
+  public void testRenameValueFile() {
     final VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_template_step"));
 
-    List<ResourceItem> items = resources.getResourceItem(ResourceType.STRING, "title_template_step");
+    List<ResourceItem> items = resources.getResources(RES_AUTO, ResourceType.STRING, "title_template_step");
     assertNotNull(items);
     assertEquals(1, items.size());
     ResourceItem item = items.get(0);
-    assertEquals("myvalues.xml", item.getSource().getFile().getName());
+    assertEquals("myvalues.xml", item.getSource().getFileName());
 
     // We need to make sure there is a document. PsiVFSListener uses createFileCopyWithNewName
     // to populate the new Psi file with the old Psi file's content. However, by the time that runs,
@@ -466,12 +451,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
         }
       }
     });
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
-    items = resources.getResourceItem(ResourceType.STRING, "title_template_step");
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_template_step"));
+    items = resources.getResources(RES_AUTO, ResourceType.STRING, "title_template_step");
     assertNotNull(items);
     assertEquals(1, items.size());
     item = items.get(0);
-    assertEquals("renamedvalues.xml", item.getSource().getFile().getName());
+    assertEquals("renamedvalues.xml", item.getSource().getFileName());
 
     // TODO: Optimize this such that there's no modification change for this. It's tricky because
     // for file names we get separate notification from the old file deletion (beforePropertyChanged)
@@ -481,13 +466,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     //assertEquals(generation, resources.getModificationCount());
   }
 
-  public void testRenameValueFileToInvalid() throws Exception {
+  public void testRenameValueFileToInvalid() {
     final VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_template_step"));
 
     long generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -503,17 +488,17 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(generation < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_template_step"));
   }
 
   private static ResourceItem getOnlyItem(ResourceFolderRepository repository, ResourceType type, String name) {
-    List<ResourceItem> item = repository.getResourceItem(type, name);
+    List<ResourceItem> item = repository.getResources(RES_AUTO, type, name);
     assertNotNull(item);
     assertEquals(1, item.size());
     return item.get(0);
   }
 
-  public void testMoveFileResourceFileToNewConfiguration() throws Exception {
+  public void testMoveFileResourceFileToNewConfiguration() {
     // Move a file-based resource file from one configuration to another; verify that
     // items are preserved, generation changed (since it can affect config matching),
     // and resource files updated.
@@ -524,9 +509,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     ResourceItem item = getOnlyItem(resources, ResourceType.LAYOUT, "layout1");
-    assertEquals("land", item.getSource().getQualifiers());
+    assertEquals("land", item.getConfiguration().getQualifierString());
     ResourceItem idItem = getOnlyItem(resources, ResourceType.ID, "btn_title_refresh");
-    assertEquals("layout-land", idItem.getSource().getFile().getParentFile().getName());
+    assertEquals("layout-land", idItem.getSource().getParentFileName());
 
     long generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -542,14 +527,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout1"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
     item = getOnlyItem(resources, ResourceType.LAYOUT, "layout1");
-    assertEquals("port", item.getSource().getQualifiers());
+    assertEquals("port", item.getConfiguration().getQualifierString());
     idItem = getOnlyItem(resources, ResourceType.ID, "btn_title_refresh");
-    assertEquals("layout-port", idItem.getSource().getFile().getParentFile().getName());
+    assertEquals("layout-port", idItem.getSource().getParentFileName());
   }
 
-  public void testMoveValueResourceFileToNewConfiguration() throws Exception {
+  public void testMoveValueResourceFileToNewConfiguration() {
     // Move a value file from one configuration to another; verify that
     // items are preserved, generation changed (since it can affect config matching),
     // and resource files updated.
@@ -560,10 +545,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     ResourceItem item = getOnlyItem(resources, ResourceType.STRING, "app_name");
-    assertEquals("en", item.getSource().getQualifiers());
+    assertEquals("en", item.getConfiguration().getQualifierString());
     assertEquals("en", item.getConfiguration().getLocaleQualifier().getLanguage());
     //noinspection ConstantConditions
-    assertEquals("Animations Demo", item.getResourceValue(false).getValue());
+    assertEquals("Animations Demo", item.getResourceValue().getValue());
 
     long generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -580,13 +565,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
     assertTrue(generation < resources.getModificationCount());
     item = getOnlyItem(resources, ResourceType.STRING, "app_name");
-    assertEquals("no", item.getSource().getQualifiers());
+    assertEquals("no", item.getConfiguration().getQualifierString());
     assertEquals("no", item.getConfiguration().getLocaleQualifier().getLanguage());
     //noinspection ConstantConditions
-    assertEquals("Animations Demo", item.getResourceValue(false).getValue());
+    assertEquals("Animations Demo", item.getResourceValue().getValue());
   }
 
-  public void testMoveResourceFileBetweenDensityFolders() throws Exception {
+  public void testMoveResourceFileBetweenDensityFolders() {
     // Regression test for https://code.google.com/p/android/issues/detail?id=61648
     // Make sure we flush resource values when reusing resource items incrementally
 
@@ -600,10 +585,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     ResourceItem item = getOnlyItem(resources, ResourceType.DRAWABLE, "picture");
-    ResourceFile source = item.getSource();
-    assertNotNull(source);
-    assertEquals("mdpi", source.getQualifiers());
-    ResourceValue resourceValue = item.getResourceValue(false);
+    assertEquals("mdpi", item.getConfiguration().getQualifierString());
+    ResourceValue resourceValue = item.getResourceValue();
     assertNotNull(resourceValue);
     String valuePath = resourceValue.getValue().replace(File.separatorChar, '/');
     assertTrue(valuePath, valuePath.endsWith("res/drawable-mdpi/picture.png"));
@@ -622,18 +605,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "picture"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "picture"));
     item = getOnlyItem(resources, ResourceType.DRAWABLE, "picture");
-    source = item.getSource();
-    assertNotNull(source);
-    assertEquals("hdpi", source.getQualifiers());
-    resourceValue = item.getResourceValue(false);
+    assertEquals("hdpi", item.getConfiguration().getQualifierString());
+    resourceValue = item.getResourceValue();
     assertNotNull(resourceValue);
     valuePath = resourceValue.getValue().replace(File.separatorChar, '/');
     assertTrue(valuePath, valuePath.endsWith("res/drawable-hdpi/picture.png"));
   }
 
-  public void testMoveFileResourceFileToNewType() throws Exception {
+  public void testMoveFileResourceFileToNewType() {
     // Move a file resource file file from one folder to another, changing the type
     // (e.g. anim to animator), verify that resource types are updated
     final VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
@@ -642,7 +623,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile1);
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout1"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
 
     long generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -657,13 +638,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.MENU, "layout1"));
-    assertFalse(resources.hasResourceItem(ResourceType.LAYOUT, "layout1"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.MENU, "layout1"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
     ResourceItem item = getOnlyItem(resources, ResourceType.MENU, "layout1");
-    assertSame(ResourceFolderType.MENU, ((PsiResourceFile)item.getSource()).getFolderType());
+    assertSame(ResourceFolderType.MENU, ((PsiResourceItem)item).getSourceFile().getFolderType());
   }
 
-  public void testMoveOutOfResourceFolder() throws Exception {
+  public void testMoveOutOfResourceFolder() {
     // Move value files out of its resource folder; items should disappear
     final VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     final VirtualFile javaFile = myFixture.copyFileToProject(VALUES1, "src/my/pkg/Dummy.java");
@@ -671,7 +652,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile1);
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_template_step"));
 
     long generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -686,10 +667,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(generation < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_template_step"));
   }
 
-  public void testMoveIntoResourceFolder() throws Exception {
+  public void testMoveIntoResourceFolder() {
     // Move value files out of its resource folder; items should disappear
     final VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/dummy.ignore");
     final VirtualFile xmlFile = myFixture.copyFileToProject(VALUES1, "src/my/pkg/values.xml");
@@ -697,7 +678,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_template_step"));
 
     final long generation = resources.getModificationCount();
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
@@ -713,27 +694,24 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
 
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "title_template_step"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_template_step"));
   }
 
-  public void testReplaceResourceFile() throws Exception {
+  public void testReplaceResourceFile() {
     final VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
 
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout1"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh2"));
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        try {
-          myFixture.copyFileToProject(LAYOUT2, "res/layout/layout1.xml");
-        }
-        catch (Exception e) {
-          fail(e.toString());
-        }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      try {
+        myFixture.copyFileToProject(LAYOUT2, "res/layout/layout1.xml");
+      }
+      catch (Exception e) {
+        fail(e.toString());
       }
     });
 
@@ -744,7 +722,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     //assertTrue(generation < resources.getModificationCount());
   }
 
-  public void testAddEmptyValueFile() throws Exception {
+  public void testAddEmptyValueFile() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
@@ -752,18 +730,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(generation, resources.getModificationCount());
   }
 
-  public void testRawFolder() throws Exception {
+  public void testRawFolder() {
     // In this folder, any file extension is allowed
     myFixture.copyFileToProject(LAYOUT1, "res/raw/raw1.xml");
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> raw = resources.getItemsOfType(ResourceType.RAW);
+    Collection<String> raw = resources.getResources(RES_AUTO, ResourceType.RAW).keySet();
     assertEquals(1, raw.size());
     long generation = resources.getModificationCount();
     final VirtualFile file2 = myFixture.copyFileToProject(LAYOUT1, "res/raw/numbers.random");
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.RAW, "numbers"));
-    raw = resources.getItemsOfType(ResourceType.RAW);
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.RAW, "numbers"));
+    raw = resources.getResources(RES_AUTO, ResourceType.RAW).keySet();
     assertEquals(2, raw.size());
 
     generation = resources.getModificationCount();
@@ -779,11 +757,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(resources.getModificationCount() > generation);
-    assertTrue(resources.hasResourceItem(ResourceType.RAW, "numbers2"));
-    assertFalse(resources.hasResourceItem(ResourceType.RAW, "numbers"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.RAW, "numbers2"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.RAW, "numbers"));
   }
 
-  public void testEditLayoutNoOp() throws Exception {
+  public void testEditLayoutNoOp() {
     resetScanCounter();
 
     // Make some miscellaneous edits in the file that have no bearing on the
@@ -795,9 +773,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final XmlFile xmlFile = (XmlFile)psiFile1;
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    Collection<String> layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(1, layouts.size());
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout1"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
 
     final long initial = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -805,66 +783,54 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     // Insert a comment at the beginning
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        XmlTag rootTag = xmlFile.getRootTag();
-        assertNotNull(rootTag);
-        int rootTagOffset = rootTag.getTextOffset();
-        document.insertString(rootTagOffset, "<!-- This is a\nmultiline comment -->");
-        documentManager.commitDocument(document);
-        // Edit the comment some more
-        document.deleteString(rootTagOffset + 8, rootTagOffset + 8 + 5);
-        documentManager.commitDocument(document);
-        document.insertString(rootTagOffset + 8, "Replacement");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      XmlTag rootTag = xmlFile.getRootTag();
+      assertNotNull(rootTag);
+      int rootTagOffset = rootTag.getTextOffset();
+      document.insertString(rootTagOffset, "<!-- This is a\nmultiline comment -->");
+      documentManager.commitDocument(document);
+      // Edit the comment some more
+      document.deleteString(rootTagOffset + 8, rootTagOffset + 8 + 5);
+      documentManager.commitDocument(document);
+      document.insertString(rootTagOffset + 8, "Replacement");
+      documentManager.commitDocument(document);
     });
     // Inserting the comment and editing it shouldn't have had any observable results on the resource repository
     assertEquals(initial, resources.getModificationCount());
 
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
     final XmlTag tag = findTagById(psiFile1, "noteArea");
     assertNotNull(tag);
 
     // Now insert some whitespace before a tag
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int indentAreaBeforeTag = tag.getTextOffset() - 1;
-        document.insertString(indentAreaBeforeTag, "   ");
-        documentManager.commitDocument(document);
-        document.deleteString(indentAreaBeforeTag, indentAreaBeforeTag + 2);
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int indentAreaBeforeTag = tag.getTextOffset() - 1;
+      document.insertString(indentAreaBeforeTag, "   ");
+      documentManager.commitDocument(document);
+      document.deleteString(indentAreaBeforeTag, indentAreaBeforeTag + 2);
+      documentManager.commitDocument(document);
     });
     // Space edits outside the tag shouldn't be observable
     assertEquals(initial, resources.getModificationCount());
 
     // Edit text inside an element tag. No effect in value files!
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final XmlTag header = findTagById(xmlFile, "header");
-        assertNotNull(header);
-        int indentAreaBeforeTag = header.getSubTags()[0].getTextOffset();
-        document.insertString(indentAreaBeforeTag, "   ");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final XmlTag header = findTagById(xmlFile, "header");
+      assertNotNull(header);
+      int indentAreaBeforeTag = header.getSubTags()[0].getTextOffset();
+      document.insertString(indentAreaBeforeTag, "   ");
+      documentManager.commitDocument(document);
     });
     // Space edits inside the tag shouldn't be observable
     assertEquals(initial, resources.getModificationCount());
 
     // Insert tag (without id) in layout file: ignored (only ids and file item matters)
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final XmlTag header = findTagById(xmlFile, "text2");
-        assertNotNull(header);
-        int indentAreaBeforeTag = header.getTextOffset() - 1;
-        document.insertString(indentAreaBeforeTag, "<Button />");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final XmlTag header = findTagById(xmlFile, "text2");
+      assertNotNull(header);
+      int indentAreaBeforeTag = header.getTextOffset() - 1;
+      document.insertString(indentAreaBeforeTag, "<Button />");
+      documentManager.commitDocument(document);
     });
     // Non-id new tags shouldn't be observable
     assertEquals(initial, resources.getModificationCount());
@@ -875,67 +841,55 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Finally make an edit which *does* affect the project resources to ensure
     // that document edits actually *do* fire PSI events that are digested by
     // this repository
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "newid"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "newid"));
     final String elementDeclaration = "<Button android:id=\"@+id/newid\" />\n";
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final XmlTag tag = findTagById(psiFile1, "noteArea");
-        assertNotNull(tag);
-        document.insertString(tag.getTextOffset() - 1, elementDeclaration);
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final XmlTag tag12 = findTagById(psiFile1, "noteArea");
+      assertNotNull(tag12);
+      document.insertString(tag12.getTextOffset() - 1, elementDeclaration);
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "newid2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "newid2"));
     assertTrue(resources.getModificationCount() > initial);
     resetScanCounter();
 
     // Now try another edit, where things should be incremental now.
     long generation = resources.getModificationCount();
     final String elementDeclaration2 = "<Button android:id=\"@+id/newid2\" />\n";
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final XmlTag tag = findTagById(psiFile1, "noteArea");
-        assertNotNull(tag);
-        document.insertString(tag.getTextOffset() - 1, elementDeclaration2);
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final XmlTag tag1 = findTagById(psiFile1, "noteArea");
+      assertNotNull(tag1);
+      document.insertString(tag1.getTextOffset() - 1, elementDeclaration2);
+      documentManager.commitDocument(document);
     });
     assertFalse(resources.isScanPending(psiFile1));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid2"));
     assertTrue(resources.getModificationCount() > generation);
     ensureIncremental();
 
     final long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int startOffset = document.getText().indexOf(elementDeclaration);
-        document.deleteString(startOffset, startOffset + elementDeclaration.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int startOffset = document.getText().indexOf(elementDeclaration);
+      document.deleteString(startOffset, startOffset + elementDeclaration.length());
+      documentManager.commitDocument(document);
     });
 
     assertTrue(resources.isScanPending(psiFile1));
     resetScanCounter();
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
-        assertFalse(resources.hasResourceItem(ResourceType.ID, "newid"));
-        assertTrue(resources.getModificationCount() > generation2);
-      }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      ensureSingleScan();
+      assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "newid"));
+      assertTrue(resources.getModificationCount() > generation2);
     });
     UIUtil.dispatchAllInvocationEvents();
   }
 
-  public void testEditValueFileNoOp() throws Exception {
+  public void testEditValueFileNoOp() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -943,10 +897,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> strings = resources.getItemsOfType(ResourceType.STRING);
+    Collection<String> strings = resources.getResources(RES_AUTO, ResourceType.STRING).keySet();
     assertEquals(8, strings.size());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertTrue(resources.hasResourceItem(ResourceType.INTEGER, "card_flip_time_full"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.INTEGER, "card_flip_time_full"));
 
     long initial = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -954,24 +908,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     // Edit comment header; should be a no-op
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("Licensed under the");
-        document.insertString(offset, "This code is ");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("Licensed under the");
+      document.insertString(offset, "This code is ");
+      documentManager.commitDocument(document);
     });
     assertEquals(initial, resources.getModificationCount());
 
     // Test edit text NOT under an item: no-op
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf(" <item type=\"id\""); // insert BEFORE this
-        document.insertString(offset, "Ignored text");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf(" <item type=\"id\""); // insert BEFORE this
+      document.insertString(offset, "Ignored text");
+      documentManager.commitDocument(document);
     });
     assertEquals(initial, resources.getModificationCount());
 
@@ -979,7 +927,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testInsertNewElementWithId() throws Exception {
+  public void testInsertNewElementWithId() {
     resetScanCounter();
 
     // Make some miscellaneous edits in the file that have no bearing on the
@@ -991,9 +939,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final XmlFile xmlFile = (XmlFile)psiFile1;
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    Collection<String> layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(1, layouts.size());
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout1"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
 
     final long initial = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -1001,47 +949,41 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     // Insert tag (with an id) in layout file: should incrementally update set of ids
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final XmlTag header = findTagById(xmlFile, "text2");
-        assertNotNull(header);
-        int indentAreaBeforeTag = header.getTextOffset() - 1;
-        document.insertString(indentAreaBeforeTag,
-                              "<LinearLayout android:id=\"@+id/newid1\"><Child android:id=\"@+id/newid2\"/></LinearLayout>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final XmlTag header = findTagById(xmlFile, "text2");
+      assertNotNull(header);
+      int indentAreaBeforeTag = header.getTextOffset() - 1;
+      document.insertString(indentAreaBeforeTag,
+                            "<LinearLayout android:id=\"@+id/newid1\"><Child android:id=\"@+id/newid2\"/></LinearLayout>");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(initial < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid1"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid1"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid2"));
     resetScanCounter();
 
     // A second update should be incremental.
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final XmlTag header = findTagById(xmlFile, "text2");
-        assertNotNull(header);
-        int indentAreaBeforeTag = header.getTextOffset() - 1;
-        document.insertString(indentAreaBeforeTag,
-                              "<LinearLayout android:id=\"@+id/newid3\"><Child android:id=\"@+id/newid4\"/></LinearLayout>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final XmlTag header = findTagById(xmlFile, "text2");
+      assertNotNull(header);
+      int indentAreaBeforeTag = header.getTextOffset() - 1;
+      document.insertString(indentAreaBeforeTag,
+                            "<LinearLayout android:id=\"@+id/newid3\"><Child android:id=\"@+id/newid4\"/></LinearLayout>");
+      documentManager.commitDocument(document);
     });
     assertFalse(resources.isScanPending(psiFile1));
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid1"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid2"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid3"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "newid4"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid1"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid3"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "newid4"));
   }
 
-  public void testEditIdAttributeValue() throws Exception {
+  public void testEditIdAttributeValue() {
     resetScanCounter();
     // Edit the id attribute value of a layout item to change the set of available ids
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
@@ -1050,47 +992,41 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    Collection<String> layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(1, layouts.size());
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout1"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
 
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "note2Area"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "note2Area"));
 
     long generation = resources.getModificationCount();
     final XmlTag tag = findTagById(psiFile1, "noteArea");
     assertNotNull(tag);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        tag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/note2Area");
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      tag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/note2Area");
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "note2Area"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "note2Area"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
     resetScanCounter();
 
     // A second update should be incremental.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        tag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/note23Area");
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      tag.setAttribute(ATTR_ID, ANDROID_URI, "@+id/note23Area");
     });
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "note23Area"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "note2Area"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "note23Area"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "note2Area"));
     assertTrue(resources.getModificationCount() > generation2);
 
     // Shouldn't have done any full file rescans during the above edits
     ensureIncremental();
   }
 
-  public void testEditIdAttributeValue2() throws Exception {
+  public void testEditIdAttributeValue2() {
     // Edit the id attribute value: rather than by making a full value replacement,
     // perform a tiny edit on the character content; this takes a different code
     // path in the incremental updater
@@ -1103,12 +1039,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
+    Collection<String> layouts = resources.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(1, layouts.size());
-    assertNotNull(resources.getResourceItem(ResourceType.LAYOUT, "layout1"));
+    assertNotNull(resources.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
 
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "note2Area"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "note2Area"));
 
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
@@ -1116,40 +1052,34 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Edit value should cause update
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("noteArea");
-        document.insertString(offset + 4, "2");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("noteArea");
+      document.insertString(offset + 4, "2");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "note2Area"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "note2Area"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
     resetScanCounter();
 
     // A second update should be incremental.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("note2Area");
-        document.insertString(offset + 5, "3");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("note2Area");
+      document.insertString(offset + 5, "3");
+      documentManager.commitDocument(document);
     });
 
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "note23Area"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "note2Area"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "note23Area"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "note2Area"));
     assertTrue(resources.getModificationCount() > generation2);
 
     // Also check that for IDs the ResourceValue is nothing of consequence.
     ResourceItem idItem = getOnlyItem(resources, ResourceType.ID, "note23Area");
-    ResourceValue idValue = idItem.getResourceValue(false);
+    ResourceValue idValue = idItem.getResourceValue();
     assertNotNull(idValue);
     assertEquals("", idValue.getValue());
 
@@ -1158,7 +1088,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   }
 
 
-  public void testEditIdFromDrawable() throws Exception {
+  public void testEditIdFromDrawable() {
     resetScanCounter();
 
     // Mix PNGs and XML in the same directory.
@@ -1169,10 +1099,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> ids = resources.getItemsOfType(ResourceType.ID);
+    Collection<String> ids = resources.getResources(RES_AUTO, ResourceType.ID).keySet();
     assertNotNull(ids);
     assertContainsElements(ids, "focused_state", "default_state", "pressed_state");
-    Collection<String> drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    Collection<String> drawables = resources.getResources(RES_AUTO, ResourceType.DRAWABLE).keySet();
     assertContainsElements(drawables, "logo", "drawable_with_ids");
 
     // Now test an ID edit, to make sure that gets picked up too incrementally, just like layouts.
@@ -1182,13 +1112,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Edit value should cause update
     long generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("focused_state");
-        document.replaceString(offset, offset + 1, "l");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("focused_state");
+      document.replaceString(offset, offset + 1, "l");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
@@ -1196,25 +1123,22 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
     resetScanCounter();
 
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "locused_state"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "focused_state"));
-    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "locused_state"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "focused_state"));
+    drawables = resources.getResources(RES_AUTO, ResourceType.DRAWABLE).keySet();
     assertContainsElements(drawables, "logo", "drawable_with_ids");
 
     // Now try another edit, where things should be incremental now.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("default_state");
-        document.insertString(offset, "dd");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("default_state");
+      document.insertString(offset, "dd");
+      documentManager.commitDocument(document);
     });
     assertFalse(resources.isScanPending(psiFile1));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "dddefault_state"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "default_state"));
-    drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "dddefault_state"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "default_state"));
+    drawables = resources.getResources(RES_AUTO, ResourceType.DRAWABLE).keySet();
     assertContainsElements(drawables, "logo", "drawable_with_ids");
 
     // Shouldn't have done any full file rescans during the above edits
@@ -1289,7 +1213,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(generation < resources.getModificationCount());
   }
 
-  public void testEditValueText() throws Exception {
+  public void testEditValueText() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -1297,10 +1221,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> strings = resources.getItemsOfType(ResourceType.STRING);
+    Collection<String> strings = resources.getResources(RES_AUTO, ResourceType.STRING).keySet();
     assertEquals(8, strings.size());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertTrue(resources.hasResourceItem(ResourceType.INTEGER, "card_flip_time_full"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.INTEGER, "card_flip_time_full"));
 
     long generation = resources.getModificationCount();
 
@@ -1310,12 +1234,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Edit value should cause update
     final int screenSlideOffset = document.getText().indexOf("Screen Slide");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        document.replaceString(screenSlideOffset + 3, screenSlideOffset + 3, "e");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.replaceString(screenSlideOffset + 3, screenSlideOffset + 3, "e");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
@@ -1325,12 +1246,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Now try another edit, where things should be incremental now.
     final int screeenSlideOffset = document.getText().indexOf("Screeen Slide");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        document.replaceString(screeenSlideOffset + 3, screeenSlideOffset + 3, "e");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.replaceString(screeenSlideOffset + 3, screeenSlideOffset + 3, "e");
+      documentManager.commitDocument(document);
     });
 
     long generation2 = resources.getModificationCount();
@@ -1338,23 +1256,20 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(generation2, resources.getModificationCount());
 
     // Now observe it, do another edit, and see what happens
-    List<ResourceItem> labelList = resources.getResourceItem(ResourceType.STRING, "title_screen_slide");
+    List<ResourceItem> labelList = resources.getResources(RES_AUTO, ResourceType.STRING, "title_screen_slide");
     assertNotNull(labelList);
     assertEquals(1, labelList.size());
     ResourceItem slideLabel = labelList.get(0);
-    ResourceValue resourceValue = slideLabel.getResourceValue(false);
+    ResourceValue resourceValue = slideLabel.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Screeeen Slide", resourceValue.getValue());
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        document.deleteString(screenSlideOffset + 3, screenSlideOffset + 7);
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.deleteString(screenSlideOffset + 3, screenSlideOffset + 7);
+      documentManager.commitDocument(document);
     });
     assertTrue(generation2 < resources.getModificationCount());
-    resourceValue = slideLabel.getResourceValue(false);
+    resourceValue = slideLabel.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Scrn Slide", resourceValue.getValue());
 
@@ -1362,7 +1277,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testNestedEditValueText() throws Exception {
+  public void testNestedEditValueText() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1372,11 +1287,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    List<ResourceItem> labelList = resources.getResourceItem(ResourceType.STRING, "title_template_step");
+    List<ResourceItem> labelList = resources.getResources(RES_AUTO, ResourceType.STRING, "title_template_step");
     assertNotNull(labelList);
     assertEquals(1, labelList.size());
     ResourceItem label = labelList.get(0);
-    ResourceValue resourceValue = label.getResourceValue(false);
+    ResourceValue resourceValue = label.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Step ${step_number}: Lorem Ipsum", resourceValue.getValue());
 
@@ -1387,12 +1302,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Edit value should cause update
     final int textOffset = document.getText().indexOf("Lorem");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        document.insertString(textOffset + 1, "l");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.insertString(textOffset + 1, "l");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
@@ -1401,32 +1313,29 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Because of the file -> psi transition, we can't rely on the old ResourceItem references (replaced).
     // We need to ensure that callers don't hang on to the old ResourceItem, assuming it'll get
     // updated in place after an edit.
-    labelList = resources.getResourceItem(ResourceType.STRING, "title_template_step");
+    labelList = resources.getResources(RES_AUTO, ResourceType.STRING, "title_template_step");
     assertNotNull(labelList);
     assertEquals(1, labelList.size());
     label = labelList.get(0);
-    resourceValue = label.getResourceValue(false);
+    resourceValue = label.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Step ${step_number}: Llorem Ipsum", resourceValue.getValue());
     resetScanCounter();
 
     // Try a second edit
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int textOffset2 = document.getText().indexOf("Llorem");
-        document.insertString(textOffset + 1, "l");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int textOffset2 = document.getText().indexOf("Llorem");
+      document.insertString(textOffset + 1, "l");
+      documentManager.commitDocument(document);
     });
 
     assertTrue(generation2 < resources.getModificationCount());
-    List<ResourceItem> labelList2 = resources.getResourceItem(ResourceType.STRING, "title_template_step");
+    List<ResourceItem> labelList2 = resources.getResources(RES_AUTO, ResourceType.STRING, "title_template_step");
     assertNotNull(labelList2);
     assertEquals(1, labelList2.size());
     final ResourceItem label2 = labelList2.get(0);
-    resourceValue = label2.getResourceValue(false);
+    resourceValue = label2.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Step ${step_number}: Lllorem Ipsum", resourceValue.getValue());
 
@@ -1434,7 +1343,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditValueName() throws Exception {
+  public void testEditValueName() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1443,9 +1352,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> strings = resources.getItemsOfType(ResourceType.STRING);
+    Collection<String> strings = resources.getResources(RES_AUTO, ResourceType.STRING).keySet();
     assertEquals(8, strings.size());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
 
     long generation = resources.getModificationCount();
 
@@ -1454,41 +1363,35 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     final int offset = document.getText().indexOf("app_name");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        document.replaceString(offset, offset + 3, "tap");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.replaceString(offset, offset + 3, "tap");
+      documentManager.commitDocument(document);
     });
 
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "tap_name"));
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "tap_name"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     resetScanCounter();
 
     // However, the second edit can then be incremental.
     final long generation2 = resources.getModificationCount();
     final int offset2 = document.getText().indexOf("tap_name");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        document.replaceString(offset2, offset2 + 3, "rap");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.replaceString(offset2, offset2 + 3, "rap");
+      documentManager.commitDocument(document);
     });
     assertTrue(generation2 < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "rap_name"));
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "tap_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "rap_name"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "tap_name"));
 
     // Shouldn't have done any full file rescans during the above edits
     ensureIncremental();
   }
 
-  public void testAddValue() throws Exception {
+  public void testAddValue() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1497,9 +1400,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> strings = resources.getItemsOfType(ResourceType.STRING);
+    Collection<String> strings = resources.getResources(RES_AUTO, ResourceType.STRING).keySet();
     assertEquals(8, strings.size());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
 
     // Incrementally add in a new item
     final long generation = resources.getModificationCount();
@@ -1508,16 +1411,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     final int offset = document.getText().indexOf("    <item type");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String firstHalf = "<string name=\"new_s";
-        String secondHalf = "tring\">New String</string>";
-        document.insertString(offset, firstHalf);
-        documentManager.commitDocument(document);
-        document.insertString(offset + firstHalf.length(), secondHalf);
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String firstHalf = "<string name=\"new_s";
+      String secondHalf = "tring\">New String</string>";
+      document.insertString(offset, firstHalf);
+      documentManager.commitDocument(document);
+      document.insertString(offset + firstHalf.length(), secondHalf);
+      documentManager.commitDocument(document);
     });
 
     // This currently doesn't work incrementally because we get psi events that do not contain
@@ -1525,19 +1425,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // we can do a single update rather than rescanning the file 20 times)
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
-        assertTrue(generation < resources.getModificationCount());
-        assertTrue(resources.hasResourceItem(ResourceType.STRING, "new_string"));
-        //noinspection ConstantConditions
-        assertEquals("New String", resources.getResourceItem(ResourceType.STRING, "new_string").get(0).getResourceValue(false).getValue());
-      }
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      ensureSingleScan();
+      assertTrue(generation < resources.getModificationCount());
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "new_string"));
+      //noinspection ConstantConditions
+      assertEquals("New String", resources.getResources(RES_AUTO, ResourceType.STRING, "new_string").get(0).getResourceValue().getValue());
     });
   }
 
-  public void testRemoveValue() throws Exception {
+  public void testRemoveValue() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1546,159 +1443,141 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> strings = resources.getItemsOfType(ResourceType.STRING);
+    Collection<String> strings = resources.getResources(RES_AUTO, ResourceType.STRING).keySet();
     assertEquals(8, strings.size());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
 
     long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String textToRemove = "<string name=\"app_name\">Animations Demo</string>";
-        int offset = document.getText().indexOf(textToRemove);
-        document.deleteString(offset, offset + textToRemove.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String textToRemove = "<string name=\"app_name\">Animations Demo</string>";
+      int offset = document.getText().indexOf(textToRemove);
+      document.deleteString(offset, offset + textToRemove.length());
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "title_zoom"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_zoom"));
     resetScanCounter();
 
     // Now try another edit that is also a delete, where things should be incremental now.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String textToRemove2 = "<string name=\"title_zoom\">Zoom</string>";
-        int offset = document.getText().indexOf(textToRemove2);
-        document.deleteString(offset, offset + textToRemove2.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String textToRemove2 = "<string name=\"title_zoom\">Zoom</string>";
+      int offset = document.getText().indexOf(textToRemove2);
+      document.deleteString(offset, offset + textToRemove2.length());
+      documentManager.commitDocument(document);
     });
     assertTrue(generation2 < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "title_zoom"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_zoom"));
 
     // Shouldn't have done any full file rescans during the above edits
     ensureIncremental();
   }
 
-  public void testAddIdValue() throws Exception {
+  public void testAddIdValue() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "action_prev"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_flip"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "action_prev"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_flip"));
 
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("<item type=\"id\" name=\"action_next\" />");
-        document.insertString(offset, "<item type=\"id\" name=\"action_prev\" />");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("<item type=\"id\" name=\"action_next\" />");
+      document.insertString(offset, "<item type=\"id\" name=\"action_prev\" />");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_prev"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_flip"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_prev"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_flip"));
     resetScanCounter();
 
     // Try a second edit.
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("<item type=\"id\" name=\"action_next\" />");
-        document.insertString(offset, "<item type=\"id\" name=\"action_mid\" />");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("<item type=\"id\" name=\"action_next\" />");
+      document.insertString(offset, "<item type=\"id\" name=\"action_mid\" />");
+      documentManager.commitDocument(document);
     });
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_prev"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_mid"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_flip"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_prev"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_mid"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_flip"));
     ensureIncremental();
   }
 
-  public void testRemoveIdValue() throws Exception {
+  public void testRemoveIdValue() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_flip"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_flip"));
 
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String item = "<item type=\"id\" name=\"action_next\" />";
-        int offset = document.getText().indexOf(item);
-        document.deleteString(offset, offset + item.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String item = "<item type=\"id\" name=\"action_next\" />";
+      int offset = document.getText().indexOf(item);
+      document.deleteString(offset, offset + item.length());
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "action_next"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_flip"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_flip"));
     resetScanCounter();
 
     // Try a second edit.
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String item = "<item type=\"id\" name=\"action_flip\" />";
-        int offset = document.getText().indexOf(item);
-        document.deleteString(offset, offset + item.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String item = "<item type=\"id\" name=\"action_flip\" />";
+      int offset = document.getText().indexOf(item);
+      document.deleteString(offset, offset + item.length());
+      documentManager.commitDocument(document);
     });
 
     assertTrue(generation < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "action_next"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "action_flip"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "action_flip"));
     ensureIncremental();
   }
 
-  public void testChangeType() throws Exception {
+  public void testChangeType() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
-    assertFalse(resources.hasResourceItem(ResourceType.DIMEN, "action_next"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.DIMEN, "action_next"));
 
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -1706,34 +1585,28 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     final int offset = document.getText().indexOf("\"id\" name=\"action_next\" />") + 1;
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        document.replaceString(offset, offset + 2, "dimen");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.replaceString(offset, offset + 2, "dimen");
+      documentManager.commitDocument(document);
     });
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
-        assertTrue(generation < resources.getModificationCount());
-        assertFalse(resources.hasResourceItem(ResourceType.ID, "action_next"));
-        assertTrue(resources.hasResourceItem(ResourceType.DIMEN, "action_next"));
-      }
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      ensureSingleScan();
+      assertTrue(generation < resources.getModificationCount());
+      assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.DIMEN, "action_next"));
     });
   }
 
-  public void testBreakNameAttribute() throws Exception {
+  public void testBreakNameAttribute() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
 
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -1741,60 +1614,48 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     final int offset = document.getText().indexOf("name=\"app_name\">");
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        document.replaceString(offset + 2, offset + 3, "o"); // name => nome
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.replaceString(offset + 2, offset + 3, "o"); // name => nome
+      documentManager.commitDocument(document);
     });
 
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
-        assertTrue(generation < resources.getModificationCount());
-        assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-      }
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      ensureSingleScan();
+      assertTrue(generation < resources.getModificationCount());
+      assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     });
   }
 
-  public void testChangeValueTypeByTagNameEdit() throws Exception {
+  public void testChangeValueTypeByTagNameEdit() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.INTEGER, "card_flip_time_half"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.INTEGER, "card_flip_time_half"));
 
     final long generation = resources.getModificationCount();
     final XmlTag tag = findTagByName(psiFile1, "card_flip_time_half");
     assertNotNull(tag);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        tag.setName("dimen"); // Change <integer> to <dimen>
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      tag.setName("dimen"); // Change <integer> to <dimen>
     });
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      ensureSingleScan();
 
-        assertTrue(generation < resources.getModificationCount());
-        assertTrue(resources.hasResourceItem(ResourceType.DIMEN, "card_flip_time_half"));
-        assertFalse(resources.hasResourceItem(ResourceType.INTEGER, "card_flip_time_half"));
-      }
+      assertTrue(generation < resources.getModificationCount());
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.DIMEN, "card_flip_time_half"));
+      assertFalse(resources.hasResources(RES_AUTO, ResourceType.INTEGER, "card_flip_time_half"));
     });
   }
 
-  public void testEditStyleName() throws Exception {
+  public void testEditStyleName() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1803,7 +1664,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
 
     // Change style name
     long generation = resources.getModificationCount();
@@ -1811,42 +1672,36 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("DarkTheme");
-        document.replaceString(offset, offset + 4, "Grey");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("DarkTheme");
+      document.replaceString(offset, offset + 4, "Grey");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "GreyTheme"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "GreyTheme"));
     resetScanCounter();
 
     // Now try another edit where things should be incremental now.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("GreyTheme");
-        document.replaceString(offset, offset + 4, "Light");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("GreyTheme");
+      document.replaceString(offset, offset + 4, "Light");
+      documentManager.commitDocument(document);
     });
 
     assertTrue(generation2 < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "LightTheme"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "LightTheme"));
 
     // Shouldn't have done any full file rescans during the above edits
     ensureIncremental();
   }
 
-  public void testEditStyleParent() throws Exception {
+  public void testEditStyleParent() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1855,7 +1710,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
 
     // Change style parent
     final long generation = resources.getModificationCount();
@@ -1864,67 +1719,55 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     // First edit won't be incremental (file -> Psi).
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("android:Theme.Holo");
-        document.replaceString(offset, offset + "android:Theme.Holo".length(), "android:Theme.Light");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("android:Theme.Holo");
+      document.replaceString(offset, offset + "android:Theme.Holo".length(), "android:Theme.Light");
+      documentManager.commitDocument(document);
     });
 
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
-        assertTrue(generation < resources.getModificationCount());
-        ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-        ResourceValue resourceValue = style.getResourceValue(false);
-        assertNotNull(resourceValue);
-        assertTrue(resourceValue instanceof StyleResourceValue);
-        StyleResourceValue srv = (StyleResourceValue)resourceValue;
-        assertEquals("android:Theme.Light", srv.getParentStyle());
-        ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
-        assertNotNull(actionBarStyle);
-        assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
-        resetScanCounter();
-      }
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      ensureSingleScan();
+      assertTrue(generation < resources.getModificationCount());
+      ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
+      ResourceValue resourceValue = style.getResourceValue();
+      assertNotNull(resourceValue);
+      assertTrue(resourceValue instanceof StyleResourceValue);
+      StyleResourceValue srv = (StyleResourceValue)resourceValue;
+      assertEquals("android:Theme.Light", srv.getParentStyleName());
+      ResourceValue actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
+      assertNotNull(actionBarStyle);
+      assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
+      resetScanCounter();
     });
 
     // Even on the second edit we don't expect editing the style parent to be incremental.
     final long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("android:Theme.Light");
-        document.replaceString(offset, offset + "android:Theme.Light".length(), "android:Theme.Material");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("android:Theme.Light");
+      document.replaceString(offset, offset + "android:Theme.Light".length(), "android:Theme.Material");
+      documentManager.commitDocument(document);
     });
 
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
-        assertTrue(generation2 < resources.getModificationCount());
-        ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-        ResourceValue resourceValue = style.getResourceValue(false);
-        assertNotNull(resourceValue);
-        assertTrue(resourceValue instanceof StyleResourceValue);
-        StyleResourceValue srv = (StyleResourceValue)resourceValue;
-        assertEquals("android:Theme.Material", srv.getParentStyle());
-        ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
-        assertNotNull(actionBarStyle);
-        assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
-      }
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      ensureSingleScan();
+      assertTrue(generation2 < resources.getModificationCount());
+      ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
+      ResourceValue resourceValue = style.getResourceValue();
+      assertNotNull(resourceValue);
+      assertTrue(resourceValue instanceof StyleResourceValue);
+      StyleResourceValue srv = (StyleResourceValue)resourceValue;
+      assertEquals("android:Theme.Material", srv.getParentStyleName());
+      ResourceValue actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
+      assertNotNull(actionBarStyle);
+      assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
     });
   }
 
-  public void testEditStyleItemText() throws Exception {
+  public void testEditStyleItemText() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -1933,11 +1776,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
+    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
+    ResourceValue actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
 
@@ -1946,44 +1789,38 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("@style/DarkActionBar");
-        document.replaceString(offset + 7, offset + 11, "Grey");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("@style/DarkActionBar");
+      document.replaceString(offset + 7, offset + 11, "Grey");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    actionBarStyle = srv.getItem("actionBarStyle", true);
+    actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/GreyActionBar", actionBarStyle.getValue());
     resetScanCounter();
 
     // Now try another edit where things should be incremental now.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("@style/GreyActionBar");
-        document.replaceString(offset + 7, offset + 11, "Light");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("@style/GreyActionBar");
+      document.replaceString(offset + 7, offset + 11, "Light");
+      documentManager.commitDocument(document);
     });
     assertTrue(generation2 < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
 
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    actionBarStyle = srv.getItem("actionBarStyle", true);
+    actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/LightActionBar", actionBarStyle.getValue());
 
@@ -1991,7 +1828,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditStyleItemName() throws Exception {
+  public void testEditStyleItemName() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -2000,11 +1837,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
+    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    ResourceValue actionBarStyle = srv.getItem("actionBarStyle", true);
+    ResourceValue actionBarStyle = srv.getItem(ANDROID, "actionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
 
@@ -2013,44 +1850,38 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("android:actionBarStyle");
-        document.insertString(offset + 8, "n");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("android:actionBarStyle");
+      document.insertString(offset + 8, "n");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    actionBarStyle = srv.getItem("nactionBarStyle", true);
+    actionBarStyle = srv.getItem(ANDROID, "nactionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
     resetScanCounter();
 
     // Now try another edit, where things should be incremental now.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("android:nactionBarStyle");
-        document.insertString(offset + 8, "i");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("android:nactionBarStyle");
+      document.insertString(offset + 8, "i");
+      documentManager.commitDocument(document);
     });
 
     assertTrue(generation2 < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkTheme"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkTheme");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    actionBarStyle = srv.getItem("inactionBarStyle", true);
+    actionBarStyle = srv.getItem(ANDROID, "inactionBarStyle");
     assertNotNull(actionBarStyle);
     assertEquals("@style/DarkActionBar", actionBarStyle.getValue());
 
@@ -2058,7 +1889,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddStyleItem() throws Exception {
+  public void testAddStyleItem() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -2067,15 +1898,15 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkActionBar"));
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
+    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertSameElements(srv.getNames(), "android:background", "android:textColor");
-    ResourceValue background = srv.getItem("background", true);
+    checkDefinedItems(srv, "android:background", "android:textColor");
+    ResourceValue background = srv.getItem(ANDROID, "background");
     assertNotNull(background);
     assertEquals("@android:color/transparent", background.getValue());
-    ResourceValue textColor = srv.getItem("textColor", true);
+    ResourceValue textColor = srv.getItem(ANDROID, "textColor");
     assertNotNull(textColor);
     assertEquals("#008", textColor.getValue());
 
@@ -2084,47 +1915,41 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("<item name=\"android:background\"");
-        assertTrue(offset > 0);
-        document.insertString(offset, "<item name=\"android:textSize\">20sp</item>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("<item name=\"android:background\"");
+      assertTrue(offset > 0);
+      document.insertString(offset, "<item name=\"android:textSize\">20sp</item>");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkActionBar"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertSameElements(srv.getNames(), "android:background", "android:textSize", "android:textColor");
-    ResourceValue textSize = srv.getItem("textSize", true);
+    checkDefinedItems(srv, "android:background", "android:textSize", "android:textColor");
+    ResourceValue textSize = srv.getItem(ANDROID, "textSize");
     assertNotNull(textSize);
     assertEquals("20sp", textSize.getValue());
     resetScanCounter();
 
     // Now try a second edit.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("<item name=\"android:background\"");
-        assertTrue(offset > 0);
-        document.insertString(offset, "<item name=\"android:typeface\">monospace</item>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("<item name=\"android:background\"");
+      assertTrue(offset > 0);
+      document.insertString(offset, "<item name=\"android:typeface\">monospace</item>");
+      documentManager.commitDocument(document);
     });
     assertTrue(generation2 < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkActionBar"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertSameElements(srv.getNames(), "android:background", "android:typeface", "android:textSize", "android:textColor");
-    ResourceValue typeface = srv.getItem("typeface", true);
+    checkDefinedItems(srv, "android:background", "android:typeface", "android:textSize", "android:textColor");
+    ResourceValue typeface = srv.getItem(ANDROID, "typeface");
     assertNotNull(typeface);
     assertEquals("monospace", typeface.getValue());
 
@@ -2132,7 +1957,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testRemoveStyleItem() throws Exception {
+  public void testRemoveStyleItem() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -2141,15 +1966,15 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkActionBar"));
     ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
+    StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertSameElements(srv.getNames(), "android:background", "android:textColor");
-    ResourceValue background = srv.getItem("background", true);
+    checkDefinedItems(srv, "android:background", "android:textColor");
+    ResourceValue background = srv.getItem(ANDROID, "background");
     assertNotNull(background);
     assertEquals("@android:color/transparent", background.getValue());
-    ResourceValue textColor = srv.getItem("textColor", true);
+    ResourceValue textColor = srv.getItem(ANDROID, "textColor");
     assertNotNull(textColor);
     assertEquals("#008", textColor.getValue());
 
@@ -2158,54 +1983,48 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String item = ("<item name=\"android:textColor\">#008</item>");
-        int offset = document.getText().indexOf(item);
-        assertTrue(offset > 0);
-        document.deleteString(offset, offset + item.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String item = ("<item name=\"android:textColor\">#008</item>");
+      int offset = document.getText().indexOf(item);
+      assertTrue(offset > 0);
+      document.deleteString(offset, offset + item.length());
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkActionBar"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertSameElements(srv.getNames(), "android:background");
-    background = srv.getItem("background", true);
+    checkDefinedItems(srv, "android:background");
+    background = srv.getItem(ANDROID, "background");
     assertNotNull(background);
     assertEquals("@android:color/transparent", background.getValue());
     resetScanCounter();
 
     // Try second edit, which is incremental.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String item = ("<item name=\"android:background\">@android:color/transparent</item>");
-        int offset = document.getText().indexOf(item);
-        assertTrue(offset > 0);
-        document.deleteString(offset, offset + item.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String item = ("<item name=\"android:background\">@android:color/transparent</item>");
+      int offset = document.getText().indexOf(item);
+      assertTrue(offset > 0);
+      document.deleteString(offset, offset + item.length());
+      documentManager.commitDocument(document);
     });
     assertTrue(generation2 < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkActionBar"));
     style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-    srv = (StyleResourceValue)style.getResourceValue(false);
+    srv = (StyleResourceValue)style.getResourceValue();
     assertNotNull(srv);
-    assertEmpty(srv.getNames());
+    checkDefinedItems(srv);
 
     // Shouldn't have done any full file rescans during the above edits
     ensureIncremental();
   }
 
-  public void testEditDeclareStyleableAttr() throws Exception {
+  public void testEditDeclareStyleableAttr() {
     // Check edits of the name in a <declare-styleable> element.
     resetScanCounter();
 
@@ -2215,10 +2034,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
-    assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
-    ResourceItem style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-    DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomView"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
+    ResourceItem style = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
+    StyleableResourceValue srv = (StyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "watchType");
@@ -2232,49 +2051,43 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     AttrResourceValue minWidth = findAttr(srv.getAllAttributes(), "minWidth");
     assertNotNull(minWidth);
-    assertFalse(resources.hasResourceItem(ResourceType.ATTR, "minWidth"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ATTR, "minWidth"));
     AttrResourceValue ignoredNoFormat = findAttr(srv.getAllAttributes(), "ignore_no_format");
     assertNotNull(ignoredNoFormat);
-    assertFalse(resources.hasResourceItem(ResourceType.ATTR, "ignore_no_format"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ATTR, "ignore_no_format"));
 
     long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("MyCustomView");
-        document.insertString(offset + 8, "r");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("MyCustomView");
+      document.insertString(offset + 8, "r");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomrView"));
-    assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
-    assertFalse(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomrView"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomView"));
     resetScanCounter();
 
     // Now try another edit, where things should be incremental now.
     final long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("MyCustomrView");
-        document.insertString(offset + 8, "e");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("MyCustomrView");
+      document.insertString(offset + 8, "e");
+      documentManager.commitDocument(document);
     });
     assertTrue(generation2 < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomerView"));
-    assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
-    assertFalse(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
-    style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomerView");
-    srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomerView"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomView"));
+    style = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomerView");
+    srv = (StyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     watchType = findAttr(srv.getAllAttributes(), "watchType");
@@ -2286,7 +2099,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditAttr() throws Exception {
+  public void testEditAttr() {
     // Insert, remove and change <attr> attributes inside a <declare-styleable> and ensure that
     resetScanCounter();
 
@@ -2296,11 +2109,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomView"));
     // Fetch resource value to ensure it gets replaced after update
-    assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
-    ResourceItem style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-    DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
+    ResourceItem style = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
+    StyleableResourceValue srv = (StyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "watchType");
@@ -2317,40 +2130,34 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("watchType");
-        document.insertString(offset, "y");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("watchType");
+      document.insertString(offset, "y");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
-    assertTrue(resources.hasResourceItem(ResourceType.ATTR, "ywatchType"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "ywatchType"));
     resetScanCounter();
 
     // However, the second edit can then be incremental.
     final long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("ywatchType");
-        document.replaceString(offset, offset + 1, "w");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("ywatchType");
+      document.replaceString(offset, offset + 1, "w");
+      documentManager.commitDocument(document);
     });
 
     assertFalse(resources.isScanPending(psiFile1));
     assertTrue(generation2 < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
-    assertFalse(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
-    assertTrue(resources.hasResourceItem(ResourceType.ATTR, "wwatchType"));
-    style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-    srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomView"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "wwatchType"));
+    style = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
+    srv = (StyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     watchType = findAttr(srv.getAllAttributes(), "wwatchType");
@@ -2363,45 +2170,39 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Now insert a new item and delete one and make sure we're still okay
     resetScanCounter();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String crashAttr = "<attr name=\"crash\" format=\"boolean\" />";
-        int offset = document.getText().indexOf(crashAttr);
-        document.deleteString(offset, offset + crashAttr.length());
-        document.insertString(offset, "<attr name=\"newcrash\" format=\"integer\" />");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String crashAttr = "<attr name=\"crash\" format=\"boolean\" />";
+      int offset = document.getText().indexOf(crashAttr);
+      document.deleteString(offset, offset + crashAttr.length());
+      document.insertString(offset, "<attr name=\"newcrash\" format=\"integer\" />");
+      documentManager.commitDocument(document);
     });
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
-        assertTrue(generation2 < resources.getModificationCount());
-        assertTrue(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
-        assertFalse(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
-        assertTrue(resources.hasResourceItem(ResourceType.ATTR, "wwatchType"));
-        ResourceItem style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-        DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
-        assertNotNull(srv);
-        assertEquals(5, srv.getAllAttributes().size());
-        AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "wwatchType");
-        assertNotNull(watchType);
-        assertEquals(2, watchType.getAttributeValues().size());
-        assertEquals(Integer.valueOf(1), watchType.getAttributeValues().get("type_stopwatch"));
-        assertEquals(Integer.valueOf(0), watchType.getAttributeValues().get("type_countdown"));
-        AttrResourceValue crash = findAttr(srv.getAllAttributes(), "crash");
-        assertNull(crash);
-        AttrResourceValue newcrash = findAttr(srv.getAllAttributes(), "newcrash");
-        assertNotNull(newcrash);
-        assertNull(newcrash.getAttributeValues());
-      }
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      ensureSingleScan();
+      assertTrue(generation2 < resources.getModificationCount());
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomView"));
+      assertFalse(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "wwatchType"));
+      ResourceItem style1 = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
+      StyleableResourceValue srv1 = (StyleableResourceValue)style1.getResourceValue();
+      assertNotNull(srv1);
+      assertEquals(5, srv1.getAllAttributes().size());
+      AttrResourceValue watchType1 = findAttr(srv1.getAllAttributes(), "wwatchType");
+      assertNotNull(watchType1);
+      assertEquals(2, watchType1.getAttributeValues().size());
+      assertEquals(Integer.valueOf(1), watchType1.getAttributeValues().get("type_stopwatch"));
+      assertEquals(Integer.valueOf(0), watchType1.getAttributeValues().get("type_countdown"));
+      AttrResourceValue crash1 = findAttr(srv1.getAllAttributes(), "crash");
+      assertNull(crash1);
+      AttrResourceValue newcrash = findAttr(srv1.getAllAttributes(), "newcrash");
+      assertNotNull(newcrash);
+      assertNull(newcrash.getAttributeValues());
     });
   }
 
-  public void testEditDeclareStyleableFlag() throws Exception {
+  public void testEditDeclareStyleableFlag() {
     // Rename, add and remove <flag> and <enum> nodes under a declare styleable and assert
     // that the declare styleable parent is updated
     resetScanCounter();
@@ -2412,12 +2213,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomView"));
     // Fetch resource value to ensure it gets replaced after update
-    assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
-    assertFalse(resources.hasResourceItem(ResourceType.ATTR, "ignore_no_format"));
-    final ResourceItem style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-    final DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ATTR, "ignore_no_format"));
+    final ResourceItem style = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
+    final StyleableResourceValue srv = (StyleableResourceValue)style.getResourceValue();
     assertNotNull(srv);
     assertEquals(5, srv.getAllAttributes().size());
     final AttrResourceValue flagType = findAttr(srv.getAllAttributes(), "flagType");
@@ -2431,72 +2232,63 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("flag1");
-        document.insertString(offset + 1, "l");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("flag1");
+      document.insertString(offset + 1, "l");
+      documentManager.commitDocument(document);
     });
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
-        assertTrue(generation < resources.getModificationCount());
-        assertTrue(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
-        assertTrue(resources.hasResourceItem(ResourceType.ATTR, "flagType"));
-        ResourceItem style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-        DeclareStyleableResourceValue srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
-        assertNotNull(srv);
-        assertEquals(5, srv.getAllAttributes().size());
-        AttrResourceValue flagType = findAttr(srv.getAllAttributes(), "flagType");
-        assertNotNull(flagType);
-        assertEquals(2, flagType.getAttributeValues().size());
-        assertNull(flagType.getAttributeValues().get("flag1"));
-        assertEquals(Integer.valueOf(16), flagType.getAttributeValues().get("fllag1"));
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      ensureSingleScan();
+      assertTrue(generation < resources.getModificationCount());
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomView"));
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "flagType"));
+      ResourceItem style1 = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
+      StyleableResourceValue srv1 = (StyleableResourceValue)style1.getResourceValue();
+      assertNotNull(srv1);
+      assertEquals(5, srv1.getAllAttributes().size());
+      AttrResourceValue flagType1 = findAttr(srv1.getAllAttributes(), "flagType");
+      assertNotNull(flagType1);
+      assertEquals(2, flagType1.getAttributeValues().size());
+      assertNull(flagType1.getAttributeValues().get("flag1"));
+      assertEquals(Integer.valueOf(16), flagType1.getAttributeValues().get("fllag1"));
 
-        // Now insert a new enum and delete one and make sure we're still okay
-        resetScanCounter();
-        long nextGeneration = resources.getModificationCount();
-        WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-          @Override
-          public void run() {
-            String enumAttr = "<enum name=\"type_stopwatch\" value=\"1\"/>";
-            int offset = document.getText().indexOf(enumAttr);
-            document.deleteString(offset, offset + enumAttr.length());
-            String flagAttr = "<flag name=\"flag2\" value=\"0x20\"/>";
-            offset = document.getText().indexOf(flagAttr);
-            document.insertString(offset, "<flag name=\"flag3\" value=\"0x40\"/>");
-            documentManager.commitDocument(document);
-          }
-        });
-        assertTrue(nextGeneration < resources.getModificationCount());
-        assertTrue(resources.hasResourceItem(ResourceType.DECLARE_STYLEABLE, "MyCustomView"));
-        assertTrue(resources.hasResourceItem(ResourceType.ATTR, "watchType"));
-        assertTrue(resources.hasResourceItem(ResourceType.ATTR, "flagType"));
-        style = getOnlyItem(resources, ResourceType.DECLARE_STYLEABLE, "MyCustomView");
-        srv = (DeclareStyleableResourceValue)style.getResourceValue(false);
-        assertNotNull(srv);
-        assertEquals(5, srv.getAllAttributes().size());
-        flagType = findAttr(srv.getAllAttributes(), "flagType");
-        assertNotNull(flagType);
-        assertEquals(3, flagType.getAttributeValues().size());
-        assertEquals(Integer.valueOf(16), flagType.getAttributeValues().get("fllag1"));
-        assertEquals(Integer.valueOf(32), flagType.getAttributeValues().get("flag2"));
-        assertEquals(Integer.valueOf(64), flagType.getAttributeValues().get("flag3"));
+      // Now insert a new enum and delete one and make sure we're still okay
+      resetScanCounter();
+      long nextGeneration = resources.getModificationCount();
+      WriteCommandAction.runWriteCommandAction(null, () -> {
+        String enumAttr = "<enum name=\"type_stopwatch\" value=\"1\"/>";
+        int offset = document.getText().indexOf(enumAttr);
+        document.deleteString(offset, offset + enumAttr.length());
+        String flagAttr = "<flag name=\"flag2\" value=\"0x20\"/>";
+        offset = document.getText().indexOf(flagAttr);
+        document.insertString(offset, "<flag name=\"flag3\" value=\"0x40\"/>");
+        documentManager.commitDocument(document);
+      });
+      assertTrue(nextGeneration < resources.getModificationCount());
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLEABLE, "MyCustomView"));
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "watchType"));
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.ATTR, "flagType"));
+      style1 = getOnlyItem(resources, ResourceType.STYLEABLE, "MyCustomView");
+      srv1 = (StyleableResourceValue)style1.getResourceValue();
+      assertNotNull(srv1);
+      assertEquals(5, srv1.getAllAttributes().size());
+      flagType1 = findAttr(srv1.getAllAttributes(), "flagType");
+      assertNotNull(flagType1);
+      assertEquals(3, flagType1.getAttributeValues().size());
+      assertEquals(Integer.valueOf(16), flagType1.getAttributeValues().get("fllag1"));
+      assertEquals(Integer.valueOf(32), flagType1.getAttributeValues().get("flag2"));
+      assertEquals(Integer.valueOf(64), flagType1.getAttributeValues().get("flag3"));
 
-        AttrResourceValue watchType = findAttr(srv.getAllAttributes(), "watchType");
-        assertNotNull(watchType);
-        assertEquals(1, watchType.getAttributeValues().size());
-        assertEquals(Integer.valueOf(0), watchType.getAttributeValues().get("type_countdown"));
-      }
+      AttrResourceValue watchType = findAttr(srv1.getAllAttributes(), "watchType");
+      assertNotNull(watchType);
+      assertEquals(1, watchType.getAttributeValues().size());
+      assertEquals(Integer.valueOf(0), watchType.getAttributeValues().get("type_countdown"));
     });
   }
 
-  public void testEditPluralItems() throws Exception {
+  public void testEditPluralItems() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2505,9 +2297,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources);
 
     // Test that our tools:quantity works correctly for getResourceValue()
-    assertTrue(resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.PLURALS, "my_plural"));
     ResourceItem plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    ResourceValue resourceValue = plural.getResourceValue(false);
+    ResourceValue resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("@string/hello_two", resourceValue.getValue());
 
@@ -2520,19 +2312,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("@string/hello_two");
-        document.replaceString(offset + 9, offset + 10, "a");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("@string/hello_two");
+      document.replaceString(offset + 9, offset + 10, "a");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("@string/hallo_two", resourceValue.getValue());
     assertTrue(generation < resources.getModificationCount());
@@ -2540,17 +2329,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // However, the second edit can then be incremental.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("@string/hallo_two");
-        document.replaceString(offset + 9, offset + 10, "i");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("@string/hallo_two");
+      document.replaceString(offset + 9, offset + 10, "i");
+      documentManager.commitDocument(document);
     });
 
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("@string/hillo_two", resourceValue.getValue());
     assertTrue(generation2 < resources.getModificationCount());
@@ -2559,7 +2345,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddPluralItems() throws Exception {
+  public void testAddPluralItems() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2567,9 +2353,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.PLURALS, "my_plural"));
     ResourceItem plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    ResourceValue resourceValue = plural.getResourceValue(false);
+    ResourceValue resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     PluralsResourceValue prv = (PluralsResourceValue)resourceValue;
@@ -2582,19 +2368,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("<item quantity=\"two\">@string/hello_two</item>");
-        document.insertString(offset, "<item quantity=\"one_and_half\">@string/hello_one_and_half</item>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("<item quantity=\"two\">@string/hello_two</item>");
+      document.insertString(offset, "<item quantity=\"one_and_half\">@string/hello_one_and_half</item>");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     prv = (PluralsResourceValue)resourceValue;
@@ -2606,17 +2389,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Now try a second edit.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("<item quantity=\"one_and_half\">@string/hello_one_and_half</item>");
-        document.insertString(offset, "<item quantity=\"one_and_a_quarter\">@string/hello_one_and_a_quarter</item>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("<item quantity=\"one_and_half\">@string/hello_one_and_half</item>");
+      document.insertString(offset, "<item quantity=\"one_and_a_quarter\">@string/hello_one_and_a_quarter</item>");
+      documentManager.commitDocument(document);
     });
     assertTrue(resources.getModificationCount() > generation2);
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     prv = (PluralsResourceValue)resourceValue;
@@ -2627,7 +2407,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testRemovePluralItems() throws Exception {
+  public void testRemovePluralItems() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2635,9 +2415,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.PLURALS, "my_plural"));
     ResourceItem plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    ResourceValue resourceValue = plural.getResourceValue(false);
+    ResourceValue resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     PluralsResourceValue prv = (PluralsResourceValue)resourceValue;
@@ -2650,20 +2430,17 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String item = "<item quantity=\"one\">@string/hello</item>";
-        int offset = document.getText().indexOf(item);
-        document.deleteString(offset, offset + item.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String item = "<item quantity=\"one\">@string/hello</item>";
+      int offset = document.getText().indexOf(item);
+      document.deleteString(offset, offset + item.length());
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     prv = (PluralsResourceValue)resourceValue;
@@ -2674,17 +2451,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resetScanCounter();
     // Try a second edit.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String item = "<item quantity=\"other\">@string/hello_many</item>";
-        int offset = document.getText().indexOf(item);
-        document.deleteString(offset, offset + item.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String item = "<item quantity=\"other\">@string/hello_many</item>";
+      int offset = document.getText().indexOf(item);
+      document.deleteString(offset, offset + item.length());
+      documentManager.commitDocument(document);
     });
     plural = getOnlyItem(resources, ResourceType.PLURALS, "my_plural");
-    resourceValue = plural.getResourceValue(false);
+    resourceValue = plural.getResourceValue();
     assertNotNull(resourceValue);
     assertInstanceOf(resourceValue, PluralsResourceValue.class);
     prv = (PluralsResourceValue)resourceValue;
@@ -2697,7 +2471,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testEditArrayItemText() throws Exception {
+  public void testEditArrayItemText() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2707,15 +2481,15 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Test that our tools:index and fallback handling for arrays works correctly
     // for getResourceValue()
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 4", resourceValue.getValue());
 
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("10", resourceValue.getValue());
 
@@ -2723,38 +2497,32 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("Question 4");
-        document.insertString(offset, "Q");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("Question 4");
+      document.insertString(offset, "Q");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("QQuestion 4", resourceValue.getValue());
     resetScanCounter();
 
     // However, the second edit can then be incremental.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("QQuestion 4");
-        document.insertString(offset, "Q");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("QQuestion 4");
+      document.insertString(offset, "Q");
+      documentManager.commitDocument(document);
     });
 
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("QQQuestion 4", resourceValue.getValue());
 
@@ -2762,7 +2530,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddStringArrayItemElements() throws Exception {
+  public void testAddStringArrayItemElements() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2774,9 +2542,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 4", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2786,20 +2554,17 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("Question 3", arv.getElement(2));
     assertEquals("Question 4", arv.getElement(3));
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("<item>Question 3</item>");
-        document.insertString(offset, "<item>Question 2.5</item>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("<item>Question 3</item>");
+      document.insertString(offset, "<item>Question 2.5</item>");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 3", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2811,18 +2576,15 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resetScanCounter();
 
     // However, the second edit can then be incremental.
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("<item>Question 3</item>");
-        document.insertString(offset, "<item>Question 2.75</item>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("<item>Question 3</item>");
+      document.insertString(offset, "<item>Question 2.75</item>");
+      documentManager.commitDocument(document);
     });
 
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 2.75", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2837,7 +2599,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testRemoveStringArrayItemElements() throws Exception {
+  public void testRemoveStringArrayItemElements() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2849,31 +2611,28 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 4", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
     ArrayResourceValue arv = (ArrayResourceValue)resourceValue;
     assertEquals(5, arv.getElementCount());
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String elementString = "<item>Question 3</item>";
-        final int offset = document.getText().indexOf(elementString);
-        document.deleteString(offset, offset + elementString.length());
-        document.insertString(offset, "<item>Question X</item>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String elementString = "<item>Question 3</item>";
+      final int offset = document.getText().indexOf(elementString);
+      document.deleteString(offset, offset + elementString.length());
+      document.insertString(offset, "<item>Question X</item>");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 4", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2882,19 +2641,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resetScanCounter();
 
     // Now try another edit that is also a delete item, where things should be incremental now.
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String elementString = "<item>Question X</item>";
-        final int offset = document.getText().indexOf(elementString);
-        document.deleteString(offset, offset + elementString.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String elementString = "<item>Question X</item>";
+      final int offset = document.getText().indexOf(elementString);
+      document.deleteString(offset, offset + elementString.length());
+      documentManager.commitDocument(document);
     });
 
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "security_questions");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("Question 5", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2905,7 +2661,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddIntegerArrayItemElements() throws Exception {
+  public void testAddIntegerArrayItemElements() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2917,9 +2673,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "integers"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("10", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2928,20 +2684,17 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("10", arv.getElement(0));
     assertEquals("20", arv.getElement(1));
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("<item>10</item>");
-        document.insertString(offset, "<item>5</item>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("<item>10</item>");
+      document.insertString(offset, "<item>5</item>");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("5", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2953,17 +2706,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resetScanCounter();
 
     // Now try a second edit.
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("<item>5</item>");
-        document.insertString(offset, "<item>2</item>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("<item>5</item>");
+      document.insertString(offset, "<item>2</item>");
+      documentManager.commitDocument(document);
     });
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("2", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -2978,7 +2728,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testRemoveIntegerArrayItemElements() throws Exception {
+  public void testRemoveIntegerArrayItemElements() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -2990,9 +2740,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "integers"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("10", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -3001,21 +2751,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("10", arv.getElement(0));
     assertEquals("20", arv.getElement(1));
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String item = "<item>10</item>";
-        int offset = document.getText().indexOf(item);
-        document.deleteString(offset, offset + item.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String item = "<item>10</item>";
+      int offset = document.getText().indexOf(item);
+      document.deleteString(offset, offset + item.length());
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertTrue(resourceValue instanceof ArrayResourceValue);
     arv = (ArrayResourceValue)resourceValue;
@@ -3024,18 +2771,15 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resetScanCounter();
 
     // Try a second edit.
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String item = "<item>20</item>";
-        int offset = document.getText().indexOf(item);
-        document.deleteString(offset, offset + item.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String item = "<item>20</item>";
+      int offset = document.getText().indexOf(item);
+      document.deleteString(offset, offset + item.length());
+      documentManager.commitDocument(document);
     });
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "integers"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "integers"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "integers");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertTrue(resourceValue instanceof ArrayResourceValue);
     arv = (ArrayResourceValue)resourceValue;
@@ -3045,7 +2789,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testAddTypedArrayItemElements() throws Exception {
+  public void testAddTypedArrayItemElements() {
     resetScanCounter();
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -3057,9 +2801,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "my_colors"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "my_colors"));
     ResourceItem array = getOnlyItem(resources, ResourceType.ARRAY, "my_colors");
-    ResourceValue resourceValue = array.getResourceValue(false);
+    ResourceValue resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("#FFFF0000", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -3069,20 +2813,17 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals("#FF00FF00", arv.getElement(1));
     assertEquals("#FF0000FF", arv.getElement(2));
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("<item>#FFFF0000</item>");
-        document.insertString(offset, "<item>#FFFFFF00</item>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("<item>#FFFF0000</item>");
+      document.insertString(offset, "<item>#FFFFFF00</item>");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "my_colors"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "my_colors"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "my_colors");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("#FFFFFF00", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -3094,17 +2835,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     resetScanCounter();
 
     // Now try a second edit.
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        int offset = document.getText().indexOf("<item>#FFFFFF00</item>");
-        document.insertString(offset, "<item>#FFFFFFFF</item>");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("<item>#FFFFFF00</item>");
+      document.insertString(offset, "<item>#FFFFFFFF</item>");
+      documentManager.commitDocument(document);
     });
-    assertTrue(resources.hasResourceItem(ResourceType.ARRAY, "my_colors"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ARRAY, "my_colors"));
     array = getOnlyItem(resources, ResourceType.ARRAY, "my_colors");
-    resourceValue = array.getResourceValue(false);
+    resourceValue = array.getResourceValue();
     assertNotNull(resourceValue);
     assertEquals("#FFFFFFFF", resourceValue.getValue());
     assertTrue(resourceValue instanceof ArrayResourceValue);
@@ -3119,7 +2857,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ensureIncremental();
   }
 
-  public void testGradualEdits() throws Exception {
+  public void testGradualEdits() {
     resetScanCounter();
 
     // Gradually type in the contents of a value file and make sure we end up with a valid view of the world
@@ -3133,12 +2871,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        document.deleteString(0, document.getTextLength());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      document.deleteString(0, document.getTextLength());
+      documentManager.commitDocument(document);
     });
 
     final String contents =
@@ -3173,38 +2908,32 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     for (int i = 0; i < contents.length(); i++) {
       final int offset = i;
       final char character = contents.charAt(i);
-      WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-        @Override
-        public void run() {
-          document.insertString(offset, String.valueOf(character));
-          documentManager.commitDocument(document);
-        }
+      WriteCommandAction.runWriteCommandAction(null, () -> {
+        document.insertString(offset, String.valueOf(character));
+        documentManager.commitDocument(document);
       });
     }
 
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        ensureSingleScan();
-        assertTrue(generation < resources.getModificationCount());
-        assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      ensureSingleScan();
+      assertTrue(generation < resources.getModificationCount());
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkActionBar"));
 
-        assertTrue(resources.hasResourceItem(ResourceType.STYLE, "DarkActionBar"));
-        ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
-        StyleResourceValue srv = (StyleResourceValue)style.getResourceValue(false);
-        assertNotNull(srv);
-        ResourceValue actionBarStyle = srv.getItem("background", true);
-        assertNotNull(actionBarStyle);
-        assertEquals("@android:color/transparent", actionBarStyle.getValue());
-        //noinspection ConstantConditions
-        assertEquals("Zoom", getOnlyItem(resources, ResourceType.STRING, "title_zoom").getResourceValue(false).getValue());
-      }
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkActionBar"));
+      ResourceItem style = getOnlyItem(resources, ResourceType.STYLE, "DarkActionBar");
+      StyleResourceValue srv = (StyleResourceValue)style.getResourceValue();
+      assertNotNull(srv);
+      ResourceValue actionBarStyle = srv.getItem(ANDROID, "background");
+      assertNotNull(actionBarStyle);
+      assertEquals("@android:color/transparent", actionBarStyle.getValue());
+      //noinspection ConstantConditions
+      assertEquals("Zoom", getOnlyItem(resources, ResourceType.STRING, "title_zoom").getResourceValue().getValue());
     });
   }
 
-  public void testEmptyNames_values() throws Exception {
+  public void testEmptyNames_values() {
     VirtualFile file1 = myFixture.copyFileToProject(VALUES_EMPTY, "res/values/empty.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -3220,7 +2949,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     UIUtil.dispatchAllInvocationEvents();
-    resources.getConfiguredResources(new FolderConfiguration());
+    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
 
     WriteCommandAction.runWriteCommandAction(null, () -> {
       document.replaceString(0,
@@ -3229,7 +2958,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     UIUtil.dispatchAllInvocationEvents();
-    resources.getConfiguredResources(new FolderConfiguration());
+    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
 
     // Now exercise childAdded, without a full rescan.
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -3243,10 +2972,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     UIUtil.dispatchAllInvocationEvents();
-    resources.getConfiguredResources(new FolderConfiguration());
+    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
   }
 
-  public void testEmptyNames_layouts() throws Exception {
+  public void testEmptyNames_layouts() {
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -3269,10 +2998,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
 
     UIUtil.dispatchAllInvocationEvents();
-    resources.getConfiguredResources(new FolderConfiguration());
+    ResourceRepositoryUtil.getConfiguredResources(resources, new FolderConfiguration());
   }
 
-  public void testIssue56799() throws Exception {
+  public void testIssue56799() {
     // Test deleting a string; ensure that the whole repository is updated correctly.
     // Regression test for
     //   https://code.google.com/p/android/issues/detail?id=56799
@@ -3281,65 +3010,59 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name2"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
 
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String string = "    <string name=\"hello_world\">Hello world!</string>";
-        final int offset = document.getText().indexOf(string);
-        assertTrue(offset != -1);
-        document.deleteString(offset, offset + string.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String string = "    <string name=\"hello_world\">Hello world!</string>";
+      final int offset = document.getText().indexOf(string);
+      assertTrue(offset != -1);
+      document.deleteString(offset, offset + string.length());
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "action_settings"));
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "action_settings"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
     resetScanCounter();
 
     // However, the second edit can then be incremental.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String string = "    <string name=\"app_name\">My Application 574</string>";
-        final int offset = document.getText().indexOf(string);
-        assertTrue(offset != -1);
-        document.deleteString(offset, offset + string.length());
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String string = "    <string name=\"app_name\">My Application 574</string>";
+      final int offset = document.getText().indexOf(string);
+      assertTrue(offset != -1);
+      document.deleteString(offset, offset + string.length());
+      documentManager.commitDocument(document);
     });
 
     assertFalse(resources.isScanPending(psiFile1));
     assertTrue(generation2 < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "action_settings"));
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "action_settings"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
     ensureIncremental();
   }
 
-  public void testEditXmlProcessingInstructionAttrInValues() throws Exception {
+  public void testEditXmlProcessingInstructionAttrInValues() {
     // Test editing an attribute in the XML prologue of a values file.
     VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name2"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
 
 
     final long generation = resources.getModificationCount();
@@ -3347,15 +3070,12 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String string = "utf-8";
-        final int offset = document.getText().indexOf(string);
-        assertTrue(offset != -1);
-        document.insertString(offset, "t");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String string = "utf-8";
+      final int offset = document.getText().indexOf(string);
+      assertTrue(offset != -1);
+      document.insertString(offset, "t");
+      documentManager.commitDocument(document);
     });
 
     // Edits in XML processing instructions have no effect on the resource repository
@@ -3364,30 +3084,27 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
   }
 
-  public void testEditXmlProcessingInstructionAttrInLayout() throws Exception {
+  public void testEditXmlProcessingInstructionAttrInLayout() {
     // Test editing an attribute in the XML prologue of a layout file with IDs.
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
 
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        String string = "utf-8";
-        final int offset = document.getText().indexOf(string);
-        assertTrue(offset != -1);
-        document.insertString(offset, "t");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      String string = "utf-8";
+      final int offset = document.getText().indexOf(string);
+      assertTrue(offset != -1);
+      document.insertString(offset, "t");
+      documentManager.commitDocument(document);
     });
 
     // Edits in XML processing instructions have no effect on the resource repository
@@ -3396,7 +3113,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     UIUtil.dispatchAllInvocationEvents();
   }
 
-  public void testIssue64239() throws Exception {
+  public void testIssue64239() {
     // If you duplicate a string, then change its contents (which still duplicated),
     // and then finally rename the string, then the value of the second clone will
     // continue to be referred from the first string:
@@ -3415,10 +3132,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     //noinspection ConstantConditions
     assertEquals("My Application 574",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -3430,87 +3147,75 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final String string = "<string name=\"app_name\">New Value</string>";
 
     // First duplicate the line:
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        document.insertString(offset, string);
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      document.insertString(offset, string);
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     resetScanCounter();
 
     // Second edit (duplicate again)
     long generation2 = resources.getModificationCount();
     final int offset2 = document.getText().indexOf("</resources>");
     final String string2 = "<string name=\"app_name\">Another Value</string>";
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        document.insertString(offset2, string2);
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      document.insertString(offset2, string2);
+      documentManager.commitDocument(document);
     });
 
     assertTrue(generation2 < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
 
     // Then replace the name of the duplicated string
     long generation3 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        int startOffset = offset + "<string name=\"".length();
-        document.replaceString(startOffset, startOffset + "app_name".length(), "new_name");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      int startOffset = offset + "<string name=\"".length();
+      document.replaceString(startOffset, startOffset + "app_name".length(), "new_name");
+      documentManager.commitDocument(document);
     });
 
     assertFalse(resources.isScanPending(psiFile1));
     assertTrue(generation3 < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "new_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "new_name"));
 
     //noinspection ConstantConditions
     assertEquals("New Value",
-                 resources.getResourceItem(ResourceType.STRING, "new_name").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "new_name").get(0).getResourceValue().getValue());
     //noinspection ConstantConditions
     assertEquals("My Application 574",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
     // Replace the second duplicate.
     long generation4 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        int startOffset = offset2 + "<string name=\"".length();
-        document.replaceString(startOffset, startOffset + "app_name".length(), "new_name2");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      int startOffset = offset2 + "<string name=\"".length();
+      document.replaceString(startOffset, startOffset + "app_name".length(), "new_name2");
+      documentManager.commitDocument(document);
     });
     assertFalse(resources.isScanPending(psiFile1));
     assertTrue(generation4 < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "new_name"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "new_name2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "new_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "new_name2"));
 
     //noinspection ConstantConditions
     assertEquals("New Value",
-                 resources.getResourceItem(ResourceType.STRING, "new_name").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "new_name").get(0).getResourceValue().getValue());
     //noinspection ConstantConditions
     assertEquals("Another Value",
-                 resources.getResourceItem(ResourceType.STRING, "new_name2").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "new_name2").get(0).getResourceValue().getValue());
     //noinspection ConstantConditions
     assertEquals("My Application 574",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
     ensureIncremental();
   }
 
-  public void testLoadDuplicatedValues() throws Exception {
+  public void testLoadDuplicatedValues() {
     resetScanCounter();
 
     // Test loading up a file that already illegally had duplicates.
@@ -3519,11 +3224,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "dupe_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "dupe_name"));
     //noinspection ConstantConditions
     assertEquals("Animations Demo",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
     long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -3532,47 +3237,41 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Try editting one of the duplicated string contents, and check that
     // the copies are not tied together.
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        String origString = "<string name=\"app_name\">Animations Demo</string>";
-        String newString = "<string name=\"dupe_name\">Duplicate Demo</string>";
-        int offset = document.getText().indexOf(origString);
-        document.replaceString(offset, offset + origString.length(), newString);
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      String origString = "<string name=\"app_name\">Animations Demo</string>";
+      String newString = "<string name=\"dupe_name\">Duplicate Demo</string>";
+      int offset = document.getText().indexOf(origString);
+      document.replaceString(offset, offset + origString.length(), newString);
+      documentManager.commitDocument(document);
     });
     assertFalse(resources.isScanPending(psiFile1));
     assertTrue(generation < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "dupe_name"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "dupe_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     //noinspection ConstantConditions
     assertEquals("Duplicate Demo",
-                 resources.getResourceItem(ResourceType.STRING, "dupe_name").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "dupe_name").get(0).getResourceValue().getValue());
     //noinspection ConstantConditions
     assertEquals("Animations Demo",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
     // Try editting something else, like the ID item.
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "action_prev"));
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        String origString = "<item type=\"id\" name=\"action_next\" />";
-        String newString = "<item type=\"id\" name=\"action_prev\" />";
-        int offset = document.getText().indexOf(origString);
-        document.replaceString(offset, offset + origString.length(), newString);
-        documentManager.commitDocument(document);
-      }
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "action_prev"));
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      String origString = "<item type=\"id\" name=\"action_next\" />";
+      String newString = "<item type=\"id\" name=\"action_prev\" />";
+      int offset = document.getText().indexOf(origString);
+      document.replaceString(offset, offset + origString.length(), newString);
+      documentManager.commitDocument(document);
     });
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_next"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "action_prev"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_next"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "action_prev"));
 
     ensureIncremental();
   }
 
-  public void testLoadValuesWithBadName() throws Exception {
+  public void testLoadValuesWithBadName() {
     resetScanCounter();
 
     // If a file had bad value names, test that it can still be parsed.
@@ -3581,48 +3280,45 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app*name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app*name"));
     //noinspection ConstantConditions
     assertEquals("Animations Demo",
-                 resources.getResourceItem(ResourceType.STRING, "app*name").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "app*name").get(0).getResourceValue().getValue());
 
     long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        String origString = "<string name=\"app*name\">Animations Demo</string>";
-        String newString = "<string name=\"app_name\">Fixed Animations Demo</string>";
-        int offset = document.getText().indexOf(origString);
-        document.replaceString(offset, offset + origString.length(), newString);
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      String origString = "<string name=\"app*name\">Animations Demo</string>";
+      String newString = "<string name=\"app_name\">Fixed Animations Demo</string>";
+      int offset = document.getText().indexOf(origString);
+      document.replaceString(offset, offset + origString.length(), newString);
+      documentManager.commitDocument(document);
     });
     assertFalse(resources.isScanPending(psiFile1));
     assertTrue(generation < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app*name"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app*name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
     //noinspection ConstantConditions
     assertEquals("Fixed Animations Demo",
-                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+                 resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0).getResourceValue().getValue());
 
     ensureIncremental();
   }
 
-  public void testIdScanFromLayout() throws Exception {
+  public void testIdScanFromLayout() {
     // Test for http://b.android.com/172239
     myFixture.copyFileToProject(LAYOUT_ID_SCAN, "res/layout/layout1.xml");
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    Collection<String> ids = resources.getItemsOfType(ResourceType.ID);
+    Collection<String> ids = resources.getResources(RES_AUTO, ResourceType.ID).keySet();
     assertNotNull(ids);
     assertContainsElements(ids, "header", "image", "styledView", "imageView", "imageView2", "imageButton", "nonExistent");
   }
 
-  public void testSync() throws Exception {
+  public void testSync() {
     // Regression test for https://code.google.com/p/android/issues/detail?id=79629
     // Ensure that sync() handles rescanning immediately
     VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
@@ -3630,111 +3326,50 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile1);
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name2"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name2"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
 
     final long generation = resources.getModificationCount();
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        // The sync() call must be called from the dispatch thread
-        WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-          @Override
-          public void run() {
-            String string = "    <string name=\"hello_world\">Hello world!</string>";
-            final int offset = document.getText().indexOf(string);
-            assertTrue(offset != -1);
+    UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      // The sync() call must be called from the dispatch thread
+      WriteCommandAction.runWriteCommandAction(null, () -> {
+        String string = "    <string name=\"hello_world\">Hello world!</string>";
+        final int offset = document.getText().indexOf(string);
+        assertTrue(offset != -1);
 
-            // Simulate an edit event that triggers the incremental updater to
-            // give up and schedule a subsequent update instead. (This used to be
-            // the case here, but as of IntelliJ 14.1 it's now delivering more
-            // accurate events for the below edits, which made the sync-test
-            // fail because it would already have correct results *before* the
-            // sync. Therefore, we simply trigger a pending scan (which stops
-            // subequent incremental events from being processed).
-            resources.rescan(psiFile1, ResourceFolderType.VALUES);
+        // Simulate an edit event that triggers the incremental updater to
+        // give up and schedule a subsequent update instead. (This used to be
+        // the case here, but as of IntelliJ 14.1 it's now delivering more
+        // accurate events for the below edits, which made the sync-test
+        // fail because it would already have correct results *before* the
+        // sync. Therefore, we simply trigger a pending scan (which stops
+        // subequent incremental events from being processed).
+        resources.rescan(psiFile1, ResourceFolderType.VALUES);
 
-            document.deleteString(offset, offset + string.length());
-            documentManager.commitDocument(document);
-          }
-        });
+        document.deleteString(offset, offset + string.length());
+        documentManager.commitDocument(document);
+      });
 
-        // The strings file contains definitions for app_name, action_settings and hello_world.
-        // We've manually deleted the hello_world string. We now check that app_name remains
-        // in the resource set, and that hello_world is removed. (We check that hello_world
-        // is there before the sync, and gone after.)
-        assertTrue(resources.isScanPending(psiFile1));
-        assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-        assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+      // The strings file contains definitions for app_name, action_settings and hello_world.
+      // We've manually deleted the hello_world string. We now check that app_name remains
+      // in the resource set, and that hello_world is removed. (We check that hello_world
+      // is there before the sync, and gone after.)
+      assertTrue(resources.isScanPending(psiFile1));
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
 
-        assertTrue(ApplicationManager.getApplication().isDispatchThread());
-        resources.sync();
-        assertTrue(generation < resources.getModificationCount());
-        assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-        assertFalse(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
-        assertFalse(resources.isScanPending(psiFile1));
-      }
+      assertTrue(ApplicationManager.getApplication().isDispatchThread());
+      resources.sync();
+      assertTrue(generation < resources.getModificationCount());
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+      assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
+      assertFalse(resources.isScanPending(psiFile1));
     });
-  }
-
-  public void testDataBindingVariables() {
-    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml");
-    final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
-    assertNotNull(psiFile1);
-    final ResourceFolderRepository resources = createRepository();
-    assertNotNull(resources);
-    AndroidFacet facet = resources.getFacet();
-    assertEquals(1, resources.getDataBindingResourceFiles().size());
-    final String appPackage = DataBindingUtil.getGeneratedPackageName(facet);
-    final DataBindingInfo info = resources.getDataBindingResourceFiles().get(appPackage + ".databinding.LayoutWithDataBindingBinding");
-    assertNotNull(info);
-    List<PsiDataBindingResourceItem> variables = info.getItems(DataBindingResourceType.VARIABLE);
-    assertEquals(1, variables.size());
-    final PsiDataBindingResourceItem variable1 = variables.get(0);
-    assertEquals("variable1", variable1.getName());
-    assertEquals("String", variable1.getExtra(SdkConstants.ATTR_TYPE));
-    assertNotNull(variable1.getXmlTag());
-
-    List<PsiDataBindingResourceItem> imports = new ArrayList<>();// clone to be able to sort
-    imports.addAll(info.getItems(DataBindingResourceType.IMPORT));
-    assertEquals(2, imports.size());
-
-    Collections.sort(imports, new Comparator<PsiDataBindingResourceItem>() {
-      @Override
-      public int compare(PsiDataBindingResourceItem item1, PsiDataBindingResourceItem item2) {
-        return item1.getExtra(SdkConstants.ATTR_TYPE).compareTo(item2.getExtra(SdkConstants.ATTR_TYPE));
-      }
-    });
-
-    PsiDataBindingResourceItem import1 = imports.get(0);
-    assertEquals("p1.p2.import1", import1.getExtra(SdkConstants.ATTR_TYPE));
-    assertNull(import1.getExtra(SdkConstants.ATTR_ALIAS));
-    assertNotNull(import1.getXmlTag());
-
-    PsiDataBindingResourceItem import2 = imports.get(1);
-    assertEquals("p1.p2.import2", import2.getExtra(SdkConstants.ATTR_TYPE));
-    assertEquals("i2", import2.getExtra(SdkConstants.ATTR_ALIAS));
-    assertNotNull(import2.getXmlTag());
-
-    List<DataBindingInfo.ViewWithId> viewsWithIds = info.getViewsWithIds();
-    assertEquals(6, viewsWithIds.size());
-    Collections.sort(viewsWithIds, new Comparator<DataBindingInfo.ViewWithId>() {
-      @Override
-      public int compare(DataBindingInfo.ViewWithId v1, DataBindingInfo.ViewWithId v2) {
-        return v1.name.compareTo(v2.name);
-      }
-    });
-    validateViewWithId(facet, viewsWithIds.get(0), "foo.bar.Magic", "magicView");
-    validateViewWithId(facet, viewsWithIds.get(1), "android.view.View", "normalViewTag");
-    validateViewWithId(facet, viewsWithIds.get(2), "android.view.SurfaceView", "surfaceView1");
-    validateViewWithId(facet, viewsWithIds.get(3), "android.widget.TextView", "textView1");
-    validateViewWithId(facet, viewsWithIds.get(4), "android.view.ViewGroup", "viewTag");
-    validateViewWithId(facet, viewsWithIds.get(5), "android.webkit.WebView", "webView1");
   }
 
   public void testInitFromHelperThread() throws Exception {
@@ -3746,23 +3381,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile1);
     VirtualFile file2 = myFixture.copyFileToProject(VALUES_WITH_DUPES, "res/values-en/values_with_dupes.xml");
     ExecutorService executorService = SequentialTaskExecutor.createSequentialApplicationPoolExecutor(getTestName(false));
-    Future<ResourceFolderRepository> loadJob = executorService.submit(new Callable<ResourceFolderRepository>() {
-      @Override
-      public ResourceFolderRepository call() throws Exception {
-        return createRepository();
-      }
-    });
+    Future<ResourceFolderRepository> loadJob = executorService.submit(() -> createRepository());
     final ResourceFolderRepository resources = loadJob.get();
     assertNotNull(resources);
     AndroidFacet facet = resources.getFacet();
     assertEquals(1, resources.getDataBindingResourceFiles().size());
-    assertEquals("land", getOnlyItem(resources, ResourceType.LAYOUT, "layout_with_data_binding").getQualifiers());
-    ResourceItem dupedStringItem = resources.getResourceItem(ResourceType.STRING, "app_name").get(0);
+    assertEquals("land", getOnlyItem(resources, ResourceType.LAYOUT, "layout_with_data_binding").getConfiguration().getQualifierString());
+    ResourceItem dupedStringItem = resources.getResources(RES_AUTO, ResourceType.STRING, "app_name").get(0);
     assertNotNull(dupedStringItem);
-    assertEquals("en", dupedStringItem.getQualifiers());
+    assertEquals("en", dupedStringItem.getConfiguration().getQualifierString());
   }
 
-  public void testEditColorStateList() throws Exception {
+  public void testEditColorStateList() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(COLOR_STATELIST, "res/color/my_state_list.xml");
@@ -3771,7 +3401,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.COLOR, "my_state_list"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.COLOR, "my_state_list"));
 
     // Edit comment
     long generation = resources.getModificationCount();
@@ -3779,13 +3409,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final Document document = documentManager.getDocument(psiFile1);
     assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf(" -->");
-        document.replaceString(offset, offset, "more comment");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf(" -->");
+      document.replaceString(offset, offset, "more comment");
+      documentManager.commitDocument(document);
     });
 
     // Shouldn't have caused any change
@@ -3794,13 +3421,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Edit processing instruction
     generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("utf-8");
-        document.replaceString(offset, offset + 5, "other encoding");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("utf-8");
+      document.replaceString(offset, offset + 5, "other encoding");
+      documentManager.commitDocument(document);
     });
 
     // Shouldn't have caused any change
@@ -3809,13 +3433,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     // Edit state list
     generation = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("myColor");
-        document.replaceString(offset, offset + 7, "myNewColor");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("myColor");
+      document.replaceString(offset, offset + 7, "myNewColor");
+      documentManager.commitDocument(document);
     });
 
     // Should have caused a modification but not a rescan
@@ -3826,7 +3447,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   /**
    * Check that whitespace edits do not trigger a rescan
    */
-  public void testEmptyEdits() throws Exception {
+  public void testEmptyEdits() {
     resetScanCounter();
 
     VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
@@ -3841,61 +3462,49 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(document);
 
     // Add a space to an attribute name.
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("app_name");
-        document.insertString(offset, " ");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("app_name");
+      document.insertString(offset, " ");
+      documentManager.commitDocument(document);
     });
     // First edit won't be incremental (file -> Psi).
     assertTrue(resources.isScanPending(psiFile1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(generation < resources.getModificationCount());
-    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, " app_name"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, " app_name"));
     resetScanCounter();
 
     // Try a second edit, adding another space.
     long generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf(" app_name");
-        document.insertString(offset, " ");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf(" app_name");
+      document.insertString(offset, " ");
+      documentManager.commitDocument(document);
     });
 
     assertFalse(resources.isScanPending(psiFile1));
     assertTrue(generation2 < resources.getModificationCount());
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "  app_name"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "  app_name"));
     generation2 = resources.getModificationCount();
 
     ResourceItem item = getOnlyItem(resources, ResourceType.STRING, "title_zoom");
     //noinspection ConstantConditions
-    assertEquals("Zoom", item.getResourceValue(false).getValue());
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("Zoom");
-        document.deleteString(offset, offset + "Zoom".length());
-        documentManager.commitDocument(document);
-      }
+    assertEquals("Zoom", item.getResourceValue().getValue());
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("Zoom");
+      document.deleteString(offset, offset + "Zoom".length());
+      documentManager.commitDocument(document);
     });
     assertFalse(resources.isScanPending(psiFile1));
     assertTrue(generation2 < resources.getModificationCount());
 
     // Inserting spaces in the middle of a tag shouldn't trigger a rescan or even change the modification count
     generation2 = resources.getModificationCount();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        final int offset = document.getText().indexOf("Card Flip");
-        document.insertString(offset, "   ");
-        documentManager.commitDocument(document);
-      }
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      final int offset = document.getText().indexOf("Card Flip");
+      document.insertString(offset, "   ");
+      documentManager.commitDocument(document);
     });
     assertFalse(resources.isScanPending(psiFile1));
     assertEquals(generation2, resources.getModificationCount());
@@ -3916,20 +3525,20 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     assertFalse(resources.hasFreshFileCache());
-    assertEquals(3, resources.getInitialScanState().numXml);
-    assertEquals(resources.getInitialScanState().numXml, resources.getInitialScanState().numXmlReparsed);
+    assertEquals(3, resources.myInitialScanState.numXml);
+    assertEquals(resources.myInitialScanState.numXml, resources.myInitialScanState.numXmlReparsed);
 
     resources.saveStateToFile();
 
-    ResourceFolderRegistry.reset();
+    myRegistry.reset();
     ResourceFolderRepository resourcesReloaded = createRepository();
     assertNotSame(resources, resourcesReloaded);
     assertTrue(resourcesReloaded.hasFreshFileCache());
-    assertEquals(3, resourcesReloaded.getInitialScanState().numXml);
-    assertEquals(0, resourcesReloaded.getInitialScanState().numXmlReparsed);
+    assertEquals(3, resourcesReloaded.myInitialScanState.numXml);
+    assertEquals(0, resourcesReloaded.myInitialScanState.numXmlReparsed);
   }
 
-  public void testSerialization() throws Exception {
+  public void testSerialization() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout.xml");
     myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml");
@@ -3943,23 +3552,23 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(resources);
     assertFalse(resources.hasFreshFileCache());
     // We don't count items that are never cached (so 7 total XML minus 1 data binding file)
-    assertEquals(6, resources.getInitialScanState().numXml);
-    assertEquals(resources.getInitialScanState().numXml, resources.getInitialScanState().numXmlReparsed);
+    assertEquals(6, resources.myInitialScanState.numXml);
+    assertEquals(resources.myInitialScanState.numXml, resources.myInitialScanState.numXmlReparsed);
     resources.saveStateToFile();
 
-    ResourceFolderRegistry.reset();
+    myRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
     // Check that fromBlob really avoided reparsing some XML files, before checking equivalence of items.
     assertTrue(fromBlob.hasFreshFileCache());
-    assertEquals(6, fromBlob.getInitialScanState().numXml);
-    assertEquals(0, fromBlob.getInitialScanState().numXmlReparsed);
+    assertEquals(6, fromBlob.myInitialScanState.numXml);
+    assertEquals(0, fromBlob.myInitialScanState.numXmlReparsed);
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
   }
 
-  public void testInvalidateCache() throws Exception {
+  public void testInvalidateCache() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/layout.xml");
     myFixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml");
@@ -3968,16 +3577,16 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
     resources.saveStateToFile();
-    ResourceFolderRegistry.reset();
+    myRegistry.reset();
     ResourceFolderRepositoryFileCacheService.get().invalidate();
     ResourceFolderRepository resourcesReloaded = createRepository();
     resourcesReloaded.saveStateToFile();
 
-    assertNotSame(0, resourcesReloaded.getInitialScanState().numXmlReparsed);
-    assertEquals(resourcesReloaded.getInitialScanState().numXml, resourcesReloaded.getInitialScanState().numXmlReparsed);
+    assertNotSame(0, resourcesReloaded.myInitialScanState.numXmlReparsed);
+    assertEquals(resourcesReloaded.myInitialScanState.numXml, resourcesReloaded.myInitialScanState.numXmlReparsed);
   }
 
-  public void testSerializationRemoveXmlFileAndLoad() throws Exception {
+  public void testSerializationRemoveXmlFileAndLoad() {
     VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
     final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
     assertNotNull(psiFile1);
@@ -3989,42 +3598,32 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Check "resources" before deletion, and "fromBlob" after deletion.
     // Note that the in-memory "resources" also gets updated from a Psi listener
     // so save to blob before picking up the Psi change.
-    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
-    assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "logo"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "logo"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
     resources.saveStateToFile();
-    ResourceFolderRegistry.reset();
+    myRegistry.reset();
 
     // Delete a non-value file.
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        psiFile1.delete();
-      }
-    });
+    WriteCommandAction.runWriteCommandAction(null, () -> psiFile1.delete());
 
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
     // Non-value files aren't counted in the cache, so deleting doesn't affect freshness.
     assertTrue(fromBlob.hasFreshFileCache());
 
-    assertFalse(fromBlob.hasResourceItem(ResourceType.LAYOUT, "layout"));
-    assertFalse(fromBlob.hasResourceItem(ResourceType.ID, "noteArea"));
-    assertTrue(fromBlob.hasResourceItem(ResourceType.DRAWABLE, "logo"));
-    assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_world"));
+    assertFalse(fromBlob.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout"));
+    assertFalse(fromBlob.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
+    assertTrue(fromBlob.hasResources(RES_AUTO, ResourceType.DRAWABLE, "logo"));
+    assertTrue(fromBlob.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
 
     // Update the blob first, then delete a value file.
     resources.saveStateToFile();
-    ResourceFolderRegistry.reset();
+    myRegistry.reset();
     final PsiFile psiFile2 = PsiManager.getInstance(getProject()).findFile(file2);
     assertNotNull(psiFile2);
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        psiFile2.delete();
-      }
-    });
+    WriteCommandAction.runWriteCommandAction(null, () -> psiFile2.delete());
 
     final ResourceFolderRepository fromBlob2 = createRepository();
     assertNotNull(fromBlob2);
@@ -4032,13 +3631,13 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // We don't count extraneous cache entries (but perhaps we should).
     assertTrue(fromBlob2.hasFreshFileCache());
 
-    assertFalse(fromBlob2.hasResourceItem(ResourceType.LAYOUT, "layout"));
-    assertFalse(fromBlob2.hasResourceItem(ResourceType.ID, "noteArea"));
-    assertTrue(fromBlob2.hasResourceItem(ResourceType.DRAWABLE, "logo"));
-    assertFalse(fromBlob2.hasResourceItem(ResourceType.STRING, "hello_world"));
+    assertFalse(fromBlob2.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout"));
+    assertFalse(fromBlob2.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
+    assertTrue(fromBlob2.hasResources(RES_AUTO, ResourceType.DRAWABLE, "logo"));
+    assertFalse(fromBlob2.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
   }
 
-  public void testSerializationRemoveDrawableFileAndLoad() throws Exception {
+  public void testSerializationRemoveDrawableFileAndLoad() {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
     VirtualFile file1 = myFixture.copyFileToProject(DRAWABLE, "res/drawable/logo.png");
     final PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
@@ -4047,28 +3646,23 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.LAYOUT, "layout"));
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "noteArea"));
-    assertTrue(resources.hasResourceItem(ResourceType.DRAWABLE, "logo"));
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "logo"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
 
     resources.saveStateToFile();
-    ResourceFolderRegistry.reset();
+    myRegistry.reset();
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        psiFile1.delete();
-      }
-    });
+    WriteCommandAction.runWriteCommandAction(null, () -> psiFile1.delete());
 
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
 
-    assertTrue(fromBlob.hasResourceItem(ResourceType.LAYOUT, "layout"));
-    assertTrue(fromBlob.hasResourceItem(ResourceType.ID, "noteArea"));
-    assertFalse(fromBlob.hasResourceItem(ResourceType.DRAWABLE, "logo"));
-    assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_world"));
+    assertTrue(fromBlob.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout"));
+    assertTrue(fromBlob.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
+    assertFalse(fromBlob.hasResources(RES_AUTO, ResourceType.DRAWABLE, "logo"));
+    assertTrue(fromBlob.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
   }
 
   public void testSerializationEditXmlFileAndLoad() throws Exception {
@@ -4078,9 +3672,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
 
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
     resources.saveStateToFile();
-    ResourceFolderRegistry.reset();
+    myRegistry.reset();
 
     // Editing via the DocumentManager.commitDocument interface doesn't touch the lastModified
     // stamp of the actual file in time, so just edit the file directly and bump the lastModified
@@ -4097,19 +3691,19 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(fromBlob);
     assertFalse(fromBlob.hasFreshFileCache());
 
-    assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_there"));
+    assertTrue(fromBlob.hasResources(RES_AUTO, ResourceType.STRING, "hello_there"));
   }
 
-  public void testSerializationAddXmlFileAndLoad() throws Exception {
+  public void testSerializationAddXmlFileAndLoad() {
     myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
-    assertFalse(resources.hasResourceItem(ResourceType.LAYOUT, "layout"));
-    assertFalse(resources.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
 
     resources.saveStateToFile();
-    ResourceFolderRegistry.reset();
+    myRegistry.reset();
 
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout.xml");
 
@@ -4118,20 +3712,20 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Freshness depends on a heurisitic, but now half the XML files are parsed.
     assertFalse(fromBlob.hasFreshFileCache());
 
-    assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_world"));
-    assertTrue(fromBlob.hasResourceItem(ResourceType.LAYOUT, "layout"));
-    assertTrue(fromBlob.hasResourceItem(ResourceType.ID, "noteArea"));
+    assertTrue(fromBlob.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
+    assertTrue(fromBlob.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout"));
+    assertTrue(fromBlob.hasResources(RES_AUTO, ResourceType.ID, "noteArea"));
   }
 
-  public void testSerializationAddDrawableFileAndLoad() throws Exception {
+  public void testSerializationAddDrawableFileAndLoad() {
     myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     final ResourceFolderRepository resources = createRepository();
     assertNotNull(resources);
-    assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
-    assertFalse(resources.hasResourceItem(ResourceType.DRAWABLE, "logo"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
+    assertFalse(resources.hasResources(RES_AUTO, ResourceType.DRAWABLE, "logo"));
 
     resources.saveStateToFile();
-    ResourceFolderRegistry.reset();
+    myRegistry.reset();
 
     myFixture.copyFileToProject(DRAWABLE, "res/drawable/logo.png");
 
@@ -4140,11 +3734,11 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Freshness depends on a heurisitic, but we don't count PNG in the blob.
     assertTrue(fromBlob.hasFreshFileCache());
 
-    assertTrue(fromBlob.hasResourceItem(ResourceType.STRING, "hello_world"));
-    assertTrue(fromBlob.hasResourceItem(ResourceType.DRAWABLE, "logo"));
+    assertTrue(fromBlob.hasResources(RES_AUTO, ResourceType.STRING, "hello_world"));
+    assertTrue(fromBlob.hasResources(RES_AUTO, ResourceType.DRAWABLE, "logo"));
   }
 
-  public void testSerializeLayoutAndIdResourceValues() throws Exception {
+  public void testSerializeLayoutAndIdResourceValues() {
     myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout/activity_foo.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout-xlarge-land/activity_foo.xml");
@@ -4153,7 +3747,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     FolderConfiguration config = FolderConfiguration.getConfigForFolder("layout-xlarge-land");
     assertNotNull(config);
     // For layouts, the ResourceValue#getValue is the file path.
-    ResourceValue value = resources.getConfiguredValue(ResourceType.LAYOUT, "activity_foo", config);
+    ResourceValue value = ResourceRepositoryUtil.getConfiguredValue(resources, ResourceType.LAYOUT, "activity_foo", config);
     assertNotNull(value);
     String valueString = value.getValue();
     assertNotNull(valueString);
@@ -4161,14 +3755,14 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(valueString.contains("layout-xlarge-land"));
 
     resources.saveStateToFile();
-    ResourceFolderRegistry.reset();
+    myRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
     assertTrue(fromBlob.hasFreshFileCache());
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
-    value = fromBlob.getConfiguredValue(ResourceType.LAYOUT, "activity_foo", config);
+    value = ResourceRepositoryUtil.getConfiguredValue(fromBlob, ResourceType.LAYOUT, "activity_foo", config);
     assertNotNull(value);
     valueString = value.getValue();
     assertNotNull(valueString);
@@ -4176,7 +3770,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(valueString.contains("layout-xlarge-land"));
   }
 
-  public void testSerializeDensityBasedResourceValues() throws Exception {
+  public void testSerializeDensityBasedResourceValues() {
     myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
     myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-hdpi/drawable_foo.xml");
     myFixture.copyFileToProject(DRAWABLE_ID_SCAN, "res/drawable-xhdpi/drawable_foo.xml");
@@ -4186,7 +3780,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     FolderConfiguration config = FolderConfiguration.getConfigForFolder("drawable-xhdpi");
     assertNotNull(config);
     // For drawable xml, the ResourceValue#getValue is the file path.
-    ResourceValue value = resources.getConfiguredValue(ResourceType.DRAWABLE, "drawable_foo", config);
+    ResourceValue value = ResourceRepositoryUtil.getConfiguredValue(resources, ResourceType.DRAWABLE, "drawable_foo", config);
     assertNotNull(value);
     String valueString = value.getValue();
     assertNotNull(valueString);
@@ -4196,7 +3790,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(Density.XHIGH, densityValue.getResourceDensity());
 
     resources.saveStateToFile();
-    ResourceFolderRegistry.reset();
+    myRegistry.reset();
     final ResourceFolderRepository fromBlob = createRepository();
     assertNotNull(fromBlob);
     // We don't count files that we explicitly skip against freshness.
@@ -4204,7 +3798,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertNotSame(resources, fromBlob);
     assertTrue(fromBlob.equalFilesItems(resources));
-    value = fromBlob.getConfiguredValue(ResourceType.DRAWABLE, "drawable_foo", config);
+    value = ResourceRepositoryUtil.getConfiguredValue(fromBlob, ResourceType.DRAWABLE, "drawable_foo", config);
     assertNotNull(value);
     valueString = value.getValue();
     assertNotNull(valueString);
@@ -4215,9 +3809,41 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(Density.XHIGH, densityValue.getResourceDensity());
   }
 
-  private static void validateViewWithId(AndroidFacet facet, DataBindingInfo.ViewWithId viewWithId, String qualified, String variableName) {
-    assertTrue(DataBindingUtil.resolveViewPsiType(viewWithId, facet).equalsToText(qualified));
-    assertEquals(variableName, viewWithId.name);
+  /**
+   * Checks that we handle PSI invalidation behaviour for PsiResourceItem.
+   * When getting out of dumb mode, if the file has been modified during the dumb mode,
+   * the file (and tags) will be invalidated.
+   * Regression test for http://b/73623886.
+   */
+  public void testFileInvalidationAfterDumbMode() {
+    DumbServiceImpl dumbService = (DumbServiceImpl)DumbService.getInstance(getProject());
+    dumbService.setDumb(true);
+    VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
+
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile);
+    assertNotNull(document);
+
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      int offset = document.getText().indexOf("DarkTheme");
+      document.replaceString(offset, offset + 4, "Grey");
+      documentManager.commitDocument(document);
+    });
+    // First edit won't be incremental (file -> Psi).
+    assertTrue(resources.isScanPending(psiFile));
+    UIUtil.dispatchAllInvocationEvents();
+
+    ResourceItem item = resources.getResources(RES_AUTO,
+                                               ResourceType.STYLE,
+                                               "GreyTheme").get(0);
+    dumbService.setDumb(false);
+    // Before the fix, item.getResourceValue would return null since the file is not invalid after getting out of dumb mode
+    assertNotNull(item.getResourceValue());
   }
 
   @Nullable
@@ -4253,5 +3879,9 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     }
     return null;
+  }
+
+  private static void checkDefinedItems(@NotNull StyleResourceValue style, @NotNull String... attributes) {
+    assertSameElements(Collections2.transform(style.getDefinedItems(), StyleItemResourceValue::getAttrName), attributes);
   }
 }

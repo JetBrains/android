@@ -3,9 +3,50 @@
   <item name="android.telecom.Call android.telecom.Call.RttCall getRttCall()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.telecom.Call void answer(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.Call void handoverTo(android.telecom.PhoneAccountHandle, int, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.Call.Callback void onHandoverFailed(android.telecom.Call, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.Call.Callback.HANDOVER_FAILURE_DEST_APP_REJECTED, android.telecom.Call.Callback.HANDOVER_FAILURE_NOT_SUPPORTED, android.telecom.Call.Callback.HANDOVER_FAILURE_USER_REJECTED, android.telecom.Call.Callback.HANDOVER_FAILURE_ONGOING_EMERGENCY_CALL, android.telecom.Call.Callback.HANDOVER_FAILURE_UNKNOWN}" />
+    </annotation>
+  </item>
   <item name="android.telecom.Call.RttCall void setRttMode(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.telecom.Call.RttCall.RTT_MODE_FULL, android.telecom.Call.RttCall.RTT_MODE_HCO, android.telecom.Call.RttCall.RTT_MODE_VCO}" />
+    </annotation>
+  </item>
+  <item name="android.telecom.CallAudioState CallAudioState(boolean, int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.CallAudioState.ROUTE_EARPIECE, android.telecom.CallAudioState.ROUTE_BLUETOOTH, android.telecom.CallAudioState.ROUTE_WIRED_HEADSET, android.telecom.CallAudioState.ROUTE_SPEAKER}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.CallAudioState CallAudioState(boolean, int, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.CallAudioState.ROUTE_EARPIECE, android.telecom.CallAudioState.ROUTE_BLUETOOTH, android.telecom.CallAudioState.ROUTE_WIRED_HEADSET, android.telecom.CallAudioState.ROUTE_SPEAKER}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.CallAudioState int getRoute()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.CallAudioState.ROUTE_EARPIECE, android.telecom.CallAudioState.ROUTE_BLUETOOTH, android.telecom.CallAudioState.ROUTE_WIRED_HEADSET, android.telecom.CallAudioState.ROUTE_SPEAKER}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.telecom.CallAudioState int getSupportedRouteMask()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.CallAudioState.ROUTE_EARPIECE, android.telecom.CallAudioState.ROUTE_BLUETOOTH, android.telecom.CallAudioState.ROUTE_WIRED_HEADSET, android.telecom.CallAudioState.ROUTE_SPEAKER}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.telecom.Conference void putExtras(android.os.Bundle) 0">
@@ -14,11 +55,28 @@
   <item name="android.telecom.Conference void setExtras(android.os.Bundle) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.telecom.Connection void handleRttUpgradeResponse(android.telecom.Connection.RttTextStream) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telecom.Connection void onStartRtt(android.telecom.Connection.RttTextStream) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.telecom.Connection void putExtras(android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telecom.Connection void requestBluetoothAudio(android.bluetooth.BluetoothDevice) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.telecom.Connection void setExtras(android.os.Bundle) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telecom.ConnectionService void onHandoverFailed(android.telecom.ConnectionRequest, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.Call.Callback.HANDOVER_FAILURE_DEST_APP_REJECTED, android.telecom.Call.Callback.HANDOVER_FAILURE_NOT_SUPPORTED, android.telecom.Call.Callback.HANDOVER_FAILURE_USER_REJECTED, android.telecom.Call.Callback.HANDOVER_FAILURE_ONGOING_EMERGENCY_CALL, android.telecom.Call.Callback.HANDOVER_FAILURE_UNKNOWN}" />
+    </annotation>
+  </item>
+  <item name="android.telecom.InCallService void requestBluetoothAudio(android.bluetooth.BluetoothDevice) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.telecom.PhoneAccountHandle PhoneAccountHandle(android.content.ComponentName, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -76,6 +134,11 @@
       <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
     </annotation>
   </item>
+  <item name="android.telecom.TelecomManager boolean isTtySupported()">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.READ_PRIVILEGED_PHONE_STATE&quot;, &quot;android.permission.READ_PHONE_STATE&quot;}" />
+    </annotation>
+  </item>
   <item name="android.telecom.TelecomManager boolean isVoiceMailNumber(android.telecom.PhoneAccountHandle, java.lang.String)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
@@ -99,6 +162,12 @@
   <item name="android.telecom.TelecomManager java.util.List&lt;android.telecom.PhoneAccountHandle&gt; getSelfManagedPhoneAccounts()">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.READ_PHONE_STATE&quot;" />
+    </annotation>
+  </item>
+  <item name="android.telecom.TelecomManager void acceptHandover(android.net.Uri, int, android.telecom.PhoneAccountHandle) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telecom.VideoProfile.STATE_AUDIO_ONLY, android.telecom.VideoProfile.STATE_TX_ENABLED, android.telecom.VideoProfile.STATE_RX_ENABLED, android.telecom.VideoProfile.STATE_BIDIRECTIONAL, android.telecom.VideoProfile.STATE_PAUSED}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.telecom.TelecomManager void acceptRingingCall()">

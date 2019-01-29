@@ -25,7 +25,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class TextInputLayoutHandlerTest {
 
   @Test
-  public void testGetXml() {
+  public void testGetXmlForM1() {
     @Language("XML")
     String expected = "<android.support.design.widget.TextInputLayout\n" +
                       "    android:layout_width=\"match_parent\"\n" +
@@ -37,6 +37,22 @@ public class TextInputLayoutHandlerTest {
                       "        android:hint=\"hint\" />\n" +
                       "</android.support.design.widget.TextInputLayout>\n";
     TextInputLayoutHandler handler = new TextInputLayoutHandler();
-    assertThat(handler.getXml(SdkConstants.TEXT_INPUT_LAYOUT, XmlType.COMPONENT_CREATION)).isEqualTo(expected);
+    assertThat(handler.getXml(SdkConstants.TEXT_INPUT_LAYOUT.oldName(), XmlType.COMPONENT_CREATION)).isEqualTo(expected);
+  }
+
+  @Test
+  public void testGetXmlForM2() {
+    @Language("XML")
+    String expected = "<com.google.android.material.textfield.TextInputLayout\n" +
+                      "    android:layout_width=\"match_parent\"\n" +
+                      "    android:layout_height=\"wrap_content\">\n" +
+                      "\n" +
+                      "    <com.google.android.material.textfield.TextInputEditText\n" +
+                      "        android:layout_width=\"match_parent\"\n" +
+                      "        android:layout_height=\"wrap_content\"\n" +
+                      "        android:hint=\"hint\" />\n" +
+                      "</com.google.android.material.textfield.TextInputLayout>\n";
+    TextInputLayoutHandler handler = new TextInputLayoutHandler();
+    assertThat(handler.getXml(SdkConstants.TEXT_INPUT_LAYOUT.newName(), XmlType.COMPONENT_CREATION)).isEqualTo(expected);
   }
 }

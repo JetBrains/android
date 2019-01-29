@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
-import com.android.builder.model.ClassField;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.SourcelessResourceItem;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveResult;
 import org.jetbrains.annotations.NotNull;
@@ -32,21 +33,18 @@ import org.jetbrains.annotations.Nullable;
  * the normal resource value parser to create resource values from XML, and (2) we need to implement getQualifiers since there is no source
  * file.
  */
-public class DynamicResourceValueItem extends SourcelessResourceItem {
-  public DynamicResourceValueItem(@Nullable String namespace,
-                                  @NonNull ResourceType type,
-                                  @NonNull ClassField field) {
+public class DynamicResourceValueItem implements ResourceItem, ResolvableResourceItem {
+  @NotNull private final ResourceValue myResourceValue;
+
+  public DynamicResourceValueItem(@NotNull ResourceNamespace namespace,
+                                  @NotNull ResourceType type,
+                                  @NotNull String name,
+                                  @NotNull String value) {
     // Dynamic values are always in the "current module", so they don't live in a namespace.
-    super(field.getName(), namespace, type, null, null);
-    mResourceValue = new ResourceValue(ResourceUrl.create(namespace, type, field.getName()), field.getValue());
+    myResourceValue = new ResourceValueImpl(namespace, type, name, value);
   }
 
-  @NonNull
   @Override
-  public String getQualifiers() {
-    return "";
-  }
-
   @NotNull
   public ResolveResult createResolveResult() {
     return new ResolveResult() {
@@ -62,5 +60,64 @@ public class DynamicResourceValueItem extends SourcelessResourceItem {
         return false;
       }
     };
+  }
+
+  @Override
+  @NotNull
+  public String getName() {
+    return myResourceValue.getName();
+  }
+
+  @Override
+  @NotNull
+  public ResourceType getType() {
+    return myResourceValue.getResourceType();
+  }
+
+  @Override
+  @Nullable
+  public String getLibraryName() {
+    return null;
+  }
+
+  @Override
+  @NotNull
+  public ResourceNamespace getNamespace() {
+    return myResourceValue.getNamespace();
+  }
+
+  @Override
+  @NotNull
+  public ResourceReference getReferenceToSelf() {
+    return myResourceValue.asReference();
+  }
+
+  @Override
+  @NotNull
+  public FolderConfiguration getConfiguration() {
+    return new FolderConfiguration();
+  }
+
+  @Override
+  @NotNull
+  public String getKey() {
+    return myResourceValue.getResourceUrl().toString().substring(1);
+  }
+
+  @Override
+  @NotNull
+  public ResourceValue getResourceValue() {
+    return myResourceValue;
+  }
+
+  @Override
+  @Nullable
+  public PathString getSource() {
+    return null;
+  }
+
+  @Override
+  public boolean isFileBased() {
+    return false;
   }
 }

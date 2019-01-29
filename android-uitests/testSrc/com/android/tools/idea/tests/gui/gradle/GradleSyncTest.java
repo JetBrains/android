@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
@@ -57,6 +56,7 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.net.HttpConfigurable;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -101,7 +101,7 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.*;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GradleSyncTest {
   @Nullable private File myBackupProperties;
 
@@ -305,12 +305,13 @@ public class GradleSyncTest {
   }
 
   // See https://code.google.com/p/android/issues/detail?id=73087
+  @Ignore("b/37109081")
   @RunIn(TestGroup.UNRELIABLE)  // b/37109081
   @Test
   public void withUserDefinedLibraryAttachments() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
 
-    File javadocJarPath = new File(guiTest.getProjectPath(), "fake-javadoc.jar");
+    File javadocJarPath = guiTest.getProjectPath("fake-javadoc.jar");
     try (ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(javadocJarPath)))) {
       zos.putNextEntry(new ZipEntry("allclasses-frame.html"));
       zos.putNextEntry(new ZipEntry("allclasses-noframe.html"));
@@ -615,7 +616,7 @@ public class GradleSyncTest {
         try {
           ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
           Project project = projectManager.convertAndLoadProject(projectPath.getPath());
-          GradleSyncState.subscribe(project, new GradleSyncListener.Adapter() {
+          GradleSyncState.subscribe(project, new GradleSyncListener() {
             @Override
             public void syncSkipped(@NotNull Project project) {
               syncSkipped.set(true);
@@ -629,35 +630,5 @@ public class GradleSyncTest {
       });
 
     Wait.seconds(5).expecting("sync to be skipped").until(syncSkipped::get);
-  }
-
-  /**
-   * Verify that the project syncs and gradle file updates after changing the minSdkVersion in the build.gradle file.
-   * <p>
-   * TT ID: 01d7a0e9-a947-4cd1-a842-17c0b006d3f1
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <pre>
-   *   Steps:
-   *   1. Import a project.
-   *   2. Open build.gradle file for the project and update the min sdk value to 23.
-   *   3. Sync the project.
-   *   Verify:
-   *   Project syncs and minSdk version is updated.
-   * </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void modifyMinSdkAndSync() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
-    // @formatter:off
-    ideFrame.getEditor()
-            .open("app/build.gradle")
-            .select("minSdkVersion (19)")
-            .enterText("23")
-            .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-            .performActionWithoutWaitingForDisappearance("Sync Now")
-            .waitForGradleProjectSyncToFinish();
-    // @formatter:on
   }
 }

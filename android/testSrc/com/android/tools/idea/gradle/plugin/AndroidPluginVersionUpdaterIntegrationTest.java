@@ -82,14 +82,14 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   private void setAndroidPluginVersion(@NotNull String version) {
     GradleBuildModel buildModel = getTopLevelBuildModel(getProject());
     ArtifactDependencyModel androidPluginDependency = findAndroidPlugin(buildModel);
-    androidPluginDependency.setVersion(version);
+    androidPluginDependency.version().setValue(version);
 
     runWriteCommandAction(getProject(), buildModel::applyChanges);
   }
 
   private GradleBuildModel verifyAndroidPluginVersion(@NotNull String expectedVersion) {
     GradleBuildModel buildModel = getTopLevelBuildModel(getProject());
-    assertEquals(expectedVersion, findAndroidPlugin(buildModel).version().value());
+    assertEquals(expectedVersion, findAndroidPlugin(buildModel).version().toString());
     return buildModel;
   }
 
@@ -104,7 +104,7 @@ public class AndroidPluginVersionUpdaterIntegrationTest extends AndroidGradleTes
   private static ArtifactDependencyModel findAndroidPlugin(@NotNull GradleBuildModel buildModel) {
     List<? extends ArtifactDependencyModel> dependencies = buildModel.buildscript().dependencies().artifacts(CLASSPATH);
     for (ArtifactDependencyModel dependency : dependencies) {
-      if (AndroidPluginGeneration.find(dependency.name().value(), dependency.group().value()) != null) {
+      if (AndroidPluginGeneration.find(dependency.name().forceString(), dependency.group().toString()) != null) {
         return dependency;
       }
     }

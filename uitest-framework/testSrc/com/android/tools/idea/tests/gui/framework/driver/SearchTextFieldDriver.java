@@ -59,7 +59,7 @@ public class SearchTextFieldDriver extends JComponentDriver<SearchTextField> imp
   public void enterText(@NotNull SearchTextField textBox, @NotNull String text) {
     JBTextField textField = textBox.getTextEditor();
     focusAndWaitForFocusGain(textField);
-    robot.enterText(text, textField);
+    robot.enterText(text);
   }
 
   @RunsInEDT

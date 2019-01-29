@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.sync.ng.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.setup.Facets;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.google.common.annotations.VisibleForTesting;
@@ -35,8 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ModuleSetupContext {
-  @VisibleForTesting
-  static final Key<ModuleFinder> MODULES_BY_GRADLE_PATH_KEY = Key.create("gradle.sync.modules.by.gradle.path");
+  public static final Key<ModuleFinder> MODULES_BY_GRADLE_PATH_KEY = Key.create("gradle.sync.modules.by.gradle.path");
 
   @NotNull private final Module myModule;
   @NotNull private final IdeModifiableModelsProvider myIdeModelsProvider;
@@ -99,6 +97,11 @@ public class ModuleSetupContext {
   @NotNull
   public ModifiableRootModel getModifiableRootModel() {
     return myIdeModelsProvider.getModifiableRootModel(myModule);
+  }
+
+  @Nullable
+  public GradleModuleModels getGradleModels() {
+    return myGradleModels;
   }
 
   public static class Factory {

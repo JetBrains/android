@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,25 +27,33 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public interface GradleValue<T> {
+  @Deprecated
   @Nullable
   T value();
 
+  @Deprecated
   @Nullable
   PsiElement getPsiElement();
 
+  @Deprecated
   @Nullable
   VirtualFile getFile();
 
+  @Deprecated
   @Nullable
   String getPropertyName();
 
+  @Deprecated
   @Nullable
   String getDslText();
 
+  @Deprecated
   @NotNull
   Map<String, GradleNotNullValue<Object>> getResolvedVariables();
 
+  @Deprecated
   @NotNull
   static <E> List<E> getValues(@Nullable List<? extends GradleValue<E>> gradleValues) {
     if (gradleValues == null) {
@@ -63,6 +71,7 @@ public interface GradleValue<T> {
     return values;
   }
 
+  @Deprecated
   @NotNull
   static <V> Map<String, V> getValues(@Nullable Map<String, ? extends GradleValue<V>> gradleValues) {
     if (gradleValues == null) {

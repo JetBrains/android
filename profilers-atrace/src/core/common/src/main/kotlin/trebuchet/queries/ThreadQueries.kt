@@ -22,7 +22,7 @@ import trebuchet.model.ThreadModel
 
 object ThreadQueries {
     fun firstOrNull(model: Model, predicate: (ThreadModel) -> Boolean): ThreadModel? {
-        model.processes.forEach {
+        model.processes.values.forEach {
             it.threads.forEach {
                 if (predicate(it)) return it
             }

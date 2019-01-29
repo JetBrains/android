@@ -19,17 +19,20 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWr
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 
 import java.util.List;
+import org.junit.Ignore;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub.replaceSyncMessagesService;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link Gradle4AndPlugin2Dot2ErrorHandler}.
  */
+// Disabled due to b/117515863
+@Ignore
 public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
 
@@ -39,12 +42,13 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
     mySyncMessagesStub = replaceSyncMessagesService(getProject());
   }
 
+
   public void testHandleError() throws Exception {
     loadSimpleApplication_pre3dot0();
 
     // Update plugin to 2.2 and expect sync to fail, and the new error handler to provide a better error description than the original
     // exception message.
-    updateGradleVersions(getBaseDirPath(getProject()), "2.2.0");
+    AndroidGradleTests.updateGradleVersions(getBaseDirPath(getProject()), "2.2.0");
 
     requestSyncAndGetExpectedFailure();
 

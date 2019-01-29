@@ -46,7 +46,7 @@ public class AndroidStudioGradleActionTest extends IdeaTestCase {
     when(myEvent.getPresentation()).thenReturn(myPresentation);
     when(myEvent.getProject()).thenReturn(myProject);
 
-    IdeComponents.replaceService(getProject(), GradleProjectInfo.class, myProjectInfo);
+    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
   }
 
   public void testUpdateWithAndroidStudioAndGradleProject() {

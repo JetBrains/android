@@ -38,4 +38,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface Styleable {
   String[] value();
+  String packageName() default "android";
 }

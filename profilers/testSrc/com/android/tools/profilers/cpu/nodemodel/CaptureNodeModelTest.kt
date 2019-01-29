@@ -39,8 +39,13 @@ class CaptureNodeModelTest {
 
   @Test
   fun testNativeFunctionModel() {
-    val functionModel = CppFunctionModel.Builder("someName").setParameters("int, float").setClassOrNamespace("MyNativeClass").build()
+    val functionModel = CppFunctionModel.Builder("someName")
+      .setIsUserCode(true)
+      .setParameters("int, float")
+      .setClassOrNamespace("MyNativeClass")
+      .build()
     assertThat(functionModel.name).isEqualTo("someName")
+    assertThat(functionModel.isUserCode).isTrue()
     assertThat(functionModel.parameters).hasSize(2)
     assertThat(functionModel.parameters[0]).isEqualTo("int")
     assertThat(functionModel.parameters[1]).isEqualTo("float")

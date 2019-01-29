@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static com.android.tools.idea.flags.StudioFlags.NELE_SHOW_ON_HOVER;
+
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.Display;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -27,13 +29,15 @@ import java.awt.geom.Rectangle2D;
  * Basic display layer for Scene
  */
 public class SceneLayer extends Layer {
+  public static final boolean SHOW_ON_HOVER = NELE_SHOW_ON_HOVER.get(); // enable or disable showing the layer only on hover
+
   private final DesignSurface myDesignSurface;
   private final SceneView mySceneView;
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle mySizeRectangle = new Rectangle();
   private final Display myDisplay = new Display();
   private boolean myShowOnHover = false;
-  private boolean myShowAlways = true;
+  private boolean myShowAlways = false;
   private boolean myAlwaysShowSelection;
   private boolean myTemporaryShow = false;
 
@@ -56,10 +60,16 @@ public class SceneLayer extends Layer {
   @Override
   public void paint(@NotNull Graphics2D g2) {
     SceneContext sceneContext = SceneContext.get(mySceneView);
-    if (!myTemporaryShow && !myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
-      return;
+
+    if (SHOW_ON_HOVER) {
+      if (!myTemporaryShow && !myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
+        return;
+      }
+      sceneContext.setShowOnlySelection(!myTemporaryShow && !myShowOnHover && myAlwaysShowSelection);
+    } else {
+      sceneContext.setShowOnlySelection(!myTemporaryShow && myAlwaysShowSelection);
     }
-    sceneContext.setShowOnlySelection(!myTemporaryShow && !myShowOnHover && myAlwaysShowSelection);
+
     Graphics2D g = (Graphics2D)g2.create();
     try {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

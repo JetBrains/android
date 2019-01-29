@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPixelSize;
+
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
@@ -33,30 +37,41 @@ import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.lookup.LookupEvent;
 import com.intellij.codeInsight.lookup.LookupListener;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ComponentManager;
+import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
-
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPixelSize;
+import java.util.Set;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.KeyStroke;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class NlReferenceEditor extends BaseComponentEditor {
   private static final int MIN_TEXT_WIDTH = 50;
@@ -66,7 +81,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
   private final JPanel myPanel;
   private final JLabel myIconLabel;
   private final JSlider mySlider;
-  private final ComponentManager myProject;
+  private final Project myProject;
   private final TextEditorWithAutoCompletion myTextEditorWithAutoCompletion;
   private final BrowsePanel myBrowsePanel;
   private final boolean myHasSliderSupport;
@@ -82,7 +97,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
   public static NlTableCellEditor createForTable(@NotNull Project project) {
     NlTableCellEditor cellEditor = new NlTableCellEditor();
     BrowsePanel browsePanel = new BrowsePanel(cellEditor, true);
-    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false, true, false, VERTICAL_PADDING), browsePanel);
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, browsePanel, false, true, false, 0), browsePanel);
     return cellEditor;
   }
 
@@ -139,7 +154,6 @@ public class NlReferenceEditor extends BaseComponentEditor {
     mySlider.setVisible(includeSliderSupport);
 
     myProject = project;
-
     myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(verticalSpacing,
                                                                                               HORIZONTAL_PADDING,
                                                                                               verticalSpacing,
@@ -159,7 +173,9 @@ public class NlReferenceEditor extends BaseComponentEditor {
     myBrowsePanel = browsePanel;
     myPanel.add(myTextEditorWithAutoCompletion, BorderLayout.CENTER);
     if (browsePanel != null) {
-      myBrowsePanel.setBorder(JBUI.Borders.emptyLeft(HORIZONTAL_COMPONENT_GAP));
+      if (includeBorder) {
+        myBrowsePanel.setBorder(JBUI.Borders.empty(4, 1));
+      }
       myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
     }
     myPanel.addComponentListener(new ComponentAdapter() {
@@ -212,7 +228,9 @@ public class NlReferenceEditor extends BaseComponentEditor {
             UIUtil.invokeLaterIfNeeded(() -> {
               if (!getText().equals(StringUtil.notNullize(property.getValue()))) {
                 Project project = property.getModel().getProject();
-                AutoPopupController.getInstance(project).scheduleAutoPopup(myTextEditorWithAutoCompletion.getEditor());
+                if (!project.isDisposed() && myTextEditorWithAutoCompletion.editorHasFocus()) {
+                  AutoPopupController.getInstance(project).scheduleAutoPopup(myTextEditorWithAutoCompletion.getEditor());
+                }
               }
             });
           }
@@ -223,14 +241,16 @@ public class NlReferenceEditor extends BaseComponentEditor {
   }
 
   protected void editorFocusLost(@NotNull FocusEvent event) {
-    if (event.getOppositeComponent() != mySlider) {
+    UndoManager undoManager = UndoManager.getInstance(myProject);
+    // b/110880308: Avoid updating the property during undo/redo
+    if (event.getOppositeComponent() != mySlider && !(undoManager.isUndoInProgress() || undoManager.isRedoInProgress())) {
       stopEditing(getText());
       // Remove the selection after we lose focus for feedback on which editor is the active editor
       myTextEditorWithAutoCompletion.removeSelection();
     }
   }
 
-  private static EnumSet<ResourceType> getResourceTypes(@NotNull NlProperty property) {
+  private static Set<ResourceType> getResourceTypes(@NotNull NlProperty property) {
     AttributeDefinition definition = property.getDefinition();
     if (definition == null || SdkConstants.ATTR_ID.equals(property.getName())) {
       // Don't offer code completion on id's; you typically want to specify a new, unique
@@ -238,7 +258,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
       return EnumSet.noneOf(ResourceType.class);
     }
 
-    EnumSet<ResourceType> resourceTypes = BrowsePanel.getResourceTypes(property);
+    Set<ResourceType> resourceTypes = BrowsePanel.getResourceTypes(property);
     if (TOOLS_URI.equals(property.getNamespace())) {
       // Tools attributes can use sample data as source
       resourceTypes.add(ResourceType.SAMPLE_DATA);
@@ -336,7 +356,7 @@ public class NlReferenceEditor extends BaseComponentEditor {
     }
     AttributeDefinition definition = myProperty.getDefinition();
     if (definition == null || Collections.disjoint(definition.getFormats(),
-                                                   ImmutableList.of(AttributeFormat.Dimension, AttributeFormat.Float))) {
+                                                   ImmutableList.of(AttributeFormat.DIMENSION, AttributeFormat.FLOAT))) {
       return false;
     }
 

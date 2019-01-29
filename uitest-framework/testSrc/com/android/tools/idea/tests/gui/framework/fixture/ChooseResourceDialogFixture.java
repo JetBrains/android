@@ -18,17 +18,19 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.EditReferenceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.StateListPickerFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.adtui.SearchField;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.tools.idea.ui.resourcechooser.StateListPicker;
+import com.google.common.collect.Iterables;
 import com.intellij.icons.AllIcons;
+import com.intellij.ui.SearchTextField;
 import com.intellij.util.ui.JBUI;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.TypeMatcher;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.*;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -36,6 +38,10 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
@@ -60,8 +66,8 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
   }
 
   public JTextComponentFixture getSearchField() {
-    Component component = robot().finder().find(target(), new TypeMatcher(SearchField.class));
-    return new JTextComponentFixture(robot(), ((SearchField)component).getTextEditor());
+    Component component = robot().finder().find(target(), new TypeMatcher(SearchTextField.class));
+    return new JTextComponentFixture(robot(), ((SearchTextField)component).getTextEditor());
   }
 
   public JTabbedPaneFixture getTabs() {
@@ -108,8 +114,39 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
   }
 
   @NotNull
+  public JListFixture getList(@NotNull String appNamespaceLabel, int index) {
+    AtomicReference<JListFixture> list = new AtomicReference<>();
+    Wait.seconds(10).expecting("Find list " + appNamespaceLabel + "@" + index).until(() -> {
+      Collection<JList> lists = robot().finder().findAll(target(), Matchers.byName(JList.class, appNamespaceLabel));
+      if (index >= lists.size()) {
+        return false;
+      }
+
+      list.set(new JListFixture(robot(), Iterables.get(lists, index)));
+      return true;
+    });
+
+    return list.get();
+  }
+
+  @NotNull
   public JListFixture getList(@NotNull String appNamespaceLabel) {
     return new JListFixture(robot(), waitUntilFound(robot(), target(), Matchers.byName(JList.class, appNamespaceLabel)));
+  }
+
+  public List<String> getAllListsInSelectedTab() {
+    return robot()
+      .finder()
+      .findAll((JComponent)getTabs().target().getSelectedComponent(), Matchers.byType(JList.class))
+      .stream()
+      .map(list -> list.getName())
+      .collect(Collectors.toList());
+  }
+
+  @NotNull
+  public ChooseResourceDialogFixture expandList(@NotNull String appNamespaceLabel) {
+    new JLabelFixture(robot(), waitUntilShowing(robot(), target(), Matchers.byText(JLabel.class, appNamespaceLabel))).click();
+    return this;
   }
 
   public void clickOK() {

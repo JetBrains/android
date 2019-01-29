@@ -21,17 +21,15 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.palette.NlPaletteModel;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -76,13 +74,13 @@ public class PreviewProviderTest extends LayoutTestCase {
     myPreviewProvider.myRenderTimeoutSeconds = Long.MAX_VALUE;
     RenderService.shutdownRenderExecutor(5);
     RenderService.initializeRenderExecutor();
-    RenderService.setForTesting(myFacet, new MyRenderService(myFacet));
+    RenderService.setForTesting(getProject(), new MyRenderService(getProject()));
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      RenderService.setForTesting(myFacet, null);
+      RenderService.setForTesting(getProject(), null);
       Disposer.dispose(myPreviewProvider);
       RenderTestUtil.waitForRenderTaskDisposeToFinish();
       myPreviewProvider = null;
@@ -106,7 +104,8 @@ public class PreviewProviderTest extends LayoutTestCase {
     assertThat(imageAndSize.dimension.width).isEqualTo(120);
   }
 
-  public void testBug229723WorkAround() throws Exception {
+  // b/110835489
+  public void ignore_testBug229723WorkAround() throws Exception {
     myPreviewProvider.myRenderTimeoutSeconds = 0L;
     assertNull(myPreviewProvider.renderDragImage(myTextViewItem));
   }
@@ -134,20 +133,16 @@ public class PreviewProviderTest extends LayoutTestCase {
   // Disable security manager during tests (for bazel)
   private static class MyRenderService extends RenderService {
 
-    MyRenderService(@NotNull AndroidFacet facet) {
-      super(facet);
+    public MyRenderService(@NotNull Project project) {
+      super(project);
     }
 
+
     @Override
-    @Nullable
-    public RenderTask createTask(@Nullable PsiFile psiFile,
-                                 @NotNull Configuration configuration,
-                                 @NotNull RenderLogger logger,
-                                 @Nullable EditorDesignSurface surface) {
-      RenderTask task = super.createTask(psiFile, configuration, logger, surface);
-      assert task != null;
-      task.disableSecurityManager();
-      return task;
+    @NotNull
+    public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
+      return super.taskBuilder(facet, configuration)
+        .disableSecurityManager();
     }
   }
 }

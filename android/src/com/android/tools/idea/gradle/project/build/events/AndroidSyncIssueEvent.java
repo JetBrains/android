@@ -31,7 +31,7 @@ public class AndroidSyncIssueEvent extends AbstractBuildEvent implements Message
   @NotNull private final Kind myKind;
   @NotNull private final String myGroup;
   @NotNull private final AndroidSyncIssueEventResult myResult;
-  @Nullable private final  Navigatable myNavigatable;
+  @Nullable private final Navigatable myNavigatable;
 
   public AndroidSyncIssueEvent(@NotNull Object parentId, @NotNull NotificationData notificationData, @NotNull String title) {
     super(new Object(), parentId, System.currentTimeMillis(), title);

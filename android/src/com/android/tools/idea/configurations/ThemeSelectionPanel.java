@@ -15,39 +15,56 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.android.SdkConstants.PREFIX_ANDROID;
+import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.DoubleClickListener;
+import com.intellij.ui.FilterComponent;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;
 import icons.AndroidIcons;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeModelListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.util.*;
-
-import static com.android.SdkConstants.PREFIX_ANDROID;
-import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
-import static com.android.ide.common.resources.ResourceResolver.THEME_NAME;
+import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Theme selection dialog.
@@ -63,10 +80,6 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   private static final String MATERIAL_LIGHT_PREFIX = PREFIX_ANDROID + "Theme.Material.Light";
   private static final String MATERIAL_PREFIX = PREFIX_ANDROID + "Theme.Material";
   private static final String LIGHT_PREFIX = PREFIX_ANDROID + "Theme.Light";
-  private static final String ANDROID_THEME = PREFIX_ANDROID + "Theme";
-  private static final String ANDROID_THEME_PREFIX = PREFIX_ANDROID + "Theme.";
-  private static final String PROJECT_THEME = "Theme";
-  private static final String PROJECT_THEME_PREFIX = "Theme.";
   private static final String DIALOG_SUFFIX = ".Dialog";
   private static final String DIALOG_PART = ".Dialog.";
   private static final SimpleTextAttributes SEARCH_HIGHLIGHT_ATTRIBUTES =
@@ -74,18 +87,17 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   @NotNull private final Configuration myConfiguration;
   @NotNull private final ThemeSelectionDialog myDialog;
-  @NotNull private JBList myThemeList;
-  @NotNull private Tree myCategoryTree;
-  @NotNull private JPanel myContentPanel;
-  @NotNull private ThemeFilterComponent myFilter;
-  @Nullable private List<String> myFrameworkThemes;
-  @Nullable private List<String> myProjectThemes;
-  @Nullable private List<String> myLibraryThemes;
+  private JBList<String> myThemeList;
+  private Tree myCategoryTree;
+  private JPanel myContentPanel;
+  private ThemeFilterComponent myFilter;
+  @NotNull private final List<String> myFrameworkThemes;
+  @NotNull private final List<String> myProjectThemes;
+  @NotNull private final List<String> myLibraryThemes;
   @Nullable private static Deque<String> ourRecent;
   @Nullable private ThemeCategory myCategory = ThemeCategory.ALL;
   @NotNull private Map<ThemeCategory, List<String>> myThemeMap = Maps.newEnumMap(ThemeCategory.class);
-  @NotNull private ThemeResolver myThemeResolver;
-  @NotNull private Set<String> myExcludedThemes;
+  @NotNull private final Set<String> myExcludedThemes;
   private boolean myIgnore;
 
   private ThemeChangedListener myThemeChangedListener;
@@ -99,11 +111,17 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myDialog = dialog;
     myConfiguration = configuration;
     myExcludedThemes = excludedThemes;
-    myThemeResolver = new ThemeResolver(configuration);
-    String currentTheme = configuration.getTheme();
-    if (currentTheme != null) {
-      currentTheme = ResolutionUtils.getQualifiedNameFromResourceUrl(currentTheme);
-    }
+
+    ThemeResolver themeResolver = new ThemeResolver(configuration);
+    StyleResourceValue[] baseThemes = themeResolver.requiredBaseThemes();
+    Function1<ConfiguredThemeEditorStyle, Boolean> filter = ThemeUtils.createFilter(themeResolver, myExcludedThemes, baseThemes);
+    myFrameworkThemes = baseThemes.length == 0
+                        ? ThemeUtils.getFrameworkThemeNames(themeResolver, filter)
+                        : Collections.emptyList();
+    myProjectThemes = ThemeUtils.getProjectThemeNames(themeResolver, filter);
+    myLibraryThemes = ThemeUtils.getLibraryThemeNames(themeResolver, filter);
+
+    String currentTheme = ResolutionUtils.getQualifiedNameFromResourceUrl(configuration.getTheme());
     touchTheme(currentTheme, myExcludedThemes);
 
     myCategoryTree.setModel(new CategoryModel());
@@ -112,25 +130,13 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myCategoryTree.addTreeSelectionListener(this);
     setInitialSelection(currentTheme);
     myThemeList.addListSelectionListener(this);
-    myThemeList.setCellRenderer(new ColoredListCellRenderer() {
+    myThemeList.setCellRenderer(new ColoredListCellRenderer<String>() {
       @Override
-      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, String style, int index, boolean selected, boolean hasFocus) {
         setIcon(AndroidIcons.Themes);
 
-        String style = (String)value;
         String filter = myFilter.getFilter();
-        if (style.startsWith(ANDROID_THEME_PREFIX)) {
-          style = style.substring(ANDROID_THEME_PREFIX.length());
-        }
-        else if (style.startsWith(PROJECT_THEME_PREFIX)) {
-          style = style.substring(PROJECT_THEME_PREFIX.length());
-        }
-        else if (style.startsWith(STYLE_RESOURCE_PREFIX)) {
-          style = style.substring(STYLE_RESOURCE_PREFIX.length());
-        }
-        else if (style.equals(ANDROID_THEME) || style.equals(PROJECT_THEME)) {
-          style = THEME_NAME;
-        }
+        style = ThemeUtils.getPreferredThemeName(style);
 
         if (!filter.isEmpty()) {
           int matchIndex = StringUtil.indexOfIgnoreCase(style, filter, index + 1);
@@ -230,65 +236,67 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
       return themes;
     }
 
-    themes = new ArrayList<String>(50);
+    themes = new ArrayList<>(50);
 
     switch (category) {
       case RECENT:
         if (ourRecent != null) {
-          for (String theme : ourRecent) {
-            themes.add(theme);
-          }
+          themes.addAll(ourRecent);
         }
         break;
       case HOLO:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(HOLO_PREFIX) && !theme.startsWith(HOLO_LIGHT_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case HOLO_LIGHT:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(HOLO_LIGHT_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case MATERIAL:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(MATERIAL_PREFIX) && !theme.startsWith(MATERIAL_LIGHT_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case MATERIAL_LIGHT:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(MATERIAL_LIGHT_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case PROJECT:
-        for (String theme : getProjectThemes()) {
-          themes.add(theme);
-        }
+        themes.addAll(myProjectThemes);
         break;
       case CLASSIC:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (!theme.startsWith(HOLO_PREFIX) && !theme.startsWith(DEVICE_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case CLASSIC_LIGHT:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(LIGHT_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case LIGHT:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
+          if (theme.startsWith(HOLO_LIGHT_PREFIX) || theme.startsWith(LIGHT_PREFIX) || theme.startsWith(DEVICE_LIGHT_PREFIX)
+              || theme.startsWith(MATERIAL_LIGHT_PREFIX)) {
+            themes.add(theme);
+          }
+        }
+        for (String theme : myLibraryThemes) {
           if (theme.startsWith(HOLO_LIGHT_PREFIX) || theme.startsWith(LIGHT_PREFIX) || theme.startsWith(DEVICE_LIGHT_PREFIX)
               || theme.startsWith(MATERIAL_LIGHT_PREFIX)) {
             themes.add(theme);
@@ -296,19 +304,24 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         }
         break;
       case DEVICE:
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
           if (theme.startsWith(DEVICE_PREFIX)) {
             themes.add(theme);
           }
         }
         break;
       case DIALOGS:
-        for (String theme : getProjectThemes()) {
+        for (String theme : myProjectThemes) {
           if (theme.endsWith(DIALOG_SUFFIX) || theme.contains(DIALOG_PART)) {
             themes.add(theme);
           }
         }
-        for (String theme : getFrameworkThemes()) {
+        for (String theme : myFrameworkThemes) {
+          if (theme.endsWith(DIALOG_SUFFIX) || theme.contains(DIALOG_PART)) {
+            themes.add(theme);
+          }
+        }
+        for (String theme : myLibraryThemes) {
           if (theme.endsWith(DIALOG_SUFFIX) || theme.contains(DIALOG_PART)) {
             themes.add(theme);
           }
@@ -329,7 +342,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         */
 
         String manifestTheme = manifest.getManifestTheme();
-        Set<String> allThemes = new HashSet<String>();
+        Set<String> allThemes = new HashSet<>();
         if (manifestTheme != null) {
           allThemes.add(manifestTheme);
         }
@@ -338,7 +351,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
             allThemes.add(info.getTheme());
           }
         }
-        List<String> sorted = new ArrayList<String>(allThemes);
+        List<String> sorted = new ArrayList<>(allThemes);
         Collections.sort(sorted);
 
         for (String theme : sorted) {
@@ -348,15 +361,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         break;
       }
       case ALL:
-        for (String theme : getProjectThemes()) {
-          themes.add(theme);
-        }
-        for (String theme : getFrameworkThemes()) {
-          themes.add(theme);
-        }
-        for (String theme : getLibraryThemes()) {
-          themes.add(theme);
-        }
+        themes.addAll(myProjectThemes);
+        themes.addAll(myFrameworkThemes);
+        themes.addAll(myLibraryThemes);
         break;
       case ROOT:
       default:
@@ -373,9 +380,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
       return;
     }
 
-    String selected = (String)myThemeList.getSelectedValue();
+    String selected = myThemeList.getSelectedValue();
 
-    SortedListModel<String> model = new SortedListModel<String>(String.CASE_INSENSITIVE_ORDER);
+    SortedListModel<String> model = new SortedListModel<>(String.CASE_INSENSITIVE_ORDER);
     String filter = myFilter.getFilter();
 
     List<String> themes = getThemes(myCategory);
@@ -397,30 +404,6 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   private static boolean matchesFilter(String theme, String filter) {
     int index = theme.lastIndexOf('/');
     return filter.isEmpty() || StringUtil.indexOfIgnoreCase(theme, filter, index + 1) != -1;
-  }
-
-  private List<String> getFrameworkThemes() {
-    if (myFrameworkThemes == null) {
-      myFrameworkThemes = getFilteredSortedNames(getPublicThemes(myThemeResolver.getFrameworkThemes()), myExcludedThemes);
-    }
-    return myFrameworkThemes;
-  }
-
-  private List<String> getProjectThemes() {
-    if (myProjectThemes == null) {
-      myProjectThemes = getFilteredSortedNames(getPublicThemes(myThemeResolver.getLocalThemes()), myExcludedThemes);
-    }
-
-    return myProjectThemes;
-  }
-
-  private List<String> getLibraryThemes() {
-    if (myLibraryThemes == null) {
-      myLibraryThemes = getFilteredPrefixesSortedNames(getPublicThemes(myThemeResolver.getExternalLibraryThemes()), myExcludedThemes,
-                                                       ImmutableSet.of("Base.", "Platform."));
-    }
-
-    return myLibraryThemes;
   }
 
   // ---- Implements ListSelectionListener ----
@@ -466,7 +449,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   @Nullable
   public String getTheme() {
-    String selected = (String)myThemeList.getSelectedValue();
+    String selected = myThemeList.getSelectedValue();
     touchTheme(selected, myExcludedThemes);
     return selected;
   }
@@ -475,7 +458,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     if (selected != null) {
       if (ourRecent == null || !ourRecent.contains(selected)) {
         if (ourRecent == null) {
-          ourRecent = new LinkedList<String>();
+          ourRecent = new LinkedList<>();
         }
         if (!excludedThemes.contains(selected)) {
           ourRecent.addFirst(selected);
@@ -504,34 +487,35 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         topLevel.add(ThemeCategory.RECENT);
       }
 
-      if (!getThemes(ThemeCategory.MANIFEST).isEmpty()) {
-        topLevel.add(ThemeCategory.MANIFEST);
-      }
-
-      if (!getThemes(ThemeCategory.PROJECT).isEmpty()) {
-        topLevel.add(ThemeCategory.PROJECT);
-      }
-
+      addCategory(topLevel, ThemeCategory.MANIFEST);
+      addCategory(topLevel, ThemeCategory.PROJECT);
       AndroidModuleInfo info = AndroidModuleInfo.getInstance(myConfiguration.getConfigurationManager().getModule());
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() >= 21) {
-        topLevel.add(ThemeCategory.MATERIAL);
-        topLevel.add(ThemeCategory.MATERIAL_LIGHT);
+        addCategory(topLevel, ThemeCategory.MATERIAL);
+        addCategory(topLevel, ThemeCategory.MATERIAL_LIGHT);
       }
 
-      topLevel.add(ThemeCategory.HOLO);
-      topLevel.add(ThemeCategory.HOLO_LIGHT);
+      addCategory(topLevel, ThemeCategory.HOLO);
+      addCategory(topLevel, ThemeCategory.HOLO_LIGHT);
+
       if (info == null || info.getMinSdkVersion().getFeatureLevel() <= 14) {
-        topLevel.add(ThemeCategory.CLASSIC);
-        topLevel.add(ThemeCategory.CLASSIC_LIGHT);
+        addCategory(topLevel, ThemeCategory.CLASSIC);
+        addCategory(topLevel, ThemeCategory.CLASSIC_LIGHT);
       }
-      topLevel.add(ThemeCategory.DEVICE);
-      topLevel.add(ThemeCategory.DIALOGS);
-      topLevel.add(ThemeCategory.LIGHT);
-      topLevel.add(ThemeCategory.ALL);
+      addCategory(topLevel, ThemeCategory.DEVICE);
+      addCategory(topLevel, ThemeCategory.DIALOGS);
+      addCategory(topLevel, ThemeCategory.LIGHT);
+      addCategory(topLevel, ThemeCategory.ALL);
       myLabels.put(ThemeCategory.ROOT, topLevel);
 
       // TODO: Use tree to add nesting; e.g. add holo light as a category under holo?
       //myLabels.put(ThemeCategory.LIGHT, Arrays.asList(ThemeCategory.ALL, ThemeCategory.DIALOGS));
+    }
+
+    private void addCategory(@NotNull List<ThemeCategory> categories, @NotNull ThemeCategory category) {
+      if (!getThemes(category).isEmpty()) {
+        categories.add(category);
+      }
     }
 
     @Override
@@ -579,62 +563,6 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
   }
 
-  /**
-   * Sorts the themes in themesRaw excluding those in excludedThemes
-   *
-   * @param themesRaw      themes to process
-   * @param excludedThemes themes to filter out
-   * @return the sorted themes excluding those in excludedThemes
-   */
-  private static List<String> getFilteredSortedNames(Collection<ConfiguredThemeEditorStyle> themesRaw, Set<String> excludedThemes) {
-    return getFilteredPrefixesSortedNames(themesRaw, excludedThemes, Collections.<String>emptySet());
-  }
-
-  /**
-   * Sorts the themes in themesRaw excluding those in excludedThemes and those starting with prefixes in excludedPrefixes
-   *
-   * @param themesRaw themes to process
-   * @param excludedThemes themes to filter out
-   * @param excludedPrefixes set of prefixes of the themes to filter
-   * @return the sorted themes excluding those in excludedThemes or starting with a prefix in excludedPrefixes
-   */
-  private static List<String> getFilteredPrefixesSortedNames(Collection<ConfiguredThemeEditorStyle> themesRaw,
-                                                             Set<String> excludedThemes,
-                                                             Set<String> excludedPrefixes) {
-    List<String> themes = new ArrayList<String>(themesRaw.size());
-    for (ConfiguredThemeEditorStyle theme : themesRaw) {
-      String qualifiedName = theme.getQualifiedName();
-      if (!excludedThemes.contains(qualifiedName)) {
-        boolean startWithPrefix = false;
-        String themeName = theme.getName();
-        for (String prefix : excludedPrefixes) {
-          if (themeName.startsWith(prefix)) {
-            startWithPrefix = true;
-            break;
-          }
-        }
-        if (!startWithPrefix) {
-          themes.add(qualifiedName);
-        }
-      }
-    }
-    Collections.sort(themes);
-    return themes;
-  }
-
-  /**
-   * Filters a collection of themes to return a new collection with only the public ones.
-   */
-  private static Collection<ConfiguredThemeEditorStyle> getPublicThemes(Collection<ConfiguredThemeEditorStyle> themes) {
-    HashSet<ConfiguredThemeEditorStyle> publicThemes = new HashSet<ConfiguredThemeEditorStyle>();
-    for (ConfiguredThemeEditorStyle theme : themes) {
-      if (theme.isPublic()) {
-        publicThemes.add(theme);
-      }
-    }
-    return publicThemes;
-  }
-
   private enum ThemeCategory {
     ROOT(""),
     RECENT("Recent"),
@@ -667,12 +595,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   public void focus() {
     final Project project = myConfiguration.getModule().getProject();
     final IdeFocusManager focusManager = project.isDefault() ? IdeFocusManager.getGlobalInstance() : IdeFocusManager.getInstance(project);
-    focusManager.doWhenFocusSettlesDown(new Runnable() {
-      @Override
-      public void run() {
-        focusManager.requestFocus(myThemeList, true);
-      }
-    });
+    focusManager.doWhenFocusSettlesDown(() -> focusManager.requestFocus(myThemeList, true));
   }
 
   private static boolean haveMatches(String filter, List<String> themes) {
@@ -685,7 +608,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   }
 
   private boolean haveAnyMatches(String filter) {
-    return haveMatches(filter, getFrameworkThemes()) || haveMatches(filter, getProjectThemes());
+    return haveMatches(filter, myFrameworkThemes) || haveMatches(filter, myProjectThemes);
   }
 
   private void createUIComponents() {
@@ -720,9 +643,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     }
 
     @Override
-    protected void onEscape(KeyEvent e) {
+    protected void onEscape(@NotNull KeyEvent event) {
       focus();
-      e.consume();
+      event.consume();
     }
   }
 

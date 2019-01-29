@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.JavaMethodHRenderer;
 import com.android.tools.adtui.chart.hchart.Method;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
@@ -42,12 +43,12 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
   private static final String ACTION_LOAD_RECORDING = "load_recording";
   private static final String ACTION_THREAD_SELECTED = "thread_selected";
 
-  private HTreeChart mChart;
+  private HTreeChart<DefaultHNode<Method>> mChart;
   private HashMap<String, DefaultHNode<Method>> forest;
   private JButton mRecordButton;
   private JButton mSaveButton;
   private JButton mLoadButton;
-  private JComboBox mComboBox;
+  private JComboBox<String> mComboBox;
   private Sampler mSampler;
   private DefaultHNode<Method> mtree;
 
@@ -59,19 +60,19 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
 
   @NotNull
   private JScrollBar mScrollBar;
-  private final AxisComponentModel mAxisModel;
+  private final ResizingAxisComponentModel mAxisModel;
 
   public ThreadCallsVisualTest() {
-    this.mTimeGlobalRangeUs = new Range(0, 0);
+    mTimeGlobalRangeUs = new Range(0, 0);
 
-    this.mAxisModel = new AxisComponentModel(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT);
-    this.mAxis = new AxisComponent(mAxisModel, AxisComponent.AxisOrientation.BOTTOM);
+    mAxisModel = new ResizingAxisComponentModel.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT).build();
+    mAxis = new AxisComponent(mAxisModel, AxisComponent.AxisOrientation.BOTTOM);
 
-    this.mTimeSelectionRangeUs = new Range(0, 0);
+    mTimeSelectionRangeUs = new Range(0, 0);
 
-    this.mChart = new HTreeChart<DefaultHNode<Method>>(null, mTimeSelectionRangeUs, HTreeChart.Orientation.BOTTOM_UP);
-    this.mChart.setHRenderer(new JavaMethodHRenderer());
-
+    mChart = new HTreeChart.Builder<>(null, mTimeSelectionRangeUs, new JavaMethodHRenderer())
+      .setOrientation(HTreeChart.Orientation.BOTTOM_UP)
+      .build();
     SelectionModel model = new SelectionModel(mTimeSelectionRangeUs);
     mSelector = new SelectionComponent(model, mTimeGlobalRangeUs);
   }
@@ -83,9 +84,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
 
   @Override
   protected List<Updatable> createModelList() {
-    List<Updatable> list = new ArrayList<>();
-    list.add(mAxisModel);
-    return list;
+    return Collections.emptyList();
   }
 
   @Override
@@ -142,7 +141,7 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
     JBPanel viewPanel = new JBPanel();
     viewPanel.setLayout(new BoxLayout(viewPanel, BoxLayout.X_AXIS));
     viewPanel.add(mChart);
-    mScrollBar = new JScrollBar(JScrollBar.VERTICAL);
+    mScrollBar = new JScrollBar(Adjustable.VERTICAL);
     mScrollBar.addAdjustmentListener(e -> {
       Range yRange = mChart.getYRange();
       int yOffset = e.getValue();
@@ -171,13 +170,9 @@ public class ThreadCallsVisualTest extends VisualTest implements ActionListener 
       mRecordButton.setActionCommand(ACTION_START_RECORDING);
       mRecordButton.setText("Record");
       setData(mSampler.getData());
-
     }
-    else if (ACTION_SAVE_RECORDING.equals(e.getActionCommand())) {
-
-    }
-    else if (ACTION_LOAD_RECORDING.equals(e.getActionCommand())) {
-
+    else if (ACTION_SAVE_RECORDING.equals(e.getActionCommand()) || ACTION_LOAD_RECORDING.equals(e.getActionCommand())) {
+      // do nothing
     }
     else if (ACTION_THREAD_SELECTED.equals(e.getActionCommand())) {
       int selected = mComboBox.getSelectedIndex();

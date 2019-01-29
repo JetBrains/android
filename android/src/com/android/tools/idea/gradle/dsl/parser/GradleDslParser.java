@@ -16,7 +16,11 @@
 package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.util.Computable;
@@ -50,30 +54,67 @@ public interface GradleDslParser {
 
   /**
    * Converts a given {@link Object} to the language specific {@link PsiElement}, this method is used to convert newly set or parsed values.
-   * This method does NOT REQUIRE read access.
+   * This method does REQUIRE read access.
    */
   @Nullable
   PsiElement convertToPsiElement(@NotNull Object literal);
 
   /**
+   * Sets up various properties of the GradleDslLiteral based on the new PsiElement to be set.
+   */
+  void setUpForNewValue(@NotNull GradleDslLiteral context, @Nullable PsiElement newValue);
+
+  /**
    * Extracts a value {@link Object} from a given {@link PsiElement}. The {@code resolve} parameter determines
    * whether or not the returned value should contained resolved references to variables. e.g either "android-${version}" (unresolved)
-   * or "android-23" (resolved). A {@link GradleDslExpression} is needed to resolve any variable names that need
+   * or "android-23" (resolved). A {@link GradleDslSimpleExpression} is needed to resolve any variable names that need
    * to be injected.
    *
    * This method REQUIRES read access.
    */
   @Nullable
-  Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve);
+  Object extractValue(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement literal, boolean resolve);
+
+  /**
+   * Builds an excludes block for a list of {@link ArtifactDependencySpec}s
+   */
+  @Nullable
+  PsiElement convertToExcludesBlock(@NotNull List<ArtifactDependencySpec> excludes);
+
+  /**
+   * @param elementToCheck GradleDslElement, returns false if a non-string element is provided.
+   * @return whether the string represented by this GradleDslElement should be interpolated.
+   */
+  boolean shouldInterpolate(@NotNull GradleDslElement elementToCheck);
 
   /**
    * Returns a list of {@link GradleReferenceInjection}s that were derived from {@code psiElement} .
-   * A {@link GradleDslExpression} is needed to resolve any variable names that need to be injected.
+   * A {@link GradleDslSimpleExpression} is needed to resolve any variable names that need to be injected.
+   * This method only returns GradleReferenceInjections for which {@link GradleReferenceInjection#isResolved()}
+   * returns true.
    *
    * This method REQUIRES read access.
    */
   @NotNull
-  List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement);
+  List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement psiElement);
+
+  /**
+   * Same as {@link #getResolvedInjections(GradleDslSimpleExpression, PsiElement)} apart from we also return references where
+   * {@link GradleReferenceInjection#isResolved()} returns false.
+   *
+   * This method REQUIRES read access.
+   */
+  @NotNull
+  List<GradleReferenceInjection> getInjections(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement psiElement);
+
+  /**
+   * This method creates an empty block element (possibly nested) from {@code nameParts} with {@code parentElement} as a parent.
+   * This method returns null if any of the block names are unrecognized and will return the parent element if {@code nameParts} is
+   * empty.
+   */
+  @Nullable
+  GradlePropertiesDslElement getBlockElement(@NotNull List<String> nameParts,
+                                             @NotNull GradlePropertiesDslElement parentElement);
 
   class Adapter implements GradleDslParser {
     @Override
@@ -86,15 +127,38 @@ public interface GradleDslParser {
     }
 
     @Override
+    public void setUpForNewValue(@NotNull GradleDslLiteral context, @Nullable PsiElement newValue) { }
+
+    @Override
     @Nullable
-    public Object extractValue(@NotNull GradleDslExpression context, @NotNull PsiElement literal, boolean resolve) {
+    public Object extractValue(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement literal, boolean resolve) {
       return null;
     }
 
     @Override
+    @Nullable
+    public PsiElement convertToExcludesBlock(@NotNull List<ArtifactDependencySpec> specs) { return null; }
+
+    @Override
+    public boolean shouldInterpolate(@NotNull GradleDslElement elementToCheck) { return false; }
+
+    @Override
     @NotNull
-    public List<GradleReferenceInjection> getInjections(@NotNull GradleDslExpression context, @NotNull PsiElement psiElement) {
+    public List<GradleReferenceInjection> getResolvedInjections(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement psiElement) {
       return Collections.emptyList();
+    }
+
+    @Override
+    @NotNull
+    public List<GradleReferenceInjection> getInjections(@NotNull GradleDslSimpleExpression context, @NotNull PsiElement psiElement) {
+      return Collections.emptyList();
+    }
+
+    @Override
+    @Nullable
+    public GradlePropertiesDslElement getBlockElement(@NotNull List<String> nameParts,
+                                                      @NotNull GradlePropertiesDslElement parentElement) {
+      return null;
     }
   }
 }

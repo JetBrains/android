@@ -125,7 +125,7 @@ public class LiveAllocationInstanceObject implements InstanceObject {
 
   @NotNull
   @Override
-  public List<CodeLocation> getCodeLocations() {
+  public List<CodeLocation> getAllocationCodeLocations() {
     List<CodeLocation> codeLocations = new ArrayList<>();
     if (myCallstack != null && myCallstack.getFrameCase() == AllocationStack.FrameCase.SMALL_STACK) {
       AllocationStack.SmallFrameWrapper smallFrames = myCallstack.getSmallStack();

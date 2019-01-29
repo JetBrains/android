@@ -17,83 +17,171 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.level2.GlobalLibraryMap;
+import com.android.java.model.GradlePluginModel;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Objects.requireNonNull;
 
 public class SyncProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 4L;
 
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
+  @NotNull private final SyncActionOptions myOptions;
+  @NotNull private final SelectedVariantChooser myVariantChooser;
 
-  // Key: module's Gradle path.
-  @NotNull private final Map<String, GradleModuleModels> myModelsByModule = new HashMap<>();
-  @Nullable private GlobalLibraryMap myGlobalLibraryMap;
+  // List of SyncModuleModels for modules in root build and included builds.
+  @NotNull private final List<SyncModuleModels> myModuleModels = new ArrayList<>();
+  @NotNull private final List<GlobalLibraryMap> myGlobalLibraryMaps = new ArrayList<>();
+  private BuildIdentifier myRootBuildId;
+  private String myProjectName;
 
-  public SyncProjectModels(@NotNull Set<Class<?>> extraAndroidModelTypes, @NotNull Set<Class<?>> extraJavaModelTypes) {
-    myExtraAndroidModelTypes = extraAndroidModelTypes;
-    myExtraJavaModelTypes = extraJavaModelTypes;
+  public SyncProjectModels(@NotNull Set<Class<?>> extraAndroidModelTypes,
+                           @NotNull Set<Class<?>> extraJavaModelTypes,
+                           @NotNull SyncActionOptions options) {
+    this(extraAndroidModelTypes, extraJavaModelTypes, options, new SelectedVariantChooser());
   }
 
-  public void populate(@NotNull GradleBuild gradleBuild, @NotNull BuildController controller) {
-    BasicGradleProject rootProject = gradleBuild.getRootProject();
+  @VisibleForTesting
+  SyncProjectModels(@NotNull Set<Class<?>> extraAndroidModelTypes,
+                    @NotNull Set<Class<?>> extraJavaModelTypes,
+                    @NotNull SyncActionOptions options,
+                    @NotNull SelectedVariantChooser variantChooser) {
+    myExtraAndroidModelTypes = extraAndroidModelTypes;
+    myExtraJavaModelTypes = extraJavaModelTypes;
+    myOptions = options;
+    myVariantChooser = variantChooser;
+  }
 
-    GradleProject root = controller.findModel(rootProject, GradleProject.class);
-    populateModels(root, controller);
+  public void populate(@NotNull BuildController controller) {
+    GradleBuild rootBuild = controller.getBuildModel();
+    myRootBuildId = rootBuild.getBuildIdentifier();
+    // set project name used by Gradle.
+    myProjectName = rootBuild.getRootProject().getName();
+    List<GradleBuild> gradleBuilds = new ArrayList<>();
+    // add the root builds.
+    gradleBuilds.add(rootBuild);
+    // add the included builds.
+    gradleBuilds.addAll(rootBuild.getIncludedBuilds());
 
-    // Request for GlobalLibraryMap, it can only be requested by android module.
-    // For plugins prior to 3.0.0, controller.findModel returns null.
-    for (GradleModuleModels moduleModels : myModelsByModule.values()) {
-      AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
-      if (androidProject != null) {
-        myGlobalLibraryMap = controller.findModel(moduleModels.findModel(GradleProject.class), GlobalLibraryMap.class);
-        break;
+    // fail early if Kotlin plugin is applied to any of the sub-projects.
+    for (GradleBuild gradleBuild : gradleBuilds) {
+      GradleProject gradleProject = controller.findModel(gradleBuild.getRootProject(), GradleProject.class);
+      failIfKotlinPluginApplied(controller, gradleProject);
+    }
+
+    for (GradleBuild gradleBuild : gradleBuilds) {
+      GradleProject gradleProject = controller.findModel(gradleBuild.getRootProject(), GradleProject.class);
+      populateModelsForModule(gradleProject, controller, gradleBuild.getBuildIdentifier());
+    }
+
+    if (myOptions.isSingleVariantSyncEnabled()) {
+      SelectedVariants variants = myOptions.getSelectedVariants();
+      requireNonNull(variants);
+      myVariantChooser.chooseSelectedVariants(myModuleModels, controller, variants, myOptions.shouldGenerateSources());
+    }
+    // Request for GlobalLibraryMap model at last, when all of other models have been built.
+    populateGlobalLibraryMap(controller);
+  }
+
+  private static void failIfKotlinPluginApplied(@NotNull BuildController controller, @Nullable GradleProject gradleProject) {
+    if (gradleProject != null) {
+      GradlePluginModel pluginModel = controller.findModel(gradleProject, GradlePluginModel.class);
+      if (pluginModel != null && pluginModel.getGraldePluginList()
+                                            .stream()
+                                            .anyMatch(p -> p.startsWith("org.jetbrains.kotlin"))) {
+        throw new NewGradleSyncNotSupportedException("containing Kotlin modules");
+      }
+      for (GradleProject child : gradleProject.getChildren()) {
+        failIfKotlinPluginApplied(controller, child);
       }
     }
   }
 
-  private void populateModels(@NotNull GradleProject project, @NotNull BuildController controller) {
-    SyncModuleModels models = new SyncModuleModels(project, myExtraAndroidModelTypes, myExtraJavaModelTypes);
+  private void populateModelsForModule(@Nullable GradleProject project,
+                                       @NotNull BuildController controller,
+                                       @NotNull BuildIdentifier buildId) {
+    if (project == null) {
+      return;
+    }
+    SyncModuleModels models = new SyncModuleModels(project, buildId, myExtraAndroidModelTypes, myExtraJavaModelTypes, myOptions);
     models.populate(project, controller);
-    myModelsByModule.put(project.getPath(), models);
+    myModuleModels.add(models);
 
     for (GradleProject child : project.getChildren()) {
-      populateModels(child, controller);
+      populateModelsForModule(child, controller, buildId);
+    }
+  }
+
+  private void populateGlobalLibraryMap(@NotNull BuildController controller) {
+    // GlobalLibraryMap can only be requested by android module.
+    // Each included project has an instance of GlobalLibraryMap, so the model needs to be requested once for each included project.
+    Set<BuildIdentifier> visitedBuildId = new HashSet<>();
+    for (SyncModuleModels moduleModels : myModuleModels) {
+      AndroidProject androidProject = moduleModels.findModel(AndroidProject.class);
+      BuildIdentifier buildId = moduleModels.getBuildId();
+      if (androidProject != null && !visitedBuildId.contains(buildId)) {
+        GlobalLibraryMap map = controller.findModel(moduleModels.findModel(GradleProject.class), GlobalLibraryMap.class);
+        if (map != null) {
+          visitedBuildId.add(buildId);
+          myGlobalLibraryMaps.add(map);
+        }
+      }
     }
   }
 
   @NotNull
-  public Collection<String> getProjectPaths() {
-    return myModelsByModule.keySet();
-  }
-
-  @Nullable
-  public GradleModuleModels getModels(@NotNull String gradlePath) {
-    return myModelsByModule.get(gradlePath);
+  public List<SyncModuleModels> getModuleModels() {
+    return ImmutableList.copyOf(myModuleModels);
   }
 
   /**
-   * @return {@link GlobalLibraryMap} retrieved from android plugin.
+   * @return A list of {@link GlobalLibraryMap} retrieved from android plugin.
    * <br/>
-   * The return value could be null in two cases:
+   * The returned list could be empty in two cases:
    * <ol>
    * <li>The version of Android plugin doesn't support GlobalLibraryMap. i.e. pre 3.0.0 plugin.</li>
    * <li>There is no Android module in this project.</li>
    * </ol>
    */
-  @Nullable
-  public GlobalLibraryMap getGlobalLibraryMap() {
-    return myGlobalLibraryMap;
+  @NotNull
+  public List<GlobalLibraryMap> getGlobalLibraryMap() {
+    return ImmutableList.copyOf(myGlobalLibraryMaps);
+  }
+
+  /**
+   * @return the build identifier of root project.
+   */
+  @NotNull
+  public BuildIdentifier getRootBuildId() {
+    return myRootBuildId;
+  }
+
+  /**
+   * @return the name of root project assigned by Gradle.
+   */
+  @NotNull
+  public String getProjectName() {
+    return myProjectName;
+  }
+
+  public static class Factory implements Serializable {
+    @NotNull
+    public SyncProjectModels create(@NotNull Set<Class<?>> extraAndroidModelTypes,
+                                    @NotNull Set<Class<?>> extraJavaModelTypes,
+                                    @NotNull SyncActionOptions options) {
+      return new SyncProjectModels(extraAndroidModelTypes, extraJavaModelTypes, options);
+    }
   }
 }

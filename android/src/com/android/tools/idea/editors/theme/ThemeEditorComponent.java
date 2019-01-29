@@ -16,8 +16,9 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
+import com.android.ide.common.rendering.api.StyleResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
@@ -36,6 +37,7 @@ import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
+import com.android.tools.idea.ui.MaterialColors;
 import com.google.common.collect.*;
 import com.intellij.find.FindManager;
 import com.intellij.openapi.Disposable;
@@ -107,8 +109,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       }
 
       if (o1 instanceof EditedStyleItem && o2 instanceof EditedStyleItem) {
-        Integer pos1 = SORTING_MAP.get(((EditedStyleItem)o1).getName());
-        Integer pos2 = SORTING_MAP.get(((EditedStyleItem)o2).getName());
+        Integer pos1 = SORTING_MAP.get(((EditedStyleItem)o1).getAttrName());
+        Integer pos2 = SORTING_MAP.get(((EditedStyleItem)o2).getAttrName());
         if (pos1 != null && pos2 != null) {
           return pos1 - pos2;
         }
@@ -218,7 +220,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         if (value.isAttr() && getUsedStyle() != null && resolver != null) {
           // We need to resolve the theme attribute.
           // TODO: Do we need a full resolution or can we just try to get it from the StyleWrapper?
-          ItemResourceValue resourceValue = (ItemResourceValue)resolver.findResValue(value.getValue(), false);
+          StyleItemResourceValue resourceValue = (StyleItemResourceValue)resolver.findResValue(value.getValue(), false);
           if (resourceValue == null) {
             LOG.error("Unable to resolve " + value.getValue());
             return;
@@ -240,20 +242,21 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
     myAttributesTable = myPanel.getAttributesTable();
     ParentRendererEditor.ThemeParentChangedListener themeParentChangedListener = new ParentRendererEditor.ThemeParentChangedListener() {
-      /** Stores all the {@link ItemResourceValue} items of a theme
+      /** Stores all the {@link StyleItemResourceValue} items of a theme
        *  so that it can be restored to its original state after having been modified */
-      private final List<ItemResourceValue> myOriginalItems = Lists.newArrayList();
+      private final List<StyleItemResourceValue> myOriginalItems = Lists.newArrayList();
       private String myModifiedParent;
 
       /**
-       * Restores a modified theme with its original content
+       * Restores a modified theme with its original content.
        */
-      private void restoreOriginalTheme(@NotNull ConfiguredThemeEditorStyle modifiedTheme, @NotNull List<ItemResourceValue> originalItems) {
-        StyleResourceValue modifiedResourceValue = modifiedTheme.getStyleResourceValue();
-        StyleResourceValue restoredResourceValue = new StyleResourceValue(modifiedResourceValue.getResourceUrl(),
-                                                                          modifiedResourceValue.getParentStyle(),
-                                                                          modifiedResourceValue.getLibraryName());
-        for (ItemResourceValue item : originalItems) {
+      private void restoreOriginalTheme(@NotNull ConfiguredThemeEditorStyle modifiedTheme,
+                                        @NotNull List<StyleItemResourceValue> originalItems) {
+        StyleResourceValueImpl modifiedResourceValue = modifiedTheme.getStyleResourceValue();
+        StyleResourceValueImpl restoredResourceValue = new StyleResourceValueImpl(modifiedResourceValue.asReference(),
+                                                                                  modifiedResourceValue.getParentStyleName(),
+                                                                                  modifiedResourceValue.getLibraryName());
+        for (StyleItemResourceValue item : originalItems) {
           restoredResourceValue.addItem(item);
         }
         modifiedResourceValue.replaceWith(restoredResourceValue);
@@ -271,17 +274,17 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
         myModifiedParent = name;
         ConfiguredThemeEditorStyle newParent = themeResolver.getTheme(name);
         assert newParent != null;
-        StyleResourceValue newParentStyleResourceValue = newParent.getStyleResourceValue();
+        StyleResourceValueImpl newParentStyleResourceValue = newParent.getStyleResourceValue();
 
         // Store the content of the theme newParent so that it can be restored later
         myOriginalItems.clear();
-        myOriginalItems.addAll(newParentStyleResourceValue.getValues());
+        myOriginalItems.addAll(newParentStyleResourceValue.getDefinedItems());
 
         assert myThemeName != null; // theme changed, so there was a previous theme in myThemeName
         ConfiguredThemeEditorStyle myCurrentTheme = themeResolver.getTheme(myThemeName);
         assert myCurrentTheme != null;
         // Add myCurrentTheme attributes to newParent, so that newParent becomes equivalent to having changed the parent of myCurrentTheme
-        for (ItemResourceValue item : myCurrentTheme.getStyleResourceValue().getValues()) {
+        for (StyleItemResourceValue item : myCurrentTheme.getStyleResourceValue().getDefinedItems()) {
           newParentStyleResourceValue.addItem(item);
         }
 
@@ -440,7 +443,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
   }
 
   private void initializeModulesCombo(@Nullable String defaultModuleName) {
-    final ImmutableList<Module> modules = ThemeEditorUtils.findAndroidModules(myProject);
+    final ImmutableList<Module> modules = ThemeEditorUtils.findAndroidModules(myProject)
+      .collect(ImmutableList.toImmutableList());
     assert !modules.isEmpty() : "Theme Editor shouldn't be launched in a project with no Android modules";
 
     Module defaultModule = null;
@@ -453,10 +457,10 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     }
 
     if (defaultModule == null) {
-      myModuleComboModel = new MutableCollectionComboBoxModel<Module>(modules);
+      myModuleComboModel = new MutableCollectionComboBoxModel<>(modules);
     }
     else {
-      myModuleComboModel = new MutableCollectionComboBoxModel<Module>(modules, defaultModule);
+      myModuleComboModel = new MutableCollectionComboBoxModel<>(modules, defaultModule);
     }
     myPanel.setModuleModel(myModuleComboModel);
   }
@@ -707,9 +711,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     boolean isSubStyleSelected = isSubStyleSelected();
     String message = String
       .format("<html>The %1$s '<code>%2$s</code>' is Read-Only.<br/>A new %1$s will be created to modify '<code>%3$s</code>'.<br/></html>",
-              isSubStyleSelected ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getName());
+              isSubStyleSelected ? "style" : "theme", selectedStyle.getQualifiedName(), rv.getAttrName());
 
-    final ItemResourceValue originalValue = rv.getSelectedValue();
+    StyleItemResourceValue originalValue = rv.getSelectedValue();
     ParentRendererEditor.ThemeParentChangedListener themeListener = new ParentRendererEditor.ThemeParentChangedListener() {
       private ConfiguredThemeEditorStyle myModifiedTheme;
 
@@ -721,8 +725,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
         myModifiedTheme = myThemeEditorContext.getThemeResolver().getTheme(name);
         assert myModifiedTheme != null;
-        ItemResourceValue newSelectedValue =
-          new ItemResourceValue(originalValue.getName(), originalValue.isFrameworkAttr(), strValue, false, null);
+        StyleItemResourceValue newSelectedValue =
+            new StyleItemResourceValueImpl(originalValue.getNamespace(), originalValue.getAttrName(), strValue, null);
         myModifiedTheme.getStyleResourceValue().addItem(newSelectedValue);
         myPreviewThemeName = null;
         refreshPreviewPanel(name);
@@ -785,7 +789,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
       // The theme pointing to the new style is r/o so create a new theme and then write the value.
       message = String.format("<html>The style '%1$s' which references to '%2$s' is also Read-Only.<br/>" +
                               "A new theme will be created to point to the modified style '%3$s'.<br/></html>",
-                              selectedTheme.getQualifiedName(), rv.getName(), newStyleName);
+                              selectedTheme.getQualifiedName(), rv.getAttrName(), newStyleName);
 
       final String newThemeName =
         ThemeEditorUtils.showCreateNewStyleDialog(selectedTheme, myThemeEditorContext, true, false, message, themeListener);

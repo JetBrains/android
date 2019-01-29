@@ -19,6 +19,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profiler.proto.CpuProfiler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,45 +28,41 @@ import java.util.Set;
 
 public class CpuCapture implements ConfigurableDurationData {
 
-  public static final String MAIN_THREAD_NAME = "main";
-
   private final int myMainThreadId;
-
-  @NotNull
-  private final Map<CpuThreadInfo, CaptureNode> myCaptureTrees;
-
-  @NotNull
-  private Range myRange;
 
   @NotNull
   private ClockType myClockType;
 
+  @NotNull
+  private final TraceParser myParser;
+
   /**
-   * Whether the capture supports dual clock, i.e. if the method trace data can be displayed in both thread and wall-clock time.
+   * ID of the trace used to generate the capture.
    */
-  private boolean myDualClock;
+  private final int myTraceId;
 
-  public CpuCapture(@NotNull Range captureRange, @NotNull Map<CpuThreadInfo, CaptureNode> captureTrees, boolean isDualClock) {
-    myRange = captureRange;
-    myCaptureTrees = captureTrees;
-    myDualClock = isDualClock;
+  /**
+   * Technology used to generate the capture.
+   */
+  private final CpuProfiler.CpuProfilerType myType;
 
-    // Try to find the main thread. The main thread is called "main" but if we fail
-    // to find it we will fall back to the thread with the most information.
+  public CpuCapture(@NotNull TraceParser parser, int traceId, CpuProfiler.CpuProfilerType type) {
+    myParser = parser;
+    myTraceId = traceId;
+    myType = type;
+
+    // Try to find the main thread. If there is no actual main thread, we will fall back to the thread with the most information.
     Map.Entry<CpuThreadInfo, CaptureNode> main = null;
-    boolean foundMainThread = false;
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : captureTrees.entrySet()) {
-      if (entry.getKey().getName().equals(MAIN_THREAD_NAME)) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myParser.getCaptureTrees().entrySet()) {
+      if (entry.getKey().isMainThread()) {
         main = entry;
-        foundMainThread = true;
+        break;
       }
-      if (!foundMainThread && (main == null || main.getValue().getDuration() < entry.getValue().getDuration())) {
+
+      if (main == null || main.getValue().getDuration() < entry.getValue().getDuration()) {
         main = entry;
       }
     }
-    // If there is no thread named "main", the trace file is not valid.
-    // In this case, we would have caught a BufferUnderflowException from VmTraceParser above and rethrown it as IllegalStateException.
-    // If a thread named "main" is not required in the future, we need to double-check the object value for null here instead of asserting.
     assert main != null;
     myMainThreadId = main.getKey().getId();
 
@@ -81,12 +78,12 @@ public class CpuCapture implements ConfigurableDurationData {
 
   @NotNull
   public Range getRange() {
-    return myRange;
+    return myParser.getRange();
   }
 
   @Nullable
   public CaptureNode getCaptureNode(int threadId) {
-    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
+    for (Map.Entry<CpuThreadInfo, CaptureNode> entry : myParser.getCaptureTrees().entrySet()) {
       if (entry.getKey().getId() == threadId) {
         return entry.getValue();
       }
@@ -96,21 +93,25 @@ public class CpuCapture implements ConfigurableDurationData {
 
   @NotNull
   Set<CpuThreadInfo> getThreads() {
-    return myCaptureTrees.keySet();
+    return myParser.getCaptureTrees().keySet();
   }
 
   public boolean containsThread(int threadId) {
-    return myCaptureTrees.keySet().stream().anyMatch(info -> info.getId() == threadId);
+    return myParser.getCaptureTrees().keySet().stream().anyMatch(info -> info.getId() == threadId);
   }
 
   @Override
-  public long getDuration() {
-    return (long)myRange.getLength();
+  public long getDurationUs() {
+    return (long)myParser.getRange().getLength();
   }
 
   @Override
   public boolean getSelectableWhenMaxDuration() {
     return false;
+  }
+
+  public int getTraceId() {
+    return myTraceId;
   }
 
   @Override
@@ -125,7 +126,7 @@ public class CpuCapture implements ConfigurableDurationData {
     }
     myClockType = clockType;
 
-    for (CaptureNode tree : myCaptureTrees.values()) {
+    for (CaptureNode tree : myParser.getCaptureTrees().values()) {
       updateClockType(tree, clockType);
     }
   }
@@ -136,12 +137,15 @@ public class CpuCapture implements ConfigurableDurationData {
     }
     node.setClockType(clockType);
     for (CaptureNode child : node.getChildren()) {
-      // CpuTraceArt should parse the capture into CaptureNode objects
       updateClockType(child, clockType);
     }
   }
 
   public boolean isDualClock() {
-    return myDualClock;
+    return myParser.supportsDualClock();
+  }
+
+  public CpuProfiler.CpuProfilerType getType() {
+    return myType;
   }
 }

@@ -136,12 +136,6 @@ class DomPsiConverter {
              new TextRange(position.getStartOffset(), position.getEndOffset()) : new TextRange(0, 0);
     }
 
-    // For elements, don't highlight the entire element range; instead, just
-    // highlight the element name
-    if (node.getNodeType() == Node.ELEMENT_NODE) {
-      return getTextNameRange(node);
-    }
-
     DomNode domNode = (DomNode)node;
     return domNode.getTextRange();
   }
@@ -614,7 +608,7 @@ class DomPsiConverter {
       throw new UnsupportedOperationException(); // Read-only bridge
     }
 
-    @NotNull
+    @Nullable
     @Override
     public Object getUserData(String s) {
       throw new UnsupportedOperationException(); // Not supported
@@ -702,6 +696,12 @@ class DomPsiConverter {
       }
 
       return myChildren;
+    }
+
+    @Nullable
+    @Override
+    public Object getUserData(String s) {
+      return null;
     }
 
     // From org.w3c.dom.Document:
@@ -1271,7 +1271,7 @@ class DomPsiConverter {
         return application.runReadAction((Computable<String>)this::getValue);
       }
 
-      String value = myAttribute.getValue();
+      String value = myAttribute.getDisplayValue();
       if (value == null) {
         value = "";
       }

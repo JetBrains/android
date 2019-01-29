@@ -70,7 +70,7 @@ public class GradleBuildTreeStructure extends ErrorViewStructure {
            messages.add(message);
         }
       }
-      return messages.toArray(new ErrorTreeElement[messages.size()]);
+      return messages.toArray(ErrorTreeElement.EMPTY_ARRAY);
     }
     if (element instanceof GroupingElement) {
       List<NavigatableMessageElement> children = myGroupNameToMessagesMap.get(((GroupingElement)element).getName());
@@ -80,7 +80,7 @@ public class GradleBuildTreeStructure extends ErrorViewStructure {
           messages.add(message);
         }
       }
-      return messages.toArray(new ErrorTreeElement[messages.size()]);
+      return messages.toArray(ErrorTreeElement.EMPTY_ARRAY);
     }
     return ErrorTreeElement.EMPTY_ARRAY;
   }

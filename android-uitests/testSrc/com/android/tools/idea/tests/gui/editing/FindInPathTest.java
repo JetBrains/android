@@ -18,20 +18,22 @@ package com.android.tools.idea.tests.gui.editing;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.FindPopupPanelFixture;
 import com.google.common.collect.ImmutableList;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunIn(TestGroup.UNRELIABLE)  // b/116536009
+@RunWith(GuiTestRemoteRunner.class)
 public class FindInPathTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void testResultsOnlyInGeneratedCode() throws Exception {
-    ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
+    ImmutableList<String> usageGroupNames = guiTest.importSimpleLocalApplication()
       .openFromMenu(FindPopupPanelFixture::find, "Edit", "Find", "Find in Path...")
       .setTextToFind("ActionBarDivider")
       .clickFind()
@@ -41,7 +43,7 @@ public class FindInPathTest {
 
   @Test
   public void testResultsInBothProductionAndGeneratedCode() throws Exception {
-    ImmutableList<String> usageGroupNames = guiTest.importSimpleApplication()
+    ImmutableList<String> usageGroupNames = guiTest.importSimpleLocalApplication()
       .openFromMenu(FindPopupPanelFixture::find, "Edit", "Find", "Find in Path...")
       .setTextToFind("DarkActionBar")
       .clickFind()

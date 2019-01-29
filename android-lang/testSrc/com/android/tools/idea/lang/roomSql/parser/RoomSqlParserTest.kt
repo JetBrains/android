@@ -16,6 +16,10 @@
 package com.android.tools.idea.lang.roomSql.parser
 
 import com.android.tools.idea.lang.roomSql.ROOM_SQL_FILE_TYPE
+import com.android.tools.idea.lang.roomSql.RoomPairedBraceMatcher
+import com.android.tools.idea.lang.roomSql.RoomSqlLanguage
+import com.intellij.codeInsight.completion.CompletionUtil
+import com.intellij.lang.LanguageBraceMatching
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
@@ -23,6 +27,17 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.ParsingTestCase
 
 abstract class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_SQL_FILE_TYPE.defaultExtension, RoomSqlParserDefinition()) {
+  override fun setUp() {
+    super.setUp()
+    // b/110189571: ParsingTestCase puts in place a new root area and registers just a few extension points in it. Our parser implementation
+    // ends up using LanguageBraceMatching which is not registered by ParsingTestCase and so LanguageBraceMatching.myCache ends up empty
+    // (because there was no registered extension point with the right name to get instances for) and the empty cache is not flushed at
+    // the end of the test (because only registered extension points get notified that the root area got replaced back to the default one).
+    // With the line below we register the right object for the duration of this test and also mak sure its cache gets cleared before
+    // EditingTest runs.
+    addExplicitExtension(LanguageBraceMatching.INSTANCE, RoomSqlLanguage.INSTANCE, RoomPairedBraceMatcher())
+  }
+
   /**
    * Checks that the given text parses correctly.
    *
@@ -34,7 +49,7 @@ abstract class RoomSqlParserTest : ParsingTestCase("no_data_path_needed", ROOM_S
     val lexer = RoomSqlLexer()
     lexer.start(input)
     while (lexer.tokenType != null) {
-      assert(lexer.tokenType != TokenType.BAD_CHARACTER, { "BAD_CHARACTER ${lexer.tokenText}" })
+      assert(lexer.tokenType != TokenType.BAD_CHARACTER) { "BAD_CHARACTER ${lexer.tokenText}" }
       lexer.advance()
     }
   }
@@ -111,6 +126,37 @@ class MiscParserTest : RoomSqlParserTest() {
     check("update foo set bar = 42, baz = :value, quux=:anotherValue")
     check("update or fail foo set bar=42")
     check("update foo set bar=bar*2 where predicate(bar)")
+  }
+
+  fun testUpdatePartial() {
+    assertEquals("""
+        FILE
+          RoomUpdateStatementImpl(UPDATE_STATEMENT)
+            PsiElement(UPDATE)('update')
+            RoomSingleTableStatementTableImpl(SINGLE_TABLE_STATEMENT_TABLE)
+              RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                PsiElement(IDENTIFIER)('${CompletionUtil.DUMMY_IDENTIFIER_TRIMMED}')
+            PsiErrorElement:'.', INDEXED, NOT or SET expected
+              <empty list>
+        """.trimIndent(),
+        toParseTreeText("update ${CompletionUtil.DUMMY_IDENTIFIER}")
+    )
+
+    assertEquals("""
+          FILE
+            RoomUpdateStatementImpl(UPDATE_STATEMENT)
+              PsiElement(UPDATE)('update')
+              RoomSingleTableStatementTableImpl(SINGLE_TABLE_STATEMENT_TABLE)
+                RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                  PsiElement(IDENTIFIER)('foo')
+              PsiElement(SET)('set')
+              RoomColumnNameImpl(COLUMN_NAME)
+                PsiElement(IDENTIFIER)('${CompletionUtil.DUMMY_IDENTIFIER_TRIMMED}')
+              PsiErrorElement:'=' expected
+                <empty list>
+        """.trimIndent(),
+        toParseTreeText("update foo set ${CompletionUtil.DUMMY_IDENTIFIER}")
+    )
   }
 
   fun testExpressions() {
@@ -870,7 +916,7 @@ class ErrorMessagesTest : RoomSqlParserTest() {
     assertEquals("""
           FILE
             PsiElement(SELECT)('SELECT')
-            PsiErrorElement:<result column>, ALL or DISTINCT expected, unexpected end of file
+            PsiErrorElement:<result column>, ALL or DISTINCT expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("SELECT "))
@@ -889,7 +935,7 @@ class ErrorMessagesTest : RoomSqlParserTest() {
                         RoomColumnNameImpl(COLUMN_NAME)
                           PsiElement(IDENTIFIER)('foo')
             PsiElement(FROM)('FROM')
-            PsiErrorElement:<table or subquery> expected, unexpected end of file
+            PsiErrorElement:<table or subquery> expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("SELECT foo FROM "))
@@ -1389,7 +1435,7 @@ class ErrorMessagesTest : RoomSqlParserTest() {
     assertEquals("""
           FILE
             PsiElement(DELETE)('DELETE')
-            PsiErrorElement:FROM expected, unexpected end of file
+            PsiErrorElement:FROM expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("DELETE "))
@@ -1400,7 +1446,7 @@ class ErrorMessagesTest : RoomSqlParserTest() {
           FILE
             PsiElement(DELETE)('DELETE')
             PsiElement(FROM)('FROM')
-            PsiErrorElement:<single table statement table> expected, unexpected end of file
+            PsiErrorElement:<single table statement table> expected
               <empty list>
           """.trimIndent(),
         toParseTreeText("DELETE FROM"))
@@ -1427,5 +1473,185 @@ class ErrorMessagesTest : RoomSqlParserTest() {
           FOREIGN KEY(`name`) REFERENCES `Entity1`(`name`)
           DEFERRABLE INITIALLY DEFERRED)
           """)
+  }
+
+  fun testInExpressions() {
+    assertEquals("""
+          FILE
+            RoomDeleteStatementImpl(DELETE_STATEMENT)
+              PsiElement(DELETE)('DELETE')
+              PsiElement(FROM)('FROM')
+              RoomSingleTableStatementTableImpl(SINGLE_TABLE_STATEMENT_TABLE)
+                RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                  PsiElement(IDENTIFIER)('t')
+              RoomWhereClauseImpl(WHERE_CLAUSE)
+                PsiElement(WHERE)('WHERE')
+                RoomAndExpressionImpl(AND_EXPRESSION)
+                  RoomParenExpressionImpl(PAREN_EXPRESSION)
+                    PsiElement(()('(')
+                    RoomInExpressionImpl(IN_EXPRESSION)
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        PsiElement(NUMERIC_LITERAL)('1')
+                      PsiElement(IN)('IN')
+                      PsiElement(()('(')
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        RoomBindParameterImpl(BIND_PARAMETER)
+                          PsiElement(NAMED_PARAMETER)(':ids')
+                      PsiElement())(')')
+                    PsiElement())(')')
+                  PsiElement(AND)('AND')
+                  RoomParenExpressionImpl(PAREN_EXPRESSION)
+                    PsiElement(()('(')
+                    RoomInExpressionImpl(IN_EXPRESSION)
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        PsiElement(NUMERIC_LITERAL)('2')
+                      PsiElement(IN)('IN')
+                      PsiElement(()('(')
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        PsiElement(NUMERIC_LITERAL)('3')
+                      PsiElement(comma)(',')
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        PsiElement(NUMERIC_LITERAL)('4')
+                      PsiElement())(')')
+                    PsiElement())(')')
+          """.trimIndent(),
+          toParseTreeText("DELETE FROM t WHERE (1 IN (:ids)) AND (2 IN (3,4))"))
+  }
+
+  fun testPriorities() {
+    assertEquals("""
+          FILE
+            RoomDeleteStatementImpl(DELETE_STATEMENT)
+              PsiElement(DELETE)('DELETE')
+              PsiElement(FROM)('FROM')
+              RoomSingleTableStatementTableImpl(SINGLE_TABLE_STATEMENT_TABLE)
+                RoomDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                  PsiElement(IDENTIFIER)('t')
+              RoomWhereClauseImpl(WHERE_CLAUSE)
+                PsiElement(WHERE)('WHERE')
+                RoomOrExpressionImpl(OR_EXPRESSION)
+                  RoomEquivalenceExpressionImpl(EQUIVALENCE_EXPRESSION)
+                    RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                      RoomColumnNameImpl(COLUMN_NAME)
+                        PsiElement(IDENTIFIER)('a')
+                    PsiElement(=)('=')
+                    RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                      PsiElement(NUMERIC_LITERAL)('1')
+                  PsiElement(OR)('OR')
+                  RoomAndExpressionImpl(AND_EXPRESSION)
+                    RoomInExpressionImpl(IN_EXPRESSION)
+                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                        RoomColumnNameImpl(COLUMN_NAME)
+                          PsiElement(IDENTIFIER)('b')
+                      PsiElement(IN)('IN')
+                      PsiElement(()('(')
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        PsiElement(NUMERIC_LITERAL)('2')
+                      PsiElement(comma)(',')
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        PsiElement(NUMERIC_LITERAL)('3')
+                      PsiElement())(')')
+                    PsiElement(AND)('AND')
+                    RoomLikeExpressionImpl(LIKE_EXPRESSION)
+                      RoomColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                        RoomColumnNameImpl(COLUMN_NAME)
+                          PsiElement(IDENTIFIER)('c')
+                      PsiElement(LIKE)('LIKE')
+                      RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        PsiElement(NUMERIC_LITERAL)('3')
+          """.trimIndent(),
+                 toParseTreeText("DELETE FROM t WHERE a = 1 OR b IN (2,3) AND c LIKE 3"))
+
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomLikeExpressionImpl(LIKE_EXPRESSION)
+                        RoomAddExpressionImpl(ADD_EXPRESSION)
+                          RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                            PsiElement(NUMERIC_LITERAL)('10')
+                          PsiElement(+)('+')
+                          RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                            PsiElement(NUMERIC_LITERAL)('10')
+                        PsiElement(LIKE)('LIKE')
+                        RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                          PsiElement(NUMERIC_LITERAL)('10')
+          """.trimIndent(),
+                 toParseTreeText("SELECT 10 + 10 LIKE 10"))
+
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomAndExpressionImpl(AND_EXPRESSION)
+                        RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                          PsiElement(NUMERIC_LITERAL)('1')
+                        PsiElement(AND)('AND')
+                        RoomLikeExpressionImpl(LIKE_EXPRESSION)
+                          RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                            PsiElement(NUMERIC_LITERAL)('2')
+                          PsiElement(LIKE)('LIKE')
+                          RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                            PsiElement(NUMERIC_LITERAL)('2')
+          """.trimIndent(),
+                 toParseTreeText("SELECT 1 AND 2 LIKE 2"))
+
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomEquivalenceExpressionImpl(EQUIVALENCE_EXPRESSION)
+                        RoomEquivalenceExpressionImpl(EQUIVALENCE_EXPRESSION)
+                          RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                            PsiElement(NUMERIC_LITERAL)('2')
+                          PsiElement(==)('==')
+                          RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                            PsiElement(NUMERIC_LITERAL)('2')
+                        PsiElement(==)('==')
+                        RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                          PsiElement(NUMERIC_LITERAL)('1')
+          """.trimIndent(),
+                 toParseTreeText("SELECT 2 == 2 == 1"))
+
+    assertEquals("""
+          FILE
+            RoomSelectStatementImpl(SELECT_STATEMENT)
+              RoomSelectCoreImpl(SELECT_CORE)
+                RoomSelectCoreSelectImpl(SELECT_CORE_SELECT)
+                  PsiElement(SELECT)('SELECT')
+                  RoomResultColumnsImpl(RESULT_COLUMNS)
+                    RoomResultColumnImpl(RESULT_COLUMN)
+                      RoomCaseExpressionImpl(CASE_EXPRESSION)
+                        PsiElement(CASE)('CASE')
+                        RoomAndExpressionImpl(AND_EXPRESSION)
+                          RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                            PsiElement(NUMERIC_LITERAL)('1')
+                          PsiElement(AND)('AND')
+                          RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                            PsiElement(NUMERIC_LITERAL)('0')
+                        PsiElement(WHEN)('WHEN')
+                        RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                          PsiElement(NUMERIC_LITERAL)('1')
+                        PsiElement(THEN)('THEN')
+                        RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                          PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''true'')
+                        PsiElement(ELSE)('ELSE')
+                        RoomLiteralExpressionImpl(LITERAL_EXPRESSION)
+                          PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''false'')
+                        PsiElement(END)('END')
+          """.trimIndent(),
+                 toParseTreeText("SELECT CASE 1 AND 0 WHEN 1 THEN 'true' ELSE 'false' END"))
   }
 }

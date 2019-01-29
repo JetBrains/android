@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ArtTraceHandler implements VmTraceHandler {
+  private static final String MAIN_THREAD_NAME = "main";
   private static final String KEY_ELAPSED_TIME_US = "elapsed-time-usec";
   private long myStartTimeUs;
   private long myElapsedTimeUs;
@@ -113,7 +114,7 @@ public class ArtTraceHandler implements VmTraceHandler {
 
       CaptureNode topLevelCall = constructor.getTopLevel();
       assert topLevelCall != null;
-      CpuThreadInfo info = new CpuThreadInfo(id, name);
+      CpuThreadInfo info = new CpuThreadInfo(id, name, name.equals(MAIN_THREAD_NAME));
 
       long topLevelGlobalStart = topLevelCall.getStartGlobal() + myStartTimeUs;
       adjustNodesTimeAndDepth(topLevelCall, topLevelGlobalStart, 0);

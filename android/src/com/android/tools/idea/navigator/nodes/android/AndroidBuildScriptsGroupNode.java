@@ -93,6 +93,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     if (projectRootFolder != null) {
       // Should not happen, but we have reports that there is a NPE in this area.
       findChildAndAddToMapIfFound(FN_SETTINGS_GRADLE, projectRootFolder, "Project Settings", buildScripts);
+      findChildAndAddToMapIfFound(FN_SETTINGS_GRADLE_KTS, projectRootFolder, "Project Settings", buildScripts);
       findChildAndAddToMapIfFound(FN_GRADLE_PROPERTIES, projectRootFolder, "Project Properties", buildScripts);
 
       VirtualFile child = projectRootFolder.findFileByRelativePath(toSystemIndependentName(GRADLEW_PROPERTIES_PATH));
@@ -145,7 +146,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     List<VirtualFile> files = new ArrayList<>();
     for (VirtualFile child : moduleRootFolder.getChildren()) {
       // @formatter:off
-      if (!child.isValid() || child.isDirectory() || !child.getName().endsWith(EXT_GRADLE) &&
+      if (!child.isValid() || child.isDirectory() || !(child.getName().endsWith(EXT_GRADLE) || child.getName().endsWith(EXT_GRADLE_KTS)) &&
            // Consider proguard rule files as a type of build script (contains build-time configuration
            // for release builds)
            child.getFileType() != ProguardFileType.INSTANCE) {

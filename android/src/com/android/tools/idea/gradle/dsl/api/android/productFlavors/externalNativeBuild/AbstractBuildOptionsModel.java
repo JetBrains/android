@@ -15,85 +15,22 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public interface AbstractBuildOptionsModel {
-  @Nullable
-  List<GradleNotNullValue<String>> abiFilters();
+  @NotNull
+  ResolvedPropertyModel abiFilters();
 
   @NotNull
-  AbstractBuildOptionsModel addAbiFilter(@NotNull String abiFilter);
+  ResolvedPropertyModel arguments();
 
   @NotNull
-  AbstractBuildOptionsModel removeAbiFilter(@NotNull String abiFilter);
+  ResolvedPropertyModel cFlags();
 
   @NotNull
-  AbstractBuildOptionsModel removeAllAbiFilters();
+  ResolvedPropertyModel cppFlags();
 
   @NotNull
-  AbstractBuildOptionsModel replaceAbiFilter(@NotNull String oldAbiFilter, @NotNull String newAbiFilter);
-
-  @Nullable
-  List<GradleNotNullValue<String>> arguments();
-
-  @NotNull
-  AbstractBuildOptionsModel addArgument(@NotNull String argument);
-
-  @NotNull
-  AbstractBuildOptionsModel removeArgument(@NotNull String argument);
-
-  @NotNull
-  AbstractBuildOptionsModel removeAllArguments();
-
-  @NotNull
-  AbstractBuildOptionsModel replaceArgument(@NotNull String oldArgument, @NotNull String newArgument);
-
-  @Nullable
-  List<GradleNotNullValue<String>> cFlags();
-
-  @NotNull
-  AbstractBuildOptionsModel addCFlag(@NotNull String cFlag);
-
-  @NotNull
-  AbstractBuildOptionsModel removeCFlag(@NotNull String cFlag);
-
-  @NotNull
-  AbstractBuildOptionsModel removeAllCFlags();
-
-  @NotNull
-  AbstractBuildOptionsModel replaceCFlag(@NotNull String oldCFlag, @NotNull String newCFlag);
-
-  @Nullable
-  List<GradleNotNullValue<String>> cppFlags();
-
-  @NotNull
-  AbstractBuildOptionsModel addCppFlag(@NotNull String cppFlag);
-
-  @NotNull
-  AbstractBuildOptionsModel removeCppFlag(@NotNull String cppFlag);
-
-  @NotNull
-  AbstractBuildOptionsModel removeAllCppFlags();
-
-  @NotNull
-  AbstractBuildOptionsModel replaceCppFlag(@NotNull String oldCppFlag, @NotNull String newCppFlag);
-
-  @Nullable
-  List<GradleNotNullValue<String>> targets();
-
-  @NotNull
-  AbstractBuildOptionsModel addTarget(@NotNull String target);
-
-  @NotNull
-  AbstractBuildOptionsModel removeTarget(@NotNull String target);
-
-  @NotNull
-  AbstractBuildOptionsModel removeAllTargets();
-
-  @NotNull
-  AbstractBuildOptionsModel replaceTarget(@NotNull String oldTarget, @NotNull String newTarget);
+  ResolvedPropertyModel targets();
 }

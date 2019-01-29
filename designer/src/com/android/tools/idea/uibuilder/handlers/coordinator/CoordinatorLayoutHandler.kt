@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
+import com.android.SdkConstants
 import com.android.SdkConstants.*
 import com.android.tools.idea.uibuilder.api.DragHandler
-import com.android.tools.idea.uibuilder.api.DragType
+import com.android.tools.idea.common.api.DragType
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.handlers.ScrollViewHandler
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.common.scene.SceneInteraction
-import com.android.tools.idea.common.scene.TemporarySceneComponent
+import com.android.tools.idea.common.scene.*
 import com.android.tools.idea.common.scene.target.Target
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.handlers.frame.FrameResizeTarget
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
@@ -37,7 +38,7 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
 
   enum class InteractionState { NORMAL, DRAGGING }
 
-  var interactionState = InteractionState.NORMAL
+  var interactionState: InteractionState = InteractionState.NORMAL
 
   override fun handlesPainting() = true
 
@@ -47,10 +48,19 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
     return listOf(ATTR_LAYOUT_BEHAVIOR, ATTR_LAYOUT_ANCHOR, ATTR_LAYOUT_ANCHOR_GRAVITY)
   }
 
+  // Don't do the same behavior as ScrollViewHandler does.
+  override fun onChildInserted(editor: ViewEditor, parent: NlComponent, child: NlComponent, insertType: InsertType) = Unit
+
+  override fun onChildRemoved(editor: ViewEditor, layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
+    newChild.removeAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY)
+    newChild.removeAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR)
+  }
+
   override fun createDragHandler(editor: ViewEditor,
                                  layout: SceneComponent,
                                  components: List<NlComponent>,
-                                 type: DragType): DragHandler? {
+                                 type: DragType
+  ): DragHandler? {
     // The {@link CoordinatorDragHandler} handles the logic for anchoring a
     // single component to an existing component in the CoordinatorLayout.
     // If we are moving several components we probably don't want them to be
@@ -107,6 +117,13 @@ class CoordinatorLayoutHandler : ScrollViewHandler() {
   }
 
   override fun acceptsChild(layout: NlComponent, newChild: NlComponent) = true
+
+  override fun getPlaceholders(component: SceneComponent) =
+    component.children
+      .filterNot { component.scene.selection.contains(it.nlComponent) }
+      .flatMap { child -> CoordinatorPlaceholder.Type.values().map { type -> CoordinatorPlaceholder(component, child, type) } }
+      .toList()
+      .plus(ViewGroupPlaceholder(component))
 }
 
 // The resize behaviour is similar to the FrameResizeTarget so far.

@@ -17,28 +17,30 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.issues.IssueRenderer
 import com.android.tools.idea.gradle.structure.configurables.issues.NavigationHyperlinkListener
 import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.PsPath
 import java.awt.Component
 
 class SuggestionViewer(
     private val context: PsContext,
     private val renderer: IssueRenderer,
     issue: PsIssue,
+    scope: PsPath?,
     isLast: Boolean
 ) : SuggestionViewerUi(isLast) {
 
   val component: Component get() = myPanel
 
   init {
-    renderIssue(issue)
+    renderIssue(issue, scope)
   }
 
   // Private. Viewers cannot be reused.
-  private fun renderIssue(issue: PsIssue) {
+  private fun renderIssue(issue: PsIssue, scope: PsPath?) {
     val hyperlinkListener = NavigationHyperlinkListener(context)
-    myText.text = renderer.renderIssue(issue)
+    myText.text = renderer.renderIssue(issue, scope)
     myText.addHyperlinkListener(hyperlinkListener)
 
-    val hyperlinkDestination = issue.quickFixPath?.getHyperlinkDestination(context)
+    val hyperlinkDestination = issue.quickFix?.getHyperlinkDestination(context)
     if (hyperlinkDestination != null) {
       myUpdateButton.addActionListener { _ -> hyperlinkListener.navigate(hyperlinkDestination) }
     }

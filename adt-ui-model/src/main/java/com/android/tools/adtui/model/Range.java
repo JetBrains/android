@@ -16,10 +16,12 @@
 
 package com.android.tools.adtui.model;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.LinkedList;
 import java.util.List;
 
-public class Range extends AspectModel<Range.Aspect> {
+public final class Range extends AspectModel<Range.Aspect> {
 
   public enum Aspect {
     RANGE
@@ -53,7 +55,7 @@ public class Range extends AspectModel<Range.Aspect> {
 
   public void set(double min, double max) {
     // We use exact comparison to avoid firing when a range is set to itself.
-    if (min != myMin || max != myMax) {
+    if (Double.compare(myMin, min) != 0 || Double.compare(myMax, max) != 0) {
       myMin = min;
       myMax = max;
       changed(Aspect.RANGE);
@@ -77,7 +79,7 @@ public class Range extends AspectModel<Range.Aspect> {
   }
 
   public boolean isPoint() {
-    return getMax() == getMin();
+    return Double.compare(getMin(), getMax()) == 0;
   }
 
   /**
@@ -169,5 +171,11 @@ public class Range extends AspectModel<Range.Aspect> {
   @Override
   public String toString() {
     return !isEmpty() ? String.format("[%s..%s]", myMin, myMax) : "[]";
+  }
+
+  // TODO(b/79753868): Most users would expect "equals" to work instead of requiring another method
+  public boolean isSameAs(@NotNull Range otherRange) {
+    return isEmpty() && otherRange.isEmpty() ||
+           (Double.compare(otherRange.myMin, myMin) == 0 && Double.compare(otherRange.myMax, myMax) == 0);
   }
 }

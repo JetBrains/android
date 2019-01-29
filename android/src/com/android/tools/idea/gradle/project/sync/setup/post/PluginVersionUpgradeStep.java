@@ -21,7 +21,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class PluginVersionUpgradeStep {
-  private static final ExtensionPointName<PluginVersionUpgradeStep>
+  public static final ExtensionPointName<PluginVersionUpgradeStep>
     EXTENSION_POINT_NAME = ExtensionPointName.create("com.android.gradle.sync.pluginVersionUpgradeStep");
 
   @NotNull

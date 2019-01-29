@@ -54,6 +54,6 @@ public class ConstraintLayoutFeatureTest extends IdeaTestCase {
     AndroidModuleModel model = mock(AndroidModuleModel.class);
     when(model.getFeatures()).thenReturn(features);
     AndroidFacet facet = createAndAddAndroidFacet(getModule());
-    facet.setAndroidModel(model);
+    facet.getConfiguration().setModel(model);
   }
 }

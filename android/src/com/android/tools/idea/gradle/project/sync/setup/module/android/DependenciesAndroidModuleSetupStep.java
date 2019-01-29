@@ -97,10 +97,8 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
     addExtraSdkLibrariesAsDependencies(module, ideModelsProvider, androidModel);
 
     Collection<SyncIssue> syncIssues = androidModel.getSyncIssues();
-    if (syncIssues != null) {
-      SyncIssuesReporter.getInstance().report(syncIssues, module);
-    }
-    else {
+    // The case when syncIssues != null is handled within SyncIssueDataService.
+    if (syncIssues == null) {
       //noinspection deprecation
       Collection<String> unresolvedDependencies = androidModel.getAndroidProject().getUnresolvedDependencies();
       UnresolvedDependenciesReporter.getInstance().report(unresolvedDependencies, module);

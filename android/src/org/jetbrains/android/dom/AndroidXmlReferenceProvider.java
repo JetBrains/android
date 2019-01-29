@@ -1,5 +1,6 @@
 package org.jetbrains.android.dom;
 
+import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.module.Module;
@@ -56,7 +57,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
     if (closingTagName != null && areReferencesProvidedByReferenceProvider(closingTagName)) {
       addReferences(tag, closingTagName.getPsi(), result, module, baseClassQName, false);
     }
-    return result.toArray(new PsiReference[result.size()]);
+    return result.toArray(PsiReference.EMPTY_ARRAY);
   }
 
   private static void addReferences(@NotNull XmlTag tag,
@@ -108,7 +109,11 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
 
   @Nullable
   private static String computeBaseClass(XmlTag context) {
-    final XmlTag parentTag = context.getParentTag();
+    XmlTag parentTag = context.getParentTag();
+    if (parentTag != null && SdkConstants.TAG_LAYOUT.equals(parentTag.getName())) {
+      // If the tag parent is "layout", let's consider the given tag as the root to compute the base class
+      parentTag = null;
+    }
     final Pair<AndroidDomElement, String> pair =
       AndroidDomElementDescriptorProvider.getDomElementAndBaseClassQName(parentTag != null ? parentTag : context);
     return pair != null ? pair.getSecond() : null;

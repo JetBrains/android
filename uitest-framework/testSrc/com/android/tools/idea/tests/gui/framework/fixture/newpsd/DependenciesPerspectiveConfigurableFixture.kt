@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurable
+import com.android.tools.idea.gradle.structure.configurables.DEPENDENCIES_VIEW
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import java.awt.Container
 
@@ -28,7 +28,7 @@ fun ProjectStructureDialogFixture.selectDependenciesConfigurable(): Dependencies
   selectConfigurable("Dependencies")
   return DependenciesPerspectiveConfigurableFixture(
       ideFrameFixture,
-      findConfigurable(DependenciesPerspectiveConfigurable.DEPENDENCIES_VIEW))
+      findConfigurable(DEPENDENCIES_VIEW))
 }
 
 

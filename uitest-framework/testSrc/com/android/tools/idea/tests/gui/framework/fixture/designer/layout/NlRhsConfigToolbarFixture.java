@@ -19,9 +19,11 @@ import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.android.tools.idea.uibuilder.error.IssuePanel;
+import com.android.tools.idea.common.error.IssuePanel;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.keymap.MacKeymapUtil;
+import com.intellij.openapi.util.SystemInfo;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
@@ -44,8 +46,10 @@ public class NlRhsConfigToolbarFixture {
 
   public void zoomToFit() {
     Robot robot = myNlEditorFixture.robot();
+    String key = (SystemInfo.isMac) ? MacKeymapUtil.COMMAND : "Ctrl";
+    String toolTip = "Zoom to Fit Screen (" + key + "+0)";
     ActionButton zoomToFit =
-      waitUntilShowingAndEnabled(robot, myToolBar.getComponent(), Matchers.byTooltip(ActionButton.class, "Zoom to Fit Screen (0)"));
+      waitUntilShowingAndEnabled(robot, myToolBar.getComponent(), Matchers.byTooltip(ActionButton.class, toolTip));
     new ActionButtonFixture(robot, zoomToFit).click();
   }
 

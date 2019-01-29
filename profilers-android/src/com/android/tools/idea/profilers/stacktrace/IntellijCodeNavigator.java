@@ -15,29 +15,51 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
+import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.profilers.TraceSignatureConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
+import com.google.common.base.Strings;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.ClassUtil;
+import com.intellij.util.Processor;
+import com.jetbrains.cidr.lang.navigation.OCSymbolNavigationItem;
+import com.jetbrains.cidr.lang.symbols.OCQualifiedName;
+import com.jetbrains.cidr.lang.symbols.OCSymbol;
+import com.jetbrains.cidr.lang.symbols.cpp.OCDeclaratorSymbol;
+import com.jetbrains.cidr.lang.symbols.cpp.OCFunctionSymbol;
+import com.jetbrains.cidr.lang.symbols.symtable.OCGlobalProjectSymbolsCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link CodeNavigator} with logic to jump to code inside of an IntelliJ code editor.
  */
 public final class IntellijCodeNavigator extends CodeNavigator {
+  @NotNull
   private final Project myProject;
+  @NotNull
+  private final Map<String, String> myApkSrcDirMap;
 
   public IntellijCodeNavigator(@NotNull Project project, @NotNull FeatureTracker featureTracker) {
     super(featureTracker);
     myProject = project;
+    myApkSrcDirMap = getApkSourceDirMap();
   }
 
   @Override
@@ -55,8 +77,24 @@ public final class IntellijCodeNavigator extends CodeNavigator {
 
   @Nullable
   private Navigatable getNavigatable(@NotNull CodeLocation location) {
+    if (!Strings.isNullOrEmpty(location.getFileName()) &&
+        location.getLineNumber() != CodeLocation.INVALID_LINE_NUMBER) {
+      Navigatable navigatable = getExplicitLocationNavigable(location);
+      if (navigatable != null) {
+        return navigatable;
+      }
+
+      navigatable = getApkMappingNavigable(location);
+      if (navigatable != null) {
+        return navigatable;
+      }
+    }
+
     if (location.isNativeCode()) {
-      return getNativeNavigatable(location);
+      Navigatable navigatable = getNativeNavigatable(location);
+      if (navigatable.canNavigate()) {
+        return navigatable;
+      }
     }
 
     PsiClass psiClass = ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(myProject), location.getClassName());
@@ -90,16 +128,69 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   }
 
   /**
-   * Tries to find and return the method's corresponding {@link Navigatable} within the project. Returns null if the method is not found.
+   * Returns a navigation to a file and a line explicitly specified in the location
+   * if it exists.
    */
   @Nullable
+  private Navigatable getExplicitLocationNavigable(@NotNull CodeLocation location) {
+    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    VirtualFile sourceFile = fileSystem.findFileByPath(location.getFileName());
+    if (sourceFile == null || !sourceFile.exists()) {
+      return null;
+    }
+    return new OpenFileDescriptor(myProject, sourceFile, location.getLineNumber(), 0);
+  }
+
+  /**
+   * Returns a navigation to a file and a line explicitly specified in the location
+   * after applying APK source mapping to it.
+   */
+  @Nullable
+  private Navigatable getApkMappingNavigable(@NotNull CodeLocation location) {
+    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    for (Map.Entry<String, String> entry : myApkSrcDirMap.entrySet()) {
+      if (location.getFileName().startsWith(entry.getKey())) {
+        String pathTailAfterPrefix = location.getFileName().substring(entry.getKey().length());
+        String newFileName = Paths.get(entry.getValue(), pathTailAfterPrefix).toString();
+        VirtualFile sourceFile = fileSystem.findFileByPath(newFileName);
+        if (sourceFile != null && sourceFile.exists()) {
+          return new OpenFileDescriptor(myProject, sourceFile, location.getLineNumber(), 0);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @NotNull
+  private Map<String, String> getApkSourceDirMap() {
+    // Using LinkedHashMap here to preserve order from getSymbolFolderPathMappings and imitate LLDB's behavior.
+    Map<String, String> sourceMap = new LinkedHashMap<>();
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      ApkFacet apkFacet = ApkFacet.getInstance(module);
+      if (apkFacet != null) {
+        for (Map.Entry<String, String> entry : apkFacet.getConfiguration().getSymbolFolderPathMappings().entrySet()) {
+          // getSymbolFolderPathMappings() has a lot of path records which are not mapped, they need
+          // to be filtered out.
+          if (!entry.getValue().isEmpty() && !entry.getKey().equals(entry.getValue())) {
+            sourceMap.put(entry.getKey(), entry.getValue());
+          }
+        }
+      }
+    }
+    return sourceMap;
+  }
+
+  /**
+   * Tries to find and return the method's corresponding {@link Navigatable} within the project.
+   */
+  @NotNull
   private Navigatable getNativeNavigatable(@NotNull CodeLocation location) {
     // We use OCGlobalProjectSymbolsCache#processByQualifiedName to look for the target method. If it finds symbols that match the target
     // method name, it will iterate the list of matched symbols and use the processor below in each one of them, until the processor returns
     // false.
-    Navigatable[] navigatable = new Navigatable[1]; // Workaround to set the navigatable inside the processor.
+    OCSymbol[] symbolToNavigate = new OCSymbol[1]; // Workaround to set the symbolToNavigate inside the processor.
 
-    /* Disabled in AOSP: Depends on closed source code
     Processor<OCSymbol> processor = symbol -> {
       if (!(symbol instanceof OCFunctionSymbol)) {
         return true; // Symbol is not a function. Continue the processing.
@@ -135,15 +226,13 @@ public final class IntellijCodeNavigator extends CodeNavigator {
       }
 
       // We have found a match. Return it.
-      navigatable[0] = function;
-      //String name = function.getQualifiedName().getQualifier().getName();
+      symbolToNavigate[0] = function;
       return false;
     };
-
     assert location.getMethodName() != null;
     OCGlobalProjectSymbolsCache.processByQualifiedName(myProject, processor, location.getMethodName());
-*/
-    return navigatable[0];
+
+    return new OCSymbolNavigationItem(symbolToNavigate[0], myProject);
   }
 
   @Nullable

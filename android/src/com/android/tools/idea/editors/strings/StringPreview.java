@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.rendering.DomPullParser;
+import com.android.tools.idea.rendering.parsers.DomPullParser;
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
 import com.intellij.openapi.module.Module;
 import com.intellij.xml.CommonXmlStrings;

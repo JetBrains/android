@@ -16,7 +16,11 @@ package com.android.tools.idea.gradle.structure.configurables.suggestions
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.issues.IssueRenderer
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
+import com.android.tools.idea.gradle.structure.configurables.ui.createMergingUpdateQueue
+import com.android.tools.idea.gradle.structure.configurables.ui.enqueueTagged
 import com.android.tools.idea.gradle.structure.model.PsIssue
+import com.android.tools.idea.gradle.structure.model.PsPath
+import com.intellij.openapi.Disposable
 import java.util.*
 import java.util.Comparator.comparingInt
 import javax.swing.JPanel
@@ -24,18 +28,21 @@ import javax.swing.JPanel
 class SuggestionsViewer(
     private val context: PsContext,
     private val renderer: IssueRenderer
-) : SuggestionsViewerUi() {
-
+) : SuggestionsViewerUi(), Disposable {
+  private val updateQueue = createMergingUpdateQueue("SuggestionsViewer update queue", parent = this, activationComponent = panel)
   private val groups = mutableListOf<SuggestionGroupViewer>()
+
   val panel: JPanel get() = myMainPanel
 
-  fun display(issues: List<PsIssue>) {
+  fun display(issues: List<PsIssue>, scope: PsPath?) {
     val issuesBySeverity = issues.groupBy { it.severity }.toSortedMap(comparingInt { it.priority })
-    renderIssues(issuesBySeverity)
-    revalidateAndRepaint(panel)
+    updateQueue.enqueueTagged(this) {
+      renderIssues(issuesBySeverity, scope)
+      revalidateAndRepaint(panel)
+    }
   }
 
-  private fun renderIssues(issues: SortedMap<PsIssue.Severity, List<PsIssue>>) {
+  private fun renderIssues(issues: SortedMap<PsIssue.Severity, List<PsIssue>>, scope: PsPath?) {
     myEmptyIssuesLabel.isVisible = issues.isEmpty()
 
     for ((groupIndex, group) in groups.withIndex().reversed()) {
@@ -62,8 +69,10 @@ class SuggestionsViewer(
       val groupIssues = issues[group.severity].orEmpty()
       for ((rowIndex, issue) in groupIssues.withIndex()) {
         group.view.add(
-            SuggestionViewer(context, renderer, issue, isLast = rowIndex == groupIssues.size - 1).component)
+            SuggestionViewer(context, renderer, issue, scope, isLast = rowIndex == groupIssues.size - 1).component)
       }
     }
   }
+
+  override fun dispose() = Unit
 }

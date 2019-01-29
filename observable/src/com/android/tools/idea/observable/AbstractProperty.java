@@ -16,13 +16,11 @@
 package com.android.tools.idea.observable;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A property represents a value which can both be set and queried, a concept which is
@@ -32,15 +30,14 @@ import java.util.List;
  * support modifying the actual value of this property.
  */
 public abstract class AbstractProperty<T> extends AbstractObservableValue<T> implements SettableValue<T> {
-  // Null by default since a majority of properties will never have a constraint
+  // Null by default since a majority of properties will never have a constraint.
   @Nullable List<Constraint<T>> myConstraints;
 
   /**
    * Uses reflection to get all {@code AbstractProperty} instances in an Object instance.
    * This method is useful if you want to listen to all properties on a target object, for example calling an refresh method.
    *
-   * @return A {@link List< AbstractProperty >} containing all {@link AbstractProperty} found in the object.
-   * If none are found an empty list is returned.
+   * @return a list containing all properties found in the object
    */
   @NotNull
   public static List<AbstractProperty<?>> getAll(Object object) {
@@ -65,7 +62,7 @@ public abstract class AbstractProperty<T> extends AbstractObservableValue<T> imp
 
   public final void addConstraint(@NotNull Constraint<T> constraint) {
     if (myConstraints == null) {
-      myConstraints = Lists.newArrayListWithExpectedSize(1);
+      myConstraints = new ArrayList<>(1);
     }
     myConstraints.add(constraint);
     set(get()); // Refresh value, may be constrained now
@@ -78,12 +75,16 @@ public abstract class AbstractProperty<T> extends AbstractObservableValue<T> imp
         value = c.constrain(value);
       }
     }
-    if (!areValuesEqual(get(), value)) {
+    if (!isValueEqual(value)) {
       setNotificationsEnabled(false);
       setDirectly(value);
       setNotificationsEnabled(true);
       notifyInvalidated();
     }
+  }
+
+  protected boolean isValueEqual(@Nullable T value) {
+    return Objects.equal(get(), value);
   }
 
   public final void set(@NotNull ObservableValue<T> value) {
@@ -100,10 +101,6 @@ public abstract class AbstractProperty<T> extends AbstractObservableValue<T> imp
    */
   protected abstract void setDirectly(@NotNull T value);
 
-  protected boolean areValuesEqual(@NotNull T value1, @NotNull T value2) {
-    return Objects.equal(value1, value2);
-  }
-
   /**
    * A rule which enforces that this property only gets set to some valid subset of possible values
    * (for example, an int property that should only represent a 0-100 percentage value).
@@ -117,5 +114,4 @@ public abstract class AbstractProperty<T> extends AbstractObservableValue<T> imp
     @NotNull
     T constrain(@NotNull T value);
   }
-
 }

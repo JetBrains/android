@@ -15,29 +15,39 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.tools.idea.uibuilder.api.actions.*;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistant;
-import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.Lists;
-import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.util.EnumSet;
-import java.util.List;
-
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.tools.idea.uibuilder.api.actions.ActionUtils.getViewOptionsAction;
+
+import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.Placeholder;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.TargetProvider;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
+import com.android.tools.idea.uibuilder.actions.ToggleShowDecorationsAction;
+import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
+import com.android.tools.idea.uibuilder.api.actions.NestedViewActionMenu;
+import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ToggleViewActionGroup;
+import com.android.tools.idea.uibuilder.api.actions.ViewAction;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu;
+import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
+import com.android.tools.idea.uibuilder.model.FillPolicy;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import icons.StudioIcons;
+import java.util.EnumSet;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A view handler is a tool handler for a given Android view class
  */
-public class ViewHandler extends StructurePaneComponentHandler {
+public class ViewHandler extends StructurePaneComponentHandler implements TargetProvider {
   /**
    * Returns whether the given component accepts the given parent layout as a potential container
    *
@@ -82,18 +92,6 @@ public class ViewHandler extends StructurePaneComponentHandler {
     return true;
   }
 
-  /**
-   * Paints the constraints for this component. If it returns true, it has handled
-   * the children as well.
-   *
-   * @param graphics  the graphics to buildDisplayList into
-   * @param component the component whose constraints we want to buildDisplayList
-   * @return true if we're done with this component <b>and</b> it's children
-   */
-  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
-    return false;
-  }
-
   public FillPolicy getFillPolicy() {
     return FillPolicy.WIDTH_IN_VERTICAL;
   }
@@ -126,11 +124,13 @@ public class ViewHandler extends StructurePaneComponentHandler {
    * current circumstances; instead, actions which do not apply should be made
    * disabled or invisible by calling the right methods from
    * {@link ViewAction#updatePresentation(ViewActionPresentation, ViewEditor, ViewHandler, NlComponent, List, int)}
-   *
+   * @param component the component clicked on
    * @param actions a list of view actions, such as a
    *                {@link DirectViewAction}, {@link ToggleViewAction}, {@link ToggleViewActionGroup}, etc.
+   * @return true if the actions should be cached, false otherwise
    */
-  public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
+  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
+    return true;
   }
 
   /**
@@ -147,6 +147,7 @@ public class ViewHandler extends StructurePaneComponentHandler {
                                          StudioIcons.LayoutEditor.Toolbar.CENTER_HORIZONTAL).setRank(startRank));
     actions.add(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, StudioIcons.LayoutEditor.Toolbar.EXPAND_VERTICAL,
                                          StudioIcons.LayoutEditor.Toolbar.CENTER_VERTICAL).setRank(startRank + 20));
+    actions.add(getViewOptionsAction());
     // TODO: Gravity, etc
   }
 
@@ -154,23 +155,40 @@ public class ViewHandler extends StructurePaneComponentHandler {
   /**
    * Handles a double click on the component in the component tree
    */
-  public void onActivateInComponentTree(@NotNull NlComponent component) {
+  public void onActivateInComponentTree(@NotNull NlComponent component, ViewEditor editor) {
     // Do nothing
   }
 
   /**
    * Handles a double click on the component in the design surface
    *
+   * @param editor
    * @param x the x coordinate of the double click converted to pixels in the Android coordinate system
    * @param y the y coordinate of the double click converted to pixels in the Android coordinate system
    */
   public void onActivateInDesignSurface(@NotNull NlComponent component,
-                                        @AndroidCoordinate int x,
+                                        ViewEditor editor, @AndroidCoordinate int x,
                                         @AndroidCoordinate int y) {
   }
 
-  @Nullable
-  public ComponentAssistant.PanelFactory getComponentAssistant(@NotNull DesignSurface surface, @NotNull NlComponent component) {
-    return null;
+  /**
+   * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
+   *
+   * @param sceneComponent The component we'll add the targets on
+   * @return The list of created target to add the the component. This list can be empty.
+   */
+  @Override
+  @NotNull
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    return ImmutableList.of();
+  }
+
+  /**
+   * Get the associated {@link Placeholder}s of the given {@link SceneComponent}.
+   *
+   * @param component The {@link SceneComponent} which associates to this ViewGroupHandler
+   */
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return ImmutableList.of();
   }
 }

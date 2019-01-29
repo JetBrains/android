@@ -78,9 +78,9 @@ fun getTableDefinition(withClauseTable: RoomWithClauseTable): SqlTable? {
   } else {
     val tableName = withClauseTable.withClauseTableDef.tableDefinitionName
     AliasedTable(
-        name = tableName.nameAsString,
-        resolveTo = tableName,
-        delegate = SubqueryTable(withClauseTable.withClauseSelectStatement?.selectStatement ?: return null)
+      name = tableName.nameAsString,
+      resolveTo = tableName,
+      delegate = SubqueryTable(withClauseTable.withClauseSelectStatement?.selectStatement ?: return null)
     )
   }
 }

@@ -170,7 +170,9 @@ public class InstallerData {
   }
 
   public boolean isCurrentVersion() {
-    String buildStr = Integer.toString(ApplicationInfo.getInstance().getBuild().getBuildNumber());
+    int[] buildNumber = ApplicationInfo.getInstance().getBuild().getComponents();
+    int build = buildNumber.length > 0 ? buildNumber[buildNumber.length - 1] : 0;
+    String buildStr = Integer.toString(build);
     return buildStr.equals(myVersion);
   }
 

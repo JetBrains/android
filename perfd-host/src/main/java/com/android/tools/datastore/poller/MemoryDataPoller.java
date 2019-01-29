@@ -38,10 +38,10 @@ public class MemoryDataPoller extends PollRunner {
   private final Common.Session mySession;
   private final Consumer<Runnable> myFetchExecutor;
 
-  public MemoryDataPoller(Common.Session session,
-                          MemoryStatsTable statsTable,
-                          MemoryServiceGrpc.MemoryServiceBlockingStub pollingService,
-                          Consumer<Runnable> fetchExecutor) {
+  public MemoryDataPoller(@NotNull Common.Session session,
+                          @NotNull MemoryStatsTable statsTable,
+                          @NotNull MemoryServiceGrpc.MemoryServiceBlockingStub pollingService,
+                          @NotNull Consumer<Runnable> fetchExecutor) {
     super(POLLING_DELAY_NS);
     mySession = session;
     myMemoryStatsTable = statsTable;
@@ -59,20 +59,22 @@ public class MemoryDataPoller extends PollRunner {
       myPendingHeapDumpSample = null;
     }
 
-    if (myPendingAllocationSample != null) {
-      myMemoryStatsTable.insertOrReplaceAllocationsInfo(mySession, myPendingAllocationSample.toBuilder()
-        .setEndTime(myPendingAllocationSample.getStartTime() + 1).setStatus(AllocationsInfo.Status.FAILURE_UNKNOWN).build());
+    // O+ live allocation tracking sample is always ongoing for the during of the app, so we don't mark its end time here.
+    if (myPendingAllocationSample != null && myPendingAllocationSample.getLegacy()) {
+      myMemoryStatsTable.insertOrReplaceAllocationsInfo(
+        mySession,
+        myPendingAllocationSample.toBuilder().setEndTime(myPendingAllocationSample.getStartTime() + 1)
+                                 .setStatus(AllocationsInfo.Status.FAILURE_UNKNOWN).build());
     }
+    myPendingAllocationSample = null;
 
     super.stop();
   }
 
   @Override
   public void poll() {
-    MemoryRequest.Builder dataRequestBuilder = MemoryRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTime(myDataRequestStartTimestampNs)
-      .setEndTime(Long.MAX_VALUE);
+    MemoryRequest.Builder dataRequestBuilder =
+      MemoryRequest.newBuilder().setSession(mySession).setStartTime(myDataRequestStartTimestampNs).setEndTime(Long.MAX_VALUE);
     MemoryData response = myPollingService.getData(dataRequestBuilder.build());
 
     // TODO: A UI request may come in while mid way through the poll, this can cause us to have partial data
@@ -159,8 +161,8 @@ public class MemoryDataPoller extends PollRunner {
       for (AllocationsInfo sample : dumpsToFetch) {
         LegacyAllocationEventsResponse allocEventsResponse = myPollingService.getLegacyAllocationEvents(
           LegacyAllocationEventsRequest.newBuilder().setSession(mySession).setStartTime(sample.getStartTime())
-            .setEndTime(sample.getEndTime())
-            .build());
+                                       .setEndTime(sample.getEndTime())
+                                       .build());
         eventsToSave.put(sample.getStartTime(), allocEventsResponse);
 
         allocEventsResponse.getEventsList().forEach(event -> {
@@ -179,7 +181,7 @@ public class MemoryDataPoller extends PollRunner {
       // in the tables.
       LegacyAllocationContextsRequest contextRequest =
         LegacyAllocationContextsRequest.newBuilder().setSession(mySession).setSession(mySession).addAllClassIds(classesToFetch)
-          .addAllStackIds(stacksToFetch).build();
+                                       .addAllStackIds(stacksToFetch).build();
       AllocationContextsResponse contextsResponse = myPollingService.getLegacyAllocationContexts(contextRequest);
       myMemoryStatsTable.insertLegacyAllocationContext(mySession, contextsResponse.getAllocatedClassesList(),
                                                        contextsResponse.getAllocationStacksList());

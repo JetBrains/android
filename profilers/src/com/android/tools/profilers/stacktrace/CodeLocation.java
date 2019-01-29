@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers.stacktrace;
 
+import com.google.common.collect.Iterators;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -25,7 +27,7 @@ import java.util.List;
 
 public final class CodeLocation {
   public static final int INVALID_LINE_NUMBER = -1;
-  @NotNull
+  @Nullable
   private final String myClassName;
   @Nullable
   private final String myFileName;
@@ -44,6 +46,8 @@ public final class CodeLocation {
 
   private final int myLineNumber;
   private final boolean myNativeCode;
+  @Nullable
+  private final String myNativeModuleName;
   private final int myHashcode;
 
   private CodeLocation(@NotNull Builder builder) {
@@ -54,8 +58,13 @@ public final class CodeLocation {
     myMethodParameters = builder.myMethodParameters;
     myLineNumber = builder.myLineNumber;
     myNativeCode = builder.myNativeCode;
-    myHashcode = Arrays.hashCode(new int[]{myClassName.hashCode(), myFileName == null ? 0 : myFileName.hashCode(),
-      myMethodName == null ? 0 : myMethodName.hashCode(), mySignature == null ? 0 : mySignature.hashCode(),
+    myNativeModuleName = builder.myNativeModuleName;
+    myHashcode = Arrays.hashCode(new int[]{
+      myClassName == null ? 0 : myClassName.hashCode(),
+      myFileName == null ? 0 : myFileName.hashCode(),
+      myMethodName == null ? 0 : myMethodName.hashCode(),
+      mySignature == null ? 0 : mySignature.hashCode(),
+      myNativeModuleName == null ? 0 : myNativeModuleName.hashCode(),
       Integer.hashCode(myLineNumber)});
   }
 
@@ -65,7 +74,7 @@ public final class CodeLocation {
     return new CodeLocation.Builder("").build();
   }
 
-  @NotNull
+  @Nullable
   public String getClassName() {
     return myClassName;
   }
@@ -75,8 +84,11 @@ public final class CodeLocation {
    * from {@link #getClassName()}. If this code location's class is already an outer class, its
    * name is returned as is.
    */
-  @NotNull
+  @Nullable
   public String getOuterClassName() {
+    if (myClassName == null) {
+      return null;
+    }
     int innerCharIndex = myClassName.indexOf('$');
     if (innerCharIndex < 0) {
       innerCharIndex = myClassName.length();
@@ -118,6 +130,11 @@ public final class CodeLocation {
     return myNativeCode;
   }
 
+  @Nullable
+  public String getNativeModuleName() {
+    return myNativeModuleName;
+  }
+
   @Override
   public int hashCode() {
     return myHashcode;
@@ -134,19 +151,22 @@ public final class CodeLocation {
            StringUtil.equals(myFileName, other.myFileName) &&
            StringUtil.equals(myMethodName, other.myMethodName) &&
            StringUtil.equals(mySignature, other.mySignature) &&
-           myLineNumber == other.myLineNumber;
+           StringUtil.equals(myNativeModuleName, other.myNativeModuleName) &&
+           myLineNumber == other.myLineNumber &&
+           myNativeCode == other.myNativeCode;
   }
 
   public static final class Builder {
-    @NotNull private final String myClassName;
+    @Nullable private final String myClassName;
     @Nullable String myFileName;
     @Nullable String myMethodName;
     @Nullable String mySignature;
     @Nullable List<String> myMethodParameters;
     int myLineNumber = INVALID_LINE_NUMBER;
     boolean myNativeCode;
+    String myNativeModuleName;
 
-    public Builder(@NotNull String className) {
+    public Builder(@Nullable String className) {
       myClassName = className;
     }
 
@@ -157,6 +177,8 @@ public final class CodeLocation {
       mySignature = rhs.getSignature();
       myMethodParameters = rhs.getMethodParameters();
       myLineNumber = rhs.getLineNumber();
+      myNativeCode = rhs.myNativeCode;
+      myNativeModuleName = rhs.myNativeModuleName;
     }
 
     @NotNull
@@ -208,6 +230,14 @@ public final class CodeLocation {
 
     public Builder setNativeCode(boolean nativeCode) {
       myNativeCode = nativeCode;
+      return this;
+    }
+
+    /**
+     * Name of a native library (like libunity.so).
+     */
+    public Builder setNativeModuleName(String name) {
+      myNativeModuleName = name;
       return this;
     }
 

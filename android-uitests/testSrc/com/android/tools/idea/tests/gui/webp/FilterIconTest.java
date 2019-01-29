@@ -16,25 +16,21 @@
 package com.android.tools.idea.tests.gui.webp;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.IconPickerDialogFixture;
-import org.fest.swing.core.MouseButton;
-import org.fest.swing.fixture.JTableFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.data.TableCell.row;
+import java.util.concurrent.TimeUnit;
 
-@RunWith(GuiTestRunner.class)
+import static com.google.common.truth.Truth.assertThat;
+
+@RunWith(GuiTestRemoteRunner.class)
 public class FilterIconTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   private static final String REG_EXP = "android:autoMirrored";
 
   /**
@@ -62,30 +58,22 @@ public class FilterIconTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void testFilterIcon() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
-
-    AssetStudioWizardFixture assetStudioWizardFixture = ideFrame.getProjectView()
+    String fileContents = guiTest.importSimpleLocalApplication()
+      .getProjectView()
       .selectAndroidPane()
       .clickPath("app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset");
-    assetStudioWizardFixture.enableAutoMirror();
-
-    IconPickerDialogFixture iconPickerDialogFixture = assetStudioWizardFixture.chooseIcon(ideFrame);
-    iconPickerDialogFixture.filterIconByName("call");
-    JTableFixture tableFixture = iconPickerDialogFixture.getIconTable();
-    // Searching icon by "call", count of results should be greater than 0.
-    assertThat(tableFixture.rowCount()).isGreaterThan(0);
-    // Select 1st icon.
-    tableFixture.click(row(0).column(0), MouseButton.LEFT_BUTTON);
-    iconPickerDialogFixture.clickOk();
-    assetStudioWizardFixture.clickNext().clickFinish();
-
-    EditorFixture editor = guiTest.ideFrame()
+      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
+      .enableAutoMirror()
+      .chooseIcon()
+      .filterByNameAndSelect("call")
+      .clickOk()
+      .clickNext()
+      .clickFinish()
       .getEditor()
-      .open("app/src/main/res/drawable/ic_call_black_24dp.xml");
-    String fileContents = editor.getCurrentFileContents();
+      .open("app/src/main/res/drawable/ic_call_black_24dp.xml")
+      .getCurrentFileContents();
     assertThat(fileContents).containsMatch(REG_EXP);
   }
 }

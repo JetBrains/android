@@ -21,9 +21,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+
+import static java.util.Collections.emptyList;
 
 public enum AndroidSourceType {
   // source roots
@@ -33,6 +34,8 @@ public enum AndroidSourceType {
   AIDL("aidl", IdeaSourceProvider.AIDL_PROVIDER, AllIcons.Modules.SourceRoot),
   RENDERSCRIPT("renderscript", IdeaSourceProvider.RENDERSCRIPT_PROVIDER, AllIcons.Modules.SourceRoot),
   SHADERS("shaders", IdeaSourceProvider.SHADERS_PROVIDER, AllIcons.Modules.SourceRoot),
+  // generated java source folders, e.g. R, BuildConfig, and etc.
+  GENERATED_JAVA("generatedJava", null, AllIcons.Modules.GeneratedSourceRoot),
   // resource roots
   ASSETS("assets", IdeaSourceProvider.ASSETS_PROVIDER, AllIcons.Modules.ResourcesRoot),
   JNILIBS("jniLibs", IdeaSourceProvider.JNI_LIBS_PROVIDER, AllIcons.Modules.ResourcesRoot),
@@ -57,8 +60,11 @@ public enum AndroidSourceType {
 
   @NotNull
   public List<VirtualFile> getSources(IdeaSourceProvider provider) {
+    if (mySourceExtractor == null) {
+      return emptyList();
+    }
     List<VirtualFile> files = mySourceExtractor.apply(provider);
-    return files == null ? Collections.<VirtualFile>emptyList() : files;
+    return files == null ? emptyList() : files;
   }
 
   @Nullable

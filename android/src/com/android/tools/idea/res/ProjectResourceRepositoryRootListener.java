@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -52,16 +53,18 @@ public class ProjectResourceRepositoryRootListener {
    * the {@linkplain ProjectResourceRepository} instances (but only those that
    * have already been initialized) and updates the roots, if necessary.
    *
-   * @param project the project whose module roots changed.
+   * @param project the project whose module roots changed
    */
   private static void moduleRootsChanged(@NotNull Project project) {
     DumbService.getInstance(project).queueTask(new DumbModeTask() {
       @Override
       public void performInDumbMode(@NotNull ProgressIndicator indicator) {
-        indicator.setText("Updating resource repository roots");
-        ModuleManager moduleManager = ModuleManager.getInstance(project);
-        for (Module module : moduleManager.getModules()) {
-          moduleRootsChanged(module);
+        if (!project.isDisposed()) {
+          indicator.setText("Updating resource repository roots");
+          ModuleManager moduleManager = ModuleManager.getInstance(project);
+          for (Module module : moduleManager.getModules()) {
+              moduleRootsChanged(module);
+          }
         }
       }
     });
@@ -77,22 +80,15 @@ public class ProjectResourceRepositoryRootListener {
   private static void moduleRootsChanged(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      if (facet.requiresAndroidModel() && facet.getAndroidModel() == null) {
-        // Project not yet fully initialized; no need to do a sync now because our
-        // GradleProjectAvailableListener will be called as soon as it is and do a proper sync
+      if (facet.requiresAndroidModel() && facet.getConfiguration().getModel() == null) {
+        // Project not yet fully initialized. No need to do a sync now because our
+        // GradleProjectAvailableListener will be called as soon as it is and do a proper sync.
         return;
       }
-      facet.getResourceFolderManager().invalidate();
-      ProjectResourceRepository projectResources = ProjectResourceRepository.findExistingInstance(facet);
-      if (projectResources != null) {
-        projectResources.updateRoots();
+      ResourceFolderManager.getInstance(facet).invalidate();
 
-        AppResourceRepository appResources = AppResourceRepository.findExistingInstance(facet);
-        if (appResources != null) {
-          appResources.invalidateCache(projectResources);
-          appResources.updateRoots();
-        }
-      }
+      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+      repoManager.updateRoots();
     }
   }
 }

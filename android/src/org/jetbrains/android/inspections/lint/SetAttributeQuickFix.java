@@ -17,7 +17,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.resourceManagers.SystemResourceManager;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 public class SetAttributeQuickFix implements AndroidLintQuickFix {
 
   private final String myName;
+  private final String myFamilyName;
   private final String myAttributeName;
   private final String myValue;
   private final String myNamespace;
@@ -32,21 +33,31 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
   private final int myMark;
 
   // 'null' value means asking
-  public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String value) {
-    this(name, attributeName, SdkConstants.ANDROID_URI, value);
+  public SetAttributeQuickFix(@NotNull String name, String familyName, @NotNull String attributeName, @Nullable String value) {
+    this(name, familyName, attributeName, SdkConstants.ANDROID_URI, value);
   }
 
-  public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String namespace, @Nullable String value) {
-    this(name, attributeName, namespace, value,
+  public SetAttributeQuickFix(@NotNull String name,
+                              @Nullable String familyName,
+                              @NotNull String attributeName,
+                              @Nullable String namespace,
+                              @Nullable String value) {
+    this(name, familyName, attributeName, namespace, value,
          // The default was to select the whole text range
          value != null ? 0 : Integer.MIN_VALUE,
          value != null ? value.length() : Integer.MIN_VALUE);
 
   }
-  public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String namespace, @Nullable String value,
-                              int dot, int mark) {
+  public SetAttributeQuickFix(@NotNull String name,
+                              @Nullable String familyName,
+                              @NotNull String attributeName,
+                              @Nullable String namespace,
+                              @Nullable String value,
+                              int dot,
+                              int mark) {
     super();
     myName = name;
+    myFamilyName = familyName;
     myAttributeName = attributeName;
     myValue = value;
     myNamespace = namespace;
@@ -58,6 +69,12 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
   @Override
   public String getName() {
     return myName;
+  }
+
+  @Nullable
+  @Override
+  public String getFamilyName() {
+    return myFamilyName;
   }
 
   @Override
@@ -122,7 +139,7 @@ public class SetAttributeQuickFix implements AndroidLintQuickFix {
     final String title = "Set Attribute Value";
 
     if (facet != null) {
-      final SystemResourceManager srm = ModuleResourceManagers.getInstance(facet).getSystemResourceManager();
+      final FrameworkResourceManager srm = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
 
       if (srm != null) {
         final AttributeDefinitions attrDefs = srm.getAttributeDefinitions();

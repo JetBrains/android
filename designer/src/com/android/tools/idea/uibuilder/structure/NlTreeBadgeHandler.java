@@ -17,12 +17,13 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.utils.SdkUtils;
+import com.android.utils.SparseIntArray;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.ui.HintHint;
@@ -68,6 +69,12 @@ public class NlTreeBadgeHandler {
   private int myLockIconX;
   @Nullable private IssuePanel myIssuePanel;
 
+  /**
+   * Save the width occupied by the badges at a given row.
+   */
+  private final SparseIntArray myBadgeWidthForRows = new SparseIntArray();
+
+
   public void setNlModel(@Nullable NlModel nlModel) {
     myNlModel = nlModel;
   }
@@ -76,8 +83,9 @@ public class NlTreeBadgeHandler {
     myIssuePanel = issuePanel;
   }
 
-  public void paintBadges(@NotNull Graphics2D g, @NotNull JTree tree) {
+  public void paintBadges(@NotNull Graphics2D g, @NotNull NlComponentTree tree) {
     myBadgeX = Integer.MAX_VALUE;
+    myBadgeWidthForRows.clear();
     if (myNlModel == null) {
       return;
     }
@@ -91,7 +99,7 @@ public class NlTreeBadgeHandler {
       }
       NlComponent component = (NlComponent)last;
       Rectangle pathBounds = tree.getPathBounds(path);
-      if(pathBounds != null) {
+      if (pathBounds != null) {
         int y = pathBounds.y + pathBounds.height / 2;
         Icon firstIcon;
         if (lintAnnotationsModel != null) {
@@ -100,6 +108,7 @@ public class NlTreeBadgeHandler {
             int x = tree.getWidth() - firstIcon.getIconWidth() - BADGE_MARGIN;
             int iy = y - firstIcon.getIconHeight() / 2;
             firstIcon.paintIcon(tree, g, x, iy);
+            myBadgeWidthForRows.put(i, firstIcon.getIconWidth());
             myBadgeX = Math.min(x, myBadgeX);
           }
         }
@@ -187,7 +196,7 @@ public class NlTreeBadgeHandler {
                                             @NotNull Component component,
                                             @NotNull Window activeFrame) {
     int labelWidth = myHintLabel.getFontMetrics(myHintLabel.getFont())
-      .stringWidth(message.substring(0, Math.min(message.length(), MESSAGE_WIDTH)));
+                                .stringWidth(message.substring(0, Math.min(message.length(), MESSAGE_WIDTH)));
     int labelRight = component.getLocationOnScreen().x + component.getWidth() + labelWidth;
     int frameRight = activeFrame.getLocationOnScreen().x + activeFrame.getWidth();
 
@@ -244,6 +253,10 @@ public class NlTreeBadgeHandler {
     return myBadgeMouseMotionListener;
   }
 
+  public int getTotalBadgeWidth(int row) {
+    return myBadgeWidthForRows.get(row, 0) + BADGE_MARGIN;
+  }
+
   private class BadgeMouseMotionListener extends MouseAdapter {
 
     @Override
@@ -291,7 +304,8 @@ public class NlTreeBadgeHandler {
       NlComponent component = (NlComponent)last;
       if (event.getX() > myBadgeX) {
         myIssuePanel.showIssueForComponent(component, true);
-      } else {
+      }
+      else {
         if (SUPPORTS_LOCKING) {
           toggleLocking(component);
         }
@@ -310,7 +324,7 @@ public class NlTreeBadgeHandler {
     }
 
     private void handleShowBadge(@NotNull MouseEvent event, @NotNull JTree tree) {
-      if (event.getX() < myLockIconX) {
+      if (event.getX() < myBadgeX) {
         // We only show the tooltip if the mouse id hovering the badge
         myHoveredPath = null;
         myHoveredComponent = null;
@@ -358,7 +372,8 @@ public class NlTreeBadgeHandler {
       if (badgeIcon) {
         message = getIssueMessage(myHoveredPath);
         myHoveredIcon = BADGE_ICON;
-      } else if (SUPPORTS_LOCKING) {
+      }
+      else if (SUPPORTS_LOCKING) {
         if (myHoveredComponent.getParent() != null) {
           message = TOGGLE_LOCK_MESSAGE;
           myHoveredIcon = LOCK_ICON;

@@ -15,26 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
-import com.intellij.pom.java.LanguageLevel;
+import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface BaseCompileOptionsModel {
+public interface BaseCompileOptionsModel extends GradleDslModel {
   @NotNull
-  GradleNullableValue<LanguageLevel> sourceCompatibility();
+  LanguageLevelPropertyModel sourceCompatibility();
 
   @NotNull
-  BaseCompileOptionsModel setSourceCompatibility(@NotNull LanguageLevel languageLevel);
-
-  @NotNull
-  BaseCompileOptionsModel removeSourceCompatibility();
-
-  @NotNull
-  GradleNullableValue<LanguageLevel> targetCompatibility();
-
-  @NotNull
-  BaseCompileOptionsModel setTargetCompatibility(@NotNull LanguageLevel languageLevel);
-
-  @NotNull
-  BaseCompileOptionsModel removeTargetCompatibility();
+  LanguageLevelPropertyModel targetCompatibility();
 }

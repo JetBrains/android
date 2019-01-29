@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.SampleDataResourceValue;
-import com.android.ide.common.res2.SourcelessResourceItem;
+import com.android.ide.common.rendering.api.SampleDataResourceValueImpl;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.sampledata.SampleDataCsvParser;
 import com.android.ide.common.resources.sampledata.SampleDataHolder;
 import com.android.ide.common.resources.sampledata.SampleDataJsonParser;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.sampledata.datasource.HardcodedContent;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
@@ -35,7 +36,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import org.w3c.dom.Node;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.*;
@@ -50,13 +52,8 @@ import static com.android.SdkConstants.EXT_JSON;
  * This class defines a sample data source. It also handles the caching and invalidation according
  * to the given functions passed in the creation.
  */
-public class SampleDataResourceItem extends SourcelessResourceItem {
+public class SampleDataResourceItem implements ResourceItem, ResolvableResourceItem {
   private static final Logger LOG = Logger.getInstance(SampleDataResourceItem.class);
-
-  private static final Splitter NAMESPACE_SPLITTER = Splitter.on(':')
-    .trimResults()
-    .omitEmptyStrings()
-    .limit(2);
 
   private static final Cache<String, SampleDataHolder> sSampleDataCache =
     CacheBuilder.newBuilder()
@@ -66,73 +63,71 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
       .maximumWeight(50) // MB
       .build();
 
-  private final Function<OutputStream, Exception> myDataSource;
-  private final SmartPsiElementPointer<PsiElement> mySourceElement;
-  private final Supplier<Long> myDataSourceModificationStamp;
+  @NotNull private final String myName;
+  @NotNull private final ResourceNamespace myNamespace;
+  @NotNull private final Function<OutputStream, Exception> myDataSource;
+  @NotNull private final Supplier<Long> myDataSourceModificationStamp;
+  @Nullable private final SmartPsiElementPointer<PsiElement> mySourceElement;
+
+  @Nullable private ResourceValue myResourceValue;
+  private final ContentType myContentType;
 
   /**
    * Creates a new {@link SampleDataResourceItem}
-   * @param name name of the resource
-   * @param namespace optional resource namespace. Pre-defined data sources will probably use the "tools" namespace
-   * @param dataSource {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
-   *                                   must return any exceptions that happened during the processing of the file.
+   *
+   * @param name                        name of the resource
+   * @param namespace                   optional resource namespace. Pre-defined data sources use the {@link ResourceNamespace#TOOLS} namespace.
+   * @param dataSource                  {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
+   *                                    must return any exceptions that happened during the processing of the file.
    * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the
-   *                                                    content changes. If 0, the content won't be cached.
-   * @param sourceElement optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
-   *                      references to the content.
+   *                                    content changes. If 0, the content won't be cached.
+   * @param sourceElement               optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
+   *                                    references to the content.
    */
-  private SampleDataResourceItem(@NonNull String name,
-                                 @Nullable String namespace,
-                                 @NonNull Function<OutputStream, Exception> dataSource,
-                                 @NonNull Supplier<Long> dataSourceModificationStamp,
-                                 @Nullable SmartPsiElementPointer<PsiElement> sourceElement) {
-    super(name, namespace, ResourceType.SAMPLE_DATA, null, null);
-
+  private SampleDataResourceItem(@NotNull String name,
+                                 @NotNull ResourceNamespace namespace,
+                                 @NotNull Function<OutputStream, Exception> dataSource,
+                                 @NotNull Supplier<Long> dataSourceModificationStamp,
+                                 @Nullable SmartPsiElementPointer<PsiElement> sourceElement,
+                                 @NotNull ContentType contentType) {
+    myName = name;
+    myNamespace = namespace;
     myDataSource = dataSource;
     myDataSourceModificationStamp = dataSourceModificationStamp;
     // We use SourcelessResourceItem as parent because we don't really obtain a FolderConfiguration or Qualifiers from
     // the source element (since it's not within the resources directory).
     mySourceElement = sourceElement;
+    myContentType = contentType;
   }
 
   /**
-   * Creates a new {@link SampleDataResourceItem}
-   * @param name name of the resource
-   * @param dataSource {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
-   *                                   must return any exceptions that happened during the processing of the file.
-   * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the
-   *                                                    content changes. If 0, the content won't be cached.
-   * @param sourceElement optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
-   *                      references to the content.
+   * Invalidates contents of the sample data cache.
    */
-  private SampleDataResourceItem(@NonNull String name,
-                                 @NonNull Function<OutputStream, Exception> dataSource,
-                                 @NonNull Supplier<Long> dataSourceModificationStamp,
-                                 @Nullable SmartPsiElementPointer<PsiElement> sourceElement) {
-    this(name, null, dataSource, dataSourceModificationStamp, sourceElement);
+  public static void invalidateCache() {
+    sSampleDataCache.invalidateAll();
   }
 
   /**
    * Returns a {@link SampleDataResourceItem} from the given static content generator. Static content generators can be cached indefinitely
    * since the never change.
    */
-  @NonNull
-  public static SampleDataResourceItem getFromStaticDataSource(@NonNull String name, Function<OutputStream, Exception> source) {
-    // Extract namespace
-    List<String> sampleDataResource = NAMESPACE_SPLITTER.splitToList(name);
-    return new SampleDataResourceItem(name, sampleDataResource.size() == 2 ? sampleDataResource.get(0) : null, source, () -> 1L, null);
+  @NotNull
+  static SampleDataResourceItem getFromStaticDataSource(@NotNull String name,
+                                                        @NotNull Function<OutputStream, Exception> source,
+                                                        @NotNull ContentType contentType) {
+    return new SampleDataResourceItem(name, SampleDataResourceRepository.PREDEFINED_SAMPLES_NS, source, () -> 1L, null, contentType);
   }
 
   /**
    * Returns a {@link SampleDataResourceItem} from the given {@link SmartPsiElementPointer<PsiElement>}. The file is tracked to invalidate
    * the contents of the {@link SampleDataResourceItem} if the sourceElement changes.
    */
-  @NonNull
-  private static SampleDataResourceItem getFromPlainFile(@NonNull SmartPsiElementPointer<PsiElement> filePointer) {
+  @NotNull
+  private static SampleDataResourceItem getFromPlainFile(@NotNull SmartPsiElementPointer<PsiElement> filePointer) {
     VirtualFile vFile = filePointer.getVirtualFile();
     String fileName = vFile.getName();
 
-    return new SampleDataResourceItem(fileName, output -> {
+    return new SampleDataResourceItem(fileName, ResourceNamespace.TODO(), output -> {
       PsiElement sourceElement = filePointer.getElement();
       if (sourceElement == null) {
         LOG.warn("File pointer was invalidated and the repository was not refreshed");
@@ -147,24 +142,26 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         return e;
       }
       return null;
-    }, () -> vFile.getModificationStamp() + 1, filePointer);
+    }, () -> vFile.getModificationStamp() + 1, filePointer, ContentType.UNKNOWN);
   }
 
   /**
    * Returns a {@link SampleDataResourceItem} from the given {@link SmartPsiElementPointer<PsiElement>}. The directory is tracked to
    * invalidate the contents of the {@link SampleDataResourceItem} if the directory contents change.
    */
-  @NonNull
-  private static SampleDataResourceItem getFromDirectory(@NonNull SmartPsiElementPointer<PsiElement> directoryPointer) {
+  @NotNull
+  private static SampleDataResourceItem getFromDirectory(@NotNull SmartPsiElementPointer<PsiElement> directoryPointer) {
     VirtualFile directory = directoryPointer.getVirtualFile();
-    return new SampleDataResourceItem(directory.getName(), output -> {
-      PrintStream printStream = new PrintStream(output);
-      Arrays.stream(directory.getChildren())
-        .filter(child -> !child.isDirectory())
-        .sorted(Comparator.comparing(VirtualFile::getName))
-        .forEach(file -> printStream.println(file.getPath()));
-      return null;
-    }, () -> directory.getModificationStamp() + 1, directoryPointer);
+    // For directories, at this point, we always consider them images since it's the only type we handle for them
+    return new SampleDataResourceItem(directory.getName(), ResourceNamespace.TODO(), output -> {
+      try (PrintStream printStream = new PrintStream(output)) {
+        Arrays.stream(directory.getChildren())
+              .filter(child -> !child.isDirectory())
+              .sorted(Comparator.comparing(VirtualFile::getName))
+              .forEach(file -> printStream.println(file.getPath()));
+        return null;
+      }
+    }, () -> directory.getModificationStamp() + 1, directoryPointer, ContentType.IMAGE);
   }
 
   /**
@@ -172,12 +169,12 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
    * The {@link SampleDataResourceItem} will be the selection of elements from the sourceElement that are found with the
    * given path.
    */
-  @NonNull
-  private static SampleDataResourceItem getFromJsonFile(@NonNull SmartPsiElementPointer<PsiElement> jsonPointer,
-                                                        @NonNull String contentPath) {
+  @NotNull
+  private static SampleDataResourceItem getFromJsonFile(@NotNull SmartPsiElementPointer<PsiElement> jsonPointer,
+                                                        @NotNull String contentPath) {
     VirtualFile vFile = jsonPointer.getVirtualFile();
     String fileName = vFile.getName();
-    return new SampleDataResourceItem(fileName + contentPath, output -> {
+    return new SampleDataResourceItem(fileName + contentPath, ResourceNamespace.TODO(), output -> {
       if (contentPath.isEmpty()) {
         return null;
       }
@@ -200,15 +197,15 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         return e;
       }
       return null;
-    }, () -> vFile.getModificationStamp() + 1, jsonPointer);
+    }, () -> vFile.getModificationStamp() + 1, jsonPointer, ContentType.UNKNOWN);
   }
 
   /**
    * Returns a {@link SampleDataResourceItem}s from the given {@link PsiFileSystemItem}. The method will detect the type
    * of file or directory and return a number of items.
    */
-  @NonNull
-  public static List<SampleDataResourceItem> getFromPsiFileSystemItem(@NonNull PsiFileSystemItem sampleDataSource) throws IOException {
+  @NotNull
+  public static List<SampleDataResourceItem> getFromPsiFileSystemItem(@NotNull PsiFileSystemItem sampleDataSource) throws IOException {
     String extension = sampleDataSource.getVirtualFile().getExtension();
     if (extension == null) {
       extension = "";
@@ -219,7 +216,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
 
     switch (extension) {
       case EXT_JSON: {
-        SampleDataJsonParser parser = null;
+        SampleDataJsonParser parser;
         try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(psiPointer.getVirtualFile()))) {
           parser = SampleDataJsonParser.parse(reader);
         }
@@ -237,7 +234,7 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
       }
 
       case EXT_CSV: {
-        SampleDataCsvParser parser = null;
+        SampleDataCsvParser parser;
         VirtualFile vFile = sampleDataSource.getVirtualFile();
         try (FileReader reader = new FileReader(VfsUtilCore.virtualToIoFile(vFile))) {
           parser = SampleDataCsvParser.parse(reader);
@@ -245,9 +242,9 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
         Set<String> possiblePaths = parser.getPossiblePaths();
         ImmutableList.Builder<SampleDataResourceItem> items = ImmutableList.builder();
         for (String path : possiblePaths) {
-          items.add(new SampleDataResourceItem(sampleDataSource.getName() + path,
+          items.add(new SampleDataResourceItem(sampleDataSource.getName() + path, ResourceNamespace.TODO(),
                                                new HardcodedContent(Joiner.on('\n').join(parser.getPossiblePaths())),
-                                               () -> vFile.getModificationStamp() + 1, psiPointer));
+                                               () -> vFile.getModificationStamp() + 1, psiPointer, ContentType.UNKNOWN));
         }
         return items.build();
       }
@@ -255,12 +252,6 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
       default:
         return ImmutableList.of(sampleDataSource instanceof PsiDirectory ? getFromDirectory(psiPointer) : getFromPlainFile(psiPointer));
     }
-  }
-
-  @Nullable
-  @Override
-  public Node getValue() {
-    throw new UnsupportedOperationException("SampleDataResourceItem does not support getValue");
   }
 
   /**
@@ -282,7 +273,8 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
           value = new SampleDataHolder(getName(), lastModificationStamp, content.length / 1_000_000, content);
           sSampleDataCache.put(getName(), value);
         }
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         LOG.warn(e);
       }
 
@@ -295,30 +287,109 @@ public class SampleDataResourceItem extends SourcelessResourceItem {
   }
 
   @Nullable
-  @Override
   public String getValueText() {
     byte[] content = getContent(null);
     return content != null ? new String(content, Charsets.UTF_8) : null;
   }
 
-  @NonNull
   @Override
-  public String getQualifiers() {
-    return "";
+  @NotNull
+  public String getName() {
+    return myName;
   }
 
-  @Nullable
   @Override
-  public ResourceValue getResourceValue(boolean isFrameworks) {
-    byte[] content = getContent(this::wasTouched);
-    if (mResourceValue == null) {
-      mResourceValue = new SampleDataResourceValue(getResourceUrl(isFrameworks), content);
+  @NotNull
+  public ResourceType getType() {
+    return ResourceType.SAMPLE_DATA;
+  }
+
+  @Override
+  @Nullable
+  public String getLibraryName() {
+    return null;
+  }
+
+  @Override
+  @NotNull
+  public ResourceNamespace getNamespace() {
+    return myNamespace;
+  }
+
+  @Override
+  @NotNull
+  public ResourceReference getReferenceToSelf() {
+    return new ResourceReference(getNamespace(), getType(), getName());
+  }
+
+  @Override
+  @NotNull
+  public FolderConfiguration getConfiguration() {
+    return new FolderConfiguration();
+  }
+
+  @Override
+  @NotNull
+  public String getKey() {
+    return getType() + "/" + getName();
+  }
+
+  @Override
+  @NotNull
+  public ResourceValue getResourceValue() {
+    byte[] content = getContent(() -> myResourceValue = null);
+    if (myResourceValue == null) {
+      myResourceValue = new SampleDataResourceValueImpl(getReferenceToSelf(), content);
     }
-    return mResourceValue;
+    return myResourceValue;
   }
 
+  @Override
   @Nullable
-  public PsiElement getPsiElement() {
-    return mySourceElement != null ? mySourceElement.getElement() : null;
+  public PathString getSource() {
+    return null;
+  }
+
+  @Override
+  public boolean isFileBased() {
+    return false;
+  }
+
+  @Override
+  @NotNull
+  public ResolveResult createResolveResult() {
+    return new ResolveResult() {
+      @Override
+      @Nullable
+      public PsiElement getElement() {
+        return mySourceElement != null ? mySourceElement.getElement() : null;
+      }
+
+      @Override
+      public boolean isValidResult() {
+        return true;
+      }
+    };
+  }
+
+  @NotNull
+  public ContentType getContentType() {
+    return myContentType;
+  }
+
+  /**
+   * Defines the content of the sample data included in this item when know.
+   */
+  // TODO: Infer content type for non-predefined data sources
+  public enum ContentType {
+    UNKNOWN,
+    /**
+     * This item contains data suitable to be displayed as text (i.e. in a TextView)
+     */
+    TEXT,
+    /**
+     * This item contains data suitable to be displayed as an image (i.e. in a ImageView)
+     */
+    IMAGE
   }
 }

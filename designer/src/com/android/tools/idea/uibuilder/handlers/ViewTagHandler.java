@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.*;
 import com.google.common.collect.ImmutableList;
@@ -146,6 +147,8 @@ public class ViewTagHandler extends ViewHandler {
 
   private static boolean isViewSuitableForLayout(@NotNull String qualifiedName) {
     // Don't include builtin views (these are already in the palette and likely not what the user is looking for).
-    return !qualifiedName.startsWith(ANDROID_PKG_PREFIX) || qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX);
+    return !qualifiedName.startsWith(ANDROID_PKG_PREFIX) ||
+           qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) ||
+           qualifiedName.startsWith(ANDROIDX_PKG_PREFIX);
   }
 }

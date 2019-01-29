@@ -24,15 +24,12 @@ import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.Layer;
-import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -51,18 +48,20 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.DOT_XML;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Fixture for building up models for tests
@@ -175,50 +174,47 @@ public class ModelBuilder {
       when(surface.getModel()).thenReturn(model);
       when(surface.getConfiguration()).thenReturn(model.getConfiguration());
       when(surface.getSceneScalingFactor()).thenCallRealMethod();
+
+      // TODO: NlDesignSurface should not be referenced from here.
+      // TODO: Do we need a special version of ModelBuilder for Nele?
+      if (mySurfaceClass.equals(NlDesignSurface.class)) {
+        when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
+        when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT_ONLY);
+      }
+
       SceneManager sceneManager = myManagerFactory.apply(model);
-      SelectionModel selectionModel = surface.getSelectionModel();
-      when(surface.getSelectionModel()).thenReturn(selectionModel);
       when(surface.getSceneManager()).thenReturn(sceneManager);
+      when(surface.getCurrentSceneView()).thenReturn(sceneManager.getSceneView());
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
       }
       Scene scene = sceneManager.getScene();
+      sceneManager.update();
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);
       when(surface.createInteractionOnClick(anyInt(), anyInt())).thenCallRealMethod();
       when(surface.doCreateInteractionOnClick(anyInt(), anyInt(), any())).thenCallRealMethod();
       when(surface.createInteractionOnDrag(any(), any())).thenCallRealMethod();
-      SceneView sceneView;
-      if (mySurfaceClass.equals(NlDesignSurface.class)) {
-        sceneView = createSceneView(surface);
-        when(surface.getCurrentSceneView()).thenReturn(sceneView);
-      }
+      when(surface.getLayoutType()).thenCallRealMethod();
 
       return model;
     });
   }
 
-  @NotNull
-  private static SceneView createSceneView(DesignSurface surface) {
-    return new SceneView(surface, surface.getSceneManager()) {
-      @NotNull
-      @Override
-      protected ImmutableList<Layer> createLayers() {
-        return ImmutableList.of();
-      }
-
-      @NotNull
-      @Override
-      public Dimension getPreferredSize(@Nullable Dimension dimension) {
-        return new Dimension(1000, 1000);
-      }
-
-      @NotNull
-      @Override
-      public ColorSet getColorSet() {
-        return new ColorSet();
-      }
-    };
+  public static DesignSurface createSurface(Class<? extends DesignSurface> surfaceClass) {
+    JComponent layeredPane = new JPanel();
+    DesignSurface surface = mock(surfaceClass);
+    List<DesignSurfaceListener> listeners = new ArrayList<>();
+    when(surface.getLayeredPane()).thenReturn(layeredPane);
+    SelectionModel selectionModel = new SelectionModel();
+    when(surface.getSelectionModel()).thenReturn(selectionModel);
+    when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
+    when(surface.getScale()).thenReturn(0.5);
+    when(surface.getSelectionAsTransferable()).thenCallRealMethod();
+    doAnswer(inv -> listeners.add(inv.getArgument(0))).when(surface).addListener(any(DesignSurfaceListener.class));
+    doAnswer(inv -> listeners.remove((DesignSurfaceListener)inv.getArgument(0))).when(surface).removeListener(any(DesignSurfaceListener.class));
+    selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));
+    return surface;
   }
 
   /**

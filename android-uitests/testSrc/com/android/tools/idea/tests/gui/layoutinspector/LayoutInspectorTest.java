@@ -15,36 +15,75 @@
  */
 package com.android.tools.idea.tests.gui.layoutinspector;
 
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.fakeadbserver.DeviceState;
+import com.android.fakeadbserver.FakeAdbServer;
+import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
+import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
+import com.android.tools.idea.editors.layoutInspector.actions.LayoutInspectorDebugStubber;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture;
-import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
-import com.android.tools.idea.tests.util.ddmlib.DeviceQueries;
+import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
+import org.fest.swing.util.StringTextMatcher;
+import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class LayoutInspectorTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+
+  private FakeAdbServer fakeAdbServer;
 
   @Before
-  public void setUp() throws Exception {
-    guiTest.importSimpleLocalApplication();
-    emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+  public void setupFakeAdbServer() throws Exception {
+    ActivityManagerCommandHandler.ProcessStarter startCmdHandler = new ActivityManagerCommandHandler.ProcessStarter() {
+      @NotNull
+      @Override
+      public String startProcess(@NotNull DeviceState deviceState) {
+        deviceState.startClient(1234, 1235, "google.simpleapplication", false);
+        return "Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]"
+          + " cmp=google.simpleapplication/google.simpleapplication.MyActivity }";
+      }
+    };
+    fakeAdbServer = new FakeAdbServer.Builder()
+      .installDefaultCommandHandlers()
+      .setShellCommandHandler(
+        ActivityManagerCommandHandler.COMMAND,
+        () -> new ActivityManagerCommandHandler(startCmdHandler)
+      )
+      .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new)
+      .build();
+
+    DeviceState dev = fakeAdbServer.connectDevice(
+      "test_device",
+      "Google",
+      "Nexus 5X",
+      "8.1",
+      "27",
+      DeviceState.HostConnectionType.LOCAL
+    ).get();
+    dev.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
+
+    fakeAdbServer.start();
+    AndroidDebugBridge.enableFakeAdbServerMode(fakeAdbServer.getPort());
   }
 
   /**
@@ -64,21 +103,29 @@ public class LayoutInspectorTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   public void launchLayoutInspectorViaChooser() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    ideFrame.runApp("app").selectDevice(emulator.getDefaultAvdName()).clickOk();
+    String appConfigName = "app";
+    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
+
+    File layoutDumpDir = guiTest.copyProjectBeforeOpening("LayoutInspector");
+
+    new LayoutInspectorDebugStubber().mockOutDebugger(
+      ideFrame.getProject(),
+      new File(layoutDumpDir, "recorded_layout_inspector.dump"),
+      new File(layoutDumpDir, "recorded_layout_inspector.png")
+    );
+
+    ideFrame.runApp(appConfigName)
+      .selectDevice(new StringTextMatcher("Google Nexus 5X"))
+      .clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
-    guiTest.waitForBackgroundTasks();
+    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(240));
 
     // The following includes a wait for the run tool window to appear.
     // Also show the run tool window in case of failure so we have more information.
-    ideFrame.getRunToolWindow().activate();
-
-    //Wait for emulator to launch the app
-    IDevice emu = AndroidDebugBridgeUtils.getEmulator(emulator.getDefaultAvdName(), emulator.getEmulatorConnection(), 5);
-    assertThat(emu).isNotNull();
-    new DeviceQueries(emu).waitUntilAppViewsAreVisible("google.simpleapplication", 5);
+    RunToolWindowFixture runWindow = ideFrame.getRunToolWindow();
+    runWindow.activate();
 
     guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Layout Inspector");
     // easier to select via index rather than by path string which changes depending on the api version
@@ -91,5 +138,12 @@ public class LayoutInspectorTest {
     assertThat(layoutElements).contains("android.widget.RelativeLayout");
     assertThat(layoutElements).contains("android.widget.TextView");
     assertThat(layoutElements).contains("android.widget.FrameLayout");
+  }
+
+  @After
+  public void shutdownFakeAdb() throws Exception {
+    AndroidDebugBridge.terminate();
+    AndroidDebugBridge.disableFakeAdbServerMode();
+    fakeAdbServer.close();
   }
 }

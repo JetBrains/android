@@ -21,14 +21,15 @@ import org.jetbrains.annotations.NotNull;
 /**
  * This class holds configuration values for the StateChart component.
  *
- * @param <E> The type of data represented by the state chart.
+ * @param <T> The type of data represented by the state chart.
  */
-public class StateChartConfig<E extends Enum<E>> {
+// TODO (b/78585871) Update the StateChart to a builder pattern, and remove additional parameters from this.
+public class StateChartConfig<T> {
 
   /**
    * Reducer used to minimize the number of points drawn.
    */
-  private @NotNull StateChartReducer<E> myReducer;
+  private @NotNull StateChartReducer<T> myReducer;
 
   /**
    * Height value as a percentage {0...1} that represents the height of rectangles created by the state chart.
@@ -48,7 +49,7 @@ public class StateChartConfig<E extends Enum<E>> {
   /**
    * @param reducer class that helps reduce the number of unique points drawn by the state chart.
    */
-  public StateChartConfig(@NotNull StateChartReducer<E> reducer) {
+  public StateChartConfig(@NotNull StateChartReducer<T> reducer) {
     this(reducer, 1, 1, 0.5f);
   }
 
@@ -58,7 +59,7 @@ public class StateChartConfig<E extends Enum<E>> {
    * @param rectMouseOverHeightRatio height value as a percentage {0...1} that represents the height of rectangles while the mouse is hovering over them.
    * @param heightGap                The gap value as a percentage {0...1} of the height given to each data series
    */
-  public StateChartConfig(@NotNull StateChartReducer<E> reducer,
+  public StateChartConfig(@NotNull StateChartReducer<T> reducer,
                           double rectHeightRatio,
                           double rectMouseOverHeightRatio,
                           float heightGap) {
@@ -69,7 +70,7 @@ public class StateChartConfig<E extends Enum<E>> {
   }
 
   @NotNull
-  public StateChartReducer<E> getReducer() {
+  public StateChartReducer<T> getReducer() {
     return myReducer;
   }
 

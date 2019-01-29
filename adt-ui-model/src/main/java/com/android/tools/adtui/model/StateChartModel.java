@@ -15,16 +15,15 @@
  */
 package com.android.tools.adtui.model;
 
-import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class StateChartModel<E> extends AspectModel<StateChartModel.Aspect> implements Updatable {
+public class StateChartModel<E> extends AspectModel<StateChartModel.Aspect> {
 
   public enum Aspect {
-    STATE_CHART
+    MODEL_CHANGED
   }
 
   @NotNull
@@ -38,13 +37,9 @@ public class StateChartModel<E> extends AspectModel<StateChartModel.Aspect> impl
     return mSeriesList;
   }
 
-  @Override
-  public void update(long elapsedNs) {
-    changed(Aspect.STATE_CHART);
-  }
-
   public void addSeries(@NotNull RangedSeries<E> series) {
     mSeriesList.add(series);
-    changed(Aspect.STATE_CHART);
+    series.getXRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> changed(Aspect.MODEL_CHANGED));
+    changed(Aspect.MODEL_CHANGED);
   }
 }

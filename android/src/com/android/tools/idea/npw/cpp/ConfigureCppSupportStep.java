@@ -16,15 +16,12 @@
 package com.android.tools.idea.npw.cpp;
 
 import com.android.tools.adtui.util.FormScalingUtil;
-import com.android.tools.idea.npw.project.NewProjectModel;
+import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.BoolProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -41,8 +38,6 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -55,11 +50,7 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
   private JBScrollPane myRoot;
   private JPanel myRootPanel;
   private JComboBox<CppStandardType> myCppStandardCombo;
-  private JCheckBox myExceptionSupportCheck;
   private JBLabel myIconLabel;
-  private JComboBox<RuntimeLibraryType> myRuntimeLibraryCombo;
-  private JCheckBox myRttiSupportCheck;
-  private JBLabel myRuntimeLibraryLabel;
   private HyperlinkLabel myDocumentationLink;
 
   public ConfigureCppSupportStep(@NotNull NewProjectModel model) {
@@ -69,39 +60,22 @@ public class ConfigureCppSupportStep extends ModelWizardStep<NewProjectModel> {
     myDocumentationLink.setHyperlinkText(message("android.wizard.activity.add.cpp.docslinktext"));
     myDocumentationLink.setHyperlinkTarget("https://developer.android.com/ndk/guides/cpp-support.html");
 
-    myRoot = new JBScrollPane(new StudioWizardStepPanel(myRootPanel), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-    myRoot.setBorder(null);
+    myRoot = StudioWizardStepPanel.wrappedWithVScroll(myRootPanel);
     FormScalingUtil.scaleComponentTree(this.getClass(), myRoot);
   }
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myRuntimeLibraryCombo.setModel(new CollectionComboBoxModel<>(Arrays.asList(RuntimeLibraryType.values())));
-    OptionalProperty<RuntimeLibraryType> runtimeLibrary = new OptionalValueProperty<>(RuntimeLibraryType.GABIXX);
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myRuntimeLibraryCombo), runtimeLibrary);
-
     myCppStandardCombo.setModel(new CollectionComboBoxModel<>(Arrays.asList(CppStandardType.values())));
     OptionalProperty<CppStandardType> cppStandard = new OptionalValueProperty<>(CppStandardType.DEFAULT);
     myBindings.bindTwoWay(new SelectedItemProperty<>(myCppStandardCombo), cppStandard);
 
-    BoolProperty exceptionSupport = new BoolValueProperty();
-    myBindings.bindTwoWay(new SelectedProperty(myExceptionSupportCheck), exceptionSupport);
-
-    BoolProperty rttiSupport = new BoolValueProperty();
-    myBindings.bindTwoWay(new SelectedProperty(myRttiSupportCheck), rttiSupport);
-
-    myListeners.listenAll(runtimeLibrary, cppStandard, exceptionSupport, rttiSupport).withAndFire(() -> {
+    myListeners.listenAll(cppStandard).withAndFire(() -> {
       final ArrayList<Object> flags = new ArrayList<>();
       flags.add(cppStandard.getValueOr(CppStandardType.DEFAULT).getCompilerFlag());
-      flags.add(rttiSupport.get() ? "-frtti" : null);
-      flags.add(exceptionSupport.get() ? "-fexceptions" : null);
 
       getModel().cppFlags().set(Joiner.on(' ').skipNulls().join(flags));
     });
-
-    // TODO: un-hide UI components once dsl support would be available
-    myRuntimeLibraryCombo.setVisible(false);
-    myRuntimeLibraryLabel.setVisible(false);
   }
 
   @NotNull

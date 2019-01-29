@@ -19,7 +19,7 @@ package com.android.tools.adtui.model.event;
  * This class stores the key, or string that was passed to use from PerfD
  * for a key action. That string is then rendered in the UI as part of the event.
  */
-public class KeyboardAction extends EventAction<SimpleEventType> {
+public class KeyboardAction extends EventAction<UserEvent> {
   private KeyboardData myData;
 
   /**
@@ -28,7 +28,7 @@ public class KeyboardAction extends EventAction<SimpleEventType> {
    * @param data  key character from a keyboard, or the string returned from the Softkeyboard InputConnection class.
    */
   public KeyboardAction(long start, long end, KeyboardData data) {
-    super(start, end, SimpleEventType.KEYBOARD);
+    super(start, end, UserEvent.KEYBOARD);
     myData = data;
   }
 

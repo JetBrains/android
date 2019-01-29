@@ -23,7 +23,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbService;
@@ -31,6 +30,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
@@ -40,10 +42,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST;
 import static com.intellij.ide.actions.ShowFilePathAction.openFile;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static com.intellij.util.ThreeState.YES;
 
 /**
@@ -105,9 +105,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     if (mySyncState.lastSyncFailed()) {
       return NotificationPanel.Type.FAILED;
     }
-    if (mySyncState.getSummary().hasSyncErrors()) {
-      return NotificationPanel.Type.ERRORS;
-    }
 
     ThreeState gradleSyncNeeded = mySyncState.isSyncNeeded();
     if (gradleSyncNeeded == YES) {
@@ -139,14 +136,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @NotNull
         NotificationPanel create(@NotNull Project project) {
           String text = "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.";
-          return new SyncProblemNotificationPanel(project, this, text);
-        }
-      },
-      ERRORS() {
-        @Override
-        @NotNull
-        NotificationPanel create(@NotNull Project project) {
-          String text = "Gradle project sync completed with some errors. Open the 'Messages' view to see the errors found.";
           return new SyncProblemNotificationPanel(project, this, text);
         }
       },
@@ -233,8 +222,12 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       createActionLabel("Try Again",
                         () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_REQUEST));
 
-      createActionLabel("Open 'Messages' View",
-                        () -> ExternalSystemNotificationManager.getInstance(project).openMessageView(GRADLE_SYSTEM_ID, PROJECT_SYNC));
+      createActionLabel("Open 'Build' View", () -> {
+        final ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD);
+        if (tw != null && !tw.isActive()) {
+          tw.activate(null, false);
+        }
+      });
 
       createActionLabel("Show Log in " + ShowFilePathAction.getFileManagerName(), () -> {
         File logFile = new File(PathManager.getLogPath(), "idea.log");

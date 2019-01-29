@@ -43,23 +43,23 @@ class RoomNameElementManipulator : AbstractElementManipulator<RoomNameElement>()
 
     /** Checks if the given name (table name, column name) needs escaping and returns a string that's safe to put in SQL. */
     fun getValidName(name: String): String =
-        if (!needsQuoting(name)) name else "`${name.replace("`", "``")}`"
+      if (!needsQuoting(name)) name else "`${name.replace("`", "``")}`"
   }
 
   override fun handleContentChange(element: RoomNameElement, range: TextRange, newContent: String): RoomNameElement {
     element.node.replaceChild(
-        element.node.firstChildNode,
-        if (needsQuoting(newContent)) {
-          newLeaf(RoomPsiTypes.BACKTICK_LITERAL, getValidName(newContent))
-        } else {
-          newLeaf(RoomPsiTypes.IDENTIFIER, newContent)
-        }
+      element.node.firstChildNode,
+      if (needsQuoting(newContent)) {
+        newLeaf(RoomPsiTypes.BACKTICK_LITERAL, getValidName(newContent))
+      } else {
+        newLeaf(RoomPsiTypes.IDENTIFIER, newContent)
+      }
     )
     return element
   }
 
   override fun getRangeInElement(nameElement: RoomNameElement): TextRange =
-      if (nameElement.nameIsQuoted) TextRange(1, nameElement.textLength - 1) else TextRange(0, nameElement.textLength)
+    if (nameElement.nameIsQuoted) TextRange(1, nameElement.textLength - 1) else TextRange(0, nameElement.textLength)
 }
 
 class RoomBindParameterManipulator : AbstractElementManipulator<RoomBindParameter>() {
@@ -79,4 +79,4 @@ class RoomBindParameterManipulator : AbstractElementManipulator<RoomBindParamete
  * @see com.intellij.psi.impl.source.PostprocessReformattingAspect
  */
 private fun newLeaf(type: IElementType, text: String): LeafElement =
-    ASTFactory.leaf(type, text).also { CodeEditUtil.setNodeGenerated(it, true) }
+  ASTFactory.leaf(type, text).also { CodeEditUtil.setNodeGenerated(it, true) }

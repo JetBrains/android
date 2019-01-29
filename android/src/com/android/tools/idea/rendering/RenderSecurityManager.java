@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.lang.reflect.Member;
 import java.net.InetAddress;
 import java.security.Permission;
+import java.util.Arrays;
 import java.util.PropertyPermission;
 
 import static com.android.SdkConstants.*;
@@ -288,6 +289,13 @@ public class RenderSecurityManager extends SecurityManager {
   }
 
   @Override
+  public void checkPropertiesAccess() {
+    if (isRelevant() && !RenderPropertiesAccessUtil.isPropertyAccessAllowed()) {
+      throw RenderSecurityException.create("Property", null);
+    }
+  }
+
+  @Override
   public void checkLink(String lib) {
     // Allow linking with relative paths
     // Needed to for example load the "fontmanager" library from layout lib (from the
@@ -446,13 +454,6 @@ public class RenderSecurityManager extends SecurityManager {
     }
 
     super.checkExit(status);
-  }
-
-  @Override
-  public void checkPropertiesAccess() {
-    if (isRelevant()) {
-      throw RenderSecurityException.create("Property", null);
-    }
   }
 
   // Prevent code execution/linking/loading

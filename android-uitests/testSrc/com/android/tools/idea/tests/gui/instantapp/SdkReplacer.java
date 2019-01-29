@@ -18,17 +18,17 @@ package com.android.tools.idea.tests.gui.instantapp;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.pico.DefaultPicoContainer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.picocontainer.ComponentAdapter;
 
 import java.io.File;
 
 import static org.junit.Assert.assertSame;
 
 /**
- * Responsible for replacing {@link com.android.tools.idea.instantapp.InstantAppSdks} for a mock one pointing to a fake SDK location.
- * This is necessary for the moment because Instant App Sdk isn't available in the published SDK yet.
- * Should be deleted one AIA sdk becomes public.
+ * Responsible for replacing {@link com.android.tools.idea.instantapp.InstantAppSdks} for a mock so we can test multiple behaviors with
+ * different possible configurations. e.g. user can have a different of the AIA SDK, while the SDK Manager makes available
+ * only the last one.
  */
 public class SdkReplacer {
   private static InstantAppSdks original = null;
@@ -40,9 +40,10 @@ public class SdkReplacer {
 
     replaceService(new InstantAppSdks() {
       @Override
-      public File getInstantAppSdk(boolean tryToInstall) {
+      @NotNull
+      public File getOrInstallInstantAppSdk() {
         if (sdkLocation == null) {
-          return null;
+          throw new LoadInstantAppSdkException("No SDK location set");
         }
         return new File(sdkLocation);
       }
@@ -69,7 +70,8 @@ public class SdkReplacer {
     DefaultPicoContainer picoContainer = (DefaultPicoContainer)ApplicationManager.getApplication().getPicoContainer();
 
     String componentKey = InstantAppSdks.class.getName();
-    ComponentAdapter componentAdapter = picoContainer.unregisterComponent(componentKey);
+
+    picoContainer.unregisterComponent(componentKey);
 
     picoContainer.registerComponentInstance(componentKey, newService);
     assertSame(newService, picoContainer.getComponentInstance(componentKey));

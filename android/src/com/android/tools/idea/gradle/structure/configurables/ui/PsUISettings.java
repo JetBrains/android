@@ -16,28 +16,35 @@
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.components.State;
-import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.*;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EventListener;
 
-@State(name = "PsdUISettings", storages = @Storage("android.gradle.psd.xml"))
+@State(
+  name = "PsdUISettings",
+  storages = @Storage(StoragePathMacros.WORKSPACE_FILE)
+)
 public class PsUISettings implements PersistentStateComponent<PsUISettings> {
   public boolean DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
   public boolean RESOLVED_DEPENDENCIES_GROUP_VARIANTS;
   public boolean RESOLVED_DEPENDENCIES_MINIMIZE = true;
   public boolean TARGET_MODULES_MINIMIZE = true;
   public boolean MODULES_LIST_MINIMIZE;
+  // Lazily synced items (No change notification).
+  public String MODULE_TAB;
+  public String BUILD_VARIANTS_TAB;
+  public String LAST_EDITED_SIGNING_CONFIG;
+  public String LAST_EDITED_BUILD_TYPE;
+  public String LAST_EDITED_FLAVOR_OR_DIMENSION;
 
   @NotNull private final EventDispatcher<ChangeListener> myEventDispatcher = EventDispatcher.create(ChangeListener.class);
 
-  public static PsUISettings getInstance() {
-    return ServiceManager.getService(PsUISettings.class);
+  public static PsUISettings getInstance(Project project) {
+    return ServiceManager.getService(project, PsUISettings.class);
   }
 
   public void addListener(@NotNull ChangeListener listener, @NotNull Disposable parentDisposable) {

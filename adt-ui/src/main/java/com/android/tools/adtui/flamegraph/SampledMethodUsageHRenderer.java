@@ -41,11 +41,6 @@ public class SampledMethodUsageHRenderer extends DefaultHRenderer<SampledMethodU
   }
 
   @Override
-  protected Color getBorderColor(@NotNull SampledMethodUsage method) {
-    return Color.GRAY;
-  }
-
-  @Override
   protected Color getFillColor(@NotNull SampledMethodUsage method) {
     return new Color(
       (int)(START_COLOR.getRed() + method.getPercentage() * mRedDelta),

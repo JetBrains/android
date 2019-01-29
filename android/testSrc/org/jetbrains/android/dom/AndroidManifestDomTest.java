@@ -1,5 +1,7 @@
 package org.jetbrains.android.dom;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+
 import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -10,13 +12,13 @@ import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 
 public class AndroidManifestDomTest extends AndroidDomTestCase {
   private static final String API_LEVELS_URL = "https://developer.android.com/guide/topics/manifest/uses-sdk-element.html#ApiLevels";
@@ -426,7 +428,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
 
   public void testJavaHighlighting() throws Throwable {
     copyFileToProject("PermissionsManifest.xml", "AndroidManifest.xml");
-    copyFileToProject("Manifest.java", "src/p1/p2/Manifest.java");
+    copyManifestJavaToGeneratedSources();
     doTestJavaHighlighting("p1.p2");
   }
 
@@ -436,11 +438,11 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   public void testNamespaceCompletion() throws Throwable {
-    doTestNamespaceCompletion(true, true, true, false);
+    doTestNamespaceCompletion(SdkConstants.DIST_URI);
   }
 
   public void testNamespaceCompletion1() throws Throwable {
-    doTestNamespaceCompletion(true, false, true, false);
+    doTestNamespaceCompletion(SdkConstants.DIST_URI);
   }
 
   public void testCompatibleScreensCompletion() throws Throwable {
@@ -508,7 +510,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     try {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
                                "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
-                               "26", "O_MR1");
+                               "26", "27", "P");
     }
     finally {
       ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.removeJdk(sdk));

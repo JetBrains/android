@@ -17,23 +17,19 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
- * An {@link Updatable} which will regularly run and, on an interval, poll for an up-to-date list
- * of {@link HttpData} requests within a specified range. Once we see that all requests have been
- * completed, the update loop will stop making the expensive polling calls.
+ * A class which handles querying for a list of {@link HttpData} requests within a specified range.
+ * When the range changes, the list will automatically be updated, and this class will notify any
+ * listeners.
  */
-public final class HttpDataFetcher implements Updatable {
-  private static final long FETCH_FREQUENCY = TimeUnit.MILLISECONDS.toNanos(250);
-
+public final class HttpDataFetcher {
   // myAspectObserver cannot be local to prevent early GC
   @SuppressWarnings("FieldCanBeLocal") private final AspectObserver myAspectObserver = new AspectObserver();
 
@@ -42,22 +38,17 @@ public final class HttpDataFetcher implements Updatable {
   @NotNull private final List<Listener> myListeners = new ArrayList<>();
 
   /**
-   * The last list of requests polled from the user's device. If {@code null}, it means the update
-   * loop should always poll immediately for a new list.
+   * The last list of requests polled from the user's device. Initialized to {@code null} to
+   * distinguish that case from the case where a range returns no requests.
    */
   @Nullable private List<HttpData> myDataList;
-
-  /**
-   * Time accumulated since the last poll.
-   */
-  private long myAccumNs;
 
   public HttpDataFetcher(@NotNull NetworkConnectionsModel connectionsModel, @NotNull Range range) {
     myConnectionsModel = connectionsModel;
     myRange = range;
 
-    myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::pollImmediately);
-    pollImmediately();
+    myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::handleRangeUpdated);
+    handleRangeUpdated();
   }
 
   public void addListener(@NotNull Listener listener) {
@@ -67,44 +58,20 @@ public final class HttpDataFetcher implements Updatable {
     }
   }
 
-  @Override
-  public void update(long elapsedNs) {
-    myAccumNs += elapsedNs;
-    // If data list is not set yet, we always want to fetch regardless of accumulated time
-    if (myAccumNs < FETCH_FREQUENCY && myDataList != null) {
+  private void handleRangeUpdated() {
+    List<HttpData> dataList = !myRange.isEmpty() ? myConnectionsModel.getData(myRange) : new ArrayList<>();
+    if (myDataList != null && myDataList.equals(dataList)) {
       return;
     }
 
-    myAccumNs = 0;
-    if (myDataList == null || stillDownloading(myDataList)) {
-      if (!myRange.isEmpty()) {
-        myDataList = myConnectionsModel.getData(myRange);
-      }
-      else {
-        myDataList = new ArrayList<>();
-      }
-      fireListeners(myDataList);
-    }
-  }
-
-  private void pollImmediately() {
-    myDataList = null;
-    update(0);
+    myDataList = dataList;
+    fireListeners(myDataList);
   }
 
   private void fireListeners(@NotNull List<HttpData> dataList) {
     for (Listener l : myListeners) {
       l.onUpdated(dataList);
     }
-  }
-
-  private boolean stillDownloading(@NotNull List<HttpData> dataList) {
-    for (HttpData data : dataList) {
-      if (data.getEndTimeUs() == 0) {
-        return true;
-      }
-    }
-    return false;
   }
 
   public interface Listener {

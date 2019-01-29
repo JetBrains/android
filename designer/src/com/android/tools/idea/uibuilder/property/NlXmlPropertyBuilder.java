@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.PropertiesManager;
-import com.android.tools.idea.rendering.AttributeSnapshot;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.property.editors.NlXmlEditors;
 import com.android.tools.idea.uibuilder.property.renderer.NlXmlRenderers;
 import com.google.common.collect.Multimap;
@@ -34,6 +35,7 @@ import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.PathUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.formatter.AttributeComparator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,16 +69,16 @@ public class NlXmlPropertyBuilder {
     if (myComponents.isEmpty()) {
       return false;
     }
-    NlComponent component = myComponents.get(0);
     List<PTableItem> items = new ArrayList<>();
-    items.add(new NlResourceHeader(generateFileHeader(component.getModel().getVirtualFile().getPath())));
-    for (AttributeSnapshot attribute : component.getAttributes()) {
-      NlPropertyItem item = myProperties.get(attribute.namespace, attribute.name);
-      if (item != null) {
+    for (NlPropertyItem item : myProperties.values()) {
+      if (item.getValue() != null) {
         resolveValue(item);
         items.add(item);
       }
     }
+    items.sort(new AttributeComparator<>(property -> property.getName()));
+    NlComponent component = myComponents.get(0);
+    items.add(0, new NlResourceHeader(generateFileHeader(component.getModel().getVirtualFile().getPath())));
     items.add(new AddPropertyItem(myProperties));
     for (String header : mySliceMap.keySet()) {
       items.add(new NlResourceHeader(header));
@@ -102,7 +104,7 @@ public class NlXmlPropertyBuilder {
 
   private void resolveValue(@NotNull NlPropertyItem property) {
     AndroidFacet facet = property.getModel().getFacet();
-    ProjectResourceRepository resourceRepository = ProjectResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository resourceRepository = ResourceRepositoryManager.getProjectResources(facet);
     ResourceResolver resolver = property.getResolver();
     if (resolver == null) {
       return;
@@ -142,17 +144,15 @@ public class NlXmlPropertyBuilder {
   }
 
   @Nullable
-  private static ResourceItem findUserDefinedResourceItem(@NotNull ProjectResourceRepository resourceRepository,
+  private static ResourceItem findUserDefinedResourceItem(@NotNull LocalResourceRepository resourceRepository,
                                                           @NotNull ResourceValue resource) {
-    if (resource.isFramework() || resource.getLibraryName() != null || resource.getResourceType() == null) {
+    if (resource.isFramework() || resource.getLibraryName() != null) {
       return null;
     }
-    List<ResourceItem> items = resourceRepository.getResourceItem(resource.getResourceType(), resource.getName());
-    if (items == null) {
-      return null;
-    }
+    List<ResourceItem> items =
+        resourceRepository.getResources(ResourceNamespace.TODO(), resource.getResourceType(), resource.getName());
     for (ResourceItem item : items) {
-      if (item.getResourceValue(false) == resource) {
+      if (item.getResourceValue() == resource) {
         return item;
       }
     }
@@ -162,7 +162,7 @@ public class NlXmlPropertyBuilder {
   @NotNull
   private static String generateHeader(@NotNull ResourceValue resource, @Nullable ResourceItem item) {
     ResourceType resourceType = resource.getResourceType();
-    String type = resourceType != null ? "<" + resource.getResourceType().getName() + ">" : "<style>";
+    String type = "<" + resource.getResourceType().getName() + ">";
     if (resource.isFramework()) {
       return "android " + type;
     }
@@ -170,7 +170,7 @@ public class NlXmlPropertyBuilder {
       return formatLibraryName(resource.getLibraryName()) + " " + type;
     }
     if (item != null && item.getSource() != null) {
-      return generateFileHeader(item.getSource().getFile().getPath());
+      return generateFileHeader(item.getSource().getNativePath());
     }
     return type;
   }

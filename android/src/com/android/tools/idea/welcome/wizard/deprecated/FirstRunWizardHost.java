@@ -274,7 +274,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
         }
       }
       if (actionList.size() != actions.length) {
-        actions = actionList.toArray(actionList.toArray(new Action[actionList.size()]));
+        actions = actionList.toArray(actionList.toArray(new Action[0]));
       }
     }
 

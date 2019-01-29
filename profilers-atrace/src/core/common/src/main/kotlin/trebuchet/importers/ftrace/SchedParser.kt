@@ -17,6 +17,7 @@
 package trebuchet.importers.ftrace
 
 import trebuchet.model.SchedulingState
+import trebuchet.model.fragments.ThreadModelFragment
 import trebuchet.util.PreviewReader
 import java.util.regex.Pattern
 
@@ -29,10 +30,10 @@ object SchedParser : FunctionHandlerRegistry() {
         "sched_cpu_hotplug" handleWith this::sched_cpu_hotplug
     }
 
-    val schedSwitchMatcher = matcher(
+    private val schedSwitchMatcher = matcher(
             "prev_comm=(.*) prev_pid=(\\d+) prev_prio=(\\d+) prev_state=([^\\s]+) ==> next_comm=(.*) next_pid=(\\d+) next_prio=(\\d+)")
 
-    fun sched_switch(data: ImportData) = data.readDetails {
+    private fun sched_switch(data: ImportData) = data.readDetails {
         // sched_switch: prev_comm=atrace prev_pid=7100 prev_prio=120 prev_state=S
         // ==> next_comm=swapper/1 next_pid=0 next_prio=120
         match(schedSwitchMatcher) {
@@ -50,16 +51,19 @@ object SchedParser : FunctionHandlerRegistry() {
             if (nextThread.name == null) {
                 nextThread.hint(name = string(5))
             }
+            val cpu = data.importer.cpuFor(data.line.cpu)
 
             prevThread.schedulingStateBuilder.switchState(prevState, data.line.timestamp)
             nextThread.schedulingStateBuilder.switchState(SchedulingState.RUNNING, data.line.timestamp)
+            cpu.schedulingProcessBuilder.switchProcess(nextThread.process, nextThread, data.line.timestamp)
+
         }
     }
 
-    val schedWakeupMatcher = matcher(
+    private val schedWakeupMatcher = matcher(
             """comm=(.+) pid=(\d+) prio=(\d+)(?: success=\d+)? target_cpu=(\d+)""")
 
-    fun sched_wakeup(data: ImportData) = data.readDetails {
+    private fun sched_wakeup(data: ImportData) = data.readDetails {
         match(schedWakeupMatcher) {
             val pid = int(2)
             val thread = data.importer.threadFor(pid)
@@ -70,11 +74,11 @@ object SchedParser : FunctionHandlerRegistry() {
         }
     }
 
-    fun sched_blocked_reason(data: ImportData) = data.readDetails {
+    private fun sched_blocked_reason(data: ImportData) = data.readDetails {
 
     }
 
-    fun sched_cpu_hotplug(data: ImportData) = data.readDetails {
+    private fun sched_cpu_hotplug(data: ImportData) = data.readDetails {
 
     }
 

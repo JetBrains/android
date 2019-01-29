@@ -18,31 +18,31 @@ package com.android.tools.idea.common.editor;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.error.IssuePanelSplitter;
 import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.naveditor.property.NavPropertyPanelDefinition;
-import com.android.tools.idea.naveditor.structure.DestinationList;
+import com.android.tools.idea.naveditor.structure.StructurePanel;
 import com.android.tools.idea.naveditor.surface.NavDesignSurface;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.uibuilder.error.IssuePanelSplitter;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
 import com.android.tools.idea.uibuilder.palette2.PaletteDefinition;
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
+import com.android.tools.idea.uibuilder.property2.NelePropertiesPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.util.SyncUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.OnePixelSplitter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,32 +58,34 @@ import java.util.concurrent.CompletableFuture;
  * Assembles a designer editor from various components
  */
 public class NlEditorPanel extends JPanel implements Disposable {
+
+  public static final String NELE_EDITOR = "NELE_EDITOR";
+  public static final String NAV_EDITOR = "NAV_EDITOR";
+
+  private static final String DESIGN_UNAVAILABLE_MESSAGE = "Design editor is unavailable until after a successful project sync";
+
   private final NlEditor myEditor;
   private final Project myProject;
   private final VirtualFile myFile;
   private final DesignSurface mySurface;
   private final JPanel myContentPanel;
   private final WorkBench<DesignSurface> myWorkBench;
-  private boolean myIsActive;
   private JBSplitter mySplitter;
+  private JPanel myAccessoryPanel;
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull VirtualFile file) {
     super(new BorderLayout());
-    myWorkBench = new WorkBench<>(project, "NELE_EDITOR", editor);
-    myWorkBench.setOpaque(true);
-
     myEditor = editor;
     myProject = project;
     myFile = file;
-    myContentPanel = new AdtPrimaryPanel(new BorderLayout());
+    boolean isNavigation = getLayoutType() == NlLayoutType.NAV;
+    myWorkBench = new WorkBench<>(project, isNavigation ? NAV_EDITOR : NELE_EDITOR, editor);
+    myWorkBench.setOpaque(true);
 
-    if (NlLayoutType.typeOf(getFile()) == NlLayoutType.NAV) {
-      mySurface = new NavDesignSurface(project, editor);
-    }
-    else {
-      mySurface = new NlDesignSurface(project, false, editor);
-      ((NlDesignSurface)mySurface).setCentered(true);
-    }
+    myContentPanel = new AdtPrimaryPanel(new BorderLayout());
+    mySurface = createDesignSurface(editor, project, isNavigation);
+    Disposer.register(this, mySurface);
+    myContentPanel.add(createSurfaceToolbar(mySurface), BorderLayout.NORTH);
 
     myWorkBench.setLoadingText("Waiting for build to finish...");
     ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(this::initNeleModel, this::buildError);
@@ -93,38 +95,54 @@ public class NlEditorPanel extends JPanel implements Disposable {
     Disposer.register(editor, myWorkBench);
   }
 
-  // Build was either cancelled or there was an error
-  private void buildError() {
-    myWorkBench.loadingStopped("Design editor is unavailable until a successful build");
+  @NotNull
+  private NlLayoutType getLayoutType() {
+    return NlLayoutType.typeOf(getFile());
   }
 
-  private void initNeleModel() {
-    ProjectSystemSyncManager syncManager = ProjectSystemUtil.getSyncManager(myProject);
-
-    if (!syncManager.isSyncInProgress()) {
-      if (syncManager.getLastSyncResult().isSuccessful()) {
-        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
-        return;
-      }
-      else {
-        buildError();
-      }
+  @NotNull
+  private DesignSurface createDesignSurface(@NotNull NlEditor editor, @NotNull Project project, boolean isNavigation) {
+    if (isNavigation) {
+      return new NavDesignSurface(project, this, editor);
     }
+    else {
+      NlDesignSurface nlDesignSurface;
+      nlDesignSurface = new NlDesignSurface(project, false, editor);
+      nlDesignSurface.setCentered(true);
+      myAccessoryPanel = nlDesignSurface.getAccessoryPanel();
+      return nlDesignSurface;
+    }
+  }
 
-    // Wait for a successful sync in case the module containing myFile was
-    // just added and the Android facet isn't available yet.
-    SyncUtil.listenUntilNextSuccessfulSync(myProject, myEditor, result -> {
+  @NotNull
+  private static JComponent createSurfaceToolbar(@NotNull DesignSurface surface) {
+    return surface.getActionManager().createToolbar();
+  }
+
+  // Build was either cancelled or there was an error
+  private void buildError() {
+    myWorkBench.loadingStopped(DESIGN_UNAVAILABLE_MESSAGE);
+  }
+
+  /**
+   * This is called by the constructor to set up the UI, and in the normal case shouldn't be called again. However,
+   * if there's an error during setup that can be detected and fixed, this should be called again afterward to retry
+   * setting up the UI.
+   */
+  public void initNeleModel() {
+    SyncUtil.runWhenSmartAndSynced(myProject, this, result -> {
       if (result.isSuccessful()) {
-        DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
+        initNeleModelWhenSmart();
       }
       else {
         buildError();
+        SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
       }
     });
   }
 
   private void initNeleModelWhenSmart() {
-    if (Disposer.isDisposed(myEditor) || myContentPanel.getComponentCount() > 0) {
+    if (Disposer.isDisposed(myEditor)) {
       return;
     }
 
@@ -133,29 +151,61 @@ public class NlEditorPanel extends JPanel implements Disposable {
 
       AndroidFacet facet = AndroidFacet.getInstance(file);
       assert facet != null;
-      return NlModel.create(myEditor, facet, myFile);
+      return NlModel.create(myEditor, facet, myFile, mySurface.getConfigurationManager(facet));
     });
     CompletableFuture<?> complete = mySurface.goingToSetModel(model);
-    complete.whenComplete((a, b) -> DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelOnEventDispatchThread(model)));
+    complete.whenComplete((unused, exception) -> {
+      if (exception == null) {
+        SyncUtil.runWhenSmartAndSyncedOnEdt(myProject, this, result -> {
+          if (result.isSuccessful()) {
+            initNeleModelOnEventDispatchThread(model);
+          }
+          else {
+            buildError();
+            SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
+          }
+        });
+      }
+      else {
+        myWorkBench.loadingStopped("Failed to initialize editor");
+        Logger.getInstance(NlEditorPanel.class).warn("Failed to initialize NlEditorPanel", exception);
+      }
+    });
   }
 
-  private void initNeleModelOnEventDispatchThread(NlModel model) {
-    mySurface.setModel(model);
-    Disposer.register(myEditor, mySurface);
+  private void initNeleModelOnEventDispatchThread(@NotNull NlModel model) {
+    if (Disposer.isDisposed(model)) {
+      return;
+    }
 
-    JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
-    myContentPanel.add(toolbarComponent, BorderLayout.NORTH);
-    myContentPanel.add(mySurface);
+    mySurface.setModel(model);
+
+    if (myAccessoryPanel != null) {
+      boolean verticalSplitter = StudioFlags.NELE_MOTION_HORIZONTAL.get();
+      OnePixelSplitter splitter = new OnePixelSplitter(verticalSplitter, 1f, 0.5f, 1f);
+      splitter.setHonorComponentsMinimumSize(true);
+      splitter.setFirstComponent(mySurface);
+      splitter.setSecondComponent(myAccessoryPanel);
+      myContentPanel.add(splitter, BorderLayout.CENTER);
+    }
+    else {
+      myContentPanel.add(mySurface, BorderLayout.CENTER);
+    }
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
     // TODO: factor out tool creation
     if (NlLayoutType.typeOf(model.getFile()) == NlLayoutType.NAV) {
       tools.add(new NavPropertyPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
-      tools.add(new DestinationList.DestinationListDefinition());
+      tools.add(new StructurePanel.StructurePanelDefinition());
     }
     else {
       tools.add(new PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED));
-      tools.add(new NlPropertyPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+      if (StudioFlags.NELE_NEW_PROPERTY_PANEL.get()) {
+        tools.add(new NelePropertiesPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+      }
+      else {
+        tools.add(new NlPropertyPanelDefinition(model.getFacet(), Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+      }
       tools.add(new NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
       if (StudioFlags.NELE_MOCKUP_EDITOR.get()) {
         tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));
@@ -163,9 +213,6 @@ public class NlEditorPanel extends JPanel implements Disposable {
     }
 
     myWorkBench.init(myContentPanel, mySurface, tools);
-    if (myIsActive) {
-      model.activate(myWorkBench);
-    }
   }
 
   @Nullable
@@ -175,12 +222,10 @@ public class NlEditorPanel extends JPanel implements Disposable {
 
   public void activate() {
     mySurface.activate();
-    myIsActive = true;
   }
 
   public void deactivate() {
     mySurface.deactivate();
-    myIsActive = false;
   }
 
   @NotNull
@@ -189,7 +234,7 @@ public class NlEditorPanel extends JPanel implements Disposable {
   }
 
   @NotNull
-  public XmlFile getFile() {
+  private XmlFile getFile() {
     XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(myProject, myFile);
     assert file != null;
     return file;
@@ -202,5 +247,9 @@ public class NlEditorPanel extends JPanel implements Disposable {
 
   @Override
   public void dispose() {
+  }
+
+  public WorkBench<DesignSurface> getWorkBench() {
+    return myWorkBench;
   }
 }

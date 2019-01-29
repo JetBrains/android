@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
-import com.android.tools.idea.observable.BatchInvoker;
+import com.android.tools.idea.observable.BatchInvokerStrategyRule;
 import com.android.tools.idea.observable.TestInvokeStrategy;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
@@ -30,7 +30,10 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.EdtTestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 import javax.swing.*;
 
@@ -39,7 +42,10 @@ import static com.google.common.truth.Truth.assertThat;
 public class IdeaWizardAdapterTest {
   private Disposable myTestRootDisposable;
 
-  private static TestInvokeStrategy ourInvokeStrategy;
+  private TestInvokeStrategy myInvokeStrategy = new TestInvokeStrategy();
+
+  @Rule
+  public BatchInvokerStrategyRule myStrategyRule = new BatchInvokerStrategyRule(myInvokeStrategy);
 
   private static class DummyModel extends WizardModel {
     boolean isFinished;
@@ -105,17 +111,6 @@ public class IdeaWizardAdapterTest {
     }
   }
 
-  @BeforeClass
-  public static void setUpBatchInvoker() {
-    ourInvokeStrategy = new TestInvokeStrategy();
-    BatchInvoker.setOverrideStrategy(ourInvokeStrategy);
-  }
-
-  @AfterClass
-  public static void restoreBatchInvoker() {
-    BatchInvoker.clearOverrideStrategy();
-  }
-
   @Before
   public void setUp() {
     myTestRootDisposable = Disposer.newDisposable("IdeaWizardAdapterTest");
@@ -135,15 +130,15 @@ public class IdeaWizardAdapterTest {
     ModelWizard guest = new ModelWizard.Builder(step1, step2).build();
 
     IdeaWizardAdapter adaptor = new IdeaWizardAdapter(host, guest);
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(guest.onLastStep().get()).isFalse();
 
     adaptor.doNextAction();
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(guest.onLastStep().get()).isTrue();
 
     adaptor.doPreviousAction();
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(guest.onLastStep().get()).isFalse();
 
     Disposer.dispose(adaptor);
@@ -158,7 +153,7 @@ public class IdeaWizardAdapterTest {
     ModelWizard guest = new ModelWizard.Builder(step1).build();
 
     IdeaWizardAdapter adaptor = new IdeaWizardAdapter(host, guest);
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(guest.onLastStep().get()).isTrue();
 
     try {
@@ -169,7 +164,7 @@ public class IdeaWizardAdapterTest {
       // to handle this?
       assertThat(e.getStackTrace()[0].getMethodName()).contains("ensureEventDispatchThread");
     }
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(guest.isFinished()).isTrue();
     assertThat(model.isFinished).isTrue();
 
@@ -186,7 +181,7 @@ public class IdeaWizardAdapterTest {
     ModelWizard guest = new ModelWizard.Builder(step1, step2, step3).build();
 
     IdeaWizardAdapter adaptor = new IdeaWizardAdapter(host, guest);
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(host.updateButtonsCalled).isTrue();
     assertThat(host.canGoNextValue).isTrue();
     assertThat(host.firstStepValue).isTrue();
@@ -194,7 +189,7 @@ public class IdeaWizardAdapterTest {
 
     host.Reset();
     adaptor.doNextAction();
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(host.updateButtonsCalled).isTrue();
     assertThat(host.canGoNextValue).isTrue();
     assertThat(host.firstStepValue).isFalse();
@@ -202,7 +197,7 @@ public class IdeaWizardAdapterTest {
 
     host.Reset();
     adaptor.doNextAction();
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(host.updateButtonsCalled).isTrue();
     assertThat(host.canGoNextValue).isTrue();
     assertThat(host.firstStepValue).isFalse();
@@ -218,7 +213,7 @@ public class IdeaWizardAdapterTest {
     ModelWizard guest = new ModelWizard.Builder(step).build();
 
     IdeaWizardAdapter adaptor = new IdeaWizardAdapter(host, guest);
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(host.updateButtonsCalled).isTrue();
     assertThat(host.canGoNextValue).isTrue();
     assertThat(host.firstStepValue).isTrue();
@@ -226,7 +221,7 @@ public class IdeaWizardAdapterTest {
 
     host.Reset();
     step.goForwardValue.set(false);
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(host.updateButtonsCalled).isTrue();
     assertThat(host.canGoNextValue).isFalse();
     assertThat(host.firstStepValue).isTrue();
@@ -234,7 +229,7 @@ public class IdeaWizardAdapterTest {
 
     host.Reset();
     step.goForwardValue.set(true);
-    ourInvokeStrategy.updateAllSteps();
+    myInvokeStrategy.updateAllSteps();
     assertThat(host.updateButtonsCalled).isTrue();
     assertThat(host.canGoNextValue).isTrue();
     assertThat(host.firstStepValue).isTrue();

@@ -17,21 +17,25 @@ package com.android.tools.idea.common.analytics;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.devices.State;
+import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.utils.NullLogger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.wireless.android.sdk.stats.*;
 import com.google.wireless.android.sdk.stats.LayoutEditorState.Mode;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -71,14 +75,15 @@ public class NlUsageTrackerManager implements NlUsageTracker {
 
   private final Executor myExecutor;
   private final WeakReference<DesignSurface> myDesignSurfaceRef;
-  private final UsageTracker myUsageTracker;
-
+  private final Consumer<AndroidStudioEvent.Builder> myEventLogger;
 
   @VisibleForTesting
-  NlUsageTrackerManager(@NotNull Executor executor, @Nullable DesignSurface surface, @NotNull UsageTracker usageTracker) {
+  NlUsageTrackerManager(@NotNull Executor executor,
+                        @Nullable DesignSurface surface,
+                        @NotNull Consumer<AndroidStudioEvent.Builder> eventLogger) {
     myExecutor = executor;
     myDesignSurfaceRef = new WeakReference<>(surface);
-    myUsageTracker = usageTracker;
+    myEventLogger = eventLogger;
   }
 
   /**
@@ -86,26 +91,32 @@ public class NlUsageTrackerManager implements NlUsageTracker {
    */
   @VisibleForTesting
   @NotNull
-  static NlUsageTracker getInstanceInner(@Nullable DesignSurface surface) {
+  static NlUsageTracker getInstanceInner(@Nullable DesignSurface surface, boolean createIfNotExists) {
     if (surface == null) {
       return NOP_TRACKER;
     }
 
-    try {
-      return sTrackersCache.get(surface, () -> new NlUsageTrackerManager(ourExecutorService, surface, UsageTracker.getInstance()));
+    NlUsageTracker cachedTracker = sTrackersCache.getIfPresent(surface);
+    if (cachedTracker == null && createIfNotExists) {
+      cachedTracker = new NlUsageTrackerManager(ourExecutorService, surface, UsageTracker::log);
+      sTrackersCache.put(surface, cachedTracker);
+      return cachedTracker;
     }
-    catch (ExecutionException e) {
-      assert false;
-    }
-    return NOP_TRACKER;
+
+    return cachedTracker != null ? cachedTracker : NOP_TRACKER;
   }
 
   /**
-   * Returns an NlUsageTracker for the given surface or a no-op tracker if the surface is null or stats tracking is disabled
+   * Returns an NlUsageTracker for the given surface or a no-op tracker if the surface is null or stats tracking is disabled.
+   * The stats are also disabled during unit testing.
    */
   @NotNull
   public static NlUsageTracker getInstance(@Nullable DesignSurface surface) {
-    return UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn() ? getInstanceInner(surface) : NOP_TRACKER;
+    // If we are in unit testing mode, do not allow creating new NlUsageTrackerManager instances.
+    // Test instances should be used.
+    return AnalyticsSettings.getOptedIn()
+           ? getInstanceInner(surface, !ApplicationManager.getApplication().isUnitTestMode())
+           : NOP_TRACKER;
   }
 
   /**
@@ -235,7 +246,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
           .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
           .setLayoutEditorEvent(builder.build());
 
-        myUsageTracker.log(studioEvent);
+        myEventLogger.accept(studioEvent);
       });
     }
     catch (RejectedExecutionException e) {
@@ -276,7 +287,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
         .flatMap(s -> Stream.concat(s.getChildren().stream(), Stream.of(s)))
         .count());
 
-      RenderErrorModel errorModel = RenderErrorModelFactory.createErrorModel(result, null);
+      RenderErrorModel errorModel = RenderErrorModelFactory.createErrorModel(myDesignSurfaceRef.get(), result, null);
       builder.setTotalIssueCount(errorModel.getIssues().size());
       if (!errorModel.getIssues().isEmpty()) {
         int errorCount = 0;
@@ -320,6 +331,18 @@ public class NlUsageTrackerManager implements NlUsageTracker {
       .setAttribute(convertAttribute(property))
       .setSearchOption(convertFilterMatches(filterMatches))
       .setViewType(convertPropertiesMode(propertiesMode));
+    for (NlComponent component : property.getComponents()) {
+      builder.addView(convertTagName(component.getTagName()));
+    }
+    logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.ATTRIBUTE_CHANGE, (event) -> event.setAttributeChangeEvent(builder));
+  }
+
+  @Override
+  public void logPropertyChange(@NotNull NelePropertyItem property,
+                                int filterMatches) {
+    LayoutAttributeChangeEvent.Builder builder = LayoutAttributeChangeEvent.newBuilder()
+      .setAttribute(convertAttribute(property))
+      .setSearchOption(convertFilterMatches(filterMatches));
     for (NlComponent component : property.getComponents()) {
       builder.addView(convertTagName(component.getTagName()));
     }

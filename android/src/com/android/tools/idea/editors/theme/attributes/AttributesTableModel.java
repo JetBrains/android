@@ -18,17 +18,13 @@ package com.android.tools.idea.editors.theme.attributes;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.ThemeEditorComponent;
-import com.android.tools.idea.editors.theme.ThemeEditorContext;
-import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
+import com.android.tools.idea.editors.theme.*;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.editors.theme.ThemeAttributeResolver;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.dom.resources.Flag;
 import org.jetbrains.annotations.NotNull;
@@ -318,15 +314,15 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
       AttributeDefinition attrDefinition =
         ResolutionUtils.getAttributeDefinition(myContext.getConfiguration(), item.getSelectedValue());
 
-      String attributeName = item.getName().toLowerCase(Locale.US);
+      String attributeName = item.getAttrName().toLowerCase(Locale.US);
 
       if (urlType == ResourceType.COLOR ||
-          ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color) ||
+          ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.COLOR) ||
           attributeName.contains("color")) {
         return Color.class;
       }
 
-      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference) &&
+      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.REFERENCE) &&
           attributeName.contains("background") &&
           !attributeName.contains("style")) {
         return DrawableDomElement.class;
@@ -336,22 +332,22 @@ public class AttributesTableModel extends AbstractTableModel implements CellSpan
         return ConfiguredThemeEditorStyle.class;
       }
 
-      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Flag)) {
+      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.FLAGS)) {
         return Flag.class;
       }
 
-      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Enum)) {
+      if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.ENUM)) {
         return Enum.class;
       }
 
-      if (urlType == ResourceType.INTEGER || ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Integer)) {
+      if (urlType == ResourceType.INTEGER || ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.INTEGER)) {
         return Integer.class;
       }
 
       String value = resourceValue.getValue();
       if (urlType == ResourceType.BOOL
           || (("true".equals(value) || "false".equals(value))
-              && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Boolean))) {
+              && ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.BOOLEAN))) {
         return Boolean.class;
       }
 

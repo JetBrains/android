@@ -24,6 +24,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -41,14 +42,26 @@ class JdkPreSyncCheck extends AndroidStudioSyncCheck {
   @NotNull
   PreSyncCheckResult doCheckCanSync(@NotNull Project project) {
     Sdk jdk = IdeSdks.getInstance().getJdk();
+    String errorMessage = null;
     if (!isValidJdk(jdk)) {
-      String msg = "Please use JDK 8 or newer.";
-      SyncMessage message = new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, msg);
-      List<NotificationHyperlink> quickFixes = Jdks.getInstance().getWrongJdkQuickFixes(project);
-      message.add(quickFixes);
+      errorMessage = "Could not run JVM from the selected JDK.\n" +
+                     "Please ensure JDK installation is valid and compatible with the current OS (" +
+                      SystemInfo.getOsNameAndVersion() + ", " + SystemInfo.OS_ARCH + ").\n" +
+                     "If you are using embedded JDK, please make sure to download Android Studio bundle compatible\n" +
+                     "with the current OS. For example, for x86 systems please choose a 32 bits download option.";
+    }
+    else if (!Jdks.getInstance().isApplicableJdk(jdk, JDK_1_8)) {
+      errorMessage = "Please use JDK 8 or newer.";
+    }
 
-      GradleSyncMessages.getInstance(project).report(message);
-      return failure(msg);
+    if (errorMessage != null) {
+      SyncMessage syncMessage = new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, errorMessage);
+      List<NotificationHyperlink> quickFixes = Jdks.getInstance().getWrongJdkQuickFixes(project);
+      syncMessage.add(quickFixes);
+
+      GradleSyncMessages.getInstance(project).report(syncMessage);
+
+      return failure(errorMessage);
     }
 
     return SUCCESS;
@@ -59,7 +72,6 @@ class JdkPreSyncCheck extends AndroidStudioSyncCheck {
       return false;
     }
     String jdkHomePath = jdk.getHomePath();
-    return jdkHomePath != null && checkForJdk(new File(jdkHomePath)) && Jdks.getInstance().isApplicableJdk(jdk, JDK_1_8);
+    return jdkHomePath != null && checkForJdk(new File(jdkHomePath)) && Jdks.isJdkRunnableOnPlatform(jdk);
   }
-
 }

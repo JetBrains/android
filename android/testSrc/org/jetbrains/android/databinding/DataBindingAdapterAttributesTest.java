@@ -29,16 +29,26 @@ import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 import java.util.Arrays;
 
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
 
 public class DataBindingAdapterAttributesTest extends AndroidGradleTestCase {
+
+  public void testCompletionAndInspections() throws Exception {
+    ReferenceProvidersRegistryImpl.disableUnderlyingElementChecks(getTestRootDisposable());
+    loadProject(PROJECT_WITH_DATA_BINDING);
+    assertCompletionAndInspections();
+  }
+
+  public void testCompletionAndInspectionsAndroidX() throws Exception {
+    loadProject(PROJECT_WITH_DATA_BINDING_ANDROID_X);
+    assertCompletionAndInspections();
+  }
+
   /**
    * Checks {@code @BindingAdapter} annotation completion and uses {@link AndroidUnknownAttributeInspection} to check that the attribute
    * has been defined.
    */
-  public void testCompletionAndInspections() throws Exception {
-    ReferenceProvidersRegistryImpl.disableUnderlyingElementChecks(getTestRootDisposable());
-    loadProject(PROJECT_WITH_DATA_BINDING);
-
+  private void assertCompletionAndInspections() {
     myFixture.enableInspections(AndroidUnknownAttributeInspection.class);
 
     VirtualFile file = getProject().getBaseDir().findFileByRelativePath("app/src/main/res/layout/activity_main.xml");

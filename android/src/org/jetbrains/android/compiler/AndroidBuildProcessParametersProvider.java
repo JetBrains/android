@@ -1,13 +1,7 @@
 package org.jetbrains.android.compiler;
 
-import com.android.builder.model.AndroidProject;
-import com.android.builder.testing.api.DeviceConfig;
-import com.android.ddmlib.AdbVersion;
-import com.android.ide.common.build.ApkData;
 import com.android.jarutils.SignedJarBuilder;
-import com.android.manifmerger.Merger;
 import com.android.prefs.AndroidLocation;
-import com.android.repository.api.Repository;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
@@ -28,12 +22,6 @@ public class AndroidBuildProcessParametersProvider extends BuildProcessParameter
                             PathManager.getJarPathForClass(SignedJarBuilder.class),
                             PathManager.getJarPathForClass(ImmutableList.class),    // guava
                             PathManager.getJarPathForClass(AndroidLocation.class),
-                            PathManager.getJarPathForClass(Merger.class),           // manifest merger
-                            PathManager.getJarPathForClass(ApkData.class),          // sdk common
-                            PathManager.getJarPathForClass(AndroidProject.class),   // builder-model
-                            PathManager.getJarPathForClass(DeviceConfig.class),     // builder-test-api
-                            PathManager.getJarPathForClass(AdbVersion.class),       // ddmlib
-                            PathManager.getJarPathForClass(Repository.class),       // repository
-                            PathManager.getJarPathForClass(BuildException.class));  // gradle tooling
+                            PathManager.getJarPathForClass(BuildException.class)); // gradle tooling
   }
 }

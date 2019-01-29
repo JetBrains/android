@@ -17,19 +17,26 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.fixtures.EnumEditorFixture;
+import com.intellij.openapi.command.impl.UndoManagerImpl;
+import com.intellij.openapi.command.undo.UndoManager;
 
 import static com.android.SdkConstants.*;
 import static java.awt.event.KeyEvent.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * TODO: probably some of these tests should be moved up to {@link EnumEditorTest}.
  */
 public class NlEnumEditorTest extends PropertyTestCase {
   private EnumEditorFixture myEditorFixture;
+  private UndoManager myUndoManager;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    myUndoManager = mock(UndoManagerImpl.class);
+    registerProjectComponentImplementation(UndoManager.class, myUndoManager);
     myFixture.setTestDataPath(getTestDataPath());
     myEditorFixture = EnumEditorFixture.create(NlEnumEditor::createForTest);
   }
@@ -92,6 +99,33 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .expectSelectedText(null)
       .expectText("60dp")
       .expectValue("60dp");
+  }
+
+  public void testFocusLoss() {
+    myEditorFixture
+      .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
+      .expectText("wrap_content")
+      .expectSelectedText(null)
+      .gainFocus()
+      .type("80")
+      .loseFocus()
+      .expectSelectedText(null)
+      .expectText("80dp")
+      .expectValue("80dp");
+  }
+
+  public void testFocusLossDuringUndo() {
+    when(myUndoManager.isUndoInProgress()).thenReturn(true);
+    myEditorFixture
+      .setProperty(getProperty(myTextView, ATTR_LAYOUT_WIDTH))
+      .expectText("wrap_content")
+      .expectSelectedText(null)
+      .gainFocus()
+      .type("80")
+      .loseFocus()
+      .expectSelectedText(null)
+      .expectText("80dp")
+      .expectValue("wrap_content");
   }
 
   public void testSelectItemThroughModel() {
@@ -218,10 +252,9 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .gainFocus()
       .expectText("")
       .showPopup()
-      .expectFirstChoices(5,
+      .expectFirstChoices(4,
                           "Material.Small", null,
                           "TextAppearance", "@android:style/TextAppearance",
-                          "AutoCorrectionSuggestion", "@android:style/TextAppearance.AutoCorrectionSuggestion",
                           "DeviceDefault", "@android:style/TextAppearance.DeviceDefault",
                           "DeviceDefault.DialogWindowTitle", "@android:style/TextAppearance.DeviceDefault.DialogWindowTitle")
       .key(VK_DOWN)
@@ -291,20 +324,19 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .gainFocus()
       .expectText("")
       .showPopup()
-      .expectFirstChoices(5,
+      .expectFirstChoices(4,
                           "Material.Widget.Switch", null,
                           "TextAppearance", "@android:style/TextAppearance",
-                          "AutoCorrectionSuggestion", "@android:style/TextAppearance.AutoCorrectionSuggestion",
                           "DeviceDefault", "@android:style/TextAppearance.DeviceDefault",
                           "DeviceDefault.DialogWindowTitle", "@android:style/TextAppearance.DeviceDefault.DialogWindowTitle")
       .key(VK_DOWN)
       .key(VK_DOWN)
       .key(VK_ENTER)
-      .expectText("@android:style/TextAppearance.AutoCorrectionSuggestion")
-      .expectValue("@android:style/TextAppearance.AutoCorrectionSuggestion")
+      .expectText("@android:style/TextAppearance.DeviceDefault")
+      .expectValue("@android:style/TextAppearance.DeviceDefault")
       .loseFocus()
-      .expectText("AutoCorrectionSuggestion")
-      .expectValue("@android:style/TextAppearance.AutoCorrectionSuggestion");
+      .expectText("DeviceDefault")
+      .expectValue("@android:style/TextAppearance.DeviceDefault");
   }
 
   public void testEnterTextAppearanceInSwitchFoundInModel() {
@@ -338,24 +370,34 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .expectValue("@android:style/Widget.ActionButton");
   }
 
-  public void testSelectStyleInSwitch() {
+  public void testSelectStyleInProgressBar() {
     myEditorFixture
-      .setProperty(getPropertyWithDefaultValue(mySwitch, ATTR_STYLE, "?android:switchStyle"))
+      .setProperty(getPropertyWithDefaultValue(myProgressBar, ATTR_STYLE, "?android:progressBarStyle"))
       .expectSelectedText(null)
-      .expectText("Widget.Material.Light.CompoundButton.Switch")
+      .expectText("Widget.Material.Light.ProgressBar")
       .gainFocus()
       .expectText("")
       .showPopup()
-      .expectChoices("Widget.Material.Light.CompoundButton.Switch", null,
-                     "Widget.CompoundButton.Switch", "@android:style/Widget.CompoundButton.Switch",
-                     "Widget.Holo.Light.CompoundButton.Switch", "@android:style/Widget.Holo.Light.CompoundButton.Switch")
+      .expectFirstChoices(6,
+                          "Widget.Material.Light.ProgressBar", null,
+                          "Widget.DeviceDefault.Light.ProgressBar", "@android:style/Widget.DeviceDefault.Light.ProgressBar",
+                          "Widget.DeviceDefault.Light.ProgressBar.Horizontal",
+                          "@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal",
+                          "Widget.DeviceDefault.Light.ProgressBar.Inverse", "@android:style/Widget.DeviceDefault.Light.ProgressBar.Inverse",
+                          "Widget.DeviceDefault.Light.ProgressBar.Large", "@android:style/Widget.DeviceDefault.Light.ProgressBar.Large",
+                          "Widget.DeviceDefault.Light.ProgressBar.Large.Inverse",
+                          "@android:style/Widget.DeviceDefault.Light.ProgressBar.Large.Inverse",
+                          "Widget.DeviceDefault.Light.ProgressBar.Small", "@android:style/Widget.DeviceDefault.Light.ProgressBar.Small")
+      .key(VK_DOWN)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
       .key(VK_DOWN)
       .key(VK_ENTER)
-      .expectText("@android:style/Widget.CompoundButton.Switch")
-      .expectValue("@android:style/Widget.CompoundButton.Switch")
+      .expectText("@android:style/Widget.DeviceDefault.Light.ProgressBar.Large")
+      .expectValue("@android:style/Widget.DeviceDefault.Light.ProgressBar.Large")
       .loseFocus()
-      .expectText("Widget.CompoundButton.Switch")
-      .expectValue("@android:style/Widget.CompoundButton.Switch");
+      .expectText("Widget.DeviceDefault.Light.ProgressBar.Large")
+      .expectValue("@android:style/Widget.DeviceDefault.Light.ProgressBar.Large");
   }
 
   public void testEnterStyleInSwitchFoundInModel() {
@@ -398,7 +440,13 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .showPopup()
       .expectChoices("sans-serif", null,
                      "sans-serif", "sans-serif",
+                     "sans-serif-thin", "sans-serif-thin",
+                     "sans-serif-light", "sans-serif-light",
+                     "sans-serif-medium", "sans-serif-medium",
+                     "sans-serif-black", "sans-serif-black",
                      "sans-serif-condensed", "sans-serif-condensed",
+                     "sans-serif-condensed-light", "sans-serif-condensed-light",
+                     "sans-serif-condensed-medium", "sans-serif-condensed-medium",
                      "serif", "serif",
                      "monospace", "monospace",
                      "serif-monospace", "serif-monospace",
@@ -407,6 +455,12 @@ public class NlEnumEditorTest extends PropertyTestCase {
                      "sans-serif-smallcaps", "sans-serif-smallcaps",
                      "-", "-",
                      "More Fonts...", null)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
+      .key(VK_DOWN)
       .key(VK_DOWN)
       .key(VK_DOWN)
       .key(VK_DOWN)
@@ -425,7 +479,13 @@ public class NlEnumEditorTest extends PropertyTestCase {
       .showPopup()
       .expectChoices("sans-serif", null,
                      "sans-serif", "sans-serif",
+                     "sans-serif-thin", "sans-serif-thin",
+                     "sans-serif-light", "sans-serif-light",
+                     "sans-serif-medium", "sans-serif-medium",
+                     "sans-serif-black", "sans-serif-black",
                      "sans-serif-condensed", "sans-serif-condensed",
+                     "sans-serif-condensed-light", "sans-serif-condensed-light",
+                     "sans-serif-condensed-medium", "sans-serif-condensed-medium",
                      "serif", "serif",
                      "monospace", "monospace",
                      "serif-monospace", "serif-monospace",
@@ -446,7 +506,13 @@ public class NlEnumEditorTest extends PropertyTestCase {
                      "customfont", "@font/customfont",
                      "-", "-",
                      "sans-serif", "sans-serif",
+                     "sans-serif-thin", "sans-serif-thin",
+                     "sans-serif-light", "sans-serif-light",
+                     "sans-serif-medium", "sans-serif-medium",
+                     "sans-serif-black", "sans-serif-black",
                      "sans-serif-condensed", "sans-serif-condensed",
+                     "sans-serif-condensed-light", "sans-serif-condensed-light",
+                     "sans-serif-condensed-medium", "sans-serif-condensed-medium",
                      "serif", "serif",
                      "monospace", "monospace",
                      "serif-monospace", "serif-monospace",

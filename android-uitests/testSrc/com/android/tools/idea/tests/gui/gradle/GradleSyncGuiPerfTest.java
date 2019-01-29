@@ -16,15 +16,16 @@
 package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.analytics.JournalingUsageTracker;
+import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerWriter;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.*;
@@ -36,13 +37,13 @@ import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
 @RunIn(TestGroup.SYNC_PERFORMANCE)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GradleSyncGuiPerfTest {
 
   @Rule public final GradleSyncGuiPerfTestRule guiTest = new GradleSyncGuiPerfTestRule().withTimeout(20, TimeUnit.MINUTES);
 
   private VirtualTimeScheduler myScheduler = new VirtualTimeScheduler();
-  private UsageTracker myUsageTracker;
+  private UsageTrackerWriter myUsageTracker;
 
   @Before
   public void setUp() {
@@ -50,8 +51,8 @@ public class GradleSyncGuiPerfTest {
     Assume.assumeNotNull(System.getenv("SYNC_PERFTEST_PROJECT_DIR"));
     GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
 
-    myUsageTracker = new JournalingUsageTracker(new AnalyticsSettings(), myScheduler, Paths.get(System.getenv("ANDROID_SPOOL_HOME")));
-    UsageTracker.setInstanceForTest(myUsageTracker);
+    myUsageTracker = new TestUsageTracker(myScheduler);
+    UsageTracker.setWriterForTest(myUsageTracker);
   }
 
   @After

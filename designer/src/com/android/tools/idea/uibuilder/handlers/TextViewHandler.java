@@ -15,18 +15,29 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.xml.XmlBuilder;
-import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.ComponentAssistantActionTarget;
+import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.tools.idea.uibuilder.handlers.assistant.TextViewAssistant;
+import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
+import com.android.xml.XmlBuilder;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 
 /**
  * Handler for several widgets that have a {@code text} attribute.
@@ -72,5 +83,45 @@ public class TextViewHandler extends ViewHandler {
   @NotNull
   public String getPreferredProperty() {
     return ATTR_TEXT;
+  }
+
+  @Nullable
+  private static ComponentAssistantFactory getComponentAssistant(@NotNull NlComponent component) {
+    if (!NELE_SAMPLE_DATA_UI.get()) {
+      return null;
+    }
+
+    String toolsText = component.getAttribute(TOOLS_URI, ATTR_TEXT);
+    String text = component.getAttribute(ANDROID_URI, ATTR_TEXT);
+
+    // Only display the assistant if:
+    //  - tools:text is a sample data value, empty or null
+    //  - AND android:text is null, empty or a default value
+    boolean shouldDisplay = Strings.isNullOrEmpty(toolsText) || toolsText.startsWith(TOOLS_SAMPLE_PREFIX);
+    shouldDisplay = shouldDisplay &&
+                    (Strings.isNullOrEmpty(text) ||
+                     "Hello World!".equals(text) ||
+                     "TextView".equals(text));
+
+    if (!shouldDisplay) {
+      return null;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(component.getModel().getModule());
+    if (facet == null) {
+      return null;
+    }
+
+    return TextViewAssistant::createComponent;
+  }
+
+  @NotNull
+  @Override
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
+    ComponentAssistantFactory panelFactory = getComponentAssistant(sceneComponent.getNlComponent());
+
+    return panelFactory != null ?
+           ImmutableList.of(new ComponentAssistantActionTarget(panelFactory)) :
+           ImmutableList.of();
   }
 }

@@ -143,8 +143,8 @@ public class ScenePicker {
    * @param x2
    * @param y2
    */
-  public void addLine(Object e, int range, int x1, int y1, int x2, int y2) {
-    mLine.add(e, range, x1, y1, x2, y2);
+  public void addLine(Object e, int range, int x1, int y1, int x2, int y2, int width) {
+    mLine.add(e, range, x1, y1, x2, y2, width);
   }
 
   /**
@@ -199,9 +199,10 @@ public class ScenePicker {
    * @param y3
    * @param x4
    * @param y4
+   * @param w
    */
-  public void addCurveTo(Object e, int range, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) {
-    mCurve.add(e, range, x1, y1, x2, y2, x3, y3, x4, y4);
+  public void addCurveTo(Object e, int range, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int width) {
+    mCurve.add(e, range, x1, y1, x2, y2, x3, y3, x4, y4, width);
   }
 
   /*-----------------------------------------------------------------------*/
@@ -325,7 +326,7 @@ public class ScenePicker {
   class LineSelectionEngine extends SelectionEngine {
     double mDistance;
 
-    public void add(Object select, int range, int x1, int y1, int x2, int y2) {
+    public void add(Object select, int range, int x1, int y1, int x2, int y2, int width) {
       resizeTables();
       mObjectOffset[mObjectCount] = mObjectDataUsed;
       mObjectData[mObjectDataUsed++] = range;
@@ -334,6 +335,7 @@ public class ScenePicker {
       mObjectData[mObjectDataUsed++] = y1;
       mObjectData[mObjectDataUsed++] = x2;
       mObjectData[mObjectDataUsed++] = y2;
+      mObjectData[mObjectDataUsed++] = width;
 
       if (x1 > x2) {
         int t = x1;
@@ -345,7 +347,8 @@ public class ScenePicker {
         y1 = y2;
         y2 = t;
       }
-      addRect(x1 - range, y1 - range, x2 + range, y2 + range);
+      int r = range + width;
+      addRect(x1 - r, y1 - r, x2 + r, y2 + r);
       mObjects[mObjectCount] = select;
       mTypes[mObjectCount] = OBJECT_LINE;
       mObjectCount++;
@@ -359,23 +362,28 @@ public class ScenePicker {
       double y1 = mObjectData[mDataOffset + 3];
       double x2 = mObjectData[mDataOffset + 4];
       double y2 = mObjectData[mDataOffset + 5];
-      if (lineLengthSq < EPSILON) {
-        mDistance = Math.hypot(x1 - mMouseX, y1 - mMouseY);
-        return mDistance <= range;
-      }
-
-      double t = ((mMouseX - x1) * (x2 - x1) + (mMouseY - y1) * (y2 - y1)) / lineLengthSq;
-      t = Math.max(0, Math.min(1, t));
-      double tx = x1 + t * (x2 - x1);
-      double ty = y1 + t * (y2 - y1);
-      mDistance = Math.hypot(tx - mMouseX, ty - mMouseY);
+      double w = mObjectData[mDataOffset + 6];
+      mDistance = Math.max(Math.sqrt(lineDistanceSqr(lineLengthSq, x1, y1, x2, y2, mMouseX, mMouseY)) - w, 0);
       return mDistance <= range;
     }
+
 
     @Override
     double distance() {
       return mDistance;
     }
+  }
+
+  private static double lineDistanceSqr(double lineLengthSq, double x1, double y1, double x2, double y2, int mouseX, int mouseY) {
+    if (lineLengthSq < EPSILON) {
+      return Math.hypot(x1 - mouseX, y1 - mouseY);
+    }
+
+    double t = ((mouseX - x1) * (x2 - x1) + (mouseY - y1) * (y2 - y1)) / lineLengthSq;
+    t = Math.max(0, Math.min(1, t));
+    double tx = x1 + t * (x2 - x1);
+    double ty = y1 + t * (y2 - y1);
+    return ((tx - mouseX) * (tx - mouseX)) + ((ty - mouseY) * (ty - mouseY));
   }
 
   /*-----------------------------------------------------------------------*/
@@ -496,9 +504,10 @@ public class ScenePicker {
     double cy1;
     double cy2;
     double cy3;
+    double w;
     double mDistance;
 
-    public void add(Object select, int range, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) {
+    public void add(Object select, int range, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int width) {
       resizeTables();
       mObjectOffset[mObjectCount] = mObjectDataUsed;
       mObjectData[mObjectDataUsed++] = range;
@@ -519,9 +528,10 @@ public class ScenePicker {
       mObjectData[mObjectDataUsed++] = cy1;
       mObjectData[mObjectDataUsed++] = cy2;
       mObjectData[mObjectDataUsed++] = cy3;
+      mObjectData[mObjectDataUsed++] = width;
       mObjects[mObjectCount] = select;
       mTypes[mObjectCount] = OBJECT_CURVE;
-      bounds(range);
+      bounds(range + width);
       mObjectCount++;
     }
 
@@ -536,22 +546,38 @@ public class ScenePicker {
       cy1 = mObjectData[mDataOffset + 6];
       cy2 = mObjectData[mDataOffset + 7];
       cy3 = mObjectData[mDataOffset + 8];
-      double rangeSqr = range * range;
-      //TODO currently returns first distance in range not minimum distance
-      for (double t = 0; t < 1; t += .03) {
+      w = mObjectData[mDataOffset + 9];
+
+      double minDistanceSqr = Integer.MAX_VALUE;
+      double widthSqr = w * w;
+      double prevX = cx0;
+      double prevY = cy0;
+      for (double t = .03; t < 1; t += .03) {
         double t2 = t * t;
         double t3 = t * t2;
         double x = cx0 + cx1 * t + cx2 * t2 + cx3 * t3;
         double y = cy0 + cy1 * t + cy2 * t2 + cy3 * t3;
-        double dx = x - mMouseX;
-        double dy = y - mMouseY;
-        double distanceSq = dx * dx + dy * dy;
-        if (rangeSqr > distanceSq) {
-          mDistance = Math.sqrt(distanceSq);
+
+        double segmentSqr = ((x - prevX) * (x - prevX)) + ((y - prevY) * (y - prevY));
+        double distanceSqr = lineDistanceSqr(segmentSqr, prevX, prevY, x, y, mMouseX, mMouseY);
+
+        if(distanceSqr < widthSqr) {
+          mDistance = 0;
           return true;
         }
+
+        minDistanceSqr = Math.min(minDistanceSqr, distanceSqr);
+
+        prevX = x;
+        prevY = y;
       }
-      return false;
+
+      if (minDistanceSqr > (range + w) * (range + w)) {
+        return false;
+      }
+
+      mDistance = Math.sqrt(minDistanceSqr) - w;
+      return true;
     }
 
     public final double evalX(double t) {

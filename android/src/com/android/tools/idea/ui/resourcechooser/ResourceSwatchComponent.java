@@ -339,7 +339,7 @@ public class ResourceSwatchComponent extends JPanel {
 
   private static boolean isResourcePrivate(@NotNull String resourceValue, @NotNull AndroidTargetData targetData) {
     ResourceUrl url = ResourceUrl.parse(resourceValue);
-    return url != null && url.framework && !targetData.isResourcePublic(url.type.getName(), url.name);
+    return url != null && url.isFramework() && !targetData.isResourcePublic(url.type.getName(), url.name);
   }
 
   public abstract static class SwatchIcon implements Icon {

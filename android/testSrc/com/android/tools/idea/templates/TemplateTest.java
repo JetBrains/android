@@ -15,12 +15,52 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.FD_TEMPLATES;
+import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_ANDROIDX_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ACTIVITY;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICONS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_APPLICATION_THEME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_LANGUAGE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PACKAGE_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_LOCATION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_RES_OUT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SOURCE_PROVIDER_NAME;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API_STRING;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_THEME_EXISTS;
+import static com.android.tools.idea.templates.TemplateMetadata.getBuildApiString;
+import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
+import static com.google.common.truth.Truth.assertWithMessage;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.util.stream.Collectors.toList;
+import static org.mockito.Mockito.mock;
+
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
@@ -33,7 +73,7 @@ import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
-import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator;
+import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.project.AndroidGradleModuleUtils;
@@ -76,16 +116,6 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.WaitFor;
-import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.jetbrains.android.inspections.lint.ProblemData;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -96,20 +126,26 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
-import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
-import static com.android.tools.idea.wizard.WizardConstants.MODULE_TEMPLATE_NAME;
-import static com.google.common.truth.Truth.assertWithMessage;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.util.stream.Collectors.toList;
-import static org.mockito.Mockito.mock;
+import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.jetbrains.android.inspections.lint.ProblemData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
 
 /**
  * Test for template instantiation.
@@ -173,14 +209,16 @@ public class TemplateTest extends AndroidGradleTestCase {
    * The following templates are known to be broken! We need to work through these and fix them such that tests
    * on them can be re-enabled.
    */
-  private static final Set<String> KNOWN_BROKEN = new HashSet<>();
-
-  static {
+  private static boolean isBroken(@NotNull String templateName) {
     // See http://b.android.com/253296
     if (SystemInfo.isWindows) {
-      KNOWN_BROKEN.add("AidlFile");
+      if ("AidlFile".equals(templateName)) return true;
     }
-    KNOWN_BROKEN.add("WatchFaceService"); // See https://b.corp.google.com/issues/65062154
+    if ("WatchFaceService".equals(templateName)) return true; // See https://b.corp.google.com/issues/65062154
+    if ("GoogleAdMobAdsActivity".equals(templateName)) return true;  // b/72260139
+    if ("GoogleMapsActivity".equals(templateName)) return true;  // b/72260139
+    if ("SliceProvider".equals(templateName)) return true;  // b/78197770
+    return false;
   }
 
   /**
@@ -206,7 +244,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static boolean ourValidatedTemplateManager;
 
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
-  private IdeComponents myIdeComponents;
 
   public TemplateTest() {
   }
@@ -223,8 +260,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     VirtualTimeScheduler scheduler = new VirtualTimeScheduler();
-    myUsageTracker = new TestUsageTracker(new AnalyticsSettings(), scheduler);
-    UsageTracker.setInstanceForTest(myUsageTracker);
+    myUsageTracker = new TestUsageTracker(scheduler);
+    UsageTracker.setWriterForTest(myUsageTracker);
     myApiSensitiveTemplate = true;
     if (!ourValidatedTemplateManager) {
       ourValidatedTemplateManager = true;
@@ -256,19 +293,18 @@ public class TemplateTest extends AndroidGradleTestCase {
     // Replace the default RepositoryUrlManager with one that enables repository checks in tests. (myForceRepositoryChecksInTests)
     // This is necessary to fully resolve dynamic gradle coordinates such as ...:appcompat-v7:+ => appcompat-v7:25.3.1
     // keeping it exactly the same as they are resolved within the NPW flow.
-    myIdeComponents = new IdeComponents(null);
-    myIdeComponents.replaceService(RepositoryUrlManager.class,
-                                   new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, true));
+    new IdeComponents(null, getTestRootDisposable()).replaceApplicationService(
+      RepositoryUrlManager.class,
+      new RepositoryUrlManager(IdeGoogleMavenRepository.INSTANCE, true));
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      myIdeComponents.restore();
-    }
-    finally {
       myUsageTracker.close();
       UsageTracker.cleanAfterTesting();
+    }
+    finally {
       super.tearDown();
     }
   }
@@ -334,11 +370,24 @@ public class TemplateTest extends AndroidGradleTestCase {
     templateMap.put(ATTR_PACKAGE_NAME, "test.pkg.in"); // Add in a Kotlin keyword ("in") in the package name to trigger escape code too
   });
 
+  private final ProjectStateCustomizer withAndroidx = ((templateMap, projectMap) -> {
+    Integer targetApi = (Integer) templateMap.get(ATTR_TARGET_API);
+    if (targetApi != null && targetApi >= 22) {
+      projectMap.put(ATTR_ANDROIDX_SUPPORT, true);
+      templateMap.put(ATTR_ANDROIDX_SUPPORT, true);
+    }
+  });
+
   //--- Activity templates ---
 
   @TemplateCheck
   public void testNewBasicActivity() throws Exception {
     checkCreateTemplate("activities", "BasicActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewBasicActivityWithAndroidx() throws Exception {
+    checkCreateTemplate("activities", "BasicActivity", false, withAndroidx);
   }
 
   @TemplateCheck
@@ -397,6 +446,21 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
+  public void testNewViewModelActivity() throws Exception {
+    checkCreateTemplate("activities", "ViewModelActivity", false);
+  }
+
+  @TemplateCheck
+  public void testNewViewModelActivityWithKotlin() throws Exception {
+    checkCreateTemplate("activities", "ViewModelActivity", false, withKotlin);
+  }
+
+  @TemplateCheck
+  public void testNewProjectWithViewModelActivity() throws Exception {
+    checkCreateTemplate("activities", "ViewModelActivity", true);
+  }
+
+  @TemplateCheck
   public void testNewTabbedActivity() throws Exception {
     checkCreateTemplate("activities", "TabbedActivity", false);
   }
@@ -407,7 +471,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testNewProjectWithTabbedActivityWithKotlin() throws Exception {
+  // b/72260139
+  public void ignore_testNewProjectWithTabbedActivityWithKotlin() throws Exception {
     checkCreateTemplate("activities", "TabbedActivity", true, withKotlin);
   }
 
@@ -556,22 +621,26 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   @TemplateCheck
-  public void testGoogleAdMobAdsActivity() throws Exception {
+  // b/72260139
+  public void ignore_testGoogleAdMobAdsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleAdMobAdsActivity", false);
   }
 
   @TemplateCheck
-  public void testNewProjectWithGoogleAdMobAdsActivity() throws Exception {
+  // b/72260139
+  public void ignore_testNewProjectWithGoogleAdMobAdsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleAdMobAdsActivity", true);
   }
 
   @TemplateCheck
-  public void testGoogleMapsActivity() throws Exception {
+  // b/72260139
+  public void ignore_testGoogleMapsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleMapsActivity", false);
   }
 
   @TemplateCheck
-  public void testNewProjectWithGoogleMapsActivity() throws Exception {
+  // b/72260139
+  public void ignore_testNewProjectWithGoogleMapsActivity() throws Exception {
     checkCreateTemplate("activities", "GoogleMapsActivity", true);
   }
 
@@ -616,6 +685,18 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void testNewContentProviderWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "ContentProvider", false, withKotlin);
+  }
+
+  @TemplateCheck
+  public void testNewSliceProvider() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "SliceProvider", false);
+  }
+
+  @TemplateCheck
+  public void testNewSliceProviderWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "SliceProvider", false, withKotlin);
   }
 
   @TemplateCheck
@@ -682,6 +763,18 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void testNewBlankFragmentWithKotlin() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "BlankFragment", false, withKotlin);
+  }
+
+  @TemplateCheck
+  public void testNewViewModelFragment() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "ViewModelFragment");
+  }
+
+  @TemplateCheck
+  public void testNewViewModelFragmentWithKotlin() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "ViewModelFragment", false, withKotlin);
   }
 
   @TemplateCheck
@@ -774,6 +867,12 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void testNewLayoutResourceFile() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "LayoutResourceFile");
+  }
+
+  @TemplateCheck
+  public void testNewAppActionsResourceFile() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "AppActionsResourceFile");
   }
 
   @TemplateCheck
@@ -965,7 +1064,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
     File templateFile = findTemplate(category, name);
     assertNotNull(templateFile);
-    if (KNOWN_BROKEN.contains(templateFile.getName())) {
+    if (isBroken(templateFile.getName())) {
       return;
     }
     Stopwatch stopwatch = Stopwatch.createStarted();
@@ -1024,7 +1123,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                              boolean createWithProject,
                              @Nullable Map<String, Object> overrides,
                              @Nullable Map<String, Object> projectOverrides) throws Exception {
-    if (KNOWN_BROKEN.contains(templateFile.getName())) {
+    if (isBroken(templateFile.getName())) {
       return;
     }
 
@@ -1338,13 +1437,12 @@ public class TemplateTest extends AndroidGradleTestCase {
   private void checkProjectNow(@NotNull String projectName,
                                @NotNull TestNewProjectWizardState projectState,
                                @Nullable TestTemplateWizardState activityState) throws Exception {
+    //if (activityState != null && activityState.get(ATTR_ANDROIDX_SUPPORT) != Boolean.TRUE) {
+    //  return;
+    //}
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     // Do not add non-unicode characters on Windows
     String modifiedProjectName = getModifiedProjectName(projectName, activityState);
-    moduleState.put(ATTR_RES_OUT, null);
-    moduleState.put(ATTR_SRC_OUT, null);
-    moduleState.put(ATTR_MANIFEST_OUT, null);
-    moduleState.put(ATTR_TEST_OUT, null);
 
     assertNull(myFixture);
 
@@ -1357,7 +1455,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       myFixture.setUp();
 
       Project project = myFixture.getProject();
-      IdeComponents.replaceService(project, PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
+      new IdeComponents(project).replaceProjectService(PostProjectBuildTasksExecutor.class, mock(PostProjectBuildTasksExecutor.class));
       setUpSdks(project);
       projectDir = Projects.getBaseDirPath(project);
       moduleState.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
@@ -1403,7 +1501,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       // and has only kotlin files.
       if (getTestName(false).endsWith("WithKotlin")) {
         Path rootPath = projectDir.toPath();
-        // Note: Files.walk() stream needs to be closed (or consumed completly), otherwise it will leave locked directories on Windows
+        // Note: Files.walk() stream needs to be closed (or consumed completely), otherwise it will leave locked directories on Windows
         List<Path> allPaths = Files.walk(rootPath).collect(toList());
         assertFalse(allPaths.stream().anyMatch(path -> path.toString().endsWith(".java")));
         assertTrue(allPaths.stream().anyMatch(path -> path.toString().endsWith(".kt")));
@@ -1422,7 +1520,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       @SuppressWarnings("resource")
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       try {
-        buildLauncher.setStandardError(baos).run();
+        buildLauncher.setStandardOutput(baos).setStandardError(baos).run();
       }
       //// Use the following commented out code to debug the generated project in case of a failure.
       catch (Exception e) {
@@ -1476,25 +1574,26 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static String getModifiedProjectName(@NotNull String projectName, @Nullable TestTemplateWizardState activityState) {
     if (SystemInfo.isWindows) {
       return "app";
-    } else if (activityState != null && activityState.hasAttr(ATTR_KOTLIN_SUPPORT) && activityState.getBoolean(ATTR_KOTLIN_SUPPORT)) {
-      // Filed: https://youtrack.jetbrains.com/issue/KT-18767
-      // Note: kotlin plugin fails when running `:compileDebugKotin` with a project name containing a comma => ","
-      // So the projectName contains characters other than a comma
-      return projectName + "!@#$^&()_+=-.`~你所有的基地都属于我们";
-    } else {
-      return (projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们");
     }
+
+    String specialChars = "!@#$^&()_+=-.`~";
+    String nonAsciiChars = "你所有的基地都属于我们";
+    return projectName + specialChars + ',' + nonAsciiChars;
   }
 
+  @SuppressWarnings("SameParameterValue")
   private void createProject(@NotNull TestNewProjectWizardState projectState, boolean syncProject) throws Exception {
     TestTemplateWizardState moduleState = projectState.getModuleTemplateState();
     ApplicationManager.getApplication().runWriteAction(() -> {
       int minSdkVersion = Integer.parseInt((String)moduleState.get(ATTR_MIN_API));
-      IconGenerator iconGenerator = new LauncherLegacyIconGenerator(minSdkVersion);
-      iconGenerator.outputName().set("ic_launcher");
-      iconGenerator.sourceAsset().setValue(new ImageAsset());
-      createProject(projectState, myFixture.getProject(), iconGenerator);
-      Disposer.dispose(iconGenerator);
+      IconGenerator iconGenerator = new LauncherIconGenerator(myFixture.getProject(), minSdkVersion, null);
+      try {
+        iconGenerator.outputName().set("ic_launcher");
+        iconGenerator.sourceAsset().setValue(new ImageAsset());
+        createProject(projectState, myFixture.getProject(), iconGenerator);
+      } finally {
+        Disposer.dispose(iconGenerator);
+      }
       FileDocumentManager.getInstance().saveAllDocuments();
     });
 
@@ -1569,8 +1668,7 @@ public class TemplateTest extends AndroidGradleTestCase {
                                                          @Nullable Map<String, Object> parameters) {
     RenderingContext.Builder builder = RenderingContext.Builder.newContext(projectTemplate, project)
       .withOutputRoot(projectRoot)
-      .withModuleRoot(moduleRoot)
-      .withPerformSync(false);
+      .withModuleRoot(moduleRoot);
 
     if (parameters != null) {
       builder.withParams(parameters);
@@ -1726,7 +1824,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     private void gatherMissedTests(File templateFile, boolean createWithProject, ArrayList<String> failures) {
       String category = templateFile.getParentFile().getName();
       String name = templateFile.getName();
-      if (!KNOWN_BROKEN.contains(name) && !myTemplatesChecked.contains(getCheckKey(category, name, createWithProject))) {
+      if (!isBroken(name) && !myTemplatesChecked.contains(getCheckKey(category, name, createWithProject))) {
         failures.add("\nCategory: \"" + category + "\" Name: \"" + name + "\" createWithProject: " + createWithProject);
       }
     }

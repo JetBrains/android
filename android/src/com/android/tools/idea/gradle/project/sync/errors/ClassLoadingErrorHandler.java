@@ -30,7 +30,6 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkVersionUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.model.java.JdkVersionDetector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +65,7 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
     boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();
 
     boolean isJdk7 = false;
-    JdkVersionDetector.JdkVersionInfo jdkVersion = null;
+    String jdkVersion = null;
     if (unitTestMode) {
       isJdk7 = true;
     }
@@ -75,7 +74,7 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
       if (jdk != null) {
         String jdkHomePath = jdk.getHomePath();
         if (jdkHomePath != null) {
-          jdkVersion = SdkVersionUtil.getJdkVersionInfo(jdkHomePath);
+          jdkVersion = SdkVersionUtil.detectJdkVersion(jdkHomePath);
         }
         JavaSdkVersion version = JavaSdk.getInstance().getVersion(jdk);
         isJdk7 = version == JDK_1_7;
@@ -84,9 +83,8 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
 
     String jdk7Hint = "";
     if (isJdk7) {
-      jdk7Hint = "<li>";
       if (jdkVersion != null) {
-        jdk7Hint += String.format("You are using JDK version '%1$s'. ", jdkVersion.version);
+        jdk7Hint += String.format("You are using JDK version '%1$s'. ", jdkVersion);
       }
       jdk7Hint += "Some versions of JDK 1.7 (e.g. 1.7.0_10) may cause class loading errors in Gradle.\n" +
                   "Please update to a newer version (e.g. 1.7.0_67).";
@@ -94,20 +92,18 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
       if (!unitTestMode) {
         openJdkSettingsHyperlink = openJdkSettings(project);
         if (openJdkSettingsHyperlink != null) {
-          jdk7Hint = jdk7Hint + "\n" + openJdkSettingsHyperlink.toHtml();
+          jdk7Hint = jdk7Hint + "\n" + openJdkSettingsHyperlink.toHtml() + "\n\n";
         }
       }
-
-      jdk7Hint += "</li>";
     }
 
-    String newMsg = firstLine + "\nPossible causes for this unexpected error include:<ul>" + jdk7Hint +
-                    "<li>Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n" +
-                    syncProjectHyperlink.toHtml() + "</li>" +
-                    "<li>The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem.\n" +
-                    stopDaemonsHyperlink.toHtml() + "</li>" +
-                    "<li>Your project may be using a third-party plugin which is not compatible with the other plugins in the project " +
-                    "or the version of Gradle requested by the project.</li></ul>" +
+    String newMsg = firstLine + "\nPossible causes for this unexpected error include:\n" + jdk7Hint +
+                    "Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n" +
+                    syncProjectHyperlink.toHtml() + "\n\n" +
+                    "The state of a Gradle build process (daemon) may be corrupt. Stopping all Gradle daemons may solve this problem.\n" +
+                    stopDaemonsHyperlink.toHtml() + "\n\n" +
+                    "Your project may be using a third-party plugin which is not compatible with the other plugins in the project " +
+                    "or the version of Gradle requested by the project.\n\n" +
                     "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.";
 
     notification.setTitle(SyncMessage.DEFAULT_GROUP);

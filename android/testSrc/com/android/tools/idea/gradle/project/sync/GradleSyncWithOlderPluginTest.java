@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.idea.ExcludeFromTestDiscovery;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -29,19 +31,23 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.testing.AndroidGradleTests.*;
-import static com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories;
-import static com.android.tools.idea.testing.AndroidGradleTests.updateTargetSdkVersion;
+import static com.android.tools.idea.testing.HighlightInfos.getHighlightInfos;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH1_DOT5;
-import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES_PRE3DOT0;
+import static com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES_PRE30;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
+import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Mockito.mock;
@@ -59,7 +65,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     Project project = getProject();
 
     // We don't want the IDE to offer a plugin version upgrade.
-    IdeComponents.replaceService(project, PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class));
+    new IdeComponents(project).replaceProjectService(PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class));
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
@@ -74,6 +80,16 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   @Override
+  protected boolean useSingleVariantSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
+  protected boolean useCompoundSyncInfrastructure() {
+    return false;
+  }
+
+  @Override
   @NotNull
   protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
     File projectRoot = super.prepareProjectForImport(relativePath);
@@ -82,14 +98,14 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   @Override
-  protected void createGradleWrapper(@NotNull File projectRoot) throws IOException {
+  protected void createGradleWrapper(@NotNull File projectRoot) {
     // Do not create the Gradle wrapper automatically. Let each test method create it with the version of Gradle needed.
   }
 
   @Override
   protected void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
     // In this overriden version we don't update versions of the Android plugin and use the one specified in the test project.
-    updateVersionAndDependencies(projectRoot, getLocalRepositories());
+    updateVersionAndDependencies(projectRoot, getLocalRepositoriesForGroovy());
   }
 
   private static void resetActivityMain(@NotNull File path) throws IOException {
@@ -141,7 +157,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   public void testWithInterAndroidModuleDependencies() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module appModule = myModules.getAppModule();
     // 'app' -> 'library2'
     // Verify app module has library2 as module dependency and exporting it to consumer modules.
@@ -149,25 +165,26 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   public void testWithInterJavaModuleDependencies() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module appModule = myModules.getAppModule();
     // 'app' -> 'lib'
     // dependency should be set on the module not the compiled jar.
-    assertAbout(moduleDependencies()).that(appModule).hasDependency("lib", COMPILE, true);
-    assertAbout(libraryDependencies()).that(appModule).doesNotContain("lib", COMPILE);
+    assertAbout(moduleDependencies()).that(appModule).hasDependency("javalib1", COMPILE, true);
+    assertAbout(libraryDependencies()).that(appModule).doesNotContain("javalib1", COMPILE);
   }
 
   public void testJavaLibraryDependenciesFromJavaModule() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
-    Module javaLibModule = myModules.getModule("lib");
-    // 'app' -> 'lib' -> 'guava'
-    // For older versions of plugin, app might not direclty contain guava as library dependency.
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
+    Module javaLibModule = myModules.getModule("javalib1");
+    // 'app' -> 'javalib1' -> 'guava'
+    // For older versions of plugin, app might not directly contain guava as library dependency.
     // Make sure lib has guava as library dependency, and exported is set to true, so that app has access to guava.
-    assertAbout(libraryDependencies()).that(javaLibModule).containsMatching(true, "guava.*", COMPILE, PROVIDED);
+    assertAbout(libraryDependencies()).that(javaLibModule).containsMatching(true, ".*guava.*", COMPILE, PROVIDED);
+    assertAbout(moduleDependencies()).that(javaLibModule).hasDependency("javalib2", COMPILE, true);
   }
 
   public void testLocalJarDependenciesFromAndroidModule() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'fakelib.jar'
     // Make sure library2 has fakelib as library dependency, and exported is set to true, so that app has access to fakelib.
@@ -175,7 +192,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   public void testJavaLibraryDependenciesFromAndroidModule() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'gson'
     // Make sure library2 has gson as library dependency, and exported is set to true, so that app has access to gson.
@@ -183,17 +200,39 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   }
 
   public void testAndroidModuleDependenciesFromAndroidModule() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = myModules.getModule("library2");
     // 'app' -> 'library2' -> 'library1'
     assertAbout(moduleDependencies()).that(androidLibModule).hasDependency("library1", COMPILE, true);
   }
 
   public void testAndroidLibraryDependenciesFromAndroidModule() throws Exception {
-    loadProject(TRANSITIVE_DEPENDENCIES_PRE3DOT0);
+    loadProject(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = myModules.getModule("library1");
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
     assertAbout(libraryDependencies()).that(androidLibModule).containsMatching(true, ".*commons-io.*", COMPILE);
+  }
+
+  public void testSyncWithGradleBuildCacheUninitialized() throws Exception {
+    prepareProjectForImport(TRANSITIVE_DEPENDENCIES_PRE30);
+    Project project = getProject();
+    BuildCacheSyncTest.setBuildCachePath(createTempDirectory("build-cache", ""), project);
+
+    importProject(project.getName(), getBaseDirPath(project), null);
+
+    File mainActivityFile = new File("app/src/main/java/com/example/alruiz/transitive_dependencies/MainActivity.java");
+    Predicate<HighlightInfo> matchByDescription = info -> "Cannot resolve symbol 'AppCompatActivity'".equals(info.getDescription());
+    List<HighlightInfo> highlights = getHighlightInfos(project, mainActivityFile, matchByDescription);
+
+    // It is expected that symbols in AppCompatActivity cannot be resolved yet, since AARs have not been exploded yet.
+    assertThat(highlights).isNotEmpty();
+    // Generate sources to explode AARs in build cache.
+    GradleInvocationResult result = generateSources();
+    assertTrue(result.isBuildSuccessful());
+
+    highlights = getHighlightInfos(project, mainActivityFile, matchByDescription);
+    // All symbols in AppCompatActivity should be resolved now.
+    assertThat(highlights).isEmpty();
   }
 
   private static class TestSettings {

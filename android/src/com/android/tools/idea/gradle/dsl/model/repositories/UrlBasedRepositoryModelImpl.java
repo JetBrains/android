@@ -15,47 +15,34 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleDefaultValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleDefaultValueImpl;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.RepositoryClosureTransform;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for all the url based repository models like Maven and JCenter.
  */
 public abstract class UrlBasedRepositoryModelImpl extends RepositoryModelImpl implements UrlBasedRepositoryModel {
-  @NonNls private static final String URL = "url";
+  @NonNls public static final String URL = "url";
 
   @NotNull private final String myDefaultRepoUrl;
 
-  protected UrlBasedRepositoryModelImpl(@Nullable GradlePropertiesDslElement dslElement,
+  protected UrlBasedRepositoryModelImpl(@NotNull GradlePropertiesDslElement holder,
+                                        @NotNull GradleDslElement dslElement,
                                         @NotNull String defaultRepoName,
                                         @NotNull String defaultRepoUrl) {
-    super(dslElement, defaultRepoName);
+    super(holder, dslElement, defaultRepoName);
     myDefaultRepoUrl = defaultRepoUrl;
   }
 
   @Override
   @NotNull
-  public GradleDefaultValue<String> url() {
-    if (myDslElement == null) {
-      return new GradleDefaultValueImpl<>(null, myDefaultRepoUrl);
-    }
-
-    GradleDslExpression nameExpression = myDslElement.getPropertyElement(URL, GradleDslExpression.class);
-
-    String url = null;
-    if (nameExpression != null) {
-      url = nameExpression.getValue(String.class);
-    }
-    if (url == null) {
-      url = myDefaultRepoUrl;
-    }
-
-    return new GradleDefaultValueImpl<>(nameExpression, url);
+  public ResolvedPropertyModel url() {
+    return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).addTransform(new RepositoryClosureTransform(myHolder, URL, myDefaultRepoUrl)).buildResolved();
   }
 }

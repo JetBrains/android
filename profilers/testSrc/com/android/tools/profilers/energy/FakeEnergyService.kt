@@ -13,21 +13,49 @@
 // limitations under the License.
 package com.android.tools.profilers.energy
 
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataRequest
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse.EnergySample
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.EnergyProfiler
+import com.android.tools.profiler.proto.EnergyProfiler.*
 import com.android.tools.profiler.proto.EnergyServiceGrpc
 import io.grpc.stub.StreamObserver
-
-import java.util.ArrayList
 import java.util.stream.Collectors
+import kotlin.collections.ArrayList
 
-class FakeEnergyService(val dataList: List<EnergySample> = ArrayList()) : EnergyServiceGrpc.EnergyServiceImplBase() {
+class FakeEnergyService(val dataList: List<EnergySample> = ArrayList(), val eventList: List<EnergyEvent> = ArrayList())
+  : EnergyServiceGrpc.EnergyServiceImplBase() {
 
-  override fun getData(request: EnergyDataRequest, responseObserver: StreamObserver<EnergyDataResponse>) {
+  lateinit var session: Common.Session
+
+  override fun startMonitoringApp(request: EnergyStartRequest, responseObserver: StreamObserver<EnergyStartResponse>) {
+    session = request.session
+    responseObserver.onNext(EnergyStartResponse.getDefaultInstance())
+    responseObserver.onCompleted()
+  }
+
+  override fun stopMonitoringApp(request: EnergyStopRequest, responseObserver: StreamObserver<EnergyStopResponse>) {
+    session = request.session
+    responseObserver.onNext(EnergyStopResponse.getDefaultInstance())
+    responseObserver.onCompleted()
+  }
+
+  override fun getSamples(request: EnergyRequest, responseObserver: StreamObserver<EnergySamplesResponse>) {
     val listStream = dataList.stream().filter({d -> d.timestamp >= request.startTimestamp && d.timestamp < request.endTimestamp })
     val resultList = listStream.collect(Collectors.toList())
-    val response = EnergyDataResponse.newBuilder().addAllSampleData(resultList).build()
+    val response = EnergySamplesResponse.newBuilder().addAllSamples(resultList).build()
+    responseObserver.onNext(response)
+    responseObserver.onCompleted()
+  }
+
+  override fun getEvents(request: EnergyRequest, responseObserver: StreamObserver<EnergyProfiler.EnergyEventsResponse>) {
+    val listStream = eventList.stream().filter({d -> d.timestamp >= request.startTimestamp && d.timestamp < request.endTimestamp })
+    val response = EnergyProfiler.EnergyEventsResponse.newBuilder().addAllEvents(listStream.collect(Collectors.toList())).build()
+    responseObserver.onNext(response)
+    responseObserver.onCompleted()
+  }
+
+  override fun getEventGroup(request: EnergyEventGroupRequest, responseObserver: StreamObserver<EnergyEventsResponse>) {
+    val eventsWithRequestedId = eventList.stream().filter({e -> e.eventId == request.eventId}).collect(Collectors.toList())
+    val response = EnergyProfiler.EnergyEventsResponse.newBuilder().addAllEvents(eventsWithRequestedId).build()
     responseObserver.onNext(response)
     responseObserver.onCompleted()
   }

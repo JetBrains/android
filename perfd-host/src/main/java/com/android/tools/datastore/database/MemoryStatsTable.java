@@ -21,7 +21,6 @@ import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profiler.protobuf3jarjar.GeneratedMessageV3;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import com.android.tools.profiler.protobuf3jarjar.Message;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,7 +120,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
   }
 
   @NotNull
-  public MemoryData getData(MemoryRequest request) {
+  public MemoryData getData(@NotNull MemoryRequest request) {
     long sessionId = request.getSession().getSessionId();
     long startTime = request.getStartTime();
     long endTime = request.getEndTime();
@@ -135,30 +134,31 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
       getResultsInfo(QUERY_HEAP_INFO_BY_TIME, sessionId, startTime, endTime, HeapDumpInfo.getDefaultInstance());
     List<AllocationsInfo> allocationSamples =
       getResultsInfo(QUERY_ALLOCATION_INFO_BY_TIME, sessionId, startTime, endTime, AllocationsInfo.getDefaultInstance());
-    MemoryData.Builder response = MemoryData.newBuilder()
+    return MemoryData
+      .newBuilder()
       .addAllMemSamples(memorySamples)
       .addAllAllocStatsSamples(allocStatsSamples)
       .addAllGcStatsSamples(gcStatsSamples)
       .addAllHeapDumpInfos(heapDumpSamples)
-      .addAllAllocationsInfo(allocationSamples);
-    return response.build();
+      .addAllAllocationsInfo(allocationSamples)
+      .build();
   }
 
-  public void insertMemory(Common.Session session, List<MemoryData.MemorySample> samples) {
+  public void insertMemory(@NotNull Common.Session session, @NotNull List<MemoryData.MemorySample> samples) {
     for (MemoryData.MemorySample sample : samples) {
       execute(INSERT_SAMPLE, session.getSessionId(), sample.getTimestamp(), MemorySamplesType.MEMORY.ordinal(),
               sample.toByteArray());
     }
   }
 
-  public void insertAllocStats(Common.Session session, List<MemoryData.AllocStatsSample> samples) {
+  public void insertAllocStats(@NotNull Common.Session session, @NotNull List<MemoryData.AllocStatsSample> samples) {
     for (MemoryData.AllocStatsSample sample : samples) {
       execute(INSERT_SAMPLE, session.getSessionId(), sample.getTimestamp(), MemorySamplesType.ALLOC_STATS.ordinal(),
               sample.toByteArray());
     }
   }
 
-  public void insertGcStats(Common.Session session, List<MemoryData.GcStatsSample> samples) {
+  public void insertGcStats(@NotNull Common.Session session, @NotNull List<MemoryData.GcStatsSample> samples) {
     for (MemoryData.GcStatsSample sample : samples) {
       execute(INSERT_SAMPLE, session.getSessionId(), sample.getStartTime(), MemorySamplesType.GC_STATS.ordinal(),
               sample.toByteArray());
@@ -168,7 +168,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
   /**
    * Note: this will reset the row's Status and DumpData to NOT_READY and null respectively, if an info with the same DumpId already exist.
    */
-  public void insertOrReplaceHeapInfo(Common.Session session, HeapDumpInfo info) {
+  public void insertOrReplaceHeapInfo(@NotNull Common.Session session, @NotNull HeapDumpInfo info) {
     execute(INSERT_OR_REPLACE_HEAP_INFO, session.getSessionId(), info.getStartTime(), info.getEndTime(),
             DumpDataResponse.Status.NOT_READY.ordinal(), info.toByteArray());
   }
@@ -176,7 +176,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
   /**
    * @return the dump status corresponding to a particular dump. If the entry does not exist, NOT_FOUND is returned.
    */
-  public DumpDataResponse.Status getHeapDumpStatus(Common.Session session, long dumpTime) {
+  public DumpDataResponse.Status getHeapDumpStatus(@NotNull Common.Session session, long dumpTime) {
     try {
       ResultSet result = executeQuery(QUERY_HEAP_STATUS_BY_ID, session.getSessionId(), dumpTime);
       if (result.next()) {
@@ -190,7 +190,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
   }
 
 
-  public List<HeapDumpInfo> getHeapDumpInfoByRequest(Common.Session session, ListDumpInfosRequest request) {
+  public List<HeapDumpInfo> getHeapDumpInfoByRequest(@NotNull Common.Session session, @NotNull ListDumpInfosRequest request) {
     return getResultsInfo(QUERY_HEAP_INFO_BY_TIME, session.getSessionId(), request.getStartTime(), request.getEndTime(),
                           HeapDumpInfo.getDefaultInstance());
   }
@@ -198,7 +198,10 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
   /**
    * Adds/updates the status and raw dump data associated with a dump sample's id.
    */
-  public void insertHeapDumpData(Common.Session session, long dumpTime, DumpDataResponse.Status status, ByteString data) {
+  public void insertHeapDumpData(@NotNull Common.Session session,
+                                 long dumpTime,
+                                 @NotNull DumpDataResponse.Status status,
+                                 @NotNull ByteString data) {
     execute(UPDATE_HEAP_DUMP, data.toByteArray(), status.getNumber(), session.getSessionId(), dumpTime);
   }
 
@@ -206,7 +209,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
    * @return the raw dump byte content assocaited with a dump time. Null if an entry does not exist in the database.
    */
   @Nullable
-  public byte[] getHeapDumpData(Common.Session session, long dumpTime) {
+  public byte[] getHeapDumpData(@NotNull Common.Session session, long dumpTime) {
     try {
       ResultSet resultSet = executeQuery(QUERY_HEAP_DUMP_BY_ID, session.getSessionId(), dumpTime);
       if (resultSet.next()) {
@@ -219,22 +222,21 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
     return null;
   }
 
-
   /**
    * Note: this will reset the allocation events and its raw dump byte content associated with a tracking start time if an entry already exists.
    */
-  public void insertOrReplaceAllocationsInfo(Common.Session session, AllocationsInfo info) {
+  public void insertOrReplaceAllocationsInfo(@NotNull Common.Session session, @NotNull AllocationsInfo info) {
     execute(INSERT_OR_REPLACE_ALLOCATIONS_INFO, session.getSessionId(), info.getStartTime(), info.getEndTime(), info.toByteArray());
   }
 
-  public void updateLegacyAllocationEvents(Common.Session session,
+  public void updateLegacyAllocationEvents(@NotNull Common.Session session,
                                            long trackingStartTime,
                                            @NotNull LegacyAllocationEventsResponse allocationData) {
     execute(UPDATE_LEGACY_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), session.getSessionId(), trackingStartTime);
   }
 
 
-  public void updateLegacyAllocationDump(Common.Session session, long trackingStartTime, byte[] data) {
+  public void updateLegacyAllocationDump(@NotNull Common.Session session, long trackingStartTime, byte[] data) {
 
     execute(UPDATE_LEGACY_ALLOCATIONS_INFO_DUMP, data, session.getSessionId(), trackingStartTime);
   }
@@ -243,7 +245,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
    * @return the AllocationsInfo associated with the tracking start time. Null if an entry does not exist.
    */
   @Nullable
-  public AllocationsInfo getAllocationsInfo(Common.Session session, long trackingStartTime) {
+  public AllocationsInfo getAllocationsInfo(@NotNull Common.Session session, long trackingStartTime) {
     try {
       ResultSet results = executeQuery(QUERY_ALLOCATION_INFO_BY_ID, session.getSessionId(), trackingStartTime);
       if (results.next()) {
@@ -265,7 +267,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
    * @return the AllocationEventsResponse associated with the tracking start time. Null if an entry does not exist.
    */
   @Nullable
-  public LegacyAllocationEventsResponse getLegacyAllocationData(Common.Session session, long trackingStartTime) {
+  public LegacyAllocationEventsResponse getLegacyAllocationData(@NotNull Common.Session session, long trackingStartTime) {
 
     try {
       ResultSet resultSet = executeQuery(QUERY_LEGACY_ALLOCATION_EVENTS_BY_ID, session.getSessionId(), trackingStartTime);
@@ -286,7 +288,7 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
    * @return the raw legacy allocation tracking byte data associated with the tracking start time. Null if an entry does not exist.
    */
   @Nullable
-  public byte[] getLegacyAllocationDumpData(Common.Session session, long trackingStartTime) {
+  public byte[] getLegacyAllocationDumpData(@NotNull Common.Session session, long trackingStartTime) {
 
     try {
       ResultSet resultSet = executeQuery(QUERY_LEGACY_ALLOCATION_DUMP_BY_ID, session.getSessionId(), trackingStartTime);
@@ -342,11 +344,11 @@ public class MemoryStatsTable extends DataStoreTable<MemoryStatsTable.MemoryStat
   /**
    * A helper method for querying samples for MemorySample, AllocStatsSample, GcStatsSample, HeapDumpInfo and AllocationsInfo
    */
-  private <T extends GeneratedMessageV3> List<T> getResultsInfo(MemoryStatements query,
+  private <T extends GeneratedMessageV3> List<T> getResultsInfo(@NotNull MemoryStatements query,
                                                                 long sessionId,
                                                                 long startTime,
                                                                 long endTime,
-                                                                T defaultInstance) {
+                                                                @NotNull T defaultInstance) {
     List<T> datas = new ArrayList<>();
     try {
       ResultSet resultSet = executeQuery(query, sessionId, startTime, endTime);

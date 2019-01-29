@@ -16,16 +16,14 @@
 
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.logcat.LogCatTimestamp;
 import com.intellij.diagnostic.logging.DefaultLogFormatter;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
+import java.time.ZoneId;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,26 +31,12 @@ import java.util.regex.Pattern;
  * Class which handles parsing the output from logcat and reformatting it to its final form before
  * displaying it to the user.
  *
- * By default, this formatter prints a full header + message to the console, but you can modify
+ * <p>By default, this formatter prints a full header + message to the console, but you can modify
  * {@link AndroidLogcatPreferences#LOGCAT_FORMAT_STRING} (setting it to a value returned by
  * {@link #createCustomFormat(boolean, boolean, boolean, boolean)}) to hide parts of the header.
  */
 public final class AndroidLogcatFormatter extends DefaultLogFormatter {
-  private static final CharSequence CONTINUATION_INDENT = "    ";
-  private final AndroidLogcatPreferences myPreferences;
-
-  public AndroidLogcatFormatter(@NotNull AndroidLogcatPreferences preferences) {
-    myPreferences = preferences;
-  }
-
-  @NonNls private static final Pattern MESSAGE_WITH_HEADER = Pattern.compile(
-    "^(\\d\\d-\\d\\d\\s\\d\\d:\\d\\d:\\d\\d.\\d+)\\s+" +   // time
-    "(\\d+)-(\\d+)/" +                                     // pid-tid
-    "(\\S+)\\s+" +                                         // package
-    "([A-Z])/" +                                           // log level
-    "([^ ]+): " +                                          // tag (be sure it has no spaces)
-    "(.*)$"                                                // message
-  );
+  private static final String FULL_FORMAT = createCustomFormat(true, true, true, true);
 
   /**
    * If a logcat message has more than one line, all followup lines are marked with this pattern.
@@ -61,18 +45,30 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
    */
   @NonNls private static final Pattern CONTINUATION_PATTERN = Pattern.compile("^\\+ (.*)$");
 
-  private static final String FULL_FORMAT = createCustomFormat(true, true, true, true);
+  public static final CharSequence CONTINUATION_INDENT = "    ";
+
+  private final MessageFormatter myLongEpochFormatter;
+  private final MessageFormatter myLongFormatter;
+
+  private final AndroidLogcatPreferences myPreferences;
+
+  public AndroidLogcatFormatter(@NotNull ZoneId timeZone, @NotNull AndroidLogcatPreferences preferences) {
+    myLongEpochFormatter = new LongEpochMessageFormatter(preferences, timeZone);
+    myLongFormatter = new LongMessageFormatter();
+
+    myPreferences = preferences;
+  }
 
   /**
    * Given data parsed from a line of logcat, return a final, formatted string that represents a
    * line of text we should show to the user in the logcat console. (However, this line may be
    * further processed if {@link AndroidLogcatPreferences#LOGCAT_FORMAT_STRING} is set.)
    *
-   * Note: If a logcat message contains multiple lines, you should only use this for the first
+   * <p>Note: If a logcat message contains multiple lines, you should only use this for the first
    * line, and {@link #formatContinuation(String)} for each additional line.
    */
   @NotNull
-  public static String formatMessageFull(@NotNull LogCatHeader header, @NotNull String message) {
+  String formatMessageFull(@NotNull LogCatHeader header, @NotNull String message) {
     return formatMessage(FULL_FORMAT, header, message);
   }
 
@@ -87,9 +83,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
   }
 
   /**
-   * Create a format string for use with {@link #formatMessage(String, String)}. Most commonly you
-   * should just assign its result to {@link AndroidLogcatPreferences#LOGCAT_FORMAT_STRING}, which
-   * is checked against to determine what the final format of any logcat line will be.
+   * Creates a format string for the formatMessage methods that take one.
    */
   @NotNull
   public static String createCustomFormat(boolean showTime, boolean showPid, boolean showPackage, boolean showTag) {
@@ -114,44 +108,28 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     return builder.toString();
   }
 
-  /**
-   * Helper method useful for previewing what final output will look like given a custom formatter.
-   */
   @NotNull
-  static String formatMessage(@NotNull String format, @NotNull String msg) {
-    if (format.isEmpty()) {
-      return msg;
+  public String formatMessage(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
+    // noinspection deprecation
+    if (header.getTimestamp() == null) {
+      return myLongEpochFormatter.format(format, header, message);
     }
 
-    LogCatMessage message = parseMessage(msg);
-    return formatMessage(format, message.getHeader(), message.getMessage());
-  }
+    if (header.getTimestampInstant() == null) {
+      return myLongFormatter.format(format, header, message);
+    }
 
-  @NotNull
-  public static String formatMessage(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
-    String ids = String.format(Locale.US, "%s-%s", header.getPid(), header.getTid());
-
-    // For parsing later, tags should not have spaces in them. Replace spaces with
-    // "no break" spaces, which looks like whitespace but doesn't act like it.
-    String tag = header.getTag().replace(' ', '\u00A0');
-
-    return String.format(Locale.US, format,
-                         header.getTimestamp(),
-                         ids,
-                         header.getAppName(),
-                         header.getLogLevel().getPriorityLetter(),
-                         tag,
-                         message);
+    throw new AssertionError(header);
   }
 
   /**
    * Parse a message that was encoded using {@link #formatMessageFull(LogCatHeader, String)}
    */
   @NotNull
-  public static LogCatMessage parseMessage(@NotNull String msg) {
-    LogCatMessage result = tryParseMessage(msg);
+  LogCatMessage parseMessage(@NotNull String message) {
+    LogCatMessage result = tryParseMessage(message);
     if (result == null) {
-      throw new IllegalArgumentException("Invalid message doesn't match expected logcat pattern: " + msg);
+      throw new IllegalArgumentException("Invalid message doesn't match expected logcat pattern: " + message);
     }
 
     return result;
@@ -162,24 +140,20 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
    * text doesn't match.
    */
   @Nullable
-  public static LogCatMessage tryParseMessage(@NotNull String msg) {
-    final Matcher matcher = MESSAGE_WITH_HEADER.matcher(msg);
-    if (!matcher.matches()) {
-      return null;
+  LogCatMessage tryParseMessage(@NotNull String message) {
+    LogCatMessage logcatMessage = myLongEpochFormatter.tryParse(message);
+
+    if (logcatMessage != null) {
+      return logcatMessage;
     }
 
-    @SuppressWarnings("ConstantConditions") // matcher.matches verifies all groups below are non-null
-    LogCatHeader header = new LogCatHeader(
-      Log.LogLevel.getByLetter(matcher.group(5).charAt(0)),
-      Integer.parseInt(matcher.group(2)),
-      Integer.parseInt(matcher.group(3)),
-      matcher.group(4),
-      matcher.group(6),
-      LogCatTimestamp.fromString(matcher.group(1)));
+    logcatMessage = myLongFormatter.tryParse(message);
 
-    String message = matcher.group(7);
+    if (logcatMessage != null) {
+      return logcatMessage;
+    }
 
-    return new LogCatMessage(header, message);
+    return null;
   }
 
   /**
@@ -214,19 +188,27 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     return sb.toString();
   }
 
+  @NotNull
   @Override
-  public String formatMessage(String msg) {
-    String continuation = tryParseContinuation(msg);
+  public String formatMessage(@NotNull String message) {
+    String continuation = tryParseContinuation(message);
+
     if (continuation != null) {
       return CONTINUATION_INDENT + continuation;
     }
-    else {
-      LogCatMessage message = tryParseMessage(msg);
-      if (message != null) {
-        return formatMessage(myPreferences.LOGCAT_FORMAT_STRING, msg);
-      }
+
+    LogCatMessage logcatMessage = tryParseMessage(message);
+
+    if (logcatMessage == null || myPreferences.LOGCAT_FORMAT_STRING.isEmpty()) {
+      return message;
     }
 
-    return msg; // Unknown message format, return as is
+    return formatMessage(logcatMessage);
+  }
+
+  @NotNull
+  String formatMessage(@NotNull LogCatMessage message) {
+    String format = myPreferences.LOGCAT_FORMAT_STRING.isEmpty() ? FULL_FORMAT : myPreferences.LOGCAT_FORMAT_STRING;
+    return formatMessage(format, message.getHeader(), message.getMessage());
   }
 }

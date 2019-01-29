@@ -17,8 +17,12 @@ package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.SimpleperfReport;
-import com.android.tools.profilers.cpu.*;
+import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuCapture;
+import com.android.tools.profilers.cpu.CpuThreadInfo;
+import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.NoSymbolModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
@@ -42,9 +46,26 @@ import java.util.concurrent.TimeUnit;
 public class SimpleperfTraceParser implements TraceParser {
 
   /**
+   * Magic string that should appear in the very beginning of the simpleperf trace.
+   */
+  private static final String MAGIC = "SIMPLEPERF";
+
+  /**
    * When the name of a function (symbol) is not found in the symbol table, the symbol_id field is set to -1.
    */
   private static final int INVALID_SYMBOL_ID = -1;
+
+  /**
+   * Directory containing files (.art, .odex, .so, .apk) related to app's. Each app's files are located in a subdirectory whose name starts
+   * with the app ID. For instance, "com.google.sample.tunnel" app's directory could be something like
+   * "/data/app/com.google.sample.tunnel-qpKipbnc0pE6uQs6gxAmbQ=="
+   */
+  private static final String DATA_APP_DIR = "/data/app";
+
+  /**
+   * Version of the trace file to be parsed. Should be obtained from the file itself.
+   */
+  private int myTraceVersion;
 
   /**
    * Maps a file id to its correspondent {@link SimpleperfReport.File}.
@@ -52,9 +73,9 @@ public class SimpleperfTraceParser implements TraceParser {
   private final Map<Integer, SimpleperfReport.File> myFiles;
 
   /**
-   * Maps a thread id to its correspondent name.
+   * Maps a thread id to its corresponding {@link SimpleperfReport.Thread} object.
    */
-  private final Map<Integer, String> myThreads;
+  private final Map<Integer, SimpleperfReport.Thread> myThreads;
 
   /**
    * List of samples containing method trace data.
@@ -86,6 +107,14 @@ public class SimpleperfTraceParser implements TraceParser {
    * List of event types (e.g. cpu-cycles, sched:sched_switch) present in the trace.
    */
   private List<String> myEventTypes;
+
+  private String myAppPackageName;
+
+  /**
+   * Prefix (up to the app name) of the /data/app subfolder corresponding to the app being profiled. For example:
+   * "/data/app/com.google.sample.tunnel".
+   */
+  private String myAppDataFolderPrefix;
 
   public SimpleperfTraceParser() {
     myFiles = new HashMap<>();
@@ -129,9 +158,15 @@ public class SimpleperfTraceParser implements TraceParser {
   }
 
   @Override
-  public void parse(File trace) throws IOException {
+  public CpuCapture parse(File trace, int traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
+    return new CpuCapture(this, traceId, CpuProfiler.CpuProfilerType.SIMPLEPERF);
+  }
+
+  @Override
+  public boolean supportsDualClock() {
+    return false;
   }
 
   @Override
@@ -162,6 +197,8 @@ public class SimpleperfTraceParser implements TraceParser {
 
   /**
    * Parses the trace file, which should have the following format:
+   * char magic[10] = "SIMPLEPERF";
+   * LittleEndian16(version) = 1;
    * LittleEndian32(record_size_0)
    * SimpleperfReport.Record (having record_size_0 bytes)
    * LittleEndian32(record_size_1)
@@ -176,6 +213,9 @@ public class SimpleperfTraceParser implements TraceParser {
   @VisibleForTesting
   void parseTraceFile(File trace) throws IOException {
     ByteBuffer buffer = byteBufferFromFile(trace, ByteOrder.LITTLE_ENDIAN);
+    verifyMagicNumber(buffer);
+    parseVersionNumber(buffer);
+
     // Read the first record size
     int recordSize = buffer.getInt();
 
@@ -203,11 +243,13 @@ public class SimpleperfTraceParser implements TraceParser {
           break;
         case THREAD:
           SimpleperfReport.Thread thread = record.getThread();
-          myThreads.put(thread.getThreadId(), thread.getThreadName());
+          myThreads.put(thread.getThreadId(), thread);
           break;
         case META_INFO:
           SimpleperfReport.MetaInfo info = record.getMetaInfo();
           myEventTypes = info.getEventTypeList();
+          myAppPackageName = info.getAppPackageName();
+          myAppDataFolderPrefix = String.format("%s/%s", DATA_APP_DIR, myAppPackageName);
           break;
         default:
           getLog().warn("Unexpected record data type " + record.getRecordDataCase());
@@ -220,6 +262,25 @@ public class SimpleperfTraceParser implements TraceParser {
     if (mySamples.size() != mySampleCount) {
       // TODO: create a trace file to test this exception is thrown when it should.
       throw new IllegalStateException("Samples count doesn't match the number of samples read.");
+    }
+  }
+
+  /**
+   * Parses the next 16-bit number of the given {@link ByteBuffer} as the trace version.
+   */
+  private void parseVersionNumber(ByteBuffer buffer) {
+    myTraceVersion = buffer.getShort();
+  }
+
+  /**
+   * Verifies the first 10 characters of the given {@link ByteBuffer} are {@code SIMPLEPERF}.
+   * Throws an {@link IllegalStateException} otherwise.
+   */
+  private static void verifyMagicNumber(ByteBuffer buffer) {
+    byte[] magic = new byte[MAGIC.length()];
+    buffer.get(magic);
+    if (!(new String(magic)).equals(MAGIC)) {
+      throw new IllegalStateException("Simpleperf trace could not be parsed due to magic number mismatch.");
     }
   }
 
@@ -238,7 +299,7 @@ public class SimpleperfTraceParser implements TraceParser {
     // Split the samples per thread.
     Map<Integer, List<SimpleperfReport.Sample>> threadSamples = splitSamplesPerThread();
 
-    // Process the sampels for each thread
+    // Process the samples for each thread
     for (Map.Entry<Integer, List<SimpleperfReport.Sample>> threadSamplesEntry : threadSamples.entrySet()) {
       parseThreadSamples(threadSamplesEntry.getKey(), threadSamplesEntry.getValue());
     }
@@ -286,9 +347,10 @@ public class SimpleperfTraceParser implements TraceParser {
 
     // Add a root node to represent the thread itself.
     long firstTimestamp = threadSamples.get(0).getTime();
-    CaptureNode root = createCaptureNode(new SingleNameModel(myThreads.get(threadId)), firstTimestamp);
+    SimpleperfReport.Thread thread = myThreads.get(threadId);
+    CaptureNode root = createCaptureNode(new SingleNameModel(thread.getThreadName()), firstTimestamp);
     root.setDepth(0);
-    myCaptureTrees.put(new CpuThreadInfo(threadId, myThreads.get(threadId)), root);
+    myCaptureTrees.put(new CpuThreadInfo(threadId, thread.getThreadName(), threadId == thread.getProcessId()), root);
 
     // Parse the first call chain so we have a value for lastCallchain
     List<SimpleperfReport.Sample.CallChainEntry> previousCallChain = Lists.reverse(threadSamples.get(0).getCallchainList());
@@ -403,7 +465,9 @@ public class SimpleperfTraceParser implements TraceParser {
       String methodName = fileNameFromPath(symbolFile.getPath()) + "+" + hexAddress;
       return new NoSymbolModel(methodName);
     }
-    // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel
-    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId));
+    // Otherwise, read the method from the symbol table and parse it into a CaptureNodeModel. User's code symbols come from
+    // files located inside the app's directory, therefore we check if the symbol path has the same prefix of such directory.
+    boolean isUserWritten = symbolFile.getPath().startsWith(myAppDataFolderPrefix);
+    return NodeNameParser.parseNodeName(symbolFile.getSymbol(symbolId), isUserWritten);
   }
 }

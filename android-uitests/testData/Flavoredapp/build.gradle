@@ -13,9 +13,9 @@ repositories {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:25.0.0'
-    compile project(':locallib')
-    compile project(':myaarlibrary')
+    implementation 'com.android.support:support-v4:25.0.0'
+    implementation project(':locallib')
+    implementation project(':myaarlibrary')
 }
 
 android {

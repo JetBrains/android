@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.databinding;
 
-import com.android.ide.common.res2.DataBindingResourceType;
+import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.PsiDataBindingResourceItem;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.*;
@@ -30,13 +31,13 @@ import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,7 +45,6 @@ import java.util.Set;
  * The light class that represents a data binding BR file
  */
 public class LightBrClass extends AndroidLightClassBase {
-  private static final String BINDABLE_QUALIFIED_NAME = "android.databinding.Bindable";
   private final AndroidFacet myFacet;
   private CachedValue<PsiField[]> myFieldCache;
   @NotNull
@@ -54,7 +54,7 @@ public class LightBrClass extends AndroidLightClassBase {
   private final Object myLock = new Object();
 
   public LightBrClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
-    super(psiManager);
+    super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myQualifiedName = DataBindingUtil.getBrQualifiedName(facet);
     myFacet = facet;
     myFieldCache =
@@ -65,7 +65,7 @@ public class LightBrClass extends AndroidLightClassBase {
           PsiField[] doCompute() {
             Project project = facet.getModule().getProject();
             PsiElementFactory elementFactory = PsiElementFactory.SERVICE.getInstance(project);
-            LocalResourceRepository moduleResources = ModuleResourceRepository.findExistingInstance(facet);
+            LocalResourceRepository moduleResources = ResourceRepositoryManager.getOrCreateInstance(facet).getModuleResources(false);
             if (moduleResources == null) {
               return defaultValue();
             }
@@ -75,7 +75,7 @@ public class LightBrClass extends AndroidLightClassBase {
             }
             Set<String> variableNames = new HashSet<>();
             for (DataBindingInfo info : dataBindingResourceFiles.values()) {
-              for (PsiDataBindingResourceItem item : info.getItems(DataBindingResourceType.VARIABLE)) {
+              for (PsiDataBindingResourceItem item : info.getItems(DataBindingResourceType.VARIABLE).values()) {
                 variableNames.add(item.getName());
               }
             }
@@ -99,11 +99,13 @@ public class LightBrClass extends AndroidLightClassBase {
             return new PsiField[]{createPsiField(project, PsiElementFactory.SERVICE.getInstance(project), "_all")};
           }
         }, false);
+    setModuleInfo(facet.getModule(), false);
   }
 
   private Set<String> collectVariableNamesFromBindables() {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(myFacet.getModule().getProject());
-    PsiClass aClass = facade.findClass(BINDABLE_QUALIFIED_NAME, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
+    DataBindingMode mode = ModuleDataBinding.getInstance(myFacet).getDataBindingMode();
+    PsiClass aClass = facade.findClass(mode.bindable, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
     if (aClass == null) {
       return null;
     }
@@ -119,11 +121,6 @@ public class LightBrClass extends AndroidLightClassBase {
     PsiUtil.setModifierProperty(field, PsiModifier.STATIC, true);
     PsiUtil.setModifierProperty(field, PsiModifier.FINAL, true);
     return new LightBRField(PsiManager.getInstance(project), field, this);
-  }
-
-  @Override
-  public String toString() {
-    return "BR class for " + myFacet;
   }
 
   @Nullable

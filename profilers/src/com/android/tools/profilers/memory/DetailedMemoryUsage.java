@@ -15,16 +15,15 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 public class DetailedMemoryUsage extends MemoryUsage {
-
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Range myObjectsRange;
   @NotNull private final RangedContinuousSeries myJavaSeries;
@@ -34,8 +33,10 @@ public class DetailedMemoryUsage extends MemoryUsage {
   @NotNull private final RangedContinuousSeries myCodeSeries;
   @NotNull private final RangedContinuousSeries myOtherSeries;
   @NotNull private final RangedContinuousSeries myObjectsSeries;
+  @NotNull private final DurationDataModel<GcDurationData> myGcDurations;
+  @NotNull private final DurationDataModel<AllocationSamplingRateDurationData> myAllocationSamplingRateDurations;
 
-  public DetailedMemoryUsage(@NotNull StudioProfilers profilers) {
+  public DetailedMemoryUsage(@NotNull StudioProfilers profilers, @NotNull MemoryProfilerStage memoryProfilerStage) {
     super(profilers);
 
     myProfilers = profilers;
@@ -49,9 +50,12 @@ public class DetailedMemoryUsage extends MemoryUsage {
     myOtherSeries = createRangedSeries(profilers, "Others", getMemoryRange(), MemorySample::getOthersMem);
 
     MemoryServiceGrpc.MemoryServiceBlockingStub client = profilers.getClient().getMemoryClient();
-    AllocStatsDataSeries series = new AllocStatsDataSeries(client, profilers.getSession(),
+    AllocStatsDataSeries series = new AllocStatsDataSeries(myProfilers, client,
                                                            sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));
     myObjectsSeries = new RangedContinuousSeries("Allocated", profilers.getTimeline().getViewRange(), getObjectsRange(), series);
+
+    myGcDurations = memoryProfilerStage.getGcStatsModel();
+    myAllocationSamplingRateDurations = memoryProfilerStage.getAllocationSamplingRateDurations();
 
     add(myJavaSeries);
     add(myNativeSeries);
@@ -59,9 +63,7 @@ public class DetailedMemoryUsage extends MemoryUsage {
     add(myStackSeries);
     add(myCodeSeries);
     add(myOtherSeries);
-
-    myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
-    agentStatusChanged();
+    add(myObjectsSeries);
   }
 
   @NotNull
@@ -104,17 +106,18 @@ public class DetailedMemoryUsage extends MemoryUsage {
     return myObjectsSeries;
   }
 
+  @NotNull
+  public DurationDataModel<GcDurationData> getGcDurations() {
+    return myGcDurations;
+  }
+
+  @NotNull
+  public DurationDataModel<AllocationSamplingRateDurationData> getAllocationSamplingRateDurations() {
+    return myAllocationSamplingRateDurations;
+  }
+
   @Override
   protected String getTotalSeriesLabel() {
     return "Total";
-  }
-
-  private void agentStatusChanged() {
-    if (myProfilers.isAgentAttached()) {
-      add(myObjectsSeries);
-    }
-    else {
-      remove(myObjectsSeries);
-    }
   }
 }

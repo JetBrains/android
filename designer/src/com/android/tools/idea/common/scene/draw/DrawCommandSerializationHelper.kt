@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.common.scene.draw
 
-import com.android.tools.idea.common.scene.LerpValue
+import com.android.tools.idea.common.scene.LerpFloat
 import com.google.common.base.Joiner
 import java.awt.*
+import java.awt.geom.Point2D
+import java.awt.geom.Rectangle2D
+import java.awt.geom.RoundRectangle2D
 
 fun parse(s: String, expected: Int): Array<String> {
   val sp = splitString(s, ',').toTypedArray()
@@ -37,18 +40,34 @@ fun buildString(simpleName: String, vararg properties: Any): String {
   }
 }
 
-fun stringToRect(s: String): Rectangle {
+fun stringToRect2D(s: String): Rectangle2D.Float {
   val sp = splitString(s, 'x')
-  val r = Rectangle()
-  r.x = sp[0].toInt()
-  r.y = sp[1].toInt()
-  r.width = sp[2].toInt()
-  r.height = sp[3].toInt()
+  val r = Rectangle2D.Float()
+  r.x = sp[0].toFloat()
+  r.y = sp[1].toFloat()
+  r.width = sp[2].toFloat()
+  r.height = sp[3].toFloat()
   return r
 }
 
-fun rectToString(r: Rectangle): String {
+fun rect2DToString(r: Rectangle2D.Float): String {
   return Joiner.on('x').join(r.x, r.y, r.width, r.height)
+}
+
+fun stringToRoundRect2D(s: String): RoundRectangle2D.Float {
+  val sp = splitString(s, 'x')
+  val r = RoundRectangle2D.Float()
+  r.x = sp[0].toFloat()
+  r.y = sp[1].toFloat()
+  r.width = sp[2].toFloat()
+  r.height = sp[3].toFloat()
+  r.arcwidth = sp[4].toFloat()
+  r.archeight = sp[5].toFloat()
+  return r
+}
+
+fun roundRect2DToString(r: RoundRectangle2D.Float): String {
+  return Joiner.on('x').join(r.x, r.y, r.width, r.height, r.arcwidth, r.arcHeight)
 }
 
 fun stringToColor(s: String): Color {
@@ -82,16 +101,28 @@ fun pointToString(p: Point): String {
   return Joiner.on('x').join(p.x, p.y)
 }
 
-fun stringToLerp(s: String): LerpValue {
-  val sp = splitString(s, ':')
-  val start = sp[0].toInt()
-  val end = sp[1].toInt()
-  val duration = sp[2].toInt()
-
-  return LerpValue(start, end, duration)
+fun stringToPoint2D(s: String): Point2D.Float {
+  val sp = splitString(s, 'x')
+  val p = Point2D.Float()
+  p.x = sp[0].toFloat()
+  p.y = sp[1].toFloat()
+  return p
 }
 
-fun lerpToString(l: LerpValue): String {
+fun point2DToString(p: Point2D.Float): String {
+  return Joiner.on('x').join(p.x, p.y)
+}
+
+fun stringToLerp(s: String): LerpFloat {
+  val sp = splitString(s, ':')
+  val start = sp[0].toFloat()
+  val end = sp[1].toFloat()
+  val duration = sp[2].toInt()
+
+  return LerpFloat(start, end, duration)
+}
+
+fun lerpToString(l: LerpFloat): String {
   return Joiner.on(':').join(l.start, l.end, l.duration)
 }
 

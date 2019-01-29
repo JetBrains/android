@@ -16,6 +16,7 @@
 package org.jetbrains.android.facet;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ui.FacetEditorContext;
@@ -39,6 +40,8 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.*;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -48,6 +51,8 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   private AndroidFacet myFacet = null;
 
   private JpsAndroidModuleProperties myProperties = new JpsAndroidModuleProperties();
+
+  @Nullable private AndroidModel myAndroidModel;
 
   public void init(@NotNull Module module, @NotNull VirtualFile contentRoot) {
     init(module, contentRoot.getPath());
@@ -135,6 +140,19 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     myProperties.myIncludeAssetsFromLibraries = includeAssetsFromLibraries;
   }
 
+  public boolean isAppProject() {
+    int projectType = getState().PROJECT_TYPE;
+    return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;
+  }
+
+  public boolean isAppOrFeature() {
+    int projectType = getState().PROJECT_TYPE;
+    return projectType == PROJECT_TYPE_APP ||
+           projectType == PROJECT_TYPE_INSTANTAPP ||
+           projectType == PROJECT_TYPE_FEATURE ||
+           projectType == PROJECT_TYPE_DYNAMIC_FEATURE;
+  }
+
   @Nullable
   @Override
   public JpsAndroidModuleProperties getState() {
@@ -144,5 +162,49 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   @Override
   public void loadState(@NotNull JpsAndroidModuleProperties properties) {
     myProperties = properties;
+  }
+
+  public boolean canBeDependency() {
+    int projectType = getState().PROJECT_TYPE;
+    return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_FEATURE;
+  }
+
+  /**
+   * Associates the given Android model to this facet.
+   *
+   * @param androidModel the new Android model.
+   */
+  public void setModel(@Nullable AndroidModel model) {
+    myAndroidModel = model;
+    if (myFacet != null) {
+      myFacet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(myFacet);
+    }
+  }
+
+  /**
+   * @return the Android model associated to this facet.
+   */
+  @Nullable
+  public AndroidModel getModel() {
+    return myAndroidModel;
+  }
+
+  /**
+   * Invoked when the facet is disposed. Nulls out fields to facilitate garbage collection.
+   */
+  public void disposeFacet() {
+    myAndroidModel = null;
+  }
+
+  public boolean isLibraryProject() {
+    return getState().PROJECT_TYPE == PROJECT_TYPE_LIBRARY;
+  }
+
+  public int getProjectType() {
+    return getState().PROJECT_TYPE;
+  }
+
+  public void setProjectType(int type) {
+    getState().PROJECT_TYPE = type;
   }
 }

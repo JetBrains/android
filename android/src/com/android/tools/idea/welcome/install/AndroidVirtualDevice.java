@@ -25,6 +25,7 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.EmulatedProperties;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
@@ -120,7 +121,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
     Device d = getDevice(sdkHandler.getLocation());
     SystemImageDescription systemImageDescription = getSystemImageDescription(sdkHandler);
 
-    String cardSize = AvdOptionsModel.toIniString(DEFAULT_INTERNAL_STORAGE, false);
+    String cardSize = EmulatedProperties.DEFAULT_INTERNAL_STORAGE.toIniString();
     File hardwareSkinPath = pathToUpdatedSkins(d.getDefaultHardware().getSkinFile(), systemImageDescription, myFileOp);
     String displayName =
       String.format("%1$s %2$s %3$s", d.getDisplayName(), systemImageDescription.getVersion(), systemImageDescription.getAbiType());
@@ -154,14 +155,14 @@ public class AndroidVirtualDevice extends InstallableComponent {
     result.put(AVD_INI_DEVICE_NAME, device.getDisplayName());
     result.put(AVD_INI_DEVICE_MANUFACTURER, device.getManufacturer());
 
-    result.put(AVD_INI_NETWORK_LATENCY, DEFAULT_NETWORK_LATENCY.getAsParameter());
-    result.put(AVD_INI_NETWORK_SPEED, DEFAULT_NETWORK_SPEED.getAsParameter());
+    result.put(AVD_INI_NETWORK_LATENCY, EmulatedProperties.DEFAULT_NETWORK_LATENCY.getAsParameter());
+    result.put(AVD_INI_NETWORK_SPEED, EmulatedProperties.DEFAULT_NETWORK_SPEED.getAsParameter());
     result.put(AVD_INI_AVD_ID, internalName);
     result.put(AvdManagerConnection.AVD_INI_HW_LCD_DENSITY, String.valueOf(Density.XXHIGH.getDpiValue()));
 
     setStorageSizeKey(result, AVD_INI_RAM_SIZE, DEFAULT_RAM_SIZE, true);
     setStorageSizeKey(result, AVD_INI_VM_HEAP_SIZE, DEFAULT_HEAP_SIZE, true);
-    setStorageSizeKey(result, AVD_INI_DATA_PARTITION_SIZE, DEFAULT_INTERNAL_STORAGE, false);
+    setStorageSizeKey(result, AVD_INI_DATA_PARTITION_SIZE, EmulatedProperties.DEFAULT_INTERNAL_STORAGE, false);
 
     return result;
   }

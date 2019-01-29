@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.perflogger.BenchmarkLogger;
-import com.android.tools.perflogger.BenchmarkLogger.Benchmark;
-import com.android.tools.perflogger.BenchmarkLogger.MetricSample;
+import com.android.tools.perflogger.Metric;
+import com.android.tools.perflogger.Benchmark;
+import com.android.tools.perflogger.Metric.MetricSample;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
@@ -37,18 +37,18 @@ final class GuiPerfLogger extends TestWatcher {
 
   private final MemoryMXBean myMemoryMXBean = ManagementFactory.getMemoryMXBean();
 
-  @NotNull private final BenchmarkLogger myBenchmarkLogger;
+  @NotNull private final Metric myMetric;
   private long myElapsedTime;
   @NotNull private Timer myTimer;
 
   @NotNull private final Benchmark myTimeBenchmark;
   @NotNull private final Benchmark myMemoryBenchmark;
 
-  GuiPerfLogger(@NotNull Description description) {
-    myBenchmarkLogger = new BenchmarkLogger(description.getDisplayName());
+  public GuiPerfLogger(@NotNull Description description) {
+    myMetric = new Metric(description.getDisplayName());
 
-    myTimeBenchmark = new Benchmark(UI_TEST_TIME_BENCHMARK);
-    myMemoryBenchmark = new Benchmark(UI_TEST_MEMORY_BENCHMARK);
+    myTimeBenchmark = new Benchmark.Builder(UI_TEST_TIME_BENCHMARK).build();
+    myMemoryBenchmark = new Benchmark.Builder(UI_TEST_MEMORY_BENCHMARK).build();
   }
 
   @Override
@@ -73,13 +73,13 @@ final class GuiPerfLogger extends TestWatcher {
     logHeapUsageSample();
 
     // log the total run time of the test.
-    myBenchmarkLogger.addSamples(myTimeBenchmark, new MetricSample(Instant.now().toEpochMilli(), myElapsedTime));
+    myMetric.addSamples(myTimeBenchmark, new MetricSample(Instant.now().toEpochMilli(), myElapsedTime));
 
-    myBenchmarkLogger.commit();
+    myMetric.commit();
   }
 
   private void logHeapUsageSample() {
-    myBenchmarkLogger
+    myMetric
       .addSamples(myMemoryBenchmark, new MetricSample(Instant.now().toEpochMilli(), myMemoryMXBean.getHeapMemoryUsage().getUsed()));
   }
 }

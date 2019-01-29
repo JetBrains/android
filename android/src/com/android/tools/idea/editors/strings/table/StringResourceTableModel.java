@@ -21,7 +21,7 @@ import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.editors.strings.StringResourceKey;
 import com.android.tools.idea.editors.strings.StringResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,12 +39,14 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   private final StringResourceRepository myRepository;
   private final StringResourceData myData;
-  private final List<StringResourceKey> myKeys;
-  private final List<Locale> myLocales;
+
+  private List<StringResourceKey> myKeys;
+  private List<Locale> myLocales;
 
   StringResourceTableModel() {
-    myRepository = StringResourceRepository.create();
+    myRepository = StringResourceRepository.empty();
     myData = null;
+
     myKeys = Collections.emptyList();
     myLocales = Collections.emptyList();
   }
@@ -54,6 +56,7 @@ public class StringResourceTableModel extends AbstractTableModel {
 
     StringResourceData data = repository.getData(facet);
     myData = data;
+
     myKeys = data.getKeys();
     myLocales = data.getLocaleList();
   }
@@ -105,11 +108,16 @@ public class StringResourceTableModel extends AbstractTableModel {
 
     switch (column) {
       case KEY_COLUMN:
-        String oldName = getKey(row).getName();
-        String newName = (String)value;
-        if (!StringUtil.equals(oldName, newName)) {
-          myData.changeKeyName(getKey(row), newName);
-        }
+        // Changing a key's name runs a rename refactoring which insists on being called inside invokeLater
+        ApplicationManager.getApplication().invokeLater(() -> {
+          myData.setKeyName(getKey(row), (String)value);
+
+          myKeys = myData.getKeys();
+          myLocales = myData.getLocaleList();
+
+          fireTableRowsUpdated(0, myKeys.size() - 1);
+        });
+
         break;
       case RESOURCE_FOLDER_COLUMN:
         break;

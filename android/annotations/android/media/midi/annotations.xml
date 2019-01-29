@@ -4,6 +4,9 @@
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.MIDI_SERVICE" />
     </annotation>
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.software.midi&quot;" />
+    </annotation>
   </item>
 </root>
 

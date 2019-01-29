@@ -13,10 +13,11 @@
 // limitations under the License.
 package com.android.tools.profilers.energy;
 
-import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
+import com.android.tools.adtui.model.formatter.EnergyAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMonitor;
@@ -25,21 +26,24 @@ import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 public class EnergyMonitor extends ProfilerMonitor {
-
-  static final BaseAxisFormatter ENERGY_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 2, 10, "mAh");
+  // Shows the left axis range as "Medium" by default.
+  public static final int MAX_EXPECTED_USAGE = EnergyAxisFormatter.DEFAULT_MAJOR_INTERVAL * 2;
+  public static final Range AXIS_MARKER_RANGE =
+    new Range(0, EnergyAxisFormatter.DEFAULT_MAJOR_INTERVAL * EnergyAxisFormatter.LABELS.length);
 
   @NotNull private final EnergyUsage myUsage;
-  @NotNull private final AxisComponentModel myAxis;
+  @NotNull private final ClampedAxisComponentModel myAxis;
   @NotNull private final Legends myLegends;
   @NotNull private final Legends myTooltipLegends;
 
   public EnergyMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
     myUsage = new EnergyUsage(profilers);
-    myAxis = new AxisComponentModel(myUsage.getUsageRange(), ENERGY_AXIS_FORMATTER);
-    myAxis.setClampToMajorTicks(true);
-    myLegends = new Legends(myUsage, getTimeline().getDataRange(), false);
-    myTooltipLegends = new Legends(myUsage, getTimeline().getTooltipRange(), true);
+    myAxis = new ClampedAxisComponentModel.Builder(myUsage.getUsageRange(), EnergyAxisFormatter.DEFAULT)
+      .setMarkerRange(AXIS_MARKER_RANGE).build();
+    myLegends = new Legends(myUsage, getTimeline().getDataRange());
+    myTooltipLegends = new Legends(myUsage, getTimeline().getTooltipRange());
+    changed(Aspect.ENABLE);
   }
 
   @Override
@@ -54,23 +58,41 @@ public class EnergyMonitor extends ProfilerMonitor {
 
   @Override
   public void expand() {
-    myProfilers.setStage(new EnergyProfilerStage(getProfilers()));
+    if (canExpand()) {
+      myProfilers.setStage(new EnergyProfilerStage(getProfilers()));
+    }
+  }
+
+  @Override
+  public boolean canExpand() {
+    return isEnabled();
   }
 
   @Override
   public void enter() {
-    myProfilers.getUpdater().register(myUsage);
-    myProfilers.getUpdater().register(myAxis);
-    myProfilers.getUpdater().register(myLegends);
-    myProfilers.getUpdater().register(myTooltipLegends);
+    if (isEnabled()) {
+      myProfilers.getUpdater().register(myUsage);
+      myProfilers.getUpdater().register(myAxis);
+    }
   }
 
   @Override
   public void exit() {
-    myProfilers.getUpdater().unregister(myUsage);
-    myProfilers.getUpdater().unregister(myAxis);
-    myProfilers.getUpdater().unregister(myLegends);
-    myProfilers.getUpdater().unregister(myTooltipLegends);
+    if (isEnabled()) {
+      myProfilers.getUpdater().unregister(myUsage);
+      myProfilers.getUpdater().unregister(myAxis);
+    }
+  }
+
+  /**
+   * The energy monitor is valid when the session has JVMTI enabled or the device is above O.
+   */
+  @Override
+  public boolean isEnabled() {
+    if (myProfilers.getSession().getSessionId() != 0) {
+      return myProfilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled();
+    }
+    return myProfilers.getDevice() == null || myProfilers.getDevice().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
   }
 
   @NotNull
@@ -98,9 +120,9 @@ public class EnergyMonitor extends ProfilerMonitor {
     @NotNull
     private final SeriesLegend myUsageLegend;
 
-    public Legends(@NotNull EnergyUsage usage, @NotNull Range range, boolean highlight) {
-      super(highlight ? 0 : LEGEND_UPDATE_FREQUENCY_MS);
-      myUsageLegend = new SeriesLegend(usage.getUsageDataSeries(), ENERGY_AXIS_FORMATTER, range);
+    public Legends(@NotNull EnergyUsage usage, @NotNull Range range) {
+      super(range);
+      myUsageLegend = new SeriesLegend(usage.getUsageDataSeries(), EnergyAxisFormatter.LEGEND_FORMATTER, range);
       add(myUsageLegend);
     }
 

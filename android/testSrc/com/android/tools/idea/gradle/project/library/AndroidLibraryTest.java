@@ -14,9 +14,10 @@
 package com.android.tools.idea.gradle.project.library;
 
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
-import com.android.tools.idea.npw.template.RenderTemplateModel;
+import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.TestInvokeStrategy;
@@ -80,13 +81,14 @@ public class AndroidLibraryTest extends AndroidGradleTestCase {
     // Create a Wizard and add an Activity to the lib module
     TemplateHandle myTemplateHandle = new TemplateHandle(TemplateManager.getInstance().getTemplateFile("Activity", "Empty Activity"));
     NamedModuleTemplate template = GradleAndroidModuleTemplate.createDefaultTemplateAt(new File(project.getProjectFilePath()));
-    RenderTemplateModel render = new RenderTemplateModel(libModule, myTemplateHandle, "com.example", template, "command");
+    RenderTemplateModel render = new RenderTemplateModel(libAndroidFacet, myTemplateHandle, "com.example", template, "command",
+                                                         new ProjectSyncInvoker.DefaultProjectSyncInvoker(), true);
 
     List<NamedModuleTemplate> moduleTemplates = AndroidPackageUtils.getModuleTemplates(libAndroidFacet, null);
     assertThat(moduleTemplates).isNotEmpty();
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new ConfigureTemplateParametersStep(render, "Add new Activity Test", moduleTemplates, libAndroidFacet));
+    wizardBuilder.addStep(new ConfigureTemplateParametersStep(render, "Add new Activity Test", moduleTemplates));
     ModelWizard modelWizard = wizardBuilder.build();
     Disposer.register(project, modelWizard);
     myInvokeStrategy.updateAllSteps();

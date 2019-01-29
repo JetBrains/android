@@ -30,33 +30,37 @@ import java.awt.*;
  * Draws an Anchor
  */
 public class DrawAnchor extends DrawRegion {
-  public static final int TYPE_NORMAL = 0;
-  public static final int TYPE_BASELINE = 1;
-  public static final int NORMAL = 0;
-  public static final int OVER = 1;
-  public static final int CAN_CONNECT = 2; // used during connection to say you CAN connect to me
-  public static final int CANNOT_CONNECT = 3; // used during connection to say you CANNOT connect to me
-  public static final int DO_NOT_DRAW = 4; //
 
-  private int myMode; // NORMAL, OVER, CAN_CONNECT
-  boolean myIsConnected;
-  int myType = TYPE_NORMAL;
-
-  public DrawAnchor(String s) {
-    String[] sp = s.split(",");
-    int c = 0;
-    c = super.parse(sp, c);
-    myMode = Integer.parseInt(sp[c++]);
-    myIsConnected = Boolean.parseBoolean(sp[c++]);
+  public enum Type {
+    NORMAL,
+    BASELINE
   }
+
+  public enum Mode {
+    NORMAL,
+    OVER,
+    /**
+     * used during connection to say you CAN connect to me
+     */
+    CAN_CONNECT,
+    /**
+     * used during connection to say you CANNOT connect to me
+     */
+    CANNOT_CONNECT,
+    DO_NOT_DRAW
+  }
+
+  private final Mode myMode;
+  private final boolean myIsConnected;
+  private final Type myType;
 
   public DrawAnchor(@SwingCoordinate int x,
                     @SwingCoordinate int y,
                     @SwingCoordinate int width,
                     @SwingCoordinate int height,
-                    int type,
+                    Type type,
                     boolean isConnected,
-                    int mode) {
+                    Mode mode) {
     super(x, y, width, height);
     myMode = mode;
     myIsConnected = isConnected;
@@ -69,7 +73,7 @@ public class DrawAnchor extends DrawRegion {
 
   @Override
   public int getLevel() {
-    if (myMode == OVER) {
+    if (myMode == Mode.OVER) {
       return TARGET_OVER_LEVEL;
     }
     return TARGET_LEVEL;
@@ -77,7 +81,7 @@ public class DrawAnchor extends DrawRegion {
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
-    if (myType == TYPE_BASELINE) {
+    if (myType == Type.BASELINE) {
       paintBaseline(g, sceneContext);
       return;
     }
@@ -86,7 +90,7 @@ public class DrawAnchor extends DrawRegion {
     Color background = colorSet.getComponentObligatoryBackground();
     Color color = colorSet.getSelectedFrames();
 
-    if (myMode == OVER) {
+    if (myMode == Mode.OVER) {
       if (myIsConnected) {
         g.setColor(colorSet.getAnchorDisconnectionCircle());
       }
@@ -110,7 +114,7 @@ public class DrawAnchor extends DrawRegion {
       g.drawRoundRect(x + delta, y + delta, width - delta2, height - delta2, width - delta2, height - delta2);
     }
 
-    if (myMode == CAN_CONNECT) {
+    if (myMode == Mode.CAN_CONNECT) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
@@ -119,7 +123,7 @@ public class DrawAnchor extends DrawRegion {
       sceneContext.repaint();
       g.setComposite(comp);
     }
-    if (myMode == CANNOT_CONNECT) {
+    if (myMode == Mode.CANNOT_CONNECT) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
@@ -129,7 +133,7 @@ public class DrawAnchor extends DrawRegion {
       g.setComposite(comp);
     }
 
-    if (myMode == OVER) {
+    if (myMode == Mode.OVER) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
@@ -164,7 +168,7 @@ public class DrawAnchor extends DrawRegion {
       g.fillRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height - delta2);
       g.drawRoundRect(ovalX + delta, y + delta, ovalW - delta2, height - delta2, height - delta2, height - delta2);
     }
-    if (myMode == CAN_CONNECT) {
+    if (myMode == Mode.CAN_CONNECT) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
@@ -174,7 +178,7 @@ public class DrawAnchor extends DrawRegion {
       sceneContext.repaint();
       g.setComposite(comp);
     }
-    if (myMode == OVER) {
+    if (myMode == Mode.OVER) {
       int alpha = getPulseAlpha((int)(sceneContext.getTime() % 1000));
       Composite comp = g.getComposite();
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha / 255f));
@@ -193,7 +197,7 @@ public class DrawAnchor extends DrawRegion {
 
   @Override
   public String serialize() {
-    return this.getClass().getSimpleName() + "," + x + "," + y + "," + width + "," + height + "," + myMode;
+    return this.getClass().getSimpleName() + "," + x + "," + y + "," + width + "," + height + "," + myMode.ordinal();
   }
 
   public static void add(@NotNull DisplayList list,
@@ -202,9 +206,9 @@ public class DrawAnchor extends DrawRegion {
                          @AndroidDpCoordinate float top,
                          @AndroidDpCoordinate float right,
                          @AndroidDpCoordinate float bottom,
-                         int type,
+                         Type type,
                          boolean isConnected,
-                         int mode) {
+                         Mode mode) {
     @SwingCoordinate int l = transform.getSwingXDip(left);
     @SwingCoordinate int t = transform.getSwingYDip(top);
     @SwingCoordinate int w = transform.getSwingDimensionDip(right - left);

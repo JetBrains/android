@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class NoChangesTask implements LaunchTask {
+  private static final String ID = "NO_IR_CHANGES";
   private final Project myProject;
   private final InstantRunContext myContext;
 
@@ -54,5 +55,11 @@ public class NoChangesTask implements LaunchTask {
 
     InstantRunManager.LOG.info("No changes");
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 }

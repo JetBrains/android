@@ -19,22 +19,11 @@ import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.CMakeMo
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
+/**
+ * This model is incomplete.
+ */
 public class CMakeModelImpl extends AbstractBuildModelImpl implements CMakeModel {
   public CMakeModelImpl(@NotNull CMakeDslElement dslElement) {
     super(dslElement);
-  }
-
-  @Override
-  @NotNull
-  public CMakeModel setPath(@NotNull File path) {
-    return (CMakeModelImpl)super.setPath(path);
-  }
-
-  @Override
-  @NotNull
-  public CMakeModel removePath() {
-    return (CMakeModelImpl)super.removePath();
   }
 }

@@ -20,14 +20,18 @@ import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
+import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
@@ -36,6 +40,7 @@ import com.intellij.util.PlatformIcons;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableColumnModel;
@@ -51,13 +56,15 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
-import static com.android.tools.profilers.ProfilerLayout.*;
+import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 
 final class MemoryClassifierView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 800;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
   private static final int HEAP_UPDATING_DELAY_MS = 250;
+  private static final int MIN_COLUMN_WIDTH = 16;
 
   private static final String HELP_TIP_HEADER_LIVE_ALLOCATION = "Selected range has no allocations or deallocations";
   private static final String HELP_TIP_DESCRIPTION_LIVE_ALLOCATION =
@@ -106,15 +113,15 @@ final class MemoryClassifierView extends AspectObserver {
     myLoadingPanel.setLoadingText("");
 
     myStage.getAspect().addDependency(this)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
-      .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeapSet)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATING, this::startHeapLoadingUi)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
-      .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
-      .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
-      .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping)
-      .onChange(MemoryProfilerAspect.CURRENT_FILTER, this::refreshFilter);
+           .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::loadCapture)
+           .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refreshCapture)
+           .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeapSet)
+           .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATING, this::startHeapLoadingUi)
+           .onChange(MemoryProfilerAspect.CURRENT_HEAP_UPDATED, this::stopHeapLoadingUi)
+           .onChange(MemoryProfilerAspect.CURRENT_HEAP_CONTENTS, this::refreshTree)
+           .onChange(MemoryProfilerAspect.CURRENT_CLASS, this::refreshClassSet)
+           .onChange(MemoryProfilerAspect.CLASS_GROUPING, this::refreshGrouping)
+           .onChange(MemoryProfilerAspect.CURRENT_FILTER, this::refreshFilter);
 
     myAttributeColumns.put(
       ClassifierAttribute.LABEL,
@@ -126,7 +133,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Allocations",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Integer.toString(value.getAdapter().getDeltaAllocationCount()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getDeltaAllocationCount()),
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
@@ -139,7 +146,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Deallocations",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Integer.toString(value.getAdapter().getDeltaDeallocationCount()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getDeltaDeallocationCount()),
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
@@ -152,7 +159,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Total Count",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Integer.toString(value.getAdapter().getTotalObjectCount()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalObjectCount()),
           value -> null,
           SwingConstants.RIGHT),
         SwingConstants.RIGHT,
@@ -165,7 +172,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Native Size",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Long.toString(value.getAdapter().getTotalNativeSize()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalNativeSize()),
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -176,7 +183,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Shallow Size",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Long.toString(value.getAdapter().getTotalShallowSize()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalShallowSize()),
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -187,7 +194,7 @@ final class MemoryClassifierView extends AspectObserver {
       new AttributeColumn<>(
         "Retained Size",
         () -> new SimpleColumnRenderer<ClassifierSet>(
-          value -> Long.toString(value.getAdapter().getTotalRetainedSize()),
+          value -> NumberFormatter.formatInteger(value.getAdapter().getTotalRetainedSize()),
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -318,6 +325,7 @@ final class MemoryClassifierView extends AspectObserver {
     for (ClassifierAttribute attribute : attributes) {
       AttributeColumn<ClassifierSet> column = myAttributeColumns.get(attribute);
       ColumnTreeBuilder.ColumnBuilder columnBuilder = column.getBuilder();
+      columnBuilder.setMinWidth(MIN_COLUMN_WIDTH);
       if (sortAttribute == attribute) {
         columnBuilder.setInitialOrder(attribute.getSortOrder());
         myInitialComparator =
@@ -337,7 +345,7 @@ final class MemoryClassifierView extends AspectObserver {
         }
       }
     });
-    builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR);
+    builder.setHoverColor(StandardColors.HOVER_COLOR);
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);
@@ -346,17 +354,19 @@ final class MemoryClassifierView extends AspectObserver {
 
     if (myStage.getSelectedCapture().isExportable()) {
       myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(INFO_MESSAGE_HEADER_FONT, HELP_TIP_HEADER_EXPLICIT_CAPTURE),
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_EXPLICIT_CAPTURE),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE))
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
+                            HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE))
         .setColors(JBColor.foreground(), null)
         .build();
     }
     else {
       myHelpTipPanel = new InstructionsPanel.Builder(
-        new TextInstruction(INFO_MESSAGE_HEADER_FONT, HELP_TIP_HEADER_LIVE_ALLOCATION),
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), HELP_TIP_HEADER_LIVE_ALLOCATION),
         new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-        new TextInstruction(INFO_MESSAGE_DESCRIPTION_FONT, HELP_TIP_DESCRIPTION_LIVE_ALLOCATION))
+        new TextInstruction(SwingUtilities2.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT),
+                            HELP_TIP_DESCRIPTION_LIVE_ALLOCATION))
         .setColors(JBColor.foreground(), null)
         .build();
     }
@@ -429,7 +439,7 @@ final class MemoryClassifierView extends AspectObserver {
       }
     }
 
-    if (myStage.getCaptureFilter() != null) {
+    if (!myStage.getFilterHandler().getFilter().isEmpty()) {
       MemoryClassifierTreeNode treeNode = myTreeRoot;
       while (treeNode != null) {
         if (treeNode.getAdapter().getIsMatched()) {
@@ -637,8 +647,10 @@ final class MemoryClassifierView extends AspectObserver {
           String nameAndLine = name + "()";
           append(nameAndLine, SimpleTextAttributes.REGULAR_ATTRIBUTES, nameAndLine);
 
-          String classNameText = " (" + className + ")";
-          append(classNameText, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, classNameText);
+          if (!Strings.isNullOrEmpty(className)) {
+            String classNameText = " (" + className + ")";
+            append(classNameText, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES, classNameText);
+          }
         }
         else if (node.getAdapter() instanceof ThreadSet) {
           setIcon(AllIcons.Debugger.ThreadSuspended);

@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module;
 
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.project.Project;
 
 import java.util.Collection;
 
@@ -26,5 +27,5 @@ import java.util.Collection;
 public interface ModuleDescriptionProvider {
   ExtensionPointName<ModuleDescriptionProvider> EP_NAME = ExtensionPointName.create("com.android.moduleDescriptionProvider");
 
-  Collection<? extends ModuleGalleryEntry> getDescriptions();
+  Collection<? extends ModuleGalleryEntry> getDescriptions(Project project);
 }

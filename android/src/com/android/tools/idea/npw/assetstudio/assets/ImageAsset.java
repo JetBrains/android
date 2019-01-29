@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
+import static com.android.SdkConstants.TAG_VECTOR;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.concurrent.FutureUtils;
@@ -29,18 +32,14 @@ import com.google.common.io.Files;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.annotation.concurrent.GuardedBy;
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-
-import static com.android.SdkConstants.TAG_VECTOR;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import javax.annotation.concurrent.GuardedBy;
+import javax.imageio.ImageIO;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An asset that represents an image on disk. The image can be either raster, e.g. PNG, JPG, etc,
@@ -53,6 +52,8 @@ public final class ImageAsset extends BaseAsset {
   @NotNull private final BoolValueProperty myXmlDrawableIsResizable = new BoolValueProperty();
   @NotNull private final ObjectValueProperty<Validator.Result> myValidityState = new ObjectValueProperty<>(Validator.Result.OK);
   @NotNull private String myRole = "an image file";
+
+  private boolean isClipart;
 
   @NotNull private final Object myLock = new Object();
   @GuardedBy("myLock")
@@ -100,6 +101,20 @@ public final class ImageAsset extends BaseAsset {
    */
   public void setRole(@NotNull String role) {
     myRole = role;
+  }
+
+  /**
+   * Sets the clipart designation of the image asset.
+   */
+  public void setClipart(boolean clipart) {
+    isClipart = clipart;
+  }
+
+  /**
+   * Checks if the image is clipart. All clipart images are black on a transparent background.
+   */
+  public boolean isClipart() {
+    return isClipart;
   }
 
   /**

@@ -19,6 +19,8 @@ import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
+import java.io.FileInputStream
+import java.io.InputStreamReader
 
 class AtraceDecompressorTest {
 
@@ -30,9 +32,30 @@ class AtraceDecompressorTest {
   }
 
   @Test
+  fun testNoDataSliceLongerThan1023Characters() {
+    val rawTraceData = CpuProfilerTestUtils.getTraceFile("../long_line_trace_truncated.txt")
+    val contents = InputStreamReader(FileInputStream(rawTraceData))
+    val traceFile = CpuProfilerTestUtils.getTraceFile("long_line.ctrace")
+    myDecompressor = AtraceDecompressor(traceFile)
+    // "# Initial Data Required by Importer\n"
+    var slice = myDecompressor.next()
+    val lines = contents.readLines()
+    var i = 0
+    do {
+      slice = myDecompressor.next()!!
+      assertThat(slice.toString().trim()).isEqualTo(lines[i++].trim())
+      // Verify that all string lengths are less than or equal to 1024 characters
+      // 1023 characters are expected + 1 for the \n. This is needed to prevent a bug in trebuchet
+      // see (b/77846431)
+      assertThat(slice.endIndex - slice.startIndex).isLessThan(1023 + 1)
+    }
+    while (i != lines.size)
+  }
+
+  @Test
   fun testDecompressedLineHasNewLineChar() {
     var slice = myDecompressor.next()
-    assertThat(slice.toString()).endsWith("\n");
+    assertThat(slice.toString()).endsWith("\n")
   }
 
   @Test
@@ -48,7 +71,7 @@ class AtraceDecompressorTest {
     var knownTimestampOccurences = 0
     for (line in myDecompressor.lines) {
       if (line.indexOf(KNOWN_TIMESTAMP) >= 0) {
-        knownTimestampOccurences++;
+        knownTimestampOccurences++
       }
     }
     assertThat(knownTimestampOccurences).isEqualTo(1)
@@ -63,6 +86,17 @@ class AtraceDecompressorTest {
     while (line != null)
     // Validate that next returns null to indicate end of stream.
     assertThat(myDecompressor.next()).isNull()
+  }
+
+  @Test
+  fun testCaptureLoadsWhenDataFitsExactBufferBounds() {
+    val traceFile = CpuProfilerTestUtils.getTraceFile("exact_size_atrace.ctrace")
+    val decompressor = AtraceDecompressor(traceFile)
+    do {
+      // Read each line until we hit the end of stream.
+      var line = decompressor.nextLine
+    }
+    while (line != null)
   }
 
   // Adding a kotlin property fopr AtraceDecompressor to assist with iterating lines.
@@ -82,6 +116,9 @@ class AtraceDecompressorTest {
 
   companion object {
     // Setting const for atrace file in one location so if we update file we can update const in one location.
-    private const val KNOWN_TIMESTAMP = "189393.076368"
+
+    // Timestamp is significant as it test that leftover lines properly end with \n and are parsed. When updating the atrace file
+    // the timestamp that precedes a buffer ending with \n should be selected.
+    private val KNOWN_TIMESTAMP = "87688.590600"
   }
 }

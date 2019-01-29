@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DeviceFileId;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
+import com.android.tools.idea.explorer.options.DeviceFileExplorerSettings;
 import com.android.utils.FileUtils;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -33,17 +35,12 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FileTypeChooser;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
-import javax.swing.filechooser.FileSystemView;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,6 +51,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 
 /**
@@ -65,17 +63,20 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   @NotNull private final Project myProject;
   @NotNull private final List<VirtualFile> myTemporaryEditorFiles = new ArrayList<>();
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
-  @Nullable private Path myDefaultDownloadPath;
+  @NotNull private Supplier<Path> myDefaultDownloadPath;
 
   public DeviceExplorerFileManagerImpl(@NotNull Project project, @NotNull Executor edtExecutor) {
+    this(project, edtExecutor,
+         () -> Paths.get(DeviceFileExplorerSettings.getInstance().getDownloadLocation()));
+  }
+
+  @VisibleForTesting
+  public DeviceExplorerFileManagerImpl(@NotNull Project project, @NotNull Executor edtExecutor,
+                                       @NotNull Supplier<Path> downloadPathSupplier) {
     myProject = project;
     myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerAdapter());
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
-  }
-
-  @TestOnly
-  public void setDefaultDownloadPath(@NotNull Path path) {
-    myDefaultDownloadPath = path;
+    myDefaultDownloadPath = downloadPathSupplier;
   }
 
   @NotNull
@@ -133,33 +134,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
 
   @NotNull
   private Path getDefaultDownloadPath() {
-    if (myDefaultDownloadPath == null) {
-      myDefaultDownloadPath = getDefaultDownloadPathWorker();
-    }
-    return myDefaultDownloadPath;
-  }
-
-  @NotNull
-  private static Path getDefaultDownloadPathWorker() {
-    String userHome = System.getProperty("user.home");
-    String path = null;
-    if (SystemInfo.isWindows) {
-      // On Windows, we need the localized "Documents" folder name
-      path = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
-    }
-    else if (SystemInfo.isMac) {
-      // On OSX, "Documents" is not localized
-      path = FileUtil.join(userHome, "Documents");
-    }
-    else if (SystemInfo.isLinux) {
-      // On Linux, there is no standard "Documents" folder, so use the home folder
-      path = userHome;
-    }
-    if (StringUtil.isEmpty(path)) {
-      throw new RuntimeException("Platform is not supported");
-    }
-    path = FileUtil.join(path, "AndroidStudio", "DeviceExplorer");
-    return Paths.get(path);
+    return myDefaultDownloadPath.get();
   }
 
   @NotNull

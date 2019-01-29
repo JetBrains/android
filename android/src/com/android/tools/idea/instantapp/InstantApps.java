@@ -18,10 +18,8 @@ package com.android.tools.idea.instantapp;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +35,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class InstantApps {
 
   /**
-   * This method will find and return all feature modules associated with the facet of an instant app application module.
+   * This method will find and return all Instant App Feature modules associated with the facet of an instant app application module.
    *
    * @param facet the {@link AndroidFacet} for the Instant App application module whose feature modules you want to find.
    * @return The {@link List} of {@link Module}s corresponding to all found features.
@@ -130,10 +128,11 @@ public class InstantApps {
    */
   @NotNull
   public static String getDefaultInstantAppUrl(@NotNull AndroidFacet facet) {
-    String defaultUrl = "<<ERROR - NO URL SET>>";
+    String defaultUrl = "";
+
     List<Module> featureModules = findFeatureModules(facet);
     for (Module module : featureModules) {
-      String foundUrl = new InstantAppUrlFinder(MergedManifest.get(module)).getDefaultUrl();
+      String foundUrl = new InstantAppUrlFinder(module).getDefaultUrl();
       if (isNotEmpty(foundUrl)) {
         defaultUrl = foundUrl;
         break;
@@ -148,10 +147,7 @@ public class InstantApps {
 
   @NotNull
   public static File getInstantAppSdk() throws FileNotFoundException {
-    File sdk = InstantAppSdks.getInstance().getInstantAppSdk(true);
-    if (sdk == null) {
-      throw new FileNotFoundException("Instant App SDK couldn't be found.");
-    }
+    File sdk = InstantAppSdks.getInstance().getOrInstallInstantAppSdk();
 
     return sdk;
   }

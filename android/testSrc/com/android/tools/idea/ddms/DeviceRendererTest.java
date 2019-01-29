@@ -111,6 +111,18 @@ public final class DeviceRendererTest {
   }
 
   @Test
+  public void nullAvdNameForEmulator() throws Exception {
+    String serial = "emulator-5554";
+    IDevice d = createDevice(true, null, manufacturer, model, buildVersion, apiLevel, serial, IDevice.DeviceState.ONLINE);
+    DeviceNameProperties deviceNameProperties = new DeviceNameProperties(model, manufacturer, buildVersion, apiLevel);
+    SimpleColoredText target = new SimpleColoredText();
+    DeviceRenderer.renderDeviceName(d, deviceNameProperties, target, false);
+
+    String name = target.toString();
+    assertEquals("Emulator emulator-5554 Android 4.2, API 17", name);
+  }
+
+  @Test
   public void showSerialFalseForEmulator() throws Exception {
     List<IDevice> devices = new ArrayList<>();
 

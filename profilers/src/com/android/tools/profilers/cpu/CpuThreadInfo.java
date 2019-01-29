@@ -19,15 +19,26 @@ import com.android.annotations.NonNull;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuThreadInfo {
+
   /** Thread id */
   private final int myId;
 
   /** Thread name */
   private final String myName;
 
-  public CpuThreadInfo(int threadId, @NonNull String name) {
+  /**
+   * Whether this {@link CpuThreadInfo} contains information of a main thread.
+   */
+  private final boolean myIsMainThread;
+
+  public CpuThreadInfo(int threadId, @NonNull String name, boolean isMainThread) {
     myId = threadId;
     myName = name;
+    myIsMainThread = isMainThread;
+  }
+
+  public CpuThreadInfo(int threadId, @NonNull String name) {
+    this(threadId, name, false);
   }
 
   public int getId() {
@@ -37,5 +48,9 @@ public class CpuThreadInfo {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  public boolean isMainThread() {
+    return myIsMainThread;
   }
 }

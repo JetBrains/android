@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers.frame
 
+import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneInteraction
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.*
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
 

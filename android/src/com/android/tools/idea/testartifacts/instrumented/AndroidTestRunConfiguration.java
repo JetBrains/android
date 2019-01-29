@@ -21,7 +21,7 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.TestOptions.Execution;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.testrunner.OnDeviceOrchestratorRemoteAndroidTestRunner;
+import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -31,6 +31,7 @@ import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.stats.UsageTrackerTestRunListener;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.AnnotationUtil;
@@ -66,10 +67,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 
-import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
-
+/**
+ * Run Configuration for "Android Instrumented Tests"
+ */
 public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
   private static final Logger LOG = Logger.getInstance(AndroidTestRunConfiguration.class);
 
@@ -201,9 +204,11 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   @NotNull
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
-    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidModuleModel) {
-      return new GradleApkProvider(facet, applicationIdProvider, myOutputProvider, true);
+  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
+                                       @NotNull ApplicationIdProvider applicationIdProvider,
+                                       @NotNull List<AndroidDevice> targetDevices) {
+    if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
+      return createGradleApkProvider(facet, applicationIdProvider, true, targetDevices);
     }
     return new NonGradleApkProvider(facet, applicationIdProvider, null);
   }
@@ -297,6 +302,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
                                                 @NotNull AndroidFacet facet,
+                                                @NotNull String contributorsAmStartOptions,
                                                 boolean waitForDebugger,
                                                 @NotNull LaunchStatus launchStatus) {
     String runner;
@@ -484,6 +490,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @VisibleForTesting
   class MyApplicationLaunchTask implements LaunchTask {
+    private static final String ID = "INSTRUMENTATION_RUNNER";
+
     @Nullable private final String myInstrumentationTestRunner;
     @NotNull private final String myTestApplicationId;
     private final boolean myWaitForDebugger;
@@ -515,11 +523,17 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
     @NotNull
     public RemoteAndroidTestRunner getRemoteAndroidTestRunner(@Nullable IdeAndroidArtifact artifact, @NotNull IDevice device) {
-      return artifact != null &&
-             artifact.getTestOptions() != null &&
-             Execution.ANDROID_TEST_ORCHESTRATOR.equals(artifact.getTestOptions().getExecution()) ?
-             new OnDeviceOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device) :
-             new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
+      if (artifact != null && artifact.getTestOptions() != null) {
+        final Execution execution = artifact.getTestOptions().getExecution();
+        if (execution == Execution.ANDROID_TEST_ORCHESTRATOR) {
+          return new AndroidTestOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device, false);
+        }
+        else if (execution == Execution.ANDROIDX_TEST_ORCHESTRATOR) {
+          return new AndroidTestOrchestratorRemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device, true);
+        }
+      }
+
+      return new RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device);
     }
 
     @Override
@@ -559,6 +573,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       });
 
       return true;
+    }
+
+    @NotNull
+    @Override
+    public String getId() {
+      return ID;
     }
   }
 }

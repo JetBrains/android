@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.scene.draw;
 
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.DrawCommandBase;
 import com.android.tools.idea.common.scene.draw.DrawCommandSerializationHelperKt;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,26 +31,23 @@ import static com.android.tools.idea.naveditor.scene.NavDrawHelperKt.DRAW_ACTION
  * where the action handle usually is as well as a line from the center
  * of the circle to the current mouse position.
  */
-public class DrawActionHandleDrag extends NavBaseDrawCommand {
+public class DrawActionHandleDrag extends DrawCommandBase {
   public static final Stroke STROKE = new BasicStroke(3.0f);
   @SwingCoordinate private final int myX;
   @SwingCoordinate private final int myY;
-  @SwingCoordinate private final int myRadius;
 
   public DrawActionHandleDrag(@SwingCoordinate int x,
-                              @SwingCoordinate int y,
-                              @SwingCoordinate int radius) {
+                              @SwingCoordinate int y) {
     myX = x;
     myY = y;
-    myRadius = radius;
   }
 
   public DrawActionHandleDrag(String s) {
-    this(DrawCommandSerializationHelperKt.parse(s, 3));
+    this(DrawCommandSerializationHelperKt.parse(s, 2));
   }
 
   private DrawActionHandleDrag(String[] sp) {
-    this(Integer.parseInt(sp[0]), Integer.parseInt(sp[1]), Integer.parseInt(sp[2]));
+    this(Integer.parseInt(sp[0]), Integer.parseInt(sp[1]));
   }
 
   @Override
@@ -59,14 +57,12 @@ public class DrawActionHandleDrag extends NavBaseDrawCommand {
 
   @Override
   public String serialize() {
-    return DrawCommandSerializationHelperKt.buildString(getClass().getSimpleName(), myX, myY, myRadius);
+    return DrawCommandSerializationHelperKt.buildString(getClass().getSimpleName(), myX, myY);
   }
 
   @Override
   protected void onPaint(@NotNull Graphics2D g, @NotNull SceneContext sceneContext) {
     g.setColor(sceneContext.getColorSet().getSelectedFrames());
-    g.fillOval(myX - myRadius, myY - myRadius, 2 * myRadius, 2 * myRadius);
-
     g.setStroke(STROKE);
     g.drawLine(myX, myY, sceneContext.getMouseX(), sceneContext.getMouseY());
   }

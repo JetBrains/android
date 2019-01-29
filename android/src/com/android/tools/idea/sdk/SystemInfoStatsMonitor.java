@@ -19,10 +19,12 @@ import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.startup.AndroidSdkInitializer;
+import com.android.utils.NullLogger;
 import com.google.common.base.Joiner;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
@@ -37,7 +39,6 @@ import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -112,7 +113,7 @@ public class SystemInfoStatsMonitor {
   private EnumSet<CpuInfoFlags> myCpuInfo = EnumSet.noneOf(CpuInfoFlags.class);
 
   public void start() {
-    if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
+    if (!AnalyticsSettings.getOptedIn()) {
       return;
     }
 
@@ -129,7 +130,7 @@ public class SystemInfoStatsMonitor {
   private void updateAndUploadStats() {
     // double-check if the user has opted out of the metrics reporting since the
     // last run
-    if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
+    if (!AnalyticsSettings.getOptedIn()) {
       myUploadTask.cancel(true);
       return;
     }
@@ -153,12 +154,12 @@ public class SystemInfoStatsMonitor {
     if (!myCpuInfo.contains(CpuInfoFlags.UNKNOWN) && !myCpuInfo.contains(CpuInfoFlags.ERROR)) {
     }
 
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.SYSTEM)
                                    .setKind(EventKind.HYPERVISOR)
                                    .setHypervisor(Hypervisor.newBuilder()
                                                   .setHyperVState(myHyperVState)));
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.SYSTEM)
                                      .setKind(EventKind.EMULATOR_HOST)
                                      .setEmulatorHost(EmulatorHost.newBuilder()

@@ -1,0 +1,4 @@
+These files test the integration with an installed Instant Apps SDK.
+lib.jar is a stub service provider for the class
+com.google.android.instantapps.sdk.api.Sdk. It implements only
+Sdk.getLibraryVersion, returning the string "THIS_IS_A_FAKE_LIBRARY".

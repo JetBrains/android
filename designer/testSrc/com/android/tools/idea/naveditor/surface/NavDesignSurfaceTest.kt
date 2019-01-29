@@ -15,35 +15,87 @@
  */
 package com.android.tools.idea.naveditor.surface
 
+import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.common.editor.NlEditorPanel
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.model.NavCoordinate
+import com.android.tools.idea.naveditor.scene.NavSceneManager
+import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.util.indexing.UnindexedFilesUpdater
 import com.intellij.util.ui.UIUtil
+import org.intellij.lang.annotations.Language
+import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.sdk.AndroidSdkData
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.eq
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.any
+import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.doCallRealMethod
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyZeroInteractions
 import java.awt.Dimension
 import java.awt.Point
+import java.awt.Rectangle
 import java.awt.event.MouseEvent
+import java.io.File
 import java.util.concurrent.Future
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
 import javax.swing.JScrollPane
 import javax.swing.JViewport
+import kotlin.test.assertNotEquals
 
 /**
  * Tests for [NavDesignSurface]
  */
 class NavDesignSurfaceTest : NavTestCase() {
+
+  fun testSkipContentResize() {
+    val surface = NavDesignSurface(project, myRootDisposable)
+    surface.model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+      }
+    }
+    LayoutTestCase.assertFalse(surface.isSkipContentResize)
+    surface.zoomToFit()
+    LayoutTestCase.assertFalse(surface.isSkipContentResize)
+    surface.zoomActual()
+    LayoutTestCase.assertTrue(surface.isSkipContentResize)
+    surface.zoomIn()
+    LayoutTestCase.assertTrue(surface.isSkipContentResize)
+    surface.zoomToFit()
+    LayoutTestCase.assertFalse(surface.isSkipContentResize)
+    surface.setScale(1.23, 100, 100)
+    LayoutTestCase.assertTrue(surface.isSkipContentResize)
+  }
 
   fun testLayers() {
     val droppedLayers: ImmutableList<Layer>
@@ -113,6 +165,29 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertEquals(subnav, surface.currentNavigation)
   }
 
+  fun testRootActivated() {
+    val surface = NavDesignSurface(project, myRootDisposable)
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+        navigation("subnav") {
+          fragment("fragment2")
+        }
+      }
+    }
+    surface.model = model
+    val modelListener = mock(ModelListener::class.java)
+    val surfaceListener = mock(DesignSurfaceListener::class.java)
+    model.addListener(modelListener)
+    surface.addListener(surfaceListener)
+    assertEquals(model.components[0], surface.currentNavigation)
+    val root = model.find("root")!!
+    surface.notifyComponentActivate(root)
+    assertEquals(root, surface.currentNavigation)
+    verifyZeroInteractions(modelListener)
+    verifyZeroInteractions(surfaceListener)
+  }
+
   fun testDoubleClickFragment() {
     val model = model("nav.xml") {
       navigation("root") {
@@ -171,25 +246,314 @@ class NavDesignSurfaceTest : NavTestCase() {
     surface.scene!!.getSceneComponent(f1)!!.setPosition(0, 0)
     surface.scene!!.getSceneComponent(f2)!!.setPosition(100, 100)
     surface.scene!!.getSceneComponent(f3)!!.setPosition(200, 200)
+    (surface.sceneManager as NavSceneManager).layout(false)
 
-    verifyScroll(ImmutableList.of(f2), surface, scheduleRef, scrollPosition, -22, 4)
-    verifyScroll(ImmutableList.of(f1, f2), surface, scheduleRef, scrollPosition, -47, -21)
-    verifyScroll(ImmutableList.of(f1, f3), surface, scheduleRef, scrollPosition, -22, 4)
-    verifyScroll(ImmutableList.of(f3), surface, scheduleRef, scrollPosition, 28, 54)
+    verifyScroll(ImmutableList.of(f2), surface, scheduleRef, scrollPosition, -12, 14)
+    verifyScroll(ImmutableList.of(f1, f2), surface, scheduleRef, scrollPosition, -37, -11)
+    verifyScroll(ImmutableList.of(f1, f3), surface, scheduleRef, scrollPosition, -12, 14)
+    verifyScroll(ImmutableList.of(f3), surface, scheduleRef, scrollPosition, 38, 64)
   }
 
   private fun verifyScroll(
-      components: List<NlComponent>,
-      surface: NavDesignSurface,
-      scheduleRef: AtomicReference<Future<*>>,
-      scrollPosition: Point,
-      expectedX: Int,
-      expectedY: Int) {
+    components: List<NlComponent>,
+    surface: NavDesignSurface,
+    scheduleRef: AtomicReference<Future<*>>,
+    scrollPosition: Point,
+    expectedX: Int,
+    expectedY: Int
+  ) {
     surface.scrollToCenter(components)
 
     while (scheduleRef.get() != null && !scheduleRef.get().isCancelled) {
       UIUtil.dispatchAllInvocationEvents()
     }
     assertEquals(Point(expectedX, expectedY), scrollPosition)
+  }
+
+  fun testDragSelect() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        fragment("fragment2")
+      }
+    }
+
+    val surface = model.surface as NavDesignSurface
+    val scene = surface.scene!!
+    scene.layout(0, SceneContext.get())
+    val sceneView = NavView(surface, surface.sceneManager!!)
+    `when`<SceneView>(surface.currentSceneView).thenReturn(sceneView)
+    `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(sceneView)
+
+    model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
+
+    val manager = InteractionManager(surface)
+    manager.startListening()
+
+    val fragment1 = scene.getSceneComponent("fragment1")!!
+    val fragment2 = scene.getSceneComponent("fragment2")!!
+
+    val rect1 = fragment1.fillDrawRect(0, null)
+    rect1.grow(5, 5)
+    dragSelect(manager, sceneView, rect1)
+    assertTrue(fragment1.isSelected)
+    assertFalse(fragment2.isSelected)
+    dragRelease(manager, sceneView, rect1)
+    assertTrue(fragment1.isSelected)
+    assertFalse(fragment2.isSelected)
+
+    val rect2 = fragment2.fillDrawRect(0, null)
+    rect2.grow(5, 5)
+    dragSelect(manager, sceneView, rect2)
+    assertFalse(fragment1.isSelected)
+    assertTrue(fragment2.isSelected)
+    dragRelease(manager, sceneView, rect2)
+    assertFalse(fragment1.isSelected)
+    assertTrue(fragment2.isSelected)
+
+    val rect3 = Rectangle()
+    rect3.add(rect1)
+    rect3.add(rect2)
+    rect3.grow(5, 5)
+    dragSelect(manager, sceneView, rect3)
+    assertTrue(fragment1.isSelected)
+    assertTrue(fragment2.isSelected)
+    dragRelease(manager, sceneView, rect3)
+    assertTrue(fragment1.isSelected)
+    assertTrue(fragment2.isSelected)
+
+    val rect4 = Rectangle(rect3.x + rect3.width + 10, rect3.y + rect3.height + 10, 100, 100)
+    dragSelect(manager, sceneView, rect4)
+    assertFalse(fragment1.isSelected)
+    assertFalse(fragment2.isSelected)
+    dragRelease(manager, sceneView, rect4)
+    assertFalse(fragment1.isSelected)
+    assertFalse(fragment2.isSelected)
+
+    manager.stopListening()
+  }
+
+  fun testRefreshRoot() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("fragment1")
+        navigation("subnav") {
+          navigation("duplicate")
+        }
+        navigation("othersubnav") {
+          navigation("duplicate")
+        }
+        fragment("oldfragment")
+      }
+    }
+
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
+
+    val root = model.components[0]
+    assertEquals(root, surface.currentNavigation)
+    surface.refreshRoot()
+    assertEquals(root, surface.currentNavigation)
+
+    val subnav = model.find("subnav")!!
+    surface.currentNavigation = subnav
+    surface.refreshRoot()
+    assertEquals(subnav, surface.currentNavigation)
+
+    val orig = model.find("othersubnav")!!.getChild(0)!!
+    surface.currentNavigation = orig
+    val model2 = model("nav.xml") {
+      navigation("foo") {
+        fragment("fragment1")
+        navigation("subnav") {
+          navigation("duplicate")
+        }
+        navigation("othersubnav") {
+          navigation("duplicate")
+        }
+        activity("newactivity")
+      }
+    }
+
+    NavSceneManager.updateHierarchy(model, model2)
+    val newVersion = model.find("othersubnav")!!.getChild(0)!!
+    assertNotEquals(orig, newVersion)
+    surface.refreshRoot()
+    assertEquals(newVersion, surface.currentNavigation)
+  }
+
+  // TODO: Add a similar test that manipulates the NlModel directly instead of changing the XML
+  fun testUpdateXml() {
+    val model = model("nav.xml") {
+      navigation {
+        navigation("navigation1") {
+          fragment("fragment1")
+        }
+      }
+    }
+
+    val surface = NavDesignSurface(project, project)
+    surface.model = model
+
+    var root = model.components[0]
+    assertEquals(root, surface.currentNavigation)
+
+    var navigation1 = model.find("navigation1")!!
+    surface.currentNavigation = navigation1
+    assertEquals(navigation1, surface.currentNavigation)
+
+    // Paste in the same xml and verify that the current navigation is unchanged
+    WriteCommandAction.runWriteCommandAction(project) {
+      val manager = PsiDocumentManager.getInstance(project)
+      val document = manager.getDocument(model.file)!!
+      document.setText("<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                       "            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                       "    <navigation android:id=\"@+id/navigation1\" app:startDestination=\"@id/fragment1\">\n" +
+                       "        <fragment android:id=\"@+id/fragment1\"/>\n" +
+                       "    </navigation>\n" +
+                       "</navigation>")
+      manager.commitAllDocuments()
+    }
+
+    navigation1 = model.find("navigation1")!!
+    assertEquals(navigation1, surface.currentNavigation)
+
+    // Paste in xml that invalidates the current navigation and verify that the current navigation gets reset to the root
+    WriteCommandAction.runWriteCommandAction(project) {
+      val manager = PsiDocumentManager.getInstance(project)
+      val document = manager.getDocument(model.file)!!
+      document.setText("<navigation xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                       "            xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                       "    <xnavigation android:id=\"@+id/navigation1\" app:startDestination=\"@id/fragment1\">\n" +
+                       "        <fragment android:id=\"@+id/fragment1\"/>\n" +
+                       "    </xnavigation>\n" +
+                       "</navigation>")
+      manager.commitAllDocuments()
+    }
+
+    NavSceneManager.updateHierarchy(model, model)
+
+    root = model.components[0]
+    val component = surface.currentNavigation
+    assertEquals(root, component)
+  }
+
+  fun testConfiguration() {
+    val defaultConfigurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val navConfigurationManager = NavDesignSurface(project, project).getConfigurationManager(myFacet)
+    assertNotEquals(defaultConfigurationManager, navConfigurationManager)
+
+    val navFile = VfsUtil.findFileByIoFile(File(project.basePath, "../unitTest/res/navigation/navigation.xml"), true)!!
+    val defaultConfiguration = defaultConfigurationManager.getConfiguration(navFile)
+    val navConfiguration = navConfigurationManager.getConfiguration(navFile)
+    val navDevice = navConfiguration.device
+    val pixelC = AndroidSdkData.getSdkData(myFacet)!!.deviceManager.getDevice("pixel_c", "Google")!!
+    // in order to unset the cached derived device in the configuration you have to set it to something else first
+    navConfiguration.setDevice(pixelC, false)
+    navConfiguration.setDevice(null, false)
+
+    // Select a device in the default (layout) ConfigurationManager. It shouldn't affect the nav editor device.
+    defaultConfigurationManager.selectDevice(pixelC)
+
+    assertEquals(navDevice, navConfiguration.device)
+    assertEquals(pixelC, defaultConfiguration.device)
+  }
+
+  fun testActivateWithSchemaChange() {
+    NavigationSchema.createIfNecessary(myModule)
+    val editor = mock(NlEditorPanel::class.java)
+    val surface = NavDesignSurface(project, editor, project)
+    surface.model = model("nav.xml") { navigation() }
+    @Suppress("UNCHECKED_CAST")
+    val workbench = mock(WorkBench::class.java) as WorkBench<DesignSurface>
+    `when`(editor.workBench).thenReturn(workbench)
+    val lock = Semaphore(1)
+    lock.acquire()
+    // This should indicate that the relevant logic is complete
+    `when`(workbench.hideLoading()).then { lock.release() }
+
+    val navigator = addClass("import androidx.navigation.*;\n" +
+                             "@Navigator.Name(\"activity_sub\")\n" +
+                             "public class TestListeners extends ActivityNavigator {}\n")
+    NavigationSchema.get(myModule).rebuildSchema().get()
+    val initialSchema = NavigationSchema.get(myModule)
+
+    updateContent(navigator, "import androidx.navigation.*;\n" +
+                             "@Navigator.Name(\"activity_sub2\")\n" +
+                             "public class TestListeners extends ActivityNavigator {}\n")
+
+    surface.activate()
+    // wait for the relevant logic to complete
+    var completed = false
+    for (i in 0..5) {
+      UIUtil.dispatchAllInvocationEvents()
+      if (lock.tryAcquire(1, TimeUnit.SECONDS)) {
+        completed = true
+        break
+      }
+    }
+    assertTrue("hideLoading never executed", completed)
+    assertNotEquals(initialSchema, NavigationSchema.get(myModule))
+    verify(workbench).showLoading("Refreshing Navigators...")
+    verify(workbench).hideLoading()
+  }
+
+  private fun addClass(@Language("JAVA") content: String): PsiClass {
+    val result = WriteCommandAction.runWriteCommandAction(project, Computable<PsiClass> {
+      myFixture.addClass(content)
+    })
+    WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
+    val dumbService = DumbService.getInstance(project)
+    dumbService.queueTask(UnindexedFilesUpdater(project))
+    dumbService.completeJustSubmittedTasks()
+    return result
+  }
+
+  private fun updateContent(psiClass: PsiClass, @Language("JAVA") newContent: String) {
+    WriteCommandAction.runWriteCommandAction(
+      project) {
+      try {
+        psiClass.containingFile.virtualFile.setBinaryContent(newContent.toByteArray())
+      }
+      catch (e: Exception) {
+        fail(e.message)
+      }
+    }
+    WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
+    val dumbService = DumbService.getInstance(project)
+    dumbService.queueTask(UnindexedFilesUpdater(project))
+    dumbService.completeJustSubmittedTasks()
+  }
+
+  fun testActivateAddNavigator() {
+    NavigationSchema.createIfNecessary(myModule)
+    val surface = NavDesignSurface(project, mock(NlEditorPanel::class.java), project)
+    surface.model = model("nav.xml") { navigation() }
+
+    addClass("import androidx.navigation.*;\n" +
+             "@Navigator.Name(\"activity_sub\")\n" +
+             "public class TestListeners extends ActivityNavigator {}\n")
+    val initialSchema = NavigationSchema.get(myModule)
+
+    surface.activate()
+    initialSchema.rebuildTask?.get()
+    assertNotEquals(initialSchema, NavigationSchema.get(myModule))
+  }
+
+  private fun dragSelect(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
+    @SwingCoordinate val x1 = Coordinates.getSwingX(sceneView, rect.x)
+    @SwingCoordinate val y1 = Coordinates.getSwingY(sceneView, rect.y)
+    @SwingCoordinate val x2 = Coordinates.getSwingX(sceneView, rect.x + rect.width)
+    @SwingCoordinate val y2 = Coordinates.getSwingY(sceneView, rect.y + rect.height)
+
+    LayoutTestUtilities.pressMouse(manager, MouseEvent.BUTTON1, x1, y1, 0)
+    LayoutTestUtilities.dragMouse(manager, x1, y1, x2, y2, 0)
+  }
+
+  private fun dragRelease(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
+    @SwingCoordinate val x2 = Coordinates.getSwingX(sceneView, rect.x + rect.width)
+    @SwingCoordinate val y2 = Coordinates.getSwingY(sceneView, rect.y + rect.height)
+
+    LayoutTestUtilities.releaseMouse(manager, MouseEvent.BUTTON1, x2, y2, 0)
   }
 }

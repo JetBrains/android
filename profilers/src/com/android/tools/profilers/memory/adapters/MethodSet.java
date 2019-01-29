@@ -17,6 +17,8 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.google.common.base.Strings;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,24 +81,8 @@ public class MethodSet extends ClassifierSet {
     @Nullable
     @Override
     public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
-      AllocationStack stack = instance.getAllocationCallStack();
-      int stackDepth = instance.getCallStackDepth();
-      if (stack != null && stackDepth > 0 && myDepth < stackDepth) {
-        MethodSetInfo methodInfo;
-        switch (stack.getFrameCase()) {
-          case FULL_STACK:
-            AllocationStack.StackFrameWrapper fullStack = stack.getFullStack();
-            AllocationStack.StackFrame stackFrame = fullStack.getFrames(fullStack.getFramesCount() - myDepth - 1);
-            methodInfo = new MethodSetInfo(myCaptureObject, stackFrame.getClassName(), stackFrame.getMethodName());
-            break;
-          case SMALL_STACK:
-            AllocationStack.SmallFrameWrapper smallStack = stack.getSmallStack();
-            AllocationStack.SmallFrame smallFrame = smallStack.getFrames(smallStack.getFramesCount() - myDepth - 1);
-            methodInfo = new MethodSetInfo(myCaptureObject, smallFrame.getMethodId());
-            break;
-          default:
-            throw new UnsupportedOperationException();
-        }
+      MethodSetInfo methodInfo = getMethodInfo(instance);
+      if (methodInfo != null) {
         MethodSet methodSet = myStackLineMap.get(methodInfo);
         if (methodSet == null && createIfAbsent) {
           methodSet = new MethodSet(myCaptureObject, methodInfo, myDepth + 1);
@@ -112,6 +98,37 @@ public class MethodSet extends ClassifierSet {
         myClassMap.put(classEntry, classSet);
       }
       return classSet;
+    }
+
+    @Nullable
+    private MethodSetInfo getMethodInfo(@NotNull InstanceObject instance) {
+      int stackDepth = instance.getCallStackDepth();
+      if (stackDepth <= 0 || myDepth >= stackDepth) {
+        return null;
+      }
+
+      int frameIndex = stackDepth - myDepth - 1;
+      AllocationStack stack = instance.getAllocationCallStack();
+      if (stack != null) {
+        switch (stack.getFrameCase()) {
+          case FULL_STACK:
+            AllocationStack.StackFrameWrapper fullStack = stack.getFullStack();
+            AllocationStack.StackFrame stackFrame = fullStack.getFrames(frameIndex);
+            return new MethodSetInfo(myCaptureObject, stackFrame.getClassName(), stackFrame.getMethodName());
+          case SMALL_STACK:
+            AllocationStack.SmallFrameWrapper smallStack = stack.getSmallStack();
+            AllocationStack.SmallFrame smallFrame = smallStack.getFrames(frameIndex);
+            return new MethodSetInfo(myCaptureObject, smallFrame.getMethodId());
+          default:
+            throw new UnsupportedOperationException();
+        }
+      }
+
+      assert frameIndex >= 0 && frameIndex < stackDepth;
+      CodeLocation location = instance.getAllocationCodeLocations().get(frameIndex);
+      return new MethodSetInfo(myCaptureObject,
+                               Strings.nullToEmpty(location.getClassName()),
+                               Strings.nullToEmpty(location.getMethodName()));
     }
 
     @NotNull
@@ -188,7 +205,9 @@ public class MethodSet extends ClassifierSet {
       else {
         builder.append("<unknown method>");
       }
-      builder.append(" (").append(myClassName).append(")");
+      if (!Strings.isNullOrEmpty(myClassName)) {
+        builder.append(" (").append(myClassName).append(")");
+      }
       return builder.toString();
     }
 

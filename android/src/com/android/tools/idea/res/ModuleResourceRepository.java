@@ -15,60 +15,68 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.ResourceTable;
-import com.android.resources.ResourceType;
-import com.google.common.collect.*;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 /**
- * Resource repository for a single module (which can possibly have multiple resource folders). Does not include
- * resources from any dependencies.
+ * @see ResourceRepositoryManager#getModuleResources(boolean)
  */
-public final class ModuleResourceRepository extends MultiResourceRepository {
+final class ModuleResourceRepository extends MultiResourceRepository implements SingleNamespaceResourceRepository {
   private final AndroidFacet myFacet;
+  private final ResourceNamespace myNamespace;
+  private final ResourceFolderRegistry myRegistry;
   private final ResourceFolderManager.ResourceFolderListener myResourceFolderListener = (facet, folders, added, removed) -> updateRoots();
+  private final ResourceFolderManager myResourceFolderManager;
 
   /**
-   * Returns the Android resources specific to this module, not including resources in any
-   * dependent modules or any AAR libraries, create the app resources if necessary.
+   * Creates a new resource repository for the given module, <b>not</b> including its dependent modules.
    *
-   * @param module the module to look up resources for
+   * @param facet the facet for the module
    * @return the resource repository
    */
-  @Nullable
-  public static LocalResourceRepository getOrCreateInstance(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? getOrCreateInstance(facet) : null;
-  }
-
   @NotNull
-  public static LocalResourceRepository getOrCreateInstance(@NotNull AndroidFacet facet) {
-    return findModuleResources(facet, true);
-  }
+  static LocalResourceRepository forMainResources(@NotNull AndroidFacet facet) {
+    ResourceNamespace namespace = ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace();
+    ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
+    ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
 
-  @Nullable
-  public static LocalResourceRepository findExistingInstance(@NotNull AndroidFacet facet) {
-    return findModuleResources(facet, false);
-  }
+    if (!facet.requiresAndroidModel()) {
+      // Always just a single resource folder: simple.
+      VirtualFile primaryResourceDir = folderManager.getPrimaryFolder();
+      if (primaryResourceDir == null) {
+        return new EmptyRepository(namespace);
+      }
+      return resourceFolderRegistry.get(facet, primaryResourceDir);
+    }
 
-  @Contract("_, true -> !null")
-  @Nullable
-  private static LocalResourceRepository findModuleResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
-    ResourceRepositories repositories = ResourceRepositories.getOrCreateInstance(facet);
-    return repositories.getModuleResources(createIfNecessary);
+    List<VirtualFile> resourceDirectories = folderManager.getFolders();
+    List<LocalResourceRepository> childRepositories = new ArrayList<>(resourceDirectories.size() + 1);
+    for (VirtualFile resourceDirectory : resourceDirectories) {
+      ResourceFolderRepository repository = resourceFolderRegistry.get(facet, resourceDirectory);
+      childRepositories.add(repository);
+    }
+
+    DynamicResourceValueRepository dynamicResources = DynamicResourceValueRepository.create(facet);
+    childRepositories.add(dynamicResources);
+
+    // We create a ModuleResourceRepository even if childRepositories.isEmpty(), because we may
+    // dynamically add children to it later (in updateRoots).
+    ModuleResourceRepository repository = new ModuleResourceRepository(facet, namespace, childRepositories);
+    Disposer.register(repository, dynamicResources);
+
+    return repository;
   }
 
   /**
@@ -78,45 +86,42 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
    * @return the resource repository
    */
   @NotNull
-  static LocalResourceRepository create(@NotNull AndroidFacet facet) {
-    if (!facet.requiresAndroidModel()) {
-      // Always just a single resource folder: simple
-      VirtualFile primaryResourceDir = facet.getPrimaryResourceDir();
-      if (primaryResourceDir == null) {
-        return new EmptyRepository();
+  static LocalResourceRepository forTestResources(@NotNull AndroidFacet facet) {
+    ResourceNamespace namespace = ResourceRepositoryManager.getOrCreateInstance(facet).getTestNamespace();
+    List<LocalResourceRepository> childRepositories = new ArrayList<>();
+    ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
+
+    // TODO(b/116692965): Move this to ResourceFolderManager and integrate with updateRoots.
+    for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentTestSourceProviders(facet)) {
+      for (VirtualFile resDirectory : provider.getResDirectories()) {
+        childRepositories.add(resourceFolderRegistry.get(facet, resDirectory));
       }
-      return ResourceFolderRegistry.get(facet, primaryResourceDir);
     }
 
-    ResourceFolderManager folderManager = facet.getResourceFolderManager();
-    List<VirtualFile> resourceDirectories = folderManager.getFolders();
-    List<LocalResourceRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size() + 1);
-    for (VirtualFile resourceDirectory : resourceDirectories) {
-      ResourceFolderRepository repository = ResourceFolderRegistry.get(facet, resourceDirectory);
-      resources.add(repository);
-    }
+    ModuleResourceRepository moduleResourceRepository = new ModuleResourceRepository(facet, namespace, childRepositories);
 
-    DynamicResourceValueRepository dynamicResources = DynamicResourceValueRepository.create(facet);
-    resources.add(dynamicResources);
+    // TODO(b/116692965): Implement updateRoots correctly.
+    moduleResourceRepository.myResourceFolderManager.removeListener(moduleResourceRepository.myResourceFolderListener);
 
-    // We create a ModuleResourceRepository even if resources.isEmpty(), because we may
-    // dynamically add children to it later (in updateRoots)
-    final ModuleResourceRepository repository = new ModuleResourceRepository(facet, resources);
-    Disposer.register(repository, dynamicResources);
-
-    return repository;
+    return moduleResourceRepository;
   }
 
-  private ModuleResourceRepository(@NotNull AndroidFacet facet, @NotNull List<? extends LocalResourceRepository> delegates) {
-    super(facet.getModule().getName(), delegates);
+  private ModuleResourceRepository(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace,
+                                   @NotNull List<? extends LocalResourceRepository> delegates) {
+    super(facet.getModule().getName());
     myFacet = facet;
+    myNamespace = namespace;
+    setChildren(delegates);
 
     // Subscribe to update the roots when the resource folders change
-    myFacet.getResourceFolderManager().addListener(myResourceFolderListener);
+    myResourceFolderManager = ResourceFolderManager.getInstance(myFacet);
+    myResourceFolderManager.addListener(myResourceFolderListener);
+
+    myRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
   }
 
   private void updateRoots() {
-    updateRoots(myFacet.getResourceFolderManager().getFolders());
+    updateRoots(myResourceFolderManager.getFolders());
   }
 
   @VisibleForTesting
@@ -125,7 +130,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
     List<LocalResourceRepository> other = null;
 
     // Compute current roots
-    Map<VirtualFile, ResourceFolderRepository> map = Maps.newHashMap();
+    Map<VirtualFile, ResourceFolderRepository> map = new HashMap<>();
     for (LocalResourceRepository repository : getChildren()) {
       if (repository instanceof ResourceFolderRepository) {
         ResourceFolderRepository folderRepository = (ResourceFolderRepository)repository;
@@ -135,20 +140,20 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
       else {
         assert repository instanceof DynamicResourceValueRepository;
         if (other == null) {
-          other = Lists.newArrayList();
+          other = new ArrayList<>();
         }
         other.add(repository);
       }
     }
 
     // Compute new resource directories (it's possible for just the order to differ, or
-    // for resource dirs to have been added and/or removed)
-    Set<VirtualFile> newDirs = Sets.newHashSet(resourceDirectories);
-    List<LocalResourceRepository> resources = Lists.newArrayListWithExpectedSize(newDirs.size() + (other != null ? other.size() : 0));
+    // for resource dirs to have been added and/or removed).
+    Set<VirtualFile> newDirs = new HashSet<>(resourceDirectories);
+    List<LocalResourceRepository> resources = new ArrayList<>(newDirs.size() + (other != null ? other.size() : 0));
     for (VirtualFile dir : resourceDirectories) {
       ResourceFolderRepository repository = map.get(dir);
       if (repository == null) {
-        repository = ResourceFolderRegistry.get(myFacet, dir);
+        repository = myRegistry.get(myFacet, dir);
       }
       else {
         map.remove(dir);
@@ -177,67 +182,53 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
   public void dispose() {
     super.dispose();
 
-    myFacet.getResourceFolderManager().removeListener(myResourceFolderListener);
+    myResourceFolderManager.removeListener(myResourceFolderListener);
+  }
+
+  @Override
+  @NotNull
+  public ResourceNamespace getNamespace() {
+    return myNamespace;
+  }
+
+  @Override
+  @Nullable
+  public String getPackageName() {
+    if (myNamespace.getPackageName() != null) {
+      return myNamespace.getPackageName();
+    }
+    else {
+      return AndroidManifestUtils.getPackageName(myFacet);
+    }
   }
 
   /**
    * For testing: creates a project with a given set of resource roots; this allows tests to check
-   * this repository without creating a gradle project setup etc
+   * this repository without creating a gradle project setup etc.
    */
-  @NotNull
   @VisibleForTesting
+  @NotNull
   public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet, @NotNull Collection<VirtualFile> resourceDirectories) {
-    return createForTest(facet, resourceDirectories, null, null);
+    return createForTest(facet, resourceDirectories, ResourceNamespace.TODO(), null);
   }
 
-  @NotNull
   @VisibleForTesting
+  @NotNull
   public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet,
                                                        @NotNull Collection<VirtualFile> resourceDirectories,
-                                                       @Nullable String namespace,
+                                                       @NotNull ResourceNamespace namespace,
                                                        @Nullable DynamicResourceValueRepository dynamicResourceValueRepository) {
     assert ApplicationManager.getApplication().isUnitTestMode();
     List<LocalResourceRepository> delegates = new ArrayList<>(resourceDirectories.size() + 1);
 
+    ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     for (VirtualFile resourceDirectory : resourceDirectories) {
-      delegates.add(ResourceFolderRegistry.get(facet, resourceDirectory, namespace));
+      delegates.add(resourceFolderRegistry.get(facet, resourceDirectory, namespace));
     }
 
     if (dynamicResourceValueRepository != null) {
       delegates.add(dynamicResourceValueRepository);
     }
-    return new ModuleResourceRepository(facet, delegates);
-  }
-
-  public static final class EmptyRepository extends LocalResourceRepository {
-    public EmptyRepository() {
-      super("");
-    }
-
-    @NotNull
-    @Override
-    protected Set<VirtualFile> computeResourceDirs() {
-      return Collections.emptySet();
-    }
-
-    @NonNull
-    @Override
-    protected ResourceTable getFullTable() {
-      return new ResourceTable();
-    }
-
-    @com.android.annotations.Nullable
-    @Override
-    protected ListMultimap<String, ResourceItem> getMap(@com.android.annotations.Nullable String namespace,
-                                                        @NonNull ResourceType type,
-                                                        boolean create) {
-      return create ? ArrayListMultimap.create() : null;
-    }
-
-    @NonNull
-    @Override
-    public Set<String> getNamespaces() {
-      return Collections.emptySet();
-    }
+    return new ModuleResourceRepository(facet, namespace, delegates);
   }
 }

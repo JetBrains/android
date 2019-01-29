@@ -16,10 +16,12 @@
 package com.android.tools.idea.editors.theme.preview;
 
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.Density;
+import com.android.tools.adtui.ui.NavigationComponent;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.tools.idea.configurations.ConfigurationListener;
@@ -27,7 +29,6 @@ import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewBuilder.ComponentDefinition;
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
-import com.android.tools.adtui.ui.NavigationComponent;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -43,7 +44,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.Processor;
 import com.intellij.util.Query;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
@@ -65,6 +65,8 @@ import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
 
+import static com.android.SdkConstants.*;
+
 
 /**
  * Component that renders a theme preview. The preview size is independent of the selected device DPI so controls size will remain constant
@@ -75,16 +77,26 @@ public class AndroidThemePreviewPanel extends Box implements ConfigurationHolder
   private static final Logger LOG = Logger.getInstance(AndroidThemePreviewPanel.class);
 
   private static final Map<String, ComponentDefinition> SUPPORT_LIBRARY_COMPONENTS =
-    ImmutableMap.of("android.support.design.widget.FloatingActionButton",
+    ImmutableMap.of(FLOATING_ACTION_BUTTON.oldName(),
                     new ComponentDefinition("Fab", ThemePreviewBuilder.ComponentGroup.FAB_BUTTON,
-                                            "android.support.design.widget.FloatingActionButton")
-                      .set("src", "?attr/homeAsUpIndicator")
+                                            FLOATING_ACTION_BUTTON.oldName())
+                      .set("src", "?android:attr/homeAsUpIndicator")
                       .set("layout_width", "56dp")
                       .set("layout_height", "56dp"),
-                    "android.support.v7.widget.Toolbar",
-                    new ToolbarComponentDefinition(true/*isAppCompat*/));
+                    FLOATING_ACTION_BUTTON.newName(),
+                    new ComponentDefinition("Fab", ThemePreviewBuilder.ComponentGroup.FAB_BUTTON,
+                                            FLOATING_ACTION_BUTTON.newName())
+                      .set("src", "?android:attr/homeAsUpIndicator")
+                      .set("layout_width", "wrap_content")
+                      .set("layout_height", "wrap_content")
+                      .set(APP_PREFIX, "fabSize", "normal"),
+                    TOOLBAR_V7.oldName(),
+                    ToolbarComponentDefinition.getSupportToolbar(TOOLBAR_V7.oldName()),
+                    TOOLBAR_V7.newName(),
+                    ToolbarComponentDefinition.getSupportToolbar(TOOLBAR_V7.newName()));
   private static final Map<String, String> SUPPORT_LIBRARY_REPLACEMENTS =
-    ImmutableMap.of("android.support.v7.widget.Toolbar", "Toolbar");
+    ImmutableMap.of(TOOLBAR_V7.oldName(), "Toolbar",
+                    TOOLBAR_V7.newName(), "Toolbar");
   /** Enable the component drill down that allows to see only selected groups of components on click */
   private static final boolean ENABLE_COMPONENTS_DRILL_DOWN = false;
   private static final String ERROR = "Error";
@@ -105,7 +117,7 @@ public class AndroidThemePreviewPanel extends Box implements ConfigurationHolder
   private List<ComponentDefinition> mySupportLibraryComponents = Collections.emptyList();
 
   /** List of component names that shouldn't be displayed. This is used in the case where a support component supersedes a framework one. */
-  private final List<String> myDisabledComponents = new ArrayList<String>();
+  private final List<String> myDisabledComponents = new ArrayList<>();
 
   private final ThemeEditorContext myContext;
   protected final NavigationComponent<Breadcrumb> myBreadcrumbs;
@@ -126,15 +138,12 @@ public class AndroidThemePreviewPanel extends Box implements ConfigurationHolder
       return (breadcrumb == null || breadcrumb.myGroup == null || breadcrumb.myGroup.equals(input.group));
     }
   };
-  private final Predicate<ComponentDefinition> mySupportReplacementsFilter = new Predicate<ComponentDefinition>() {
-    @Override
-    public boolean apply(@Nullable ComponentDefinition input) {
-      if (input == null) {
-        return false;
-      }
-
-      return !myDisabledComponents.contains(input.name);
+  private final Predicate<ComponentDefinition> mySupportReplacementsFilter = input -> {
+    if (input == null) {
+      return false;
     }
+
+    return !myDisabledComponents.contains(input.name);
   };
 
   private float myScale = 1;
@@ -206,7 +215,7 @@ public class AndroidThemePreviewPanel extends Box implements ConfigurationHolder
     });
     myAndroidPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-    myBreadcrumbs = new NavigationComponent<Breadcrumb>();
+    myBreadcrumbs = new NavigationComponent<>();
     myBreadcrumbs.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
 
     myDumbService = DumbService.getInstance(context.getProject());
@@ -346,68 +355,58 @@ public class AndroidThemePreviewPanel extends Box implements ConfigurationHolder
    * want to refresh the components displayed on the preview.
    */
   public void reloadComponents() {
-    myDumbService.runWhenSmart(new Runnable() {
-      @Override
-      public void run() {
-        Project project = myContext.getProject();
-        if (!project.isOpen()) {
-          return;
+    myDumbService.runWhenSmart(() -> {
+      Project project = myContext.getProject();
+      if (!project.isOpen()) {
+        return;
+      }
+      PsiClass viewClass = JavaPsiFacade.getInstance(project).findClass("android.view.View", GlobalSearchScope.allScope(project));
+
+      if (viewClass == null) {
+        // There is probably no SDK
+        LOG.debug("Unable to find 'android.view.View'");
+        return;
+      }
+
+      Query<PsiClass> viewClasses = ClassInheritorsSearch.search(viewClass, ProjectScope.getProjectScope(project), true);
+      final ArrayList<ComponentDefinition> customComponents = new ArrayList<>();
+      viewClasses.forEach(psiClass -> {
+        String description = psiClass.getName(); // We use the "simple" name as description on the preview.
+        String className = psiClass.getQualifiedName();
+
+        if (description == null || className == null) {
+          // Currently we ignore anonymous views
+          return false;
         }
-        PsiClass viewClass = JavaPsiFacade.getInstance(project).findClass("android.view.View", GlobalSearchScope.allScope(project));
 
-        if (viewClass == null) {
-          // There is probably no SDK
-          LOG.debug("Unable to find 'android.view.View'");
-          return;
-        }
+        customComponents.add(new ComponentDefinition(description, ThemePreviewBuilder.ComponentGroup.CUSTOM, className));
+        return true;
+      });
 
-        Query<PsiClass> viewClasses = ClassInheritorsSearch.search(viewClass, ProjectScope.getProjectScope(project), true);
-        final ArrayList<ComponentDefinition> customComponents =
-          new ArrayList<ComponentDefinition>();
-        viewClasses.forEach(new Processor<PsiClass>() {
-          @Override
-          public boolean process(PsiClass psiClass) {
-            String description = psiClass.getName(); // We use the "simple" name as description on the preview.
-            String className = psiClass.getQualifiedName();
+      // Now search for support library components. We use a HashSet to avoid adding duplicate components from source and jar files.
+      myDisabledComponents.clear();
+      final HashSet<ComponentDefinition> supportLibraryComponents = new HashSet<>();
+      viewClasses = ClassInheritorsSearch.search(viewClass, ProjectScope.getLibrariesScope(project), true);
+      viewClasses.forEach(psiClass -> {
+        String className = psiClass.getQualifiedName();
 
-            if (description == null || className == null) {
-              // Currently we ignore anonymous views
-              return false;
-            }
+        ComponentDefinition component = SUPPORT_LIBRARY_COMPONENTS.get(className);
+        if (component != null) {
+          supportLibraryComponents.add(component);
 
-            customComponents.add(new ComponentDefinition(description, ThemePreviewBuilder.ComponentGroup.CUSTOM, className));
-            return true;
+          String replaces = SUPPORT_LIBRARY_REPLACEMENTS.get(className);
+          if (replaces != null) {
+            myDisabledComponents.add(replaces);
           }
-        });
-
-        // Now search for support library components. We use a HashSet to avoid adding duplicate components from source and jar files.
-        myDisabledComponents.clear();
-        final HashSet<ComponentDefinition> supportLibraryComponents = new HashSet<ComponentDefinition>();
-        viewClasses = ClassInheritorsSearch.search(viewClass, ProjectScope.getLibrariesScope(project), true);
-        viewClasses.forEach(new Processor<PsiClass>() {
-          @Override
-          public boolean process(PsiClass psiClass) {
-            String className = psiClass.getQualifiedName();
-
-            ComponentDefinition component = SUPPORT_LIBRARY_COMPONENTS.get(className);
-            if (component != null) {
-              supportLibraryComponents.add(component);
-
-              String replaces = SUPPORT_LIBRARY_REPLACEMENTS.get(className);
-              if (replaces != null) {
-                myDisabledComponents.add(replaces);
-              }
-            }
-
-            return true;
-          }
-        });
-
-        myCustomComponents = Collections.unmodifiableList(customComponents);
-        mySupportLibraryComponents = ImmutableList.copyOf(supportLibraryComponents);
-        if (!myCustomComponents.isEmpty() || !mySupportLibraryComponents.isEmpty()) {
-          rebuild();
         }
+
+        return true;
+      });
+
+      myCustomComponents = Collections.unmodifiableList(customComponents);
+      mySupportLibraryComponents = ImmutableList.copyOf(supportLibraryComponents);
+      if (!myCustomComponents.isEmpty() || !mySupportLibraryComponents.isEmpty()) {
+        rebuild();
       }
     });
 

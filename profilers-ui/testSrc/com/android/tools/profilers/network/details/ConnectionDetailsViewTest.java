@@ -20,6 +20,7 @@ import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.legend.Legend;
+import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.android.tools.profilers.network.NetworkProfilerStage;
@@ -29,7 +30,6 @@ import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
@@ -53,7 +53,10 @@ public class ConnectionDetailsViewTest {
     .build();
 
   private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
-  private static final String TEST_HEADERS = "car = value \n border = value \n apple = value \n 123 = value \n";
+  /**
+   * Header names chosen and intentionally unsorted, to make sure that they are shown in the UI in sorted order.
+   */
+  private static final String TEST_HEADERS = "car = car-value \n border = border-value \n apple = apple-value \n 123 = numeric-value \n";
   private static final String TEST_REQUEST_PAYLOAD_ID = "Request Payload";
   private static final String TEST_RESPONSE_PAYLOAD_ID = "Response Payload";
 
@@ -99,40 +102,59 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
-  public void requestTabIsOnlyPresentWhenEnabled() {
-    assertThat(findTab(myView, HeadersTabContent.class)).isNotNull();
-    assertThat(findTab(myView, RequestTabContent.class)).isNull();
-
-    myIdeProfilerServices.enableRequestPayload(true);
-    myView = new ConnectionDetailsView(myStageView);
-    assertThat(findTab(myView, HeadersTabContent.class)).isNull();
-    assertThat(findTab(myView, RequestTabContent.class)).isNotNull();
-  }
-
-  @Test
   public void viewerForRequestPayloadIsPresentWhenRequestPayloadIsNotNull() {
-    myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
 
     myProfilerService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Content"));
 
     HttpData data =
       new HttpData.Builder(DEFAULT_DATA).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID).setResponseFields(RESPONSE_HEADERS).build();
-    assertThat(findTab(myView, RequestTabContent.class).findPayloadViewer()).isNull();
+    assertThat(HttpDataComponentFactory.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNull();
 
     myView.setHttpData(data);
-    assertThat(findTab(myView, RequestTabContent.class).findPayloadViewer()).isNotNull();
+    assertThat(HttpDataComponentFactory.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNotNull();
   }
 
   @Test
   public void viewerForRequestPayloadIsAbsentWhenRequestPayloadIsNull() {
-    myIdeProfilerServices.enableRequestPayload(true);
     myView = new ConnectionDetailsView(myStageView);
 
     HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
 
     myView.setHttpData(data);
-    assertThat(findTab(myView, RequestTabContent.class).findPayloadViewer()).isNull();
+    assertThat(HttpDataComponentFactory.findPayloadViewer(findTab(myView, RequestTabContent.class).findPayloadBody())).isNull();
+  }
+
+  @Test
+  public void requestPayloadHasBothParsedViewAndRawDataView() {
+    myView = new ConnectionDetailsView(myStageView);
+
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields("Content-Type = application/x-www-form-urlencoded")
+                                                      .setResponseFields(RESPONSE_HEADERS).setRequestPayloadId(TEST_REQUEST_PAYLOAD_ID)
+                                                      .build();
+    myProfilerService.addFile(TEST_REQUEST_PAYLOAD_ID, ByteString.copyFromUtf8("a=1&b=2"));
+    myView.setHttpData(data);
+
+    JComponent payloadBody = findTab(myView, RequestTabContent.class).findPayloadBody();
+    assertThat(payloadBody).isNotNull();
+    assertThat(new TreeWalker(payloadBody).descendantStream().anyMatch(c -> c.getName().equals("View Parsed"))).isTrue();
+    assertThat(new TreeWalker(payloadBody).descendantStream().anyMatch(c -> c.getName().equals("View Source"))).isTrue();
+  }
+
+  @Test
+  public void responsePayloadHasBothParsedViewAndRawDataView() {
+    myView = new ConnectionDetailsView(myStageView);
+
+    HttpData data =
+      new HttpData.Builder(DEFAULT_DATA).setResponseFields("null =  HTTP/1.1 302 Found\n Content-Type = application/x-www-form-urlencoded")
+                                        .setResponsePayloadId(TEST_RESPONSE_PAYLOAD_ID).build();
+    myProfilerService.addFile(TEST_RESPONSE_PAYLOAD_ID, ByteString.copyFromUtf8("a=1&b=2"));
+    myView.setHttpData(data);
+
+    JComponent payloadBody = findTab(myView, ResponseTabContent.class).findPayloadBody();
+    assertThat(payloadBody).isNotNull();
+    assertThat(new TreeWalker(payloadBody).descendantStream().anyMatch(c -> c.getName().equals("View Parsed"))).isTrue();
+    assertThat(new TreeWalker(payloadBody).descendantStream().anyMatch(c -> c.getName().equals("View Source"))).isTrue();
   }
 
   @Test
@@ -224,39 +246,39 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
-  public void headersIsUpdated() {
-    HeadersTabContent headersTab = findTab(myView, HeadersTabContent.class);
-    assertThat(headersTab.findRequestHeadersSection()).isNull();
-
-    HttpData data = new HttpData.Builder(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+  public void headerSectionIsSorted() {
+    HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
     myView.setHttpData(data);
-    assertThat(headersTab.findRequestHeadersSection()).isNotNull();
+    TabContent tabContent = findTab(myView, RequestTabContent.class);
+    String text = firstDescendantWithType(tabContent.getComponent(), JTextPane.class).getText();
+
+    assertUiContainsLabelAndValue(text, "123", "numeric-value");
+    assertUiContainsLabelAndValue(text, "apple", "apple-value");
+    assertUiContainsLabelAndValue(text, "border", "border-value");
+    assertUiContainsLabelAndValue(text, "car", "car-value");
+
+    assertThat(text.indexOf("123")).isGreaterThan(-1);
+    assertThat(text.indexOf("123")).isLessThan(text.indexOf("apple"));
+    assertThat(text.indexOf("apple")).isLessThan(text.indexOf("border"));
+    assertThat(text.indexOf("border")).isLessThan(text.indexOf("car"));
+  }
+
+  private void assertUiContainsLabelAndValue(String uiText, String label, String value) {
+    assertThat(uiText).containsMatch(String.format("\\b%s\\b.+\\b%s\\b", label, value));
   }
 
   @Test
-  public void headerSectionIsSortedAndFormatted() {
-    HttpData data = new HttpData.Builder(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
-    myView.setHttpData(data);
-    JPanel requestHeadersPanel = findTab(myView, HeadersTabContent.class).findRequestHeadersSection();
-    String text = firstDescendantWithType(requestHeadersPanel, JTextPane.class).getText();
-    String idealBody = "<body>" +
-                       "  <p>" +
-                       "    <nobr><b>123:&#160;&#160;</b></nobr><span>value</span>" +
-                       "  </p>" +
-                       "  <p>" +
-                       "    <nobr><b>apple:&#160;&#160;</b></nobr><span>value</span>" +
-                       "  </p>" +
-                       "  <p>" +
-                       "    <nobr><b>border:&#160;&#160;</b></nobr><span>value</span>" +
-                       "  </p>" +
-                       "  <p>" +
-                       "    <nobr><b>car:&#160;&#160;</b></nobr><span>value</span>" +
-                       "  </p>" +
-                       "</body>";
-    text = text.replaceAll("\\s", "");
-    idealBody = idealBody.replaceAll("\\s", "");
-    assertThat(text).contains(idealBody);
+  public void expectedDisplayNameForContentTypes() {
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType(""))).isEqualTo("");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType(" "))).isEqualTo("");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8")))
+      .isEqualTo("Form Data");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType("text/html"))).isEqualTo("HTML");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType("application/json"))).isEqualTo("JSON");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType("image/jpeg"))).isEqualTo("Image");
+    assertThat(HttpDataComponentFactory.getDisplayName(new HttpData.ContentType("audio/webm"))).isEqualTo("Audio");
   }
+
 
   @Test
   public void callStackViewHasProperValueFromData() {

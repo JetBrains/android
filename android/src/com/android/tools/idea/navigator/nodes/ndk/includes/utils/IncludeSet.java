@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.utils;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.io.File;
+import java.util.stream.Collectors;
 
 /**
  * Represents a set of include folders in order with duplicates removed.
@@ -35,8 +31,7 @@ import java.io.File;
 public class IncludeSet {
   @NotNull private static final String TAKE_NEXT_SENTINEL = "TAKE_NEXT_SENTINEL";
   @NotNull private static final Pattern PATTERN = Pattern.compile("://", Pattern.LITERAL);
-  @NotNull private final List<File> myIncludes = new ArrayList<>();
-  @NotNull private final Set<String> mySeenIncludes = new HashSet<>();
+  @NotNull private final LinkedHashSet<String> myIncludes = new LinkedHashSet<>();
 
   /**
    * When passed a --sysroot flag clang or gcc append "usr/include" to it. We need to find the same path.
@@ -80,7 +75,7 @@ public class IncludeSet {
    * @return the list of includes in the order they were seen on the command-line.
    */
   public List<File> getIncludesInOrder() {
-    return ImmutableList.copyOf(myIncludes);
+    return myIncludes.stream().map(File::new).collect(Collectors.toList());
   }
 
   /**
@@ -138,12 +133,10 @@ public class IncludeSet {
     // However, it leaves one next to the drive letter like so: D://path/to/include
     // Get rid of that extra forward slash now.
     includePath = PATTERN.matcher(includePath).replaceAll(Matcher.quoteReplacement(":/"));
-    if (!mySeenIncludes.contains(includePath)) {
-      this.myIncludes.add(new File(includePath));
-      this.mySeenIncludes.add(includePath);
-    }
+    myIncludes.add(includePath);
   }
 
+  @SuppressWarnings("SpellCheckingInspection")
   private enum IncludeFlags {
     I_FLAG("I", false),
     ISYSTEM_FLAG("isystem", false),
@@ -152,8 +145,31 @@ public class IncludeSet {
     final boolean myAppendUsrInclude;
 
     IncludeFlags(@NotNull String flag, boolean appendUsrInclude) {
-      this.myFlag = flag;
-      this.myAppendUsrInclude = appendUsrInclude;
+      myFlag = flag;
+      myAppendUsrInclude = appendUsrInclude;
     }
+  }
+
+  @NotNull
+  @Override
+  public String toString() {
+    return myIncludes.toString();
+  }
+
+  @Override
+  final public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof IncludeSet)) {
+      return false;
+    }
+    IncludeSet that = (IncludeSet) obj;
+    return Objects.equals(this.myIncludes, that.myIncludes);
+  }
+
+  @Override
+  final public int hashCode() {
+    return this.myIncludes.hashCode();
   }
 }

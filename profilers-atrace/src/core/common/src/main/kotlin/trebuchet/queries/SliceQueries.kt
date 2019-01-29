@@ -44,7 +44,7 @@ object SliceQueries {
     }
 
     fun iterSlices(model: Model, cb: (Slice) -> Unit) {
-        model.processes.forEach { iterSlices(it, cb) }
+        model.processes.values.forEach { iterSlices(it, cb) }
     }
 
     fun iterSlices(process: ProcessModel, cb: (Slice) -> Unit) {

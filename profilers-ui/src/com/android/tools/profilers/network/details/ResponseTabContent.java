@@ -15,13 +15,13 @@
  */
 package com.android.tools.profilers.network.details;
 
-import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.network.NetworkConnectionsModel;
-import com.android.tools.profilers.network.details.HttpDataViewModel.ConnectionType;
+import com.android.tools.profilers.network.details.HttpDataComponentFactory.ConnectionType;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,8 +33,6 @@ import static com.android.tools.profilers.network.details.TabUiUtils.SECTION_TIT
  * Tab which shows a response's headers and payload.
  */
 final class ResponseTabContent extends TabContent {
-
-  private static final String ID_BODY_COMPONENT = "BODY_COMPONENT";
 
   private final IdeProfilerComponents myComponents;
   private final NetworkConnectionsModel myModel;
@@ -56,6 +54,7 @@ final class ResponseTabContent extends TabContent {
   @Override
   protected JComponent createComponent() {
     myPanel = TabUiUtils.createVerticalPanel(TabUiUtils.TAB_SECTION_VGAP);
+    myPanel.setBorder(new JBEmptyBorder(0, TabUiUtils.HORIZONTAL_PADDING, 0, TabUiUtils.HORIZONTAL_PADDING));
     return TabUiUtils.createVerticalScrollPane(myPanel);
   }
 
@@ -66,15 +65,10 @@ final class ResponseTabContent extends TabContent {
       return;
     }
 
-    HttpDataViewModel httpDataViewModel = new HttpDataViewModel(myModel, data);
-    JComponent headersComponent = httpDataViewModel.createHeaderComponent(ConnectionType.RESPONSE);
+    HttpDataComponentFactory httpDataComponentFactory = new HttpDataComponentFactory(myModel, data);
+    JComponent headersComponent = httpDataComponentFactory.createHeaderComponent(ConnectionType.RESPONSE);
     myPanel.add(TabUiUtils.createHideablePanel(SECTION_TITLE_HEADERS, headersComponent, null));
-
-    String bodyTitle = httpDataViewModel.getBodyTitle(ConnectionType.RESPONSE);
-    JComponent bodyComponent = httpDataViewModel.createBodyComponent(myComponents, ConnectionType.RESPONSE);
-    bodyComponent.setName(ID_BODY_COMPONENT);
-    HideablePanel bodyPanel = TabUiUtils.createHideablePanel(bodyTitle, bodyComponent, null);
-    myPanel.add(bodyPanel);
+    myPanel.add(httpDataComponentFactory.createBodyComponent(myComponents, ConnectionType.RESPONSE));
   }
 
   @Override
@@ -84,8 +78,7 @@ final class ResponseTabContent extends TabContent {
 
   @Nullable
   @VisibleForTesting
-  JComponent findPayloadViewer() {
-    JComponent bodyComponent = TabUiUtils.findComponentWithUniqueName(myPanel, ID_BODY_COMPONENT);
-    return HttpDataViewModel.findPayloadViewer(bodyComponent);
+  JComponent findPayloadBody() {
+    return TabUiUtils.findComponentWithUniqueName(myPanel, ConnectionType.RESPONSE.getBodyComponentId());
   }
 }

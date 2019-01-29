@@ -29,7 +29,7 @@ public class ClearConstraintsTest  extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT)
+                 component(CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/root")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
@@ -58,7 +58,7 @@ public class ClearConstraintsTest  extends SceneTest {
   }
 
   public void testClearingConstraints() {
-    myScene.clearAttributes();
+    myScene.clearAllConstraints();
     myScreen.get("@+id/button1")
       .expectXml("<TextView\n" +
                  "        android:id=\"@+id/button1\"\n" +

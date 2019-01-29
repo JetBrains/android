@@ -68,7 +68,7 @@ public class AndroidGradleBuildTargetProviderTest extends AndroidGradleTestCase 
     assertSameElements(buildSettings.getModulesToBuild(), modules);
   }
 
-  public void testModuleCompleScope() throws Exception {
+  public void testModuleCompileScope() throws Exception {
     loadProject(MULTI_FEATURE);
 
     Module[] modules = ModuleManager.getInstance(getProject()).getModules();

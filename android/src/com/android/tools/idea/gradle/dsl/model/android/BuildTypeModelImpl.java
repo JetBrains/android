@@ -17,21 +17,11 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
-import com.android.utils.Pair;
-import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildTypeModel {
-  @NonNls private static final String APPLICATION_ID_SUFFIX = "applicationIdSuffix";
-  @NonNls private static final String BUILD_CONFIG_FIELD = "buildConfigField";
   @NonNls private static final String DEBUGGABLE = "debuggable";
   @NonNls private static final String EMBED_MICRO_APP = "embedMicroApp";
   @NonNls private static final String JNI_DEBUGGABLE = "jniDebuggable";
@@ -41,58 +31,10 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NonNls private static final String RENDERSCRIPT_OPTIM_LEVEL = "renderscriptOptimLevel";
   @NonNls private static final String SHRINK_RESOURCES = "shrinkResources";
   @NonNls private static final String TEST_COVERAGE_ENABLED = "testCoverageEnabled";
-  @NonNls private static final String VERSION_NAME_SUFFIX = "versionNameSuffix";
   @NonNls private static final String ZIP_ALIGN_ENABLED = "zipAlignEnabled";
 
   public BuildTypeModelImpl(@NotNull BuildTypeDslElement dslElement) {
     super(dslElement);
-  }
-
-  @Override
-  @NotNull
-  public ResolvedPropertyModel applicationIdSuffix() {
-    return getModelForProperty(APPLICATION_ID_SUFFIX);
-  }
-
-  @Override
-  @Nullable
-  public List<GradleNotNullValue<BuildConfigField>> buildConfigFields() {
-    List<Pair<GradleDslExpressionList, TypeNameValueElement>> typeNameValueElements = getTypeNameValueElements(BUILD_CONFIG_FIELD);
-    if (typeNameValueElements == null) {
-      return null;
-    }
-
-    List<GradleNotNullValue<BuildConfigField>> buildConfigFields = Lists.newArrayListWithCapacity(typeNameValueElements.size());
-    for (Pair<GradleDslExpressionList, TypeNameValueElement> pair : typeNameValueElements) {
-      GradleDslExpressionList listElement = pair.getFirst();
-      TypeNameValueElement typeNameValueElement = pair.getSecond();
-      buildConfigFields.add(new GradleNotNullValueImpl<>(listElement,
-                                                         new BuildConfigFieldImpl(typeNameValueElement.type(), typeNameValueElement.name(),
-                                                                                  typeNameValueElement.value())));
-    }
-
-    return buildConfigFields;
-  }
-
-  @Override
-  public void addBuildConfigField(@NotNull BuildConfigField buildConfigField) {
-    addTypeNameValueElement(buildConfigField);
-  }
-
-  @Override
-  public void removeBuildConfigField(@NotNull BuildConfigField buildConfigField) {
-    removeTypeNameValueElement(buildConfigField);
-  }
-
-  @Override
-  public void removeAllBuildConfigFields() {
-    myDslElement.removeProperty(BUILD_CONFIG_FIELD);
-  }
-
-  @Override
-  public void replaceBuildConfigField(@NotNull BuildConfigField oldBuildConfigField,
-                                                @NotNull BuildConfigField newBuildConfigField) {
-    replaceTypeNameValueElement(oldBuildConfigField, newBuildConfigField);
   }
 
   @Override
@@ -151,22 +93,8 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
 
   @Override
   @NotNull
-  public ResolvedPropertyModel versionNameSuffix() {
-    return getModelForProperty(VERSION_NAME_SUFFIX);
-  }
-
-  @Override
-  @NotNull
   public ResolvedPropertyModel zipAlignEnabled() {
     return getModelForProperty(ZIP_ALIGN_ENABLED);
   }
 
-  /**
-   * Represents a {@code buildConfigField} statement defined in the build type block of the Gradle file.
-   */
-  public final static class BuildConfigFieldImpl extends TypeNameValueElementImpl implements BuildConfigField {
-    public BuildConfigFieldImpl(@NotNull String type, @NotNull String name, @NotNull String value) {
-      super(BUILD_CONFIG_FIELD, type, name, value);
-    }
-  }
 }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
+import com.android.tools.idea.common.api.DragType
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.NlComponent
@@ -30,7 +32,8 @@ import com.intellij.openapi.diagnostic.Logger
 class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
                              layout: SceneComponent,
                              components: List<NlComponent>,
-                             type: DragType) : DragHandler(editor, handler, layout, components, type) {
+                             type: DragType
+) : DragHandler(editor, handler, layout, components, type) {
   private var sceneComponent: SceneComponent
   private val dragTarget = CoordinatorDragTarget()
   private val snapTargets = mutableListOf<CoordinatorSnapTarget>()
@@ -49,7 +52,7 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
     layout.addChild(sceneComponent)
   }
 
-  override fun start(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int) {
+  override fun start(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int) {
     super.start(x, y, modifiers)
     dragTarget.mouseDown(x, y)
 
@@ -58,7 +61,7 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
         map({ it.targets })?.flatten()?.filterIsInstance<CoordinatorSnapTarget>()?.toList() ?: emptyList())
   }
 
-  override fun update(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int): String? {
+  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int): String? {
     val ret = super.update(x, y, modifiers)
 
     @AndroidDpCoordinate val dx = x + startX - sceneComponent.drawWidth / 2
@@ -81,23 +84,23 @@ class CoordinatorDragHandler(editor: ViewEditor, handler: ViewGroupHandler,
     layout.scene.checkRequestLayoutStatus()
   }
 
-  private fun dragWidgetFromPalette(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+  private fun dragWidgetFromPalette(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int) {
     layout.scene.needsRebuildList()
-    @AndroidDpCoordinate val dx = x + startX - lastX - sceneComponent.drawWidth / 2
-    @AndroidDpCoordinate val dy = y + startY - lastY - sceneComponent.drawHeight / 2
+    @AndroidDpCoordinate val dx = editor.pxToDp(x) + startX - sceneComponent.drawWidth / 2
+    @AndroidDpCoordinate val dy = editor.pxToDp(y) + startY - sceneComponent.drawHeight / 2
     for (child in components) {
       dragTarget.mouseRelease(dx, dy, child)
     }
   }
 
-  private fun dragWidgetFromComponentTree(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+  private fun dragWidgetFromComponentTree(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int) {
     for (child in components) {
       val sceneComponent = layout.getSceneComponent(child) ?: continue
       sceneComponent.isDragging = true
       dragTarget.component = sceneComponent
-      @AndroidDpCoordinate val dx = x + startX - lastX - sceneComponent.drawWidth / 2
-      @AndroidDpCoordinate val dy = y + startY - lastY - sceneComponent.drawHeight / 2
-      dragTarget.mouseRelease(dx, dy, null)
+      @AndroidDpCoordinate val dx = editor.pxToDp(x) + startX - sceneComponent.drawWidth / 2
+      @AndroidDpCoordinate val dy = editor.pxToDp(y) + startY - sceneComponent.drawHeight / 2
+      dragTarget.mouseRelease(dx, dy, emptyList())
     }
   }
 

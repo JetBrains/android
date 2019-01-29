@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.npw.importing;
 
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -37,13 +36,15 @@ import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getCon
  */
 public final class ArchiveToGradleModuleModel extends WizardModel {
   private final Project myProject;
+  private final ProjectSyncInvoker myProjectSyncInvoker;
 
   private final StringProperty myArchive = new StringValueProperty();
   private final StringProperty myGradlePath = new StringValueProperty();
   private final BoolProperty myMoveArchive = new BoolValueProperty();
 
-  public ArchiveToGradleModuleModel(@NotNull Project project) {
+  public ArchiveToGradleModuleModel(@NotNull Project project, @NotNull ProjectSyncInvoker projectSyncInvoker) {
     myProject = project;
+    myProjectSyncInvoker = projectSyncInvoker;
     myArchive.addConstraint(String::trim);
     myGradlePath.addConstraint(String::trim);
     //noinspection ConstantConditions
@@ -94,7 +95,7 @@ public final class ArchiveToGradleModuleModel extends WizardModel {
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       assert ApplicationManager.getApplication().isDispatchThread();
-      ProjectSystemUtil.getProjectSystem(myProject).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
+      myProjectSyncInvoker.syncProject(myProject);
     }
   }
 

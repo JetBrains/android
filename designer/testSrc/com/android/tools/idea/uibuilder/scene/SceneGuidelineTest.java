@@ -32,7 +32,7 @@ public class SceneGuidelineTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .id("@id/root")
                                    .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
@@ -48,7 +48,7 @@ public class SceneGuidelineTest extends SceneTest {
                                        .withAttribute("app:layout_constraintRight_toRightOf", "parent")
                                        .withAttribute("app:layout_constraintTop_toTopOf", "parent")
                                        .withAttribute("app:layout_constraintBottom_toBottomOf", "parent")
-                                     ,component(CONSTRAINT_LAYOUT_GUIDELINE)
+                                     ,component(CONSTRAINT_LAYOUT_GUIDELINE.defaultName())
                                      .id("@id/guideline")
                                      .withBounds(200, 0, 200, 2000)
                                      .width("wrap_content")

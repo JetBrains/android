@@ -29,9 +29,7 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -110,7 +108,7 @@ public class StateChartVisualTest extends VisualTest {
     myRadioModel.addSeries(radioData);
     mRadioDataEntries.add(radioSeries);
 
-    return Arrays.asList(mAnimatedTimeRange, myNetworkModel, myRadioModel);
+    return Collections.singletonList(mAnimatedTimeRange);
   }
 
   @Override
@@ -152,6 +150,7 @@ public class StateChartVisualTest extends VisualTest {
             long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
 
             int v = networkVariance.get();
+            boolean networkChanged = false;
             for (int i = 0; i < mNetworkDataEntries.size();i++) {
               DefaultDataSeries<MockFruitState> series = mNetworkDataEntries.get(i);
               if (Math.random() > 0.5f) {
@@ -161,12 +160,17 @@ public class StateChartVisualTest extends VisualTest {
                 }
                 if (lastNetworkData.get(i) != index) {
                   series.add(nowUs, MockFruitState.values()[index]);
+                  networkChanged = true;
                   lastNetworkData.set(i, index);
                 }
               }
             }
+            if (networkChanged) {
+              myNetworkModel.changed(StateChartModel.Aspect.MODEL_CHANGED);
+            }
 
             v = radioVariance.get();
+            boolean radioChanged = false;
             for (int i = 0; i < mRadioDataEntries.size();i++) {
               DefaultDataSeries<MockStrengthState> series = mRadioDataEntries.get(i);
               if (Math.random() > 0.5f) {
@@ -176,15 +180,20 @@ public class StateChartVisualTest extends VisualTest {
                 }
                 if (lastRadioVariance.get(i) != index) {
                   series.add(nowUs, MockStrengthState.values()[index]);
+                  radioChanged = true;
                   lastRadioVariance.set(i, index);
                 }
               }
+            }
+            if (radioChanged) {
+              myRadioModel.changed(StateChartModel.Aspect.MODEL_CHANGED);
             }
 
             Thread.sleep(delay.get());
           }
         }
         catch (InterruptedException e) {
+          // do nothing
         }
       }
     };

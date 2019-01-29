@@ -16,22 +16,35 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCase {
   private boolean myUseNewGradleSync;
+  private boolean myUseSingleVariantSync;
+  private boolean myUseCompoundSync;
+  private boolean myDefaultUseSingleVariantSync;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myUseNewGradleSync = StudioFlags.NEW_SYNC_INFRA_ENABLED.get();
+    myUseSingleVariantSync = StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get();
+    myUseCompoundSync = StudioFlags.COMPOUND_SYNC_ENABLED.get();
     StudioFlags.NEW_SYNC_INFRA_ENABLED.override(useNewSyncInfrastructure());
+    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(useSingleVariantSyncInfrastructure());
+    StudioFlags.COMPOUND_SYNC_ENABLED.override(useCompoundSyncInfrastructure());
+    myDefaultUseSingleVariantSync = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
+    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = useSingleVariantSyncInfrastructure();
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
       StudioFlags.NEW_SYNC_INFRA_ENABLED.override(myUseNewGradleSync); // back to default value.
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(myUseSingleVariantSync);
+      StudioFlags.COMPOUND_SYNC_ENABLED.override(myUseCompoundSync);
+      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = myDefaultUseSingleVariantSync;
     }
     finally {
       super.tearDown();
@@ -39,4 +52,8 @@ public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCas
   }
 
   protected abstract boolean useNewSyncInfrastructure();
+
+  protected abstract boolean useSingleVariantSyncInfrastructure();
+
+  protected abstract boolean useCompoundSyncInfrastructure();
 }

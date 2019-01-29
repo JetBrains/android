@@ -42,7 +42,7 @@ final class TranslationsEditorTextField extends JBTextField {
         }
 
         JTextComponent textField = (JTextComponent)event.getSource();
-        table.getModel().setValueAt(textField.getText(), table.getSelectedRowModelIndex(), columnSupplier.getAsInt());
+        table.getModel().setValueAt(textField.getText(), table.getSelectedModelRowIndex(), columnSupplier.getAsInt());
       }
     });
   }

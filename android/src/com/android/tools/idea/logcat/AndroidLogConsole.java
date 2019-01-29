@@ -39,8 +39,11 @@ public final class AndroidLogConsole extends LogConsoleBase {
   private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
   private final AndroidLogcatPreferences myPreferences;
 
-  AndroidLogConsole(@NotNull AndroidLogcatView view, @NotNull Project project, @NotNull AndroidLogFilterModel model) {
-    super(project, null, "", false, model, GlobalSearchScope.allScope(project), newLogFormatter(project));
+  AndroidLogConsole(@NotNull Project project,
+                    @NotNull AndroidLogFilterModel model,
+                    @NotNull LogFormatter formatter,
+                    @NotNull AndroidLogcatView view) {
+    super(project, null, "", false, model, GlobalSearchScope.allScope(project), formatter);
     ConsoleView console = getConsole();
     if (console instanceof ConsoleViewImpl) {
       ConsoleViewImpl c = ((ConsoleViewImpl)console);
@@ -71,11 +74,6 @@ public final class AndroidLogConsole extends LogConsoleBase {
       myPreferences.TOOL_WINDOW_REGEXP_FILTER = filter.isRegex();
       model.updateCustomPattern(filter.getPattern());
     });
-  }
-
-  @NotNull
-  private static LogFormatter newLogFormatter(@NotNull Project project) {
-    return new AndroidLogcatFormatter(AndroidLogcatPreferences.getInstance(project));
   }
 
   @Override

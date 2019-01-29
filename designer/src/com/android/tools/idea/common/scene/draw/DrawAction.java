@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,10 +31,6 @@ import java.awt.*;
 public class DrawAction extends DrawRegion {
   private final NlIcon myIcon;
   private boolean myIsOver;
-  @SwingCoordinate private int mySrcX;
-  @SwingCoordinate private int mySrcY;
-  @SwingCoordinate private int mySrcWidth;
-  @SwingCoordinate private int mySrcHeight;
   int myMode;
 
   protected Font mFont = new Font("Helvetica", Font.PLAIN, 14);
@@ -47,46 +44,33 @@ public class DrawAction extends DrawRegion {
                     @SwingCoordinate int y,
                     @SwingCoordinate int width,
                     @SwingCoordinate int height,
-                    @SwingCoordinate int src_x,
-                    @SwingCoordinate int src_y,
-                    @SwingCoordinate int src_width,
-                    @SwingCoordinate int src_height,
-                    NlIcon icon,
+                    @NotNull NlIcon icon,
                     boolean isOver) {
     super(x, y, width, height);
     myIcon = icon;
     myIsOver = isOver;
-    mySrcX = src_x;
-    mySrcY = src_y;
-    mySrcWidth = src_width;
-    mySrcHeight = src_height;
   }
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     int r = (int)(width * 0.3);
-    float distance = distance(sceneContext.getMouseX(), sceneContext.getMouseY(), mySrcX, mySrcY, mySrcWidth, y + height - mySrcY);
-    if (distance>20) {
-      return;
-    }
     ColorSet colorSet = sceneContext.getColorSet();
     g.setColor(colorSet.getComponentObligatoryBackground());
-    g.fillRoundRect(x - 2, y - 2, width + 4, height + 4, r, r);
+    g.fillRoundRect(x - 1, y - 1, width + 2, height + 2, r, r);
     if (myIsOver) {
-      g.setColor(colorSet.getSelectedBackground());
+      g.setColor(colorSet.getWidgetActionSelectedBackground());
       g.fillRoundRect(x, y, width, height, r, r);
-      g.setColor(colorSet.getFrames());
+      g.setColor(colorSet.getWidgetActionSelectedBorder());
       g.drawRoundRect(x, y, width, height, r, r);
     }
     else {
-      g.setColor(colorSet.getFrames());
+      g.setColor(colorSet.getWidgetActionBackground());
       g.fillRoundRect(x, y, width, height, r, r);
     }
     Color color = colorSet.getText();
     g.setColor(color);
     Icon icon = myIcon.getSelectedIcon(sceneContext);
     g.setFont(mFont);
-    FontMetrics fontMetrics = g.getFontMetrics();
     int iw = icon.getIconWidth();
     int ih = icon.getIconHeight();
     if (iw > width || ih > height) {
@@ -111,23 +95,18 @@ public class DrawAction extends DrawRegion {
     return super.serialize() + "," + myMode;
   }
 
-  public static void add(DisplayList list,
-                         SceneContext transform,
+  public static void add(@NotNull DisplayList list,
+                         @NotNull SceneContext transform,
                          @AndroidDpCoordinate float left,
                          @AndroidDpCoordinate float top,
                          @AndroidDpCoordinate float right,
                          @AndroidDpCoordinate float bottom,
-                         Rectangle src,
-                         NlIcon icon,
+                         @NotNull NlIcon icon,
                          boolean isOver) {
     int l = transform.getSwingXDip(left);
     int t = transform.getSwingYDip(top);
     int w = transform.getSwingDimensionDip(right - left);
     int h = transform.getSwingDimensionDip(bottom - top);
-    src.x = transform.getSwingXDip(src.x);
-    src.y = transform.getSwingYDip(src.y);
-    src.width = transform.getSwingDimensionDip(src.width);
-    src.height = transform.getSwingDimensionDip(src.height);
-    list.add(new DrawAction(l, t, w, h, src.x, src.y, src.width, src.height, icon, isOver));
+    list.add(new DrawAction(l, t, w, h, icon, isOver));
   }
 }

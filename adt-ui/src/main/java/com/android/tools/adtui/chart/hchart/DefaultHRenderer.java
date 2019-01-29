@@ -63,7 +63,11 @@ public abstract class DefaultHRenderer<T> implements HRenderer<DefaultHNode<T>> 
 
   // This method is not thread-safe. In order to limit object allocation, mRect is being re-used.
   @Override
-  public final void render(@NotNull Graphics2D g, @NotNull DefaultHNode<T> node, @NotNull Rectangle2D drawingArea, boolean isFocused) {
+  public final void render(@NotNull Graphics2D g,
+                           @NotNull DefaultHNode<T> node,
+                           @NotNull Rectangle2D fullDrawingArea,
+                           @NotNull Rectangle2D drawingArea,
+                           boolean isFocused) {
     mRect.x = (float)drawingArea.getX();
     mRect.y = (float)drawingArea.getY();
     mRect.width = (float)drawingArea.getWidth();
@@ -77,11 +81,6 @@ public abstract class DefaultHRenderer<T> implements HRenderer<DefaultHNode<T>> 
     g.setPaint(fillColor);
     g.fill(mRect);
 
-    // Draw rectangle outline.
-    Color borderColor = getBorderColor(node.getData());
-    g.setPaint(borderColor);
-    g.draw(mRect);
-
     // Draw text
     FontMetrics fontMetrics = g.getFontMetrics(g.getFont());
     String text = generateFittingText(node.getData(), drawingArea, fontMetrics);
@@ -91,7 +90,6 @@ public abstract class DefaultHRenderer<T> implements HRenderer<DefaultHNode<T>> 
 
   protected abstract String generateFittingText(@NotNull T nodeData, @NotNull Rectangle2D rect, @NotNull FontMetrics fontMetrics);
   protected abstract Color getFillColor(@NotNull T nodeData);
-  protected abstract Color getBorderColor(@NotNull T nodeData);
 
   /**
    * Renders a text inside a node rectangle according to the renderer constraints.

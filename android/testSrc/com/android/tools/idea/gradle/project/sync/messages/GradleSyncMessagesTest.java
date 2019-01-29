@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.messages;
 
+import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.testFramework.IdeaTestCase;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
-import static com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync.LAST_SYNC_TASK_ID_KEY;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleSyncMessages}.
@@ -34,21 +30,8 @@ public class GradleSyncMessagesTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    initMocks(this);
 
     mySyncMessages = new GradleSyncMessages(getProject());
-    ExternalSystemTaskId taskId = ExternalSystemTaskId.create(mySyncMessages.getProjectSystemId(), EXECUTE_TASK, myProject);
-    myProject.putUserData(LAST_SYNC_TASK_ID_KEY, taskId);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myProject.putUserData(LAST_SYNC_TASK_ID_KEY, null);
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testGetProjectSystemId() {
@@ -56,7 +39,13 @@ public class GradleSyncMessagesTest extends IdeaTestCase {
   }
 
   public void testRemoveProjectMessages() {
-    mySyncMessages.report(new SyncMessage("Test", ERROR, "Message for test"));
+    mySyncMessages.report(new SyncMessage("Project Structure Issues", MessageType.ERROR, "Message for test PSI"));
+    mySyncMessages.report(new SyncMessage("Missing Dependencies", MessageType.ERROR, "Message for test MD"));
+    mySyncMessages.report(new SyncMessage("Variant Selection Conflicts", MessageType.ERROR, "Message for test VSC"));
+    mySyncMessages.report(new SyncMessage("Generated Sources", MessageType.ERROR, "Message for test GS"));
+    mySyncMessages.report(new SyncMessage("Gradle Sync Issues", MessageType.ERROR, "Message for test GSI"));
+    mySyncMessages.report(new SyncMessage("Version Compatibility Issues", MessageType.ERROR, "Message for test VCI"));
+
     assertFalse(mySyncMessages.isEmpty());
     mySyncMessages.removeProjectMessages();
     assertTrue(mySyncMessages.isEmpty());

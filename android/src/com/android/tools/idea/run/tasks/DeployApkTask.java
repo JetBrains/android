@@ -17,27 +17,38 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.ir.client.InstantRunClient;
-import com.android.tools.idea.fd.*;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.fd.DeployType;
+import com.android.tools.idea.fd.InstantRunContext;
+import com.android.tools.idea.fd.InstantRunStatsService;
+import com.android.tools.idea.run.ApkInfo;
+import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.FullApkInstaller;
+import com.android.tools.idea.run.InstalledApkCache;
+import com.android.tools.idea.run.InstalledPatchCache;
+import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.stats.UsageTrackerUtils;
+import com.android.tools.ir.client.InstantRunClient;
+import com.google.common.base.Preconditions;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-
 public class DeployApkTask implements LaunchTask {
+  private static final String ID = "DEPLOY_APK";
+
   private static final Logger LOG = Logger.getInstance(DeployApkTask.class);
 
   private final Project myProject;
   private final Collection<ApkInfo> myApks;
   private final LaunchOptions myLaunchOptions;
-  private final InstantRunContext myInstantRunContext;
+  @Nullable private final InstantRunContext myInstantRunContext;
 
   public DeployApkTask(@NotNull Project project, @NotNull LaunchOptions launchOptions, @NotNull Collection<ApkInfo> apks) {
     this(project, launchOptions, apks, null);
@@ -45,6 +56,8 @@ public class DeployApkTask implements LaunchTask {
 
   public DeployApkTask(@NotNull Project project, @NotNull LaunchOptions launchOptions, @NotNull Collection<ApkInfo> apks,
                        @Nullable InstantRunContext instantRunContext) {
+    // This class only support single apks deployment
+    Preconditions.checkArgument(apks.stream().allMatch(x -> x.getFiles().size() == 1));
     myProject = project;
     myLaunchOptions = launchOptions;
     myApks = apks;
@@ -64,6 +77,7 @@ public class DeployApkTask implements LaunchTask {
 
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    printer = new SkipEmptyLinesConsolePrinter(printer);
     FullApkInstaller
       installer = new FullApkInstaller(myProject, myLaunchOptions, ServiceManager.getService(InstalledApkCache.class), printer);
     for (ApkInfo apk : myApks) {
@@ -96,8 +110,19 @@ public class DeployApkTask implements LaunchTask {
       InstantRunStatsService.get(myProject).notifyDeployType(DeployType.FULLAPK, myInstantRunContext, device);
     }
     trackInstallation(device);
-
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
+  }
+
+  @NotNull
+  @Override
+  public Collection<ApkInfo> getApkInfos() {
+    return myApks;
   }
 
   public static void cacheManifestInstallationData(@NotNull IDevice device, @NotNull InstantRunContext context) {
@@ -105,13 +130,35 @@ public class DeployApkTask implements LaunchTask {
     patchCache.setInstalledManifestResourcesHash(device, context.getApplicationId(), context.getManifestResourcesHash());
   }
 
-  private static void trackInstallation(@NotNull IDevice device) {
-    if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
-      return;
-    }
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+  private void trackInstallation(@NotNull IDevice device) {
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
+      AndroidStudioEvent.newBuilder()
        .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
        .setKind(AndroidStudioEvent.EventKind.DEPLOYMENT_APK)
-       .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device)));
+       .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device)),
+      myProject));
+  }
+
+  private static class SkipEmptyLinesConsolePrinter implements ConsolePrinter {
+    private ConsolePrinter myPrinter;
+
+    public SkipEmptyLinesConsolePrinter(ConsolePrinter printer) {
+
+      myPrinter = printer;
+    }
+
+    @Override
+    public void stdout(@NotNull String message) {
+      if (!StringUtil.isEmptyOrSpaces(message)) {
+        myPrinter.stdout(StringUtil.trimTrailing(message, '\n'));
+      }
+    }
+
+    @Override
+    public void stderr(@NotNull String message) {
+      if (!StringUtil.isEmptyOrSpaces(message)) {
+        myPrinter.stderr(StringUtil.trimTrailing(message, '\n'));
+      }
+    }
   }
 }

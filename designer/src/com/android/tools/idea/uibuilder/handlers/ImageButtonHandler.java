@@ -32,6 +32,7 @@ public class ImageButtonHandler extends ImageViewHandler {
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
       ATTR_SRC,
+      TOOLS_NS_NAME_PREFIX + ATTR_SRC,
       ATTR_CONTENT_DESCRIPTION,
       ATTR_STYLE,
       ATTR_TINT,

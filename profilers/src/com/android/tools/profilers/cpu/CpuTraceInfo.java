@@ -26,17 +26,22 @@ import java.util.concurrent.TimeUnit;
  * This class contains meta information about a trace file, such as traceId, capture start and capture end.
  */
 public class CpuTraceInfo implements ConfigurableDurationData {
-  private final int myTraceId;
+  @NotNull private final CpuProfiler.TraceInfo myInfo;
   @NotNull private final Range myRange;
 
   public CpuTraceInfo(CpuProfiler.TraceInfo traceInfo) {
-    myTraceId = traceInfo.getTraceId();
+    myInfo = traceInfo;
     myRange = new Range(TimeUnit.NANOSECONDS.toMicros(traceInfo.getFromTimestamp()),
                         TimeUnit.NANOSECONDS.toMicros(traceInfo.getToTimestamp()));
   }
 
+  @NotNull
+  public CpuProfiler.TraceInfo getTraceInfo() {
+    return myInfo;
+  }
+
   @Override
-  public long getDuration() {
+  public long getDurationUs() {
     return (long)myRange.getLength();
   }
 
@@ -46,7 +51,25 @@ public class CpuTraceInfo implements ConfigurableDurationData {
   }
 
   public int getTraceId() {
-    return myTraceId;
+    return myInfo.getTraceId();
+  }
+
+  /**
+   * Path of the file where the trace content is saved to. This file is temporary and will be deleted once the user exit Android Studio.
+   */
+  @NotNull
+  public String getTraceFilePath() {
+    return myInfo.getTraceFilePath();
+  }
+
+  @NotNull
+  public CpuProfiler.CpuProfilerType getProfilerType() {
+    return myInfo.getProfilerType();
+  }
+
+  @NotNull
+  public CpuProfiler.TraceInitiationType getInitiationType() {
+    return myInfo.getInitiationType();
   }
 
   @Override

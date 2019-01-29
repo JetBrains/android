@@ -15,24 +15,32 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.builder.model.AaptOptions;
 import com.android.builder.model.SourceProvider;
+import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * A common interface for Android module models.
  */
 public interface AndroidModel {
-
+  @Nullable
+  static AndroidModel get(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null ? facet.getConfiguration().getModel() : null;
+  }
   /**
    * @return the default source provider.
    * TODO: To be build-system-agnostic, simplify source provider usage.
@@ -143,9 +151,10 @@ public interface AndroidModel {
   VirtualFile getRootDir();
 
   /**
-   * @return Whether data binding is enabled for this model.
+   * @return Whether data binding is enabled for this model and whether it is support or X versions.
    */
-  boolean getDataBindingEnabled();
+  @NotNull
+  DataBindingMode getDataBindingMode();
 
   /**
    * @return A provider for finding .class output files and external .jars.
@@ -157,4 +166,15 @@ public interface AndroidModel {
    * @return Whether the class specified by fqcn is out of date and needs to be rebuilt.
    */
   boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile);
+
+  @NotNull
+  AaptOptions.Namespacing getNamespacing();
+
+  /**
+   * Returns the set of build-system-provided resource values and overrides.
+   */
+  @NotNull
+  default Map<String, DynamicResourceValue> getResValues() {
+    return Collections.emptyMap();
+  }
 }

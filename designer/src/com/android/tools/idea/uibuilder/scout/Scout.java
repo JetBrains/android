@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.scout;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -50,8 +49,8 @@ public class Scout {
     DistributeHorizontally, VerticalPack, HorizontalPack, ExpandVertically, AlignBaseline,
     ExpandHorizontally, CenterHorizontallyInParent, CenterVerticallyInParent, CenterVertically,
     CenterHorizontally, CreateHorizontalChain, CreateVerticalChain, ConnectTop, ConnectBottom, ConnectStart, ConnectEnd,
-    ChainVerticalRemove, ChainHorizontalRemove, ChainVerticalMoveUp, ChainVerticalMoveDown, ChainHorizontalMoveLeft,ChainHorizontalMoveRight,
-    ChainInsertHorizontal, ChainInsertVertical
+    ChainVerticalRemove, ChainHorizontalRemove, ChainVerticalMoveUp, ChainVerticalMoveDown, ChainHorizontalMoveLeft, ChainHorizontalMoveRight,
+    ChainInsertHorizontal, ChainInsertVertical,
   }
 
   private static int sMargin = 8;
@@ -75,22 +74,49 @@ public class Scout {
       case ChainHorizontalMoveRight:
       case ChainInsertHorizontal:
       case ChainInsertVertical:
-        ScoutChainsArrange.change( type, widgets);
+        ScoutChainsArrange.change(type, widgets);
         return;
-        default:
-          ScoutArrange.align(type, widgets, applyConstraint);
+      default:
+        ScoutArrange.align(type, widgets, applyConstraint);
     }
   }
 
   /**
    * Arrange widgets and commit the result
-   * @param type type of arranging
-   * @param widgets list of widgets to work on
+   *
+   * @param type             type of arranging
+   * @param widgets          list of widgets to work on
    * @param applyConstraints only align or apply constraints
    */
   public static void arrangeWidgetsAndCommit(Arrange type, List<NlComponent> widgets, boolean applyConstraints) {
     arrangeWidgets(type, widgets, applyConstraints);
     commit(widgets, "Arrange Widgets");
+  }
+
+
+  public enum Connect {
+    ConnectTopToTop,
+    ConnectTopToBottom,
+    ConnectBottomToTop,
+    ConnectBottomToBottom,
+    ConnectStartToStart,
+    ConnectStartToEnd,
+    ConnectEndToStart,
+    ConnectEndToEnd,
+    ConnectBaseLineToBaseLine,
+    ConnectToParentTop,
+    ConnectToParentBottom,
+    ConnectToParentStart,
+    ConnectToParentEnd,
+  }
+
+  public static void connect(List<NlComponent> widgets, Connect action, boolean reverse, boolean margin) {
+      ScoutConnectArrange.connect(widgets, action, reverse, margin);
+      commit(widgets, "connect Widgets");
+  }
+
+  public static boolean connectCheck(List<NlComponent> widgets, Connect test, boolean reverse) {
+    return ScoutConnectArrange.connectCheck(widgets, test, reverse);
   }
 
   /**
@@ -109,12 +135,13 @@ public class Scout {
    * This function can check a view for many critria (in enum)
    *
    * @param widgets
-   * @param test 
+   * @param test
    * @return true if the widget meets the critria
    */
-  public static boolean chainCheck( List<NlComponent> widgets, ChainTest test){
-    return ScoutChainsArrange.chainCheck(widgets,test);
+  public static boolean chainCheck(List<NlComponent> widgets, ChainTest test) {
+    return ScoutChainsArrange.chainCheck(widgets, test);
   }
+
   /**
    * Detect if any component under the tree overlap.
    * inference does not work if views overlap.
@@ -164,6 +191,7 @@ public class Scout {
       }
     }
   }
+
   /**
    * Infer constraints will only set the attributes via a transaction; a separate
    * commit need to be done to save them.
@@ -220,7 +248,7 @@ public class Scout {
     }
 
     NlComponent[] widgets = list.toArray(new NlComponent[list.size()]);
-    ScoutWidget []scoutWidgets =  ScoutWidget.create(widgets, fromConvert);
+    ScoutWidget[] scoutWidgets = ScoutWidget.create(widgets, fromConvert);
     ScoutWidget.computeConstraints(scoutWidgets);
     if (fromConvert) {
       postInferCleanupFromConvert(scoutWidgets);
@@ -267,6 +295,46 @@ public class Scout {
     inferConstraints(component, false, false);
     ArrayList<NlComponent> list = new ArrayList<>(component.getChildren());
     list.add(0, component);
+    commit(list, "Infering constraints");
+    evalResult(component);
+  }
+
+  /**
+   * Evaluates the current constraint set
+   *
+   * @param component the root element to evaluate from
+   */
+  public static void evalResult(NlComponent component) {
+    ArrayList<NlComponent> list = new ArrayList<>(component.getChildren());
+    list.add(0, component);
+    NlComponent[] widgets = list.toArray(new NlComponent[list.size()]);
+    ScoutWidget[] scoutWidgets = ScoutWidget.create(widgets, false);
+    ConstraintSet constraintSet = new ConstraintSet(scoutWidgets);
+    if (constraintSet.validate()) {
+      constraintSet.calculateError();
+      System.out.println("Error in set (v1): " + Double.toString(constraintSet.error()));
+    }
+  }
+
+  /**
+   * Do a prioritized search in the constraint set space and commit
+   * the set with minimum error that was found
+   *
+   * @param component the root element to infer from
+   */
+  public static void findConstraintSetAndCommit(NlComponent component) {
+    ArrayList<NlComponent> list = new ArrayList<>(component.getChildren());
+    list.add(0, component);
+    if (list.size() == 1) {
+      return;
+    }
+    //TODO: Handle nested constraint layouts
+    NlComponent[] widgets = list.toArray(new NlComponent[list.size()]);
+    ScoutWidget[] scoutWidgets = ScoutWidget.create(widgets, false);
+    ConstraintSetGenerator generator = new ConstraintSetGenerator(scoutWidgets);
+    ConstraintSet set = generator.findConstraintSet();
+    set.applySet();
+    System.out.println("Error in set (v2): " + Double.toString(set.error()));
     commit(list, "Infering constraints");
   }
 

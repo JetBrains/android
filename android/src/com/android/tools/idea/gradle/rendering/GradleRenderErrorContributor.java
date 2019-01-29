@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.RenderErrorContributor;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.utils.HtmlBuilder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -38,8 +39,8 @@ import java.util.Collection;
 import java.util.Map;
 
 public class GradleRenderErrorContributor extends RenderErrorContributor {
-  public GradleRenderErrorContributor(@NotNull RenderResult result, @Nullable DataContext dataContext) {
-    super(result, dataContext);
+  public GradleRenderErrorContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
+    super(surface, result, dataContext);
   }
 
   @Override
@@ -98,8 +99,10 @@ public class GradleRenderErrorContributor extends RenderErrorContributor {
     }
 
     @Override
-    public RenderErrorContributor getContributor(@NotNull RenderResult result, @Nullable DataContext dataContext) {
-      return new GradleRenderErrorContributor(result, dataContext);
+    public RenderErrorContributor getContributor(@Nullable EditorDesignSurface surface,
+                                                 @NotNull RenderResult result,
+                                                 @Nullable DataContext dataContext) {
+      return new GradleRenderErrorContributor(surface, result, dataContext);
     }
   }
 }

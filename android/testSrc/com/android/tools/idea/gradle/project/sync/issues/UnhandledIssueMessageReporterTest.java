@@ -16,19 +16,19 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.util.PositionInFile;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 
+import java.util.List;
+
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -58,25 +58,28 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
     Module appModule = myModules.getAppModule();
 
-    String expectedText = "Hello World!";
-    when(mySyncIssue.getMessage()).thenReturn(expectedText);
+    String text = "Hello World!";
+    String expectedText =
+      text + "\nAffected Modules:";
+    when(mySyncIssue.getMessage()).thenReturn(text);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
 
     VirtualFile buildFile = getGradleBuildFile(appModule);
     myReporter.report(mySyncIssue, appModule, buildFile);
 
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
-    assertNotNull(message);
-    assertThat(message.getText()).hasLength(1);
+    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    assertSize(1, messages);
 
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasType(ERROR)
-                                            .hasMessageLine(expectedText, 0);
-    // @formatter:on
+    NotificationData message = messages.get(0);
+    assertEquals(ERROR, message.getNotificationCategory());
+    assertThat(message.getMessage()).contains(expectedText);
 
-    PositionInFile position = message.getPosition();
-    assertNotNull(position);
-    assertSame(buildFile, position.file);
+    assertThat(message.getNavigatable()).isInstanceOf(OpenFileDescriptor.class);
+    OpenFileDescriptor navigatable = (OpenFileDescriptor)message.getNavigatable();
+    assertEquals(buildFile, navigatable.getFile());
+
+    VirtualFile file = ((OpenFileDescriptor)message.getNavigatable()).getFile();
+    assertSame(buildFile, file);
   }
 
   public void testReportWithoutBuildFile() throws Exception {
@@ -85,22 +88,21 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
     Module appModule = myModules.getAppModule();
 
-    String expectedText = "Hello World!";
-    when(mySyncIssue.getMessage()).thenReturn(expectedText);
+    String text = "Hello World!";
+    String expectedText = text + "\nAffected Modules: app";
+    when(mySyncIssue.getMessage()).thenReturn(text);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
 
     myReporter.report(mySyncIssue, appModule, null);
 
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
-    assertNotNull(message);
-    assertThat(message.getText()).hasLength(1);
 
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasType(ERROR)
-                                            .hasMessageLine(expectedText, 0);
-    // @formatter:on
+    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
+    assertSize(1, messages);
 
-    PositionInFile position = message.getPosition();
-    assertNull(position);
+    NotificationData message = messages.get(0);
+    assertEquals(ERROR, message.getNotificationCategory());
+    assertEquals(expectedText, message.getMessage());
+
+    assertNull(message.getNavigatable());
   }
 }

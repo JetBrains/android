@@ -18,6 +18,7 @@ package com.android.tools.idea.common.property.editors;
 import com.android.tools.idea.uibuilder.property.editors.BrowsePanel;
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,10 @@ public abstract class BaseComponentEditor implements NlComponentEditor, BrowsePa
   public static final int VERTICAL_SPACING = 2;
 
   /** Horizontal padding inside the edit control */
-  public static final int HORIZONTAL_PADDING = 7;
+  public static final int HORIZONTAL_PADDING = 3;
+
+  /** Horizontal spacing inside the combobox editor */
+  public static final int HORIZONTAL_ENUM_PADDING = 7;
 
   /** Vertical padding inside the edit control */
   public static final int VERTICAL_PADDING = 2;
@@ -78,7 +82,10 @@ public abstract class BaseComponentEditor implements NlComponentEditor, BrowsePa
 
   @Override
   public void refresh() {
-    setProperty(getProperty());
+    XmlTag tag = getProperty().getTag();
+    if (tag == null || tag.isValid()) {
+      setProperty(getProperty());
+    }
   }
 
   @Override

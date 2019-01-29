@@ -43,7 +43,7 @@ public class TargetMenuAction extends DropDownAction {
    * @param useCompatibilityTarget when true, this menu action will set a CompatibilityRenderTarget as instead of a real IAndroidTarget
    */
   public TargetMenuAction(ConfigurationHolder renderContext, boolean useCompatibilityTarget) {
-    super("", "API Version in Editor", StudioIcons.LayoutEditor.Toolbar.ANDROID_API);
+    super("", "API Version for Preview", StudioIcons.LayoutEditor.Toolbar.ANDROID_API);
     myRenderContext = renderContext;
     myUseCompatibilityTarget = useCompatibilityTarget;
     Presentation presentation = getTemplatePresentation();

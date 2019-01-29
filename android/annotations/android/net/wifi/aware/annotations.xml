@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
   <item name="android.net.wifi.aware.DiscoverySession android.net.NetworkSpecifier createNetworkSpecifierOpen(android.net.wifi.aware.PeerHandle) 0">
-    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.net.wifi.aware.DiscoverySession android.net.NetworkSpecifier createNetworkSpecifierPassphrase(android.net.wifi.aware.PeerHandle, java.lang.String) 0">
-    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.net.wifi.aware.DiscoverySession android.net.NetworkSpecifier createNetworkSpecifierPassphrase(android.net.wifi.aware.PeerHandle, java.lang.String) 1">
     <annotation name="android.support.annotation.NonNull" />
@@ -81,7 +81,7 @@
     </annotation>
   </item>
   <item name="android.net.wifi.aware.WifiAwareSession android.net.NetworkSpecifier createNetworkSpecifierOpen(int, byte[]) 1">
-    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.net.wifi.aware.WifiAwareSession android.net.NetworkSpecifier createNetworkSpecifierPassphrase(int, byte[], java.lang.String) 0">
     <annotation name="android.support.annotation.IntDef">
@@ -89,7 +89,7 @@
     </annotation>
   </item>
   <item name="android.net.wifi.aware.WifiAwareSession android.net.NetworkSpecifier createNetworkSpecifierPassphrase(int, byte[], java.lang.String) 1">
-    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.net.wifi.aware.WifiAwareSession android.net.NetworkSpecifier createNetworkSpecifierPassphrase(int, byte[], java.lang.String) 2">
     <annotation name="android.support.annotation.NonNull" />

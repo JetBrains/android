@@ -15,118 +15,90 @@
  */
 package com.android.tools.idea.res;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.utils.concurrency.CacheUtils;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+/**
+ * A project services that manages {@link ResourceFolderRepository} instances, creating them an necessary and reusing repositories for the
+ * same directories when multiple modules need them. For every directory a namespaced and non-namespaced repository may be created, if
+ * needed.
+ *
+ * <p>The repositories are stored using weak references, so can be garbage collected once no module uses them anymore. The repositories are
+ * strongly referenced from {@link MultiResourceRepository} as children of the module resources repository.
+ */
 public class ResourceFolderRegistry {
-  private final static Object DIR_MAP_LOCK = new Object();
+  private final Cache<VirtualFile, ResourceFolderRepository> myNamespacedCache = buildCache();
+  private final Cache<VirtualFile, ResourceFolderRepository> myNonNamespacedCache = buildCache();
 
-  @GuardedBy("DIR_MAP_LOCK")
-  private final static Map<VirtualFile, ResourceFolderRepository> ourDirMap = Maps.newHashMap();
-
-  public static void reset() {
-    synchronized (DIR_MAP_LOCK) {
-      for (Map.Entry<VirtualFile, ResourceFolderRepository> entry : ourDirMap.entrySet()) {
-        VirtualFile dir = entry.getKey();
-        ResourceFolderRepository repository = entry.getValue();
-        Project project = repository.getFacet().getModule().getProject();
-        PsiProjectListener.removeRoot(project, dir, repository);
-      }
-      ourDirMap.clear();
-    }
+  @NotNull
+  private static Cache<VirtualFile, ResourceFolderRepository> buildCache() {
+    return CacheBuilder.newBuilder().weakValues().build();
   }
 
   @NotNull
-  // TODO: namespaces
-  public static ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir) {
-    return get(facet, dir, null);
+  public static ResourceFolderRegistry getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, ResourceFolderRegistry.class);
+  }
+
+  public void reset() {
+    myNamespacedCache.invalidateAll();
+    myNonNamespacedCache.invalidateAll();
   }
 
   @NotNull
-  public static ResourceFolderRepository get(@NotNull final AndroidFacet facet,
-                                             @NotNull final VirtualFile dir,
-                                             @Nullable String namespace) {
-    synchronized (DIR_MAP_LOCK) {
-      ResourceFolderRepository repository = ourDirMap.get(dir);
-      if (repository == null) {
-        Project project = facet.getModule().getProject();
-        // TODO: namespaces: use the namespace as the cache key.
-        repository = ResourceFolderRepository.create(facet, dir, namespace);
-        putRepositoryInCache(project, dir, repository);
-      }
-      return repository;
-    }
+  public ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir) {
+    // ResourceFolderRepository.create may require the IDE read lock. To avoid deadlocks it is always obtained first, before the caches
+    // locks.
+    return ReadAction.compute(() -> get(facet, dir, ResourceRepositoryManager.getOrCreateInstance(facet).getNamespace()));
   }
 
-  private static void putRepositoryInCache(@NotNull Project project, @NotNull final VirtualFile dir,
-                                           @NotNull ResourceFolderRepository repository) {
-    PsiProjectListener.addRoot(project, dir, repository);
-    // Some of the resources in the ResourceFolderRepository might actually contain pointers to the Project instance so we need
-    // to make sure we invalidate those whenever the project is closed.
-    Disposer.register(project, () -> {
-      ResourceFolderRepository repositoryFromMap;
-      synchronized (DIR_MAP_LOCK) {
-        repositoryFromMap = ourDirMap.remove(dir);
-      }
-      if (repositoryFromMap != null) {
-        Disposer.dispose(repositoryFromMap);
-      }
-    });
-
-    synchronized (DIR_MAP_LOCK) {
-      ourDirMap.put(dir, repository);
-    }
-  }
-
-  /**
-   * Filter out directories that are already cached in the registry.
-   * @param resDirectories
-   */
-  private static void filterOutCached(Map<VirtualFile, AndroidFacet> resDirectories) {
-    synchronized (DIR_MAP_LOCK) {
-      resDirectories.keySet().removeAll(ourDirMap.keySet());
-    }
-  }
-
-  /**
-   * Grabs resource directories from the given facets and pairs the directory with an arbitrary
-   * AndroidFacet which happens to depend on the directory.
-   *
-   * @param facets set of facets which may have resource directories
-   */
   @NotNull
-  static Map<VirtualFile, AndroidFacet> getResourceDirectoriesForFacets(@NotNull List<AndroidFacet> facets) {
-    Map<VirtualFile, AndroidFacet> resDirectories = Maps.newHashMap();
-    for (AndroidFacet facet : facets) {
-      for (VirtualFile resourceDir : facet.getAllResourceDirectories()) {
-        if (!resDirectories.containsKey(resourceDir)) {
-          resDirectories.put(resourceDir, facet);
-        }
-      }
-    }
-    return resDirectories;
+  @VisibleForTesting
+  ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir, @NotNull ResourceNamespace namespace) {
+    Cache<VirtualFile, ResourceFolderRepository> cache =
+        namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
+
+    ResourceFolderRepository repository = CacheUtils.getAndUnwrap(cache, dir, () -> ResourceFolderRepository.create(facet, dir, namespace));
+    assert repository.getNamespace().equals(namespace);
+
+    // TODO(b/80179120): figure out why this is not always true.
+    // assert repository.getFacet().equals(facet);
+
+    return repository;
+  }
+
+  @Nullable
+  public CachedRepositories getCached(@NotNull VirtualFile directory) {
+    ResourceFolderRepository namespaced = myNamespacedCache.getIfPresent(directory);
+    ResourceFolderRepository nonNamespaced = myNonNamespacedCache.getIfPresent(directory);
+    return namespaced == null && nonNamespaced == null ? null : new CachedRepositories(namespaced, nonNamespaced);
   }
 
   /**
@@ -148,8 +120,7 @@ public class ResourceFolderRegistry {
       // Some directories in the registry may already be populated by this point, so filter them out.
       indicator.setText("Indexing resources");
       indicator.setIndeterminate(false);
-      Map<VirtualFile, AndroidFacet> resDirectories = getResourceDirectoriesForFacets(facets);
-      filterOutCached(resDirectories);
+      Map<VirtualFile, AndroidFacet> resDirectories = AndroidResourceUtil.getResourceDirectoriesForFacets(facets);
       // Might already be done, as there can be a race for filling the memory caches.
       if (resDirectories.isEmpty()) {
         return;
@@ -166,36 +137,31 @@ public class ResourceFolderRegistry {
         return;
       }
       Application application = ApplicationManager.getApplication();
-      List<ResourceFolderRepository> repositories;
       // Beware if the current thread is holding the write lock. The current thread will
       // end up waiting for helper threads to finish, and the helper threads will be
       // acquiring a read lock (which would then block because of the write lock).
       assert !application.isWriteAccessAllowed();
-      repositories = executeParallel(indicator, resDirectories);
-      for (ResourceFolderRepository repository : repositories) {
-        putRepositoryInCache(myProject, repository.getResourceDir(), repository);
-      }
-    }
 
-    private static List<ResourceFolderRepository> executeParallel(@NotNull ProgressIndicator indicator,
-                                                                  @NotNull Map<VirtualFile, AndroidFacet> resDirectories) {
       int numDone = 0;
-      List<ResourceFolderRepository> repositories = Lists.newArrayList();
+
       // Cap the threads to 4 for now. Scaling is okay from 1 to 2, but not necessarily much better as we go higher.
       int maxThreads = Math.min(4, Runtime.getRuntime().availableProcessors());
-      ExecutorService
-        parallelExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRegistry", maxThreads);
-      List<Future<ResourceFolderRepository>> repositoryJobs = Lists.newArrayList();
+      ExecutorService parallelExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ResourceFolderRegistry", maxThreads);
+      List<Future<ResourceFolderRepository>> repositoryJobs = new ArrayList<>();
       for (Map.Entry<VirtualFile, AndroidFacet> entry : resDirectories.entrySet()) {
-        repositoryJobs.add(queueRepositoryFuture(parallelExecutor, entry.getValue(), entry.getKey()));
+        AndroidFacet facet = entry.getValue();
+        VirtualFile dir = entry.getKey();
+        ResourceFolderRegistry registry = getInstance(myProject);
+        repositoryJobs.add(parallelExecutor.submit(() -> registry.get(facet, dir)));
       }
+
       for (Future<ResourceFolderRepository> job : repositoryJobs) {
         if (indicator.isCanceled()) {
           break;
         }
         indicator.setFraction((double)numDone / resDirectories.size());
         try {
-          repositories.add(job.get());
+          job.get();
         }
         catch (ExecutionException e) {
           // If we get an exception, that's okay -- we stop pre-populating the cache, which is just for performance.
@@ -205,15 +171,19 @@ public class ResourceFolderRegistry {
         }
         ++numDone;
       }
-      return repositories;
-    }
-
-    private static Future<ResourceFolderRepository> queueRepositoryFuture(
-      @NotNull final ExecutorService myParallelBuildExecutor,
-      @NotNull final AndroidFacet facet,
-      @NotNull final VirtualFile dir) {
-      return myParallelBuildExecutor.submit(() -> ResourceFolderRepository.create(facet, dir, null));
     }
   }
 
+  public static class CachedRepositories {
+    @Nullable
+    public final ResourceFolderRepository namespaced;
+
+    @Nullable
+    public final ResourceFolderRepository nonNamespaced;
+
+    public CachedRepositories(@Nullable ResourceFolderRepository namespaced, @Nullable ResourceFolderRepository nonNamespaced) {
+      this.namespaced = namespaced;
+      this.nonNamespaced = nonNamespaced;
+    }
+  }
 }

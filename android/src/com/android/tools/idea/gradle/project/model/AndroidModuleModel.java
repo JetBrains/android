@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.*;
 import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.databinding.DataBindingMode;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels.VariantOnlyModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.lint.detector.api.Lint;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -34,7 +40,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.JavaPsiFacade;
@@ -52,11 +57,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
 
-import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
+import static com.android.SdkConstants.*;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
-import static com.android.tools.lint.detector.api.LintUtils.convertVersion;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
@@ -67,7 +71,7 @@ import static com.intellij.util.ArrayUtil.contains;
  */
 public class AndroidModuleModel implements AndroidModel, ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 2L;
+  private static final long serialVersionUID = 4L;
 
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
@@ -89,6 +93,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = new HashMap<>();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = new HashMap<>();
   @NotNull private Map<String, IdeVariant> myVariantsByName = new HashMap<>();
+  @NotNull private Set<String> myVariantNames = new HashSet<>();
+  private boolean myUsingSingleVariantSync;
 
   @NotNull private Set<File> myExtraGeneratedSourceFolders = new HashSet<>();
 
@@ -100,7 +106,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Nullable
   public static AndroidModuleModel get(@NotNull AndroidFacet androidFacet) {
-    AndroidModel androidModel = androidFacet.getAndroidModel();
+    AndroidModel androidModel = androidFacet.getConfiguration().getModel();
     return androidModel instanceof AndroidModuleModel ? (AndroidModuleModel)androidModel : null;
   }
 
@@ -116,10 +122,21 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                             @NotNull AndroidProject androidProject,
                             @NotNull String selectedVariantName,
                             @NotNull IdeDependenciesFactory dependenciesFactory) {
+    this(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null);
+  }
+
+  public AndroidModuleModel(@NotNull String moduleName,
+                            @NotNull File rootDirPath,
+                            @NotNull AndroidProject androidProject,
+                            @NotNull String variantName,
+                            @NotNull IdeDependenciesFactory dependenciesFactory,
+                            @Nullable Collection<Variant> variantsToAdd) {
+    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variantsToAdd);
+    myUsingSingleVariantSync = variantsToAdd != null;
+
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
-    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory);
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
 
@@ -127,8 +144,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     populateProductFlavorsByName();
     populateVariantsByName();
 
-    mySelectedVariantName = findVariantToSelect(selectedVariantName);
+    mySelectedVariantName = findVariantToSelect(variantName);
   }
+
 
   private void populateBuildTypesByName() {
     for (BuildTypeContainer container : myAndroidProject.getBuildTypes()) {
@@ -146,11 +164,31 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   private void populateVariantsByName() {
     myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
+    if (myUsingSingleVariantSync) {
+      myVariantNames = new HashSet<>(myAndroidProject.getVariantNames());
+    }
+    else {
+      myVariantNames = new HashSet<>(myVariantsByName.keySet());
+    }
+  }
+
+  /**
+   * Inject the Variant-Only Sync model to existing AndroidProject.
+   * Since the build files were not changed from last sync, only SyncIssues and Variant models need to be injected.
+   *
+   * @param moduleModel The module model obtained from Variant-Only sync.
+   * @param factory     IdeDependenciesFactory that handles GlobalLibraryMap for DependencyGraph.
+   */
+  public void addVariantOnlyModuleModel(@NotNull VariantOnlyModuleModel moduleModel, @NotNull IdeDependenciesFactory factory) {
+    myAndroidProject.addVariants(moduleModel.getVariants(), factory);
+    myAndroidProject.addSyncIssues(moduleModel.getAndroidProject().getSyncIssues());
+    populateVariantsByName();
   }
 
   /**
    * @deprecated Use {@link #getSelectedMainCompileLevel2Dependencies()}
    */
+  @SuppressWarnings("DeprecatedIsStillUsed")
   @Deprecated
   @NotNull
   public Dependencies getSelectedMainCompileDependencies() {
@@ -266,10 +304,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   private List<SourceProvider> getTestSourceProviders(@NotNull String variantName, @NotNull String... testArtifactNames) {
     validateTestArtifactNames(testArtifactNames);
 
-    List<SourceProvider> providers = new ArrayList<>();
     // Collect the default config test source providers.
     Collection<SourceProviderContainer> extraSourceProviders = getAndroidProject().getDefaultConfig().getExtraSourceProviders();
-    providers.addAll(getSourceProvidersForArtifacts(extraSourceProviders, testArtifactNames));
+    List<SourceProvider> providers = new ArrayList<>(getSourceProvidersForArtifacts(extraSourceProviders, testArtifactNames));
 
     Variant variant = myVariantsByName.get(variantName);
     assert variant != null;
@@ -302,6 +339,18 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   private static boolean isTestArtifact(@Nullable String artifactName) {
     return contains(artifactName, TEST_ARTIFACT_NAMES);
+  }
+
+  /**
+   * @return true if the variant model with given name has been requested before.
+   */
+  public boolean variantExists(@NotNull String variantName) {
+    for (Variant variant : myAndroidProject.getVariants()) {
+      if (variantName.equals(variant.getName())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -403,7 +452,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
           }
         }
       }
-      myMinSdkVersion = minSdkVersion != null ? convertVersion(minSdkVersion, null) : NOT_SPECIFIED;
+      myMinSdkVersion = minSdkVersion != null ? Lint.convertVersion(minSdkVersion, null) : NOT_SPECIFIED;
     }
 
     return myMinSdkVersion != NOT_SPECIFIED ? myMinSdkVersion : null;
@@ -413,20 +462,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable
   public AndroidVersion getRuntimeMinSdkVersion() {
     ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-    if (minSdkVersion != null) {
-      return convertVersion(minSdkVersion, null);
-    }
-    return null;
+    return minSdkVersion != null ? Lint.convertVersion(minSdkVersion, null) : null;
   }
 
   @Override
   @Nullable
   public AndroidVersion getTargetSdkVersion() {
     ApiVersion targetSdkVersion = getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-    if (targetSdkVersion != null) {
-      return convertVersion(targetSdkVersion, null);
-    }
-    return null;
+    return targetSdkVersion != null ? Lint.convertVersion(targetSdkVersion, null) : null;
   }
 
   /**
@@ -548,17 +591,17 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myMinSdkVersion = null;
   }
 
+  @VisibleForTesting
   @NotNull
-  private String findVariantToSelect(@NotNull String variantName) {
-    Collection<String> variantNames = getVariantNames();
+  String findVariantToSelect(@NotNull String variantName) {
     String newVariantName;
-    if (variantNames.contains(variantName)) {
+    if (myVariantsByName.containsKey(variantName)) {
       newVariantName = variantName;
     }
     else {
-      List<String> sorted = new ArrayList<>(variantNames);
+      List<String> sorted = new ArrayList<>(myVariantsByName.keySet());
       Collections.sort(sorted);
-      // AndroidProject has always at least 2 variants (debug and release.)
+      assert !myVariantsByName.isEmpty() : "There is no variant model in AndroidModuleModel!";
       newVariantName = sorted.get(0);
     }
     return newVariantName;
@@ -591,7 +634,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public Collection<String> getVariantNames() {
-    return myVariantsByName.keySet();
+    return myVariantNames;
   }
 
   @Nullable
@@ -663,6 +706,13 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
           excludedFolderPaths.add(folderPath);
         }
       }
+
+      if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+        // Exclude the location of R.java files, to speed up indexing. The location changed in 3.2, so we exclude both.
+        File generatedFolder = new File(buildFolderPath, FD_GENERATED);
+        excludedFolderPaths.add(new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES));
+        excludedFolderPaths.add(new File(generatedFolder, FD_SOURCE_GEN + File.separator + FD_RES_CLASS));
+      }
     }
     else {
       // We know these folders have to be always excluded
@@ -678,7 +728,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    */
   @NotNull
   public File[] getExtraGeneratedSourceFolderPaths() {
-    return myExtraGeneratedSourceFolders.toArray(new File[myExtraGeneratedSourceFolders.size()]);
+    return myExtraGeneratedSourceFolders.toArray(new File[0]);
   }
 
   @Nullable
@@ -714,12 +764,18 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return null;
   }
 
+  @VisibleForTesting
+  boolean isUsingSingleVariantSync() {
+    return myUsingSingleVariantSync;
+  }
+
   private void writeObject(ObjectOutputStream out) throws IOException {
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
     out.writeObject(myAndroidProject);
     out.writeObject(mySelectedVariantName);
+    out.writeBoolean(myUsingSingleVariantSync);
   }
 
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -727,6 +783,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
     myAndroidProject = (IdeAndroidProject)in.readObject();
+    String variantName = (String)in.readObject();
+    myUsingSingleVariantSync = in.readBoolean();
 
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
@@ -740,7 +798,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     populateProductFlavorsByName();
     populateVariantsByName();
 
-    setSelectedVariantName((String)in.readObject());
+    setSelectedVariantName(variantName);
   }
 
   private void parseAndSetModelVersion() {
@@ -824,8 +882,15 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @Override
-  public boolean getDataBindingEnabled() {
-    return dependsOn(this, DATA_BINDING_LIB_ARTIFACT);
+  @NotNull
+  public DataBindingMode getDataBindingMode() {
+    if (dependsOn(this, ANDROIDX_DATA_BINDING_LIB_ARTIFACT)) {
+      return DataBindingMode.ANDROIDX;
+    }
+    if (dependsOn(this, DATA_BINDING_LIB_ARTIFACT)) {
+      return DataBindingMode.SUPPORT;
+    }
+    return DataBindingMode.NONE;
   }
 
   @Override
@@ -836,6 +901,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Override
   public boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
+    return testIsClassFileOutOfDate(module, fqcn, classFile);
+  }
+
+  public static boolean testIsClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
     Project project = module.getProject();
     GlobalSearchScope scope = module.getModuleWithDependenciesScope();
     VirtualFile sourceFile =
@@ -871,5 +940,27 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       lastBuildTimestamp = projectBuildTimestamp;
     }
     return sourceFileModified > lastBuildTimestamp && lastBuildTimestamp > 0L;
+  }
+
+  @NotNull
+  @Override
+  public AaptOptions.Namespacing getNamespacing() {
+    return myAndroidProject.getAaptOptions().getNamespacing();
+  }
+
+  @Override
+  public Map<String, DynamicResourceValue> getResValues() {
+    Map<String, DynamicResourceValue> result = new HashMap<>();
+    Variant selectedVariant = getSelectedVariant();
+
+    // flavors and default config:
+    result.putAll(GradleModelConverterUtil.classFieldsToDynamicResourceValues(selectedVariant.getMergedFlavor().getResValues()));
+
+    BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
+    if (buildType != null) {
+      result.putAll(GradleModelConverterUtil.classFieldsToDynamicResourceValues(buildType.getBuildType().getResValues()));
+    }
+
+    return result;
   }
 }

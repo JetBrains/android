@@ -21,6 +21,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElementFinder
 import java.nio.file.Path
 
 /**
@@ -91,6 +92,23 @@ interface AndroidProjectSystem {
    * Returns an instance of [ProjectSystemSyncManager] that applies to the project.
    */
   fun getSyncManager(): ProjectSystemSyncManager
+
+  /**
+   * [PsiElementFinder]s used with the given build system, e.g. for the R classes.
+   *
+   * These finders should not be registered as extensions
+   */
+  fun getPsiElementFinders(): Collection<PsiElementFinder>
+
+  /**
+   * Whether R classes found in the PSI should additionally be augmented to reflect current state of resources.
+   */
+  fun getAugmentRClasses(): Boolean
+
+  /**
+   * [LightResourceClassService] instance used by this project system (if used at all).
+   */
+  fun getLightResourceClassService(): LightResourceClassService
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
@@ -99,7 +117,7 @@ val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.proj
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.
  */
 fun Project.getProjectSystem(): AndroidProjectSystem {
-  return getComponent(ProjectSystemComponent::class.java).projectSystem
+  return ProjectSystemService.getInstance(this).projectSystem
 }
 
 /**

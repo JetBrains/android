@@ -15,24 +15,26 @@
  */
 package com.android.tools.idea.npw.java;
 
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
-import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
-import icons.AndroidIcons;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import java.awt.*;
 import java.util.Collection;
 import java.util.Collections;
 
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
+
 public class NewJavaModuleDescriptionProvider implements ModuleDescriptionProvider {
   @Override
-  public Collection<ModuleGalleryEntry> getDescriptions() {
+  public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
     return Collections.singletonList(new JavaModuleTemplateGalleryEntry());
   }
 
@@ -45,8 +47,8 @@ public class NewJavaModuleDescriptionProvider implements ModuleDescriptionProvid
 
     @Nullable
     @Override
-    public Icon getIcon() {
-      return AndroidIcons.ModuleTemplates.Android;
+    public Image getIcon() {
+      return getTemplateImage(myTemplateHandle, false);
     }
 
     @NotNull
@@ -69,7 +71,7 @@ public class NewJavaModuleDescriptionProvider implements ModuleDescriptionProvid
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureJavaModuleStep(new NewJavaModuleModel(model.getProject().getValue(), myTemplateHandle), getName());
+      return new ConfigureJavaModuleStep(new NewJavaModuleModel(model.getProject().getValue(), myTemplateHandle, model.getProjectSyncInvoker()), getName());
     }
   }
 }

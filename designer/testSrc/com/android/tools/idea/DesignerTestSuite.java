@@ -23,11 +23,14 @@ import com.android.tools.tests.LeakCheckerRule;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
+import static com.android.testutils.TestUtils.getWorkspaceFile;
+
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   DesignerTestSuite.class,
   NlDesignSurfaceTest.class, // Flaky
+  com.android.tools.idea.uibuilder.property.NlXmlPropertyBuilderTest.class,  // b/110329807
 })
 public class DesignerTestSuite extends IdeaTestSuiteBase {
 
@@ -43,11 +46,16 @@ public class DesignerTestSuite extends IdeaTestSuiteBase {
        "tools/adt/idea/android/testData",
        "tools/adt/idea/designer/testData",
        "tools/base/templates",
+       "tools/idea/build.txt",
        "tools/idea/java",
        "prebuilts/studio/sdk",
        "prebuilts/tools/common/offline-m2");
 
+    // Enable Kotlin plugin (see PluginManagerCore.PROPERTY_PLUGIN_PATH).
+    System.setProperty("plugin.path", getWorkspaceFile("prebuilts/tools/common/kotlin-plugin/Kotlin").getAbsolutePath());
+
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
   }
 }

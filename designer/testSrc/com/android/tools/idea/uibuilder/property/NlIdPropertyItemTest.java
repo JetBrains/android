@@ -18,9 +18,13 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.tools.idea.common.SyncNlModel;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.ui.components.JBCheckBox;
+import com.intellij.usageView.UsageInfo;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -67,7 +71,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetValueDoNotChangeReferences() {
-    when(myBuilder.show()).thenReturn(DialogWrapper.NEXT_USER_EXIT_CODE);
+    when(myBuilder.show()).thenReturn(NlIdPropertyItem.NO_EXIT_CODE);
     myItem.setValue("label");
 
     assertThat(myTextView.getId()).isEqualTo("label");
@@ -93,6 +97,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     }).when(myBuilder).show();
 
     myItem.setValue("other");
+    UIUtil.dispatchAllInvocationEvents();
     assertThat(myTextView.getId()).isEqualTo("other");
     assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/other");
     assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/other");
@@ -100,11 +105,76 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     // Set id again, this time expect references to be changed without showing a dialog
     verify(myBuilder, times(1)).show();
     myItem.setValue("last");
+    UIUtil.dispatchAllInvocationEvents();
     verify(myBuilder, times(1)).show();
 
     assertThat(myTextView.getId()).isEqualTo("last");
     assertThat(myCheckBox1.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/last");
     assertThat(myCheckBox2.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/last");
+  }
+
+  public void testSetValueAndYesWillNotEnablePreviewBeforeRun() {
+    RenameProcessor renameProcessor;
+    renameProcessor = mock(RenameProcessor.class);
+    when(renameProcessor.findUsages()).thenReturn(new UsageInfo[]{mock(UsageInfo.class)});
+    myItem.setRenameProcessSupplier(() -> renameProcessor);
+
+    when(myBuilder.show()).thenReturn(DialogWrapper.OK_EXIT_CODE);
+    myItem.setValue("label");
+
+    InOrder inOrder = inOrder(renameProcessor);
+    inOrder.verify(renameProcessor).findUsages();
+    inOrder.verify(renameProcessor).setPreviewUsages(false);
+    inOrder.verify(renameProcessor).run();
+  }
+
+  public void testSetValueAndPreviewWillEnablePreviewBeforeRun() {
+    RenameProcessor renameProcessor;
+    renameProcessor = mock(RenameProcessor.class);
+    when(renameProcessor.findUsages()).thenReturn(new UsageInfo[]{mock(UsageInfo.class)});
+    myItem.setRenameProcessSupplier(() -> renameProcessor);
+
+    when(myBuilder.show()).thenReturn(NlIdPropertyItem.PREVIEW_EXIT_CODE);
+    myItem.setValue("label");
+
+    InOrder inOrder = inOrder(renameProcessor);
+    inOrder.verify(renameProcessor).findUsages();
+    inOrder.verify(renameProcessor).setPreviewUsages(true);
+    inOrder.verify(renameProcessor).run();
+  }
+
+  public void testSetValueAndNoWillChangeTheValueButRenameProcessWillNotRun() {
+    RenameProcessor renameProcessor;
+    renameProcessor = mock(RenameProcessor.class);
+    when(renameProcessor.findUsages()).thenReturn(new UsageInfo[]{mock(UsageInfo.class)});
+    myItem.setRenameProcessSupplier(() -> renameProcessor);
+
+    when(myBuilder.show()).thenReturn(NlIdPropertyItem.NO_EXIT_CODE);
+    myItem.setValue("label");
+
+    InOrder inOrder = inOrder(renameProcessor);
+    inOrder.verify(renameProcessor).findUsages();
+    inOrder.verifyNoMoreInteractions();
+
+    assertEquals("label", myItem.getValue());
+  }
+
+  public void testSetValueAndCancelNotExecuteRenameProcess() {
+    String expected = myItem.getValue();
+
+    RenameProcessor renameProcessor;
+    renameProcessor = mock(RenameProcessor.class);
+    when(renameProcessor.findUsages()).thenReturn(new UsageInfo[]{mock(UsageInfo.class)});
+    myItem.setRenameProcessSupplier(() -> renameProcessor);
+
+    when(myBuilder.show()).thenReturn(DialogWrapper.CANCEL_EXIT_CODE);
+    myItem.setValue("label");
+
+    InOrder inOrder = inOrder(renameProcessor);
+    inOrder.verify(renameProcessor).findUsages();
+    inOrder.verifyNoMoreInteractions();
+
+    assertEquals(expected, myItem.getValue());
   }
 
   @Override

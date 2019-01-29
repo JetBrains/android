@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class TemporarySceneComponent extends SceneComponent {
 
   public TemporarySceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
-    super(scene, component);
+    super(scene, component, new DefaultHitProvider());
   }
 
   @Override

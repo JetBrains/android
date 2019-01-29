@@ -15,39 +15,50 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.resources.ResourceType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.api.AttributeBrowser;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-
 /**
  * Handler for the {@code <fragment>} tag
  */
 public final class FragmentHandler extends ViewHandler {
+
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
       ATTR_NAME,
       ATTR_LAYOUT,
-      ATTR_CLASS);
+      ATTR_CLASS,
+      ATTR_NAV_GRAPH);
   }
 
   @Override
   @Nullable
   public AttributeBrowser getBrowser(@NotNull String attributeName) {
-    if (!attributeName.equals(ATTR_NAME)) {
-      return null;
+    if (attributeName.equals(ATTR_NAME)) {
+      return FragmentHandler::browseClasses;
     }
-    return FragmentHandler::browseClasses;
+    if (attributeName.equals(ATTR_NAV_GRAPH)) {
+      return FragmentHandler::browseNavs;
+    }
+    return null;
   }
 
   @Override
@@ -88,7 +99,22 @@ public final class FragmentHandler extends ViewHandler {
                           @NotNull NlComponent newChild,
                           @NotNull InsertType insertType) {
     if (insertType == InsertType.CREATE) { // NOT InsertType.CREATE_PREVIEW
-      if (newChild.getAttribute(ANDROID_URI, ATTR_NAME) != null) {
+      String className = newChild.getAttribute(ANDROID_URI, ATTR_NAME);
+      if (className != null) {
+        if (className.equals(FQCN_NAV_HOST_FRAGMENT)) {
+          String src = browseNavs(editor, null);
+          if (src != null) {
+            ApplicationManager.getApplication().runWriteAction(() -> {
+              newChild.setAttribute(AUTO_URI, ATTR_NAV_GRAPH, src);
+              newChild.setAttribute(AUTO_URI, ATTR_DEFAULT_NAV_HOST, VALUE_TRUE);
+            });
+            return true;
+          }
+          else {
+            // Remove the view; the insertion was canceled
+            return false;
+          }
+        }
         return true;
       }
       String src = browseClasses(editor, null);
@@ -107,8 +133,24 @@ public final class FragmentHandler extends ViewHandler {
   @Nullable
   private static String browseClasses(@NotNull ViewEditor editor, @Nullable String existingValue) {
     return editor.displayClassInput("Fragments",
-                                    Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT),
+                                    Sets.newHashSet(CLASS_FRAGMENT, CLASS_V4_FRAGMENT.oldName(), CLASS_V4_FRAGMENT.newName()),
                                     null,
                                     existingValue);
+  }
+
+  @Nullable
+  private static String browseNavs(@NotNull ViewEditor editor, @Nullable String existingValue) {
+    return editor.displayResourceInput("Navigation Graphs", EnumSet.of(ResourceType.NAVIGATION));
+  }
+
+  @Override
+  public void onActivateInDesignSurface(@NotNull NlComponent component,
+                                        ViewEditor editor,
+                                        int x,
+                                        int y) {
+    String graph = component.getAttribute(AUTO_URI, ATTR_NAV_GRAPH);
+    if (graph != null) {
+      editor.openResourceFile(graph);
+    }
   }
 }

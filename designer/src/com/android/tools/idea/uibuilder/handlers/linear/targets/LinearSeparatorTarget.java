@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
+import com.android.tools.idea.common.scene.NonPlaceholderDragTarget;
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearPlaceholder;
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearSeparator;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -26,11 +27,10 @@ import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -39,7 +39,7 @@ import static java.lang.Math.min;
  * Displays a separator in between LinearLayout's children and used as a target when dropping
  * a component in LinearLayout
  */
-public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider {
+public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider, NonPlaceholderDragTarget {
 
   private static final boolean DEBUG = false;
   private final boolean myLayoutVertical;
@@ -172,9 +172,7 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
   @Override
   public void fill(@NotNull SceneComponent owner,
                    @NotNull SceneComponent snappableComponent,
-                   @NotNull ArrayList<Notch> horizontalNotches,
-                   @NotNull ArrayList<Notch> verticalNotches) {
-
+                   @NotNull ImmutableList.Builder<Notch> notchesBuilder) {
     if (myLayoutVertical) {
       int value = owner.getDrawY();
       int displayValue = owner.getDrawY();
@@ -194,7 +192,7 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
       Notch.Vertical notch = new Notch.Vertical(owner, value, displayValue);
       notch.setGap(owner.getDrawHeight() / 2);
       notch.setTarget(this);
-      verticalNotches.add(notch);
+      notchesBuilder.add(notch);
     }
     else {
       int value = owner.getDrawX();
@@ -215,7 +213,7 @@ public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider 
       Notch.Horizontal notch = new Notch.Horizontal(owner, value, displayValue);
       notch.setGap(owner.getDrawWidth() / 2);
       notch.setTarget(this);
-      horizontalNotches.add(notch);
+      notchesBuilder.add(notch);
     }
   }
 

@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.*;
 import com.android.io.IAbstractFile;
 import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.io.BufferingFileWrapper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
@@ -45,6 +50,8 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 
 /**
  * Produces matches for configurations.
@@ -57,19 +64,26 @@ import static com.android.SdkConstants.FD_RES_LAYOUT;
 public class ConfigurationMatcher {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ConfigurationMatcher");
 
-  private final Configuration myConfiguration;
-  private final ConfigurationManager myManager;
-  private final VirtualFile myFile;
-  private final LocalResourceRepository myResources;
+  @NotNull private final Configuration myConfiguration;
+  @NotNull private final ConfigurationManager myManager;
+  @Nullable private final LocalResourceRepository myResources;
+  @Nullable private final ResourceNamespace myNamespace;
+  @Nullable private final VirtualFile myFile;
 
-  public ConfigurationMatcher(@NotNull Configuration configuration,
-                       @Nullable LocalResourceRepository resources,
-                       @Nullable VirtualFile file) {
+  public ConfigurationMatcher(@NotNull Configuration configuration, @Nullable VirtualFile file) {
     myConfiguration = configuration;
     myFile = file;
-    myResources = resources;
 
     myManager = myConfiguration.getConfigurationManager();
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(myManager.getModule());
+    if (repositoryManager == null) {
+      myResources = null;
+      myNamespace = null;
+    }
+    else {
+      myResources = repositoryManager.getAppResources(true);
+      myNamespace = repositoryManager.getNamespace();
+    }
   }
 
   // ---- Finding matching configurations ----
@@ -94,7 +108,7 @@ public class ConfigurationMatcher {
 
     @Override
     public String toString() {
-      return config.getUniqueKey();
+      return config.getQualifierString();
     }
   }
 
@@ -121,24 +135,25 @@ public class ConfigurationMatcher {
   }
 
   /**
-  * Checks whether the current edited file is the best match for a given config.
-  * <p/>
-  * This tests against other versions of the same layout in the project.
-  * <p/>
-  * The given config must be compatible with the current edited file.
-  *
-  * @param config the config to test.
-  * @return true if the current edited file is the best match in the project for the
-  *         given config.
-  */
+   * Checks whether the current edited file is the best match for a given config.
+   *
+   * <p>This tests against other versions of the same layout in the project.
+   *
+   * <p>The given config must be compatible with the current edited file.
+   *
+   * @param config the config to test.
+   * @return true if the current edited file is the best match in the project for the given config.
+   */
   public boolean isCurrentFileBestMatchFor(@NotNull FolderConfiguration config) {
-    if (myResources != null && myFile != null) {
-      VirtualFile match = myResources.getMatchingFile(myFile, getResourceType(), config);
+    if (myResources != null && myNamespace != null && myFile != null) {
+      ResourceReference reference = new ResourceReference(myNamespace, getResourceType(myFile), ResourceHelper.getResourceName(myFile));
+      List<VirtualFile> files = getMatchingFiles(myResources, reference, config, new HashSet<>(), true, 0);
+      VirtualFile match = files.isEmpty() ? null : files.get(0);
       if (match != null) {
         return myFile.equals(match);
       }
       else {
-        // if we stop here that means the current file is not even a match!
+        // If we stop here that means the current file is not even a match!
         LOG.debug("Current file is not a match for the given config.");
       }
     }
@@ -146,14 +161,14 @@ public class ConfigurationMatcher {
     return false;
   }
 
-  private ResourceType getResourceType() {
-    // We're usually using the ConfigurationMatcher for layouts, but support other types too
+  private static ResourceType getResourceType(@NotNull VirtualFile file) {
+    // We're usually using the ConfigurationMatcher for layouts, but support other types too.
     ResourceType type = ResourceType.LAYOUT;
-    VirtualFile parent = myFile.getParent();
+    VirtualFile parent = file.getParent();
     if (parent != null) {
       String parentName = parent.getName();
       if (!parentName.startsWith(FD_RES_LAYOUT)) {
-        ResourceFolderType folderType = ResourceHelper.getFolderType(myFile);
+        ResourceFolderType folderType = ResourceHelper.getFolderType(file);
         if (folderType != null) {
           List<ResourceType> related = FolderTypeRelationship.getRelatedResourceTypes(folderType);
           if (!related.isEmpty()) {
@@ -184,12 +199,12 @@ public class ConfigurationMatcher {
    */
   @NotNull
   public List<VirtualFile> getBestFileMatches() {
-    if (myResources != null && myFile != null) {
+    if (myResources != null && myNamespace != null && myFile != null) {
       FolderConfiguration config = myConfiguration.getFullConfig();
       VersionQualifier prevQualifier = config.getVersionQualifier();
       try {
         config.setVersionQualifier(null);
-        return myResources.getMatchingFiles(myFile, getResourceType(), config);
+        return getMatchingFiles(myResources, myFile, myNamespace, getResourceType(myFile), config);
       }
       finally {
         config.setVersionQualifier(prevQualifier);
@@ -197,6 +212,66 @@ public class ConfigurationMatcher {
     }
     return Collections.emptyList();
   }
+
+  @NotNull
+  public static List<VirtualFile> getMatchingFiles(@NotNull ResourceRepository repository,
+                                                   @NotNull VirtualFile file,
+                                                   @NotNull ResourceNamespace namespace,
+                                                   @NotNull ResourceType type,
+                                                   @NotNull FolderConfiguration config) {
+    ResourceReference reference = new ResourceReference(namespace, type, ResourceHelper.getResourceName(file));
+    return getMatchingFiles(repository, reference, config, new HashSet<>(), false, 0);
+  }
+
+  @NotNull
+  private static List<VirtualFile> getMatchingFiles(@NotNull ResourceRepository repository,
+                                                    @NotNull ResourceReference reference,
+                                                    @NotNull FolderConfiguration config,
+                                                    @NotNull Set<ResourceReference> seenResources,
+                                                    boolean firstOnly,
+                                                    int depth) {
+    if (depth >= MAX_RESOURCE_INDIRECTION || !seenResources.add(reference)) {
+      return Collections.emptyList();
+    }
+    List<ResourceItem> matchingItems =
+      repository.getResources(reference.getNamespace(), reference.getResourceType(), reference.getName());
+    if (matchingItems.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<VirtualFile> output = new ArrayList<>();
+    List<ResourceItem> matches = config.findMatchingConfigurables(matchingItems);
+    for (ResourceItem match : matches) {
+      if (firstOnly && !output.isEmpty()) {
+        break;
+      }
+      // If match is an alias, it has to be resolved.
+      ResourceValue resourceValue = match.getResourceValue();
+      if (resourceValue != null) {
+        String value = resourceValue.getValue();
+        if (value != null && value.startsWith(PREFIX_RESOURCE_REF)) {
+          ResourceUrl url = ResourceUrl.parse(value);
+          if (url != null && url.type == reference.getResourceType() && !url.isFramework()) {
+            ResourceNamespace namespace =
+              ResourceNamespace.fromNamespacePrefix(url.namespace, reference.getNamespace(), resourceValue.getNamespaceResolver());
+            if (namespace != null) {
+              ResourceReference ref = new ResourceReference(namespace, reference.getResourceType(), url.name);
+              // This resource alias needs to be resolved again.
+              output.addAll(getMatchingFiles(repository, ref, config, seenResources, firstOnly, depth + 1));
+            }
+            continue;
+          }
+        }
+      }
+
+      VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(match);
+      if (virtualFile != null) {
+        output.add(virtualFile);
+      }
+    }
+
+    return output;
+  }
+
 
   /** Like {@link ConfigurationManager#getLocales()}, but ensures that the currently selected locale is first in the list */
   @NotNull
@@ -215,15 +290,13 @@ public class ConfigurationMatcher {
   }
 
   /**
-   * Adapts the current device/config selection so that it's compatible with
-   * the configuration.
+   * Adapts the current device/config selection so that it's compatible with the configuration.
    * <p/>
    * If the current selection is compatible, nothing is changed.
    * <p/>
    * If it's not compatible, configs from the current devices are tested.
    * <p/>
-   * If none are compatible, it reverts to
-   * {@link #findAndSetCompatibleConfig(boolean)}
+   * If none are compatible, it reverts to {@link #findAndSetCompatibleConfig(boolean)}
    */
   void adaptConfigSelection(boolean needBestMatch) {
     // check the device config (ie sans locale)
@@ -235,7 +308,7 @@ public class ConfigurationMatcher {
     if (selectedState != null) {
       FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, myConfiguration.getLocale(),
                                                                         myConfiguration.getTarget());
-      if (currentConfig != null && editedConfig.isMatchFor(currentConfig)) {
+      if (editedConfig.isMatchFor(currentConfig)) {
         currentConfigIsCompatible = true; // current config is compatible
         if (!needBestMatch || isCurrentFileBestMatchFor(currentConfig)) {
           needConfigChange = false;
@@ -246,13 +319,12 @@ public class ConfigurationMatcher {
     if (needConfigChange) {
       List<Locale> localeList = getPrioritizedLocales();
 
-      // if the current state/locale isn't a correct match, then
+      // If the current state/locale isn't a correct match, then
       // look for another state/locale in the same device.
       FolderConfiguration testConfig = new FolderConfiguration();
 
-      // first look in the current device.
+      // First look in the current device.
       State matchState = null;
-      int localeIndex = -1;
       Device device = myConfiguration.getDevice();
       IAndroidTarget target = myConfiguration.getTarget();
       if (device != null && target != null) {
@@ -271,7 +343,6 @@ public class ConfigurationMatcher {
 
             if (editedConfig.isMatchFor(testConfig) && isCurrentFileBestMatchFor(testConfig)) {
               matchState = state;
-              localeIndex = i;
               break mainloop;
             }
           }
@@ -496,11 +567,11 @@ public class ConfigurationMatcher {
         Locale locale = localeList.get(l);
         LocaleQualifier qualifier = locale.qualifier;
 
-        // there's always a ##/Other or ##/Any (which is the same, the region
+        // There's always a ##/Other or ##/Any (which is the same, the region
         // contains FAKE_REGION_VALUE). If we don't find a perfect region match
         // we take the fake region. Since it's last in the list, this makes the
         // test easy.
-        if (qualifier.getLanguage().equals(currentLanguage) &&
+        if (Objects.equals(qualifier.getLanguage(), currentLanguage) &&
             (qualifier.getRegion() == null || qualifier.getRegion().equals(currentRegion))) {
           return l;
         }
@@ -515,7 +586,7 @@ public class ConfigurationMatcher {
         // contains FAKE_REGION_VALUE). If we don't find a perfect region match
         // we take the fake region. Since it's last in the list, this makes the
         // test easy.
-        if (qualifier.getLanguage().equals(currentLanguage)) {
+        if (Objects.equals(qualifier.getLanguage(), currentLanguage)) {
           return l;
         }
       }
@@ -608,7 +679,7 @@ public class ConfigurationMatcher {
       }
       State selectedState = ConfigurationFileState.getState(device, stateName);
       if (selectedState == null) {
-        return null; // Invalid state name passed in for the current device
+        return null; // Invalid state name passed in for the current device.
       }
       if (locale == null) {
         locale = configuration.getLocale();
@@ -618,14 +689,15 @@ public class ConfigurationMatcher {
       }
       FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, locale, target);
       if (currentConfig != null) {
-        LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(module);
-        if (resources != null) {
+        ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
+        if (repositoryManager != null) {
+          LocalResourceRepository resources = repositoryManager.getAppResources(true);
           ResourceFolderType folderType = ResourceHelper.getFolderType(file);
           if (folderType != null) {
             List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
             if (!types.isEmpty()) {
               ResourceType type = types.get(0);
-              List<VirtualFile> matches = resources.getMatchingFiles(file, type, currentConfig);
+              List<VirtualFile> matches = getMatchingFiles(resources, file, repositoryManager.getNamespace(), type, currentConfig);
               if (!matches.contains(file) && !matches.isEmpty()) {
                 return matches.get(0);
               }
@@ -701,12 +773,12 @@ public class ConfigurationMatcher {
       if (ss1 == ScreenSize.XLARGE) {
         if (ss2 == ScreenSize.XLARGE) {
           ScreenOrientationQualifier orientation1 = config1.getScreenOrientationQualifier();
-          ScreenOrientation so1 = orientation1.getValue();
+          ScreenOrientation so1 = orientation1 == null ? null : orientation1.getValue();
           if (so1 == null) {
             so1 = ScreenOrientation.PORTRAIT;
           }
           ScreenOrientationQualifier orientation2 = config2.getScreenOrientationQualifier();
-          ScreenOrientation so2 = orientation2.getValue();
+          ScreenOrientation so2 = orientation2 == null ? null : orientation2.getValue();
           if (so2 == null) {
             so2 = ScreenOrientation.PORTRAIT;
           }
@@ -743,10 +815,8 @@ public class ConfigurationMatcher {
    * Note: this comparator imposes orderings that are inconsistent with equals.
    */
   private static class PhoneConfigComparator implements Comparator<ConfigMatch> {
-    // Default phone. Not picking the Nexus 5 yet since it has much higher resolution
-    // (which will on a typical desktop rendering of the layout be scaled back down again anyway)
-    // so it's just extra work.
-    private static final String PREFERRED_ID = "Nexus 4";
+    // Default phone
+    private static final String PREFERRED_ID = "pixel";
 
     private final SparseIntArray mDensitySort = new SparseIntArray(4);
     private final Map<String, Integer> mIdRank;

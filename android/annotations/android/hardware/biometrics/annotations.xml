@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.hardware.biometrics.BiometricPrompt void authenticate(android.hardware.biometrics.BiometricPrompt.CryptoObject, android.os.CancellationSignal, java.util.concurrent.Executor, android.hardware.biometrics.BiometricPrompt.AuthenticationCallback)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.USE_BIOMETRIC&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt void authenticate(android.hardware.biometrics.BiometricPrompt.CryptoObject, android.os.CancellationSignal, java.util.concurrent.Executor, android.hardware.biometrics.BiometricPrompt.AuthenticationCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt void authenticate(android.hardware.biometrics.BiometricPrompt.CryptoObject, android.os.CancellationSignal, java.util.concurrent.Executor, android.hardware.biometrics.BiometricPrompt.AuthenticationCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt void authenticate(android.hardware.biometrics.BiometricPrompt.CryptoObject, android.os.CancellationSignal, java.util.concurrent.Executor, android.hardware.biometrics.BiometricPrompt.AuthenticationCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt void authenticate(android.hardware.biometrics.BiometricPrompt.CryptoObject, android.os.CancellationSignal, java.util.concurrent.Executor, android.hardware.biometrics.BiometricPrompt.AuthenticationCallback) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt void authenticate(android.os.CancellationSignal, java.util.concurrent.Executor, android.hardware.biometrics.BiometricPrompt.AuthenticationCallback)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.USE_BIOMETRIC&quot;" />
+    </annotation>
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt void authenticate(android.os.CancellationSignal, java.util.concurrent.Executor, android.hardware.biometrics.BiometricPrompt.AuthenticationCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt void authenticate(android.os.CancellationSignal, java.util.concurrent.Executor, android.hardware.biometrics.BiometricPrompt.AuthenticationCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt void authenticate(android.os.CancellationSignal, java.util.concurrent.Executor, android.hardware.biometrics.BiometricPrompt.AuthenticationCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt.Builder android.hardware.biometrics.BiometricPrompt.Builder setDescription(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt.Builder android.hardware.biometrics.BiometricPrompt.Builder setNegativeButton(java.lang.CharSequence, java.util.concurrent.Executor, android.content.DialogInterface.OnClickListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt.Builder android.hardware.biometrics.BiometricPrompt.Builder setNegativeButton(java.lang.CharSequence, java.util.concurrent.Executor, android.content.DialogInterface.OnClickListener) 1">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt.Builder android.hardware.biometrics.BiometricPrompt.Builder setNegativeButton(java.lang.CharSequence, java.util.concurrent.Executor, android.content.DialogInterface.OnClickListener) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt.Builder android.hardware.biometrics.BiometricPrompt.Builder setSubtitle(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt.Builder android.hardware.biometrics.BiometricPrompt.Builder setTitle(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt.CryptoObject CryptoObject(java.security.Signature) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt.CryptoObject CryptoObject(javax.crypto.Cipher) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.biometrics.BiometricPrompt.CryptoObject CryptoObject(javax.crypto.Mac) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

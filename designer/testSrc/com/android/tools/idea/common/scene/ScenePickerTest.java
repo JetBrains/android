@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.tools.idea.common.scene.ScenePicker;
 import junit.framework.TestCase;
 
 import java.awt.*;
@@ -29,10 +28,16 @@ public class ScenePickerTest extends TestCase {
   double error = 0;
 
   public void testLine() {
+    testLine(0, 10);
+    testLine(5, 5);
+    testLine(10, 0);
+  }
+
+  private void testLine(int range, int w) {
     ScenePicker scenePicker = new ScenePicker();
     scenePicker.reset();
-    scenePicker.addLine(new Integer(1), 10, 10, 10, 100, 100);
-    scenePicker.addLine(new Integer(1), 10, 2100, 2100, 1100, 1100);
+    scenePicker.addLine(new Integer(1), range, 10, 10, 100, 100, w);
+    scenePicker.addLine(new Integer(1), range, 2100, 2100, 1100, 1100, w);
     boolean[] found = new boolean[1];
     scenePicker.setSelectListener((obj, dist) -> {
       assertEquals(1, Math.toIntExact((Integer)obj));
@@ -55,7 +60,7 @@ public class ScenePickerTest extends TestCase {
     scenePicker.find(100, 100);
     assertTrue(found[0]);
     found[0] = false;
-    expectedDistance = Math.hypot(7, 7);
+    expectedDistance = Math.max(Math.hypot(7, 7) - w, 0);
 
     scenePicker.find(3, 3);
     assertTrue(found[0]);
@@ -154,6 +159,13 @@ public class ScenePickerTest extends TestCase {
   }
 
   public void testCurveTo() {
+    testCurveTo(4, 0);
+    testCurveTo(2, 2);
+    testCurveTo(0, 4);
+  }
+
+  private void testCurveTo(int range, int w)
+  {
     ScenePicker scenePicker = new ScenePicker();
     scenePicker.reset();
     int x1 = 10;
@@ -165,7 +177,7 @@ public class ScenePickerTest extends TestCase {
     int x4 = 100;
     int y4 = 100;
     error = 3;
-    scenePicker.addCurveTo(new Integer(1), 4, x1, y1, x2, y2, x3, y3, x4, y4);
+    scenePicker.addCurveTo(new Integer(1), range, x1, y1, x2, y2, x3, y3, x4, y4, w);
     boolean[] found = new boolean[1];
     scenePicker.setSelectListener((obj, dist) -> {
       assertEquals(1, Math.toIntExact((Integer)obj));
@@ -304,11 +316,35 @@ public class ScenePickerTest extends TestCase {
         int y4 = 100;
         Rectangle rect = new Rectangle(x1 - 1, y1 - 1, x4 - x1 + 2, y4 - y1 + 2);
         ScenePicker.CurveToSelectionEngine c = new ScenePicker.CurveToSelectionEngine();
-        c.add(null, 10, x1, y1, x2, y2, x3, y3, x4, y4);
-        for (double i = 0; i < 1; i += .01) {
+        c.add(null, 10, x1, y1, x2, y2, x3, y3, x4, y4, 0);
+        for (double i = 0; i < 1; i += .03) {
           double x = c.evalX(i);
-          double y = c.evalY(1);
+          double y = c.evalY(i);
           assertTrue(rect.contains(x, y));
+        }
+      }
+    };
+  }
+
+  public void testCurveHit() {
+    ScenePicker scenePicker = new ScenePicker() {
+      {
+        int x1 = 10;
+        int y1 = 10;
+        int x2 = 40;
+        int y2 = 10;
+        int x3 = 60;
+        int y3 = 100;
+        int x4 = 100;
+        int y4 = 100;
+        ScenePicker.CurveToSelectionEngine c = new ScenePicker.CurveToSelectionEngine();
+        c.add(null, 1, x1, y1, x2, y2, x3, y3, x4, y4, 0);
+        for (double i = 0; i < 1; i += .001) {
+          double x = c.evalX(i);
+          double y = c.evalY(i);
+          assertTrue(c.inRange(0, (int)x, (int)y));
+
+          assertFalse(c.inRange(0, (int)x + 10, (int)y - 10));
         }
       }
     };
@@ -326,7 +362,7 @@ public class ScenePickerTest extends TestCase {
     int x4 = 10;
     int y4 = 10;
     error = 3;
-    scenePicker.addCurveTo(new Integer(1), 4, x1, y1, x2, y2, x3, y3, x4, y4);
+    scenePicker.addCurveTo(new Integer(1), 4, x1, y1, x2, y2, x3, y3, x4, y4, 0);
 
     scenePicker.setSelectListener((obj, dist) -> {
       assertEquals(1, Math.toIntExact((Integer)obj));
@@ -336,7 +372,7 @@ public class ScenePickerTest extends TestCase {
 
     for (int i = 0; i < 10000; i++) {
       double x = (i % 100) / 100.;
-      double y = (i / 100) / 100.;
+      @SuppressWarnings("IntegerDivisionInFloatingPointContext") double y = (i / 100) / 100.;
       x = 13 * x - 1;
       y = 13 * y - 1;
       scenePicker.find((int)x, (int)y);

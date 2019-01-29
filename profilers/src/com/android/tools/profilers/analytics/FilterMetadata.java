@@ -21,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
  * Class with metadata related to filter operations, used for analytics purposes.
  */
 public class FilterMetadata {
+  public static int MATCH_CASE = 1;
+  public static int IS_REGEX = 2;
+
   public enum View {
     UNKNOWN_FILTER_VIEW,
     CPU_TOP_DOWN,
@@ -65,8 +68,8 @@ public class FilterMetadata {
   }
 
   public void setFeaturesUsed(boolean isMatchCase, boolean isRegex) {
-    myFeaturesUsed = isMatchCase ? 1 : 0;
-    myFeaturesUsed |= isRegex ? 2 : 0;
+    myFeaturesUsed = isMatchCase ? MATCH_CASE : 0;
+    myFeaturesUsed |= isRegex ? IS_REGEX : 0;
   }
 
   public int getFeaturesUsed() {

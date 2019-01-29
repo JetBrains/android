@@ -62,7 +62,7 @@ public class AndroidInlineStyleReferenceAction extends AndroidBaseXmlRefactoring
     }
 
     if (styleElements.length > 1) {
-      AndroidUtils.reportError(project, RefactoringBundle.getCannotRefactorMessage("Unambiguous style reference."), title);
+      AndroidUtils.reportError(project, RefactoringBundle.getCannotRefactorMessage("Ambiguous style reference."), title);
       return;
     }
     final PsiElement styleElement = styleElements[0];

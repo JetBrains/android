@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.openapi.ui.DialogWrapper;
+import java.awt.Component;
+import java.lang.reflect.InvocationTargetException;
+import javax.swing.JComponent;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
-import java.awt.*;
-import java.lang.reflect.InvocationTargetException;
-
-import static com.google.common.truth.Truth.assertThat;
-
 public class IconPickerDialogTest {
-
   @Test
-  public void initIconCategories() {
-    assertThat(IconPickerDialog.initIconCategories()).isEqualTo(new String[]{
+  public void categoryNames() {
+    assertThat(IconPickerDialog.getCategoryNames()).isEqualTo(new String[]{
       "All",
       "Action",
       "Alert",
-      "AV",
+      "Audio/Video",
       "Communication",
       "Content",
       "Device",

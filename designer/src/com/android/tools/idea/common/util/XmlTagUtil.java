@@ -50,6 +50,7 @@ public class XmlTagUtil {
       }
     }
     if (tag == null) {
+      // TODO: remove the need for this case
       tag = elementFactory.createTagFromText("<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\" " +
                                              " android:text=\"" + XmlUtils.toXmlAttributeValue(text) + "\"" +
                                              " android:layout_width=\"wrap_content\"" +

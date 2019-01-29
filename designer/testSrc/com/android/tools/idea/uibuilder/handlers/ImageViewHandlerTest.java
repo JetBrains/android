@@ -30,6 +30,8 @@ import com.intellij.testFramework.PlatformTestUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.google.common.truth.Truth.assertThat;
@@ -41,12 +43,12 @@ public class ImageViewHandlerTest extends LayoutTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
-    myModel = createModel();
-
-    myTestProjectSystem = new TestProjectSystem(getProject());
+    myTestProjectSystem = new TestProjectSystem(getProject(), Collections.emptyList());
     PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), ProjectSystemUtil.getEP_NAME(),
                                        myTestProjectSystem, getTestRootDisposable());
+
+    myFixture.addFileToProject("AndroidManifest.xml", MANIFEST_SOURCE);
+    myModel = createModel();
 
     MergedManifest manifest = MergedManifest.get(myModel.getModule());
     String pkg = StringUtil.notNullize(manifest.getPackage());

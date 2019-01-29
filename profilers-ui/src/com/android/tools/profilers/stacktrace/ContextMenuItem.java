@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.stacktrace;
 
+import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +25,54 @@ import javax.swing.*;
  * A wrapper for creating context menu items for a UI component.
  */
 public interface ContextMenuItem extends Runnable {
+  ContextMenuItem SEPARATOR = new ContextMenuItem() {
+    @NotNull
+    @Override
+    public String getText() {
+      return "SEPARATOR";
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      return null;
+    }
+
+    @Override
+    public boolean isEnabled() {
+      return false;
+    }
+
+    @Override
+    public void run() {
+
+    }
+  };
+
+  ContextMenuItem COPY = new ContextMenuItem() {
+
+    @NotNull
+    @Override
+    public String getText() {
+      return "Copy";
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      return AllIcons.Actions.Copy;
+    }
+
+    @Override
+    public boolean isEnabled() {
+      return false;
+    }
+
+    @Override
+    public void run() {
+    }
+  };
+
   @NotNull
   String getText();
 
@@ -31,4 +80,9 @@ public interface ContextMenuItem extends Runnable {
   Icon getIcon();
 
   boolean isEnabled();
+
+  @NotNull
+  default KeyStroke[] getKeyStrokes() {
+    return new KeyStroke[0];
+  }
 }

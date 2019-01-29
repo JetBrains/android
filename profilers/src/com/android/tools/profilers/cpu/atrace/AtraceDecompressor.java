@@ -15,13 +15,18 @@
  */
 package com.android.tools.profilers.cpu.atrace;
 
-import com.google.common.base.Charsets;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.google.common.base.Charsets;
+import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import trebuchet.io.BufferProducer;
 import trebuchet.io.DataSlice;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.zip.DataFormatException;
@@ -37,7 +42,7 @@ public class AtraceDecompressor implements BufferProducer {
   private static final int BUFFER_SIZE_BYTES = 2048;
   private byte[] myOutputBuffer = new byte[BUFFER_SIZE_BYTES];
   private byte[] myInputBuffer = new byte[BUFFER_SIZE_BYTES];
-  private int myInputBufferOffset = 0;
+  private int myInputBufferOffset = BUFFER_SIZE_BYTES; //We have no data available to read so we point to end of buffer.
   private boolean myIsFinished = false;
   private Queue<String> myLineQueue = new LinkedList<>();
   private String myLastPartialLine = "";
@@ -47,20 +52,47 @@ public class AtraceDecompressor implements BufferProducer {
   /**
    * The TRACE:\n header comes from atrace when it dumps data to disk. Each compressed chunk starts with this.
    */
-  private static final ByteString HEADER = ByteString.copyFrom("TRACE:\n", Charsets.UTF_8);
+  public static final ByteString HEADER = ByteString.copyFrom("TRACE:\n", Charsets.UTF_8);
 
-  public AtraceDecompressor(File file) throws IOException {
-    myInputStream = new FileInputStream(file);
+  private static Logger getLogger() {
+    return Logger.getInstance(AtraceDecompressor.class);
+  }
+
+  public AtraceDecompressor(FileInputStream inputStream) throws IOException {
+    myInputStream = inputStream;
     myInflater = new Inflater();
 
-    // Read the inital header off the input file.
-    myInputStream.read(myInputBuffer, 0, HEADER.size());
+    // Read the initial header of the input file.
+    fillInputBuffer();
     verifyHeader();
-    myInputBufferOffset = 0;
     myLineQueue.add("# Initial Data Required by Importer");
   }
 
-  private void verifyHeader() throws IOException {
+  public AtraceDecompressor(File file) throws IOException {
+    this(new FileInputStream(file));
+  }
+
+  /**
+   * Whether a given {@link File} header matches {@link #HEADER}.
+   */
+  public static boolean verifyFileHasAtraceHeader(@NotNull File trace) {
+    try (FileInputStream input = new FileInputStream(trace)) {
+      byte[] buffer = new byte[HEADER.size()];
+      int bytesRead = input.read(buffer, 0, HEADER.size());
+      if (bytesRead != HEADER.size()) {
+        getLogger().warn("Some bytes of the trace file header could not be read.");
+        return false;
+      }
+      ByteString fileHeader = ByteString.copyFrom(buffer);
+      return HEADER.toStringUtf8().equals(fileHeader.toStringUtf8());
+    }
+    catch (IOException e) {
+      getLogger().warn("There was an error trying to read the trace file.");
+      return false;
+    }
+  }
+
+  private void verifyHeader() {
     for (int i = 0; i < HEADER.size(); i++) {
       assert HEADER.byteAt(i) == myInputBuffer[myInputBufferOffset];
       myInputBufferOffset++;
@@ -68,14 +100,19 @@ public class AtraceDecompressor implements BufferProducer {
   }
 
   /**
-   * Read as much data as we can from our input file, and set a new input buffer on the inflater.
+   * Read as much data as we can from our input file, and set a new input buffer.
+   */
+  private int fillInputBuffer() throws IOException {
+    shift(myInputBuffer, myInputBufferOffset, 0, myInputBuffer.length - myInputBufferOffset);
+    myInputBufferOffset = myInputBuffer.length - myInputBufferOffset;
+    return myInputStream.read(myInputBuffer, myInputBufferOffset, myInputBuffer.length - myInputBufferOffset);
+  }
+
+  /**
+   * Fill data on the inflater from the input buffer.
    */
   private void fill() throws IOException {
-    if (myInputBufferOffset != 0) {
-      shift(myInputBuffer, myInputBufferOffset, 0, myInputBuffer.length - myInputBufferOffset);
-      myInputBufferOffset = myInputBuffer.length - myInputBufferOffset;
-    }
-    int readAmount = myInputStream.read(myInputBuffer, myInputBufferOffset, myInputBuffer.length - myInputBufferOffset);
+    int readAmount = fillInputBuffer();
     myInflater.setInput(myInputBuffer, 0, readAmount + myInputBufferOffset);
     myInputBufferOffset = 0;
   }
@@ -121,6 +158,12 @@ public class AtraceDecompressor implements BufferProducer {
           break;
         }
         else {
+
+          // We can get into a state where we read the exact amount of data into our buffer and as we reset to the head of our next
+          // file we want to refill the buffer.
+          if (myInputBufferOffset + HEADER.size() >= myInputBuffer.length) {
+            fillInputBuffer();
+          }
           // If we are only done with one chunk of the file, then we read the header and reset our
           // inflater.
           verifyHeader();
@@ -150,7 +193,7 @@ public class AtraceDecompressor implements BufferProducer {
 
       // Add each line to our queue and keep track of our partial line for the next time we decompress more info.
       for (int i = 0; i < lines.length - 1; i++) {
-        myLineQueue.add(lines[i]);
+        myLineQueue.add(lines[i].trim());
       }
 
       myLastPartialLine = myLastPartialLine.substring(myLastPartialLine.lastIndexOf('\n') + 1);
@@ -168,7 +211,7 @@ public class AtraceDecompressor implements BufferProducer {
       myInputStream.close();
     }
     catch (IOException ex) {
-      ex.printStackTrace();
+      getLogger().warn(ex);
     }
   }
 
@@ -182,12 +225,14 @@ public class AtraceDecompressor implements BufferProducer {
     try {
       String line = getNextLine();
       if (line != null) {
-        byte[] data = String.format("%s\n", line).getBytes();
+        // Due to a bug in StreamingLineReader we need to truncate all lines to 1023 characters including the \n appended to the end.
+        // For more details see (b/77846431)
+        byte[] data = String.format("%s\n", line.substring(0, Math.min(1022, line.length()))).getBytes();
         return new DataSlice(data, 0, data.length);
       }
     }
     catch (IOException | DataFormatException ex) {
-      ex.printStackTrace();
+      getLogger().error(ex);
     }
     return null;
   }

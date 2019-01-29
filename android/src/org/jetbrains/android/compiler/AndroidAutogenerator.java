@@ -705,7 +705,7 @@ public class AndroidAutogenerator {
       @Override
       public void run() {
         run[0] = !project.isDisposed() &&
-                 ReadonlyStatusHandler.ensureFilesWritable(project, filesToCheck.toArray(new VirtualFile[filesToCheck.size()]));
+                 ReadonlyStatusHandler.ensureFilesWritable(project, filesToCheck.toArray(VirtualFile.EMPTY_ARRAY));
       }
     });
 

@@ -16,18 +16,19 @@
 package com.android.tools.adtui.model.event;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
 
-public class EventModel<E> extends AspectModel<EventModel.Aspect> implements Updatable {
+public class EventModel<E> extends AspectModel<EventModel.Aspect> {
 
   @NotNull
   private final RangedSeries<EventAction<E>> myRangedSeries;
 
   public EventModel(@NotNull RangedSeries<EventAction<E>> rangedSeries) {
     myRangedSeries = rangedSeries;
-    // TODO add dependency to the rangedseries
+    myRangedSeries.getXRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> changed(Aspect.EVENT));
   }
 
   @NotNull
@@ -37,10 +38,5 @@ public class EventModel<E> extends AspectModel<EventModel.Aspect> implements Upd
 
   public enum Aspect {
     EVENT
-  }
-
-  @Override
-  public void update(long elapsedNs) {
-    changed(Aspect.EVENT);
   }
 }

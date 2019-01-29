@@ -16,36 +16,28 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 
 public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
 
-  public BuildTypeDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
+  public BuildTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("buildConfigField")) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element.getName().equals("buildConfigField")) {
       if (!(element instanceof GradleDslExpressionList)) {
         return;
       }
       GradleDslExpressionList listElement = (GradleDslExpressionList)element;
-      if (listElement.getExpressions().size() != 3 || listElement.getValues(String.class).size() != 3) {
+      if (listElement.getExpressions().size() != 3 || listElement.getLiterals(String.class).size() != 3) {
         return;
       }
-
-      GradleDslElementList elementList = getPropertyElement("buildConfigField", GradleDslElementList.class);
-      if (elementList == null) {
-        elementList = new GradleDslElementList(this, "buildConfigField");
-        setParsedElement("buildConfigField", elementList);
-      }
-      elementList.addParsedElement(element);
-      return;
     }
 
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

@@ -27,7 +27,7 @@ public class TerminateVMAction extends AbstractClientAction {
     super(context,
           AndroidBundle.message("android.ddms.actions.terminate.vm"),
           AndroidBundle.message("android.ddms.actions.terminate.vm.description"),
-          AllIcons.Process.Stop);
+          AllIcons.Actions.Suspend);
   }
 
   @Override

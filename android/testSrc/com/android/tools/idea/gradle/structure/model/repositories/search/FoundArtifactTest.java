@@ -97,8 +97,7 @@ public class FoundArtifactTest {
     FoundArtifact artifactA = new FoundArtifact("AAAAA", "group", "artifact", GradleVersion.parse("1.0.2.+"));
     FoundArtifact artifactB = new FoundArtifact("BBBBB", "group", "artifact", GradleVersion.parse("1.0.2.+"));
 
-    assertThat(artifactA.compareTo(artifactB)).isLessThan(0);
-    assertThat(artifactB.compareTo(artifactA)).isGreaterThan(0);
+    assertThat(artifactA.compareTo(artifactB)).isEqualTo(0);
   }
 
   @Test
@@ -135,19 +134,5 @@ public class FoundArtifactTest {
 
     assertThat(artifactA.compareTo(artifactB)).isLessThan(0);
     assertThat(artifactB.compareTo(artifactA)).isGreaterThan(0);
-  }
-
-  @Test
-  public void testToString_singleVersion() throws Exception {
-    FoundArtifact artifactA = new FoundArtifact("repository", "group", "artifact", GradleVersion.parse("1.0.2.+"));
-    assertEquals("{repository='repository', group='group', name='artifact', versions=[1.0.2.+]}", artifactA.toString());
-  }
-
-  @Test
-  public void testToString_multipleVersions() throws Exception {
-    ImmutableList<GradleVersion> gradleVersions =
-      ImmutableList.of(GradleVersion.parse("1.0.2.+"), GradleVersion.parse("2.0.2.+"), GradleVersion.parse("3.0.2.+"));
-    FoundArtifact artifactA = new FoundArtifact("repository", "group", "artifact", gradleVersions);
-    assertEquals("{repository='repository', group='group', name='artifact', versions=[3.0.2.+, 2.0.2.+, 1.0.2.+]}", artifactA.toString());
   }
 }

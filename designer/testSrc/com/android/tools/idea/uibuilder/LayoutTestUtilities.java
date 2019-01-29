@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder;
 
 import android.view.View;
+import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.analytics.AnalyticsSettings;
-import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.*;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.analytics.NlUsageTracker;
 import com.android.tools.idea.common.analytics.NlUsageTrackerManager;
@@ -27,6 +27,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
@@ -56,6 +57,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
@@ -85,6 +88,32 @@ public class LayoutTestUtilities {
         .withId(MouseEvent.MOUSE_DRAGGED)
         .build();
       mouseListener.mouseDragged(event);
+      x += xSlope;
+      y += ySlope;
+    }
+  }
+
+  public static void moveMouse(InteractionManager manager,
+                               @SwingCoordinate int x1,
+                               @SwingCoordinate int y1,
+                               @SwingCoordinate int x2,
+                               @SwingCoordinate int y2) {
+    Object listener = manager.getListener();
+    assertTrue(listener instanceof MouseMotionListener);
+    MouseMotionListener mouseListener = (MouseMotionListener)listener;
+
+    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    int frames = 5;
+    double x = x1;
+    double y = y1;
+    double xSlope = (x2 - x) / frames;
+    double ySlope = (y2 - y) / frames;
+    for (int i = 0; i < frames + 1; i++) {
+      MouseEvent event = new MouseEventBuilder((int)x, (int)y)
+        .withSource(layeredPane)
+        .withId(MouseEvent.MOUSE_MOVED)
+        .build();
+      mouseListener.mouseMoved(event);
       x += xSlope;
       y += ySlope;
     }
@@ -206,10 +235,16 @@ public class LayoutTestUtilities {
   public static DesignSurface createSurface(Class<? extends DesignSurface> surfaceClass) {
     JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(surfaceClass);
+    SelectionModel selectionModel = new SelectionModel();
+    List<DesignSurfaceListener> listeners = new ArrayList<>();
     when(surface.getLayeredPane()).thenReturn(layeredPane);
-    when(surface.getSelectionModel()).thenReturn(new SelectionModel());
+    when(surface.getSelectionModel()).thenReturn(selectionModel);
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
+    when(surface.getSelectionAsTransferable()).thenCallRealMethod();
+    doAnswer(inv -> listeners.add(inv.getArgument(0))).when(surface).addListener(any(DesignSurfaceListener.class));
+    doAnswer(inv -> listeners.remove((DesignSurfaceListener)inv.getArgument(0))).when(surface).removeListener(any(DesignSurfaceListener.class));
+    selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));
     if (NlDesignSurface.class.equals(surfaceClass)) {
       when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
       when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT_ONLY);
@@ -258,12 +293,12 @@ public class LayoutTestUtilities {
   }
 
   public static NlUsageTracker mockNlUsageTracker(@NotNull DesignSurface surface) {
-    AnalyticsSettings settings = mock(AnalyticsSettings.class);
-    when(settings.hasOptedIn()).thenReturn(true);
+    AnalyticsSettingsData settings = new AnalyticsSettingsData();
+    settings.setOptedIn(true);
+    AnalyticsSettings.setInstanceForTest(settings);
 
-    UsageTracker tracker = mock(UsageTracker.class);
-    when(tracker.getAnalyticsSettings()).thenReturn(settings);
-    UsageTracker.setInstanceForTest(tracker);
+    UsageTrackerWriter tracker = new TestUsageTracker(new VirtualTimeScheduler());
+    UsageTracker.setWriterForTest(tracker);
 
     NlUsageTracker usageTracker = mock(NlUsageTracker.class);
     NlUsageTrackerManager.setInstanceForTest(surface, usageTracker);

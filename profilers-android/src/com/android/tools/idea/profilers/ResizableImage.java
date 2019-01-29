@@ -63,6 +63,15 @@ public class ResizableImage extends JLabel {
     });
   }
 
+  @Override
+  public Dimension getPreferredSize() {
+    if (!isPreferredSizeSet()) {
+      super.setPreferredSize(new Dimension(myImage.getWidth(), myImage.getHeight()));
+    }
+
+    return super.getPreferredSize();
+  }
+
   private boolean hasIcon() {
     Icon icon = getIcon();
     return icon != null && icon.getIconWidth() > 0 && icon.getIconHeight() > 0;

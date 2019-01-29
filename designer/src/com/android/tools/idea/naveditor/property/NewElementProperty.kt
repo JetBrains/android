@@ -1,6 +1,9 @@
 package com.android.tools.idea.naveditor.property
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceResolver
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.property.NlProperty
@@ -38,9 +41,9 @@ open class NewElementProperty(private val parent: NlComponent, private val tagNa
     if (value is String? && value.isNullOrEmpty()) {
       return
     }
-    val newComponent = WriteCommandAction.runWriteCommandAction(null, Computable<NlComponent> {
+    val newComponent = WriteCommandAction.runWriteCommandAction(parent.model.project, Computable<NlComponent> {
       val tag = parent.tag.createChildTag(tagName, null, null, false)
-      val result = parent.model.createComponent(tag, parent, null)
+      val result = parent.model.createComponent(null, tag, parent, null, InsertType.CREATE)
       result.setAttribute(namespace, attrName, value as String)
       result
     })
@@ -49,7 +52,8 @@ open class NewElementProperty(private val parent: NlComponent, private val tagNa
 
   override fun getTooltipText(): String = delegate?.tooltipText ?: ""
 
-  override fun getDefinition(): AttributeDefinition? = attrDefs.getAttrDefByName(attrName)
+  override fun getDefinition(): AttributeDefinition? = attrDefs.getAttrDefinition(
+    ResourceReference.attr(namespace?.let { ResourceNamespace.fromNamespaceUri(namespace)!! } ?: ResourceNamespace.RES_AUTO, attrName))
 
   override fun getComponents(): List<NlComponent> = delegate?.components ?: listOf()
 

@@ -16,10 +16,10 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
 
-@RunWith (GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class AttachDebuggerToARunningProcessTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
@@ -60,7 +60,7 @@ public class AttachDebuggerToARunningProcessTest extends DebuggerTestBase {
    *   1. Verify that dual debugger running, Java and C++ breakpoints are hit.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   @Test
   public void testWithDualDebugger() throws Exception {
     IdeFrameFixture ideFrame =
@@ -70,6 +70,10 @@ public class AttachDebuggerToARunningProcessTest extends DebuggerTestBase {
     ideFrame.runApp(DEBUG_CONFIG_NAME)
       .selectDevice(emulator.getDefaultAvdName())
       .clickOk();
+
+    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
+    guiTest.waitForBackgroundTasks();
+
     // This step is to make sure the process is running.
     ideFrame.getRunToolWindow().findContent("app")
       .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);

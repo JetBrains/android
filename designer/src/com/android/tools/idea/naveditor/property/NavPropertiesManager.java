@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.naveditor.property;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -26,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NavPropertiesManager extends PropertiesManager<NavPropertiesManager> {
+  @VisibleForTesting NavInspectorProviders myProviders;
+
   public NavPropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface) {
     super(facet, designSurface, NavPropertyEditors.Factory.getInstance(facet.getModule().getProject()));
   }
@@ -36,6 +40,12 @@ public class NavPropertiesManager extends PropertiesManager<NavPropertiesManager
     return new NavPropertiesPanel(this);
   }
 
+  @NotNull
+  @Override
+  protected NavPropertiesPanel getPropertiesPanel() {
+    return (NavPropertiesPanel)super.getPropertiesPanel();
+  }
+
   @Override
   public void logPropertyChange(@NotNull NlProperty property) {
     // TODO
@@ -44,6 +54,14 @@ public class NavPropertiesManager extends PropertiesManager<NavPropertiesManager
   @NotNull
   @Override
   public NavInspectorProviders getInspectorProviders(@NotNull Disposable parentDisposable) {
-    return new NavInspectorProviders(this, parentDisposable);
+    if (myProviders == null) {
+      myProviders = new NavInspectorProviders(this, parentDisposable);
+    }
+    return myProviders;
+  }
+
+  @Override
+  public void modelActivated(@NotNull NlModel model) {
+    getPropertiesPanel().modelRendered();
   }
 }

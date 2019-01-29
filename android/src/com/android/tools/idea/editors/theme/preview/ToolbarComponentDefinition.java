@@ -28,8 +28,8 @@ import static com.android.SdkConstants.*;
 class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition {
   private final boolean myIsAppCompat;
 
-  ToolbarComponentDefinition(boolean isAppCompat) {
-    super("Toolbar", ThemePreviewBuilder.ComponentGroup.TOOLBAR, isAppCompat ? "android.support.v7.widget.Toolbar" : "Toolbar");
+  private ToolbarComponentDefinition(boolean isAppCompat, @NotNull String tagName) {
+    super("Toolbar", ThemePreviewBuilder.ComponentGroup.TOOLBAR, tagName);
 
     myIsAppCompat = isAppCompat;
 
@@ -57,6 +57,15 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
     addAlias("Actionbar");
   }
 
+  @NotNull
+  static ToolbarComponentDefinition getFrameworkToolbar() {
+    return new ToolbarComponentDefinition(false, "Toolbar");
+  }
+
+  @NotNull
+  static ToolbarComponentDefinition getSupportToolbar(@NotNull String tagName) {
+    return new ToolbarComponentDefinition(false, tagName);
+  }
   private static String getAttrPrefix(boolean isAppCompat) {
     return isAppCompat ? ATTR_REF_PREFIX : "?android:attr/";
   }
@@ -83,7 +92,7 @@ class ToolbarComponentDefinition extends ThemePreviewBuilder.ComponentDefinition
 
     // Create a title using the same values that the Toolbar title has when created programmatically.
     Element title = document.createElement(TEXT_VIEW);
-    title.setAttributeNS(ANDROID_URI, ATTR_TEXT, myIsAppCompat ? "v7 Toolbar" : "Toolbar");
+    title.setAttributeNS(ANDROID_URI, ATTR_TEXT, "Toolbar");
     if (myIsAppCompat) {
       title.setAttributeNS(ANDROID_URI, "textAppearance", "@style/TextAppearance.Widget.AppCompat.Toolbar.Title");
     }

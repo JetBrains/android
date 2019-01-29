@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.android.tools.lint.helpers.DefaultJavaEvaluator;
@@ -35,16 +37,14 @@ import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.refactoring.psi.SearchUtils;
 import com.intellij.util.containers.SmartHashSet;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist;
@@ -100,7 +100,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
     WriteCommandAction.runWriteCommandAction(project, "Create Backup Descriptor", null, () -> {
       try {
         @SuppressWarnings("deprecation")
-        VirtualFile primaryResourceDir = facet.getPrimaryResourceDir();
+        VirtualFile primaryResourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
         assert primaryResourceDir != null;
         VirtualFile xmlDir = createChildDirectoryIfNotExist(project, primaryResourceDir, FD_RES_XML);
         VirtualFile resFile = xmlDir.createChildData(project, myUrl.name + DOT_XML);
@@ -121,8 +121,9 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                               @NotNull PsiElement endElement,
                               @NotNull AndroidQuickfixContexts.ContextType contextType) {
     AndroidFacet facet = AndroidFacet.getInstance(startElement);
-    AppResourceRepository appResources = facet == null ? null : AppResourceRepository.getOrCreateInstance(facet);
-    return appResources == null || !appResources.getItemsOfType(ResourceType.XML).contains(myUrl.name);
+    LocalResourceRepository appResources = facet == null ? null : ResourceRepositoryManager.getAppResources(facet);
+    return appResources == null || !((Collection<String>)appResources.getResources(ResourceNamespace.TODO(), ResourceType.XML).keySet())
+      .contains(myUrl.name);
   }
 
   @NotNull
@@ -169,12 +170,12 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                   new DefaultJavaEvaluator(expression.getProject(), null),
                   expressions[0]);
 
-                if (resource == null || resource.framework || resource.type != ResourceType.STRING) {
+                if (resource == null || resource.isFramework() || resource.type != ResourceType.STRING) {
                   return;
                 }
 
                 List<PsiElement> resources = ModuleResourceManagers.getInstance(facet).getLocalResourceManager()
-                    .findResourcesByFieldName(ResourceType.STRING.getName(), resource.name);
+                    .findResourcesByFieldName(ResourceNamespace.TODO(), ResourceType.STRING.getName(), resource.name);
 
                 for (PsiElement resElement : resources) {
                   if (resElement instanceof XmlAttributeValue) {

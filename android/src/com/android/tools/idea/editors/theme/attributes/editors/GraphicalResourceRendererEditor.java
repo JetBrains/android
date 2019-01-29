@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
@@ -25,13 +25,15 @@ import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantItemListener;
 import com.android.tools.idea.editors.theme.attributes.variants.VariantsComboItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.editors.theme.ui.VariantsComboBox;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.ui.MaterialColors;
+import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -42,14 +44,15 @@ import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.TreeSet;
 
 /**
  * Abstract class that implements a {@link JTable} renderer and editor for attributes based on the {@link ResourceComponent} component.
@@ -162,14 +165,14 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
 
     // All the not selected elements are sorted alphabetically
     TreeSet<VariantsComboItem> notSelectedItems = Sets.newTreeSet(VARIANTS_COMBO_ITEM_COMPARATOR);
-    for (ConfiguredElement<ItemResourceValue> configuredItem : item.getNonSelectedItemResourceValues()) {
+    for (ConfiguredElement<StyleItemResourceValue> configuredItem : item.getNonSelectedItemResourceValues()) {
       restrictedConfig = RestrictedConfiguration.restrict(configuredItem, item.getAllConfiguredItems());
 
       if (restrictedConfig == null) {
         // This type is not visible
         LOG.warn(String.format(
           "For item '%1$s': Folder configuration '%2$s' can never be selected. There are no qualifiers combination that would allow selecting it.",
-          item.getName(), configuredItem.getConfiguration()));
+          item.getAttrName(), configuredItem.getConfiguration()));
         continue;
       }
 
@@ -245,15 +248,15 @@ public abstract class GraphicalResourceRendererEditor extends TypedCellRendererE
 
       assert styleResourceResolver != null;
 
-      ItemResourceValue primaryColorResourceValue =
-        ThemeEditorUtils.resolveItemFromParents(style, MaterialColors.PRIMARY_MATERIAL_ATTR, !ThemeEditorUtils.isAppCompatTheme(style));
+      StyleItemResourceValue primaryColorResourceValue =
+         ThemeEditorUtils.resolveItemFromParents(style, MaterialColors.PRIMARY_MATERIAL_ATTR, !ThemeEditorUtils.isAppCompatTheme(style));
 
       final Project project = myContext.getProject();
       Color primaryColor = ResourceHelper.resolveColor(styleResourceResolver, primaryColorResourceValue, project);
 
       ChooseResourceDialog dialog = ThemeEditorUtils.getResourceDialog(myItem, myContext, getAllowedResourceTypes());
 
-      String attributeName = myItem.getName();
+      String attributeName = myItem.getAttrName();
       if (primaryColor != null) {
         dialog.generateColorSuggestions(primaryColor, attributeName);
       }

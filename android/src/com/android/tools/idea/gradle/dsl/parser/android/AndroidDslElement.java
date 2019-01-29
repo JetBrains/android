@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,15 +26,15 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   @NonNls public static final String ANDROID_BLOCK_NAME = "android";
 
   public AndroidDslElement(@NotNull GradleDslElement parent) {
-    super(parent, ANDROID_BLOCK_NAME);
+    super(parent, GradleNameElement.create(ANDROID_BLOCK_NAME));
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("flavorDimensions") && element instanceof GradleDslExpression) {
-      addAsParsedDslExpressionList(property, (GradleDslExpression)element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element.getName().equals("flavorDimensions") && element instanceof GradleDslSimpleExpression) {
+      addAsParsedDslExpressionList((GradleDslSimpleExpression)element);
       return;
     }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

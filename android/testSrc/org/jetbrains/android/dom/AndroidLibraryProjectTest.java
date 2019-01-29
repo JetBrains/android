@@ -1,30 +1,33 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.*;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.usageView.UsageInfo;
 import org.jetbrains.android.AndroidFindUsagesTest;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * @author Eugene.Kudelevsky
  */
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class AndroidLibraryProjectTest extends AndroidTestCase {
   private static final String BASE_PATH = "libModule/";
 
@@ -44,6 +47,12 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
     addModuleWithAndroidFacet(projectBuilder, modules, "lib", PROJECT_TYPE_LIBRARY, true);
+  }
+
+  public void setUpLibraryRClass() {
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject(BASE_PATH + "LibR.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    }
   }
 
   public void testHighlighting() {
@@ -70,26 +79,12 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
   }
 
   public void testJavaHighlighting() {
-    myFixture.copyFileToProject(BASE_PATH + "LibR.java", "additionalModules/lib/src/p1/p2/lib/R.java");
-    String to = "additionalModules/lib/src/p1/p2/lib" + getTestName(true) + ".java";
+    setUpLibraryRClass();
+    String to = "additionalModules/lib/src/p1/p2/lib/" + getTestName(true) + ".java";
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", to);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.doHighlighting();
     myFixture.checkHighlighting(true, true, true);
-  }
-
-  private void doRename(final VirtualFile file, final String newName) {
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          file.rename(myFixture.getProject(), newName);
-        }
-        catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    });
   }
 
   public void testCompletion() {
@@ -114,8 +109,8 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
 
-  public void testJavaNavigation() throws Exception {
-    myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
+  public void testJavaNavigation() {
+    copyRJavaToGeneratedSources();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/Java.java");
     myFixture.configureFromExistingVirtualFile(file);
 
@@ -158,19 +153,17 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
 
   private void doFindUsagesTest(String extension, String dir) throws Throwable {
     myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass.java", "src/p1/p2/Class.java");
-    myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass1.java", "src/p1/p2/lib/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "FindUsagesClass1.java", "additionalModules/lib/src/p1/p2/lib/Class.java");
     myFixture.copyFileToProject(BASE_PATH + "FindUsagesStyles.xml", "res/values/styles.xml");
     myFixture.copyFileToProject(BASE_PATH + "picture1.png", "additionalModules/lib/res/drawable/picture1.png");
-    myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
-    myFixture.copyFileToProject(BASE_PATH + "LibR.java", "additionalModules/lib/src/p1/p2/lib/R.java");
-    Collection<UsageInfo> references = findCodeUsages(getTestName(false) + "." + extension, dir);
-    assertEquals(buildFileList(references), 5, references.size());
-  }
+    copyRJavaToGeneratedSources();
+    setUpLibraryRClass();
 
-  private List<UsageInfo> findCodeUsages(String path, String dir) throws Throwable {
+    String path = getTestName(false) + "." + extension;
     String newFilePath = dir + path;
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + path, newFilePath);
+    VirtualFileManager.getInstance().syncRefresh();
+
     Collection<UsageInfo> usages = AndroidFindUsagesTest.findUsages(file, myFixture);
     List<UsageInfo> result = new ArrayList<>();
     for (UsageInfo usage : usages) {
@@ -178,7 +171,12 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
         result.add(usage);
       }
     }
-    return result;
+
+    assertThat(buildFileList(result)).containsExactly(
+      newFilePath,
+      "res/values/styles.xml",
+      "additionalModules/lib/src/p1/p2/lib/Class.java",
+      "src/p1/p2/Class.java");
   }
 
   @NotNull
@@ -186,15 +184,17 @@ public class AndroidLibraryProjectTest extends AndroidTestCase {
     return getTestName(true) + ".xml";
   }
 
-  private static String buildFileList(Collection<UsageInfo> infos) {
-    final StringBuilder result = new StringBuilder();
+  private List<String> buildFileList(Collection<UsageInfo> infos) {
+    final List<String> result = new ArrayList<>();
+    VirtualFile tempDir = LocalFileSystem.getInstance().findFileByPath(myFixture.getTempDirPath());
 
     for (UsageInfo info : infos) {
       final PsiFile file = info.getFile();
       final VirtualFile vFile = file != null ? file.getVirtualFile() : null;
-      final String path = vFile != null ? vFile.getPath() : "null";
-      result.append(path).append('\n');
+      String path = VfsUtilCore.findRelativePath(tempDir, vFile, '/');
+      result.add(path);
     }
-    return result.toString();
+
+    return result;
   }
 }

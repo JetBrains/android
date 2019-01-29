@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
-import com.android.tools.idea.gradle.structure.model.meta.ResolvedValue
+import com.android.SdkConstants
+import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
+import com.android.tools.idea.gradle.structure.model.PsProjectImpl
+import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
+import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
 import com.intellij.pom.java.LanguageLevel
@@ -26,33 +29,64 @@ import org.hamcrest.MatcherAssert.assertThat
 
 class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
-  private fun <T> ResolvedValue<T>.asTestValue(): T? = (this as? ResolvedValue.Set<T>)?.resolved
-  private fun <T> ParsedValue<T>.asTestValue(): T? = (this as? ParsedValue.Set.Parsed<T>)?.value
+  fun testDescriptor() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule.descriptor.testEnumerateProperties(), equalTo(AndroidModuleDescriptors.testEnumerateProperties()))
+  }
 
   fun testProperties() {
     loadProject(PSD_SAMPLE)
 
     val resolvedProject = myFixture.project
-    val project = PsProject(resolvedProject)
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
 
-    val buildToolsVersion = AndroidModuleDescriptors.buildToolsVersion.getValue(appModule)
-    val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.getValue(appModule)
-    val sourceCompatibility = AndroidModuleDescriptors.sourceCompatibility.getValue(appModule)
-    val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.getValue(appModule)
+    val buildToolsVersion = AndroidModuleDescriptors.buildToolsVersion.bind(appModule).getValue()
+    val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
+    val sourceCompatibility = AndroidModuleDescriptors.sourceCompatibility.bind(appModule).getValue()
+    val targetCompatibility = AndroidModuleDescriptors.targetCompatibility.bind(appModule).getValue()
 
-    assertThat(buildToolsVersion.resolved.asTestValue(), equalTo("27.0.3"))
-    assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo("27.0.3"))
+    assertThat(buildToolsVersion.resolved.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
+    assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo(SdkConstants.CURRENT_BUILD_TOOLS_VERSION))
 
-    assertThat(compileSdkVersion.resolved.asTestValue(), equalTo("26"))
-    assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("26"))
+    assertThat(matchHashStrings(null, compileSdkVersion.resolved.asTestValue(), SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),
+               equalTo(true))
+    assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()))
 
     assertThat(sourceCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_7))
     assertThat(sourceCompatibility.parsedValue.asTestValue(), nullValue())
 
     assertThat(targetCompatibility.resolved.asTestValue(), equalTo(LanguageLevel.JDK_1_7))
     assertThat(targetCompatibility.parsedValue.asTestValue(), nullValue())
+  }
+
+  fun testSetProperties() {
+    // Note: this test does not attempt to sync because it won't succeed without installing older SDKs.
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+    appModule.compileSdkVersion = "25".asParsed()
+
+    fun verifyValues(appModule: PsAndroidModule) {
+      val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
+      assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("25"))
+      assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>(25))
+    }
+
+    verifyValues(appModule)
+    appModule.applyChanges()
+    verifyValues(appModule)
   }
 }

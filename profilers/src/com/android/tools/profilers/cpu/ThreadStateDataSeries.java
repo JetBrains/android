@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
@@ -29,21 +28,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
+public class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
 
-  @NotNull private final Common.Session mySession;
+  @NotNull
+  private CpuServiceGrpc.CpuServiceBlockingStub myClient;
+  @NotNull
+  private final Common.Session mySession;
   private final int myThreadId;
-  @NotNull private final CpuProfilerStage myStage;
 
-  public ThreadStateDataSeries(@NotNull CpuProfilerStage stage, @NotNull Common.Session session, int tid) {
-    myStage = stage;
+  public ThreadStateDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, @NotNull Common.Session session, int tid) {
+    myClient = client;
     mySession = session;
     myThreadId = tid;
-  }
-
-  @VisibleForTesting
-  int getProcessId() {
-    return mySession.getPid();
   }
 
   @Override
@@ -53,18 +49,17 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
 
     long min = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
     long max = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
-    CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
-    GetThreadsResponse threads = client.getThreads(GetThreadsRequest.newBuilder()
-                                                     .setSession(mySession)
-                                                     .setStartTimestamp(min)
-                                                     .setEndTimestamp(max)
-                                                     .build());
+    GetThreadsResponse threads = myClient.getThreads(GetThreadsRequest.newBuilder()
+                                                                      .setSession(mySession)
+                                                                      .setStartTimestamp(min)
+                                                                      .setEndTimestamp(max)
+                                                                      .build());
 
-    GetTraceInfoResponse traces = client.getTraceInfo(GetTraceInfoRequest.newBuilder()
-                                                        .setSession(mySession)
-                                                        .setFromTimestamp(min)
-                                                        .setToTimestamp(max)
-                                                        .build());
+    GetTraceInfoResponse traces = myClient.getTraceInfo(GetTraceInfoRequest.newBuilder()
+                                                                           .setSession(mySession)
+                                                                           .setFromTimestamp(min)
+                                                                           .setToTimestamp(max)
+                                                                           .build());
 
     for (GetThreadsResponse.Thread thread : threads.getThreadsList()) {
       if (thread.getTid() == myThreadId) {

@@ -16,25 +16,27 @@
 package com.android.tools.idea.tests.gui.kotlin;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.DialogFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class CodeConversionFromJavaToKotlinTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   private final static String START_LINE = "// --- START COPY HERE ---";
   private final static String END_LINE = "// --- END COPY HERE ---";
@@ -67,7 +69,7 @@ public class CodeConversionFromJavaToKotlinTest {
    * <p>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void testConvertJavaCodeToKotlinInEditor() throws Exception {
     IdeFrameFixture ideFrameFixture =
       guiTest.importProjectAndWaitForProjectSyncToFinish("JavaToKotlinCode");
@@ -87,6 +89,10 @@ public class CodeConversionFromJavaToKotlinTest {
     DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Convert Code From Java"))
       .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
     convertCodeFromJavaDialog.button(withText("Yes")).click();
+
+    DialogFixture inlineVariableDialog = findDialog(withTitle("Inline Variable"))
+      .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
+    inlineVariableDialog.button(withText("Cancel")).click();
 
     kotlinEditor.getCurrentFileContents().contains(KOTLIN_FUN);
   }

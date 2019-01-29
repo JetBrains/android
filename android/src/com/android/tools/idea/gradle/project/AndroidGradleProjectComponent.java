@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildContext;
 import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
@@ -27,20 +28,22 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.actions.RunConfigurationProducer;
+import com.intellij.ide.SaveAndSyncHandler;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
-import com.intellij.openapi.components.ProjectComponent;
-import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
+import com.intellij.openapi.components.AbstractProjectComponent;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,13 +51,10 @@ import java.util.List;
 import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public class AndroidGradleProjectComponent implements ProjectComponent {
-  @NotNull private final Project myProject;
+public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   @NotNull private final GradleProjectInfo myGradleProjectInfo;
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
-  @NotNull private final ExternalSystemNotificationManager myNotificationManager;
   @NotNull private final GradleSyncInvoker myGradleSyncInvoker;
   @NotNull private final SupportedModuleChecker mySupportedModuleChecker;
   @NotNull private final IdeInfo myIdeInfo;
@@ -73,13 +73,12 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
   public AndroidGradleProjectComponent(@NotNull Project project,
                                        @NotNull GradleProjectInfo gradleProjectInfo,
                                        @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull ExternalSystemNotificationManager notificationManager,
                                        @NotNull GradleSyncInvoker gradleSyncInvoker,
                                        @NotNull GradleBuildInvoker gradleBuildInvoker,
                                        @NotNull CompilerManager compilerManager,
                                        @NotNull SupportedModuleChecker supportedModuleChecker,
                                        @NotNull IdeInfo ideInfo) {
-    this(project, gradleProjectInfo, androidProjectInfo, notificationManager, gradleSyncInvoker, gradleBuildInvoker, compilerManager,
+    this(project, gradleProjectInfo, androidProjectInfo, gradleSyncInvoker, gradleBuildInvoker, compilerManager,
          supportedModuleChecker, ideInfo, new LegacyAndroidProjects(project));
   }
 
@@ -87,17 +86,15 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
   public AndroidGradleProjectComponent(@NotNull Project project,
                                        @NotNull GradleProjectInfo gradleProjectInfo,
                                        @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull ExternalSystemNotificationManager notificationManager,
                                        @NotNull GradleSyncInvoker gradleSyncInvoker,
                                        @NotNull GradleBuildInvoker gradleBuildInvoker,
                                        @NotNull CompilerManager compilerManager,
                                        @NotNull SupportedModuleChecker supportedModuleChecker,
                                        @NotNull IdeInfo ideInfo,
                                        @NotNull LegacyAndroidProjects legacyAndroidProjects) {
-    myProject = project;
+    super(project);
     myGradleProjectInfo = gradleProjectInfo;
     myAndroidProjectInfo = androidProjectInfo;
-    myNotificationManager = notificationManager;
     myGradleSyncInvoker = gradleSyncInvoker;
     mySupportedModuleChecker = supportedModuleChecker;
     myIdeInfo = ideInfo;
@@ -120,7 +117,30 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
       PostProjectBuildTasksExecutor.getInstance(myProject).onBuildCompletion(result);
       GradleBuildContext newContext = new GradleBuildContext(result);
       AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
+
+      // Force VFS refresh required by any of the modules.
+      if (isVfsRefreshAfterBuildRequired(myProject)) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          FileDocumentManager.getInstance().saveAllDocuments();
+          SaveAndSyncHandler.getInstance().refreshOpenFiles();
+          VirtualFileManager.getInstance().refreshWithoutFileWatcher(true /* asynchronously */);
+        });
+      }
     });
+  }
+
+  /**
+   * @return {@code true} if any of the modules require VFS refresh after build.
+   */
+  private static boolean isVfsRefreshAfterBuildRequired(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      if (androidModuleModel != null && androidModuleModel.getFeatures().isVfsRefreshAfterBuildRequired()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -128,26 +148,7 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
    */
   @Override
   public void projectOpened() {
-    if (myProject.isOpen()) {
-      String error = myGradleProjectInfo.getProjectCreationError();
-      if (isNotEmpty(error)) {
-        // http://b/62543339
-        // If we have a "project creation" error, it means that an error occurred when syncing a project that just created with the NPW.
-        // The error was ignored by the IDEA's Gradle infrastructure. Here we report the error.
-        // http://b/62761000
-        // The new exception must be an instance of ExternalSystemException, otherwise "quick fixes" will not show up.
-        // GradleNotificationExtension only recognizes a few exception types when decided whether a "quick fix" should be displayed.
-        Runnable processError = () -> myNotificationManager.processExternalProjectRefreshError(new ExternalSystemException(error),
-                                                                                               myProject.getName(),
-                                                                                               GradleConstants.SYSTEM_ID);
-        // http://b/66911744: Some quickfixes may need to access PSI (e.g., build files parsing), and that might not work
-        // if the project is not yet initialised. So ensure the project is initialised before sync error handling mechanism launches.
-        StartupManager.getInstance(myProject).runWhenProjectIsInitialized(processError);
-        myGradleProjectInfo.setProjectCreationError(null);
-      }
-    }
-
-    mySupportedModuleChecker.checkForSupportedModules(myProject);
+    boolean checkSupported = true;
     GradleSyncState syncState = GradleSyncState.getInstance(myProject);
     if (syncState.isSyncInProgress()) {
       // when opening a new project, the UI was not updated when sync started. Updating UI ("Build Variants" tool window, "Sync" toolbar
@@ -157,16 +158,28 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
 
     if (myIdeInfo.isAndroidStudio() && myAndroidProjectInfo.isLegacyIdeaAndroidProject() && !myAndroidProjectInfo.isApkProject()) {
       myLegacyAndroidProjects.trackProject();
-      // Suggest that Android Studio users use Gradle instead of IDEA project builder.
-      myLegacyAndroidProjects.showMigrateToGradleWarning();
-      return;
+      if (!myGradleProjectInfo.isBuildWithGradle()) {
+        // Suggest that Android Studio users use Gradle instead of IDEA project builder.
+        myLegacyAndroidProjects.showMigrateToGradleWarning();
+        return;
+      }
     }
 
     if (myGradleProjectInfo.isBuildWithGradle()) {
       configureGradleProject();
+      if (myAndroidProjectInfo.isLegacyIdeaAndroidProject() || !myGradleProjectInfo.hasGradleFacets()) {
+        // Request sync since it was not done when importing
+        myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED);
+        checkSupported = false;
+      }
     }
     else if (myIdeInfo.isAndroidStudio() && myProject.getBaseDir() != null && canImportAsGradleProject(myProject.getBaseDir())) {
       myGradleSyncInvoker.requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_LOADED);
+      checkSupported = false;
+    }
+    // Do not check for supported modules if sync was requested, this will be done once sync is successful
+    if (checkSupported) {
+      mySupportedModuleChecker.checkForSupportedModules(myProject);
     }
   }
 

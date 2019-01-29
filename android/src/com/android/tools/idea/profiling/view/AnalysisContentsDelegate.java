@@ -209,7 +209,7 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
   public void performAnalysis() {
     myCanRunAnalysis = false;
 
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.PROFILING)
                                    .setKind(EventKind.PROFILING_ANALYSIS_RUN));
 

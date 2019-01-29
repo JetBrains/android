@@ -72,13 +72,13 @@ public class PsiCFGField implements ClassMember, PsiAnnotationOwner {
   @NotNull
   @Override
   public PsiAnnotation[] getAnnotations() {
-    return new PsiAnnotation[0];
+    return PsiAnnotation.EMPTY_ARRAY;
   }
 
   @NotNull
   @Override
   public PsiAnnotation[] getApplicableAnnotations() {
-    return new PsiAnnotation[0];
+    return PsiAnnotation.EMPTY_ARRAY;
   }
 
   @Nullable

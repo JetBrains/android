@@ -15,41 +15,43 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.api.RenderSession;
-import com.android.ide.common.rendering.api.Result;
-import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.util.PropertiesMap;
+import com.android.ide.common.rendering.api.*;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class RenderResult {
   @NotNull private final PsiFile myFile;
   @NotNull private final RenderLogger myLogger;
-  @NotNull private final List<ViewInfo> myRootViews;
-  @NotNull private final List<ViewInfo> mySystemRootViews;
+  @NotNull private final ImmutableList<ViewInfo> myRootViews;
+  @NotNull private final ImmutableList<ViewInfo> mySystemRootViews;
   @NotNull private final ImagePool.Image myImage;
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final Result myRenderResult;
-  @NotNull private final Map<Object, PropertiesMap> myDefaultProperties;
+  @NotNull private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
+  @NotNull private final Map<Object, String> myDefaultStyles;
   @NotNull private final Module myModule;
+  private boolean isDisposed;
 
   protected RenderResult(@NotNull PsiFile file,
                          @NotNull Module module,
                          @NotNull RenderLogger logger,
                          @Nullable RenderTask renderTask,
                          @NotNull Result renderResult,
-                         @NotNull List<ViewInfo> rootViews,
-                         @NotNull List<ViewInfo> systemRootViews,
+                         @NotNull ImmutableList<ViewInfo> rootViews,
+                         @NotNull ImmutableList<ViewInfo> systemRootViews,
                          @NotNull ImagePool.Image image,
-                         @NotNull Map<Object, PropertiesMap> defaultProperties) {
+                         @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
+                         @NotNull Map<Object, String> defaultStyles) {
     myRenderTask = renderTask;
     myModule = module;
     myFile = file;
@@ -59,6 +61,12 @@ public class RenderResult {
     mySystemRootViews = systemRootViews;
     myImage = image;
     myDefaultProperties = defaultProperties;
+    myDefaultStyles = defaultStyles;
+  }
+
+  public void dispose() {
+    isDisposed = true;
+    myImage.dispose();
   }
 
   /**
@@ -72,17 +80,19 @@ public class RenderResult {
                                     @NotNull ImagePool.Image image) {
     List<ViewInfo> rootViews = session.getRootViews();
     List<ViewInfo> systemRootViews = session.getSystemRootViews();
-    Map<Object, PropertiesMap> defaultProperties = session.getDefaultProperties();
+    Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties = session.getDefaultNamespacedProperties();
+    Map<Object, String> defaultStyles = session.getDefaultStyles();
     return new RenderResult(
       file,
-      renderTask.getModule(),
+      renderTask.getContext().getModule(),
       logger,
       renderTask,
       session.getResult(),
-      rootViews != null ? rootViews : Collections.emptyList(),
-      systemRootViews != null ? systemRootViews : Collections.emptyList(),
+      rootViews != null ? ImmutableList.copyOf(rootViews) : ImmutableList.of(),
+      systemRootViews != null ? ImmutableList.copyOf(systemRootViews) : ImmutableList.of(),
       image, // image might be ImagePool.NULL_POOL_IMAGE if there is no rendered image (as in layout())
-      defaultProperties != null ? defaultProperties : Collections.emptyMap());
+      defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of(),
+      defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of());
   }
 
   /**
@@ -101,10 +111,11 @@ public class RenderResult {
       logger,
       renderTask,
       Result.Status.ERROR_UNKNOWN.createResult("Failed to initialize session", throwable),
-      Collections.emptyList(),
-      Collections.emptyList(),
+      ImmutableList.of(),
+      ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
-      Collections.emptyMap());
+      ImmutableMap.of(),
+      ImmutableMap.of());
   }
 
   /**
@@ -123,10 +134,11 @@ public class RenderResult {
       new RenderLogger(null, module),
       null,
       Result.Status.ERROR_UNKNOWN.createResult(""),
-      Collections.emptyList(),
-      Collections.emptyList(),
+      ImmutableList.of(),
+      ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
-      Collections.emptyMap());
+      ImmutableMap.of(),
+      ImmutableMap.of());
   }
 
   @NotNull
@@ -141,11 +153,11 @@ public class RenderResult {
 
   @NotNull
   public ImagePool.Image getRenderedImage() {
-    return myImage != null ? myImage : ImagePool.NULL_POOLED_IMAGE;
+    return !isDisposed ? myImage : ImagePool.NULL_POOLED_IMAGE;
   }
 
   public boolean hasImage() {
-    return myImage != null && myImage != ImagePool.NULL_POOLED_IMAGE;
+    return !isDisposed && myImage != ImagePool.NULL_POOLED_IMAGE;
   }
 
   @NotNull
@@ -164,12 +176,12 @@ public class RenderResult {
   }
 
   @NotNull
-  public List<ViewInfo> getRootViews() {
+  public ImmutableList<ViewInfo> getRootViews() {
     return myRootViews;
   }
 
   @NotNull
-  public List<ViewInfo> getSystemRootViews() {
+  public ImmutableList<ViewInfo> getSystemRootViews() {
     return mySystemRootViews;
   }
 
@@ -178,8 +190,17 @@ public class RenderResult {
    * The map is index by view cookie.
    */
   @NotNull
-  public Map<Object, PropertiesMap> getDefaultProperties() {
+  public Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties() {
     return myDefaultProperties;
+  }
+
+  /**
+   * Returns the default style map. This map contains the default style of the widgets as returned by layoutlib.
+   * The map is index by view cookie.
+   */
+  @NotNull
+  public Map<Object, String> getDefaultStyles() {
+    return myDefaultStyles;
   }
 
   @Override

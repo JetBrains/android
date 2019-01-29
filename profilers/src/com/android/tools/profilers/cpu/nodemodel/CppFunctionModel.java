@@ -44,6 +44,11 @@ public class CppFunctionModel extends NativeNodeModel {
    */
   @NotNull private final List<String> myParameters;
 
+  /**
+   * Whether the function is part of user-written code.
+   */
+  private boolean myIsUserCode;
+
   private String myFullName;
 
   private String myId;
@@ -52,6 +57,7 @@ public class CppFunctionModel extends NativeNodeModel {
     myName = builder.myName;
     myClassOrNamespace = builder.myClassOrNamespace;
     myParameters = buildParameters(builder.myParameters);
+    myIsUserCode = builder.myIsUserCode;
   }
 
   @NotNull
@@ -62,6 +68,10 @@ public class CppFunctionModel extends NativeNodeModel {
   @NotNull
   public List<String> getParameters() {
     return myParameters;
+  }
+
+  public boolean isUserCode() {
+    return myIsUserCode;
   }
 
   @Override
@@ -97,6 +107,7 @@ public class CppFunctionModel extends NativeNodeModel {
   public static class Builder {
     @NotNull private final String myName;
     @NotNull private String myClassOrNamespace;
+    private boolean myIsUserCode;
     /**
      * List of the method's parameters, comma separated (e.g. "int, float").
      */
@@ -115,6 +126,11 @@ public class CppFunctionModel extends NativeNodeModel {
 
     public Builder setParameters(@NotNull String parameters) {
       myParameters = parameters;
+      return this;
+    }
+
+    public Builder setIsUserCode(boolean isUserCode) {
+      myIsUserCode = isUserCode;
       return this;
     }
 

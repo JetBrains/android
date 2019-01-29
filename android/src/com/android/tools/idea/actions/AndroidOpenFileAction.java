@@ -17,11 +17,14 @@ package com.android.tools.idea.actions;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.fileTypes.profiler.AndroidProfilerCaptureFileType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
@@ -88,7 +91,7 @@ public class AndroidOpenFileAction extends DumbAwareAction {
           return;
         }
       }
-      doOpenFile(project, files);
+      doOpenFile(e, files);
     });
   }
 
@@ -108,7 +111,8 @@ public class AndroidOpenFileAction extends DumbAwareAction {
     return new ValidationIssue(Validator.Result.OK, null);
   }
 
-  private static void doOpenFile(@Nullable Project project, @NotNull List<VirtualFile> result) {
+  private static void doOpenFile(@NotNull AnActionEvent e, @NotNull List<VirtualFile> result) {
+    Project project = e.getProject();
     for (VirtualFile file : result) {
       if (file.isDirectory()) {
         // proceed with opening as a directory only if the pointed directory is not the base one

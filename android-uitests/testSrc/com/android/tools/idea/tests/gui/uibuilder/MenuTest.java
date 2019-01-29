@@ -16,21 +16,19 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.GuiTestFileUtils;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JListFixture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,8 +41,7 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
-@Ignore("b/66680171")
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public final class MenuTest {
   @Language("XML")
   @SuppressWarnings("XmlUnusedNamespaceDeclaration")
@@ -82,13 +79,15 @@ public final class MenuTest {
     myEditor = myGuiTest.ideFrame().getEditor();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/66470893
   @Test
   public void dragCastButtonIntoActionBar() throws IOException {
     GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
 
-    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH);
-    dragAndDrop("Cast Button", new Point(320, 121));
+    NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
+      .getLayoutEditor(false)
+      .waitForRenderToFinish()
+      .findView("item", 0);
+    dragAndDrop("Cast Button", settingsItem.getLeftCenterPoint());
 
     MessagesFixture.findByTitle(myGuiTest.robot(), "Add Project Dependency").clickOk();
     myGuiTest.ideFrame().waitForGradleProjectSyncToFinish();
@@ -116,8 +115,11 @@ public final class MenuTest {
 
   @Test
   public void dragMenuItemIntoActionBar() {
-    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH);
-    dragAndDrop("Menu Item", new Point(380, 120));
+    NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
+      .getLayoutEditor(false)
+      .waitForRenderToFinish()
+      .findView("item", 0);
+    dragAndDrop("Menu Item", settingsItem.getTopCenterPoint());
     myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
     @Language("XML")
@@ -138,13 +140,15 @@ public final class MenuTest {
     assertEquals(expected, myEditor.getCurrentFileContents());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/66829932
   @Test
   public void dragSearchItemIntoActionBar() throws IOException {
     GuiTestFileUtils.writeAndReloadDocument(myMenuMainXmlAbsolutePath, MENU_MAIN_XML_CONTENTS);
 
-    myEditor.open(MENU_MAIN_XML_RELATIVE_PATH);
-    dragAndDrop("Search Item", new Point(330, 120));
+    NlComponentFixture settingsItem = myEditor.open(MENU_MAIN_XML_RELATIVE_PATH)
+      .getLayoutEditor(false)
+      .waitForRenderToFinish()
+      .findView("item", 0);
+    dragAndDrop("Search Item", settingsItem.getLeftCenterPoint());
     myEditor.open(MENU_MAIN_XML_RELATIVE_PATH, Tab.EDITOR);
 
     @Language("XML")
@@ -154,9 +158,9 @@ public final class MenuTest {
                       "    xmlns:tools=\"http://schemas.android.com/tools\">\n" +
                       "    <item\n" +
                       "        android:id=\"@+id/app_bar_search\"\n" +
-                      "        android:actionViewClass=\"android.widget.SearchView\"\n" +
                       "        android:icon=\"@drawable/ic_search_black_24dp\"\n" +
                       "        android:title=\"Search\"\n" +
+                      "        app:actionViewClass=\"android.widget.SearchView\"\n" +
                       "        app:showAsAction=\"always\" />\n" +
                       "    <item\n" +
                       "        android:id=\"@+id/action_settings\"\n" +

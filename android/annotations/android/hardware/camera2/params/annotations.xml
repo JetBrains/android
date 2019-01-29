@@ -21,5 +21,34 @@
   <item name="android.hardware.camera2.params.OutputConfiguration void addSurface(android.view.Surface) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.hardware.camera2.params.OutputConfiguration void removeSurface(android.view.Surface) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.params.OutputConfiguration void setPhysicalCameraId(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.hardware.camera2.params.SessionConfiguration SessionConfiguration(int, java.util.List&lt;android.hardware.camera2.params.OutputConfiguration&gt;, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.StateCallback) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.hardware.camera2.params.SessionConfiguration.SESSION_REGULAR, android.hardware.camera2.params.SessionConfiguration.SESSION_HIGH_SPEED}" />
+    </annotation>
+  </item>
+  <item name="android.hardware.camera2.params.SessionConfiguration SessionConfiguration(int, java.util.List&lt;android.hardware.camera2.params.OutputConfiguration&gt;, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.StateCallback) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.params.SessionConfiguration SessionConfiguration(int, java.util.List&lt;android.hardware.camera2.params.OutputConfiguration&gt;, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.StateCallback) 2">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.CallbackExecutor" />
+  </item>
+  <item name="android.hardware.camera2.params.SessionConfiguration SessionConfiguration(int, java.util.List&lt;android.hardware.camera2.params.OutputConfiguration&gt;, java.util.concurrent.Executor, android.hardware.camera2.CameraCaptureSession.StateCallback) 3">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.hardware.camera2.params.SessionConfiguration int getSessionType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.hardware.camera2.params.SessionConfiguration.SESSION_REGULAR, android.hardware.camera2.params.SessionConfiguration.SESSION_HIGH_SPEED}" />
+    </annotation>
+  </item>
+  <item name="android.hardware.camera2.params.SessionConfiguration void setInputConfiguration(android.hardware.camera2.params.InputConfiguration) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
 </root>
 

@@ -17,13 +17,14 @@ package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import com.google.common.collect.ImmutableMap;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.google.common.collect.ImmutableMap;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
@@ -42,45 +43,34 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   private static final long DEVICE_ID = 1234;
   private static final String DEVICE_SERIAL = "SomeSerialId";
   private static final String BOOT_ID = "SOME BOOT ID";
-  private static final Common.Device DEVICE = Common.Device.newBuilder()
-    .setDeviceId(DEVICE_ID)
-    .setBootId(BOOT_ID)
-    .setSerial(DEVICE_SERIAL)
-    .build();
-  private static final Common.Process INITIAL_PROCESS = Common.Process.newBuilder()
-    .setDeviceId(DEVICE_ID)
-    .setPid(1234)
-    .setName("INITIAL")
-    .build();
-  private static final Common.Process FINAL_PROCESS = Common.Process.newBuilder()
-    .setDeviceId(DEVICE_ID)
-    .setPid(4321)
-    .setName("FINAL")
-    .build();
-  private static final Common.Session START_SESSION_1 = Common.Session.newBuilder()
+  private static final Common.Device DEVICE = Common.Device
+    .newBuilder().setDeviceId(DEVICE_ID).setBootId(BOOT_ID).setSerial(DEVICE_SERIAL).build();
+  private static final Common.Process INITIAL_PROCESS = Common.Process
+    .newBuilder().setDeviceId(DEVICE_ID).setPid(1234).setName("INITIAL").build();
+  private static final Common.Process FINAL_PROCESS = Common.Process
+    .newBuilder().setDeviceId(DEVICE_ID).setPid(4321).setName("FINAL").build();
+  private static final Common.Session START_SESSION_1 = Common.Session
+    .newBuilder()
     .setSessionId(1)
     .setDeviceId(DEVICE_ID)
     .setPid(1234)
     .setStartTimestamp(100)
     .setEndTimestamp(Long.MAX_VALUE)
     .build();
-  private static final Common.Session END_SESSION_1 = START_SESSION_1.toBuilder()
-    .setEndTimestamp(200)
-    .build();
-  private static final Common.Session START_SESSION_2 = Common.Session.newBuilder()
+  private static final Common.Session END_SESSION_1 = START_SESSION_1.toBuilder().setEndTimestamp(200).build();
+  private static final Common.Session START_SESSION_2 = Common.Session
+    .newBuilder()
     .setSessionId(2)
     .setDeviceId(DEVICE_ID)
     .setPid(4321)
     .setStartTimestamp(150)
     .setEndTimestamp(Long.MAX_VALUE)
     .build();
-  private static final Common.Session END_SESSION_2 = START_SESSION_2.toBuilder()
-    .setEndTimestamp(250)
-    .build();
+  private static final Common.Session END_SESSION_2 = START_SESSION_2.toBuilder().setEndTimestamp(250).build();
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private ProfilerService myProfilerService = new ProfilerService(myDataStore, getPollTicker()::run);
+  private ProfilerService myProfilerService = new ProfilerService(myDataStore, getPollTicker()::run, new FakeLogService());
 
   private static final String BYTES_ID_1 = "0123456789";
   private static final String BYTES_ID_2 = "9876543210";
@@ -88,91 +78,77 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   private static final ByteString BYTES_1 = ByteString.copyFromUtf8("FILE_1");
   private static final ByteString BYTES_2 = ByteString.copyFromUtf8("FILE_2");
 
-  private static final Map<String, ByteString> PAYLOAD_CACHE = new ImmutableMap.Builder<String, ByteString>().
-    put(BYTES_ID_1, BYTES_1).
-    put(BYTES_ID_2, BYTES_2).
-    build();
+  private static final Map<String, ByteString> PAYLOAD_CACHE = new ImmutableMap.Builder<String, ByteString>()
+    .put(BYTES_ID_1, BYTES_1).put(BYTES_ID_2, BYTES_2).build();
 
   private FakeProfilerService myFakeService = new FakeProfilerService();
   private TestName myTestName = new TestName();
-  private TestGrpcService<FakeProfilerService> myService =
-    new TestGrpcService<>(ProfilerServiceTest.class, myTestName, myProfilerService, myFakeService);
+  private TestGrpcService myService = new TestGrpcService(ProfilerServiceTest.class, myTestName, myProfilerService, myFakeService);
 
   @Rule
   public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     myProfilerService.startMonitoring(myService.getChannel());
     when(myDataStore.getProfilerClient(any())).thenReturn(ProfilerServiceGrpc.newBlockingStub(myService.getChannel()));
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     myDataStore.shutdown();
   }
 
   @Test
-  public void testGetTimes() throws Exception {
+  public void testGetTimes() {
     StreamObserver<TimeResponse> observer = mock(StreamObserver.class);
     myProfilerService.getCurrentTime(TimeRequest.getDefaultInstance(), observer);
     validateResponse(observer, TimeResponse.getDefaultInstance());
   }
 
   @Test
-  public void testGetVersion() throws Exception {
+  public void testGetVersion() {
     StreamObserver<VersionResponse> observer = mock(StreamObserver.class);
     myProfilerService.getVersion(VersionRequest.getDefaultInstance(), observer);
     validateResponse(observer, VersionResponse.getDefaultInstance());
   }
 
   @Test
-  public void testGetDevices() throws Exception {
+  public void testGetDevices() {
     StreamObserver<GetDevicesResponse> observer = mock(StreamObserver.class);
     GetDevicesResponse expected = GetDevicesResponse.newBuilder()
-      .addDevice(DEVICE)
-      .build();
+                                                    .addDevice(DEVICE)
+                                                    .build();
     myProfilerService.getDevices(GetDevicesRequest.getDefaultInstance(), observer);
     validateResponse(observer, expected);
   }
 
   @Test
-  public void testDeviceDisconnect() throws Exception {
+  public void testDeviceDisconnect() {
     myService.shutdownServer();
     getPollTicker().run();
     StreamObserver<GetProcessesResponse> observer = mock(StreamObserver.class);
-    GetProcessesResponse expected = GetProcessesResponse.newBuilder()
-      .addProcess(INITIAL_PROCESS.toBuilder().setState(Common.Process.State.DEAD))
-      .build();
-    GetProcessesRequest request = GetProcessesRequest.newBuilder()
-      .setDeviceId(DEVICE.getDeviceId())
-      .build();
+    GetProcessesResponse expected = GetProcessesResponse
+      .newBuilder().addProcess(INITIAL_PROCESS.toBuilder().setState(Common.Process.State.DEAD)).build();
+    GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build();
     myProfilerService.getProcesses(request, observer);
     validateResponse(observer, expected);
   }
 
   @Test
-  public void testGetProcesses() throws Exception {
+  public void testGetProcesses() {
     StreamObserver<GetProcessesResponse> observer = mock(StreamObserver.class);
-    GetProcessesRequest request = GetProcessesRequest.newBuilder()
-      .setDeviceId(DEVICE.getDeviceId())
-      .build();
-    GetProcessesResponse expected = GetProcessesResponse.newBuilder()
-      .addProcess(INITIAL_PROCESS)
-      .build();
+    GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build();
+    GetProcessesResponse expected = GetProcessesResponse.newBuilder().addProcess(INITIAL_PROCESS).build();
     myProfilerService.getProcesses(request, observer);
     validateResponse(observer, expected);
   }
 
   @Test
-  public void testGetDeadProcesses() throws Exception {
+  public void testGetDeadProcesses() {
     StreamObserver<GetProcessesResponse> observer = mock(StreamObserver.class);
-    GetProcessesRequest request = GetProcessesRequest.newBuilder()
-      .setDeviceId(DEVICE.getDeviceId())
-      .build();
-    GetProcessesResponse expected = GetProcessesResponse.newBuilder()
-      .addProcess(INITIAL_PROCESS)
-      .build();
+    GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build();
+    GetProcessesResponse expected = GetProcessesResponse.newBuilder().addProcess(INITIAL_PROCESS).build();
     myProfilerService.getProcesses(request, observer);
     validateResponse(observer, expected);
 
@@ -182,16 +158,14 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     myFakeService.setProcessToReturn(FINAL_PROCESS);
     getPollTicker().run();
     observer = mock(StreamObserver.class);
-    expected = GetProcessesResponse.newBuilder()
-      .addProcess(INITIAL_PROCESS.toBuilder().setState(Common.Process.State.DEAD))
-      .addProcess(FINAL_PROCESS)
-      .build();
+    expected = GetProcessesResponse
+      .newBuilder().addProcess(INITIAL_PROCESS.toBuilder().setState(Common.Process.State.DEAD)).addProcess(FINAL_PROCESS).build();
     myProfilerService.getProcesses(request, observer);
     validateResponse(observer, expected);
   }
 
   @Test
-  public void testGetFile() throws Exception {
+  public void testGetFile() {
     StreamObserver<BytesResponse> observer1 = mock(StreamObserver.class);
     BytesRequest request1 = BytesRequest.newBuilder().setId(BYTES_ID_1).build();
     BytesResponse response1 = BytesResponse.newBuilder().setContents(BYTES_1).build();
@@ -213,7 +187,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetFileCached() throws Exception {
+  public void testGetFileCached() {
     // Pull data into the database cache.
     StreamObserver<BytesResponse> observer1 = mock(StreamObserver.class);
     BytesRequest request1 = BytesRequest.newBuilder().setId(BYTES_ID_1).build();
@@ -249,7 +223,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
   }
 
   @Test
-  public void testGetSessionsAfterBeginEndSession() throws Exception {
+  public void testGetSessionsAfterBeginEndSession() {
     StreamObserver<GetSessionsResponse> observer = mock(StreamObserver.class);
 
     // GetSessions should return an empty list initially
@@ -261,9 +235,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     myFakeService.setSessionToReturn(START_SESSION_1);
     myProfilerService.beginSession(BeginSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
     observer = mock(StreamObserver.class);
-    response = GetSessionsResponse.newBuilder()
-      .addSessions(START_SESSION_1)
-      .build();
+    response = GetSessionsResponse.newBuilder().addSessions(START_SESSION_1).build();
     myProfilerService.getSessions(GetSessionsRequest.getDefaultInstance(), observer);
     validateResponse(observer, response);
 
@@ -271,10 +243,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     myFakeService.setSessionToReturn(START_SESSION_2);
     myProfilerService.beginSession(BeginSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
     observer = mock(StreamObserver.class);
-    response = GetSessionsResponse.newBuilder()
-      .addSessions(START_SESSION_1)
-      .addSessions(START_SESSION_2)
-      .build();
+    response = GetSessionsResponse.newBuilder().addSessions(START_SESSION_1).addSessions(START_SESSION_2).build();
     myProfilerService.getSessions(GetSessionsRequest.getDefaultInstance(), observer);
     validateResponse(observer, response);
 
@@ -282,10 +251,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     myFakeService.setSessionToReturn(END_SESSION_1);
     myProfilerService.endSession(EndSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
     observer = mock(StreamObserver.class);
-    response = GetSessionsResponse.newBuilder()
-      .addSessions(END_SESSION_1)
-      .addSessions(START_SESSION_2)
-      .build();
+    response = GetSessionsResponse.newBuilder().addSessions(END_SESSION_1).addSessions(START_SESSION_2).build();
     myProfilerService.getSessions(GetSessionsRequest.getDefaultInstance(), observer);
     validateResponse(observer, response);
 
@@ -293,11 +259,46 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     myFakeService.setSessionToReturn(END_SESSION_2);
     myProfilerService.endSession(EndSessionRequest.getDefaultInstance(), mock(StreamObserver.class));
     observer = mock(StreamObserver.class);
-    response = GetSessionsResponse.newBuilder()
-      .addSessions(END_SESSION_1)
-      .addSessions(END_SESSION_2)
-      .build();
+    response = GetSessionsResponse.newBuilder().addSessions(END_SESSION_1).addSessions(END_SESSION_2).build();
     myProfilerService.getSessions(GetSessionsRequest.getDefaultInstance(), observer);
+    validateResponse(observer, response);
+  }
+
+  @Test
+  public void importSession() {
+    // Import new session
+    myProfilerService.importSession(ImportSessionRequest.newBuilder().setSession(END_SESSION_1).build(), mock(StreamObserver.class));
+    StreamObserver<GetSessionMetaDataResponse> metaDataObserver = mock(StreamObserver.class);
+    GetSessionMetaDataResponse metaDataResponse =
+      GetSessionMetaDataResponse.newBuilder().setData(Common.SessionMetaData.newBuilder().setSessionId(END_SESSION_1.getSessionId()))
+                                .build();
+    myProfilerService
+      .getSessionMetaData(GetSessionMetaDataRequest.newBuilder().setSessionId(END_SESSION_1.getSessionId()).build(), metaDataObserver);
+    validateResponse(metaDataObserver, metaDataResponse);
+
+    // Delete imported session
+    StreamObserver<GetSessionsResponse> observer = mock(StreamObserver.class);
+    myProfilerService
+      .deleteSession(DeleteSessionRequest.newBuilder().setSessionId(END_SESSION_1.getSessionId()).build(), mock(StreamObserver.class));
+    GetSessionsResponse response = GetSessionsResponse.newBuilder().build();
+    myProfilerService.getSessions(GetSessionsRequest.getDefaultInstance(), observer);
+    validateResponse(observer, response);
+  }
+
+  @Test
+  public void agentStatus() {
+    getPollTicker().run();
+    StreamObserver<AgentStatusResponse> observer = mock(StreamObserver.class);
+    myProfilerService.getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(DEVICE_ID).setPid(INITIAL_PROCESS.getPid()).build(), observer);
+    AgentStatusResponse response = AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build();
+    validateResponse(observer, response);
+  }
+
+  @Test
+  public void configureStartupAgent() {
+    StreamObserver<ConfigureStartupAgentResponse> observer = mock(StreamObserver.class);
+    myProfilerService.configureStartupAgent(ConfigureStartupAgentRequest.newBuilder().setDeviceId(DEVICE_ID).setAgentLibFileName("TEST").build(), observer);
+    ConfigureStartupAgentResponse response = ConfigureStartupAgentResponse.newBuilder().setAgentArgs("TEST").build();
     validateResponse(observer, response);
   }
 
@@ -374,8 +375,14 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
     @Override
     public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
-      responseObserver.onNext(AgentStatusResponse.getDefaultInstance());
+      responseObserver.onNext(AgentStatusResponse.newBuilder().setStatus(AgentStatusResponse.Status.ATTACHED).build());
       responseObserver.onCompleted();
+    }
+
+    @Override
+    public void configureStartupAgent(ConfigureStartupAgentRequest request, StreamObserver<ConfigureStartupAgentResponse> observer) {
+      observer.onNext(ConfigureStartupAgentResponse.newBuilder().setAgentArgs(request.getAgentLibFileName()).build());
+      observer.onCompleted();
     }
   }
 }

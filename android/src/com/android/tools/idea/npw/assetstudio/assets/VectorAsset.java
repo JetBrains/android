@@ -20,23 +20,27 @@ import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.Validator.Severity;
-import com.android.tools.idea.observable.core.*;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.IntProperty;
+import com.android.tools.idea.observable.core.IntValueProperty;
+import com.android.tools.idea.observable.core.ObjectProperty;
+import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.utils.SdkUtils;
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Document;
-
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
 
 /**
  * An asset which represents a vector graphics image. This can be loaded either from an SVG file,
@@ -49,7 +53,6 @@ public final class VectorAsset extends BaseAsset {
   private static final String ERROR_EMPTY_PREVIEW = "Could not generate a preview";
 
   private final ObjectProperty<File> myPath = new ObjectValueProperty<>(new File(System.getProperty("user.home")));
-  private final IntProperty myOpacityPercent = new IntValueProperty(100);
   private final BoolProperty myAutoMirrored = new BoolValueProperty();
   private final IntProperty myOutputWidth = new IntValueProperty();
   private final IntProperty myOutputHeight = new IntValueProperty();
@@ -60,11 +63,6 @@ public final class VectorAsset extends BaseAsset {
   @NotNull
   public ObjectProperty<File> path() {
     return myPath;
-  }
-
-  @NotNull
-  public IntProperty opacityPercent() {
-    return myOpacityPercent;
   }
 
   @NotNull
@@ -101,39 +99,13 @@ public final class VectorAsset extends BaseAsset {
   /**
    * Parses the file specified by the {@link #path()} property, overriding its final width which is
    * useful for previewing this vector asset in some UI component of the same width.
+   *
    * @param previewWidth width of the display component
    * @param allowPropertyOverride true if this method can override some properties of the original file
    *                              (e.g. size ratio, opacity)
    */
   @NotNull
   public ParseResult parse(int previewWidth, boolean allowPropertyOverride) {
-    return tryParse(previewWidth, allowPropertyOverride);
-  }
-
-  /**
-   * Parses the file specified by the {@link #path()} property.
-   */
-  @NotNull
-  public ParseResult parse() {
-    return parse(0, true);
-  }
-
-  @Override
-  @Nullable
-  public ListenableFuture<BufferedImage> toImage() {
-    return Futures.immediateFuture(parse().getImage());
-  }
-
-  /**
-   * Attempts to parse an SVG, a PSD, or a vector drawable file pointed to by the asset.
-   *
-   * @param previewWidth if set to a positive value, this will override the current output width
-   *     value (in effect, scaling the final result)
-   * @param allowPropertyOverride allows image size, opacity and auto-mirroring properties of
-   *     the vector drawable to be overridden
-   */
-  @NotNull
-  private ParseResult tryParse(int previewWidth, boolean allowPropertyOverride) {
     File path = myPath.get();
     if (!path.exists()) {
       return new ParseResult("File " + path.getName() + " does not exist");
@@ -162,7 +134,7 @@ public final class VectorAsset extends BaseAsset {
           break;
 
         case VECTOR_DRAWABLE:
-          xmlFileContent = Files.toString(path, Charsets.UTF_8);
+          xmlFileContent = Files.toString(path, StandardCharsets.UTF_8);
           break;
       }
     } catch (IOException e) {
@@ -170,8 +142,8 @@ public final class VectorAsset extends BaseAsset {
     }
 
     BufferedImage image = null;
-    int originalWidth = 0;
-    int originalHeight = 0;
+    float originalWidth = 0;
+    float originalHeight = 0;
     if (!Strings.isNullOrEmpty(xmlFileContent)) {
       Document document = VdPreview.parseVdStringIntoDocument(xmlFileContent, errorBuffer.length() == 0 ? errorBuffer : null);
       if (document != null) {
@@ -187,10 +159,10 @@ public final class VectorAsset extends BaseAsset {
         }
 
         if (previewWidth <= 0) {
-          previewWidth = myOutputWidth.get() > 0 ? myOutputWidth.get() : originalWidth;
+          previewWidth = myOutputWidth.get() > 0 ? myOutputWidth.get() : Math.round(originalWidth);
         }
 
-        VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createSizeFromWidth(previewWidth);
+        VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createFromMaxDimension(previewWidth);
         try {
           image = VdPreview.getPreviewFromVectorXml(imageTargetSize, xmlFileContent, errorBuffer);
         } catch (Throwable e) {
@@ -216,14 +188,28 @@ public final class VectorAsset extends BaseAsset {
   }
 
   /**
+   * Parses the file specified by the {@link #path()} property.
+   */
+  @NotNull
+  public ParseResult parse() {
+    return parse(0, true);
+  }
+
+  @Override
+  @Nullable
+  public ListenableFuture<BufferedImage> toImage() {
+    return Futures.immediateFuture(parse().getImage());
+  }
+
+  /**
    * Modifies the source XML content with custom values set by the user, such as final output size
    * and opacity.
    */
   @Nullable
   private String overrideXmlFileContent(@NotNull Document document, @NotNull VdPreview.SourceSize originalSize,
                                         @NotNull StringBuilder errorBuffer) {
-    int finalWidth = originalSize.getWidth();
-    int finalHeight = originalSize.getHeight();
+    float finalWidth = originalSize.getWidth();
+    float finalHeight = originalSize.getHeight();
 
     int outputWidth = myOutputWidth.get();
     int outputHeight = myOutputHeight.get();
@@ -238,19 +224,19 @@ public final class VectorAsset extends BaseAsset {
     finalHeight = Math.max(VdPreview.MIN_PREVIEW_IMAGE_SIZE, finalHeight);
 
     VdOverrideInfo overrideInfo =
-        new VdOverrideInfo(finalWidth, finalHeight, color().get(), myOpacityPercent.get() / 100.f, myAutoMirrored.get());
+        new VdOverrideInfo(finalWidth, finalHeight, color().getValueOrNull(), opacityPercent().get() / 100.f, myAutoMirrored.get());
     return VdPreview.overrideXmlContent(document, overrideInfo, errorBuffer);
   }
 
   /**
    * A parse result returned after calling {@link #parse()}. Check {@link #isValid()} to see if
-   * the parse was successful.
+   * the parsing was successful.
    */
   public static final class ParseResult {
     @NotNull private final Validator.Result myValidityState;
     @Nullable private final BufferedImage myImage;
-    private final int myOriginalWidth;
-    private final int myOriginalHeight;
+    private final float myOriginalWidth;
+    private final float myOriginalHeight;
     private final boolean myIsValid;
     @NotNull private final String myXmlContent;
 
@@ -262,7 +248,7 @@ public final class VectorAsset extends BaseAsset {
       this(validityState, null, 0, 0, "");
     }
 
-    public ParseResult(@NotNull Validator.Result validityState, @Nullable BufferedImage image, int originalWidth, int originalHeight,
+    public ParseResult(@NotNull Validator.Result validityState, @Nullable BufferedImage image, float originalWidth, float originalHeight,
                        @NotNull String xmlContent) {
       myValidityState = validityState;
       myImage = image;
@@ -286,7 +272,7 @@ public final class VectorAsset extends BaseAsset {
      * The preferred width specified in the SVG file (although a vector drawable file can be rendered to any
      * width).
      */
-    public int getOriginalWidth() {
+    public float getOriginalWidth() {
       return myOriginalWidth;
     }
 
@@ -294,7 +280,7 @@ public final class VectorAsset extends BaseAsset {
      * The preferred height specified in the SVG file (although a vector drawable file can be rendered to
      * any height).
      */
-    public int getOriginalHeight() {
+    public float getOriginalHeight() {
       return myOriginalHeight;
     }
 

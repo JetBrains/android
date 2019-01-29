@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.ide.common.res2.ResourceItem;
-import com.android.tools.idea.editors.strings.table.StringResourceTable;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -26,10 +26,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import javax.swing.AbstractAction;
-import javax.swing.JMenuItem;
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
 
 public class GoToDeclarationAction extends AbstractAction {
 
@@ -42,17 +41,10 @@ public class GoToDeclarationAction extends AbstractAction {
     myPanel = panel;
   }
 
-  public void update(@NotNull JMenuItem goTo, @NotNull MouseEvent e) {
-    StringResourceTable table = myPanel.getTable();
-    int tableRow = table.rowAtPoint(e.getPoint());
-    int tableColumn = table.columnAtPoint(e.getPoint());
-    if (tableRow < 0 || tableColumn < 0) {
-      goTo.setVisible(false);
-      return;
-    }
-    int row = table.convertRowIndexToModel(tableRow);
-    int column = table.convertColumnIndexToModel(tableColumn);
-    StringResourceTableModel model = table.getModel();
+  public void update(@NotNull JMenuItem goTo, @NotNull FrozenColumnTableEvent event) {
+    int row = event.getModelRowIndex();
+    int column = event.getModelColumnIndex();
+    StringResourceTableModel model = (StringResourceTableModel)event.getSource().getModel();
     Locale locale = model.getLocale(column);
     StringResource resource = model.getStringResourceAt(row);
 

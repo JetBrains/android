@@ -16,13 +16,14 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.builder.model.AndroidProject;
-import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.ir.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.BuildSelection;
 import com.android.tools.idea.fd.InstantRunContext;
@@ -32,7 +33,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -113,7 +114,7 @@ public class GradleInstantRunContext implements InstantRunContext {
 
     final Hasher hasher = Hashing.goodFastHash(32).newHasher();
     SortedSet<ResourceUrl> appResourceReferences = getAppResourceReferences(manifest.getDocumentElement());
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
 
     // read action needed when reading the values for app resources
     ApplicationManager.getApplication().runReadAction(() -> hashResources(appResourceReferences, appResources, hasher));
@@ -136,7 +137,7 @@ public class GradleInstantRunContext implements InstantRunContext {
         String value = attribute.getNodeValue();
         if (value.startsWith(PREFIX_RESOURCE_REF)) {
           ResourceUrl url = ResourceUrl.parse(value);
-          if (url != null && !url.framework) {
+          if (url != null && !url.isFramework()) {
             refs.add(url);
           }
         }
@@ -153,20 +154,17 @@ public class GradleInstantRunContext implements InstantRunContext {
   }
 
   private static void hashResources(@NotNull SortedSet<ResourceUrl> appResources,
-                                    @NotNull AppResourceRepository resources,
+                                    @NotNull LocalResourceRepository resources,
                                     @NotNull Hasher hasher) {
     for (ResourceUrl url : appResources) {
-      List<ResourceItem> items = resources.getResourceItem(url.type, url.name);
-      if (items == null) {
-        continue;
-      }
+      List<ResourceItem> items = resources.getResources(ResourceNamespace.TODO(), url.type, url.name);
 
       for (ResourceItem item : items) {
-        ResourceValue resourceValue = item.getResourceValue(false);
+        ResourceValue resourceValue = item.getResourceValue();
         if (resourceValue != null) {
           String text = resourceValue.getValue();
           if (text != null) {
-            if (ResourceHelper.isFileBasedResourceType(url.type)) {
+            if (ResourceHelper.isFileBased(url.type)) {
               File f = new File(text);
               if (f.exists()) {
                 try {
@@ -180,7 +178,7 @@ public class GradleInstantRunContext implements InstantRunContext {
               hasher.putString(text, UTF_8);
             }
           } else if (resourceValue.getResourceType() == ResourceType.STYLE){
-            ((StyleResourceValue) resourceValue).getValues().stream().forEach(value -> hasher.putString(value.getValue(), UTF_8));
+            ((StyleResourceValue) resourceValue).getDefinedItems().stream().forEach(value -> hasher.putString(value.getValue(), UTF_8));
           }
         }
       }

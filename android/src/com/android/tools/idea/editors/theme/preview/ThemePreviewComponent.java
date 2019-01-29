@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.editors.theme.preview;
 
-import com.android.tools.adtui.SearchField;
 import com.android.tools.idea.actions.BrowserHelpAction;
-import com.android.tools.idea.configurations.DeviceMenuAction;
-import com.android.tools.idea.configurations.LocaleMenuAction;
-import com.android.tools.idea.configurations.OrientationMenuAction;
-import com.android.tools.idea.configurations.TargetMenuAction;
+import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.editors.theme.ThemeEditorComponent;
 import com.android.tools.idea.editors.theme.ThemeEditorContext;
 import com.intellij.openapi.Disposable;
@@ -30,6 +26,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.SearchTextField;
 import com.intellij.util.ConcurrencyUtil;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -47,9 +44,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class ThemePreviewComponent extends JPanel implements Disposable {
   private final AndroidThemePreviewPanel myPreviewPanel;
-  private final ThemeEditorContext myThemeEditorContext;
   private final ScheduledExecutorService mySearchUpdateScheduler;
-  private final SearchField myTextField;
+  private final SearchTextField myTextField;
   private final JPanel myToolbar;
   private final JComponent myActionToolbarComponent;
   private ScheduledFuture<?> myScheduledSearch;
@@ -57,8 +53,7 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
   public ThemePreviewComponent(@NotNull ThemeEditorContext context) {
     super(new BorderLayout());
 
-    myThemeEditorContext = context;
-    myPreviewPanel = new AndroidThemePreviewPanel(myThemeEditorContext, ThemeEditorComponent.PREVIEW_BACKGROUND);
+    myPreviewPanel = new AndroidThemePreviewPanel(context, ThemeEditorComponent.PREVIEW_BACKGROUND);
     myPreviewPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     Disposer.register(this, myPreviewPanel);
 
@@ -72,6 +67,13 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
     ActionManager actionManager = ActionManager.getInstance();
     ActionToolbar actionToolbar = actionManager.createActionToolbar("ThemeToolbar", group, true);
     actionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
+    ConfigurationListener listener = (flags) -> {
+      if ((flags & ConfigurationListener.CFG_TARGET) > 0) {
+        actionToolbar.updateActionsImmediately();
+      }
+      return true;
+    };
+    context.addConfigurationListener(listener);
 
     myToolbar = new JPanel(null);
     myToolbar.setLayout(new BoxLayout(myToolbar, BoxLayout.X_AXIS));
@@ -84,7 +86,7 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
     myActionToolbarComponent = actionToolbar.getComponent();
     myToolbar.add(myActionToolbarComponent);
 
-    myTextField = new SearchField(true);
+    myTextField = new SearchTextField(true);
     // Avoid search box stretching more than 1 line.
     myTextField.setMaximumSize(new Dimension(Integer.MAX_VALUE, myTextField.getPreferredSize().height));
 

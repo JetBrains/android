@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ import static com.google.common.truth.Truth.assertThat;
  * {@code android.defaultConfig {}} block.
  */
 public class ProductFlavorsElementTest extends GradleFileModelTestCase {
+  @Test
   public void testProductFlavorsWithApplicationStatements() throws Exception {
     String text = "android {\n" +
                   "  productFlavors {\n" +
@@ -72,6 +74,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
                  flavor2.testInstrumentationRunnerArguments());
   }
 
+  @Test
   public void testProductFlavorsWithAssignmentStatements() throws Exception {
     String text = "android.productFlavors {\n" +
                   "  flavor1 {\n" +
@@ -107,6 +110,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
                  flavor2.testInstrumentationRunnerArguments());
   }
 
+  @Test
   public void testProductFlavorsWithOverrideStatements() throws Exception {
     String text = "android {\n" +
                   "  productFlavors {\n" +
@@ -156,6 +160,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
                  flavor2.testInstrumentationRunnerArguments());
   }
 
+  @Test
   public void testProductFlavorsWithAppendStatements() throws Exception {
     String text = "android {\n" +
                   "  productFlavors {\n" +
@@ -201,6 +206,8 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key3", "value3", "key4", "value4", "key6", "value6"),
                  flavor2.testInstrumentationRunnerArguments());
   }
+
+  @Test
   public void testAddEmptyProductFlavor() throws Exception {
     String text = "android {}\n";
 
@@ -220,26 +227,27 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     ProductFlavorModel productFlavor = productFlavors.get(0);
     assertEquals("name", "flavorA", productFlavor.name());
     assertMissingProperty("applicationId", productFlavor.applicationId());
-    assertNull("consumerProguardFiles", productFlavor.consumerProguardFiles());
+    assertMissingProperty("consumerProguardFiles", productFlavor.consumerProguardFiles());
     assertMissingProperty("dimension", productFlavor.dimension());
-    assertNull("manifestPlaceholders", productFlavor.manifestPlaceholders());
+    assertMissingProperty("manifestPlaceholders", productFlavor.manifestPlaceholders());
     assertMissingProperty("maxSdkVersion", productFlavor.maxSdkVersion());
     assertMissingProperty("minSdkVersion", productFlavor.minSdkVersion());
     assertMissingProperty("multiDexEnabled", productFlavor.multiDexEnabled());
-    assertNull("proguardFiles", productFlavor.proguardFiles());
-    assertNull("resConfigs", productFlavor.resConfigs());
-    assertNull("resValues", productFlavor.resValues());
+    assertMissingProperty("proguardFiles", productFlavor.proguardFiles());
+    assertMissingProperty("resConfigs", productFlavor.resConfigs());
+    assertEmpty("resValues", productFlavor.resValues());
     assertMissingProperty("targetSdkVersion", productFlavor.targetSdkVersion());
     assertMissingProperty("testApplicationId", productFlavor.testApplicationId());
     assertMissingProperty("testFunctionalTest", productFlavor.testFunctionalTest());
     assertMissingProperty("testHandleProfiling", productFlavor.testHandleProfiling());
     assertMissingProperty("testInstrumentationRunner", productFlavor.testInstrumentationRunner());
-    assertNull("testInstrumentationRunnerArguments", productFlavor.testInstrumentationRunnerArguments());
+    assertMissingProperty("testInstrumentationRunnerArguments", productFlavor.testInstrumentationRunnerArguments());
     assertMissingProperty("useJack", productFlavor.useJack());
     assertMissingProperty("versionCode", productFlavor.versionCode());
     assertMissingProperty("versionName", productFlavor.versionName());
   }
 
+  @Test
   public void testAddProductFlavor() throws Exception {
     String text = "android {}\n";
 
@@ -260,5 +268,38 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     ProductFlavorModel productFlavor = productFlavors.get(0);
     assertEquals("name", "flavorA", productFlavor.name());
     assertEquals("applicationId", "appid", productFlavor.applicationId());
+  }
+
+  @Test
+  public void testProductFlavorsNotRemoved() throws Exception {
+    String text = "android {\n" +
+                  "  productFlavors {\n" +
+                  "    x {\n" +
+                  "      externalNativeBuild {\n" +
+                  "        cmake {\n" +
+                  "           arguments '-DANDROID_STL=c++_static'\n" +
+                  "        }\n" +
+                  "      }\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ProductFlavorModel xModel = buildModel.android().productFlavors().get(0);
+    xModel.externalNativeBuild().removeCMake();
+
+    checkForValidPsiElement(xModel, ProductFlavorModelImpl.class);
+
+    applyChangesAndReparse(buildModel);
+
+    checkForValidPsiElement(buildModel.android().productFlavors().get(0), ProductFlavorModelImpl.class);
+    String expected = "android {\n" +
+                      "  productFlavors {\n" +
+                      "    x {\n" +
+                      "    }\n" +
+                      "  }\n" +
+                      "}";
+    verifyFileContents(myBuildFile, expected);
   }
 }

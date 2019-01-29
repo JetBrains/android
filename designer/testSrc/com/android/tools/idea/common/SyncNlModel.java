@@ -19,9 +19,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,11 +40,14 @@ public class SyncNlModel extends NlModel {
                                    @Nullable Disposable parent,
                                    @NotNull AndroidFacet facet,
                                    @NotNull VirtualFile file) {
-    return new SyncNlModel(surface, parent, facet, file);
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
+    Configuration configuration =  manager.getConfiguration(file);
+    configuration.setDevice(manager.getDeviceById("Nexus 4"), true);
+    return new SyncNlModel(surface, parent, facet, file, configuration);
   }
 
-  private SyncNlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
-    super(parent, facet, file);
+  private SyncNlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
+    super(parent, facet, file, configuration);
     mySurface = surface;
   }
 

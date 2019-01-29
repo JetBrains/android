@@ -17,12 +17,14 @@ package com.android.tools.idea.uibuilder.model;
 
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.Density;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.configurations.Configuration;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 
 import java.util.EnumSet;
 import java.util.Map;
@@ -88,27 +90,27 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
   public void testMapField() {
     // Check default mappings
     LinearLayoutParams layoutParams = new LinearLayoutParams();
-    assertThat(LayoutParamsManager.mapField(layoutParams, "width").type).containsExactly(AttributeFormat.Dimension);
-    assertThat(LayoutParamsManager.mapField(layoutParams, "height").type).containsExactly(AttributeFormat.Dimension);
-    assertThat(LayoutParamsManager.mapField(layoutParams, "gravity").type).containsExactly(AttributeFormat.Flag);
+    assertThat(LayoutParamsManager.mapField(layoutParams, "width").type).containsExactly(AttributeFormat.DIMENSION);
+    assertThat(LayoutParamsManager.mapField(layoutParams, "height").type).containsExactly(AttributeFormat.DIMENSION);
+    assertThat(LayoutParamsManager.mapField(layoutParams, "gravity").type).containsExactly(AttributeFormat.FLAGS);
     for (String m : new String[]{"marginTop", "marginStart", "marginBottom", "marginEnd", "marginEnd", "marginLeft", "marginRight"}) {
-      assertThat(LayoutParamsManager.mapField(layoutParams, m).type).containsExactly(AttributeFormat.Dimension);
+      assertThat(LayoutParamsManager.mapField(layoutParams, m).type).containsExactly(AttributeFormat.DIMENSION);
     }
 
     assertThat(LayoutParamsManager.mapField(layoutParams, "customRegisteredAttribute").type).isEmpty();
 
     LayoutParamsManager.registerFieldMapper(LinearLayoutParams.class.getName(), (name) -> {
       if ("customRegisteredAttribute".equals(name)) {
-        return new LayoutParamsManager.MappedField("intAttribute", AttributeFormat.Integer);
+        return new LayoutParamsManager.MappedField("intAttribute", AttributeFormat.INTEGER);
       }
       else if ("notExistingMapping".equals(name)) {
         // The resulting MappedField uses an attribute name that does not exist in the class. mapField will ignore this mapping.
-        return new LayoutParamsManager.MappedField("missingIntAttribute", AttributeFormat.Integer);
+        return new LayoutParamsManager.MappedField("missingIntAttribute", AttributeFormat.INTEGER);
       }
 
       return null;
     });
-    assertThat(LayoutParamsManager.mapField(layoutParams, "customRegisteredAttribute").type).containsExactly(AttributeFormat.Integer);
+    assertThat(LayoutParamsManager.mapField(layoutParams, "customRegisteredAttribute").type).containsExactly(AttributeFormat.INTEGER);
     // Check that the mapping was ignored
     assertThat(LayoutParamsManager.mapField(layoutParams, "notExistingMapping").type).isEmpty();
   }
@@ -149,12 +151,9 @@ public class LayoutParamsManagerTest extends AndroidTestCase {
     assertThat(LayoutParamsManager.setAttribute(layoutParams, "notExistent", null, nlModelMock)).isFalse();
 
     // Test flag attribute
-    AttributeDefinition flagDefinition = new AttributeDefinition("flagAttribute", null, null, EnumSet.of(
-      AttributeFormat.Flag
-    ));
-    flagDefinition.addValueMapping("value1", 0b001);
-    flagDefinition.addValueMapping("value2", 0b010);
-    flagDefinition.addValueMapping("value3", 0b111);
+    AttributeDefinition flagDefinition =
+        new AttributeDefinition(ResourceNamespace.RES_AUTO, "flagAttribute", null, EnumSet.of(AttributeFormat.FLAGS));
+    flagDefinition.setValueMappings(ImmutableMap.of("value1", 0b001, "value2", 0b010, "value3", 0b111));
 
     assertThat(LayoutParamsManager.setAttribute(flagDefinition, layoutParams, "flagAttribute", "invalidValue", nlModelMock)).isFalse();
     assertThat(layoutParams.flagAttribute).isEqualTo(987); // Invalid value so no change expected

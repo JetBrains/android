@@ -98,6 +98,7 @@ public class ComponentHelpAction extends AnAction {
   private static String computeReferenceFromClassName(@NotNull String className) {
     if (className.startsWith(ANDROID_PKG_PREFIX) ||
         className.startsWith(ANDROID_SUPPORT_PKG_PREFIX) ||
+        className.startsWith(ANDROIDX_PKG_PREFIX) ||
         className.startsWith(GOOGLE_SUPPORT_ARTIFACT_PREFIX)) {
       return DEFAULT_ANDROID_REFERENCE_PREFIX + StringUtil.replaceChar(className, '.', '/') + ".html";
     }

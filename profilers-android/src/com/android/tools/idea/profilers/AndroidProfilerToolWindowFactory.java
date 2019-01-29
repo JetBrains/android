@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -38,21 +36,22 @@ import java.util.Map;
 
 public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory, Condition<Project> {
   public static final String ID = "Android Profiler";
-  private static final String ANDROID_PROFILER_ACTIVE = "android.profiler.active";
+  private static final String PROFILER_TOOL_WINDOW_TITLE = "Profiler";
   private static final Map<Content, AndroidProfilerToolWindow> PROJECT_PROFILER_MAP = new HashMap<>();
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new ToolWindowManagerListener() {
-      @Override
-      public void toolWindowRegistered(@NotNull String id) {
-      }
-
+    project.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
       public void stateChanged() {
         // We need to query the tool window again, because it might have been unregistered when closing the project.
         ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
-        if (window != null && window.isVisible() && window.getContentManager().getContentCount() == 0) {
+        if (window == null) {
+          return;
+        }
+
+        AndroidProfilerToolWindow profilerToolWindow = getProfilerToolWindow(project);
+        if (window.isVisible() && profilerToolWindow == null) {
           createContent(project, window);
         }
       }
@@ -64,28 +63,30 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     toolWindow.setToHideOnEmptyContent(true);
     toolWindow.hide(null);
     toolWindow.setShowStripeButton(false);
+    toolWindow.setStripeTitle(PROFILER_TOOL_WINDOW_TITLE);
   }
 
   private static void createContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-    AndroidProfilerToolWindow view = new AndroidProfilerToolWindow(project);
+    AndroidProfilerToolWindow view = new AndroidProfilerToolWindow(toolWindow, project);
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
     Content content = contentFactory.createContent(view.getComponent(), "", false);
-    Disposer.register(content, view);
+    Disposer.register(project, view);
     toolWindow.getContentManager().addContent(content);
-    toolWindow.setIcon(ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER));
+    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER);
 
     PROJECT_PROFILER_MAP.put(content, view);
     Disposer.register(content, () -> PROJECT_PROFILER_MAP.remove(content));
-
-    PropertiesComponent properties = PropertiesComponent.getInstance(project);
-    properties.setValue(ANDROID_PROFILER_ACTIVE, true);
 
     // Forcibly synchronize the Tool Window to a visible state. Otherwise, the Tool Window may not auto-hide correctly.
     toolWindow.show(null);
   }
 
+  /**
+   * Gets the {@link AndroidProfilerToolWindow} corresponding to a given {@link Project} if it was already created by
+   * {@link #createContent(Project, ToolWindow)}. Otherwise, returns null.
+   */
   @Nullable
-  static AndroidProfilerToolWindow getProfilerTooWindow(@NotNull Project project) {
+  public static AndroidProfilerToolWindow getProfilerToolWindow(@NotNull Project project) {
     ToolWindow window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(ID);
     if (window == null) {
       return null;
@@ -99,11 +100,12 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     return PROJECT_PROFILER_MAP.get(contentManager.getContent(0));
   }
 
-  public static void removeContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-    toolWindow.getContentManager().removeAllContents(true);
-    PropertiesComponent properties = PropertiesComponent.getInstance(project);
-    toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER);
-    properties.setValue(ANDROID_PROFILER_ACTIVE, false);
+  public static void removeContent(@NotNull ToolWindow toolWindow) {
+    if (toolWindow.getContentManager().getContentCount() > 0) {
+      Content content = toolWindow.getContentManager().getContent(0);
+      PROJECT_PROFILER_MAP.remove(content);
+      toolWindow.getContentManager().removeAllContents(true);
+    }
   }
 
   @Override

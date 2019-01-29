@@ -33,7 +33,6 @@ import java.io.File;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.fest.util.Strings.quote;
 import static org.junit.Assert.assertNotNull;
 
 public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPropertiesDialog> {
@@ -70,7 +69,7 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
         return isNotEmpty(title) && title.startsWith("Attach Files or Directories to Library");
       }
     });
-    assertNotNull("Failed to find VirtualFile with path " + quote(path.getPath()), attachment);
+    assertNotNull("Failed to find VirtualFile with path '" + path.getPath() + "'", attachment);
     fileChooser.select(attachment)
                .clickOk();
     return this;
@@ -89,7 +88,7 @@ public class LibraryPropertiesDialogFixture extends IdeaDialogFixture<LibraryPro
     LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProject);
     Library library = libraryTable.getLibraryByName(myLibraryName);
 
-    assertNotNull("Failed to find library " + quote(myLibraryName), library);
+    assertNotNull("Failed to find library '" + myLibraryName + "'", library);
     return new LibraryFixture(library);
   }
 }

@@ -100,8 +100,8 @@ public class MavenPoms {
         scope = textOf(childElement);
       }
     }
-    if (isNotEmpty(artifactId) && !optional && ("compile".equals(scope) || isEmpty(scope))) {
-      return new PsArtifactDependencySpec(artifactId, groupId, version);
+    if (isNotEmpty(artifactId) && !optional && ("compile".equals(scope) || "runtime".equals(scope) || isEmpty(scope))) {
+      return PsArtifactDependencySpec.Companion.create(groupId, artifactId, version);
     }
 
     return null;

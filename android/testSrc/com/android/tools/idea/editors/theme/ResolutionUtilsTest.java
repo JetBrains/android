@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
@@ -32,14 +33,14 @@ public class ResolutionUtilsTest extends AndroidTestCase {
    */
 
   public void testGetQualifiedName() {
-    StyleResourceValue styleResourceValue = new StyleResourceValue(ResourceUrl.create(SdkConstants.ANDROID_NS_NAME,
-                                                                                      ResourceType.STYLE,
-                                                                                      "myStyle"),
-                                                                   null,
-                                                                   null);
+    StyleResourceValue styleResourceValue = new StyleResourceValueImpl(new ResourceReference(ResourceNamespace.ANDROID,
+                                                                                             ResourceType.STYLE,
+                                                                                             "myStyle"),
+                                                                       null,
+                                                                       null);
     assertEquals("android:myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
 
-    styleResourceValue = new StyleResourceValue(ResourceUrl.create(null, ResourceType.STYLE, "myStyle"), null, null);
+    styleResourceValue = new StyleResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "myStyle", null, null);
     assertEquals("myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
   }
 
@@ -76,9 +77,9 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout1.xml");
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myLayout);
 
-    assertNotNull(ResolutionUtils.getStyle(configuration, "android:TextAppearance", null));
+    assertNotNull(ResolutionUtils.getThemeEditorStyle(configuration, "android:TextAppearance", null));
 
-    ConfiguredThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "android:Theme.Holo.Light", null);
+    ConfiguredThemeEditorStyle style = ResolutionUtils.getThemeEditorStyle(configuration, "android:Theme.Holo.Light", null);
     assertEquals("Theme.Holo.Light", style.getName());
 
     try {

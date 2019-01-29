@@ -15,48 +15,41 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceView;
-import com.android.tools.profilers.*;
+import com.android.tools.idea.profilers.dataviewer.IntellijDataViewer;
+import com.android.tools.idea.profilers.dataviewer.IntellijImageDataViewer;
+import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
+import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceGroup;
+import com.android.tools.profilers.ContentType;
+import com.android.tools.profilers.ContextMenuInstaller;
 import com.android.tools.profilers.ExportDialog;
-import com.android.tools.profilers.stacktrace.DataViewer;
+import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.ImportDialog;
+import com.android.tools.profilers.UiMessageHandler;
+import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.dataviewer.DataViewer;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
-import com.android.tools.profilers.stacktrace.StackTraceModel;
-import com.android.tools.profilers.stacktrace.StackTraceView;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.android.tools.profilers.stacktrace.StackTraceGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLoadingPanel;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.image.BufferedImage;
+import java.util.function.Consumer;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Collection;
-import java.util.Map;
-
 public class IntellijProfilerComponents implements IdeProfilerComponents {
-
-  private static final Map<String, FileType> FILE_TYPE_MAP = new ImmutableMap.Builder<String, FileType>()
-    .put(".csv", FileTypeManager.getInstance().getStdFileType("CSV"))
-    .put(".html", StdFileTypes.HTML)
-    .put(".json", FileTypeManager.getInstance().getStdFileType("JSON"))
-    .put(".xml", StdFileTypes.XML)
-    .build();
-
-  private static final ImmutableSet<String> IMAGE_EXTENSIONS = ImmutableSet.of(".bmp", ".gif", ".jpeg", ".jpg", ".png", ".webp");
 
   @NotNull private final Project myProject;
 
-  public IntellijProfilerComponents(@NotNull Project project) {
+  @NotNull private final FeatureTracker myFeatureTracker;
+
+  public IntellijProfilerComponents(@NotNull Project project, @NotNull FeatureTracker featureTracker) {
     myProject = project;
+    myFeatureTracker = featureTracker;
   }
 
   @NotNull
@@ -98,15 +91,12 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public StackTraceView createStackView(@NotNull StackTraceModel model) {
-    IntelliJStackTraceView stackTraceView = new IntelliJStackTraceView(myProject, model);
-    stackTraceView.installNavigationContextMenu(createContextMenuInstaller());
-    return stackTraceView;
+  public StackTraceGroup createStackGroup() {
+    return new IntelliJStackTraceGroup(myProject);
   }
 
   @NotNull
   @Override
-
   public ContextMenuInstaller createContextMenuInstaller() {
     return new IntellijContextMenuInstaller();
   }
@@ -119,40 +109,30 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public DataViewer createFileViewer(@NotNull File file) {
-    String fileName = file.getName();
-    int dot = fileName.lastIndexOf('.');
-    String extension = dot >= 0 && dot < fileName.length() ? fileName.substring(dot) : "";
+  public ImportDialog createImportDialog() {
+    return new IntellijImportDialog(myProject);
+  }
 
-    if (IMAGE_EXTENSIONS.contains(extension)) {
-      BufferedImage image = null;
-      try {
-        image = ImageIO.read(file);
+  @NotNull
+  @Override
+  public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType, @NotNull DataViewer.Style styleHint) {
+    // User isn't expected to specify INVALID; it's only meant as an internal fallback
+    assert(styleHint != DataViewer.Style.INVALID);
+
+    if (contentType.isImageType()) {
+      DataViewer viewer = IntellijImageDataViewer.createImageViewer(content);
+      if (viewer == null) {
+        viewer = IntellijDataViewer.createInvalidViewer();
       }
-      catch (IOException ignored) {
-      }
-      if (image != null) {
-        return IntellijDataViewer.createImageViewer(image);
-      }
-      else {
-        return IntellijDataViewer.createInvalidViewer();
-      }
+      return viewer;
     }
-
-    String content = null;
-    if (file.exists()) {
-      try {
-        content = new String(Files.readAllBytes(file.toPath()));
-      }
-      catch (IOException ignored) {
-      }
+    if (styleHint == DataViewer.Style.RAW) {
+      return IntellijDataViewer.createRawTextViewer(content);
     }
-
-    if (content == null) {
-      return IntellijDataViewer.createInvalidViewer();
+    else {
+      assert (styleHint == DataViewer.Style.PRETTY);
+      return IntellijDataViewer.createPrettyViewerIfPossible(myProject, content, contentType.getFileType());
     }
-
-    return IntellijDataViewer.createEditorViewer(content, FILE_TYPE_MAP.getOrDefault(extension, null));
   }
 
   @NotNull
@@ -163,9 +143,18 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public AutoCompleteTextField createAutoCompleteTextField(@NotNull String placeholder,
-                                                           @NotNull String value,
-                                                           @NotNull Collection<String> variants) {
-    return new IntellijAutoCompleteTextField(myProject, placeholder, value, variants);
+  public UiMessageHandler createUiMessageHandler() {
+    return new IntellijUiMessageHandler();
+  }
+
+  @Override
+  public void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel model, int deviceLevel,
+                                                   @NotNull Consumer<ProfilingConfiguration> dialogCallback) {
+    CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
+                                                                                   deviceLevel,
+                                                                                   model,
+                                                                                   dialogCallback,
+                                                                                   myFeatureTracker);
+    dialog.show();
   }
 }

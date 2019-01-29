@@ -15,25 +15,36 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.*;
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_RECEIVED;
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
+
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.EaseOutModel;
+import com.android.tools.adtui.model.Interpolatable;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SelectionListener;
+import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
-
-import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_RECEIVED;
-import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
 
 public class NetworkProfilerStage extends Stage implements CodeNavigator.Listener {
   private static final String HAS_USED_NETWORK_SELECTION = "network.used.selection";
@@ -49,8 +60,6 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
   private AspectModel<NetworkProfilerAspect> myAspect = new AspectModel<>();
 
-  StateChartModel<NetworkRadioDataSeries.RadioState> myRadioState;
-
   private final NetworkConnectionsModel myConnectionsModel =
     new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getProfilerClient(),
                                    getStudioProfilers().getClient().getNetworkClient(),
@@ -59,8 +68,8 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   private final DetailedNetworkUsage myDetailedNetworkUsage;
   private final NetworkStageLegends myLegends;
   private final NetworkStageLegends myTooltipLegends;
-  private final AxisComponentModel myTrafficAxis;
-  private final AxisComponentModel myConnectionsAxis;
+  private final ClampedAxisComponentModel myTrafficAxis;
+  private final ClampedAxisComponentModel myConnectionsAxis;
   private final EventMonitor myEventMonitor;
   private final StackTraceModel myStackTraceModel;
   private final SelectionModel mySelectionModel;
@@ -71,18 +80,12 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     super(profilers);
 
     ProfilerTimeline timeline = profilers.getTimeline();
-    NetworkRadioDataSeries radioDataSeries =
-      new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), getStudioProfilers().getSession());
-    myRadioState = new StateChartModel<>();
-    myRadioState.addSeries(new RangedSeries<>(timeline.getViewRange(), radioDataSeries));
 
     myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
 
-    myTrafficAxis = new AxisComponentModel(myDetailedNetworkUsage.getTrafficRange(), TRAFFIC_AXIS_FORMATTER);
-    myTrafficAxis.setClampToMajorTicks(true);
-
-    myConnectionsAxis = new AxisComponentModel(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER);
-    myConnectionsAxis.setClampToMajorTicks(true);
+    myTrafficAxis = new ClampedAxisComponentModel.Builder(myDetailedNetworkUsage.getTrafficRange(), TRAFFIC_AXIS_FORMATTER).build();
+    myConnectionsAxis =
+      new ClampedAxisComponentModel.Builder(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER).build();
 
     myLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getDataRange(), false);
     myTooltipLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getTooltipRange(), true);
@@ -93,7 +96,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
     mySelectionModel = new SelectionModel(timeline.getSelectionRange());
     profilers.addDependency(myAspectObserver)
-      .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
+             .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
     mySelectionModel.addListener(new SelectionListener() {
       @Override
@@ -166,21 +169,13 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     return myAspect;
   }
 
-  public StateChartModel<NetworkRadioDataSeries.RadioState> getRadioState() {
-    return myRadioState;
-  }
-
   @Override
   public void enter() {
     myEventMonitor.enter();
 
-    getStudioProfilers().getUpdater().register(myRadioState);
     getStudioProfilers().getUpdater().register(myDetailedNetworkUsage);
     getStudioProfilers().getUpdater().register(myTrafficAxis);
     getStudioProfilers().getUpdater().register(myConnectionsAxis);
-    getStudioProfilers().getUpdater().register(myLegends);
-    getStudioProfilers().getUpdater().register(myTooltipLegends);
-    getStudioProfilers().getUpdater().register(myHttpDataFetcher);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -190,13 +185,9 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   public void exit() {
     myEventMonitor.exit();
 
-    getStudioProfilers().getUpdater().unregister(myRadioState);
     getStudioProfilers().getUpdater().unregister(myDetailedNetworkUsage);
     getStudioProfilers().getUpdater().unregister(myTrafficAxis);
     getStudioProfilers().getUpdater().unregister(myConnectionsAxis);
-    getStudioProfilers().getUpdater().unregister(myLegends);
-    getStudioProfilers().getUpdater().unregister(myTooltipLegends);
-    getStudioProfilers().getUpdater().unregister(myHttpDataFetcher);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
@@ -255,7 +246,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     private final SeriesLegend myConnectionLegend;
 
     public NetworkStageLegends(DetailedNetworkUsage usage, Range range, boolean tooltip) {
-      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      super(range);
       myRxLegend = new SeriesLegend(usage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, range, BYTES_RECEIVED.getLabel(tooltip),
                                     Interpolatable.SegmentInterpolator);
 

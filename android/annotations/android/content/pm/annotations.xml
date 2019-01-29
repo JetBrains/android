@@ -32,6 +32,27 @@
   <item name="android.content.pm.ChangedPackages java.util.List&lt;java.lang.String&gt; getPackageNames()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.pm.CrossProfileApps android.graphics.drawable.Drawable getProfileSwitchingIconDrawable(android.os.UserHandle)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.CrossProfileApps android.graphics.drawable.Drawable getProfileSwitchingIconDrawable(android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.CrossProfileApps java.lang.CharSequence getProfileSwitchingLabel(android.os.UserHandle)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.CrossProfileApps java.lang.CharSequence getProfileSwitchingLabel(android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.CrossProfileApps java.util.List&lt;android.os.UserHandle&gt; getTargetUserProfiles()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.CrossProfileApps void startMainActivity(android.content.ComponentName, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.CrossProfileApps void startMainActivity(android.content.ComponentName, android.os.UserHandle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.pm.LauncherApps">
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.LAUNCHER_APPS_SERVICE" />
@@ -57,6 +78,9 @@
   </item>
   <item name="android.content.pm.LauncherApps android.graphics.drawable.Drawable getShortcutIconDrawable(android.content.pm.ShortcutInfo, int) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps android.os.Bundle getSuspendedPackageLauncherExtras(java.lang.String, android.os.UserHandle)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.pm.LauncherApps java.util.List&lt;android.content.pm.LauncherActivityInfo&gt; getShortcutConfigActivityList(java.lang.String, android.os.UserHandle) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -106,6 +130,9 @@
   <item name="android.content.pm.LauncherApps void startShortcut(java.lang.String, java.lang.String, android.graphics.Rect, android.os.Bundle, android.os.UserHandle) 4">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.pm.LauncherApps.Callback void onPackagesSuspended(java.lang.String[], android.os.UserHandle, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.pm.LauncherApps.Callback void onShortcutsChanged(java.lang.String, java.util.List&lt;android.content.pm.ShortcutInfo&gt;, android.os.UserHandle) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -129,7 +156,7 @@
   </item>
   <item name="android.content.pm.LauncherApps.PinItemRequest int getRequestType()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.LauncherApps.PinItemRequest.REQUEST_TYPE_SHORTCUT}" />
+      <val name="value" val="{android.content.pm.LauncherApps.PinItemRequest.REQUEST_TYPE_SHORTCUT, android.content.pm.LauncherApps.PinItemRequest.REQUEST_TYPE_APPWIDGET}" />
     </annotation>
   </item>
   <item name="android.content.pm.LauncherApps.ShortcutQuery android.content.pm.LauncherApps.ShortcutQuery setActivity(android.content.ComponentName) 0">
@@ -140,7 +167,7 @@
   </item>
   <item name="android.content.pm.LauncherApps.ShortcutQuery android.content.pm.LauncherApps.ShortcutQuery setQueryFlags(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC, android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED, android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST, android.content.pm.LauncherApps.ShortcutQuery.FLAG_GET_KEY_FIELDS_ONLY}" />
+      <val name="value" val="{android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC, android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED, android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST, android.content.pm.LauncherApps.ShortcutQuery.FLAG_GET_KEY_FIELDS_ONLY, android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -171,11 +198,21 @@
   <item name="android.content.pm.PackageInstaller void registerSessionCallback(android.content.pm.PackageInstaller.SessionCallback, android.os.Handler) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.pm.PackageInstaller void uninstall(android.content.pm.VersionedPackage, android.content.IntentSender)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.DELETE_PACKAGES&quot;, &quot;android.permission.REQUEST_DELETE_PACKAGES&quot;}" />
+    </annotation>
+  </item>
   <item name="android.content.pm.PackageInstaller void uninstall(android.content.pm.VersionedPackage, android.content.IntentSender) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageInstaller void uninstall(android.content.pm.VersionedPackage, android.content.IntentSender) 1">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageInstaller void uninstall(java.lang.String, android.content.IntentSender)">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="anyOf" val="{&quot;android.permission.DELETE_PACKAGES&quot;, &quot;android.permission.REQUEST_DELETE_PACKAGES&quot;}" />
+    </annotation>
   </item>
   <item name="android.content.pm.PackageInstaller void uninstall(java.lang.String, android.content.IntentSender) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -265,6 +302,12 @@
   <item name="android.content.pm.PackageInstaller.SessionParams void setReferrerUri(android.net.Uri) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.pm.PackageItemInfo java.lang.CharSequence loadLabel(android.content.pm.PackageManager)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.PackageItemInfo java.lang.CharSequence loadLabel(android.content.pm.PackageManager) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.pm.PackageManager android.content.Intent getLaunchIntentForPackage(java.lang.String)">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -311,19 +354,19 @@
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.PackageInfo getPackageArchiveInfo(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.PackageInfo getPackageInfo(android.content.pm.VersionedPackage, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.PackageInfo getPackageInfo(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -378,6 +421,19 @@
   <item name="android.content.pm.PackageManager android.graphics.drawable.Drawable getDrawable(java.lang.String, int, android.content.pm.ApplicationInfo) 1">
     <annotation name="android.support.annotation.DrawableRes" />
   </item>
+  <item name="android.content.pm.PackageManager android.os.Bundle getSuspendedPackageAppExtras()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.PackageManager boolean hasSigningCertificate(int, byte[], int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.CERT_INPUT_RAW_X509, android.content.pm.PackageManager.CERT_INPUT_SHA256}" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PackageManager boolean hasSigningCertificate(java.lang.String, byte[], int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.CERT_INPUT_RAW_X509, android.content.pm.PackageManager.CERT_INPUT_SHA256}" />
+    </annotation>
+  </item>
   <item name="android.content.pm.PackageManager boolean isPermissionRevokedByPolicy(java.lang.String, java.lang.String)">
     <annotation name="android.support.annotation.CheckResult" />
   </item>
@@ -420,7 +476,7 @@
   </item>
   <item name="android.content.pm.PackageManager int getPackageUid(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -435,7 +491,7 @@
   </item>
   <item name="android.content.pm.PackageManager int[] getPackageGids(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -462,19 +518,19 @@
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.PackageInfo&gt; getInstalledPackages(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.PackageInfo&gt; getPackagesHoldingPermissions(java.lang.String[], int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.PackageInfo&gt; getPreferredPackages(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_ACTIVITIES, android.content.pm.PackageManager.GET_CONFIGURATIONS, android.content.pm.PackageManager.GET_GIDS, android.content.pm.PackageManager.GET_INSTRUMENTATION, android.content.pm.PackageManager.GET_INTENT_FILTERS, android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_PERMISSIONS, android.content.pm.PackageManager.GET_PROVIDERS, android.content.pm.PackageManager.GET_RECEIVERS, android.content.pm.PackageManager.GET_SERVICES, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.GET_SIGNATURES, android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES, android.content.pm.PackageManager.GET_URI_PERMISSION_PATTERNS, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -573,6 +629,18 @@
   <item name="android.content.pm.PackageManager void updateInstantAppCookie(byte[]) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.pm.PermissionInfo int getProtection()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PermissionInfo.PROTECTION_NORMAL, android.content.pm.PermissionInfo.PROTECTION_DANGEROUS, android.content.pm.PermissionInfo.PROTECTION_SIGNATURE, android.content.pm.PermissionInfo.PROTECTION_SIGNATURE_OR_SYSTEM}" />
+      <val name="flag" val="false" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.PermissionInfo int getProtectionFlags()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PermissionInfo.PROTECTION_FLAG_PRIVILEGED, android.content.pm.PermissionInfo.PROTECTION_FLAG_SYSTEM, android.content.pm.PermissionInfo.PROTECTION_FLAG_DEVELOPMENT, android.content.pm.PermissionInfo.PROTECTION_FLAG_APPOP, android.content.pm.PermissionInfo.PROTECTION_FLAG_PRE23, android.content.pm.PermissionInfo.PROTECTION_FLAG_INSTALLER, android.content.pm.PermissionInfo.PROTECTION_FLAG_VERIFIER, android.content.pm.PermissionInfo.PROTECTION_FLAG_PREINSTALLED, android.content.pm.PermissionInfo.PROTECTION_FLAG_SETUP, android.content.pm.PermissionInfo.PROTECTION_FLAG_INSTANT, android.content.pm.PermissionInfo.PROTECTION_FLAG_RUNTIME_ONLY}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.content.pm.SharedLibraryInfo android.content.pm.VersionedPackage getDeclaringPackage()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -590,6 +658,11 @@
   <item name="android.content.pm.SharedLibraryInfo java.util.List&lt;android.content.pm.VersionedPackage&gt; getDependentPackages()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.content.pm.SharedLibraryInfo long getLongVersion()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
+  </item>
   <item name="android.content.pm.ShortcutInfo android.content.ComponentName getActivity()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -601,6 +674,11 @@
   </item>
   <item name="android.content.pm.ShortcutInfo android.os.PersistableBundle getExtras()">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo int getDisabledReason()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ShortcutInfo.DISABLED_REASON_NOT_DISABLED, android.content.pm.ShortcutInfo.DISABLED_REASON_BY_APP, android.content.pm.ShortcutInfo.DISABLED_REASON_APP_CHANGED, android.content.pm.ShortcutInfo.DISABLED_REASON_UNKNOWN, android.content.pm.ShortcutInfo.DISABLED_REASON_VERSION_LOWER, android.content.pm.ShortcutInfo.DISABLED_REASON_BACKUP_NOT_SUPPORTED, android.content.pm.ShortcutInfo.DISABLED_REASON_SIGNATURE_MISMATCH, android.content.pm.ShortcutInfo.DISABLED_REASON_OTHER_RESTORE_ISSUE}" />
+    </annotation>
   </item>
   <item name="android.content.pm.ShortcutInfo java.lang.CharSequence getDisabledMessage()">
     <annotation name="android.support.annotation.Nullable" />
@@ -726,6 +804,14 @@
       <val name="from" val="-1" />
     </annotation>
   </item>
+  <item name="android.content.pm.VersionedPackage VersionedPackage(java.lang.String, long) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.VersionedPackage VersionedPackage(java.lang.String, long) 1">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
+  </item>
   <item name="android.content.pm.VersionedPackage int getVersionCode()">
     <annotation name="android.support.annotation.IntRange">
       <val name="from" val="-1" />
@@ -733,6 +819,11 @@
   </item>
   <item name="android.content.pm.VersionedPackage java.lang.String getPackageName()">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.VersionedPackage long getLongVersionCode()">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
   </item>
 </root>
 

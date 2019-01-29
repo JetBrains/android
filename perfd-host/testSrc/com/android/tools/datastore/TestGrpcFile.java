@@ -53,19 +53,23 @@ public class TestGrpcFile {
   /**
    * If test.export.grpc=True this function serializes GrpcCallStack to XML, otherwise it validates
    * that myGrpcCalls matches exactly the file passed in to the constructor.
+   *
    * @throws IOException
    */
   public void closeAndValidate() throws IOException {
     if (EXPORT_CALLS) {
       try {
-        Marshaller marshaller  = JAXBContext.newInstance(GrpcCallStack.class).createMarshaller();
+        Marshaller marshaller = JAXBContext.newInstance(GrpcCallStack.class).createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setProperty("com.sun.xml.internal.bind.xmlHeaders", "\n<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->");
+        marshaller.setProperty("com.sun.xml.internal.bind.xmlHeaders",
+                               "\n<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->");
         marshaller.marshal(myGrpcCalls, myFile);
-      } catch (JAXBException ex) {
+      }
+      catch (JAXBException ex) {
         throw new IOException("Failed to serialize test file", ex);
       }
-    } else {
+    }
+    else {
       validateFile();
     }
   }
@@ -78,7 +82,8 @@ public class TestGrpcFile {
       Unmarshaller marshaller = JAXBContext.newInstance(GrpcCallStack.class).createUnmarshaller();
       GrpcCallStack expectedCalls = (GrpcCallStack)marshaller.unmarshal(myFile);
       assertEquals(expectedCalls, myGrpcCalls);
-    } catch (JAXBException ex) {
+    }
+    catch (JAXBException ex) {
       throw new IOException("Failed to deserialize test file", ex);
     }
   }

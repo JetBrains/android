@@ -16,8 +16,11 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainCycleTarget;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Predicate;
 
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -27,11 +30,13 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
  */
 public class SceneChainCycleTest extends SceneTest {
 
+  public static final Predicate<Target> CHAIN_TARGET_SELECTOR = target -> target instanceof ChainCycleTarget;
+
   @Override
   @NotNull
   public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .id("@id/root")
                                    .withBounds(0, 0, 1000, 1000)
                                    .width("1000dp")
@@ -76,8 +81,7 @@ public class SceneChainCycleTest extends SceneTest {
 
   public void testHorizontalCycle() {
     myInteraction.select("button", true);
-    myInteraction.mouseDown("button", ChainCycleTarget.class, 0);
-    myInteraction.mouseRelease("button", ChainCycleTarget.class, 0);
+  myInteraction.clickAction("button", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button2")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button2\"\n" +
@@ -87,8 +91,7 @@ public class SceneChainCycleTest extends SceneTest {
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintRight_toLeftOf=\"@+id/button\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
-    myInteraction.mouseDown("button", ChainCycleTarget.class, 0);
-    myInteraction.mouseRelease("button", ChainCycleTarget.class, 0);
+  myInteraction.clickAction("button", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button2")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button2\"\n" +
@@ -98,8 +101,7 @@ public class SceneChainCycleTest extends SceneTest {
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintRight_toLeftOf=\"@+id/button\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
-    myInteraction.mouseDown("button", ChainCycleTarget.class, 0);
-    myInteraction.mouseRelease("button", ChainCycleTarget.class, 0);
+  myInteraction.clickAction("button", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button2")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button2\"\n" +
@@ -109,8 +111,7 @@ public class SceneChainCycleTest extends SceneTest {
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintRight_toLeftOf=\"@+id/button\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
-    myInteraction.mouseDown("button", ChainCycleTarget.class, 0);
-    myInteraction.mouseRelease("button", ChainCycleTarget.class, 0);
+  myInteraction.clickAction("button", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button2")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button2\"\n" +
@@ -124,8 +125,7 @@ public class SceneChainCycleTest extends SceneTest {
 
   public void testVerticalCycle() {
     myInteraction.select("button3", true);
-    myInteraction.mouseDown("button3", ChainCycleTarget.class, 0);
-    myInteraction.mouseRelease("button3", ChainCycleTarget.class, 0);
+    myInteraction.clickAction("button3", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button4")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button4\"\n" +
@@ -135,8 +135,7 @@ public class SceneChainCycleTest extends SceneTest {
                  "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "        app:layout_constraintVertical_chainStyle=\"spread_inside\"\n" +
                  "        tools:layout_editor_absoluteX=\"800dp\" />");
-    myInteraction.mouseDown("button3", ChainCycleTarget.class, 0);
-    myInteraction.mouseRelease("button3", ChainCycleTarget.class, 0);
+    myInteraction.clickAction("button3", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button4")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button4\"\n" +
@@ -146,8 +145,7 @@ public class SceneChainCycleTest extends SceneTest {
                  "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "        app:layout_constraintVertical_chainStyle=\"packed\"\n" +
                  "        tools:layout_editor_absoluteX=\"800dp\" />");
-    myInteraction.mouseDown("button3", ChainCycleTarget.class, 0);
-    myInteraction.mouseRelease("button3", ChainCycleTarget.class, 0);
+    myInteraction.clickAction("button3", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button4")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button4\"\n" +
@@ -157,8 +155,7 @@ public class SceneChainCycleTest extends SceneTest {
                  "        app:layout_constraintTop_toTopOf=\"parent\"\n" +
                  "        app:layout_constraintVertical_chainStyle=\"spread\"\n" +
                  "        tools:layout_editor_absoluteX=\"800dp\" />");
-    myInteraction.mouseDown("button3", ChainCycleTarget.class, 0);
-    myInteraction.mouseRelease("button3", ChainCycleTarget.class, 0);
+    myInteraction.clickAction("button3", CHAIN_TARGET_SELECTOR);
     myScreen.get("@id/button4")
       .expectXml("<Button\n" +
                  "        android:id=\"@id/button4\"\n" +

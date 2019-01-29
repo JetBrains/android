@@ -20,10 +20,9 @@ import com.android.tools.idea.common.fixtures.ComponentFixture;
 import com.android.tools.idea.common.fixtures.KeyEventBuilder;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
+import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
@@ -32,19 +31,18 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
-import static org.junit.Assert.*;
-
 public class ResizeFixture {
-  @NotNull private final ComponentFixture myComponentFixture;
-  @NotNull private final ResizeInteraction myInteraction;
+  @NotNull private ComponentFixture myComponentFixture;
+  @NotNull private Interaction myInteraction;
   @SwingCoordinate private int myCurrentX;
   @SwingCoordinate private int myCurrentY;
-  private final ScreenView myScreen;
+  private ScreenView myScreen;
   private int myModifiers;
 
   public ResizeFixture(@NotNull ComponentFixture componentFixture,
                        @Nullable SegmentType horizontalEdge,
                        @Nullable SegmentType verticalEdge) {
+    /* TODO: rewrite using Targets for resizing
     myComponentFixture = componentFixture;
     assertTrue(horizontalEdge != null || verticalEdge != null);
     assertTrue(horizontalEdge == null || horizontalEdge.isHorizontal());
@@ -96,6 +94,7 @@ public class ResizeFixture {
     myCurrentX = startX;
     myCurrentY = startY;
     moveTo(myCurrentX, myCurrentY);
+    */
   }
 
   public ResizeFixture drag(@AndroidCoordinate int deltaX, @AndroidCoordinate int deltaY) {

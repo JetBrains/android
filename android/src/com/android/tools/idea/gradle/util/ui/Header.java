@@ -155,7 +155,7 @@ public class Header extends JPanel {
   }
 
   public void setAdditionalActions(@NotNull List<AnAction> actions) {
-    setAdditionalActions(actions.toArray(new AnAction[actions.size()]));
+    setAdditionalActions(actions.toArray(AnAction.EMPTY_ARRAY));
   }
 
   public void setAdditionalActions(@NotNull AnAction...actions) {

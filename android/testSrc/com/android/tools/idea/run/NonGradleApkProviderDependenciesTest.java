@@ -68,7 +68,7 @@ public class NonGradleApkProviderDependenciesTest extends AndroidTestCase {
           break;
         } else if (contentRoot.getPath().endsWith("dependencyLibrary")) {
           assertTrue(module.getName() + " at " + contentRoot.getPath() + " should be an Android library.",
-                     AndroidFacet.getInstance(module).isLibraryProject());
+                     AndroidFacet.getInstance(module).getConfiguration().isLibraryProject());
           break;
         }
       }

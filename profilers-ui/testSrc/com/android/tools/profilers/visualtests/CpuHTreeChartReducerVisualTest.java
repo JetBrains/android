@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.CaptureNodeHRenderer;
+import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.art.ArtTraceHandler;
 import org.jetbrains.annotations.NotNull;
@@ -59,14 +59,14 @@ public class CpuHTreeChartReducerVisualTest extends VisualTest {
     CaptureNode node = parseAndGetHNode();
     myRange.set(node.getStart(), node.getEnd());
 
-    myChart = new HTreeChart<>(null, myRange, HTreeChart.Orientation.TOP_DOWN);
-    myChart.setHRenderer(new CaptureNodeHRenderer());
-    myChart.setHTree(node);
+    myChart = new HTreeChart.Builder<>(node, myRange, new CaptureNodeHRenderer())
+      .setOrientation(HTreeChart.Orientation.TOP_DOWN)
+      .build();
 
-    myNotOptimizedChart = new HTreeChart<>(null, myRange, HTreeChart.Orientation.TOP_DOWN, (rectangles, nodes) -> {
-    });
-    myNotOptimizedChart.setHRenderer(new CaptureNodeHRenderer());
-    myNotOptimizedChart.setHTree(node);
+    myNotOptimizedChart = new HTreeChart.Builder<>(node, myRange, new CaptureNodeHRenderer())
+      .setOrientation(HTreeChart.Orientation.TOP_DOWN)
+      .setReducer((rectangles, nodes) -> {})
+      .build();
 
     panel.setLayout(new GridLayout(2, 1));
     panel.add(myChart);

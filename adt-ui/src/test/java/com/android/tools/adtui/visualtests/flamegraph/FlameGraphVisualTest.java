@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.flamegraph.SampledMethodUsage;
 import com.android.tools.adtui.flamegraph.SampledMethodUsageHRenderer;
@@ -66,12 +67,12 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
   private LineChart mLineChart;
 
   private JScrollBar mScrollBar;
-  private final AxisComponentModel mAxisModel;
+  private final ResizingAxisComponentModel mAxisModel;
 
   public FlameGraphVisualTest() {
     this.mTimeGlobalRangeUs = new Range(0, 0);
 
-    mAxisModel = new AxisComponentModel(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT);
+    mAxisModel = new ResizingAxisComponentModel.Builder(mTimeGlobalRangeUs, TimeAxisFormatter.DEFAULT).build();
     this.mAxis = new AxisComponent(mAxisModel, AxisComponent.AxisOrientation.BOTTOM);
 
     this.mTimeSelectionRangeUs = new Range(0, 0);
@@ -81,8 +82,9 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
     SelectionModel selection = new SelectionModel(mTimeSelectionRangeUs);
     this.mSelector = new SelectionComponent(selection, mTimeGlobalRangeUs);
 
-    this.mChart = new HTreeChart<DefaultHNode<SampledMethodUsage>>(null, mTimeSelectionRangeUs, HTreeChart.Orientation.BOTTOM_UP);
-    this.mChart.setHRenderer(new SampledMethodUsageHRenderer());
+    mChart = new HTreeChart.Builder<>(null, mTimeSelectionRangeUs, new SampledMethodUsageHRenderer())
+      .setOrientation(HTreeChart.Orientation.BOTTOM_UP)
+      .build();
   }
 
   @Override
@@ -92,10 +94,7 @@ public class FlameGraphVisualTest extends VisualTest implements ActionListener {
 
   @Override
   protected List<Updatable> createModelList() {
-    List<Updatable> list = new ArrayList<>();
-    list.add(mAxisModel);
-    list.add(mLineChartModel);
-    return list;
+    return Collections.singletonList(mLineChartModel);
   }
 
   @Override

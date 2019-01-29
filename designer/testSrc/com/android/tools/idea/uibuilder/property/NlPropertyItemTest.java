@@ -15,18 +15,42 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.ide.common.rendering.api.ResourceValue;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_AUTO_TEXT;
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.ATTR_ELEVATION;
+import static com.android.SdkConstants.ATTR_FONT_FAMILY;
+import static com.android.SdkConstants.ATTR_GRAVITY;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.ATTR_PARENT_TAG;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.ATTR_TEXT;
+import static com.android.SdkConstants.ATTR_TEXT_APPEARANCE;
+import static com.android.SdkConstants.ATTR_TEXT_SIZE;
+import static com.android.SdkConstants.ATTR_VISIBILITY;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
+import com.android.tools.adtui.ptable.PTableGroupItem;
+import com.android.tools.adtui.ptable.StarState;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionListener;
-import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
-import com.android.tools.adtui.ptable.PTableGroupItem;
-import com.android.tools.adtui.ptable.StarState;
-import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
@@ -34,11 +58,6 @@ import com.intellij.util.xml.XmlName;
 import com.intellij.xml.XmlAttributeDescriptor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
 
 public class NlPropertyItemTest extends PropertyTestCase {
 
@@ -111,10 +130,9 @@ public class NlPropertyItemTest extends PropertyTestCase {
   }
 
   public void testCreateForToolAttributes() {
-    AttributeDefinition definition = mock(AttributeDefinition.class);
-    when(definition.getName()).thenReturn(ATTR_CONTEXT);
+    AttributeDefinition definition = new AttributeDefinition(ResourceNamespace.TOOLS, ATTR_CONTEXT);
     NlPropertyItem item =
-      NlPropertyItem.create(new XmlName(ATTR_CONTEXT, TOOLS_URI), definition, ImmutableList.of(myMerge), myPropertiesManager);
+        NlPropertyItem.create(new XmlName(ATTR_CONTEXT, TOOLS_URI), definition, ImmutableList.of(myMerge), myPropertiesManager);
     assertThat(item).isNotInstanceOf(NlFlagPropertyItem.class);
     assertThat(item).isNotInstanceOf(NlIdPropertyItem.class);
     assertThat(item.getName()).isEqualTo(ATTR_CONTEXT);
@@ -153,7 +171,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(text.isDefaultValue(null)).isTrue();
     assertThat(text.isDefaultValue("Text")).isFalse();
 
-    text.setDefaultValue(new PropertiesMap.Property("Text", "Text"));
+    text.setDefaultValue("Text");
     assertThat(text.isDefaultValue(null)).isTrue();
     assertThat(text.isDefaultValue("Text")).isTrue();
   }
@@ -174,13 +192,13 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Material.Medium");
 
     textAppearance.setValue("?android:attr/textAppearanceMedium");
-    textAppearance.setDefaultValue(new PropertiesMap.Property("?android:attr/textAppearanceMedium", null));
+    textAppearance.setDefaultValue("?android:attr/textAppearanceMedium");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Material.Medium");
 
     textAppearance.setValue(null);
     textAppearance
-      .setDefaultValue(new PropertiesMap.Property("?android:attr/textAppearanceMedium", "@android:style/TextAppearance.Material.Medium"));
+      .setDefaultValue("?android:attr/textAppearanceMedium");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Material.Medium");
 
@@ -191,7 +209,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
     assertThat(size.getResolvedValue()).isEqualTo("14sp");
 
-    size.setDefaultValue(new PropertiesMap.Property("@dimen/text_size_small_material", "14sp"));
+    size.setDefaultValue("@dimen/text_size_small_material");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(size.getResolvedValue()).isEqualTo("14sp");
   }
@@ -202,9 +220,9 @@ public class NlPropertyItemTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     ResourceValueMap fonts = ResourceValueMap.create();
-    fonts.put("Lobster", new ResourceValue(ResourceUrl.create(null, ResourceType.FONT, "Lobster"), "/very/long/filename/do/not/use"));
+    fonts.put("Lobster", new ResourceValueImpl(RES_AUTO, ResourceType.FONT, "Lobster", "/very/long/filename/do/not/use"));
     fonts.put("DancingScript",
-              new ResourceValue(ResourceUrl.create(null, ResourceType.FONT, "DancingScript"), "/very/long/filename/do/not/use"));
+              new ResourceValueImpl(RES_AUTO, ResourceType.FONT, "DancingScript", "/very/long/filename/do/not/use"));
     ResourceResolver resolver = myModel.getConfiguration().getResourceResolver();
     assertThat(resolver).isNotNull();
     resolver.getProjectResources().put(ResourceType.FONT, fonts);
@@ -241,7 +259,14 @@ public class NlPropertyItemTest extends PropertyTestCase {
     text.setValue("Hello World");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_TEXT)).isEqualTo("Hello World");
-    verify(myUsageTracker).logPropertyChange(text, PropertiesViewMode.INSPECTOR, -1);
+  }
+
+  public void testSetValueWithDefaultValue() {
+    NlPropertyItem auto = createFrom(myTextView, ATTR_AUTO_TEXT);
+    auto.setDefaultValue("true");
+    auto.setValue("true");
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_AUTO_TEXT)).isEqualTo("true");
   }
 
   public void testSetValueParentTagOnMergeTagAddsOrientationProperty() {
@@ -258,7 +283,6 @@ public class NlPropertyItemTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     assertThat(myMerge.getAttribute(TOOLS_URI, ATTR_PARENT_TAG)).isEqualTo(LINEAR_LAYOUT);
-    verify(myUsageTracker).logPropertyChange(parentTag, PropertiesViewMode.INSPECTOR, -1);
     assertThat(myPropertiesManager.getUpdateCount()).isEqualTo(originalUpdateCount + 1);
     assertThat(getDescriptor(myMerge, ATTR_ORIENTATION)).isNotNull();
   }
@@ -283,7 +307,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     NlPropertyItem text = createFrom(myTextView, ATTR_TEXT);
 
     assertThat(text.toString()).isEqualTo("@android:text");
-    assertThat(text.getTooltipText()).startsWith("@android:text:  Text to display.");
+    assertThat(text.getTooltipText()).isEqualTo("@android:text: Text to display.");
     assertThat(text.isEditable(1)).isTrue();
   }
 
@@ -311,6 +335,79 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(NlPropertyItem.namespaceToPrefix(null)).isEqualTo("");
     assertThat(NlPropertyItem.namespaceToPrefix("http://schemas.android.com/apk/res/android")).isEqualTo("@android:");
     assertThat(NlPropertyItem.namespaceToPrefix("http://schemas.android.com/apk/res-auto")).isEqualTo("@app:");
+  }
+
+  public void testSetWidthAndHeightNoUnit() {
+    NlPropertyItem width = createFrom(myTextView, ATTR_LAYOUT_WIDTH);
+    assertThat(width.getResolvedValue()).isEqualTo(VALUE_WRAP_CONTENT);
+
+    width.setValue("100");
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(width.getResolvedValue()).isEqualTo("100dp");
+
+    NlPropertyItem height = createFrom(myTextView, ATTR_LAYOUT_HEIGHT);
+    assertThat(height.getResolvedValue()).isEqualTo(VALUE_WRAP_CONTENT);
+
+    height.setValue("90");
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(height.getResolvedValue()).isEqualTo("90dp");
+  }
+
+  public void testSetWidthAndHeightWithUnit() {
+    NlPropertyItem width = createFrom(myTextView, ATTR_LAYOUT_WIDTH);
+    assertThat(width.getResolvedValue()).isEqualTo(VALUE_WRAP_CONTENT);
+
+    width.setValue("100dp");
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(width.getResolvedValue()).isEqualTo("100dp");
+
+    NlPropertyItem height = createFrom(myTextView, ATTR_LAYOUT_HEIGHT);
+    assertThat(height.getResolvedValue()).isEqualTo(VALUE_WRAP_CONTENT);
+
+    height.setValue("90dp");
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(height.getResolvedValue()).isEqualTo("90dp");
+  }
+
+  public void testSetWidthAndHeightMatchParent() {
+    NlPropertyItem width = createFrom(myTextView, ATTR_LAYOUT_WIDTH);
+    assertThat(width.getResolvedValue()).isEqualTo(VALUE_WRAP_CONTENT);
+
+    width.setValue("match_parent");
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(width.getResolvedValue()).isEqualTo("match_parent");
+
+    NlPropertyItem height = createFrom(myTextView, ATTR_LAYOUT_HEIGHT);
+    assertThat(height.getResolvedValue()).isEqualTo(VALUE_WRAP_CONTENT);
+
+    height.setValue("match_parent");
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(height.getResolvedValue()).isEqualTo("match_parent");
+  }
+
+  public void testSetWidthAndHeightGibberish() {
+    NlPropertyItem width = createFrom(myTextView, ATTR_LAYOUT_WIDTH);
+    assertThat(width.getResolvedValue()).isEqualTo(VALUE_WRAP_CONTENT);
+
+    width.setValue("gibberish");
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(width.getResolvedValue()).isEqualTo("gibberish");
+
+    NlPropertyItem height = createFrom(myTextView, ATTR_LAYOUT_HEIGHT);
+    assertThat(height.getResolvedValue()).isEqualTo(VALUE_WRAP_CONTENT);
+
+    height.setValue("gibberish");
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(height.getResolvedValue()).isEqualTo("gibberish");
+  }
+
+  public void testSetTextSizeNoUnit() {
+    NlPropertyItem textSize = createFrom(myTextView, ATTR_TEXT_SIZE);
+    assertThat(textSize.getResolvedValue()).isEqualTo(null);
+
+    textSize.setValue("10");
+    UIUtil.dispatchAllInvocationEvents();
+    assertThat(textSize.getResolvedValue()).isEqualTo("10sp");
   }
 
   private static class SimpleGroupItem extends PTableGroupItem {

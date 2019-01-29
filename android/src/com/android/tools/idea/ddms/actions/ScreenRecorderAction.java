@@ -13,76 +13,228 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.ddms.actions;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.CollectingOutputReceiver;
+import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
+import com.android.ddmlib.NullOutputReceiver;
+import com.android.ddmlib.ScreenRecorderOptions;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
+import com.android.prefs.AndroidLocation.AndroidLocationException;
+import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DeviceContext;
+import com.android.tools.idea.ddms.screenrecord.ScreenRecorderOptionsDialog;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.run.DeviceStateCache;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import icons.AndroidIcons;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.CompletableFuture;
+public final class ScreenRecorderAction extends AbstractDeviceAction {
+  static final String REMOTE_PATH = "/sdcard/ddmsrec.mp4";
+  static final String TITLE = "Screen Recorder";
 
-public class ScreenRecorderAction extends AbstractDeviceAction {
-  // Only need to cache if device supports recording, so key can be empty string.
-  private static final String PKG_NAME = "";
+  private static final String EMU_TMP_FILENAME = "tmp.webm";
 
+  private final Features myFeatures;
   private final Project myProject;
-  private final DeviceStateCache<CompletableFuture> myCache;
-  private boolean mUseEmuScreenRecording = false;
 
   public ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context) {
-    super(context,
-          AndroidBundle.message("android.ddms.actions.screenrecord"),
-          AndroidBundle.message("android.ddms.actions.screenrecord.description"),
-          AndroidIcons.Ddms.ScreenRecorder);
+    this(project, context, new CachedFeatures(project));
+  }
 
+  @VisibleForTesting
+  ScreenRecorderAction(@NotNull Project project, @NotNull DeviceContext context, @NotNull Features features) {
+    super(context, AndroidBundle.message("android.ddms.actions.screenrecord"),
+          AndroidBundle.message("android.ddms.actions.screenrecord.description"), AndroidIcons.Ddms.ScreenRecorder);
+
+    myFeatures = features;
     myProject = project;
-    myCache = new DeviceStateCache<>(project);
   }
 
   @Override
-  protected boolean isEnabled() {
-    if (!super.isEnabled()) {
-      return false;
+  public void update(@NotNull AnActionEvent event) {
+    Presentation presentation = event.getPresentation();
+
+    if (!isEnabled()) {
+      presentation.setEnabled(false);
+      presentation.setText(AndroidBundle.message("android.ddms.actions.screenrecord"));
+
+      return;
     }
 
     IDevice device = myDeviceContext.getSelectedDevice();
 
-    // Use emulator recording feature if it is supported.
-    if (device.isEmulator()) {
-      AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-      mUseEmuScreenRecording = EmulatorAdvFeatures.emulatorSupportsScreenRecording(
-                                            handler,
-                                            new StudioLoggerProgressIndicator(ScreenRecorderAction.class),
-                                            new LogWrapper(Logger.getInstance(ScreenRecorderAction.class)));
-      if (mUseEmuScreenRecording) {
-        return true;
-      }
+    if (myFeatures.watch(device)) {
+      presentation.setEnabled(false);
+      presentation.setText("Screen Record Is Unavailable for Wear OS");
+
+      return;
     }
 
-    CompletableFuture<Boolean> cf = myCache.get(device, PKG_NAME);
-    // first time execution for this device, async query if device supports recording and save it in the cache.
-    if (cf == null) {
-      cf = CompletableFuture.supplyAsync(() -> device.supportsFeature(IDevice.Feature.SCREEN_RECORD));
-      myCache.put(device, PKG_NAME, cf);
-    }
-
-    // default return false until future is complete since this method will be called each time studio udpates
-    return cf.getNow(false);
+    presentation.setEnabled(myFeatures.screenRecord(device));
+    presentation.setText(AndroidBundle.message("android.ddms.actions.screenrecord"));
   }
 
   @Override
   protected void performAction(@NotNull IDevice device) {
-    new com.android.tools.idea.ddms.screenrecord.ScreenRecorderAction(myProject, device, mUseEmuScreenRecording).performAction();
+    final ScreenRecorderOptionsDialog dialog = new ScreenRecorderOptionsDialog(myProject);
+    if (!dialog.showAndGet()) {
+      return;
+    }
+
+    final ScreenRecorderOptions options = dialog.getOptions();
+
+    final CountDownLatch latch = new CountDownLatch(1);
+    final CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
+
+    boolean showTouchEnabled = isShowTouchEnabled(device);
+    AvdManager manager = getVirtualDeviceManager();
+    Path hostRecordingFileName = manager == null ? null : getTemporaryVideoPathForVirtualDevice(device, manager);
+
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      if (options.showTouches != showTouchEnabled) {
+        setShowTouch(device, options.showTouches);
+      }
+      try {
+        if (hostRecordingFileName != null) { // Use emulator screen recording
+          EmulatorConsole console = EmulatorConsole.getConsole(device);
+          if (console != null) {
+            console.startEmulatorScreenRecording(getEmulatorScreenRecorderOptions(hostRecordingFileName, options));
+          }
+        }
+        else {
+          // Store the temp media file in the respective avd folder
+          device.startScreenRecorder(REMOTE_PATH, options, receiver);
+        }
+      }
+      catch (Exception e) {
+        showError(myProject, "Unexpected error while launching screen recorder", e);
+        latch.countDown();
+      }
+      finally {
+        if (options.showTouches != showTouchEnabled) {
+          setShowTouch(device, showTouchEnabled);
+        }
+      }
+    });
+
+    Task.Modal screenRecorderShellTask = new ScreenRecorderTask(myProject, device, latch, receiver, hostRecordingFileName);
+    screenRecorderShellTask.setCancelText("Stop Recording");
+    screenRecorderShellTask.queue();
+  }
+
+  @Nullable
+  private static AvdManager getVirtualDeviceManager() {
+    Logger logger = Logger.getInstance(ScreenRecorderAction.class);
+
+    try {
+      return AvdManager.getInstance(AndroidSdks.getInstance().tryToChooseSdkHandler(), new LogWrapper(logger));
+    }
+    catch (AndroidLocationException exception) {
+      logger.warn(exception);
+      return null;
+    }
+  }
+
+  @Nullable
+  @VisibleForTesting
+  Path getTemporaryVideoPathForVirtualDevice(@NotNull IDevice device, @NotNull AvdManager manager) {
+    if (!myFeatures.screenRecord(device)) {
+      return null;
+    }
+
+    AvdInfo virtualDevice = manager.getAvd(device.getAvdName(), true);
+
+    if (virtualDevice == null) {
+      return null;
+    }
+
+    return Paths.get(virtualDevice.getDataFolderPath(), EMU_TMP_FILENAME);
+  }
+
+  private static void setShowTouch(@NotNull IDevice device, boolean isEnabled) {
+    int value = isEnabled ? 1 : 0;
+    try {
+      device.executeShellCommand("settings put system show_touches " + value, new NullOutputReceiver());
+    }
+    catch (AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException | TimeoutException e) {
+      Logger.getInstance(ScreenRecorderAction.class).warn("Failed to set show taps to " + isEnabled, e);
+    }
+  }
+
+  private static boolean isShowTouchEnabled(@NotNull IDevice device) {
+    CollectingOutputReceiver receiver = new CollectingOutputReceiver();
+    try {
+      device.executeShellCommand("settings get system show_touches", receiver);
+      String output = receiver.getOutput();
+      return output.equals("1");
+    }
+    catch (AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException | TimeoutException e) {
+      Logger.getInstance(ScreenRecorderAction.class).warn("Failed to retrieve setting", e);
+    }
+    return false;
+  }
+
+  @VisibleForTesting
+  static String getEmulatorScreenRecorderOptions(@NotNull Path filePath, @NotNull ScreenRecorderOptions options) {
+    StringBuilder sb = new StringBuilder();
+
+    if (options.width > 0 && options.height > 0) {
+      sb.append("--size ");
+      sb.append(options.width);
+      sb.append('x');
+      sb.append(options.height);
+      sb.append(' ');
+    }
+
+    if (options.bitrateMbps > 0) {
+      sb.append("--bit-rate ");
+      sb.append(options.bitrateMbps * 1000000);
+      sb.append(' ');
+    }
+
+    if (options.timeLimit > 0) {
+      sb.append("--time-limit ");
+      long seconds = TimeUnit.SECONDS.convert(options.timeLimit, options.timeLimitUnits);
+      if (seconds > 180) {
+        seconds = 180;
+      }
+      sb.append(seconds);
+      sb.append(' ');
+    }
+
+    sb.append(filePath);
+
+    return sb.toString();
+  }
+
+  static void showError(@Nullable final Project project, @NotNull final String message, @Nullable final Throwable throwable) {
+    ApplicationManager.getApplication().invokeLater(() -> {
+      String msg = message;
+      if (throwable != null) {
+        msg += throwable.getLocalizedMessage() != null ? ": " + throwable.getLocalizedMessage() : "";
+      }
+
+      Messages.showErrorDialog(project, msg, TITLE);
+    });
   }
 }

@@ -17,16 +17,16 @@ package com.android.tools.idea.tests.gui.explorer;
 
 import com.android.tools.idea.explorer.DeviceExplorer;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.StripeButton;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class DeviceExplorerTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

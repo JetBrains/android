@@ -16,8 +16,6 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
-import com.android.ide.common.rendering.api.ResourceValue
-import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -34,28 +32,13 @@ class NavComponentHelperTest {
     val component = mock(NlComponent::class.java)
     `when`(component.id).thenCallRealMethod()
     `when`(component.tagName).thenReturn("myTag")
-    assertEquals("myTag", component.getUiName(null))
+    assertEquals("myTag", component.uiName)
     `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("com.example.Foo")
-    assertEquals("Foo", component.getUiName(null))
+    assertEquals("Foo", component.uiName)
     `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)).thenReturn("Bar")
-    assertEquals("Bar", component.getUiName(null))
+    assertEquals("Bar", component.uiName)
     `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID)).thenReturn("@+id/myId")
-    assertEquals("myId", component.getUiName(null))
-    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL)).thenReturn("myLabel")
-    assertEquals("myLabel", component.getUiName(null))
-  }
-
-  @Test
-  fun testUiNameWithResources() {
-    val resolver = mock(ResourceResolver::class.java)
-    val value = mock(ResourceValue::class.java)
-    `when`(value.value).thenReturn("resolvedValue")
-    `when`(resolver.findResValue("myLabel", false)).thenReturn(value)
-    `when`(resolver.resolveResValue(value)).thenReturn(value)
-
-    val component = mock(NlComponent::class.java)
-    `when`(component.resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL)).thenReturn("myLabel")
-    assertEquals("resolvedValue", component.getUiName(resolver))
+    assertEquals("myId", component.uiName)
   }
 }
 
@@ -93,12 +76,38 @@ class NavComponentHelperTest2 : NavTestCase() {
     val subnav2 = model.find("subnav2")
     val subsubnav = model.find("subsubnav")
 
-    assertSameElements(f1!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2))
-    assertSameElements(f2!!.visibleDestinations, listOf(root, f1, a1, f2, f3, subnav1, subnav2))
-    assertSameElements(f4!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2, f4, subsubnav))
-    assertSameElements(f5!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2, f4, subsubnav, f5))
-    assertSameElements(model.find("root")!!.visibleDestinations, listOf(root, f1, a1, subnav1, subnav2))
-    assertSameElements(subnav1!!.visibleDestinations, listOf(root, f1, a1, subnav1, f2, f3, subnav2))
+    var map = f1!!.visibleDestinations
+    assertSameElements(map.keys, setOf(f1, root))
+    assertSameElements(map[f1]!!, listOf())
+    assertSameElements(map[root]!!, listOf(a1, subnav1, subnav2))
+
+    map = f2!!.visibleDestinations
+    assertSameElements(map.keys, listOf(f2, subnav1, root))
+    assertSameElements(map[f2]!!, listOf())
+    assertSameElements(map[subnav1]!!, listOf(f3))
+    assertSameElements(map[root]!!, listOf(a1, f1, subnav2))
+
+    map = f4!!.visibleDestinations
+    assertSameElements(map.keys, listOf(f4, subnav2, root))
+    assertSameElements(map[f4]!!, listOf())
+    assertSameElements(map[subnav2]!!, listOf(subsubnav))
+    assertSameElements(map[root]!!, listOf(f1, a1, subnav1))
+
+    map = f5!!.visibleDestinations
+    assertSameElements(map.keys, listOf(f5, subsubnav, subnav2, root))
+    assertSameElements(map[f5]!!, listOf())
+    assertSameElements(map[subsubnav]!!, listOf())
+    assertSameElements(map[subnav2]!!, listOf(f4))
+    assertSameElements(map[root]!!, listOf(f1, a1, subnav1))
+
+    map = root!!.visibleDestinations
+    assertSameElements(map.keys, listOf(root))
+    assertSameElements(map[root]!!, listOf(f1, a1, subnav1, subnav2))
+
+    map = subnav1!!.visibleDestinations
+    assertSameElements(map.keys, listOf(subnav1, root))
+    assertSameElements(map[subnav1]!!, listOf(f2, f3))
+    assertSameElements(map[root]!!, listOf(f1, a1, subnav2))
   }
 
   fun testFindVisibleDestination() {
@@ -175,6 +184,29 @@ class NavComponentHelperTest2 : NavTestCase() {
     assertNull(action.actionDestinationId)
   }
 
+  fun testEffectiveDestination() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("f1")
+        fragment("f2")
+        navigation("nav1") {
+          fragment("f3") {
+            action("a1", popUpTo = "f1")
+            action("a2", popUpTo = "f1", inclusive = true)
+            action("a3", destination = "f1", popUpTo = "f2")
+          }
+        }
+      }
+    }
+
+    val action1 = model.find("a1")!!
+    assertEquals(action1.effectiveDestination, model.find("f1"))
+    val action2 = model.find("a2")!!
+    assertNull(action2.effectiveDestination)
+    val action3 = model.find("a3")!!
+    assertEquals(action3.effectiveDestination, model.find("f1"))
+  }
+
   fun testEffectiveDestinationId() {
     val model = model("nav.xml") {
       navigation("root") {
@@ -196,5 +228,93 @@ class NavComponentHelperTest2 : NavTestCase() {
     assertNull(action2.effectiveDestinationId)
     val action3 = model.find("a3")!!
     assertEquals(action3.effectiveDestinationId, "f1")
+  }
+
+  fun testDefaultActionIds() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+        fragment("f2")
+      }
+    }
+
+    val f1 = model.find("f1")!!
+    val root = model.components[0]!!
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_to_f2", f1.createAction("f2").id) }
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_self", f1.createAction("f1").id) }
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_self2", f1.createAction("f1").id) }
+    WriteCommandAction.runWriteCommandAction(project) {
+      assertEquals(
+          "action_f1_pop",
+          f1.createAction {
+            popUpTo = "f1"
+            inclusive = true
+          }.id)
+    }
+    WriteCommandAction.runWriteCommandAction(project) {
+      assertEquals(
+          "action_f1_pop_including_f2",
+          f1.createAction {
+            popUpTo = "f2"
+            inclusive = true
+          }.id)
+    }
+    WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_global_f1", root.createAction("f1").id) }
+  }
+
+  fun testGenerateActionId() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+        navigation("subnav")
+      }
+    }
+
+    assertEquals("action_f1_self", generateActionId(model.find("f1")!!, "f1", null, false))
+    assertEquals("action_f1_self", generateActionId(model.find("f1")!!, "f1", "f2", false))
+    assertEquals("action_f1_self", generateActionId(model.find("f1")!!, "f1", "f2", true))
+
+    assertEquals("action_subnav_self", generateActionId(model.find("subnav")!!, "subnav", "f2", true))
+
+    assertEquals("action_f1_to_f2", generateActionId(model.find("f1")!!, "f2", null, false))
+    assertEquals("action_f1_to_f2", generateActionId(model.find("f1")!!, "f2", "f1", false))
+    assertEquals("action_f1_to_f2", generateActionId(model.find("f1")!!, "f2", "f3", true))
+
+    assertEquals("action_global_f1", generateActionId(model.find("subnav")!!, "f1", null, false))
+    assertEquals("action_global_f1", generateActionId(model.find("subnav")!!, "f1", "f2", false))
+    assertEquals("action_global_f1", generateActionId(model.find("subnav")!!, null, "f1", false))
+
+    assertEquals("action_f1_pop", generateActionId(model.find("f1")!!, null, "f1", true))
+    assertEquals("action_f1_pop_including_f2", generateActionId(model.find("f1")!!, null, "f2", true))
+
+    assertEquals("action_nav_pop_including_f1", generateActionId(model.components[0]!!, null, "f1", true))
+
+    assertEquals("", generateActionId(model.find("f1")!!, null, null, true))
+  }
+
+  fun testCreateAction() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1")
+        navigation("subnav")
+      }
+    }
+
+    val f1 = model.find("f1")!!
+    WriteCommandAction.runWriteCommandAction(project) { f1.createAction("f2") }
+    var newAction = model.find("action_f1_to_f2")!!
+    assertEquals(f1, newAction.parent)
+    assertEquals("f2", newAction.actionDestinationId)
+
+    WriteCommandAction.runWriteCommandAction(project) {
+      f1.createAction {
+        popUpTo = "f1"
+        inclusive = true
+      }
+    }
+    newAction = model.find("action_f1_pop")!!
+    assertEquals(f1, newAction.parent)
+    assertNull(newAction.actionDestinationId)
+    assertEquals("f1", newAction.popUpTo)
   }
 }

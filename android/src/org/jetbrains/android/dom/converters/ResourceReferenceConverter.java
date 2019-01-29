@@ -15,14 +15,23 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.repository.ResourceVisibilityLookup;
+import com.android.ide.common.resources.ResourceRepository;
+import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceVisibility;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
-import com.google.common.base.Splitter;
+import com.android.tools.idea.res.ResourceNamespaceContext;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
+import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -33,9 +42,8 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlElement;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.XmlRecursiveElementVisitor;
+import com.intellij.psi.xml.*;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
@@ -44,24 +52,28 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
-import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.jetbrains.android.util.AndroidResourceUtil.VALUE_RESOURCE_TYPES;
-import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
  * @author yole
  */
 public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue>
   implements CustomReferenceConverter<ResourceValue>, AttributeValueDocumentationProvider {
+
+  private static final Pattern NAMESPACE_COLON = Pattern.compile("^((?:\\w|\\.)+):.*");
+  private static final Pattern PREFIX_NAMESPACE_COLON = Pattern.compile("^@((?:\\w|\\.)+):.*");
+
   private static final ImmutableSet<String> TOP_PRIORITY_VALUES =
     ImmutableSet.of(VALUE_MATCH_PARENT, VALUE_WRAP_CONTENT);
   private final Set<ResourceType> myResourceTypes;
@@ -126,15 +138,6 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     myAllowAttributeReferences = allowAttributeReferences;
   }
 
-  @NotNull
-  private static String getPackagePrefix(@Nullable String resourcePackage, boolean withPrefix) {
-    String prefix = withPrefix ? "@" : "";
-    if (resourcePackage == null) {
-      return prefix;
-    }
-    return prefix + resourcePackage + ':';
-  }
-
   @Nullable
   static String getValue(XmlElement element) {
     if (element instanceof XmlAttribute) {
@@ -149,13 +152,13 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @Override
   @NotNull
   public Collection<? extends ResourceValue> getVariants(ConvertContext context) {
-    Set<ResourceValue> result = new HashSet<>();
     Module module = context.getModule();
-    if (module == null) return result;
+    if (module == null || module.isDisposed()) return Collections.emptySet();
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) return result;
+    if (facet == null) return Collections.emptySet();
 
-    final Set<ResourceType> recommendedTypes = getResourceTypes(context);
+    Set<ResourceValue> result = new HashSet<>();
+    Set<ResourceType> recommendedTypes = getResourceTypes(context);
 
     if (recommendedTypes.contains(ResourceType.BOOL) && recommendedTypes.size() < VALUE_RESOURCE_TYPES.size()) {
       // Is this resource reference expected to be a @bool reference? Specifically
@@ -178,41 +181,62 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
     boolean startsWithRefChar = StringUtil.startsWithChar(value, '@');
     if (!myQuiet || startsWithRefChar) {
-      String resourcePackage = null;
+      ResourceNamespace namespace = null;
+      String namespacePrefix = null;
       // Retrieve the system prefix depending on the prefix settings ("@android:" or "android:")
-      String systemPrefix = getPackagePrefix(SYSTEM_RESOURCE_PACKAGE, myWithPrefix || startsWithRefChar);
-      if (value.startsWith(systemPrefix)) {
-        resourcePackage = SYSTEM_RESOURCE_PACKAGE;
+      Matcher matcher = (myWithPrefix ? PREFIX_NAMESPACE_COLON : NAMESPACE_COLON).matcher(value);
+      if (matcher.matches()) {
+        ResourceNamespaceContext namespacesContext = ResourceHelper.getNamespacesContext(element);
+        namespacePrefix = matcher.group(1);
+        if (namespacesContext != null) {
+          namespace = ResourceNamespace.fromNamespacePrefix(namespacePrefix,
+                                                            namespacesContext.getCurrentNs(),
+                                                            namespacesContext.getResolver());
+        } else {
+          namespace = ResourceNamespace.fromPackageName(namespacePrefix);
+        }
       }
-      else {
-        result.add(ResourceValue.literal(systemPrefix));
+      else if (StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get()) {
+        // We don't offer framework resources in completion, unless the string already starts with the framework namespace. But we do offer
+        // the right prefix, which will cause the framework resources to show up as follow-up completion. These variants are later handled
+        // in createLookupElement below.
+        ResourceNamespace.Resolver resolver = ResourceHelper.getNamespaceResolver(element);
+        String frameworkPrefix = firstNonNull(resolver.uriToPrefix(ResourceNamespace.ANDROID.getXmlNamespaceUri()),
+                                              ResourceNamespace.ANDROID.getPackageName());
+        result.add(ResourceValue.literal(myWithPrefix || startsWithRefChar
+                                         ? '@' + frameworkPrefix + ':'
+                                         : frameworkPrefix + ':'));
       }
-      final char prefix = myWithPrefix || startsWithRefChar ? '@' : 0;
+      char prefix = myWithPrefix || startsWithRefChar ? '@' : 0;
 
       if (value.startsWith(NEW_ID_PREFIX)) {
-        addVariantsForIdDeclaration(result, facet, prefix, value);
+        addVariantsForIdDeclaration(context, facet, prefix, value, result);
       }
 
-      if (recommendedTypes.size() >= 1 && myExpandedCompletionSuggestion) {
+      if (myExpandedCompletionSuggestion) {
         // We will add the resource type (e.g. @style/) if the current value starts like a reference using @
-        final boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
-        for (final ResourceType type : recommendedTypes) {
-          addResourceReferenceValues(facet, element, prefix, type, resourcePackage, result, explicitResourceType);
+        boolean explicitResourceType = startsWithRefChar || myWithExplicitResourceType;
+        for (ResourceType type : recommendedTypes) {
+          // If getResourceTypes decided SAMPLE_DATA belongs here, then this is one of the few exceptions where it can be referenced.
+          if (type.getCanBeReferenced() || type == ResourceType.SAMPLE_DATA) {
+            addResourceReferenceValues(facet, element, prefix, type, namespace, result, explicitResourceType);
+          }
         }
       }
       else {
-        final Set<ResourceType> filteringSet = SYSTEM_RESOURCE_PACKAGE.equals(resourcePackage)
-                                               ? null
-                                               : getResourceTypesInCurrentModule(facet);
+        Set<ResourceType> filteringSet =
+            namespace == ResourceNamespace.ANDROID ? EnumSet.allOf(ResourceType.class) : getResourceTypesInCurrentModule(facet);
 
         for (ResourceType resourceType : ResourceType.values()) {
-          final String type = resourceType.getName();
-          String typePrefix = getTypePrefix(resourcePackage, type);
-          if (value.startsWith(typePrefix)) {
-            addResourceReferenceValues(facet, element, prefix, resourceType, resourcePackage, result, true);
+          if (!resourceType.getCanBeReferenced()) {
+            continue;
           }
-          else if (recommendedTypes.contains(resourceType) &&
-                   (filteringSet == null || filteringSet.contains(resourceType))) {
+
+          String typePrefix = getTypePrefix(namespacePrefix, resourceType);
+          if (value.startsWith(typePrefix)) {
+            addResourceReferenceValues(facet, element, prefix, resourceType, namespace, result, true);
+          }
+          else if (recommendedTypes.contains(resourceType) && filteringSet.contains(resourceType)) {
             result.add(ResourceValue.literal(typePrefix));
           }
         }
@@ -221,7 +245,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (myAllowAttributeReferences) {
       completeAttributeReferences(value, facet, result);
     }
-    final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
+    ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
     if (additionalConverter != null) {
       for (String variant : additionalConverter.getVariants(context)) {
@@ -231,10 +255,30 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return result;
   }
 
-  private void addVariantsForIdDeclaration(Set<ResourceValue> result, AndroidFacet facet, char prefix, String value) {
-    for (String name : ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getIds(false)) {
-      final ResourceValue ref = referenceTo(prefix, "+id", null, name, true);
+  private void addVariantsForIdDeclaration(@NotNull ConvertContext context, @NotNull AndroidFacet facet, char prefix, @NotNull String value,
+                                           @NotNull Set<ResourceValue> result) {
+    ResourceNamespace namespace = ResourceNamespace.TODO();
 
+    // Find matching ID resource references in the current file.
+    XmlFile file = context.getFile();
+    file.accept(new XmlRecursiveElementVisitor() {
+      @Override
+      public void visitXmlAttributeValue(XmlAttributeValue attributeValue) {
+        String valueText = attributeValue.getValue();
+        if (valueText != null && valueText.startsWith(ID_PREFIX) && valueText.length() > ID_PREFIX.length()) {
+          String name = valueText.substring(ID_PREFIX.length());
+          ResourceValue ref = referenceTo(prefix, "+id", namespace.getPackageName(), name, true);
+          if (!value.startsWith(doToString(ref))) {
+            result.add(ref);
+          }
+        }
+      }
+    });
+
+    // Find matching ID resource declarations.
+    Collection<String> ids = ResourceRepositoryManager.getAppResources(facet).getResources(namespace, ResourceType.ID).keySet();
+    for (String name : ids) {
+      ResourceValue ref = referenceTo(prefix, "+id", namespace.getPackageName(), name, true);
       if (!value.startsWith(doToString(ref))) {
         result.add(ref);
       }
@@ -242,15 +286,16 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   private static void completeAttributeReferences(String value, AndroidFacet facet, Set<ResourceValue> result) {
+    // TODO: namespaces
     if (StringUtil.startsWith(value, "?attr/")) {
       addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, true);
     }
     else if (StringUtil.startsWith(value, "?android:attr/")) {
-      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, true);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, ResourceNamespace.ANDROID, result, true);
     }
     else if (StringUtil.startsWithChar(value, '?')) {
       addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, null, result, false);
-      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, SYSTEM_RESOURCE_PACKAGE, result, false);
+      addResourceReferenceValues(facet, null, '?', ResourceType.ATTR, ResourceNamespace.ANDROID, result, false);
       result.add(ResourceValue.literal("?attr/"));
       result.add(ResourceValue.literal("?android:attr/"));
     }
@@ -258,26 +303,22 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   @NotNull
   public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
-    Set<ResourceType> result = EnumSet.noneOf(ResourceType.class);
-    AppResourceRepository resourceRepository = AppResourceRepository.getOrCreateInstance(facet);
-    for (ResourceType type : ResourceType.values()) {
-      if (resourceRepository.hasResourcesOfType(type)) {
-        if (type == ResourceType.DECLARE_STYLEABLE) {
-          // The ResourceRepository maps tend to hold DECLARE_STYLEABLE, but not STYLEABLE. However, these types are
-          // used for R inner classes, and declare-styleable isn't a valid inner class name, so convert to styleable.
-          result.add(ResourceType.STYLEABLE);
-        } else {
-          result.add(type);
-        }
-      }
-    }
-    return result;
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+    LocalResourceRepository repository = repositoryManager.getAppResources(true);
+    return repository.getResourceTypes(repositoryManager.getNamespace());
   }
 
   @NotNull
-  private static String getTypePrefix(String resourcePackage, String type) {
-    String typePart = type + '/';
-    return getPackagePrefix(resourcePackage, true) + typePart;
+  private String getTypePrefix(@Nullable String namespacePrefix, @NotNull ResourceType type) {
+    StringBuilder sb = new StringBuilder();
+    if (myWithPrefix) {
+      sb.append('@');
+    }
+    if (namespacePrefix != null) {
+      sb.append(namespacePrefix).append(':');
+    }
+    sb.append(type.getName()).append('/');
+    return sb.toString();
   }
 
   @NotNull
@@ -291,11 +332,9 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     Set<ResourceType> types = EnumSet.copyOf(myResourceTypes);
     if (resourceType != null) {
       String s = resourceType.value();
-      if (s != null) {
-        ResourceType t = ResourceType.getEnum(s);
-        if (t != null) {
-          types.add(t);
-        }
+      ResourceType t = ResourceType.fromClassName(s);
+      if (t != null) {
+        types.add(t);
       }
     }
     if (types.isEmpty()) {
@@ -304,7 +343,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     else if (types.contains(ResourceType.DRAWABLE)) {
       types.add(ResourceType.COLOR);
     }
-    if (StudioFlags.NELE_SAMPLE_DATA.get() && TOOLS_URI.equals(element.getXmlElementNamespace())) {
+    if (TOOLS_URI.equals(element.getXmlElementNamespace())) {
       // For tools: attributes, we also add the mock types
       types.add(ResourceType.SAMPLE_DATA);
     }
@@ -315,16 +354,68 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                                  @Nullable XmlElement element,
                                                  char prefix,
                                                  ResourceType type,
-                                                 @Nullable String resPackage,
+                                                 @Nullable ResourceNamespace onlyNamespace,
                                                  Collection<ResourceValue> result,
                                                  boolean explicitResourceType) {
     PsiFile file = element != null ? element.getContainingFile() : null;
+
+    if (type == ResourceType.ID && onlyNamespace != ResourceNamespace.ANDROID && file != null && isNonValuesResourceFile(file)) {
+      // TODO: namespaces
+      for (String id : ResourceHelper.findIdsInFile(file)) {
+        result.add(referenceTo(prefix, type.getName(), null, id, explicitResourceType));
+      }
+    }
+    else {
+      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getOrCreateInstance(facet);
+      LocalResourceRepository appResources = repoManager.getAppResources(true);
+      ResourceVisibilityLookup visibilityLookup = repoManager.getResourceVisibility();
+
+      if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {
+        ResourceRepository frameworkResources = repoManager.getFrameworkResources(false);
+        if (frameworkResources != null) {
+          addResourceReferenceValuesFromRepo(frameworkResources, repoManager, visibilityLookup, element, prefix, type,
+                                             ResourceNamespace.ANDROID, result, explicitResourceType);
+        }
+      }
+
+      if (onlyNamespace == null) {
+        for (ResourceNamespace namespace : appResources.getNamespaces()) {
+          addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, namespace, result,
+                                             explicitResourceType);
+        }
+      }
+      else {
+        addResourceReferenceValuesFromRepo(appResources, repoManager, visibilityLookup, element, prefix, type, onlyNamespace, result,
+                                           explicitResourceType);
+      }
+    }
+  }
+
+  private static void addResourceReferenceValuesFromRepo(ResourceRepository repo,
+                                                         ResourceRepositoryManager repoManager,
+                                                         ResourceVisibilityLookup visibilityLookup,
+                                                         @Nullable XmlElement element,
+                                                         char prefix,
+                                                         ResourceType type,
+                                                         @NotNull ResourceNamespace onlyNamespace,
+                                                         Collection<ResourceValue> result,
+                                                         boolean explicitResourceType) {
     Collection<String> names =
-      type == ResourceType.ID && resPackage == null && file != null && isNonValuesResourceFile(file) ?
-      ResourceHelper.findIdsInFile(file) : findResourceNames(facet, type, resPackage);
-    String typeName = type.getName();
+      ResourceHelper.getResourceItems(repo, onlyNamespace, type, visibilityLookup, ResourceVisibility.PUBLIC);
+
+    ResourceNamespace.Resolver resolver = ResourceNamespace.Resolver.EMPTY_RESOLVER;
+    if (element != null) {
+      resolver = firstNonNull(ResourceHelper.getNamespaceResolver(element), resolver);
+    }
+
+    // Find the short prefix once for all items.
+    String namespacePrefix =
+      new ResourceReference(onlyNamespace, ResourceType.STRING, "dummy")
+        .getRelativeResourceUrl(repoManager.getNamespace(), resolver)
+        .namespace;
+
     for (String name : names) {
-      result.add(referenceTo(prefix, typeName, resPackage, name, explicitResourceType));
+      result.add(referenceTo(prefix, type.getName(), namespacePrefix, name, explicitResourceType));
     }
   }
 
@@ -333,34 +424,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return resourceType != null && resourceType != ResourceFolderType.VALUES;
   }
 
-  private static Collection<String> findResourceNames(@NotNull AndroidFacet facet,
-                                                      @NotNull ResourceType type,
-                                                      @Nullable String resPackage) {
-    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage);
-    if (manager == null) {
-      return Collections.emptySet();
-    }
-    else {
-      return manager.getResourceNames(type, true);
-    }
-  }
-
   private static ResourceValue referenceTo(char prefix, String type, String resPackage, String name, boolean explicitResourceType) {
-    if (ResourceType.SAMPLE_DATA.getName().equals(type)) {
-      // Handling of namespaces for SAMPLE_DATA until namespaces are fully supported across
-      // the resources stack
-      List<String> sampleDataResource = Splitter.on(':')
-        .trimResults()
-        .omitEmptyStrings()
-        .limit(2)
-        .splitToList(name);
-
-      if (resPackage == null && sampleDataResource.size() == 2) {
-        resPackage = sampleDataResource.get(0);
-        name = sampleDataResource.get(1);
-      }
-    }
-
     return ResourceValue.referenceTo(prefix, resPackage, explicitResourceType ? type : null, name);
   }
 
@@ -370,10 +434,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       return "Missing value";
     }
 
-    final ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, false);
+    ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, false);
 
     if (parsed == null || !parsed.isReference()) {
-      final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
+      ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
       if (myResourceTypes.contains(ResourceType.STRING)) {
         // Anything is allowed
@@ -424,12 +488,12 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @Nullable
   @Override
   public LookupElement createLookupElement(ResourceValue resourceValue) {
-    final String value = resourceValue.toString();
+    String value = resourceValue.toString();
 
     boolean deprecated = false;
     String doc = null;
     if (myAttributeDefinition != null) {
-      doc = myAttributeDefinition.getValueDoc(value);
+      doc = myAttributeDefinition.getValueDescription(value);
       deprecated = myAttributeDefinition.isValueDeprecated(value);
     }
 
@@ -441,12 +505,21 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
 
     builder = builder.withCaseSensitivity(true).withStrikeoutness(deprecated);
-    final String resourceName = resourceValue.getResourceName();
+    String resourceName = resourceValue.getResourceName();
     if (resourceName != null) {
       builder = builder.withLookupString(resourceName);
     }
+    else {
+      if (isNamespaceLiteral(resourceValue.getValue())) {
+        // This is a "fake" ResourceValue to offer just a namespace prefix as completion.
+        builder = builder.withInsertHandler((context, item) -> context.setLaterRunnable(() -> {
+          // This is similar to JavaClassNameInsertHandler#handleInsert.
+          new CodeCompletionHandlerBase(CompletionType.BASIC).invokeCompletion(context.getProject(), context.getEditor());
+        }));
+      }
+    }
 
-    final int priority;
+    int priority;
     if (deprecated) {
       // Show deprecated values in the end of the autocompletion list
       priority = 0;
@@ -461,12 +534,16 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return PrioritizedLookupElement.withPriority(builder, priority);
   }
 
+  public boolean isNamespaceLiteral(@Nullable String value) {
+    return value != null && value.charAt(value.length() - 1) == ':' && value.indexOf('/') == -1;
+  }
+
   @Override
   public ResourceValue fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) return null;
     if (DataBindingUtil.isBindingExpression(s)) return ResourceValue.INVALID;
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, true);
-    final ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
+    ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 
     if (parsed == null || !parsed.isReference()) {
       if (additionalConverter != null) {
@@ -483,7 +560,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
     }
     if (parsed != null) {
-      final String resType = parsed.getResourceType();
+      String resType = parsed.getResourceType();
 
       if (parsed.getPrefix() == '?') {
         if (!myAllowAttributeReferences) {
@@ -528,17 +605,15 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       return myAdditionalConverter;
     }
 
-    final AdditionalConverter additionalConverterAnnotation =
+    AdditionalConverter additionalConverterAnnotation =
       context.getInvocationElement().getAnnotation(AdditionalConverter.class);
 
     if (additionalConverterAnnotation != null) {
-      final Class<? extends ResolvingConverter> converterClass = additionalConverterAnnotation.value();
+      Class<? extends ResolvingConverter> converterClass = additionalConverterAnnotation.value();
 
-      if (converterClass != null) {
-        final ConverterManager converterManager = ServiceManager.getService(ConverterManager.class);
-        //noinspection unchecked
-        return (ResolvingConverter<String>)converterManager.getConverterInstance(converterClass);
-      }
+      ConverterManager converterManager = ServiceManager.getService(ConverterManager.class);
+      //noinspection unchecked
+      return (ResolvingConverter<String>)converterManager.getConverterInstance(converterClass);
     }
     return null;
   }
@@ -555,7 +630,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (myWithExplicitResourceType || !element.isReference()) {
       return element.toString();
     }
-    return ResourceValue.referenceTo(element.getPrefix(), element.getNamespace(), null,
+    return ResourceValue.referenceTo(element.getPrefix(), element.getPackage(), null,
                                      element.getResourceName()).toString();
   }
 
@@ -563,27 +638,27 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   public LocalQuickFix[] getQuickFixes(ConvertContext context) {
     AndroidFacet facet = AndroidFacet.getInstance(context);
     if (facet != null) {
-      final DomElement domElement = context.getInvocationElement();
+      DomElement domElement = context.getInvocationElement();
 
       if (domElement instanceof GenericDomValue) {
-        final String value = ((GenericDomValue)domElement).getStringValue();
+        String value = ((GenericDomValue)domElement).getStringValue();
 
         if (value != null) {
           ResourceValue resourceValue = ResourceValue.parse(value, false, myWithPrefix, true);
           if (resourceValue != null) {
-            String aPackage = resourceValue.getNamespace();
+            String aPackage = resourceValue.getPackage();
             ResourceType resType = resourceValue.getType();
             if (resType == null && myResourceTypes.size() == 1) {
               resType = myResourceTypes.iterator().next();
             }
-            final String resourceName = resourceValue.getResourceName();
+            String resourceName = resourceValue.getResourceName();
             if (aPackage == null &&
                 resType != null &&
                 resourceName != null &&
                 AndroidResourceUtil.isCorrectAndroidResourceName(resourceName)) {
-              final List<LocalQuickFix> fixes = new ArrayList<>();
+              List<LocalQuickFix> fixes = new ArrayList<>();
 
-              ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(resType);
+              ResourceFolderType folderType = FolderTypeRelationship.getNonValuesRelatedFolder(resType);
               if (folderType != null) {
                 fixes.add(new CreateFileResourceQuickFix(facet, folderType, resourceName, context.getFile(), false));
               }
@@ -607,36 +682,44 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
 
     Module module = context.getModule();
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        ResourceValue resValue = value.getValue();
-        if (resValue != null && resValue.isReference()) {
-          String resType = resValue.getResourceType();
-          if (resType == null) {
-            return PsiReference.EMPTY_ARRAY;
-          }
+    if (module == null) {
+      return PsiReference.EMPTY_ARRAY;
+    }
 
-          // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
-          //    android:layout_alignLeft="@+id/foo"
-          // is a reference to R.id.foo, but
-          //    android:id="@+id/foo"
-          // is not; it's the place we're defining it.
-          if (resValue.getNamespace() == null && "+id".equals(resType)
-              && element != null && element.getParent() instanceof XmlAttribute) {
-            XmlAttribute attribute = (XmlAttribute)element.getParent();
-            if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
-              // When defining an id, don't point to another reference
-              // TODO: Unless you use @id instead of @+id!
-              return PsiReference.EMPTY_ARRAY;
-            }
-          }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return PsiReference.EMPTY_ARRAY;
+    }
+    ResourceValue resValue = value.getValue();
+    if (resValue == null || !resValue.isReference()) {
+      return PsiReference.EMPTY_ARRAY;
+    }
 
-          return new PsiReference[]{new AndroidResourceReference(value, facet, resValue, null)};
-        }
+    String resType = resValue.getResourceType();
+    if (resType == null) {
+      return PsiReference.EMPTY_ARRAY;
+    }
+
+    // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
+    //    android:layout_alignLeft="@+id/foo"
+    // is a reference to R.id.foo, but
+    //    android:id="@+id/foo"
+    // is not; it's the place we're defining it.
+    if (resValue.getPackage() == null && "+id".equals(resType) && element != null && element.getParent() instanceof XmlAttribute) {
+      XmlAttribute attribute = (XmlAttribute)element.getParent();
+      if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
+        // When defining an id, don't point to another reference
+        return PsiReference.EMPTY_ARRAY;
       }
     }
-    return PsiReference.EMPTY_ARRAY;
+
+    AndroidResourceReference resourceReference = new AndroidResourceReference(value, facet, resValue);
+    if (!StringUtil.isEmpty(resValue.getPackage())) {
+      ResourceNamespaceReference namespaceReference = new ResourceNamespaceReference(value, resValue);
+      return new PsiReference[] {namespaceReference, resourceReference};
+    }
+
+    return new PsiReference[] {resourceReference};
   }
 
   @Override

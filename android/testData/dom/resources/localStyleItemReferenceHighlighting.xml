@@ -12,6 +12,6 @@
     <item name="myStr1">@layout/myLayout</item>
     <item name="myStr2"><error>@string/stringRe</error></item>
     <item name="myStr3">@string/stringRes</item>
-    <item name="myStr4">@string/unknown</item>
+    <item name="<error>myStr4</error>">@string/unknown</item>
   </style>
 </resources>

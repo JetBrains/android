@@ -16,15 +16,12 @@
 package com.android.tools.idea.gradle.dsl.model.android.splits;
 
 import com.android.tools.idea.gradle.dsl.api.android.splits.LanguageModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class LanguageModelImpl extends GradleDslBlockModel implements LanguageModel {
   @NonNls private static final String ENABLE = "enable";
@@ -36,55 +33,13 @@ public class LanguageModelImpl extends GradleDslBlockModel implements LanguageMo
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> enable() {
-    return myDslElement.getLiteralProperty(ENABLE, Boolean.class);
+  public ResolvedPropertyModel enable() {
+    return GradlePropertyModelBuilder.create(myDslElement, ENABLE).asMethod(true).buildResolved();
   }
 
   @Override
   @NotNull
-  public LanguageModel setEnable(boolean enable) {
-    myDslElement.setNewLiteral(ENABLE, enable);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public LanguageModel removeEnable() {
-    myDslElement.removeProperty(ENABLE);
-    return this;
-  }
-
-  @Override
-  @Nullable
-  public List<GradleNotNullValue<String>> include() {
-    return myDslElement.getListProperty(INCLUDE, String.class);
-  }
-
-  @Override
-  @NotNull
-  public LanguageModel addInclude(@NotNull String include) {
-    myDslElement.addToNewLiteralList(INCLUDE, include);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public LanguageModel removeInclude(@NotNull String include) {
-    myDslElement.removeFromExpressionList(INCLUDE, include);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public LanguageModel removeAllInclude() {
-    myDslElement.removeProperty(INCLUDE);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public LanguageModel replaceInclude(@NotNull String oldInclude, @NotNull String newInclude) {
-    myDslElement.replaceInExpressionList(INCLUDE, oldInclude, newInclude);
-    return this;
+  public ResolvedPropertyModel include() {
+    return GradlePropertyModelBuilder.create(myDslElement, INCLUDE).asMethod(true).buildResolved();
   }
 }

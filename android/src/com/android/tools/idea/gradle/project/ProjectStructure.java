@@ -31,10 +31,13 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Ref;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
@@ -73,16 +76,16 @@ public class ProjectStructure {
   public void analyzeProjectStructure(@NotNull ProgressIndicator progressIndicator) {
     AndroidPluginVersionsInProject pluginVersionsInProject = new AndroidPluginVersionsInProject();
 
-    List<Module> appModules = new ArrayList<>();
+    Queue<Module> appModules = new ConcurrentLinkedQueue<>();
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     List<Module> modules = Arrays.asList(moduleManager.getModules());
-    List<Module> leafModules = new ArrayList<>(modules);
+    Queue<Module> leafModules = new ConcurrentLinkedQueue<>(modules);
 
     ModuleFinder moduleFinder = new ModuleFinder(myProject);
 
     JobLauncher jobLauncher = JobLauncher.getInstance();
-    jobLauncher.invokeConcurrentlyUnderProgress(modules, progressIndicator, true /* fail fast */, module -> {
+    jobLauncher.invokeConcurrentlyUnderProgress(modules, progressIndicator, module -> {
       GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
         String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
@@ -104,7 +107,8 @@ public class ProjectStructure {
           return true;
         }
         ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
-        leafModules.removeAll(Arrays.asList(rootManager.getDependencies()));
+        // Remove all dependencies, except 'app' or 'dynamic-feature' modules
+        leafModules.removeAll(Arrays.stream(rootManager.getDependencies()).filter(m -> !isAppOrFeature(m)).collect(Collectors.toList()));
       }
       else {
         // Remove non-Gradle modules from "leaf" modules.
@@ -125,6 +129,11 @@ public class ProjectStructure {
 
       myModuleFinderRef.set(moduleFinder);
     }
+  }
+
+  private static boolean isAppOrFeature(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null && facet.getConfiguration().isAppOrFeature();
   }
 
   private static boolean isApp(@NotNull AndroidModuleModel androidModel) {

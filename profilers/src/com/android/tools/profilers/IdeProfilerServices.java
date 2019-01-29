@@ -16,7 +16,6 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +26,7 @@ import java.io.FileOutputStream;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public interface IdeProfilerServices {
   /**
@@ -52,7 +52,7 @@ public interface IdeProfilerServices {
 
   /**
    * Returns a service that can navigate to a target code location.
-   *
+   * <p>
    * Implementors of this method should be sure to return the same instance each time, not a new
    * instance per call.
    */
@@ -61,7 +61,7 @@ public interface IdeProfilerServices {
 
   /**
    * Returns an opt-in service that can report when certain features were used.
-   *
+   * <p>
    * Implementors of this method should be sure to return the same instance each time, not a new
    * instance per call.
    */
@@ -70,16 +70,22 @@ public interface IdeProfilerServices {
 
   /**
    * Either enable advanced profiling or present the user with UI to make enabling it easy.
-   *
+   * <p>
    * By default, advanced profiling features are not turned on, as they require instrumenting the
    * user's code, which at the very least requires a rebuild. Moreover, this may even potentially
    * interfere with the user's app logic or slow it down.
-   *
+   * <p>
    * If this method is called, it means the user has expressed an intention to enable advanced
    * profiling. It is up to the implementor of this method to help the user accomplish this
    * request.
    */
   void enableAdvancedProfiling();
+
+  /**
+   * Returns the currently loaded application ID. If one is not available an empty string should be returned.
+   */
+  @NotNull
+  String getApplicationId();
 
   @NotNull
   FeatureConfig getFeatureConfig();
@@ -99,17 +105,6 @@ public interface IdeProfilerServices {
   ProfilerPreferences getPersistentProfilerPreferences();
 
   /**
-   * Open the dialog for managing the CPU profiling configurations.
-   *
-   * @param configuration    Profiling configuration to be selected when opening the dialog
-   * @param deviceLevel API level of the device
-   * @param dialogCallback   Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
-   *                         that was selected on the configurations list when the dialog was closed.
-   */
-  void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel profilerModel, int deviceLevel,
-                                            Consumer<ProfilingConfiguration> dialogCallback);
-
-  /**
    * Displays a yes/no dialog warning the user the trace file is too large to be parsed and asking them if parsing should proceed.
    *
    * @param yesCallback callback to be run if user clicks "Yes"
@@ -118,9 +113,28 @@ public interface IdeProfilerServices {
   void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback);
 
   /**
-   * Returns the profiling configurations saved for a project.
+   * Opens a dialog giving the user to select items from the listbox.
+   *
+   * @param title                      tile to be provided to the dialog box.
+   * @param message                    optional message to be provided to the user about contents of listbox.
+   * @param options                    options used to populate the listbox. The list should not be empty.
+   * @param listBoxPresentationAdapter adapter that takes in an option and returns a string to be presented to the user.
+   * @return The option the user selected. If the user cancels the return value will be null.
    */
-  List<ProfilingConfiguration> getCpuProfilingConfigurations();
+  <T> T openListBoxChooserDialog(@NotNull String title,
+                                 @Nullable String message,
+                                 @NotNull T[] options,
+                                 @NotNull Function<T, String> listBoxPresentationAdapter);
+
+  /**
+   * Returns the profiling configurations saved by the user for a project.
+   */
+  List<ProfilingConfiguration> getUserCpuProfilerConfigs();
+
+  /**
+   * @return default profiling configurations.
+   */
+  List<ProfilingConfiguration> getDefaultCpuProfilerConfigs();
 
   /**
    * Whether a native CPU profiling configuration is preferred over a Java one.
@@ -129,18 +143,17 @@ public interface IdeProfilerServices {
   boolean isNativeProfilingConfigurationPreferred();
 
   /**
-   * Displays a balloon message showing the user that an error has occurred.
-   *
-   * @param title title of the message
-   * @param text  body of the message
+   * Pops up a toast that contains information contained in the notification,
+   * which should particularly draw attention to warning and error messages.
    */
-  void showErrorBalloon(@NotNull String title, @NotNull String text);
+  void showNotification(@NotNull Notification notification);
 
   /**
    * Wraps the supplied expection in a NoPiiException that is then sent to the crash report.
    * This function should only be called when we are sure there is no PII within the exception message.
    * The NoPiiException uploads the full exception message to the crash report site. This can then be
    * to diagnose and root cause issues.
+   *
    * @param t throwable to be wrapped. The exception should not contain PII within the message.
    */
   void reportNoPiiException(@NotNull Throwable t);

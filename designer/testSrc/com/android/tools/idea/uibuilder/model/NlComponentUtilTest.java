@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlComponentUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -95,5 +96,30 @@ public class NlComponentUtilTest extends AndroidTestCase {
     assertFalse(NlComponentUtil.isDescendant(button, ImmutableList.of(linearLayout2)));
     assertFalse(NlComponentUtil.isDescendant(linearLayout2, ImmutableList.of(linearLayout)));
     assertFalse(NlComponentUtil.isDescendant(textView, ImmutableList.of()));
+  }
+
+  public void testIsDescendantInModelWithLoop() {
+    NlComponent root = createComponent(createTag("LinearLayout"));
+    NlComponent child1 = createComponent(createTag("TextView"));
+    NlComponent child2 = createComponent(createTag("Button"));
+
+    NlComponent notRoot = createComponent(createTag("LinearLayout"));
+
+
+    root.addChild(child1);
+    root.addChild(child2);
+    child1.addChild(root);
+
+    // In this case we expect an AssertionError
+    try {
+      NlComponentUtil.isDescendant(child1, ImmutableList.of(notRoot));
+      fail("Expected assertion for a Model containing a loop");
+    } catch (AssertionError e) {
+      assertEquals("Loop found in NlModel. \n" +
+                   "NlComponent{tag=<TextView>, bounds=[0,0:0x0}\n" +
+                   "    NlComponent{tag=<LinearLayout>, bounds=[0,0:0x0}\n" +
+                   "        !!LOOP!! NlComponent{tag=<TextView>, bounds=[0,0:0x0}\n" +
+                   "        NlComponent{tag=<Button>, bounds=[0,0:0x0}", e.getMessage());
+    }
   }
 }

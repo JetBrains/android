@@ -15,11 +15,15 @@
  */
 package com.android.tools.datastore.poller;
 
+import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.StatusRuntimeException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -29,8 +33,19 @@ import java.util.List;
  * The get data command will pull data locally cached from the connected service.
  */
 public class CpuDataPoller extends PollRunner {
-
+  // CPU usage data and thread activities are sampled by the same thread in perfd; therefore, the latest timestamp
+  // from the two is an appropriate start point for the next sampling. It guarantees no lost of data, but there is a side
+  // effect that we may query some time range more than once. For example,
+  //      Collection 1 -> Poll 1 -> Collection 2 -> Poll 2 ... Poll 3
+  // Poll 1 receives Sample 1 (obtained by Collect 1)
+  // Poll 2 asks for data from range (Collect 1, Long.MAX_VALUE] and receives Sample 2
+  // Poll 3 asks for data from range (Collect 2, Long.MAX_VALUE]
+  //
+  // Because trace operations are inserted by different threads on perfd, they need to be queried differently. Otherwise,
+  // if there is a trace operation happening between Sample 2 and Poll 2, it will be included by both Poll 2 and 3.
+  // Therefore, we keep a different timestamp to query trace operations.
   private long myDataRequestStartTimestampNs = Long.MIN_VALUE;
+  private long myTraceInfoRequestStartTimestampNs = Long.MIN_VALUE;
 
   @NotNull
   private final CpuServiceGrpc.CpuServiceBlockingStub myPollingService;
@@ -38,34 +53,36 @@ public class CpuDataPoller extends PollRunner {
   private final CpuTable myCpuTable;
   @NotNull
   private final Common.Session mySession;
+  @NotNull
+  private final LogService myLogService;
 
   public CpuDataPoller(@NotNull Common.Session session,
                        @NotNull CpuTable table,
-                       @NotNull CpuServiceGrpc.CpuServiceBlockingStub pollingService) {
+                       @NotNull CpuServiceGrpc.CpuServiceBlockingStub pollingService,
+                       @NotNull LogService logService) {
     super(POLLING_DELAY_NS);
     myCpuTable = table;
     myPollingService = pollingService;
     mySession = session;
+    myLogService = logService;
   }
 
   @Override
   public void poll() throws StatusRuntimeException {
+    // Poll usage data.
     long getDataStartNs = myDataRequestStartTimestampNs;
-    CpuProfiler.CpuDataRequest.Builder request = CpuProfiler.CpuDataRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTimestamp(getDataStartNs)
-      .setEndTimestamp(Long.MAX_VALUE);
+    CpuProfiler.CpuDataRequest.Builder request = CpuProfiler.CpuDataRequest
+      .newBuilder().setSession(mySession).setStartTimestamp(getDataStartNs).setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.CpuDataResponse response = myPollingService.getData(request.build());
     for (CpuProfiler.CpuUsageData data : response.getDataList()) {
       getDataStartNs = Math.max(getDataStartNs, data.getEndTimestamp());
       myCpuTable.insert(mySession, data);
     }
 
+    // Poll thread activities.
     long getThreadsStartNs = myDataRequestStartTimestampNs;
-    CpuProfiler.GetThreadsRequest.Builder threadsRequest = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTimestamp(getThreadsStartNs)
-      .setEndTimestamp(Long.MAX_VALUE);
+    CpuProfiler.GetThreadsRequest.Builder threadsRequest = CpuProfiler.GetThreadsRequest
+      .newBuilder().setSession(mySession).setStartTimestamp(getThreadsStartNs).setEndTimestamp(Long.MAX_VALUE);
     CpuProfiler.GetThreadsResponse threadsResponse = myPollingService.getThreads(threadsRequest.build());
 
     if (myDataRequestStartTimestampNs == Long.MIN_VALUE) {
@@ -86,6 +103,59 @@ public class CpuDataPoller extends PollRunner {
 
       myCpuTable.insertActivities(mySession, thread.getTid(), thread.getName(), activities);
     }
+
+    // Poll profiling state.
+    CpuProfiler.ProfilingStateRequest profilingStateRequest = CpuProfiler.ProfilingStateRequest.newBuilder().setSession(mySession).build();
+    myCpuTable.insertProfilingStateData(mySession, myPollingService.checkAppProfilingState(profilingStateRequest));
+
+    // Poll trace info.
+    CpuProfiler.GetTraceInfoRequest.Builder traceInfoRequest = CpuProfiler.GetTraceInfoRequest
+      .newBuilder().setSession(mySession).setFromTimestamp(myTraceInfoRequestStartTimestampNs).setToTimestamp(Long.MAX_VALUE);
+    CpuProfiler.GetTraceInfoResponse traceInfoResponse = myPollingService.getTraceInfo(traceInfoRequest.build());
+    for (CpuProfiler.TraceInfo traceInfo : traceInfoResponse.getTraceInfoList()) {
+      if (traceInfo.getInitiationType().equals(CpuProfiler.TraceInitiationType.INITIATED_BY_API)) {
+        // Insert trace content before inserting trace info. Because once the consumer of datastore (CpuProfilerStage) sees a
+        // trace info, it may decide to automatically set and select it which requires the content is in the datastore.
+        CpuProfiler.GetTraceRequest.Builder traceRequest =
+          CpuProfiler.GetTraceRequest.newBuilder().setSession(mySession).setTraceId(traceInfo.getTraceId());
+        CpuProfiler.GetTraceResponse traceResponse = myPollingService.getTrace(traceRequest.build());
+        // (b/120264801) Temp fix for exporting API initiated traces. Exporting traces assumes traces come from a file. This step copies the
+        // raw trace data to a temp file, then updates the trace info to point to the file. This allows export to copy the temp file to
+        // the user specified location.
+        File tempTraceFile =
+          new File(String.format("%s/cpu_automated_trace_%d.trace", System.getProperty("java.io.tmpdir"), traceInfo.getTraceId()));
+        tempTraceFile.deleteOnExit();
+        try (FileOutputStream out = new FileOutputStream(tempTraceFile)) {
+          out.write(traceResponse.getData().toByteArray());
+        }
+        catch (IOException ex) {
+          myLogService.getLogger(CpuDataPoller.class).warn("Failed to create temp file for automated trace.");
+        }
+        myCpuTable.insertTrace(
+          mySession, traceInfo.getTraceId(), traceResponse.getProfilerType(), traceResponse.getProfilerMode(), traceResponse.getData());
+        // TODO(b/74358723): Revisit the logic to insert data into datastore.
+        // Note the traceInfo returned by perfd is preliminary. For example, the start and end timestamps
+        // are set when those events are perceived by perfd including the time spent by perfa waiting for the trace to
+        // complete. They may be visibly different from the range inferred from trace content. When we work on b/74358723,
+        // the trace will be automatically selected, and we will parse the trace right away. In that case, we should insert
+        // the accurate traceInfo.
+        CpuProfiler.TraceInfo updatedTraceInfo = traceInfo.toBuilder().setTraceFilePath(tempTraceFile.getAbsolutePath()).build();
+        myCpuTable.insertTraceInfo(mySession, updatedTraceInfo);
+      }
+    }
+    myTraceInfoRequestStartTimestampNs = traceInfoResponse.getResponseTimestamp();
+
     myDataRequestStartTimestampNs = Math.max(Math.max(myDataRequestStartTimestampNs + 1, getDataStartNs), getThreadsStartNs);
+  }
+
+  @Override
+  public void stop() {
+    // Before stopping, we need to handle the case where we were profiling. That's done by inserting a ProfilingStateResponse with
+    // being_profiled = false and max timestamp to the corresponding table. This way, we'll make sure that checkAppProfilingState will
+    // return false next time we check if we're profiling in this session.
+    CpuProfiler.ProfilingStateResponse response = CpuProfiler.ProfilingStateResponse
+      .newBuilder().setBeingProfiled(false).setCheckTimestamp(Long.MAX_VALUE).build();
+    myCpuTable.insertProfilingStateData(mySession, response);
+    super.stop();
   }
 }

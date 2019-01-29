@@ -34,6 +34,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
@@ -102,6 +103,7 @@ public class GradleFiles {
       }
     };
 
+    if (myProject.isDefault()) return;
 
     // Add a listener to see when gradle files are being edited.
     myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myFileEditorListener);
@@ -109,8 +111,11 @@ public class GradleFiles {
 
     GradleSyncState.subscribe(myProject, mySyncListener);
     // Populate build file hashes on creation.
-    if (!myProject.isDefault()) {
-      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(this::updateFileHashes);
+    if (myProject.isInitialized()) {
+      updateFileHashes();
+    }
+    else {
+      StartupManager.getInstance(myProject).registerPostStartupActivity(this::updateFileHashes);
     }
   }
 
@@ -270,7 +275,7 @@ public class GradleFiles {
 
     List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(myProject).getModules());
     JobLauncher jobLauncher = JobLauncher.getInstance();
-    jobLauncher.invokeConcurrentlyUnderProgress(modules, null, true /* fail fast */, (module) -> {
+    jobLauncher.invokeConcurrentlyUnderProgress(modules, null, (module) -> {
       VirtualFile buildFile = getGradleBuildFile(module);
       if (buildFile != null) {
         File path = VfsUtilCore.virtualToIoFile(buildFile);
@@ -365,7 +370,7 @@ public class GradleFiles {
    * Listens for GradleSync events in order to clear the files that have changed and update the
    * file hashes for each of the gradle build files.
    */
-  private class SyncListener extends GradleSyncListener.Adapter {
+  private class SyncListener implements GradleSyncListener {
     @Override
     public void syncStarted(@NotNull Project project, boolean skipped, boolean sourceGenerationRequested) {
       maybeProcessSyncStarted(project);
@@ -414,45 +419,8 @@ public class GradleFiles {
     }
 
     @Override
-    public void beforeChildAddition(@NotNull PsiTreeChangeEvent event) {
-      // newChild is sometimes null, in this case child is normally populated instead.
-      if (event.getNewChild() != null) {
-        processEvent(event, event.getNewChild());
-      }
-      else {
-        processEvent(event, event.getChild());
-      }
-    }
-
-    @Override
-    public void beforeChildRemoval(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getOldChild());
-    }
-
-    @Override
-    public void beforeChildReplacement(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getNewChild(), event.getOldChild());
-    }
-
-    @Override
-    public void beforeChildMovement(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getOldChild(), event.getNewChild());
-    }
-
-    @Override
     public void childAdded(@NotNull PsiTreeChangeEvent event) {
-      // newChild is sometimes null, in this case child is normally populated instead.
-      if (event.getNewChild() != null) {
-        processEvent(event, event.getNewChild());
-      }
-      else {
-        processEvent(event, event.getChild());
-      }
+      processEvent(event, event.getChild());
     }
 
     @Override
@@ -512,6 +480,7 @@ public class GradleFiles {
 
       if (foundChange) {
         myGradleFiles.addChangedFile(psiFile.getVirtualFile(), isExternalBuildFile);
+        EditorNotifications.getInstance(psiFile.getProject()).updateNotifications(psiFile.getVirtualFile());
       }
     }
   }

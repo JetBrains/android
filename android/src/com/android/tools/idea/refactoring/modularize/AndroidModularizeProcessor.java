@@ -16,7 +16,8 @@
 package com.android.tools.idea.refactoring.modularize;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
@@ -50,6 +51,7 @@ import com.intellij.usageView.UsageViewUtil;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +61,8 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 
 // TODO: Should we eventually plug into MoveClassHandler.EP_NAME extensions? Offer a QuickFix at any point?
-public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
+public class
+AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
   private static final Logger LOGGER = Logger.getInstance(AndroidModularizeProcessor.class);
 
@@ -209,7 +212,7 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
       // TODO: What about references from build.gradle files?
     }
 
-    return UsageViewUtil.removeDuplicatedUsages(result.toArray(new UsageInfo[result.size()]));
+    return UsageViewUtil.removeDuplicatedUsages(result.toArray(UsageInfo.EMPTY_ARRAY));
   }
 
   @Override
@@ -231,8 +234,8 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
     }
     VirtualFile javaTargetDir = javaSourceFolders.get(0);
 
-    VirtualFile resDir = facet.getAllResourceDirectories().get(0);
-    ResourceFolderRepository repo = ResourceFolderRegistry.get(facet, resDir);
+    VirtualFile resDir = ResourceFolderManager.getInstance(facet).getFolders().get(0);
+    ResourceFolderRepository repo = ResourceFolderRegistry.getInstance(myProject).get(facet, resDir);
 
     Set<XmlFile> touchedXmlFiles = new HashSet<>();
 
@@ -301,10 +304,10 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
         String packageName = ((PsiJavaFile)(element).getContainingFile()).getPackageName();
 
         MoveClassesOrPackagesUtil.doMoveClass(
-          (PsiClass)element,
-          RefactoringUtil
-            .createPackageDirectoryInSourceRoot(new PackageWrapper(PsiManager.getInstance(myProject), packageName), javaTargetDir),
-          true);
+            (PsiClass)element,
+            RefactoringUtil
+                .createPackageDirectoryInSourceRoot(new PackageWrapper(PsiManager.getInstance(myProject), packageName), javaTargetDir),
+            true);
       }
     }
 
@@ -317,12 +320,13 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
   @Nullable
   private PsiDirectory getOrCreateTargetDirectory(ResourceFolderRepository base, ResourceItem resourceItem) {
     PsiManager manager = PsiManager.getInstance(myProject);
-    if (resourceItem.getSource() != null) {
-      ResourceFolderType folderType = ResourceHelper.getFolderType(resourceItem.getSource());
+    PathString itemFile = resourceItem.getSource();
+    if (itemFile != null) {
+      ResourceFolderType folderType = ResourceFolderType.getFolderType(itemFile.getParentFileName());
       if (folderType != null) {
         try {
           return manager.findDirectory(
-            VfsUtil.createDirectoryIfMissing(base.getResourceDir(), resourceItem.getConfiguration().getFolderName(folderType)));
+              VfsUtil.createDirectoryIfMissing(base.getResourceDir(), resourceItem.getConfiguration().getFolderName(folderType)));
         }
         catch (Exception ex) {
           LOGGER.debug(ex);
@@ -335,9 +339,10 @@ public class AndroidModularizeProcessor extends BaseRefactoringProcessor {
 
   @Nullable
   private PsiFile getOrCreateTargetValueFile(ResourceFolderRepository base, ResourceItem resourceItem) {
-    if (resourceItem.getSource() != null) {
+    PathString itemFile = resourceItem.getSource();
+    if (itemFile != null) {
       try {
-        String name = resourceItem.getSource().getFile().getName();
+        String name = itemFile.getFileName();
         PsiDirectory dir = getOrCreateTargetDirectory(base, resourceItem);
         if (dir != null) {
           PsiFile result = dir.findFile(name);

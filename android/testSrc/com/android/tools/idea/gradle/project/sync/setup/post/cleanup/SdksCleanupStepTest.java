@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle.project.sync.setup.post.cleanup;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.testing.Sdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -117,7 +119,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
     Module appModule = createModule("app");
     // Simulate this is an Android module.
     AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
-    androidFacet.setAndroidModel(mock(AndroidModel.class));
+    androidFacet.getConfiguration().setModel(mock(AndroidModel.class));
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
 
@@ -142,7 +144,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
     Module appModule = createModule("app");
     // Simulate this is an Android module.
     AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
-    androidFacet.setAndroidModel(mock(AndroidModel.class));
+    androidFacet.getConfiguration().setModel(mock(AndroidModel.class));
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
 
@@ -181,6 +183,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
 
   private void createSdk() {
     File sdkPath = getSdk();
+    Sdks.allowAccessToSdk(getTestRootDisposable());
     IAndroidTarget target = findLatestAndroidTarget(sdkPath);
 
     String jdkHomePath = Jdks.getJdkHomePath(null);
@@ -192,6 +195,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
 
     mySdk = AndroidSdks.getInstance().create(target, sdkPath, "Test SDK", myJdk, true /* add roots */);
     assertNotNull(mySdk);
+    IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
   private void removeSdk() {
@@ -207,7 +211,7 @@ public class SdksCleanupStepTest extends IdeaTestCase {
 
   private static void setUpModuleAsAndroid(@NotNull Module module, @NotNull Sdk sdk) {
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.setAndroidModel(mock(AndroidModel.class));
+    facet.getConfiguration().setModel(mock(AndroidModel.class));
 
     ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(module).getModifiableModel();
     modifiableModel.setSdk(sdk);

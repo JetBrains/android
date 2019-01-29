@@ -20,5 +20,8 @@ package com.android.tools.adtui.model;
  * For unfinished events, use Long.MAX_VALUE;
  */
 public interface DurationData {
-  long getDuration();
+  /**
+   * The returned duration is expected in micro seconds.
+   */
+  long getDurationUs();
 }

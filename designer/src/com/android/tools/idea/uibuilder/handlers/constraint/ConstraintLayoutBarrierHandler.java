@@ -16,10 +16,11 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.google.common.collect.ImmutableList;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.Icon;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -31,26 +32,48 @@ public class ConstraintLayoutBarrierHandler extends ConstraintHelperHandler {
   @Override
   @NotNull
   public String getTitle(@NotNull NlComponent component) {
-    String title = getSimpleTagName(component.getTagName());
-    if (NlComponentHelperKt.isOrHasSuperclass(component, CLASS_CONSTRAINT_LAYOUT_CHAIN)) {
-      boolean horizontal = true;
-      String direction = component.getLiveAttribute(ANDROID_URI, ATTR_BARRIER_DIRECTION);
-      if (direction != null && (direction.equals("top") || direction.equals("bottom"))) {
-        horizontal = false;
-      }
-      if (horizontal) {
-        title = "Horizontal Barrier";
-      }
-      else {
-        title = "Vertical Barrier";
-      }
+    String barrierDirection = component.resolveAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
+    if (barrierDirection == null) {
+      return "Barrier";
     }
-    return title;
+
+    return isVertical(component)? "Vertical Barrier" : "Horizontal Barrier";
   }
 
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(ATTR_BARRIER_DIRECTION);
+  }
+
+  @NotNull
+  @Override
+  public Icon getIcon(@NotNull NlComponent component) {
+    if (!CONSTRAINT_LAYOUT_BARRIER.isEquals(component.getTagName())) {
+      return super.getIcon(component);
+    }
+    if (isVertical(component)) {
+      return StudioIcons.LayoutEditor.Toolbar.BARRIER_VERTICAL;
+    }
+    else {
+      return StudioIcons.LayoutEditor.Toolbar.BARRIER_HORIZONTAL;
+    }
+  }
+
+  private static boolean isVertical(@NotNull NlComponent component) {
+    String barrierDirection = component.resolveAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
+    if (barrierDirection == null) {
+      return false;
+    }
+
+    switch (barrierDirection) {
+      case CONSTRAINT_BARRIER_START:
+      case CONSTRAINT_BARRIER_END:
+      case CONSTRAINT_BARRIER_LEFT:
+      case CONSTRAINT_BARRIER_RIGHT:
+        return true;
+      default:
+        return false;
+    }
   }
 }

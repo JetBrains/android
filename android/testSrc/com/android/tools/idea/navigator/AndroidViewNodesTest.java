@@ -75,7 +75,7 @@ public class AndroidViewNodesTest extends AndroidGradleTestCase {
     Disposer.register(project, projectViewPane);
 
     ProjectView projectView = mock(ProjectView.class);
-    IdeComponents.replaceService(project, ProjectView.class, projectView);
+    new IdeComponents(project).replaceProjectService(ProjectView.class, projectView);
     when(projectView.getProjectViewPaneById(AndroidProjectViewPane.ID)).thenReturn(projectViewPane);
 
     return projectViewPane;

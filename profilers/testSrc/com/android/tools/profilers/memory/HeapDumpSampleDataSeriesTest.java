@@ -15,14 +15,17 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -39,6 +42,15 @@ public class HeapDumpSampleDataSeriesTest {
 
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpSampleDataSeriesTest", myService);
 
+  private MemoryProfilerStage myStage;
+
+  @Before
+  public void setUp() {
+    myStage =
+      new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, new FakeTimer()),
+                              new FakeCaptureObjectLoader());
+  }
+
   @Test
   public void testGetDataForXRange() {
     HeapDumpInfo dumpInfo1 = HeapDumpInfo.newBuilder()
@@ -54,21 +66,21 @@ public class HeapDumpSampleDataSeriesTest {
 
     HeapDumpSampleDataSeries series =
       new HeapDumpSampleDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
-                                   myIdeProfilerServices.getFeatureTracker());
+                                   myIdeProfilerServices.getFeatureTracker(), myStage);
     List<SeriesData<CaptureDurationData<CaptureObject>>> dataList =
       series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());
     SeriesData<CaptureDurationData<CaptureObject>> data1 = dataList.get(0);
     assertEquals(2, data1.x);
-    assertEquals(5, data1.value.getDuration());
+    assertEquals(5, data1.value.getDurationUs());
     CaptureObject capture1 = data1.value.getCaptureEntry().getCaptureObject();
     assertEquals(TimeUnit.MICROSECONDS.toNanos(2), capture1.getStartTimeNs());
     assertEquals(TimeUnit.MICROSECONDS.toNanos(7), capture1.getEndTimeNs());
 
     SeriesData<CaptureDurationData<CaptureObject>> data2 = dataList.get(1);
     assertEquals(17, data2.x);
-    assertEquals(Long.MAX_VALUE, data2.value.getDuration());
+    assertEquals(Long.MAX_VALUE, data2.value.getDurationUs());
     CaptureObject capture2 = data2.value.getCaptureEntry().getCaptureObject();
     assertEquals(TimeUnit.MICROSECONDS.toNanos(17), capture2.getStartTimeNs());
     assertEquals(Long.MAX_VALUE, capture2.getEndTimeNs());

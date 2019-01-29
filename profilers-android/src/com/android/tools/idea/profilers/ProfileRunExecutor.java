@@ -16,6 +16,12 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.run.ExecutorIconProvider;
+import com.android.tools.idea.run.LaunchOptionsProvider;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.sessions.SessionsManager;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.executors.DefaultRunExecutor;
@@ -23,6 +29,7 @@ import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.content.Content;
 import icons.StudioIcons;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
@@ -30,8 +37,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Map;
 
-public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIconProvider {
+public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIconProvider, LaunchOptionsProvider {
+  public static final String PROFILER_LAUNCH_OPTION_KEY = "isProfiling";
+
   @NonNls public static final String EXECUTOR_ID = AndroidProfilerToolWindowFactory.ID;
 
   @NotNull
@@ -85,11 +95,24 @@ public class ProfileRunExecutor extends DefaultRunExecutor implements ExecutorIc
   @Nullable
   @Override
   public Icon getExecutorIcon(@NotNull Project project, @NotNull Executor executor) {
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidProfilerToolWindowFactory.ID);
-    if (toolWindow != null && toolWindow.getContentManager().getContentCount() > 0) {
-      return ExecutionUtil.getLiveIndicator(getIcon());
+    AndroidProfilerToolWindow profilerToolWindow = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project);
+    if (profilerToolWindow != null) {
+      StudioProfilers profilers = profilerToolWindow.getProfilers();
+      if (profilers != null) {
+        Common.Session profilingSession = profilers.getSessionsManager().getProfilingSession();
+        if (SessionsManager.isSessionAlive(profilingSession)) {
+          return ExecutionUtil.getLiveIndicator(getIcon());
+        }
+      }
     }
+
     return getIcon();
+  }
+
+  @NotNull
+  @Override
+  public Map<String, Object> getLaunchOptions() {
+    return ImmutableMap.of(PROFILER_LAUNCH_OPTION_KEY, true);
   }
 
   @Override

@@ -21,11 +21,9 @@ import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.adtui.SearchField;
 import com.android.tools.adtui.validation.Validator.Result;
 import com.android.tools.adtui.validation.Validator.Severity;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.assistant.view.UIUtils;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
@@ -38,17 +36,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.SpeedSearchComparator;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.NotNullProducer;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidArtworkIcons;
 import icons.AndroidIcons;
 import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -61,9 +57,8 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.font.FontRenderContext;
-import java.io.IOException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
@@ -90,7 +85,7 @@ public class MoreFontsDialog extends DialogWrapper {
   private final ResourceResolver myResolver;
   private final StringProperty myNewFontName;
   private final SelectedListValueProperty<FontFamily> mySelectedFontFamily;
-  private SearchField mySearchField;
+  private SearchTextField mySearchField;
   private JBList<FontFamily> myFontList;
   private JComboBox<String> myProvider;
   private JPanel myContentPanel;
@@ -111,7 +106,7 @@ public class MoreFontsDialog extends DialogWrapper {
 
   private void createUIComponents() {
     myContentPanel = new JPanel();
-    mySearchField = new SearchField(false);
+    mySearchField = new SearchTextField(false);
     myValidatorPanel = new ValidatorPanel(myDisposable, new JPanel());
   }
 
@@ -217,7 +212,7 @@ public class MoreFontsDialog extends DialogWrapper {
           throw new RuntimeException("Unexpected font source " + family.getFontSource());
       }
     }
-    catch (IOException ex) {
+    catch (Exception ex) {
       Logger.getInstance(MoreFontsDialog.class).warn("Could not create font resource file", ex);
       Messages.showErrorDialog(myContentPanel, "Could not create font resource file");
       return;
@@ -481,7 +476,7 @@ public class MoreFontsDialog extends DialogWrapper {
 
       switch (fontFamily.getFontSource()) {
         case SYSTEM:
-          setIcon(AndroidArtworkIcons.Icons.Android);
+          setIcon(AndroidIcons.Android);
           break;
         case DOWNLOADABLE:
           setIcon(StudioIcons.Common.LINK);
@@ -675,13 +670,25 @@ public class MoreFontsDialog extends DialogWrapper {
   }
 
   private static class HeaderLabel extends JBLabel {
+    private static final Color CONTRAST_BORDER_COLOR = new JBColor(new NotNullProducer<Color>() {
+      final Color color = new JBColor(0x9b9b9b, 0x4b4b4b);
+      @NotNull
+      @Override
+      public Color produce() {
+        if (SystemInfo.isMac && UIManager.getLookAndFeel().getName().contains("IntelliJ")) {
+          return Gray.xC9;
+        }
+        return color;
+      }
+    });
+
     @Override
     protected void paintComponent(@NotNull Graphics graphics) {
       super.paintComponent(graphics);
       int width = getWidth();
       int height = getHeight() / 2;
       int textWidth = (int)getFontMetrics(getFont()).getStringBounds(getText(), graphics).getWidth();
-      graphics.setColor(UIUtils.getSeparatorColor());
+      graphics.setColor(CONTRAST_BORDER_COLOR);
       graphics.drawLine(JBUI.scale(5), height, JBUI.scale(30), height);
       graphics.drawLine(textWidth + JBUI.scale(40), height, width - JBUI.scale(5), height);
     }

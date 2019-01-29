@@ -15,19 +15,22 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.diagnostics.exception.NoPiiException;
+import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
+import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
-import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.Notification;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableList;
@@ -38,20 +41,30 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class IntellijProfilerServices implements IdeProfilerServices {
 
@@ -60,7 +73,7 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   private final IntellijCodeNavigator myCodeNavigator;
-  private final StudioFeatureTracker myFeatureTracker = new StudioFeatureTracker();
+  private final StudioFeatureTracker myFeatureTracker;
 
   @NotNull private final Project myProject;
   @NotNull private final IntellijProfilerPreferences myPersistentPreferences;
@@ -68,6 +81,7 @@ public class IntellijProfilerServices implements IdeProfilerServices {
 
   public IntellijProfilerServices(@NotNull Project project) {
     myProject = project;
+    myFeatureTracker = new StudioFeatureTracker(myProject);
     myCodeNavigator = new IntellijCodeNavigator(project, myFeatureTracker);
     myPersistentPreferences = new IntellijProfilerPreferences();
     myTemporaryPreferences = new TemporaryProfilerPreferences();
@@ -119,6 +133,19 @@ public class IntellijProfilerServices implements IdeProfilerServices {
 
   @NotNull
   @Override
+  public String getApplicationId() {
+    List<String> applicationIds = new ArrayList<>();
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
+      if (androidModuleModel != null) {
+        applicationIds.add(androidModuleModel.getApplicationId());
+      }
+    }
+    return applicationIds.isEmpty() ? "" : applicationIds.get(0);
+  }
+
+  @NotNull
+  @Override
   public CodeNavigator getCodeNavigator() {
     return myCodeNavigator;
   }
@@ -163,8 +190,13 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isCpuCaptureFilterEnabled() {
-        return StudioFlags.PROFILER_CPU_CAPTURE_FILTER.get();
+      public boolean isCpuApiTracingEnabled() {
+        return StudioFlags.PROFILER_CPU_API_TRACING.get();
+      }
+
+      @Override
+      public boolean isCpuNewRecordingWorkflowEnabled() {
+        return StudioFlags.PROFILER_CPU_NEW_RECORDING_WORKFLOW.get();
       }
 
       @Override
@@ -173,18 +205,28 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isExportCpuTraceEnabled() {
+        return StudioFlags.PROFILER_EXPORT_CPU_TRACE.get();
+      }
+
+      @Override
+      public boolean isImportCpuTraceEnabled() {
+        return StudioFlags.PROFILER_IMPORT_CPU_TRACE.get();
+      }
+
+      @Override
       public boolean isJniReferenceTrackingEnabled() {
         return StudioFlags.PROFILER_TRACK_JNI_REFS.get();
       }
 
       @Override
-      public boolean isJvmtiAgentEnabled() {
-        return StudioFlags.PROFILER_USE_JVMTI.get();
+      public boolean isLiveAllocationsEnabled() {
+        return StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
       }
 
       @Override
-      public boolean isLiveAllocationsEnabled() {
-        return StudioFlags.PROFILER_USE_JVMTI.get() && StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get();
+      public boolean isLiveAllocationsSamplingEnabled() {
+        return StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get();
       }
 
       @Override
@@ -198,18 +240,28 @@ public class IntellijProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isNetworkRequestPayloadEnabled() {
-        return StudioFlags.PROFILER_NETWORK_REQUEST_PAYLOAD.get();
+      public boolean isPerformanceMonitoringEnabled() {
+        return StudioFlags.PROFILER_PERFORMANCE_MONITORING.get();
       }
 
       @Override
-      public boolean isNetworkThreadViewEnabled() {
-        return StudioFlags.PROFILER_SHOW_THREADS_VIEW.get();
+      public boolean isSessionImportEnabled() {
+        return StudioFlags.PROFILER_IMPORT_SESSION.get();
       }
 
       @Override
-      public boolean isSimplePerfEnabled() {
-        return StudioFlags.PROFILER_USE_SIMPLEPERF.get();
+      public boolean isSessionsEnabled() {
+        return StudioFlags.PROFILER_SHOW_SESSIONS.get();
+      }
+
+      @Override
+      public boolean isFragmentsEnabled() {
+        return StudioFlags.PROFILER_FRAGMENT_PROFILER_ENABLED.get();
+      }
+
+      @Override
+      public boolean isStartupCpuProfilingEnabled() {
+        return StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get();
       }
     };
   }
@@ -224,17 +276,6 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   @Override
   public ProfilerPreferences getPersistentProfilerPreferences() {
     return myPersistentPreferences;
-  }
-
-  @Override
-  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, int deviceLevel,
-                                                   Consumer<ProfilingConfiguration> dialogCallback) {
-    CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
-                                                                                   deviceLevel,
-                                                                                   model,
-                                                                                   dialogCallback,
-                                                                                   myFeatureTracker);
-    dialog.show();
   }
 
   @Override
@@ -255,8 +296,66 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
-    return CpuProfilingConfigService.getInstance(myProject).getConfigurations();
+  public <T> T openListBoxChooserDialog(@NotNull String title,
+                                        @Nullable String message,
+                                        @NotNull T[] options,
+                                        @NotNull Function<T, String> listBoxPresentationAdapter) {
+
+    Object[] selectedValue = new Object[1];
+    Supplier<T> dialog = () -> {
+      ListBoxChooserDialog<T> listBoxDialog = new ListBoxChooserDialog<>(title, message, options, listBoxPresentationAdapter);
+      listBoxDialog.show();
+      return listBoxDialog.getExitCode() != DialogWrapper.OK_EXIT_CODE ? null : listBoxDialog.getSelectedValue();
+    };
+    // Check if we are on a thread that is able to dispatch ui events. If we are show the dialog, otherwise invoke the dialog later.
+    if (SwingUtilities.isEventDispatchThread()) {
+      selectedValue[0] = dialog.get();
+    }
+    else {
+      // Object to control communication between the render thread and the capture thread.
+      CountDownLatch latch = new CountDownLatch(1);
+      try {
+        // Tell UI thread that we want to show a dialog then block capture thread
+        // until user has made a selection.
+        SwingUtilities.invokeLater(() -> {
+          selectedValue[0] = dialog.get();
+          latch.countDown();
+        });
+        //noinspection WaitNotInLoop
+        latch.await();
+      }
+      catch (InterruptedException ex) {
+        // If our wait was interrupted continue.
+      }
+    }
+    return (T)selectedValue[0];
+  }
+
+  @Override
+  public List<ProfilingConfiguration> getUserCpuProfilerConfigs() {
+    CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
+    CpuProfilingConfigService oldService = CpuProfilingConfigService.getInstance(myProject);
+
+    // We use the deprecated |oldService| to migrate the user created configurations to the new persistent class.
+    // |oldService| probably will be removed in coming versions of Android Studio: http://b/74601959
+    oldService.getConfigurations().forEach(
+      old -> configsState.addUserConfig(CpuProfilerConfigConverter.fromProto(old.toProto()))
+    );
+    // We don't need configurations from |oldService| anymore, so clear it.
+    oldService.setConfigurations(Collections.emptyList());
+
+    return CpuProfilerConfigConverter.toProto(configsState.getUserConfigs())
+      .stream()
+      .map(ProfilingConfiguration::fromProto)
+      .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
+    return CpuProfilerConfigConverter.toProto(CpuProfilerConfigsState.getDefaultConfigs())
+      .stream()
+      .map(ProfilingConfiguration::fromProto)
+      .collect(Collectors.toList());
   }
 
   @Override
@@ -273,8 +372,32 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void showErrorBalloon(@NotNull String title, @NotNull String text) {
-    AndroidNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR);
+  public void showNotification(@NotNull Notification notification) {
+    NotificationType type = null;
+
+    switch (notification.getSeverity()) {
+      case INFO:
+        type = NotificationType.INFORMATION;
+        break;
+      case WARNING:
+        type = NotificationType.WARNING;
+        break;
+      case ERROR:
+        type = NotificationType.ERROR;
+        break;
+    }
+
+    Notification.UrlData urlData = notification.getUrlData();
+    if (urlData != null) {
+      OpenUrlHyperlink hyperlink = new OpenUrlHyperlink(urlData.getUrl(), urlData.getText());
+      AndroidNotification.getInstance(myProject)
+                         .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP, false,
+                                      hyperlink);
+    }
+    else {
+      AndroidNotification.getInstance(myProject)
+                         .showBalloon(notification.getTitle(), notification.getText(), type, AndroidNotification.BALLOON_GROUP);
+    }
   }
 
   @Override

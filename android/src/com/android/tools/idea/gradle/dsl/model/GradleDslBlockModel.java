@@ -15,24 +15,34 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * Base class for the models representing block elements.
  */
-public abstract class GradleDslBlockModel {
+public abstract class GradleDslBlockModel implements GradleDslModel {
   protected GradlePropertiesDslElement myDslElement;
 
   protected GradleDslBlockModel(@NotNull GradlePropertiesDslElement dslElement) {
     myDslElement = dslElement;
   }
 
+  @Override
   @Nullable
   public PsiElement getPsiElement() {
     return myDslElement.getPsiElement();
@@ -43,14 +53,39 @@ public abstract class GradleDslBlockModel {
     return psiElement != null && psiElement.isValid();
   }
 
+  @Override
   @NotNull
-  protected GradleNullableValue<String> getIntOrStringValue(@NotNull String propertyName) {
-    Integer intValue = myDslElement.getLiteralProperty(propertyName, Integer.class).value();
-    if (intValue != null) {
-      GradleDslElement propertyElement = myDslElement.getPropertyElement(propertyName);
-      assert propertyElement != null;
-      return new GradleNotNullValueImpl<>(propertyElement, intValue.toString());
-    }
-    return myDslElement.getLiteralProperty(propertyName, String.class);
+  public Map<String, GradlePropertyModel> getInScopeProperties() {
+    return myDslElement.getInScopeElements().entrySet().stream()
+                       .collect(Collectors.toMap(e -> e.getKey(), e -> new GradlePropertyModelImpl(e.getValue())));
+  }
+
+  @Override
+  @NotNull
+  public List<GradlePropertyModel> getDeclaredProperties() {
+    return myDslElement.getContainedElements(true).stream()
+                       .filter(e -> e instanceof GradleDslExpression)
+                       .map(e -> new GradlePropertyModelImpl(e)).collect(Collectors.toList());
+  }
+
+  @NotNull
+  protected ResolvedPropertyModel getModelForProperty(@NotNull String property) {
+    return getModelForProperty(property, false);
+  }
+
+  @NotNull
+  protected LanguageLevelPropertyModel getLanguageModelForProperty(@NotNull String property) {
+    return GradlePropertyModelBuilder.create(myDslElement, property).buildLanguage();
+  }
+
+  @NotNull
+  protected ResolvedPropertyModel getModelForProperty(@NotNull String property, boolean isMethod) {
+    return GradlePropertyModelBuilder.create(myDslElement, property).asMethod(isMethod).buildResolved();
+  }
+
+  @NotNull
+  protected ResolvedPropertyModel getFileModelForProperty(@NotNull String property, boolean isMethod) {
+    return GradlePropertyModelBuilder.create(myDslElement, property).asMethod(isMethod).addTransform(PropertyUtil.FILE_TRANSFORM)
+                                     .buildResolved();
   }
 }

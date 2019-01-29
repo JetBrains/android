@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeJavaArtifact;
+import com.android.ide.common.util.PathString;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
-import com.android.tools.idea.res.SampleDataResourceRepository;
+import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.HashMultimap;
 import com.intellij.codeInsight.dataflow.SetUtil;
 import com.intellij.ide.projectView.PresentationData;
@@ -39,10 +44,14 @@ import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.*;
 
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_JAVA;
 
 /**
  * {@link com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode} does not classify source types, and just assumes that all source
@@ -71,7 +80,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   @NotNull
   public Collection<AbstractTreeNode> getChildren() {
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
-    if (facet == null || facet.getAndroidModel() == null) {
+    if (facet == null || facet.getConfiguration().getModel() == null) {
       return super.getChildren();
     }
     return getChildren(facet, getSettings(), myProjectViewPane, AndroidProjectViewPane.getSourceProviders(facet));
@@ -115,20 +124,19 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
       result.add(new AndroidJniFolderNode(project, ndkModuleModel, settings));
     }
 
-    if (StudioFlags.NELE_SAMPLE_DATA.get()) {
-      try {
-        VirtualFile sampleDataDirectory = SampleDataResourceRepository.getSampleDataDir(facet, false);
-        PsiDirectory sampleDataPsi = sampleDataDirectory != null ? PsiManager.getInstance(project).findDirectory(sampleDataDirectory) : null;
-        if (sampleDataPsi != null) {
-          result.add(new PsiDirectoryNode(project, sampleDataPsi, settings));
-        }
-      }
-      catch (IOException ignore) {
-        // The folder doesn't exist so we do not add it
-      }
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(facet.getModule());
+    PsiDirectory sampleDataPsi = getPsiDirectory(project, moduleSystem.getSampleDataDirectory());
+    if (sampleDataPsi != null) {
+      result.add(new PsiDirectoryNode(project, sampleDataPsi, settings));
     }
 
     return result;
+  }
+
+  @Nullable
+  private static PsiDirectory getPsiDirectory(@NotNull Project project, @Nullable PathString path) {
+    VirtualFile virtualFile = toVirtualFile(path);
+    return virtualFile != null ? PsiManager.getInstance(project).findDirectory(virtualFile): null;
   }
 
   @NotNull
@@ -148,7 +156,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
       if (sourceType == AndroidSourceType.SHADERS && (androidModel == null || !androidModel.getFeatures().isShadersSupported())) {
         continue;
       }
-      Set<VirtualFile> sources = getSources(sourceType, providers);
+      Set<VirtualFile> sources = sourceType == GENERATED_JAVA ? getGeneratedSources(androidModel) : getSources(sourceType, providers);
       if (sources.isEmpty()) {
         continue;
       }
@@ -178,6 +186,54 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     }
 
     return sources;
+  }
+
+  /**
+   * Collect generated java source folders from main artifact and test artifacts.
+   */
+  @NotNull
+  private static Set<VirtualFile> getGeneratedSources(@Nullable AndroidModuleModel androidModuleModel) {
+    Set<VirtualFile> sources = new HashSet<>();
+    if (androidModuleModel != null) {
+      List<File> files = new ArrayList<>(GradleUtil.getGeneratedSourceFoldersToUse(androidModuleModel.getMainArtifact(),
+                                                                                   androidModuleModel));
+      IdeAndroidArtifact androidTestArtifact = androidModuleModel.getArtifactForAndroidTest();
+      if (androidTestArtifact != null) {
+        files.addAll(GradleUtil.getGeneratedSourceFoldersToUse(androidTestArtifact, androidModuleModel));
+      }
+      IdeJavaArtifact unitTestArtifact = androidModuleModel.getSelectedVariant().getUnitTestArtifact();
+      if (unitTestArtifact != null) {
+        files.addAll(unitTestArtifact.getGeneratedSourceFolders());
+      }
+      for (File file : files) {
+        VirtualFile vFile = findFileByIoFile(file, false /* Don't refresh. */);
+        if (vFile != null) {
+          sources.add(vFile);
+        }
+      }
+    }
+    return sources;
+  }
+
+  @Override
+  public boolean contains(@NotNull VirtualFile file) {
+    if (super.contains(file)) {
+      return true;
+    }
+    if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
+
+      // If there is a native-containing module then check it for externally referenced header files
+      AndroidFacet facet = AndroidFacet.getInstance(getModule());
+      if (facet == null || facet.getConfiguration().getModel() == null) {
+        return false;
+      }
+      NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());
+      if (ndkModuleModel != null) {
+        return NdkModuleNode.containedInIncludeFolders(ndkModuleModel, file);
+      }
+      return false;
+    }
+    return false;
   }
 
   @Override

@@ -32,8 +32,8 @@ public class ClearConstraintsTarget extends ActionTarget implements ActionTarget
     // TODO?: add new icon to StudioIcons to replace the icon in blueprint.
     new NlIcon(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS, StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS);
 
-  public ClearConstraintsTarget(ActionTarget previous) {
-    super(previous, CLEAR_ICON, null);
+  public ClearConstraintsTarget() {
+    super(CLEAR_ICON, null);
     setAction(this);
   }
 

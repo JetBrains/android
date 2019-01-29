@@ -46,7 +46,7 @@ public class AidlFileType extends LanguageFileType {
   @Override
   @NotNull
   public String getDescription() {
-    return "Android IDL files";
+    return "Android IDL";
   }
 
   @Override

@@ -1,0 +1,17 @@
+<resources>
+  <style name="Base.Widget.AppCompat.Button" parent="android:Widget.Material.Button"/>
+  <style name="Widget.AppCompat.Button" parent="Base.Widget.AppCompat.Button"/>
+  <style name="Widget.AppCompat.Button.Colored"/>
+
+  <style name="Base.TextAppearance.AppCompat" parent="android:TextAppearance"/>
+  <style name="TextAppearance.AppCompat" parent="Base.TextAppearance.AppCompat"/>
+  <style name="TextAppearance.AppCompat.Small"/>
+  <style name="TextAppearance.AppCompat.Medium"/>
+  <style name="TextAppearance.AppCompat.Large"/>
+  <style name="TextAppearance.AppCompat.Body1"/>
+  <style name="TextAppearance.AppCompat.Body2"/>
+  <style name="TextAppearance.AppCompat.Display1"/>
+  <style name="TextAppearance.AppCompat.Display2"/>
+  <style name="TextAppearance.AppCompat.Display3"/>
+  <style name="TextAppearance.AppCompat.Display4"/>
+</resources>

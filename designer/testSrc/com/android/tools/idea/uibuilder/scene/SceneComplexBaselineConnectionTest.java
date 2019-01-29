@@ -17,7 +17,8 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.scene.target.ActionTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.BUTTON;
@@ -30,8 +31,8 @@ public class SceneComplexBaselineConnectionTest extends SceneTest {
 
   public void testConnectBaseline() {
     myInteraction.select("button1", true);
-    myInteraction.mouseDown("button1", ActionTarget.class, 1);
-    myInteraction.mouseRelease("button1", ActionTarget.class, 1);
+    myInteraction.clickAction("button1", target -> ConstraintLayoutHandler.EDIT_BASELINE_ACTION_TOOLTIP
+      .equalsIgnoreCase(target.getToolTipText()));
     myInteraction.mouseDown("button1", AnchorTarget.Type.BASELINE);
     myInteraction.mouseRelease("button2", AnchorTarget.Type.BASELINE);
     myScreen.get("@id/button1")
@@ -48,7 +49,7 @@ public class SceneComplexBaselineConnectionTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .id("@id/root")
                                    .withBounds(0, 0, 1000, 1000)
                                    .width("1000dp")

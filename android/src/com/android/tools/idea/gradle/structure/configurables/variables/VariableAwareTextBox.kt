@@ -47,7 +47,10 @@ class VariableAwareTextBox(project: Project) : TextFieldWithAutoCompletion<Strin
   fun addTextListener(listener: ActionListener) = textListeners.add(listener)
 
   override fun processKeyBinding(ks: KeyStroke?, e: KeyEvent?, condition: Int, pressed: Boolean): Boolean {
-    if (e?.keyCode == KeyEvent.VK_ENTER) {
+    if (e?.keyCode == KeyEvent.VK_ENTER && e.id == KeyEvent.KEY_PRESSED) {
+      return true
+    }
+    if (e?.keyCode == KeyEvent.VK_ENTER && e.id == KeyEvent.KEY_RELEASED) {
       val event = ActionEvent(this, ActionEvent.ACTION_PERFORMED, null)
       for (listener in textListeners) {
         listener.actionPerformed(event)

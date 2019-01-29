@@ -111,28 +111,27 @@ private class HTreeChartEntriesRegistrar : ImageDiffEntriesRegistrar() {
 
     protected lateinit var chart: HTreeChart<DefaultHNode<HTreeModel>>
 
-    final override fun setUp() {
+    override final fun setUp() {
       val fillColors = listOf(Color.WHITE, Color.LIGHT_GRAY, Color.DARK_GRAY)
       var colorIndex = 0
       val nextFillColor = { fillColors[(colorIndex++) % fillColors.size] }
-
-      chart = HTreeChart(null, Range(RANGE_MIN, RANGE_MAX), orientation)
-      chart.setHRenderer(object : DefaultHRenderer<HTreeModel>({ Color.YELLOW }) {
+      val renderer = object : DefaultHRenderer<HTreeModel>({ _ -> Color.YELLOW }) {
         // Don't draw any text because it doesn't compare well across platforms
         override fun generateFittingText(nodeData: HTreeModel, rect: Rectangle2D, fontMetrics: FontMetrics) = ""
         override fun getFillColor(nodeData: HTreeModel) = nextFillColor()
-        override fun getBorderColor(nodeData: HTreeModel) = Color.BLACK
-      })
-      val nodeTree = createNodeTree()
-      chart.setRootVisible(true)
-      chart.setHTree(nodeTree.root)
-      chart.setFocusedNode(nodeTree.focusedNode)
+      }
 
+      val nodeTree = createNodeTree()
+      chart = HTreeChart.Builder(nodeTree.root, Range(RANGE_MIN, RANGE_MAX), renderer)
+        .setOrientation(orientation)
+        .setRootVisible(true)
+        .build()
+      chart.setFocusedNode(nodeTree.focusedNode)
       myContentPane.add(chart)
     }
 
-    final override fun generateTestData() = Unit
-    final override fun generateComponent() {
+    override final fun generateTestData() = Unit
+    override final fun generateComponent() {
       // Our hchart images are nowhere near as tall as the default size settings
       val reducedHeight = Dimension(myContentPane.size.width, myContentPane.size.height / 4)
       myContentPane.size = reducedHeight

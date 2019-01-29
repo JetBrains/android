@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.javadoc;
 
 import com.intellij.codeInsight.documentation.DocumentationManager;
@@ -23,7 +22,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidJavaDocRendererTest extends AndroidTestCase {
@@ -45,25 +43,18 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     checkJavadoc(fileName, targetName, actualDoc -> assertEquals(expectedDoc, actualDoc));
   }
 
-  private void checkJavadocContains(String fileName, String targetName, @NotNull String docFragment) {
-    checkJavadoc(fileName, targetName, actualDoc -> {
-      boolean isContained = actualDoc.contains(docFragment);
-      assertTrue("\nExpected: " + docFragment + "\nContained By: " + actualDoc, isContained);
-    });
-  }
-
-    /**
-     * Test that the project can fetch documentation at the caret point (which is expected to be set
-     * explicitly in the contents of {@code fileName}). {@code javadocConsumer} will be triggered with
-     * the actual documentation returned and will be responsible for asserting expected values.
-     */
+  /**
+   * Test that the project can fetch documentation at the caret point (which is expected to be set
+   * explicitly in the contents of {@code fileName}). {@code javadocConsumer} will be triggered with
+   * the actual documentation returned and will be responsible for asserting expected values.
+   */
   private void checkJavadoc(String fileName, String targetName, Consumer<String> javadocConsumer) {
-    final VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
+    VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
     myFixture.configureFromExistingVirtualFile(f);
     PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
     assert originalElement != null;
-    final PsiElement docTargetElement = DocumentationManager.getInstance(getProject()).findTargetElement(
-      myFixture.getEditor(), myFixture.getFile(), originalElement);
+    PsiElement docTargetElement =
+        DocumentationManager.getInstance(getProject()).findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
     assert docTargetElement != null;
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
     javadocConsumer.consume(provider.generateDoc(docTargetElement, originalElement));
@@ -217,34 +208,34 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
 
   public void testSystemAttributes() {
     checkJavadoc("/javadoc/attrs/layout1.xml", "res/layout/layout.xml",
-                 "<html><body>Formats: enum<br>Values: horizontal, vertical<br><br> Should the layout be a column or a row?  Use \"horizontal\"\n" +
+                 "<html><body>Formats: enum<br>Values: horizontal, vertical<br><br>Should the layout be a column or a row?  Use \"horizontal\"\n" +
                  "             for a row, \"vertical\" for a column.  The default is\n" +
-                 "             horizontal. </body></html>");
+                 "             horizontal.</body></html>");
   }
 
   public void testLocalAttributes1() {
     doTestLocalAttributes("/javadoc/attrs/layout2.xml",
-                          "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView1 </body></html>");
+                          "<html><body>Formats: boolean, integer<br><br>my attr 1 docs for MyView1</body></html>");
   }
 
   public void testLocalAttributes2() {
     doTestLocalAttributes("/javadoc/attrs/layout3.xml",
-                          "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView1 </body></html>");
+                          "<html><body>Formats: boolean, reference<br><br>my attr 2 docs for MyView1</body></html>");
   }
 
   public void testLocalAttributes3() {
     doTestLocalAttributes("/javadoc/attrs/layout4.xml",
-                          "<html><body>Formats: boolean, integer<br><br> my attr 1 docs for MyView2 </body></html>");
+                          "<html><body>Formats: boolean, integer<br><br>my attr 1 docs for MyView2</body></html>");
   }
 
   public void testLocalAttributes4() {
     doTestLocalAttributes("/javadoc/attrs/layout5.xml",
-                          "<html><body>Formats: boolean, reference<br><br> my attr 2 docs for MyView2 </body></html>");
+                          "<html><body>Formats: boolean, reference<br><br>my attr 2 docs for MyView2</body></html>");
   }
 
   public void testLocalAttributes5() {
     doTestLocalAttributes("/javadoc/attrs/layout6.xml",
-                          "<html><body>Formats: boolean, integer<br><br> my attr 1 global docs </body></html>");
+                          "<html><body>Formats: boolean, integer<br><br>my attr 1 global docs</body></html>");
   }
 
   public void testLocalEnumAttributes1() {
@@ -268,11 +259,11 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   public void testManifestAttributes() throws Exception {
     deleteManifest();
     checkJavadoc("/javadoc/attrs/manifest.xml", "AndroidManifest.xml",
-                 "<html><body>Formats: string<br><br> Required name of the class implementing the activity, deriving from\n" +
+                 "<html><body>Formats: string<br><br>Required name of the class implementing the activity, deriving from\n" +
                  "            {@link android.app.Activity}.  This is a fully\n" +
                  "            qualified class name (for example, com.mycompany.myapp.MyActivity); as a\n" +
                  "            short-hand if the first character of the class\n" +
-                 "            is a period then it is appended to your package name. </body></html>");
+                 "            is a period then it is appended to your package name.</body></html>");
   }
 
   public void testFrameworkColors2() {
@@ -280,7 +271,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "<html><body>" +
                  "<table style=\"background-color:rgb(255,255,255);width:200px;text-align:center;vertical-align:middle;\" border=\"0\">" +
                  "<tr height=\"100\">" + "" +
-                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:black\">#ffffff</td>" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\" style=\"color:black\">#FFFFFF</td>" +
                  "</tr></table><BR/>" +
                  "@android:color/white => #ffffffff<BR/>" +
                  "</body></html>");
@@ -309,15 +300,15 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/third.xml", "res/color/third.xml");
     checkJavadoc("/javadoc/colors/values.xml", "res/values/values.xml",
                  "<html><body>" +
-                 "<table><tr><td><table style=\"background-color:rgb(251,251,251);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr></table></td><td>Not enabled</td><td><BR/>" +
+                 "<table><tr><td><table style=\"background-color:rgb(251,251,251);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80FFFFFF</td></tr></table></td><td>Not enabled</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_disabled => #80ffffff<BR/>" +
-                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#FFFFFF</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
                  "@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
                  "</td></tr><tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Pressed</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr><tr><td><FONT color=\"#ff0000\"><B>@android:color/my_white</B></FONT></td><td>Selected</td></tr><tr><td><table><tr><td><table style=\"background-color:rgb(251,251,251);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80ffffff</td></tr></table></td><td>Not enabled</td><td><BR/>" +
+                 "</td></tr><tr><td><FONT color=\"#ff0000\"><B>@android:color/my_white</B></FONT></td><td>Selected</td></tr><tr><td><table><tr><td><table style=\"background-color:rgb(251,251,251);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#80FFFFFF</td></tr></table></td><td>Not enabled</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_disabled => #80ffffff<BR/>" +
-                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#FFFFFF</td></tr></table></td><td>Not window_focused</td><td><BR/>" +
                  "@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
                  "</td></tr><tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Pressed</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
@@ -325,11 +316,11 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
                  "</td></tr><tr><td><table style=\"background-color:rgb(0,0,0);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#000000</td></tr></table></td><td>Activated</td><td><BR/>" +
                  "@android:color/bright_foreground_dark_inverse => @android:color/bright_foreground_light => @android:color/background_dark => #ff000000<BR/>" +
-                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#ffffff</td></tr></table></td><td>Default</td><td><BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(255,255,255);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:black\">#FFFFFF</td></tr></table></td><td>Default</td><td><BR/>" +
                  "@android:color/bright_foreground_dark => @android:color/background_light => #ffffffff<BR/>" +
                  "</td></tr></table></td><td>Activated</td><td><BR/>" +
                  "@android:color/primary_text_dark => primary_text_dark.xml<BR/>" +
-                 "</td></tr><tr><td><table style=\"background-color:rgb(170,68,170);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#aa44aa</td></tr></table></td><td>Default</td><td><BR/>" +
+                 "</td></tr><tr><td><table style=\"background-color:rgb(170,68,170);width:66px;text-align:center;vertical-align:middle;\" border=\"0\"><tr height=\"33\"><td align=\"center\" valign=\"middle\" height=\"33\" style=\"color:white\">#AA44AA</td></tr></table></td><td>Default</td><td><BR/>" +
                  "@color/fourth => #aa44aa<BR/>" +
                  "</td></tr></table><BR/>" +
                  "@color/first => @color/second => @color/third => third.xml<BR/>" +
@@ -340,8 +331,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/AndroidManifest.xml", "AndroidManifest.xml");
     myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/styles.xml", "res/values/styles.xml");
     checkJavadoc("/javadoc/styles/layout.xml", "res/layout/layout.xml",
-                 "<html><body><B>android:textAppearanceMedium</B><br/> Text color, typeface, size, and style for \"medium\" text. Defaults to primary text color. <br/><hr/><BR/>" +
-                 "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>" + "" +
+                 "<html><body><B>android:textAppearanceMedium</B><br/>Text color, typeface, size, and style for \"medium\" text. Defaults to primary text color.<br/><hr/><BR/>" +
+                 "?android:attr/textAppearanceMedium => @android:style/TextAppearance.Medium<BR/>" +
                  "<BR/>" +
                  "<hr><B>TextAppearance.Medium</B>:<BR/>" +
                  "&nbsp;&nbsp;&nbsp;&nbsp;android:<B>textSize</B> = 18sp<BR/>" +
@@ -358,8 +349,10 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
   public void testFrameworkStyleResolution() {
     // Checks that references in framework styles are always understood to point to framework resources,
     // even if the android: prefix is not explicitly written.
-    checkJavadocContains("/javadoc/styles/styles.xml", "res/values/styles.xml",
-                         "@android:style/Theme.Holo<BR/>");
+    checkJavadoc("/javadoc/styles/styles.xml", "res/values/styles.xml", actualDoc -> {
+      boolean isContained = actualDoc.contains("@android:style/Theme.Holo<BR/>");
+      assertTrue("\nExpected: " + "@android:style/Theme.Holo<BR/>" + "\nContained By: " + actualDoc, isContained);
+    });
   }
 
   public void testStyleName() {
@@ -367,7 +360,7 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "Default text typeface style.");
   }
 
-  public void testInjectExternalDocumentation() throws Exception {
+  public void testInjectExternalDocumentation() {
     assertEquals("firstsecond", AndroidJavaDocRenderer.injectExternalDocumentation("first","second"));
     assertEquals("<html a=\"b\"><body b=\"c\">firstsecond</body></html>", AndroidJavaDocRenderer.injectExternalDocumentation("<html a=\"b\"><body b=\"c\">first</body></html>", "second"));
     assertEquals("<HTML a=\"b\"><BODY b=\"c\">firstsecond</BODY></HTML>", AndroidJavaDocRenderer.injectExternalDocumentation("<HTML a=\"b\"><BODY b=\"c\">first</BODY></HTML>", "second"));

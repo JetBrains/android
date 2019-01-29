@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.coordinator
 import com.android.SdkConstants
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidDpCoordinate
-import com.android.tools.idea.common.model.AttributesTransaction
+import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneContext
@@ -81,17 +81,17 @@ class CoordinatorDragTarget : DragBaseTarget() {
     for (attribute in myAttributes) {
       val value = myComponent.nlComponent.getLiveAttribute(SdkConstants.AUTO_URI, attribute)
       if (value != null) {
-        myOriginalAttributes.put(attribute, value)
+        myOriginalAttributes[attribute] = value
       }
     }
   }
 
-  private fun restoreAttributes(transaction: AttributesTransaction) {
+  private fun restoreAttributes(transaction: NlAttributesHolder) {
     for (attribute in myAttributes) {
       val value = myOriginalAttributes[attribute]
       transaction.setAttribute(SdkConstants.AUTO_URI, attribute, value)
     }
-    transaction.apply()
+//    transaction.apply()
   }
 
   private fun updateInteractionState(interactionState : CoordinatorLayoutHandler.InteractionState) {
@@ -111,13 +111,13 @@ class CoordinatorDragTarget : DragBaseTarget() {
     rememberAttributes()
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>?) {
+  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>) {
     if (myComponent.parent == null) {
       return
     }
     mySnapTarget?.setMouseHovered(false)
     mySnapTarget = null
-    val snapTarget : Target? = closestTarget?.firstOrNull { it is CoordinatorSnapTarget }
+    val snapTarget : Target? = closestTarget.firstOrNull { it is CoordinatorSnapTarget }
     if (snapTarget is CoordinatorSnapTarget) {
       mySnapTarget = snapTarget
       snapTarget.setMouseHovered(true)
@@ -125,9 +125,10 @@ class CoordinatorDragTarget : DragBaseTarget() {
     myComponent.isDragging = true
     myComponent.setPosition(x - myOffsetX, y - myOffsetY, false)
     myComponent.scene.repaint()
+    myChangedComponent = true
   }
 
-  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>?) {
+  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
     super.mouseRelease(x, y, closestTargets)
     if (myChangedComponent) {
       myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
@@ -135,7 +136,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
     updateInteractionState(CoordinatorLayoutHandler.InteractionState.NORMAL)
   }
 
-  override fun updateAttributes(attributes: AttributesTransaction, x: Int, y: Int) {
+  override fun updateAttributes(attributes: NlAttributesHolder, x: Int, y: Int) {
     if (mySnapTarget != null) {
       mySnapTarget!!.snap(attributes)
     }

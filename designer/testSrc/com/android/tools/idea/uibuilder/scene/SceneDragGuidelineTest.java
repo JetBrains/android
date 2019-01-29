@@ -30,14 +30,14 @@ public class SceneDragGuidelineTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .id("@id/root")
                                    .withBounds(0, 0, 1000, 1000)
                                    .width("500dp")
                                    .height("500dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
-                                     component(CONSTRAINT_LAYOUT_GUIDELINE)
+                                     component(CONSTRAINT_LAYOUT_GUIDELINE.defaultName())
                                        .id("@id/guideline")
                                        .withBounds(0, 500, 1000, 2)
                                        .width("500dp")
@@ -45,7 +45,7 @@ public class SceneDragGuidelineTest extends SceneTest {
                                        .withAttribute("app:layout_constraintGuide_percent", "0.5")
                                        .withAttribute("tools:layout_editor_absoluteX", "0dp")
                                        .withAttribute("tools:layout_editor_absoluteY", "250dp"),
-                                     component(CONSTRAINT_LAYOUT_GUIDELINE)
+                                     component(CONSTRAINT_LAYOUT_GUIDELINE.defaultName())
                                        .id("@id/verticalGuideline")
                                        .withBounds(300, 0, 2, 1000)
                                        .width("0dp")

@@ -15,51 +15,72 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.adtui.util.FormScalingUtil;
+import static java.util.stream.Collectors.toMap;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.adtui.ASGallery;
+import com.android.tools.adtui.util.FormScalingUtil;
+import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
+import com.android.tools.idea.npw.ui.WizardGallery;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.IconUtil;
-import com.intellij.util.containers.HashMap;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.accessibility.AccessibleContext;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.util.*;
-import java.util.List;
-
-import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
-import static java.util.stream.Collectors.toMap;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
  * This step allows the user to select which type of module they want to create.
  */
 public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
+  public static final String ANDROID_WEAR_MODULE_NAME = "Wear OS Module";
+  public static final String ANDROID_TV_MODULE_NAME = "Android TV Module";
+  public static final String ANDROID_THINGS_MODULE_NAME = "Android Things Module";
+  public static final String JAVA_LIBRARY_MODULE_NAME = "Java Library";
+  public static final String GOOGLE_CLOUD_MODULE_NAME = "Google Cloud Module";
+
   private final List<ModuleGalleryEntry> myModuleGalleryEntryList;
+  private final ProjectSyncInvoker myProjectSyncInvoker;
   private final JComponent myRootPanel;
   private final Project myProject;
 
   private ASGallery<ModuleGalleryEntry> myFormFactorGallery;
   private Map<ModuleGalleryEntry, SkippableWizardStep> myModuleDescriptionToStepMap;
 
-  public ChooseModuleTypeStep(@NotNull Project project, @NotNull List<ModuleGalleryEntry> moduleGalleryEntries) {
+  public ChooseModuleTypeStep(@NotNull Project project,
+                              @NotNull List<ModuleGalleryEntry> moduleGalleryEntries,
+                              @NotNull ProjectSyncInvoker projectSyncInvoker) {
     super(message("android.wizard.module.new.module.header"));
 
     myProject = project;
     myModuleGalleryEntryList = sortModuleEntries(moduleGalleryEntries);
+    myProjectSyncInvoker = projectSyncInvoker;
     myRootPanel = createGallery();
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+  }
+
+  @NotNull
+  public static ChooseModuleTypeStep createWithDefaultGallery(Project project, ProjectSyncInvoker projectSyncInvoker) {
+    ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
+    for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
+      moduleDescriptions.addAll(provider.getDescriptions(project));
+    }
+    return new ChooseModuleTypeStep(project, moduleDescriptions, projectSyncInvoker);
   }
 
   @NotNull
@@ -74,7 +95,7 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
     List<ModelWizardStep> allSteps = Lists.newArrayList();
     myModuleDescriptionToStepMap = new HashMap<>();
     for (ModuleGalleryEntry moduleGalleryEntry : myModuleGalleryEntryList) {
-      NewModuleModel model = new NewModuleModel(myProject);
+      NewModuleModel model = new NewModuleModel(myProject, myProjectSyncInvoker);
       if (moduleGalleryEntry instanceof ModuleTemplateGalleryEntry) {
         ModuleTemplateGalleryEntry templateEntry =  (ModuleTemplateGalleryEntry) moduleGalleryEntry;
         model.isLibrary().set(templateEntry.isLibrary());
@@ -92,31 +113,12 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
 
   @NotNull
   private JComponent createGallery() {
-    myFormFactorGallery = new ASGallery<ModuleGalleryEntry>(
-      JBList.createDefaultListModel(),
-      image -> image.getIcon() == null ? null : IconUtil.toImage(image.getIcon()),
-      label -> label == null ? message("android.wizard.gallery.item.none") : label.getName(), DEFAULT_GALLERY_THUMBNAIL_SIZE,
-      null
-    ) {
+    myFormFactorGallery = new WizardGallery<>(
+      getTitle(),
+      galEntry -> galEntry.getIcon() == null ? null : galEntry.getIcon(),
+      galEntry -> galEntry == null ? message("android.wizard.gallery.item.none") : galEntry.getName()
+    );
 
-      @Override
-      public Dimension getPreferredScrollableViewportSize() {
-        // The default implementations assigns a height as tall as the screen.
-        // When calling setVisibleRowCount(2), the underlying implementation is buggy, and  will have a gap on the right and when the user
-        // resizes, it enters on an adjustment loop at some widths (can't decide to fit 3 or for elements, and loops between the two)
-        Dimension cellSize = computeCellSize();
-        int heightInsets = getInsets().top + getInsets().bottom;
-        int widthInsets = getInsets().left + getInsets().right;
-        // Don't want to show an exact number of rows, since then it's not obvious there's another row available.
-        return new Dimension(cellSize.width * 5 + widthInsets, (int)(cellSize.height * 2.2) + heightInsets);
-      }
-    };
-
-    myFormFactorGallery.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    AccessibleContext accessibleContext = myFormFactorGallery.getAccessibleContext();
-    if (accessibleContext != null) {
-      accessibleContext.setAccessibleDescription(getTitle());
-    }
     return new JBScrollPane(myFormFactorGallery);
   }
 
@@ -152,9 +154,14 @@ public class ChooseModuleTypeStep extends ModelWizardStep.WithoutModel {
   static List<ModuleGalleryEntry> sortModuleEntries(@NotNull List<ModuleGalleryEntry> moduleTypesProviders) {
     // To have a sequence specified by design, we hardcode the sequence. Everything else is added at the end (sorted by name)
     String[] orderedNames = {
-      "Phone & Tablet Module", "Android Library", "Instant App", "Feature Module", "Android Wear Module", "Android TV Module",
-      "Android Things Module", "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java Library",
-      "Google Cloud Module",
+      message("android.wizard.module.new.mobile"), message("android.wizard.module.new.library"),
+      message("android.wizard.module.new.dynamic.module"),
+      message("android.wizard.module.new.dynamic.module.instant"),
+      message("android.wizard.module.new.instant.app"),
+      message("android.wizard.module.new.feature.module"), ANDROID_WEAR_MODULE_NAME, ANDROID_TV_MODULE_NAME,
+      ANDROID_THINGS_MODULE_NAME, message("android.wizard.module.import.gradle.title"),
+      message("android.wizard.module.import.eclipse.title"), message("android.wizard.module.import.title"),
+      JAVA_LIBRARY_MODULE_NAME, GOOGLE_CLOUD_MODULE_NAME,
     };
     Map<String, ModuleGalleryEntry> entryMap = moduleTypesProviders.stream().collect(toMap(ModuleGalleryEntry::getName, c -> c));
 

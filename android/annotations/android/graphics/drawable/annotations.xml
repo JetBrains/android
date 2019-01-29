@@ -48,6 +48,37 @@
   <item name="android.graphics.drawable.Animatable2 void registerAnimationCallback(android.graphics.drawable.Animatable2.AnimationCallback) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.graphics.drawable.AnimatedImageDrawable android.graphics.ColorFilter getColorFilter()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.AnimatedImageDrawable boolean unregisterAnimationCallback(android.graphics.drawable.Animatable2.AnimationCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AnimatedImageDrawable int getOpacity()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.PixelFormat.UNKNOWN, android.graphics.PixelFormat.TRANSLUCENT, android.graphics.PixelFormat.TRANSPARENT, android.graphics.PixelFormat.OPAQUE}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.AnimatedImageDrawable void draw(android.graphics.Canvas) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AnimatedImageDrawable void registerAnimationCallback(android.graphics.drawable.Animatable2.AnimationCallback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.AnimatedImageDrawable void setAlpha(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="0" />
+      <val name="to" val="255" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.AnimatedImageDrawable void setColorFilter(android.graphics.ColorFilter) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.AnimatedImageDrawable void setRepeatCount(int) 0">
+    <annotation name="android.support.annotation.IntRange">
+      <val name="from" val="-1" />
+    </annotation>
+  </item>
   <item name="android.graphics.drawable.AnimatedStateListDrawable void addState(int[], android.graphics.drawable.Drawable, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -162,6 +193,24 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromPath(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, java.lang.String, android.graphics.BitmapFactory.Options)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, java.lang.String, android.graphics.BitmapFactory.Options) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, java.lang.String, android.graphics.BitmapFactory.Options) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, java.lang.String, android.graphics.BitmapFactory.Options) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, java.lang.String, android.graphics.BitmapFactory.Options) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromResourceStream(android.content.res.Resources, android.util.TypedValue, java.io.InputStream, java.lang.String, android.graphics.BitmapFactory.Options) 4">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.graphics.drawable.Drawable android.graphics.drawable.Drawable createFromXml(android.content.res.Resources, org.xmlpull.v1.XmlPullParser)">
@@ -615,6 +664,20 @@
   </item>
   <item name="android.graphics.drawable.Icon android.graphics.drawable.Icon setTint(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.graphics.drawable.Icon android.net.Uri getUri()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.graphics.drawable.Icon int getResId()">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
+  <item name="android.graphics.drawable.Icon int getType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.graphics.drawable.Icon.TYPE_BITMAP, android.graphics.drawable.Icon.TYPE_RESOURCE, android.graphics.drawable.Icon.TYPE_DATA, android.graphics.drawable.Icon.TYPE_URI, android.graphics.drawable.Icon.TYPE_ADAPTIVE_BITMAP}" />
+    </annotation>
+  </item>
+  <item name="android.graphics.drawable.Icon java.lang.String getResPackage()">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.graphics.drawable.InsetDrawable InsetDrawable(android.graphics.drawable.Drawable, float) 0">
     <annotation name="android.support.annotation.Nullable" />

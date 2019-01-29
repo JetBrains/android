@@ -19,13 +19,15 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.service.*;
+import com.android.tools.nativeSymbolizer.NativeSymbolizer;
+import com.android.tools.nativeSymbolizer.NopSymbolizer;
 import com.android.tools.profiler.proto.*;
 import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.*;
 import io.grpc.inprocess.InProcessServerBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,10 +81,11 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     }
   }
 
-  private static final Logger getLogger() {
-    return Logger.getInstance(DataStoreService.class.getCanonicalName());
+  private LogService.Logger getLogger() {
+    return myLogService.getLogger(DataStoreService.class.getCanonicalName());
   }
 
+  @NotNull private final LogService myLogService;
   private final String myDatastoreDirectory;
   private final Map<BackingNamespace, DataStoreDatabase> myDatabases = new HashMap<>();
   private final ServerBuilder myServerBuilder;
@@ -93,6 +96,8 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   private Consumer<Throwable> myNoPiiExceptionHanlder;
 
   private ProfilerService myProfilerService;
+  @NotNull
+  private NativeSymbolizer myNativeSymbolizer = new NopSymbolizer();
   private final ServerInterceptor myInterceptor;
   private final Map<DeviceId, DataStoreClient> myConnectedClients = new HashMap<>();
 
@@ -105,14 +110,18 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    */
   public DataStoreService(@NotNull String serviceName,
                           @NotNull String datastoreDirectory,
-                          @NotNull Consumer<Runnable> fetchExecutor) {
-    this(serviceName, datastoreDirectory, fetchExecutor, null);
+                          @NotNull Consumer<Runnable> fetchExecutor,
+                          @NotNull LogService logService) {
+    this(serviceName, datastoreDirectory, fetchExecutor, logService, null);
   }
 
+  @VisibleForTesting
   public DataStoreService(@NotNull String serviceName,
                           @NotNull String datastoreDirectory,
                           @NotNull Consumer<Runnable> fetchExecutor,
-                          ServerInterceptor interceptor) {
+                          @NotNull LogService logService,
+                          @Nullable ServerInterceptor interceptor) {
+    myLogService = logService;
     myFetchExecutor = fetchExecutor;
     myInterceptor = interceptor;
     myDatastoreDirectory = datastoreDirectory;
@@ -136,26 +145,31 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     myNoPiiExceptionHanlder = noPiiExceptionHanlder;
   }
 
+  @VisibleForTesting
+  public Map<BackingNamespace, DataStoreDatabase> getDatabases() {
+    return myDatabases;
+  }
+
   /**
    * Entry point for the datastore pollers and passthrough services are created,
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    myProfilerService = new ProfilerService(this, myFetchExecutor);
+    myProfilerService = new ProfilerService(this, myFetchExecutor, myLogService);
     registerService(myProfilerService);
     registerService(new EventService(this, myFetchExecutor));
-    registerService(new CpuService(this, myFetchExecutor));
-    registerService(new MemoryService(this, myFetchExecutor));
+    registerService(new CpuService(this, myFetchExecutor, myLogService));
+    registerService(new MemoryService(this, myFetchExecutor, myLogService));
     registerService(new NetworkService(this, myFetchExecutor));
-    registerService(new EnergyService(this, myFetchExecutor));
+    registerService(new EnergyService(this, myFetchExecutor, myLogService));
   }
 
   @VisibleForTesting
   @NotNull
-  DataStoreDatabase createDatabase(@NotNull String dbPath,
-                                   @NotNull DataStoreDatabase.Characteristic characteristic,
-                                   Consumer<Throwable> noPiiExceptionHandler) {
-    return new DataStoreDatabase(dbPath, characteristic, noPiiExceptionHandler);
+  public DataStoreDatabase createDatabase(@NotNull String dbPath,
+                                          @NotNull DataStoreDatabase.Characteristic characteristic,
+                                          Consumer<Throwable> noPiiExceptionHandler) {
+    return new DataStoreDatabase(dbPath, characteristic, myLogService, noPiiExceptionHandler);
   }
 
   /**
@@ -193,6 +207,21 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   }
 
   /**
+   * Sets a symbolizer that is used to transform native backtraces into human readable callstacks.
+   */
+  public void setNativeSymbolizer(@NotNull NativeSymbolizer symbolizer) {
+    myNativeSymbolizer = symbolizer;
+  }
+
+  /**
+   * Gets native symbolizer to be used for JNI tracking
+   */
+  @NotNull
+  public NativeSymbolizer getNativeSymbolizer() {
+    return myNativeSymbolizer;
+  }
+
+  /**
    * Disconnect from the specified channel.
    */
   public void disconnect(@NotNull DeviceId deviceId) {
@@ -214,6 +243,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     DataStoreTable.removeDataStoreErrorCallback(this);
   }
 
+
   @VisibleForTesting
   List<ServicePassThrough> getRegisteredServices() {
     return myServices;
@@ -227,6 +257,10 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
 
   public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(@NotNull DeviceId deviceId) {
     return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getCpuClient() : null;
+  }
+
+  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getEnergyClient() : null;
   }
 
   public EventServiceGrpc.EventServiceBlockingStub getEventClient(@NotNull DeviceId deviceId) {
@@ -256,18 +290,20 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   private static class DataStoreClient {
     @NotNull private final Channel myChannel;
     @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
-    @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
     @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
-    @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
+    @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
     @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
+    @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
+    @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
 
     DataStoreClient(@NotNull Channel channel) {
       myChannel = channel;
       myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
-      myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
       myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
-      myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
+      myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
       myEventClient = EventServiceGrpc.newBlockingStub(channel);
+      myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
+      myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
     }
 
     @NotNull
@@ -281,23 +317,28 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     }
 
     @NotNull
-    public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient() {
-      return myMemoryClient;
-    }
-
-    @NotNull
     public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
       return myCpuClient;
     }
 
     @NotNull
-    public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
-      return myNetworkClient;
+    public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient() {
+      return myEnergyClient;
     }
 
     @NotNull
     public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
       return myEventClient;
+    }
+
+    @NotNull
+    public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient() {
+      return myMemoryClient;
+    }
+
+    @NotNull
+    public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
+      return myNetworkClient;
     }
 
     public void shutdownNow() {
@@ -309,7 +350,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   }
 
   private final class ReportTimerTask extends TimerTask {
-    private final long myStartTime = System.nanoTime();
+    private long myStartTime = System.nanoTime();
 
     @Override
     public void run() {
@@ -318,11 +359,12 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
       dbStats.setAgeSec((int)TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - myStartTime));
       collectReport(dbStats);
 
-      AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+      AndroidStudioEvent.Builder event = AndroidStudioEvent
+        .newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER_DB_STATS)
         .setAndroidProfilerDbStats(dbStats);
 
-      UsageTracker.getInstance().log(event);
+      UsageTracker.log(event);
     }
 
     private void collectReport(AndroidProfilerDbStats.Builder dbStats) {

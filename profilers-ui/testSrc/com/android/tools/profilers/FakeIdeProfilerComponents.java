@@ -15,8 +15,12 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.dataviewer.DataViewer;
+import com.android.tools.profilers.dataviewer.ImageDataViewer;
 import com.android.tools.profilers.stacktrace.*;
-import com.intellij.ui.TextFieldWithHistory;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,10 +28,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -40,10 +49,12 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @Override
   public LoadingPanel createLoadingPanel(int delayMs) {
     return new LoadingPanel() {
+      private JPanel myPanel = new JPanel(new BorderLayout());
+
       @NotNull
       @Override
       public JComponent getComponent() {
-        return new JPanel(new BorderLayout());
+        return myPanel;
       }
 
       @Override
@@ -66,8 +77,8 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public StackTraceView createStackView(@NotNull StackTraceModel model) {
-    return new StackTraceViewStub(model);
+  public StackTraceGroup createStackGroup() {
+    return new StackTraceGroupStub();
   }
 
   @NotNull
@@ -75,7 +86,8 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   public ContextMenuInstaller createContextMenuInstaller() {
     return new ContextMenuInstaller() {
       @Override
-      public void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
+      public void installGenericContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem,
+                                            @NotNull IntPredicate itemEnabled, @NotNull IntConsumer callback) {
         List<ContextMenuItem> menus = myComponentContextMenus.computeIfAbsent(component, k -> new ArrayList<>());
         menus.add(contextMenuItem);
       }
@@ -96,8 +108,21 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     return new ExportDialog() {
       @Override
       public void open(@NotNull Supplier<String> dialogTitleSupplier,
+                       @NotNull Supplier<String> fileNameSupplier,
                        @NotNull Supplier<String> extensionSupplier,
                        @NotNull Consumer<File> saveToFile) {
+      }
+    };
+  }
+
+  @NotNull
+  @Override
+  public ImportDialog createImportDialog() {
+    return new ImportDialog() {
+      @Override
+      public void open(@NotNull Supplier<String> dialogTitleSupplier,
+                       @NotNull List<String> validExtensions,
+                       @NotNull Consumer<VirtualFile> fileOpenedCallback) {
       }
     };
   }
@@ -114,23 +139,52 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   }
 
   @NotNull
+  public List<ContextMenuItem> getAllContextMenuItems() {
+    return myComponentContextMenus.values().stream().flatMap(List::stream).collect(Collectors.toList());
+  }
+
+  public void clearContextMenuItems() {
+    myComponentContextMenus.clear();
+  }
+
+  @NotNull
   @Override
-  public DataViewer createFileViewer(@NotNull File file) {
-    return new DataViewer() {
-      private final JComponent DUMMY_COMPONENT = new JPanel();
+  public DataViewer createDataViewer(@NotNull byte[] content, @NotNull ContentType contentType, @NotNull DataViewer.Style styleHint) {
+    if (contentType.isImageType()) {
+      return new ImageDataViewer() {
+        private final BufferedImage DUMMY_IMAGE = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        private final JComponent DUMMY_COMPONENT = new JLabel(new ImageIcon(DUMMY_IMAGE));
 
-      @NotNull
-      @Override
-      public JComponent getComponent() {
-        return DUMMY_COMPONENT;
-      }
+        @NotNull
+        @Override
+        public BufferedImage getImage() {
+          return DUMMY_IMAGE;
+        }
 
-      @Nullable
-      @Override
-      public Dimension getDimension() {
-        return null;
-      }
-    };
+        @NotNull
+        @Override
+        public JComponent getComponent() {
+          return DUMMY_COMPONENT;
+        }
+      };
+    }
+    else {
+      return new DataViewer() {
+        private final JComponent DUMMY_COMPONENT = new JPanel();
+
+        @NotNull
+        @Override
+        public JComponent getComponent() {
+          return DUMMY_COMPONENT;
+        }
+
+        @NotNull
+        @Override
+        public Style getStyle() {
+          return Style.RAW;
+        }
+      };
+    }
   }
 
   @NotNull
@@ -141,28 +195,37 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @NotNull
   @Override
-  public AutoCompleteTextField createAutoCompleteTextField(@Nullable String placeHolder,
-                                                           @Nullable String value,
-                                                           @Nullable Collection<String> variants) {
-    return new AutoCompleteTextField() {
-      final JComponent DEFAULT_COMPONENT = new TextFieldWithHistory();
-
-      @NotNull
+  public UiMessageHandler createUiMessageHandler() {
+    return new UiMessageHandler() {
       @Override
-      public JComponent getComponent() {
-        return DEFAULT_COMPONENT;
+      public void displayErrorMessage(@NotNull JComponent parent, @NotNull String title, @NotNull String message) {
+        parent.add(new JLabel(message));
       }
 
       @Override
-      public void addOnDocumentChange(@NotNull Runnable callback) {
-      }
-
-      @NotNull
-      @Override
-      public String getText() {
-        return "";
+      public boolean displayOkCancelMessage(@NotNull String title,
+                                            @NotNull String message,
+                                            @NotNull String okText,
+                                            @NotNull String cancelText,
+                                            @Nullable Icon icon,
+                                            @NotNull com.intellij.util.Consumer<Boolean> doNotShowSettingSaver) {
+        return true;
       }
     };
+  }
+
+  @Override
+  public void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel model, int deviceLevel,
+                                                   @NotNull Consumer<ProfilingConfiguration> callbackDialog) {
+    // No-op.
+  }
+
+  public static final class StackTraceGroupStub implements StackTraceGroup {
+    @NotNull
+    @Override
+    public StackTraceView createStackView(@NotNull StackTraceModel model) {
+      return new StackTraceViewStub(model);
+    }
   }
 
   public static final class StackTraceViewStub implements StackTraceView {
@@ -184,10 +247,6 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     @Override
     public JComponent getComponent() {
       return myComponent;
-    }
-
-    @Override
-    public void installNavigationContextMenu(@NotNull ContextMenuInstaller contextMenuInstaller) {
     }
   }
 }

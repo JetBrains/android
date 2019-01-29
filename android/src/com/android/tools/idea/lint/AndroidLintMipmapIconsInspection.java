@@ -43,7 +43,7 @@ public class AndroidLintMipmapIconsInspection extends AndroidLintInspectionBase 
       String value = attribute.getValue();
       if (value != null) {
         ResourceUrl url = ResourceUrl.parse(value);
-        if (url != null && !url.framework) {
+        if (url != null && !url.isFramework()) {
           return new AndroidLintQuickFix[]{new MigrateDrawableToMipmapFix(url)};
         }
       }

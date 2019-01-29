@@ -17,16 +17,18 @@ package com.android.tools.idea.gradle.dsl.parser.android.sourceSets;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 
 
 public class SourceDirectoryDslElement extends GradleDslBlockElement {
-  public SourceDirectoryDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
+  public SourceDirectoryDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    String property = element.getName();
     if (property.equals("srcDirs") || property.equals("srcDir")) {
       addToParsedExpressionList("srcDirs", element);
       return;
@@ -37,6 +39,6 @@ public class SourceDirectoryDslElement extends GradleDslBlockElement {
       return;
     }
 
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

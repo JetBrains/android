@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.location.GnssMeasurement int getAccumulatedDeltaRangeState()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.location.GnssMeasurement.ADR_STATE_VALID, android.location.GnssMeasurement.ADR_STATE_RESET, android.location.GnssMeasurement.ADR_STATE_CYCLE_SLIP, android.location.GnssMeasurement.ADR_STATE_HALF_CYCLE_RESOLVED, android.location.GnssMeasurement.ADR_STATE_HALF_CYCLE_REPORTED}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.location.GnssMeasurement int getConstellationType()">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.location.GnssStatus.CONSTELLATION_UNKNOWN, android.location.GnssStatus.CONSTELLATION_GPS, android.location.GnssStatus.CONSTELLATION_SBAS, android.location.GnssStatus.CONSTELLATION_GLONASS, android.location.GnssStatus.CONSTELLATION_QZSS, android.location.GnssStatus.CONSTELLATION_BEIDOU, android.location.GnssStatus.CONSTELLATION_GALILEO}" />
@@ -10,6 +16,12 @@
       <val name="value" val="{android.location.GnssMeasurement.MULTIPATH_INDICATOR_UNKNOWN, android.location.GnssMeasurement.MULTIPATH_INDICATOR_DETECTED, android.location.GnssMeasurement.MULTIPATH_INDICATOR_NOT_DETECTED}" />
     </annotation>
   </item>
+  <item name="android.location.GnssMeasurement int getState()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.location.GnssMeasurement.STATE_CODE_LOCK, android.location.GnssMeasurement.STATE_BIT_SYNC, android.location.GnssMeasurement.STATE_SUBFRAME_SYNC, android.location.GnssMeasurement.STATE_TOW_DECODED, android.location.GnssMeasurement.STATE_MSEC_AMBIGUOUS, android.location.GnssMeasurement.STATE_SYMBOL_SYNC, android.location.GnssMeasurement.STATE_GLO_STRING_SYNC, android.location.GnssMeasurement.STATE_GLO_TOD_DECODED, android.location.GnssMeasurement.STATE_BDS_D2_BIT_SYNC, android.location.GnssMeasurement.STATE_BDS_D2_SUBFRAME_SYNC, android.location.GnssMeasurement.STATE_GAL_E1BC_CODE_LOCK, android.location.GnssMeasurement.STATE_GAL_E1C_2ND_CODE_LOCK, android.location.GnssMeasurement.STATE_GAL_E1B_PAGE_SYNC, android.location.GnssMeasurement.STATE_SBAS_SYNC, android.location.GnssMeasurement.STATE_TOW_KNOWN, android.location.GnssMeasurement.STATE_GLO_TOD_KNOWN}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.location.GnssMeasurementsEvent android.location.GnssClock getClock()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -18,7 +30,7 @@
   </item>
   <item name="android.location.GnssMeasurementsEvent.Callback void onStatusChanged(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.location.GnssMeasurementsEvent.Callback.STATUS_NOT_SUPPORTED, android.location.GnssMeasurementsEvent.Callback.STATUS_READY, android.location.GnssMeasurementsEvent.Callback.STATUS_LOCATION_DISABLED}" />
+      <val name="value" val="{android.location.GnssMeasurementsEvent.Callback.STATUS_NOT_SUPPORTED, android.location.GnssMeasurementsEvent.Callback.STATUS_READY, android.location.GnssMeasurementsEvent.Callback.STATUS_LOCATION_DISABLED, android.location.GnssMeasurementsEvent.Callback.STATUS_NOT_ALLOWED}" />
     </annotation>
   </item>
   <item name="android.location.GnssNavigationMessage byte[] getData()">
@@ -42,6 +54,9 @@
   <item name="android.location.LocationManager">
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.LOCATION_SERVICE" />
+    </annotation>
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.hardware.location&quot;" />
     </annotation>
   </item>
   <item name="android.location.LocationManager android.location.GpsStatus getGpsStatus(android.location.GpsStatus)">
@@ -98,6 +113,9 @@
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.ACCESS_FINE_LOCATION&quot;" />
     </annotation>
+  </item>
+  <item name="android.location.LocationManager java.lang.String getGnssHardwareModelName()">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.location.LocationManager void addProximityAlert(double, double, float, long, android.app.PendingIntent)">
     <annotation name="android.support.annotation.RequiresPermission">

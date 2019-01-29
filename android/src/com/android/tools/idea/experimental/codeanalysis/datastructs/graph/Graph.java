@@ -53,5 +53,5 @@ public interface Graph {
 
   GraphNode[] getAllExits();
 
-  GraphNode[] EMPTY_ARRAY = new GraphNode[0];
+  GraphNode[] EMPTY_ARRAY = GraphNode.EMPTY_ARRAY;
 }

@@ -15,19 +15,33 @@
  */
 package com.android.tools.profilers.network;
 
+import static com.android.tools.profiler.proto.NetworkProfiler.ConnectionData;
+import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
+import static com.android.tools.profiler.proto.NetworkProfiler.HttpConnectionData;
+import static com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsRequest;
+import static com.android.tools.profiler.proto.NetworkProfiler.HttpDetailsResponse;
+import static com.android.tools.profiler.proto.NetworkProfiler.HttpRangeRequest;
+import static com.android.tools.profiler.proto.NetworkProfiler.HttpRangeResponse;
+import static com.android.tools.profiler.proto.NetworkProfiler.JavaThread;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkDataRequest;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkDataResponse;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkStartRequest;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkStartResponse;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkStopRequest;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkStopResponse;
+import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
+
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static com.android.tools.profiler.proto.NetworkProfiler.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceImplBase {
   @NotNull private List<HttpData> myHttpDataList;
@@ -169,14 +183,11 @@ public final class FakeNetworkService extends NetworkServiceGrpc.NetworkServiceI
   }
 
   @NotNull
-  public static NetworkProfilerData newRadioData(long timestampSec,
-                                                 @NotNull ConnectivityData.NetworkType networkType,
-                                                 @NotNull ConnectivityData.RadioState radioState) {
+  public static NetworkProfilerData newRadioData(long timestampSec, @NotNull ConnectivityData.NetworkType networkType) {
     NetworkProfilerData.Builder builder = NetworkProfilerData.newBuilder();
     builder.setEndTimestamp(TimeUnit.SECONDS.toNanos(timestampSec));
     builder.setConnectivityData(ConnectivityData.newBuilder()
-                                  .setDefaultNetworkType(networkType)
-                                  .setRadioState(radioState));
+                                  .setNetworkType(networkType));
     return builder.build();
   }
 

@@ -53,10 +53,10 @@ public class GcStatsDataSeriesTest {
     assertEquals(2, dataList.size());
     SeriesData<GcDurationData> data1 = dataList.get(0);
     assertEquals(3, data1.x);
-    assertEquals(4, data1.value.getDuration());
+    assertEquals(4, data1.value.getDurationUs());
 
     SeriesData<GcDurationData> data2 = dataList.get(1);
     assertEquals(14, data2.x);
-    assertEquals(3, data2.value.getDuration());
+    assertEquals(3, data2.value.getDurationUs());
   }
 }

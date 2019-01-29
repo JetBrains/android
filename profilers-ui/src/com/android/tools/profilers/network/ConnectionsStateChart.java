@@ -16,6 +16,7 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.Range;
@@ -25,7 +26,7 @@ import com.android.tools.profilers.network.httpdata.HttpData;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-
+import java.awt.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -84,7 +85,13 @@ public final class ConnectionsStateChart {
       series.add(data.getEndTimeUs(), NetworkState.NONE);
     }
     StateChartModel<NetworkState> stateModel = new StateChartModel<>();
-    StateChart<NetworkState> chart = new StateChart<>(stateModel, myColors);
+    StateChart<NetworkState> chart = new StateChart<>(stateModel, new StateChartColorProvider<NetworkState>() {
+      @NotNull
+      @Override
+      public Color getColor(boolean isMouseOver, @NotNull NetworkState value) {
+        return myColors.getColor(value);
+      }
+    });
     stateModel.addSeries(new RangedSeries<>(range, series));
     return chart;
   }

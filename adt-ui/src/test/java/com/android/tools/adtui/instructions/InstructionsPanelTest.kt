@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.updater.Updater
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import sun.swing.SwingUtilities2
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
@@ -32,9 +33,10 @@ class InstructionsPanelTest {
     val easeOut = EaseOutModel(updater, FakeTimer.ONE_SECOND_IN_NS)
     val panel = JPanel(BorderLayout())
 
-    val instructions = InstructionsPanel.Builder(TextInstruction(AdtUiUtils.DEFAULT_FONT, "InstructionsPanelTest"))
-        .setEaseOut(easeOut, { child -> panel.remove(child) })
-        .build()
+    val instructions = InstructionsPanel.Builder(
+      TextInstruction(SwingUtilities2.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT), "InstructionsPanelTest"))
+      .setEaseOut(easeOut, { child -> panel.remove(child) })
+      .build()
     panel.add(instructions, BorderLayout.CENTER)
 
     // After 1 second, fade out should start the next update.

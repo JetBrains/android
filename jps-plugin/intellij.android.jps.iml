@@ -18,8 +18,12 @@
     <orderEntry type="module" module-name="intellij.platform.jps.model.impl" />
     <orderEntry type="module" module-name="intellij.maven.jps" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
-    <orderEntry type="library" name="com.android.tools.build:manifest-merger:26.1.2" level="project" />
-    <orderEntry type="library" name="com.android.tools:common:26.1.2" level="project" />
+    <orderEntry type="library" name="com.android.tools:common" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="com.android.tools.build:manifest-merger" level="project" />
+    <orderEntry type="library" name="com.android.tools:sdklib" level="project" />
+    <orderEntry type="library" name="com.android.tools:repository" level="project" />
+    <orderEntry type="library" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
+    <orderEntry type="library" name="com.android.tools.build:builder-model" level="project" />
   </component>
 </module>
