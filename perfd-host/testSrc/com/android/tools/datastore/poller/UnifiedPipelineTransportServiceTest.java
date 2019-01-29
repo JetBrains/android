@@ -163,7 +163,7 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
   @Test
   public void executeRedirectsProperly() {
     StreamObserver<ExecuteResponse> observer = mock(StreamObserver.class);
-    Command sentCommand = Command.newBuilder().setStreamId(STREAM_ID).setType(Command.CommandType.BEGIN_SESSION).build();
+    Command sentCommand = Command.newBuilder().setStreamId(STREAM_ID).setType(Command.CommandType.BEGIN_SESSION).setPid(1).build();
     myTransportService.execute(
       ExecuteRequest.newBuilder().setCommand(sentCommand).build(),
       observer);
@@ -171,7 +171,7 @@ public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
     // Test executing a command on an invalid stream.
     myTransportService.execute(
       ExecuteRequest.newBuilder()
-        .setCommand(Command.newBuilder().setStreamId(STREAM_ID).setType(Command.CommandType.BEGIN_SESSION)).build(),
+        .setCommand(Command.newBuilder().setStreamId(STREAM_ID).setType(Command.CommandType.BEGIN_SESSION).setPid(1)).build(),
       observer);
     assertThat(sentCommand).isEqualTo(myFakeService.getLastCommandReceived());
   }
