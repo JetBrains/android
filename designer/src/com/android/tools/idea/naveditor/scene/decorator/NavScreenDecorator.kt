@@ -16,42 +16,37 @@
 package com.android.tools.idea.naveditor.scene.decorator
 
 import com.android.SdkConstants
+import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
+import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawTruncatedText
-import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
+import com.android.tools.idea.common.scene.draw.DrawFilledRectangle
+import com.android.tools.idea.common.scene.draw.DrawLine
+import com.android.tools.idea.naveditor.model.className
+import com.android.tools.idea.naveditor.scene.DRAW_BACKGROUND_LEVEL
+import com.android.tools.idea.naveditor.scene.DRAW_NAV_SCREEN_LEVEL
+import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BACKGROUND_COLOR
+import com.android.tools.idea.naveditor.scene.NavColorSet.PLACEHOLDER_BORDER_COLOR
+import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.android.tools.idea.naveditor.scene.ThumbnailManager
-import com.android.tools.idea.naveditor.scene.createDrawCommand
-import com.android.tools.idea.naveditor.scene.draw.DrawFilledRectangle
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
-import com.android.tools.idea.naveditor.scene.scaledFont
-import com.android.tools.idea.rendering.ImagePool.Image
+import com.android.tools.idea.res.resolve
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.xml.XmlFile
-import java.awt.Font
-import java.awt.Rectangle
+import java.awt.BasicStroke
+import java.awt.Dimension
+import java.awt.geom.Point2D
+import java.awt.geom.Rectangle2D
 import java.io.File
-import java.util.concurrent.ExecutionException
 
 /**
  * [NavScreenDecorator] Base class for navigation decorators.
  */
-
-abstract class NavScreenDecorator : SceneDecorator() {
-  override fun addFrame(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
-  }
-
-  override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
-  }
-
-  override fun buildList(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
-    val displayList = DisplayList()
-    super.buildList(displayList, time, sceneContext, component)
-    list.add(createDrawCommand(displayList, component))
-  }
+abstract class NavScreenDecorator : NavBaseDecorator() {
 
   // TODO: Either set an appropriate clip here, or make this the default behavior in the base class
   override fun buildListChildren(list: DisplayList,
@@ -63,43 +58,71 @@ abstract class NavScreenDecorator : SceneDecorator() {
     }
   }
 
-  protected fun drawImage(list: DisplayList, sceneContext: SceneContext, component: SceneComponent, rectangle: Rectangle) {
-    val image = buildImage(sceneContext, component)
-    if (image == null) {
-      list.add(DrawFilledRectangle(rectangle, sceneContext.colorSet.componentBackground, 0))
-      list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Preview Unavailable", rectangle, sceneContext.colorSet.text,
-          scaledFont(sceneContext, Font.PLAIN), true))
+  protected fun drawScreen(list: DisplayList,
+                           sceneContext: SceneContext,
+                           component: SceneComponent,
+                           @SwingCoordinate rectangle: Rectangle2D.Float) {
+    val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT)
+    val className = component.nlComponent.className
+    if (layout == null && className == null) {
+      drawPlaceholder(list, rectangle)
     }
     else {
-      list.add(DrawNavScreen(rectangle.x, rectangle.y, rectangle.width, rectangle.height, image))
+      drawImage(list, sceneContext, component, layout, rectangle)
     }
   }
 
-  private fun buildImage(sceneContext: SceneContext, component: SceneComponent): Image? {
-    val surface = sceneContext.surface ?: return null
-    val configuration = surface.configuration
-    val facet = surface.model!!.facet
+  private fun drawPlaceholder(list: DisplayList, @SwingCoordinate rectangle: Rectangle2D.Float) {
+    list.add(DrawFilledRectangle(DRAW_BACKGROUND_LEVEL, rectangle, PLACEHOLDER_BACKGROUND_COLOR))
 
-    val layout = component.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT) ?: return null
-    val fileName = configuration?.resourceResolver?.findResValue(layout, false)?.value ?: return null
-    val file = File(fileName)
+    val stroke = BasicStroke(REGULAR_FRAME_THICKNESS)
+    val p1 = Point2D.Float(rectangle.x, rectangle.y)
+    val p2 = Point2D.Float(p1.x, p1.y + rectangle.height)
+    val p3 = Point2D.Float(p1.x + rectangle.width, p1.y)
+    val p4 = Point2D.Float(p3.x, p2.y)
+
+    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p1, p4, PLACEHOLDER_BORDER_COLOR, stroke))
+    list.add(DrawLine(DRAW_NAV_SCREEN_LEVEL, p2, p3, PLACEHOLDER_BORDER_COLOR, stroke))
+  }
+
+  private fun drawImage(list: DisplayList,
+                        sceneContext: SceneContext,
+                        component: SceneComponent,
+                        layout: String?,
+                        rectangle: Rectangle2D.Float) {
+    val image = buildImage(sceneContext, component, layout, Dimension(rectangle.width.toInt(), rectangle.height.toInt()))
+    list.add(DrawNavScreen(rectangle, image))
+  }
+
+  private fun buildImage(sceneContext: SceneContext,
+                         component: SceneComponent,
+                         layout: String?,
+                         dimensions: Dimension): RefinableImage {
+    val empty = RefinableImage()
+    if (layout == null) {
+      return empty
+    }
+    val surface = sceneContext.surface ?: return empty
+    val configuration = surface.configuration ?: return empty
+    val facet = surface.model?.facet ?: return empty
+
+    val resourceUrl = ResourceUrl.parse(layout) ?: return empty
+    if (resourceUrl.type != ResourceType.LAYOUT) {
+      return empty
+    }
+    val resourceResolver = configuration.resourceResolver
+    val resourceValue = ApplicationManager.getApplication().runReadAction<String> {
+      resourceResolver?.resolve(resourceUrl, component.nlComponent.tag)?.value
+    } ?: return empty
+
+    val file = File(resourceValue)
     if (!file.exists()) {
-      return null
+      return empty
     }
+    val virtualFile = VfsUtil.findFileByIoFile(file, false) ?: return empty
+
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return empty
     val manager = ThumbnailManager.getInstance(facet)
-    val virtualFile = VfsUtil.findFileByIoFile(file, false) ?: return null
-    val psiFile = AndroidPsiUtils.getPsiFileSafely(surface.project, virtualFile) as? XmlFile ?: return null
-    val thumbnail = manager.getThumbnail(psiFile, surface, configuration) ?: return null
-    return try {
-      // TODO: show progress icon during image creation
-      thumbnail.get()
-    }
-    catch (ignore: InterruptedException) {
-      // Shouldn't happen
-      null
-    }
-    catch (ignore: ExecutionException) {
-      null
-    }
+    return manager.getThumbnail(psiFile, configuration, dimensions)
   }
 }

@@ -24,7 +24,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.ui.LayeredIcon;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -47,7 +47,7 @@ public final class AndroidJUnitConfigurationType extends SimpleConfigurationType
     }
     else {
       LayeredIcon icon = new LayeredIcon(2);
-      icon.setIcon(AndroidIcons.AndroidModule, 0);
+      icon.setIcon(StudioIcons.Shell.Filetree.ANDROID_PROJECT, 0);
       icon.setIcon(AllIcons.Nodes.JunitTestMark, 1);
       return icon;
     }

@@ -15,39 +15,44 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profilers.ProfilerCombobox;
+import com.android.tools.profilers.ProfilerComboboxCellRenderer;
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
-import com.intellij.util.ui.JBEmptyBorder;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.ui.EnumComboBoxModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
 public class MemoryClassGrouping extends AspectObserver {
   @NotNull private final MemoryProfilerStage myStage;
-  @NotNull private final FlatComboBox<ClassGrouping> myComboBox;
+  @NotNull private final JComboBox<ClassGrouping> myComboBox;
 
   public MemoryClassGrouping(@NotNull MemoryProfilerStage stage) {
     myStage = stage;
 
     myStage.getAspect().addDependency(this).onChange(MemoryProfilerAspect.CLASS_GROUPING, this::groupingChanged);
-    myComboBox = new FlatComboBox<>();
-    myComboBox.setModel(new DefaultComboBoxModel<>(ClassGrouping.values()));
-    BasicComboBoxRenderer comboBoxRenderer = new BasicComboBoxRenderer();
-    comboBoxRenderer.setBorder(new JBEmptyBorder(UIUtil.getListCellPadding()));
-    myComboBox.setRenderer(comboBoxRenderer);
+    myComboBox = new ProfilerCombobox<>(new EnumComboBoxModel<>(ClassGrouping.class));
+    myComboBox.setRenderer(new ProfilerComboboxCellRenderer<ClassGrouping>() {
+      @Override
+      protected void customizeCellRenderer(@NotNull JList<? extends ClassGrouping> list,
+                                           ClassGrouping value,
+                                           int index,
+                                           boolean selected,
+                                           boolean hasFocus) {
+        append(value.myLabel);
+      }
+    });
     myComboBox.addActionListener(e -> {
       Object item = myComboBox.getSelectedItem();
-      if (item != null && item instanceof ClassGrouping) {
+      if (item instanceof ClassGrouping) {
         myStage.getConfiguration().setClassGrouping((ClassGrouping)item);
       }
     });
   }
 
   @NotNull
-  FlatComboBox<ClassGrouping> getComponent() {
+  JComboBox<ClassGrouping> getComponent() {
     return myComboBox;
   }
 

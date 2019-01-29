@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.projectsystem
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.openapi.project.Project
@@ -39,6 +40,9 @@ abstract class SyncWithSourceGenerationListener : GradleSyncListener, GradleBuil
     private set
 
   abstract fun syncFinished(sourceGenerationRequested: Boolean, result: ProjectSystemSyncManager.SyncResult)
+
+  override fun syncTaskCreated(project: Project, request: GradleSyncInvoker.Request) {
+  }
 
   override fun syncStarted(project: Project, skipped: Boolean, sourceGenerationRequested: Boolean) {
     sourceGenerationExpected = sourceGenerationRequested

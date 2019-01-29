@@ -15,11 +15,58 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.CALENDAR_VIEW;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_LAYOUT_MANAGER;
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
+import static com.android.SdkConstants.FD_RES_DRAWABLE;
+import static com.android.SdkConstants.FD_RES_LAYOUT;
+import static com.android.SdkConstants.FD_RES_MENU;
+import static com.android.SdkConstants.FQCN_GRID_VIEW;
+import static com.android.SdkConstants.FQCN_SPINNER;
+import static com.android.SdkConstants.GRID_VIEW;
+import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.LIST_VIEW;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.URI_PREFIX;
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_APPLICATION_PACKAGE;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RECYCLER_VIEW_SUPPORT;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW;
+import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_XML_FILE_PARSER_SUPPORT;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+
+import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
-import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.rendering.api.ActionBarCallback;
+import com.android.ide.common.rendering.api.AdapterBinding;
+import com.android.ide.common.rendering.api.DataBindingItem;
+import com.android.ide.common.rendering.api.Features;
+import com.android.ide.common.rendering.api.ILayoutLog;
+import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.rendering.api.LayoutlibCallback;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.Result;
+import com.android.ide.common.rendering.api.SessionParams;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceVisitor;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
+import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -27,28 +74,53 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.rendering.parsers.AaptAttrParser;
+import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
+import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
+import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.aar.ProtoXmlPullParser;
 import com.android.tools.idea.util.DependencyManagementUtil;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.idea.util.FileExtensions;
+import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.RecyclerViewHelper;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,43 +131,36 @@ import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.layoutlib.RenderParamsFlags.*;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
-
 /**
  * Loader for Android Project class in order to use them in the layout editor.
- * <p/>This implements {@code com.android.ide.common.rendering.api.IProjectCallback} for the old and new API through
- * {@link LayoutlibCallback}
  */
 public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.LayoutlibCallback");
 
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
   private static final int MAX_PARSER_INCLUDES = 50;
+  private static final AndroidxName CLASS_WINDOR_DECOR_ACTION_BAR =
+    AndroidxName.of("android.support.v7.internal.app.", "WindowDecorActionBar");
   /** Class names that are not a view. When instantiating them, errors should be logged by LayoutLib. */
-  private static final Set<String> NOT_VIEW = ImmutableSet.of(RecyclerViewHelper.CN_RV_ADAPTER,
-                                                              RecyclerViewHelper.CN_RV_LAYOUT_MANAGER,
-                                                             "android.support.v7.internal.app.WindowDecorActionBar");
+  private static final Set<String> NOT_VIEW = ImmutableSet.of(CLASS_RECYCLER_VIEW_ADAPTER.oldName(),
+                                                              CLASS_RECYCLER_VIEW_ADAPTER.newName(),
+                                                              CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.oldName(),
+                                                              CLASS_RECYCLER_VIEW_LAYOUT_MANAGER.newName(),
+                                                              CLASS_WINDOR_DECOR_ACTION_BAR.oldName(),
+                                                              CLASS_WINDOR_DECOR_ACTION_BAR.newName());
   /** Directory name for the bundled layoutlib installation */
   public static final String FD_LAYOUTLIB = "layoutlib";
   /** Directory name for the gradle build-cache. Exploded AARs will end up there when using build cache */
   public static final String BUILD_CACHE = "build-cache";
 
   @NotNull private final Module myModule;
-  @NotNull private final AppResourceRepository myProjectRes;
+  @NotNull private final ResourceIdManager myIdManager;
   @NotNull final private LayoutLibrary myLayoutLib;
   @Nullable private final Object myCredential;
-  private final boolean myHasAppCompat;
-  @Nullable private String myNamespace;
+  private final boolean myHasLegacyAppCompat;
+  private final boolean myHasAndroidXAppCompat;
+  private final AaptOptions.Namespacing myNamespacing;
+  @NotNull private String myNamespace;
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
@@ -105,14 +170,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final DownloadableFontCacheService myFontCacheService;
   private boolean myUsed;
-  private Set<File> myParserFiles;
+  private Set<PathString> myParserFiles;
   private int myParserCount;
-  private ParserFactory myParserFactory;
   @NotNull public ImmutableMap<String, TagSnapshot> myAaptDeclaredResources = ImmutableMap.of();
   private final Map<String, ResourceValue> myFontFamilies;
   private ProjectFonts myProjectFonts;
   private String myAdaptiveIconMaskPath;
   @Nullable private final ILayoutPullParserFactory myLayoutPullParserFactory;
+  @NotNull private final ResourceNamespace.Resolver myImplicitNamespaces;
 
   /**
    * Creates a new {@link LayoutlibCallbackImpl} to be used with the layout lib.
@@ -129,7 +194,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    */
   public LayoutlibCallbackImpl(@Nullable RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
-                               @NotNull AppResourceRepository projectRes,
+                               @NotNull LocalResourceRepository projectRes,
                                @NotNull Module module,
                                @NotNull AndroidFacet facet,
                                @NotNull IRenderLogger logger,
@@ -138,15 +203,15 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @Nullable ILayoutPullParserFactory parserFactory) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
-    myProjectRes = projectRes;
+    myIdManager = ResourceIdManager.get(module);
     myModule = module;
     myLogger = logger;
     myCredential = credential;
-    myLogger = logger;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
-    myHasAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
+    myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
+    myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
     String javaPackage = MergedManifest.get(myModule).getPackage();
     if (javaPackage != null && !javaPackage.isEmpty()) {
@@ -154,12 +219,37 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     } else {
       myNamespace = AUTO_URI;
     }
+
+    myNamespacing = ResourceRepositoryManager.getOrCreateInstance(facet).getNamespacing();
+    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+      myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
+    } else {
+      myImplicitNamespaces = ResourceNamespace.Resolver.EMPTY_RESOLVER;
+    }
+
     myFontCacheService = DownloadableFontCacheService.getInstance();
-    myFontFamilies = projectRes.getAllResourceItems().stream()
-      .filter(r -> r.getType() == ResourceType.FONT)
-      .map(r -> r.getResourceValue(false))
-      .filter(value -> value.getRawXmlValue().endsWith(DOT_XML))
-      .collect(Collectors.toMap(ResourceValue::getRawXmlValue, (ResourceValue value) -> value));
+    ImmutableMap.Builder<String, ResourceValue> fontBuilder = ImmutableMap.builder();
+    projectRes.accept(
+        new ResourceVisitor() {
+          @Override
+          @NotNull
+          public VisitResult visit(@NotNull ResourceItem resourceItem) {
+            ResourceValue resourceValue = resourceItem.getResourceValue();
+            if (resourceValue != null) {
+              String rawXml = resourceValue.getRawXmlValue();
+              if (rawXml != null && rawXml.endsWith(DOT_XML)) {
+                fontBuilder.put(rawXml, resourceValue);
+              }
+            }
+            return VisitResult.CONTINUE;
+          }
+
+          @Override
+          public boolean shouldVisitResourceType(@NotNull ResourceType resourceType) {
+            return resourceType == ResourceType.FONT;
+          }
+        });
+    myFontFamilies = fontBuilder.build();
   }
 
   /** Resets the callback state for another render */
@@ -197,8 +287,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * This implementation goes through the output directory of the project and loads the
    * <code>.class</code> file directly.
    */
-  @Nullable
   @Override
+  @Nullable
   @SuppressWarnings("unchecked")
   public Object loadView(@NotNull String className, @NotNull Class[] constructorSignature, @NotNull Object[] constructorParameters)
       throws ClassNotFoundException {
@@ -227,29 +317,21 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    *
    * @return The package namespace of the project or null in case of error.
    */
-  @Nullable
+  @NotNull
   @Override
   public String getNamespace() {
     return myNamespace;
   }
 
-  @SuppressWarnings({"UnnecessaryFullyQualifiedName", "deprecation"}) // Required by IProjectCallback
   @Nullable
   @Override
-  public com.android.util.Pair<ResourceType, String> resolveResourceId(int id) {
-    return myProjectRes.resolveResourceId(id);
+  public ResourceReference resolveResourceId(int id) {
+    return myIdManager.findById(id);
   }
 
-  @Nullable
   @Override
-  public String resolveResourceId(int[] id) {
-    return myProjectRes.resolveStyleable(id);
-  }
-
-  @Nullable
-  @Override
-  public Integer getResourceId(ResourceType type, String name) {
-    return myProjectRes.getResourceId(type, name);
+  public int getOrGenerateResourceId(@NotNull ResourceReference resource) {
+    return myIdManager.getOrGenerateId(resource);
   }
 
   /**
@@ -267,10 +349,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Nullable
-  private static XmlPullParser getParserFromText(@NotNull ParserFactory factory, String fileName, @NotNull String text) {
+  private static XmlPullParser getParserFromText(String fileName, @NotNull String text) {
     try {
-      XmlPullParser parser = factory.createParser(fileName);
-      parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      XmlPullParser parser = new NamedXmlParser(fileName);
       parser.setInput(new StringReader(text));
       return parser;
     }
@@ -281,11 +362,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     return null;
   }
 
-  @Nullable
   @Override
-  public XmlPullParser getXmlFileParser(String fileName) {
-    // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
-    // layoutlib built-in directories
+  @Nullable
+  public XmlPullParser createXmlParserForPsiFile(@NotNull String fileName) {
+    // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files
+    // in build outputs or layoutlib built-in directories.
     if (fileName.contains(FilenameConstants.EXPLODED_AAR) || fileName.contains(FD_LAYOUTLIB) || fileName.contains(BUILD_CACHE)) {
       return null;
     }
@@ -298,8 +379,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         if (psiFile != null) {
           ResourceValue resourceValue = myFontFamilies.get(fileName);
           if (resourceValue != null) {
-            // This is a font-family XML. Now check if it defines a downloadable font. If it is, this is a special case where we generate
-            // a synthetic font-family XML file that points to the cached fonts downloaded by the DownloadableFontCacheService
+            // This is a font-family XML. Now check if it defines a downloadable font. If it is,
+            // this is a special case where we generate a synthetic font-family XML file that points
+            // to the cached fonts downloaded by the DownloadableFontCacheService.
             if (myProjectFonts == null && myResourceResolver != null) {
               myProjectFonts = new ProjectFonts(myResourceResolver);
             }
@@ -312,14 +394,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                 return null;
               }
 
-              return getParserFromText(getParserFactory(), fileName, fontFamilyXml);
+              return getParserFromText(fileName, fontFamilyXml);
             }
           }
 
           String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
                            ? psiFile.getText()
                            : ApplicationManager.getApplication().runReadAction((Computable<String>)psiFile::getText);
-          return getParserFromText(getParserFactory(), fileName, psiText);
+          return getParserFromText(fileName, psiText);
         }
       }
       return null;
@@ -327,6 +409,31 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     finally {
       RenderSecurityManager.exitSafeRegion(token);
     }
+  }
+
+  @Override
+  @Nullable
+  public XmlPullParser createXmlParserForFile(@NotNull String fileName) {
+    try {
+      ByteArrayInputStream stream = new ByteArrayInputStream(FileResourceReader.readBytes(fileName));
+      // Instantiate an XML pull parser based on the contents of the stream.
+      XmlPullParser parser;
+      if (XmlUtils.isProtoXml(stream)) {
+        parser = new NamedProtoXmlParser(fileName); // Parser for proto XML used in AARs.
+      } else {
+        parser = new NamedXmlParser(fileName); // Parser for regular text XML.
+      }
+      parser.setInput(stream, null);
+      return parser;
+    } catch (IOException | XmlPullParserException e) {
+      return null;
+    }
+  }
+
+  @Override
+  @NotNull
+  public XmlPullParser createXmlParser() {
+    return new NamedXmlParser(null);
   }
 
   public void setLayoutParser(@Nullable String layoutName, @Nullable ILayoutPullParser layoutParser) {
@@ -343,33 +450,25 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     return myLayoutEmbeddedParser;
   }
 
-  @SuppressWarnings("deprecation") // Required by IProjectCallback
-  @Nullable
   @Override
-  public ILayoutPullParser getParser(@NotNull String layoutName) {
-    // Try to compute the ResourceValue for this layout since layoutlib
-    // must be an older version which doesn't pass the value:
-    if (myResourceResolver != null) {
-      ResourceValue value = myResourceResolver.getProjectResource(ResourceType.LAYOUT, layoutName);
-      if (value != null) {
-        return getParser(value);
-      }
-    }
-
-    return getParser(layoutName, false, null);
-  }
-
   @Nullable
-  @Override
   public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
     String value = layoutResource.getValue();
+    if (value == null) {
+      return null;
+    }
     ILayoutPullParser parser;
-    if (value != null && !myAaptDeclaredResources.isEmpty() && value.startsWith(AAPT_ATTR_PREFIX)) {
-      TagSnapshot aaptResource = myAaptDeclaredResources.get(StringUtil.trimStart(layoutResource.getValue(), AAPT_ATTR_PREFIX));
-      parser = LayoutPsiPullParser.create(aaptResource, myLogger);
+    if (!myAaptDeclaredResources.isEmpty() && layoutResource.getResourceType() == ResourceType.AAPT) {
+      TagSnapshot aaptResource = myAaptDeclaredResources.get(layoutResource.getValue());
+      // TODO(namespaces, b/74003372): figure out where to get the namespace from.
+      parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
     }
     else {
-      parser = getParser(layoutResource.getName(), layoutResource.isFramework(), new File(layoutResource.getValue()));
+      PathString pathString = ResourceHelper.toFileResourcePathString(value);
+      if (pathString == null) {
+        return null;
+      }
+      parser = getParser(layoutResource.getName(), layoutResource.getNamespace(), pathString);
     }
 
     if (parser instanceof AaptAttrParser) {
@@ -388,7 +487,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Nullable
-  private ILayoutPullParser getParser(@NotNull String layoutName, boolean isFramework, @Nullable File xml) {
+  private ILayoutPullParser getParser(@NotNull String layoutName, @NotNull ResourceNamespace namespace, @NotNull PathString xml) {
     if (myParserFiles != null && myParserFiles.contains(xml)) {
       if (myParserCount > MAX_PARSER_INCLUDES) {
         // Unlikely large number of includes. Look for cyclic dependencies in the available files.
@@ -414,11 +513,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       }
     }
 
-    if (layoutName.equals(myLayoutName) && !isFramework) {
+    if (layoutName.equals(myLayoutName) && namespace != ResourceNamespace.ANDROID) {
       ILayoutPullParser parser = myLayoutEmbeddedParser;
       // The parser should only be used once!! If it is included more than once,
       // subsequent includes should just use a plain pull parser that is not tied
-      // to the XML model
+      // to the XML model.
       myLayoutEmbeddedParser = null;
       return parser;
     }
@@ -426,64 +525,52 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     // See if we can find a corresponding PSI file for this included layout, and
     // if so directly reuse the PSI parser, such that we pick up the live, edited
     // contents rather than the most recently saved file contents.
-    if (xml != null && xml.isFile()) {
-      File parent = xml.getParentFile();
-      String path = xml.getPath();
+    if (xml.getFilesystemUri().getScheme().equals("file")) {
+      String parentName = xml.getParentFileName();
+      String path = xml.getRawPath();
       // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
-      // layoutlib built-in directories
-      if (parent != null && !path.contains(FilenameConstants.EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)) {
-        String parentName = parent.getName();
-        if (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU)) {
-          VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);
-          if (file != null) {
-            PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
-            if (psiFile instanceof XmlFile) {
-              // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
-              // layout so we already have a parent.
-              LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false);
-              parser.setUseSrcCompat(myHasAppCompat);
-              if (parentName.startsWith(FD_RES_LAYOUT)) {
-                // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
-                parser.setProvideViewCookies(myRenderTask != null && myRenderTask.getProvideCookiesForIncludedViews());
-              }
-              return parser;
+      // layoutlib built-in directories.
+      if (parentName != null
+          && !path.contains(FilenameConstants.EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)
+          && (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU))) {
+        VirtualFile file = FileExtensions.toVirtualFile(xml);
+        if (file != null) {
+          PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
+          if (psiFile instanceof XmlFile) {
+            // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
+            // layout so we already have a parent.
+            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false);
+            parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
+            if (parentName.startsWith(FD_RES_LAYOUT)) {
+              // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.
+              parser.setProvideViewCookies(myRenderTask != null && myRenderTask.getProvideCookiesForIncludedViews());
             }
+            return parser;
           }
         }
       }
-
-      // For included layouts, create a LayoutFilePullParser such that we get the
-      // layout editor behavior in included layouts as well - which for example
-      // replaces <fragment> tags with <include>.
-      try {
-        return LayoutFilePullParser.create(this, xml);
-      }
-      catch (XmlPullParserException e) {
-        LOG.error(e);
-      }
-      catch (FileNotFoundException e) {
-        // Shouldn't happen since we check isFile() above
-      }
-      catch (IOException e) {
-        LOG.error(e);
-      }
     }
 
-    return null;
+    // For included layouts, create a LayoutFilePullParser such that we get the
+    // layout editor behavior in included layouts as well - which for example
+    // replaces <fragment> tags with <include>.
+    return LayoutFilePullParser.create(xml, namespace);
   }
 
   /**
    * Searches for cycles in the {@code <include>} tag graph of the layout files we've
-   * been asked to provide parsers for
+   * been asked to provide parsers for.
    */
   private boolean findCycles() {
-    Map<File, String> fileToLayout = new HashMap<>();
     Map<String, File> layoutToFile = new HashMap<>();
     Multimap<String, String> includeMap = ArrayListMultimap.create();
-    for (File file : myParserFiles) {
-      String layoutName = LintUtils.getLayoutName(file);
+    for (PathString path : myParserFiles) {
+      File file = path.toFile();
+      if (file == null || !file.exists()) {
+        continue;
+      }
+      String layoutName = Lint.getLayoutName(file);
       layoutToFile.put(layoutName, file);
-      fileToLayout.put(file, layoutName);
       try {
         String xml = Files.toString(file, Charsets.UTF_8);
         Document document = XmlUtils.parseDocumentSilently(xml, true);
@@ -498,7 +585,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             }
           }
 
-          // Deals with tools:layout attribute from fragments
+          // Deals with tools:layout attribute from fragments.
           NodeList fragmentNodeList = document.getElementsByTagName(VIEW_FRAGMENT);
           for (int i = 0, n = fragmentNodeList.getLength(); i < n; i++) {
             Element fragment = (Element)fragmentNodeList.item(i);
@@ -515,11 +602,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       }
     }
 
-    // We now have a DAG over the include dependencies in the layouts
-    // Do a DFS to detect cycles
+    // We now have a DAG over the include dependencies in the layouts.
+    // Do a DFS to detect cycles.
 
     // Perform DFS on the include graph and look for a cycle; if we find one, produce
-    // a chain of includes on the way back to show to the user
+    // a chain of includes on the way back to show to the user.
     if (!includeMap.isEmpty()) {
       for (String from : includeMap.keySet()) {
         Set<String> visiting = Sets.newHashSetWithExpectedSize(includeMap.size());
@@ -582,8 +669,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     return null;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Object getAdapterItemValue(ResourceReference adapterView,
                                     Object adapterCookie,
                                     ResourceReference itemRef,
@@ -594,8 +681,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                     ResourceReference viewRef,
                                     ViewAttribute viewAttribute,
                                     Object defaultValue) {
-
-    // Special case for the palette preview
+    // Special case for the palette preview.
     if (viewAttribute == ViewAttribute.TEXT && adapterView.getName().startsWith("android_widget_")) { //$NON-NLS-1$
       String name = adapterView.getName();
       if (viewRef.getName().equals("text2")) { //$NON-NLS-1$
@@ -613,7 +699,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       }
     }
 
-    if (itemRef.isFramework()) {
+    if (itemRef.getNamespace() == ResourceNamespace.ANDROID) {
       // Special case for list_view_item_2 and friends
       if (viewRef.getName().equals("text2")) { //$NON-NLS-1$
         return "Sub Item " + (fullPosition + 1);
@@ -789,6 +875,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     if (key.equals(FLAG_KEY_ADAPTIVE_ICON_MASK_PATH)) {
       return (T)myAdaptiveIconMaskPath;
     }
+    if (key.equals(FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW)) {
+      return (T)StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
+    }
+    if (key.equals(FLAG_KEY_ENABLE_SHADOW)) {
+      return (T)StudioFlags.NELE_ENABLE_SHADOW.get();
+    }
     return null;
   }
 
@@ -796,15 +888,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private String getPackage() {
     AndroidModuleInfo info = AndroidModuleInfo.getInstance(myModule);
     return info == null ? null : info.getPackage();
-  }
-
-  @NotNull
-  @Override
-  public ParserFactory getParserFactory() {
-    if (myParserFactory == null) {
-      myParserFactory = new ParserFactoryImpl();
-    }
-    return myParserFactory;
   }
 
   @NotNull
@@ -820,32 +903,49 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     catch (InconvertibleClassError e) {
       throw new ClassNotFoundException(name + " not found.", e);
     }
+  }
 
+  @NotNull
+  @Override
+  public ResourceNamespace.Resolver getImplicitNamespaces() {
+    return myImplicitNamespaces;
   }
 
   public void setAdaptiveIconMaskPath(@NotNull String adaptiveIconMaskPath) {
     myAdaptiveIconMaskPath = adaptiveIconMaskPath;
   }
 
-  private static class ParserFactoryImpl extends ParserFactory {
-    @NotNull
-    @Override
-    public XmlPullParser createParser(@Nullable String debugName) throws XmlPullParserException {
-      return new NamedParser(debugName);
-    }
+  @Override
+  public boolean hasLegacyAppCompat() {
+    return myHasLegacyAppCompat;
   }
 
-  private static class NamedParser extends KXmlParser {
+  @Override
+  public boolean hasAndroidXAppCompat() {
+    return myHasAndroidXAppCompat;
+  }
+
+  @Override
+  public boolean isResourceNamespacingRequired() {
+    return myNamespacing == AaptOptions.Namespacing.REQUIRED;
+  }
+
+  private static class NamedXmlParser extends KXmlParser {
     @Nullable
     private final String myName;
     /**
-     * Attribute that caches whether the tools prefix has been defined or not. This allow us to save unnecessary checks in the most common
-     * case ("tools" is not defined).
+     * Attribute that caches whether the tools prefix has been defined or not. This allows us to save
+     * unnecessary checks in the most common case ("tools" is not defined).
      */
     private boolean hasToolsNamespace;
 
-    NamedParser(@Nullable String name) {
+    public NamedXmlParser(@Nullable String name) {
       myName = name;
+      try {
+        setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      } catch (XmlPullParserException e) {
+        throw new Error("Internal error", e);
+      }
     }
 
     @Override
@@ -864,7 +964,59 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     }
 
     @Override
-    public String getAttributeValue(String namespace, String name) {
+    public String getAttributeValue(@Nullable String namespace, @NotNull String name) {
+      if (hasToolsNamespace && ANDROID_URI.equals(namespace)) {
+        // Only for "android:" attribute, we will check if there is a "tools:" version overriding the value
+        String toolsValue = super.getAttributeValue(TOOLS_URI, name);
+        if (toolsValue != null) {
+          return toolsValue;
+        }
+      }
+
+      return super.getAttributeValue(namespace, name);
+    }
+
+    @Override
+    public String toString() {
+      return myName != null ? myName : super.toString();
+    }
+  }
+
+  private static class NamedProtoXmlParser extends ProtoXmlPullParser {
+    @Nullable
+    private final String myName;
+    /**
+     * Attribute that caches whether the tools prefix has been defined or not. This allows us to save
+     * unnecessary checks in the most common case ("tools" is not defined).
+     */
+    private boolean hasToolsNamespace;
+
+    public NamedProtoXmlParser(@Nullable String name) {
+      myName = name;
+      try {
+        setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+      } catch (XmlPullParserException e) {
+        throw new Error(e);
+      }
+    }
+
+    @Override
+    public int next() throws XmlPullParserException, IOException {
+      int tagType = super.next();
+
+      // We check if the tools namespace is still defined in two cases:
+      // - If it's a start tag and it was defined by a previous tag
+      // - If it WAS defined by a previous tag, and we are closing a tag (going out of scope)
+      if ((!hasToolsNamespace && tagType == XmlPullParser.START_TAG) ||
+          (hasToolsNamespace && tagType == XmlPullParser.END_TAG)) {
+        hasToolsNamespace = getNamespace("tools") != null;
+      }
+
+      return tagType;
+    }
+
+    @Override
+    public String getAttributeValue(@Nullable String namespace, @NotNull String name) {
       if (hasToolsNamespace && ANDROID_URI.equals(namespace)) {
         // Only for "android:" attribute, we will check if there is a "tools:" version overriding the value
         String toolsValue = super.getAttributeValue(TOOLS_URI, name);

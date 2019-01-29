@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.common.editor.NlEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.junit.Ignore;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,14 +34,18 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.assertTrue;
 
-@RunWith(GuiTestRunner.class)
+@RunIn(TestGroup.PROJECT_WIZARD)
+@RunWith(GuiTestRemoteRunner.class)
 public final class ScrollingActivityTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
 
-  @Ignore("b/66680171")
   @Test
   public void contentScrollingXmlOpensInLayoutEditor() {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      return; // On the new NPW design, the bug tested by this test no longer applies, as "Scrolling Activity" is not available.
+    }
+
     WizardUtils.createNewProject(myGuiTest, "Scrolling Activity");
 
     Path path = FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "content_scrolling.xml");

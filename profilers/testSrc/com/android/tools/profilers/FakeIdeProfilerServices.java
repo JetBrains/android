@@ -17,10 +17,10 @@ package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,8 +30,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
+
+  public static final String FAKE_ART_SAMPLED_NAME = "Sampled";
+
+  public static final String FAKE_ART_INSTRUMENTED_NAME = "Instrumented";
+
+  public static final String FAKE_SIMPLEPERF_NAME = "Simpleperf";
+
+  public static final String FAKE_ATRACE_NAME = "Atrace";
+
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
 
@@ -59,9 +69,19 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myEnergyProfilerEnabled = false;
 
   /**
-   * Toggle for faking jvmti agent support in tests.
+   * Can toggle for tests via {@link #enableExportTrace(boolean)}, but each test starts with this defaulted to false.
    */
-  private boolean myJvmtiAgentEnabled = false;
+  private boolean myExportCpuTraceEnabled = false;
+
+  /**
+   * Toggle for faking fragments UI support in tests.
+   */
+  private boolean myFragmentsEnabled = true;
+
+  /**
+   * Can toggle for tests via {@link #enableImportTrace(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean myImportCpuTraceEnabled = false;
 
   /**
    * JNI references alloc/dealloc events are tracked and shown.
@@ -84,19 +104,39 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myNativeProfilingConfigurationPreferred = false;
 
   /**
-   * Whether network request payload is tracked and shown.
-   */
-  private boolean myRequestPayloadEnabled = false;
-
-  /**
    * Whether long trace files should be parsed.
    */
   private boolean myShouldParseLongTraces = false;
 
   /**
-   * Can toggle for tests via {@link #enableSimplePerf(boolean)}, but each test starts with this defaulted to false.
+   * Toggle for faking sessions UI support in tests.
    */
-  private boolean mySimplePerfEnabled = false;
+  private boolean mySessionsViewEnabled = true;
+
+  /**
+   * Toggle for faking session import support in tests.
+   */
+  private boolean mySessionsImportEnabled = true;
+
+  /**
+   * Can toggle for tests via {@link #enableStartupCpuProfiling(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean myStartupCpuProfilingEnabled = false;
+
+  /**
+   * Can toggle for tests via {@link #enableCpuApiTracing(boolean)}, but each test starts with this defaulted to false.
+   */
+  private boolean myIsCpuApiTracingEnabled = false;
+
+  /**
+   * Toggle for faking {@link FeatureConfig#isCpuNewRecordingWorkflowEnabled()} in tests.
+   */
+  private boolean myCpuNewRecordingWorkflowEnabled = false;
+
+  /**
+   * Toggle for live allocation sampling mode.
+   */
+  private boolean myLiveAllocationsSamplingEnabled = true;
 
   /**
    * List of custom CPU profiling configurations.
@@ -105,6 +145,18 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @NotNull private final ProfilerPreferences myPersistentPreferences;
   @NotNull private final ProfilerPreferences myTemporaryPreferences;
+
+  /**
+   * When {@link #openListBoxChooserDialog} is called this index is used to return a specific element in the set of options.
+   * If this index is out of bounds, null is returned.
+   */
+  private int myListBoxOptionsIndex;
+  /**
+   * Fake application id to be used by test.
+   */
+  private String myApplicationId = "";
+
+  @Nullable private Notification myNotification;
 
   public FakeIdeProfilerServices() {
     myPersistentPreferences = new FakeProfilerPreferences();
@@ -156,6 +208,16 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @NotNull
   @Override
+  public String getApplicationId() {
+    return myApplicationId;
+  }
+
+  public void setApplicationId(@NotNull String name) {
+    myApplicationId = name;
+  }
+
+  @NotNull
+  @Override
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
@@ -164,8 +226,13 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isCpuCaptureFilterEnabled() {
-        return false;
+      public boolean isCpuApiTracingEnabled() {
+        return myIsCpuApiTracingEnabled;
+      }
+
+      @Override
+      public boolean isCpuNewRecordingWorkflowEnabled() {
+        return myCpuNewRecordingWorkflowEnabled;
       }
 
       @Override
@@ -174,16 +241,31 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
+      public boolean isExportCpuTraceEnabled() {
+        return myExportCpuTraceEnabled;
+      }
 
       @Override
-      public boolean isJvmtiAgentEnabled() {
-        return myJvmtiAgentEnabled;
+      public boolean isFragmentsEnabled() {
+        return myFragmentsEnabled;
       }
+
+      @Override
+      public boolean isImportCpuTraceEnabled() {
+        return myImportCpuTraceEnabled;
+      }
+
+      @Override
+      public boolean isJniReferenceTrackingEnabled() { return myIsJniReferenceTrackingEnabled; }
 
       @Override
       public boolean isLiveAllocationsEnabled() {
         return myLiveTrackingEnabled;
+      }
+
+      @Override
+      public boolean isLiveAllocationsSamplingEnabled() {
+        return myLiveAllocationsSamplingEnabled;
       }
 
       @Override
@@ -197,18 +279,23 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isNetworkRequestPayloadEnabled() {
-        return myRequestPayloadEnabled;
+      public boolean isPerformanceMonitoringEnabled() {
+        return false;
       }
 
       @Override
-      public boolean isNetworkThreadViewEnabled() {
-        return true;
+      public boolean isSessionImportEnabled() {
+        return mySessionsImportEnabled;
       }
 
       @Override
-      public boolean isSimplePerfEnabled() {
-        return mySimplePerfEnabled;
+      public boolean isSessionsEnabled() {
+        return mySessionsViewEnabled;
+      }
+
+      @Override
+      public boolean isStartupCpuProfilingEnabled() {
+        return myStartupCpuProfilingEnabled;
       }
     };
   }
@@ -226,12 +313,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void openCpuProfilingConfigurationsDialog(CpuProfilerConfigModel model, int deviceLevel,
-                                                   Consumer<ProfilingConfiguration> callbackDialog) {
-    // No-op.
-  }
-
-  @Override
   public void openParseLargeTracesDialog(Runnable yesCallback, Runnable noCallback) {
     if (myShouldParseLongTraces) {
       yesCallback.run();
@@ -241,19 +322,54 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     }
   }
 
+  @Override
+  public <T> T openListBoxChooserDialog(@NotNull String title,
+                                        @Nullable String message,
+                                        @NotNull T[] options,
+                                        @NotNull Function<T, String> listBoxPresentationAdapter) {
+    if (myListBoxOptionsIndex >= 0 && myListBoxOptionsIndex < options.length) {
+      return options[myListBoxOptionsIndex];
+    }
+    return null;
+  }
+
+  /**
+   * Sets the listbox options return element index. If this is set to an index out of bounds null is returned.
+   */
+  public void setListBoxOptionsIndex(int optionIndex) {
+    myListBoxOptionsIndex = optionIndex;
+  }
+
   public void setShouldParseLongTraces(boolean shouldParseLongTraces) {
     myShouldParseLongTraces = shouldParseLongTraces;
   }
 
   public void addCustomProfilingConfiguration(String name, CpuProfiler.CpuProfilerType type) {
     ProfilingConfiguration config =
-      new ProfilingConfiguration(name, type, CpuProfiler.CpuProfilingAppStartRequest.Mode.UNSTATED);
+      new ProfilingConfiguration(name, type, CpuProfiler.CpuProfilerMode.UNSPECIFIED_MODE);
     myCustomProfilingConfigurations.add(config);
   }
 
   @Override
-  public List<ProfilingConfiguration> getCpuProfilingConfigurations() {
+  public List<ProfilingConfiguration> getUserCpuProfilerConfigs() {
     return myCustomProfilingConfigurations;
+  }
+
+  @Override
+  public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
+    ProfilingConfiguration artSampled = new ProfilingConfiguration(FAKE_ART_SAMPLED_NAME,
+                                                                   CpuProfiler.CpuProfilerType.ART,
+                                                                   CpuProfiler.CpuProfilerMode.SAMPLED);
+    ProfilingConfiguration artInstrumented = new ProfilingConfiguration(FAKE_ART_INSTRUMENTED_NAME,
+                                                                        CpuProfiler.CpuProfilerType.ART,
+                                                                        CpuProfiler.CpuProfilerMode.INSTRUMENTED);
+    ProfilingConfiguration simpleperf = new ProfilingConfiguration(FAKE_SIMPLEPERF_NAME,
+                                                                   CpuProfiler.CpuProfilerType.SIMPLEPERF,
+                                                                   CpuProfiler.CpuProfilerMode.SAMPLED);
+    ProfilingConfiguration atrace = new ProfilingConfiguration(FAKE_ATRACE_NAME,
+                                                               CpuProfiler.CpuProfilerType.ATRACE,
+                                                               CpuProfiler.CpuProfilerMode.SAMPLED);
+    return ImmutableList.of(artSampled, artInstrumented, simpleperf, atrace);
   }
 
   @Override
@@ -262,11 +378,18 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void showErrorBalloon(@NotNull String title, @NotNull String text) {}
+  public void showNotification(@NotNull Notification notification) {
+    myNotification = notification;
+  }
 
   @Override
   public void reportNoPiiException(@NotNull Throwable t) {
     t.printStackTrace();
+  }
+
+  @Nullable
+  public Notification getNotification() {
+    return myNotification;
   }
 
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
@@ -289,8 +412,8 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myEnergyProfilerEnabled = enabled;
   }
 
-  public void enableJvmtiAgent(boolean enabled) {
-    myJvmtiAgentEnabled = enabled;
+  public void enableFragments(boolean enabled) {
+    myFragmentsEnabled = enabled;
   }
 
   public void enableJniReferenceTracking(boolean enabled) { myIsJniReferenceTrackingEnabled = enabled; }
@@ -299,15 +422,31 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     myLiveTrackingEnabled = enabled;
   }
 
-  public void enableMemorySnapshot(boolean enabled) {
-    myMemorySnapshotEnabled = enabled;
+  public void enableSessionsView(boolean enabled) {
+    mySessionsViewEnabled = enabled;
   }
 
-  public void enableRequestPayload(boolean enabled) {
-    myRequestPayloadEnabled = enabled;
+  public void enableStartupCpuProfiling(boolean enabled) {
+    myStartupCpuProfilingEnabled = enabled;
   }
 
-  public void enableSimplePerf(boolean enabled) {
-    mySimplePerfEnabled = enabled;
+  public void enableCpuApiTracing(boolean enabled) {
+    myIsCpuApiTracingEnabled = enabled;
+  }
+
+  public void enableExportTrace(boolean enabled) {
+    myExportCpuTraceEnabled = enabled;
+  }
+
+  public void enableImportTrace(boolean enabled) {
+    myImportCpuTraceEnabled = enabled;
+  }
+
+  public void enableCpuNewRecordingWorkflow(boolean enabled) {
+    myCpuNewRecordingWorkflowEnabled = enabled;
+  }
+
+  public void enableLiveAllocationsSampling(boolean enabled) {
+    myLiveAllocationsSamplingEnabled = enabled;
   }
 }

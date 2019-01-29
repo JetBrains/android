@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
@@ -278,7 +278,9 @@ public final class StringResource {
     ResourceItemEntry item = myLocaleToTranslationMap.get(locale);
 
     if (isTranslationMissing(item) && locale.hasRegion()) {
-      locale = Locale.create(locale.qualifier.getLanguage());
+      String language = locale.qualifier.getLanguage();
+      assert language != null; // qualifiers from Locale objects have the language set.
+      locale = Locale.create(language);
       item = myLocaleToTranslationMap.get(locale);
     }
 
@@ -306,7 +308,7 @@ public final class StringResource {
 
     private ResourceItemEntry(@NotNull ResourceItem resourceItem) {
       myResourceItem = resourceItem;
-      ResourceValue value = resourceItem.getResourceValue(false);
+      ResourceValue value = resourceItem.getResourceValue();
 
       if (value == null) {
         myString = "";

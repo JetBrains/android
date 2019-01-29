@@ -15,108 +15,27 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel.SigningConfigPassword.Type;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
-import com.google.common.base.Objects;
+import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface SigningConfigModel {
+public interface SigningConfigModel extends GradleDslModel {
   @NotNull
   String name();
 
   @NotNull
-  GradleNullableValue<String> storeFile();
+  ResolvedPropertyModel storeFile();
 
   @NotNull
-  SigningConfigModel setStoreFile(@NotNull String storeFile);
+  PasswordPropertyModel storePassword();
 
   @NotNull
-  SigningConfigModel removeStoreFile();
+  ResolvedPropertyModel storeType();
 
   @NotNull
-  GradleNullableValue<SigningConfigPassword> storePassword();
+  ResolvedPropertyModel keyAlias();
 
   @NotNull
-  SigningConfigModel setStorePassword(@NotNull Type type, @NotNull String storePassword);
-
-  @NotNull
-  SigningConfigModel removeStorePassword();
-
-  @NotNull
-  GradleNullableValue<String> storeType();
-
-  @NotNull
-  SigningConfigModel setStoreType(@NotNull String storeType);
-
-  @NotNull
-  SigningConfigModel removeStoreType();
-
-  @NotNull
-  GradleNullableValue<String> keyAlias();
-
-  @NotNull
-  SigningConfigModel setKeyAlias(@NotNull String keyAlias);
-
-  @NotNull
-  SigningConfigModel removeKeyAlias();
-
-  @NotNull
-  GradleNullableValue<SigningConfigPassword> keyPassword();
-
-  @NotNull
-  SigningConfigModel setKeyPassword(@NotNull Type type, @NotNull String keyPassword);
-
-  @NotNull
-  SigningConfigModel removeKeyPassword();
-
-  final class SigningConfigPassword {
-    public enum Type {
-      PLAIN_TEXT, // Password specified in the gradle file as plain text.
-      ENVIRONMENT_VARIABLE, // Password read from an environment variable. Ex: System.getenv("KSTOREPWD")
-      CONSOLE_READ // Password read from Console. Ex: System.console().readLine("\nKeystore password: ")
-    }
-
-    @NotNull private final Type myType;
-    @NotNull private final String myPasswordText;
-
-    public SigningConfigPassword(@NotNull Type type, @NotNull String passwordText) {
-      myType = type;
-      myPasswordText = passwordText;
-    }
-
-    @NotNull
-    public Type getType() {
-      return myType;
-    }
-
-    @NotNull
-    public String getPasswordText() {
-      return myPasswordText;
-    }
-
-    @Override
-    public String toString() {
-      return String.format("Type: %1$s, Text: %2$s", myType, myPasswordText);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(myType, myPasswordText);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (!(o instanceof SigningConfigPassword)) {
-        return false;
-      }
-
-      SigningConfigPassword other = (SigningConfigPassword)o;
-      return myType.equals(other.myType)
-             && myPasswordText.equals(other.myPasswordText);
-    }
-  }
+  PasswordPropertyModel keyPassword();
 }

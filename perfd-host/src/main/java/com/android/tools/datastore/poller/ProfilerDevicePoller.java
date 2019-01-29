@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.poller;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DeviceId;
 import com.android.tools.datastore.database.DataStoreTable;
@@ -22,6 +23,7 @@ import com.android.tools.datastore.database.ProfilerTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.google.common.collect.Sets;
 import io.grpc.StatusRuntimeException;
 
 import java.util.HashMap;
@@ -31,9 +33,15 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.DataStoreTableErrorCallback {
+
+  // The number of retries to wait for agent-compatible process to attach an agent before deeming the process as agent-incompatible.
+  @VisibleForTesting
+  static final int AGENT_WAIT_RETRY_THRESHOLD = 10;
+
   private static final class DeviceData {
     public final Common.Device device;
-    public final Set<Common.Process> processes = new HashSet<>();
+    // The value is used to store the number of attempts to wait for an agent to attach.
+    public final Map<Common.Process, Integer> processes = new HashMap<>();
 
     DeviceData(Common.Device device) {
       this.device = device;
@@ -75,6 +83,10 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
         DeviceData deviceData = myDevices.computeIfAbsent(deviceId, s -> new DeviceData(device));
 
         myService.setConnectedClients(deviceId, myPollingService.getChannel());
+
+        TimeResponse timeResponse = myPollingService.getCurrentTime(TimeRequest.getDefaultInstance());
+        myTable.updateDeviceLastKnownTime(device, timeResponse.getTimestampNs());
+
         GetProcessesRequest processesRequest = GetProcessesRequest.newBuilder().setDeviceId(deviceId.get()).build();
         GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
 
@@ -86,20 +98,32 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
           myTable.insertOrUpdateProcess(deviceId, process);
           liveProcesses.add(process);
 
-          // Remove any new processes from the list of last known processes.
-          // Any processes that remain in the list is our list of dead processes.
-          deviceData.processes.remove(process);
+          int retryCount = 0;
+          if (!deviceData.processes.containsKey(process)) {
+            deviceData.processes.put(process, 0);
+          }
+          else {
+            retryCount = deviceData.processes.get(process);
+          }
 
           AgentStatusRequest agentStatusRequest =
-            AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setDeviceId(deviceId.get()).build();
+            AgentStatusRequest.newBuilder().setPid(process.getPid()).setDeviceId(deviceId.get()).build();
           AgentStatusResponse agentStatusResponse = myPollingService.getAgentStatus(agentStatusRequest);
+          if (agentStatusResponse.getIsAgentAttachable() &&
+              agentStatusResponse.getStatus() == AgentStatusResponse.Status.DETACHED &&
+              retryCount >= AGENT_WAIT_RETRY_THRESHOLD) {
+            // If a process spends too long waiting for an agent to attach, it is likely that something has gone wrong, so simply
+            // mark the process as running without an agent.
+            agentStatusResponse = agentStatusResponse.toBuilder().setIsAgentAttachable(false).build();
+          }
+
+          deviceData.processes.put(process, retryCount + 1);
+
           myTable.updateAgentStatus(deviceId, process, agentStatusResponse);
         }
 
-        // At this point, deviceData.processes only contains processes that don't match active processes, meaning they were just killed.
-        killProcesses(deviceId, deviceData.processes);
-        deviceData.processes.clear();
-        deviceData.processes.addAll(liveProcesses);
+        Set<Common.Process> deadProcesses = Sets.difference(deviceData.processes.keySet(), liveProcesses);
+        killProcesses(deviceId, deadProcesses);
       }
     }
     catch (StatusRuntimeException ex) {
@@ -113,7 +137,7 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
   private void disconnect() {
     for (Map.Entry<DeviceId, DeviceData> entry : myDevices.entrySet()) {
       disconnectDevice(entry.getValue().device);
-      killProcesses(entry.getKey(), entry.getValue().processes);
+      killProcesses(entry.getKey(), entry.getValue().processes.keySet());
       myService.disconnect(entry.getKey());
     }
     myDevices.clear();
@@ -126,10 +150,15 @@ public class ProfilerDevicePoller extends PollRunner implements DataStoreTable.D
 
   private void killProcesses(DeviceId deviceId, Set<Common.Process> processes) {
     for (Common.Process process : processes) {
-      Common.Process updatedProcess = process.toBuilder()
-        .setState(Common.Process.State.DEAD)
-        .build();
+      Common.Process updatedProcess = process.toBuilder().setState(Common.Process.State.DEAD).build();
       myTable.insertOrUpdateProcess(deviceId, updatedProcess);
+
+      // The process is already dead, just mark it as agent non-attachable.
+      AgentStatusResponse agentStatus =
+        myTable.getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(deviceId.get()).setPid(process.getPid()).build());
+      if (agentStatus.getIsAgentAttachable()) {
+        myTable.updateAgentStatus(deviceId, process, agentStatus.toBuilder().setIsAgentAttachable(false).build());
+      }
     }
   }
 }

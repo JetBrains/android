@@ -45,7 +45,7 @@ public class JpsAndroidModuleProperties {
   @XCollection(propertyElementName = "afterSyncTasks", elementName = "task", valueAttributeName = "")
   public Set<String> AFTER_SYNC_TASK_NAMES = Sets.newHashSet();
 
-  // This value is false when the Android project is Gradle-based.
+  /** False when the Android project is Gradle-based, true otherwise. */
   public boolean ALLOW_USER_CONFIGURATION = true;
 
   public String GEN_FOLDER_RELATIVE_PATH_APT = "/" + SdkConstants.FD_GEN_SOURCES;

@@ -15,16 +15,22 @@
  */
 package com.android.tools.idea.databinding;
 
+import com.android.tools.idea.model.AndroidModel;
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.FacetManagerAdapter;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
-import com.intellij.openapi.util.Key;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ModuleDataBinding {
   @Nullable private LightBrClass myLightBrClass;
-  private boolean myEnabled;
+  @NotNull
+  private DataBindingMode myDataBindingMode = DataBindingMode.NONE;
+  private Module myModule;
 
   @NotNull
   public static ModuleDataBinding getInstance(@NotNull AndroidFacet facet) {
@@ -33,16 +39,49 @@ public class ModuleDataBinding {
     return dataBinding;
   }
 
-  private ModuleDataBinding() {
-    setEnabled(false);
+  private ModuleDataBinding(Module module) {
+    myModule = module;
+    final MessageBusConnection connection = module.getMessageBus().connect(module);
+
+    connection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerAdapter() {
+      @Override
+      public void facetConfigurationChanged(@NotNull Facet facet) {
+        if (facet.getModule() == myModule) {
+          syncWithConfiguration();
+        }
+      }
+    });
+    syncWithConfiguration();
   }
 
-  public void setEnabled(boolean enabled) {
-    myEnabled = enabled;
+  private void syncWithConfiguration() {
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    if (facet != null) {
+      AndroidModel androidModel = facet.getConfiguration().getModel();
+      if (androidModel != null) {
+        setMode(androidModel.getDataBindingMode());
+      }
+    }
   }
 
+  public void setMode(@NotNull DataBindingMode mode) {
+    if (myDataBindingMode != mode) {
+      myDataBindingMode = mode;
+      DataBindingUtil.incrementModificationCount();
+    }
+  }
+
+  @NotNull
+  public DataBindingMode getDataBindingMode() {
+    return myDataBindingMode;
+  }
+
+  /**
+   * Convenience method to check if data binding is enabled for the project (covers but support and androidX namespaces).
+   * @return
+   */
   public boolean isEnabled() {
-    return myEnabled;
+    return myDataBindingMode != DataBindingMode.NONE;
   }
 
   /**

@@ -18,8 +18,8 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.lang.aidl.AidlFileType;
+import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
@@ -106,16 +106,6 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
 
   @Override
   public void dispose() {
-  }
-
-  public static void notifyFacetInitialized(@NotNull final AndroidFacet facet) {
-    ApplicationManager.getApplication().runReadAction(() -> {
-      final Manifest manifest = facet.getManifest();
-
-      if (manifest != null) {
-        facet.putUserData(CACHED_PACKAGE_KEY, manifest.getPackage().getValue());
-      }
-    });
   }
 
   private class MyUpdate extends Update {

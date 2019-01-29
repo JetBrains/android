@@ -11,7 +11,7 @@
     <orderEntry type="library" name="JUnit4" level="project" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" name="jna" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils:26.1.2" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:repository" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
   </component>
 </module>

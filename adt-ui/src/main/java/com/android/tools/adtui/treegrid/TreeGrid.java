@@ -53,6 +53,7 @@ public class TreeGrid<T> extends Box {
   private final ListSelectionListener myListSelectionListener;
   private AbstractTreeStructure myModel;
   private boolean myFiltered;
+  private boolean myExpandFiltered;
   private int myLastMidX = -1;
 
   public TreeGrid(final @NotNull AbstractTreeStructure model) {
@@ -228,6 +229,13 @@ public class TreeGrid<T> extends Box {
     }
   }
 
+  public void setSectionExpanded(int index, boolean isExpanded) {
+    if (index < 0 || index >= myHideables.size()) {
+      return;
+    }
+    myHideables.get(index).setOn(isExpanded);
+  }
+
   @VisibleForTesting
   @Nullable
   public JList<T> getSelectedList() {
@@ -320,14 +328,33 @@ public class TreeGrid<T> extends Box {
 
   public void setFilter(@Nullable Condition<T> condition) {
     myFiltered = condition != null;
-    for (JList<T> list : myLists) {
+    for (int i = 0; i < myLists.size(); i++) {
+      JList<T> list = myLists.get(i);
       //noinspection unchecked
       ((FilteringListModel<T>)list.getModel()).setFilter(condition);
+      if (myFiltered && myExpandFiltered) {
+        boolean containsFilteredElement = list.getModel().getSize() > 0;
+        setSectionExpanded(i, containsFilteredElement);
+      }
     }
   }
 
   public boolean isFiltered() {
     return myFiltered;
+  }
+
+  public void setExpandFiltered(boolean expandFiltered) {
+    myExpandFiltered = expandFiltered;
+  }
+
+  /**
+   * Expand the section at the provided index, and collapse the others
+   */
+  public void expandOnly(int index) {
+    for (int i = 0; i < myHideables.size(); i++) {
+      boolean isFirst = i == index;
+      myHideables.get(i).setOn(isFirst);
+    }
   }
 
   public void selectIfUnique() {

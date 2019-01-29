@@ -16,78 +16,117 @@
 package com.android.tools.idea.naveditor.model
 
 import com.android.SdkConstants
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_ARG_TYPE
+import com.android.SdkConstants.ATTR_GRAPH
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.ATTR_NULLABLE
+import com.android.SdkConstants.ATTR_START_DESTINATION
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.NAVIGATION_PREFIX
+import com.android.SdkConstants.TOOLS_URI
 import com.android.annotations.VisibleForTesting
-import com.android.ide.common.resources.ResourceResolver
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.BooleanAutoAttributeDelegate
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.StringAttributeDelegate
 import com.android.tools.idea.common.model.StringAutoAttributeDelegate
-import com.android.tools.idea.res.ResourceHelper
+import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.uibuilder.model.IdAutoAttributeDelegate
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
+import org.jetbrains.android.dom.navigation.NavActionElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DEFAULT_VALUE
 import java.io.File
+import kotlin.streams.toList
 
 /*
  * Extensions to NlComponent used by the navigation editor
  */
 
 /**
- * This is an enumeration indicating the type of action represented by the specified NlComponent.
- * GLOBAL: The parent of this action element is a navigation element.
- * EXIT: The destination attribute of this action element refers to a destination that is not in the current root navigation
- * SELF: The destination attribute of this action element refers to its own parent.
- * REGULAR: The destination attribute of this action element refers to a destination that is in the current root navigation
+ * This is an enumeration indicating the type of action represented by the specified NlComponent when viewed from a given context.
+ * In order of decreasing precedence:
  * NONE: This tag is either not an action or is invalid.
+ * SELF: The destination attribute refers to the action's parent.
+ * GLOBAL: The action's parent is the current view context.
+ * REGULAR: The destination attribute refers to a sibling of the action's parent.
+ * EXIT: The destination attribute refers to an element that is not under the current view context.
+ * EXIT_DESTINATION: The destination attribute refers to a child of the current view context, but the source is a (great-)grandchild.
+ *
  */
-// TODO: Add support for global exit and global self actions
 enum class ActionType {
-  GLOBAL,
-  EXIT,
+  NONE,
   SELF,
+  GLOBAL,
   REGULAR,
-  NONE
+  EXIT,
+  EXIT_DESTINATION
 }
 
-fun NlComponent.getUiName(resourceResolver: ResourceResolver?): String {
-  val name = resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LABEL) ?:
-      id ?:
-      resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".") ?:
-      tagName
-  return resourceResolver?.let { ResourceHelper.resolveStringValue(it, name) } ?: name
-}
+val NlComponent.uiName: String
+get() =  id
+      ?: resolveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)?.substringAfterLast(".")
+      ?: tagName
 
-val NlComponent.visibleDestinations: List<NlComponent>
+/**
+ * Creates a map of the visible destinations
+ * The keys make up the parent chain to the root.
+ * Each value is a list of visible destinations under the key sorted by UiName
+ * If a destination appears as a key, it will not appear in
+ * the values list under its parent
+ * i.e. if B and C are children of A, then the visible destination map
+ * of B will be:
+ *     B -> { }
+ *     A -> { C } (no B)
+ *
+ */
+val NlComponent.visibleDestinations: Map<NlComponent, List<NlComponent>>
   get() {
-    val schema = NavigationSchema.get(model.facet)
-    val result = arrayListOf<NlComponent>()
-    var p: NlComponent? = this
-    while (p != null) {
-      p.children.filterTo(result, { c -> schema.getDestinationType(c.tagName) != null })
-      p = p.parent
+    val map = HashMap<NlComponent, List<NlComponent>>()
+    val current: NlComponent? = if (isDestination) this else parent
+
+    current?.parentSequence()?.forEach {
+      map[it] = it.children.filter { it.isDestination && !map.containsKey(it) }
+        .sortedBy { it.uiName }
     }
-    // The above won't add the root itself
-    result.addAll(model.components)
-    return result
+
+    return map
   }
 
 fun NlComponent.findVisibleDestination(id: String): NlComponent? {
-  val schema = NavigationSchema.get(model.facet)
+  val schema = NavigationSchema.get(model.module)
   var p = parent
   while (p != null) {
-    p.children.firstOrNull { c -> schema.getDestinationType(c.tagName) != null && c.id == id }?.let { return it }
+    p.children.firstOrNull { c -> !schema.getDestinationTypesForTag(c.tagName).isEmpty() && c.id == id }?.let { return it }
     p = p.parent
   }
   // The above won't pick up the root
   return model.components.firstOrNull { c -> c.id == id }
 }
 
-val NlComponent.destinationType
-  get() = model.schema.getDestinationType(tagName)
+/**
+ * Attempts to find the best []DestinationType] for this component
+ */
+val NlComponent.destinationType: NavigationSchema.DestinationType?
+  get() {
+    val schema = model.schema
+    var type = className?.let { schema.getDestinationTypeForDestinationClassName(it) }
+
+    if (type == null) {
+      val typeCollection = schema.getDestinationTypesForTag(tagName)
+      if (typeCollection.size == 1) {
+        type = typeCollection.first()
+      }
+    }
+    return type
+  }
 
 val NlComponent.includeAttribute: String?
   get() = resolveAttribute(AUTO_URI, ATTR_GRAPH)
@@ -105,7 +144,7 @@ val NlComponent.includeFileName: String?
 
 val NlComponent.isStartDestination: Boolean
   get() {
-    val actualStart = NlComponent.stripId(parent?.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_START_DESTINATION))
+    val actualStart = parent?.startDestinationId
     return actualStart != null && actualStart == id
   }
 
@@ -115,65 +154,163 @@ val NlComponent.isDestination: Boolean
 val NlComponent.isAction: Boolean
   get() = tagName == NavigationSchema.TAG_ACTION
 
+val NlComponent.isArgument: Boolean
+  get() = tagName == NavigationSchema.TAG_ARGUMENT
+
+val NlComponent.isFragment: Boolean
+  get() = model.schema.isFragmentTag(tagName)
+
+val NlComponent.isActivity: Boolean
+  get() = model.schema.isActivityTag(tagName)
+
 val NlComponent.isNavigation: Boolean
-  get() = destinationType == NavigationSchema.DestinationType.NAVIGATION
+  get() = model.schema.isNavigationTag(tagName)
 
-val NlComponent.isRegularAction: Boolean
-  get() = actionType == ActionType.REGULAR
+val NlComponent.isOther: Boolean
+  get() = model.schema.isOtherTag(tagName)
 
-val NlComponent.actionType: ActionType
-  get() {
+val NlComponent.isInclude: Boolean
+  get() = model.schema.isIncludeTag(tagName)
+
+val NlComponent.isSelfAction: Boolean
+  get() = getActionType(null) == ActionType.SELF
+
+fun NlComponent.getActionType(currentRoot: NlComponent?): ActionType {
     if (!isAction) {
       return ActionType.NONE
     }
 
-    if (parent?.isNavigation == true) {
-      return ActionType.GLOBAL
-    }
+    val parent = parent ?: throw IllegalStateException()
 
-    if (parent?.id == actionDestinationId) {
+    val destination = effectiveDestinationId ?: return ActionType.EXIT
+    if (parent.id == destination) {
       return ActionType.SELF
     }
 
-    val containingNavigation = parent?.parent ?: return ActionType.NONE
+    if (currentRoot == null) {
+      return ActionType.NONE
+    }
 
-    return if (containingNavigation.children
-        .map { it.id }
-        .contains(actionDestinationId)) ActionType.REGULAR
-    else ActionType.EXIT
+    if (parent.isNavigation && parent == currentRoot) {
+      return ActionType.GLOBAL
+    }
+
+    if (currentRoot.containsDestination(destination)) {
+      return if (parent.parent == currentRoot) ActionType.REGULAR else ActionType.EXIT_DESTINATION
+    }
+
+    return ActionType.EXIT
   }
 
+private fun NlComponent.containsDestination(destinationId: String): Boolean {
+  return children.map { it.id }.contains(destinationId)
+}
+
 var NlComponent.actionDestinationId: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_DESTINATION)
+var NlComponent.className: String? by StringAttributeDelegate(ANDROID_URI, ATTR_NAME)
+var NlComponent.argumentName: String? by StringAttributeDelegate(ANDROID_URI, ATTR_NAME)
+var NlComponent.layout: String? by StringAttributeDelegate(TOOLS_URI, ATTR_LAYOUT)
 var NlComponent.enterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_ENTER_ANIM)
 var NlComponent.exitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_EXIT_ANIM)
 // TODO: Use IdAutoAttributeDelegate for popUpTo
-var NlComponent.popUpTo: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO)
+var NlComponent.popUpTo: String? by IdAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO)
 var NlComponent.inclusive: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE)
+var NlComponent.popEnterAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_ENTER_ANIM)
+var NlComponent.popExitAnimation: String? by StringAutoAttributeDelegate(NavigationSchema.ATTR_POP_EXIT_ANIM)
 var NlComponent.singleTop: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_SINGLE_TOP)
-var NlComponent.document: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_DOCUMENT)
-var NlComponent.clearTask: Boolean by BooleanAutoAttributeDelegate(NavigationSchema.ATTR_CLEAR_TASK)
+var NlComponent.typeAttr: String? by StringAttributeDelegate(AUTO_URI, ATTR_ARG_TYPE)
+var NlComponent.defaultValue: String? by StringAttributeDelegate(ANDROID_URI, ATTR_DEFAULT_VALUE)
+var NlComponent.nullable: Boolean by BooleanAutoAttributeDelegate(ATTR_NULLABLE)
+
+var NlComponent.startDestinationId: String? by IdAutoAttributeDelegate(ATTR_START_DESTINATION)
 
 val NlComponent.actionDestination: NlComponent?
   get() {
     assert(isAction)
-    var p: NlComponent = parent ?: return null
     val targetId = actionDestinationId ?: return null
-    while (true) {
-      p.children.firstOrNull { it.id == targetId }?.let { return it }
-      p = p.parent ?: break
-    }
-    // The above won't check the root itself
-    return model.components.firstOrNull { it.id == targetId }
+    return findVisibleDestination(targetId)
   }
 
-fun NlComponent.createAction(destinationId: String? = null): NlComponent {
-  val newTag = tag.createChildTag(NavigationSchema.TAG_ACTION, null, null, false)
-  val newAction = model.createComponent(newTag, this, null)
-  newAction.ensureId()
+val NlComponent.effectiveDestination: NlComponent?
+  get() {
+    assert(isAction)
+    val targetId = effectiveDestinationId ?: return null
+    return findVisibleDestination(targetId)
+  }
+
+fun NlComponent.getEffectiveSource(currentRoot: NlComponent): NlComponent? {
+  assert(isAction)
+  return parent?.parentSequence()?.find { it.parent == currentRoot }
+}
+
+val NlComponent.startDestination: NlComponent?
+  get() = startDestinationId?.let { start -> children.find { it.id == start } }
+
+/**
+ * [actionSetup] should include everything needed to set the default id (destination, popTo, and popToInclusive).
+ */
+@JvmOverloads
+fun NlComponent.createAction(destinationId: String? = null, id: String? = null, actionSetup: NlComponent.() -> Unit = {}): NlComponent {
+  val newAction = createChild(NavigationSchema.TAG_ACTION)
   newAction.actionDestinationId = destinationId
+  newAction.actionSetup()
+  // TODO: it would be nice if, when we changed something affecting the below logic and the id hasn't been changed,
+  // we could update the id as a refactoring so references are also updated.
+  newAction.assignId(id ?: generateActionId(this, newAction.actionDestinationId, newAction.popUpTo, newAction.inclusive))
   return newAction
 }
 
+fun generateActionId(source: NlComponent, destinationId: String?, popTo: String?, inclusive: Boolean): String {
+  val displaySourceId = source.id ?: source.model.virtualFile.nameWithoutExtension
+  if (destinationId == null) {
+    if (popTo == null) {
+      return ""
+    }
+    if (inclusive) {
+      if (popTo == source.id) {
+        return "action_${displaySourceId}_pop"
+      }
+      return "action_${displaySourceId}_pop_including_${popTo}"
+    }
+  }
+  val effectiveId = destinationId ?: popTo
+  if (effectiveId == source.id) {
+    return "action_${displaySourceId}_self"
+  }
+  if (source.isNavigation) {
+    return "action_global_${effectiveId}"
+  }
+  return "action_${displaySourceId}_to_${effectiveId}"
+}
+
+fun NlComponent.createSelfAction(): NlComponent {
+  return createAction(id)
+}
+
+fun NlComponent.createReturnToSourceAction(): NlComponent {
+  return createAction {
+    popUpTo = parent?.id
+    inclusive = true
+  }
+}
+
+fun NlComponent.setAsStartDestination() {
+  parent?.startDestinationId = id
+}
+
+fun NlComponent.createNestedGraph(): NlComponent {
+  return createChild(model.schema.getDefaultTag(NavigationSchema.DestinationType.NAVIGATION)!!)
+}
+
+val NlComponent.supportsActions: Boolean
+  get() = model.schema.getDestinationSubtags(tagName).containsKey(NavActionElement::class.java)
+
+private fun NlComponent.createChild(tagName: String): NlComponent {
+  val newTag = tag.createChildTag(tagName, null, null, false)
+  val child = model.createComponent(null, newTag, this, null, InsertType.CREATE)
+  child.ensureId()
+  return child
+}
 
 /**
  * If the action has a destination attribute set, return it.
@@ -182,8 +319,66 @@ fun NlComponent.createAction(destinationId: String? = null): NlComponent {
 val NlComponent.effectiveDestinationId: String?
   get() {
     actionDestinationId?.let { return it }
-    return if (inclusive) null else NlComponent.stripId(popUpTo)
+    return if (inclusive) null else popUpTo
   }
+
+/**
+ * Sequence of NlComponents starting with this and going down the parent tree to the root.
+ */
+fun NlComponent.parentSequence(): Sequence<NlComponent> = generateSequence(this) { it.parent }
+
+/**
+ * The "path" to this. The first element is the filename, and the following elements are the ids of the elements containing this.
+ */
+val NlComponent.idPath: List<String?>
+  get() = parentSequence().asIterable().reversed().map {
+    when {
+      it.isRoot -> model.virtualFile.name
+      it.isInclude -> it.getAttribute(AUTO_URI, ATTR_GRAPH)?.substring(NAVIGATION_PREFIX.length)
+      else -> it.id
+    }
+  }
+
+/**
+ * Moves the currently selected destinations into the nested graph returned from newParent
+ * Since newParent may create a new NlComponent it is evaluated inside the run command
+ */
+fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent) {
+  val currentNavigation = surface.currentNavigation
+  val components = surface.selectionModel.selection.filter { it.isDestination && it.parent == currentNavigation }
+
+  if (components.isEmpty()) {
+    return
+  }
+
+  WriteCommandAction.runWriteCommandAction(surface.project, "Add to Nested Graph", null, Runnable {
+    val graph = newParent()
+    val ids = components.map { it.id }
+    components.forEach { surface.sceneManager?.performUndoablePositionAction(it) }
+
+    // Pick an arbitrary destination to be the start destination,
+    // but give preference to destinations with incoming actions
+    // TODO: invoke dialog to have user select the best start destination?
+    var candidate = components[0].id
+
+    // All actions that point to any component in this set should now point to the
+    // new parent graph, unless they are children of an element in the set
+    currentNavigation.children.filter { !ids.contains(it.id) && it != graph }
+      .flatMap { it.flatten().toList() }
+      .filter { it.isAction && ids.contains(it.actionDestinationId) }
+      .forEach {
+        candidate = it.actionDestinationId
+        it.actionDestinationId = graph.id
+      }
+
+    graph.model.addComponents(components, graph, null, InsertType.MOVE_WITHIN, surface)
+    if (graph.startDestinationId == null) {
+      graph.startDestinationId = candidate
+    }
+    surface.selectionModel.setSelection(listOf(graph))
+
+  }, surface.model!!.file)
+}
 
 @VisibleForTesting
 class NavComponentMixin(component: NlComponent)
@@ -197,8 +392,8 @@ class NavComponentMixin(component: NlComponent)
   })
 
   override fun getAttribute(namespace: String?, attribute: String): String? {
-    if (component.tagName == TAG_INCLUDE) {
-      if (attribute == NavigationSchema.ATTR_GRAPH) {
+    if (component.isInclude) {
+      if (attribute == ATTR_GRAPH) {
         // To avoid recursion
         return null
       }
@@ -208,10 +403,13 @@ class NavComponentMixin(component: NlComponent)
     return null
   }
 
-  override fun getTooltipText(): String? {
-    // TODO
-    return null
+  override fun beforeMove(insertType: InsertType, receiver: NlComponent, ids: MutableSet<String>) {
+    if (receiver.children.any { it.id == component.id }) {
+      component.incrementId(ids)
+    }
   }
+
+  override fun getTooltipText() = if (component.isAction) component.id else null
 }
 
 object NavComponentHelper {

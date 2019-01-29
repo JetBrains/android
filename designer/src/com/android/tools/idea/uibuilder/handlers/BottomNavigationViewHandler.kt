@@ -15,8 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
+import com.android.SdkConstants.*
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler
 
 class BottomNavigationViewHandler : FrameLayoutHandler() {
-  // TODO
+
+  override fun getInspectorProperties(): List<String> {
+    return listOf(
+      ATTR_STYLE,
+      ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED,
+      ATTR_LABEL_VISIBILITY_MODE,
+      ATTR_ITEM_ICON_TINT,
+      ATTR_MENU,
+      ATTR_ITEM_BACKGROUND,
+      ATTR_ITEM_TEXT_COLOR,
+      ATTR_ELEVATION)
+  }
 }

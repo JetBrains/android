@@ -114,7 +114,7 @@ public class InstrumentationTargetPackageConverter extends Converter<String> imp
       for (Module depModule : ModuleRootManager.getInstance(myModule).getDependencies()) {
         final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
-        if (depFacet != null && depFacet.isAppProject()) {
+        if (depFacet != null && depFacet.getConfiguration().isAppProject()) {
           final Manifest manifest = depFacet.getManifest();
 
           if (manifest != null) {

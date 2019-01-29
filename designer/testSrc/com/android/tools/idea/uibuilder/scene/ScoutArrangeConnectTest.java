@@ -34,7 +34,7 @@ public class ScoutArrangeConnectTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT)
+                 component(CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/content_main")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
@@ -108,8 +108,8 @@ public class ScoutArrangeConnectTest extends SceneTest {
                  "        android:id=\"@+id/textview2\"\n" +
                  "        android:layout_width=\"200dp\"\n" +
                  "        android:layout_height=\"30dp\"\n" +
-                 "        android:layout_marginLeft=\"200dp\"\n" +
                  "        android:layout_marginStart=\"200dp\"\n" +
+                 "        android:layout_marginLeft=\"200dp\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
                  "        tools:layout_editor_absoluteY=\"525dp\" />");
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -22,10 +23,17 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.ng.caching.ModelNotFoundInCacheException;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.LightPlatformTestCase;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.io.File;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
@@ -72,7 +80,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
     myGradleSync.sync(request, mySyncListener);
 
     verify(mySyncMessages).removeAllMessages();
-    verify(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener));
+    verify(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
   }
 
   public void testFailedSyncFromCachedModels() throws Exception {
@@ -88,10 +96,17 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
     when(myProjectModelsLoader.loadFromDisk(project)).thenReturn(projectModelsCache);
 
     // Simulate loading models from cache fails.
-    ModelNotFoundInCacheException error = new ModelNotFoundInCacheException(GradleModuleModel.class);
-    doThrow(error).when(myResultHandler).onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener));
+    Answer getTaskIdAndTrowError = new Answer() {
+      @Override
+      public Object answer(InvocationOnMock invocation) throws Throwable {
+        ExternalSystemTaskId taskId = invocation.getArgument(4);
+        myCallback.setDone(mock(SyncProjectModels.class), taskId);
+        throw new ModelNotFoundInCacheException(GradleModuleModel.class);
+      }
+    };
+    doAnswer(getTaskIdAndTrowError).when(myResultHandler)
+                                   .onSyncSkipped(same(projectModelsCache), any(), any(), same(mySyncListener), any());
 
-    myCallback.setDone(mock(SyncProjectModels.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
@@ -111,7 +126,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
     when(myBuildFileChecksumsLoader.loadFromDisk(project)).thenReturn(buildFileChecksums);
     when(buildFileChecksums.canUseCachedData()).thenReturn(false);
 
-    myCallback.setDone(mock(SyncProjectModels.class));
+    myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
@@ -131,7 +146,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
     when(myBuildFileChecksumsLoader.loadFromDisk(project)).thenReturn(buildFileChecksums);
     when(buildFileChecksums.canUseCachedData()).thenReturn(true);
 
-    myCallback.setDone(mock(SyncProjectModels.class));
+    myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
@@ -153,7 +168,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
 
     when(myProjectModelsLoader.loadFromDisk(project)).thenReturn(null);
 
-    myCallback.setDone(mock(SyncProjectModels.class));
+    myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
@@ -168,7 +183,7 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
     // Simulate successful sync.
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
 
-    myCallback.setDone(mock(SyncProjectModels.class));
+    myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
     when(myCallbackFactory.create()).thenReturn(myCallback);
     doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
 
@@ -208,5 +223,96 @@ public class NewGradleSyncTest extends LightPlatformTestCase {
 
     Task task = myGradleSync.createSyncTask(request, null);
     assertThat(task).isInstanceOf(Task.Backgroundable.class);
+  }
+
+  public void testSyncWithVariantOnlySuccessfulSync() {
+    // Simulate successful sync.
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.variantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
+
+    myCallback.setDone(mock(VariantOnlyProjectModels.class), mock(ExternalSystemTaskId.class));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+
+    myGradleSync.sync(request, mySyncListener);
+
+    verify(mySyncMessages).removeAllMessages();
+    verify(myResultHandler).onVariantOnlySyncFinished(same(myCallback), any(), any(), same(mySyncListener));
+    verify(myResultHandler, never()).onSyncFailed(myCallback, mySyncListener);
+  }
+
+  public void testSyncWithVariantOnlyFailedSync() {
+    // Simulate failed sync.
+    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+    request.variantOnlySyncOptions = mock(VariantOnlySyncOptions.class);
+
+    myCallback.setRejected(new Throwable("Test error"));
+    when(myCallbackFactory.create()).thenReturn(myCallback);
+    doNothing().when(mySyncExecutor).syncProject(any(), eq(myCallback));
+
+    myGradleSync.sync(request, mySyncListener);
+
+    verify(mySyncMessages).removeAllMessages();
+    verify(myResultHandler, never()).onSyncFinished(same(myCallback), any(), any(), same(mySyncListener));
+    verify(myResultHandler).onSyncFailed(myCallback, mySyncListener);
+  }
+
+  public void testCompoundSync() {
+    try {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+      StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
+
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      when(myCallbackFactory.create()).thenReturn(myCallback);
+
+      doAnswer(invocation -> {
+        myCallback.setDone(mock(SyncProjectModels.class), mock(ExternalSystemTaskId.class));
+        return null;
+      }).when(mySyncExecutor).syncProject(any(), same(myCallback), any(), any(), any(), eq(true));
+
+      myGradleSync.sync(request, mySyncListener);
+
+      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(null), any(), any(), eq(true));
+
+      verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(false));
+      verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));
+      verify(myResultHandler, never()).onSyncFailed(same(myCallback), same(mySyncListener));
+    }
+    finally {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
+      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
+    }
+  }
+
+  public void testCompoundSyncForVariantOnlySync() {
+    try {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
+      StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
+
+      GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
+      request.variantOnlySyncOptions = new VariantOnlySyncOptions(new File(""), "", "", null, true);
+      when(myCallbackFactory.create()).thenReturn(myCallback);
+
+      doAnswer(invocation -> {
+        myCallback.setDone(mock(VariantOnlyProjectModels.class), mock(ExternalSystemTaskId.class));
+        return null;
+      }).when(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), anyBoolean());
+
+      myGradleSync.sync(request, mySyncListener);
+
+      verify(mySyncExecutor).syncProject(any(), same(myCallback), eq(request.variantOnlySyncOptions), any(), any(), anyBoolean());
+
+      verify(myResultHandler).onCompoundSyncModels(same(myCallback), any(), any(), same(mySyncListener), eq(true));
+      verify(myResultHandler).onCompoundSyncFinished(same(mySyncListener));
+      verify(myResultHandler, never()).onSyncFailed(same(myCallback), same(mySyncListener));
+    }
+    finally {
+      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
+      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
+      StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
+    }
   }
 }

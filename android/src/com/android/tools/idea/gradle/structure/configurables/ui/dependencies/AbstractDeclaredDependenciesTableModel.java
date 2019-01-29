@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesByTypeAndTextComparator;
 import com.android.tools.idea.gradle.structure.configurables.ui.AbstractPsModelTableCellRenderer;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColumnInfo;
@@ -30,14 +31,13 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
-import static com.android.tools.idea.gradle.structure.model.PsIssueCollection.getTooltipText;
+import static com.android.tools.idea.gradle.structure.model.PsIssueCollectionKt.getTooltipText;
 import static com.intellij.ui.SimpleTextAttributes.*;
 
 /**
  * Model for the table displaying the "editable" dependencies of a module.
  */
-public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDependency> extends ListTableModel<T> {
+public abstract class AbstractDeclaredDependenciesTableModel<T extends PsBaseDependency> extends ListTableModel<T> {
   @NotNull private final PsModule myModule;
   @NotNull private final PsContext myContext;
 
@@ -55,7 +55,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
       @Override
       @NotNull
       public String valueOf(T dependency) {
-        return dependency.toText(PLAIN_TEXT);
+        return dependency.toText();
       }
 
       @Override
@@ -104,10 +104,10 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
 
   @Nullable
   public PsLibraryDependency findDependency(@NotNull PsArtifactDependencySpec spec) {
-    for (PsDependency dependency : getItems()) {
+    for (PsBaseDependency dependency : getItems()) {
       if (dependency instanceof PsLibraryDependency) {
         PsLibraryDependency libraryDependency = (PsLibraryDependency)dependency;
-        if (spec.equals(libraryDependency.getDeclaredSpec())) {
+        if (spec.equals(libraryDependency.getSpec())) {
           return libraryDependency;
         }
       }
@@ -115,13 +115,18 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
     return null;
   }
 
-  static class DependencyCellRenderer extends AbstractPsModelTableCellRenderer<PsDependency> {
-    @NotNull private final PsDependency myDependency;
+  @NotNull
+  protected PsContext getContext() {
+    return myContext;
+  }
+
+  static class DependencyCellRenderer extends AbstractPsModelTableCellRenderer<PsBaseDependency> {
+    @NotNull private final PsBaseDependency myDependency;
     @NotNull private final PsContext myContext;
 
     private final boolean myIsHovered;
 
-    DependencyCellRenderer(@NotNull PsDependency dependency, @NotNull PsContext context, boolean isHovered) {
+    DependencyCellRenderer(@NotNull PsBaseDependency dependency, @NotNull PsContext context, boolean isHovered) {
       super(dependency);
       myDependency = dependency;
       myContext = context;
@@ -135,7 +140,7 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
       setFocusBorderAroundIcon(true);
 
       PsIssueCollection issueCollection = myContext.getAnalyzerDaemon().getIssues();
-      List<PsIssue> issues = issueCollection.findIssues(myDependency, IssuesByTypeAndTextComparator.INSTANCE);
+      List<PsIssue> issues = issueCollection.findIssues(myDependency.getPath(), IssuesByTypeAndTextComparator.INSTANCE);
 
       setToolTipText(getTooltipText(issues, false));
 
@@ -157,19 +162,18 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsDepende
     @Override
     @NotNull
     protected String getText() {
-      return displayTextOf(getModel());
+      return displayTextOf(getModel(), myContext.getUiSettings());
     }
   }
 
   @NotNull
-  static String displayTextOf(@NotNull PsDependency dependency) {
-    String text = dependency.toText(PLAIN_TEXT);
+  static String displayTextOf(@NotNull PsBaseDependency dependency, @NotNull PsUISettings uiSettings) {
+    String text = dependency.toText();
 
     if (dependency instanceof PsLibraryDependency) {
       PsLibraryDependency library = (PsLibraryDependency)dependency;
-      PsArtifactDependencySpec spec = library.getDeclaredSpec();
-      assert spec != null;
-      text = spec.getDisplayText();
+      PsArtifactDependencySpec spec = library.getSpec();
+      text = spec.getDisplayText(uiSettings);
     }
     return text;
   }

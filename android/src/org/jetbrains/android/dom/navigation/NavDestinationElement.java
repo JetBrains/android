@@ -16,18 +16,15 @@
 package org.jetbrains.android.dom.navigation;
 
 import com.intellij.util.xml.DefinesXml;
+import com.intellij.util.xml.SubTag;
 import org.jetbrains.android.dom.AndroidDomElement;
 
 import java.util.List;
 
 /**
  * An element representing an destination (fragment, navigation, ...) tag in a navigation graph.
+ *
+ * Note subclasses of this don't currently need a {@code @Styleable} annotation because they're handled via a custom mechanism.
  */
-@DefinesXml
-public interface NavDestinationElement extends AndroidDomElement {
-  List<NavActionElement> getActions();
-
-  List<DeeplinkElement> getDeeplinks();
-
-  List<ArgumentElement> getArguments();
+public interface NavDestinationElement extends NavElement {
 }

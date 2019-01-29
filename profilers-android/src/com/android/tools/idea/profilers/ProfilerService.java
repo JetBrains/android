@@ -15,27 +15,60 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.nativeSymbolizer.NativeSymbolizer;
+import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.profilers.ProfilerClient;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ProfilerService implements Disposable {
+  /**
+   * Currently Profiler needs to be run as a singleton. Keeps track of the Project the ProfilerService is initialized in to prevent users
+   * from creating multiple.
+   * TODO b\79772836: make ProfilerService an application-level service in order to remove these constraints.
+   */
+  @GuardedBy("ourServiceLock")
+  private static Project ourInitializedProject = null;
+  private static final Object ourServiceLock = new Object();
 
+  /**
+   * @return The ProfilerService if one is available. Note that at most one project's ProfilerService can be alive at a time. If another
+   * project attempts to initialize its ProfilerService, this method returns null.
+   */
+  @Nullable
   public static ProfilerService getInstance(@NotNull Project project) {
-    ProfilerService service = ServiceManager.getService(ProfilerService.class);
-    service.myManager.initialize(project);
-    return service;
+    synchronized (ourServiceLock) {
+      if (ourInitializedProject == null || ourInitializedProject == project) {
+        return ServiceManager.getService(project, ProfilerService.class);
+      } else {
+        return null;
+      }
+    }
   }
 
-  private static final String DATASTORE_NAME = "DataStoreService";
+  public static boolean isServiceInitialized(@NotNull Project project) {
+    synchronized (ourServiceLock) {
+      return ourInitializedProject == project;
+    }
+  }
+
+  private static final String DATASTORE_NAME_PREFIX = "DataStoreService";
 
   @NotNull
   private final StudioProfilerDeviceManager myManager;
@@ -44,18 +77,36 @@ public class ProfilerService implements Disposable {
   @NotNull
   private final DataStoreService myDataStoreService;
 
-  private ProfilerService() {
-    String datastoreDirectory = Paths.get(System.getProperty("user.home"), ".android").toString() + File.separator;
-    myDataStoreService =
-      new DataStoreService(DATASTORE_NAME, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread);
+  private ProfilerService(@NotNull Project project) {
+    String datastoreDirectory = Paths.get(PathManager.getSystemPath(), ".android").toString() + File.separator;
+
+    NativeSymbolizer symbolizer = NativeSymbolizerKt.createNativeSymbolizer(project);
+    Disposer.register(this, () -> symbolizer.stop());
+
+    String datastoreName = DATASTORE_NAME_PREFIX + project.getLocationHash();
+    myDataStoreService = new DataStoreService(datastoreName, datastoreDirectory, ApplicationManager.getApplication()::executeOnPooledThread,
+                                              new IntellijLogService());
+    Disposer.register(this, () -> myDataStoreService.shutdown());
+    myDataStoreService.setNativeSymbolizer(symbolizer);
+
     myManager = new StudioProfilerDeviceManager(myDataStoreService);
-    myClient = new ProfilerClient(DATASTORE_NAME);
+    Disposer.register(this, myManager);
+    myManager.initialize(project);
     IdeSdks.subscribe(myManager, this);
+
+    myClient = new ProfilerClient(datastoreName);
+
+    ourInitializedProject = project;
+    Disposer.register(this, () -> {
+      synchronized (ourServiceLock) {
+        ourInitializedProject = null;
+      }
+    });
   }
 
   @Override
   public void dispose() {
-    myManager.dispose();
+    // All actual disposing is done via Disposer.register in the constructor.
   }
 
   @NotNull

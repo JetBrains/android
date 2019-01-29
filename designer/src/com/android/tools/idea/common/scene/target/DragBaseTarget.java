@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.common.scene.target;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
-import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.scene.NonPlaceholderDragTarget;
 import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
-import com.android.tools.idea.uibuilder.scene.target.Notch;
+import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
-import com.intellij.openapi.util.text.StringUtil;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * Base class for dragging targets.
  */
-public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappable, MultiComponentTarget {
+public abstract class DragBaseTarget extends BaseTarget implements MultiComponentTarget, NonPlaceholderDragTarget {
 
   private static final boolean DEBUG_RENDERER = false;
 
@@ -46,8 +46,7 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
   @AndroidDpCoordinate protected int myFirstMouseY;
   protected boolean myChangedComponent;
 
-  private final Point mySnappedCoordinates = new Point();
-  private final TargetSnapper myTargetSnapper;
+  @NotNull private final TargetSnapper myTargetSnapper;
 
   private DragBaseTarget(@NotNull TargetSnapper targetSnapper) {
     super();
@@ -62,9 +61,21 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
   //region Layout
   /////////////////////////////////////////////////////////////////////////////
 
+
+  @Nullable
   @Override
-  public boolean canChangeSelection() {
-    return true;
+  public List<SceneComponent> newSelection() {
+    if (hasChangedComponent()) {
+      List<NlComponent> selection = getComponent().getScene().getSelection();
+      if (selection.size() == 1) {
+        return ImmutableList.of(getComponent());
+      }
+      else {
+        Scene scene = myComponent.getScene();
+        return selection.stream().map(c -> scene.getSceneComponent(c)).collect(ImmutableList.toImmutableList());
+      }
+    }
+    return null;
   }
 
   @Override
@@ -104,12 +115,20 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, JBColor.red);
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, JBColor.red);
     }
-    myTargetSnapper.renderCurrentNotches(list, sceneContext, myComponent);
+    myTargetSnapper.renderSnappedNotches(list, sceneContext, myComponent);
   }
 
-  protected abstract void updateAttributes(@NotNull AttributesTransaction attributes,
+  protected abstract void updateAttributes(@NotNull NlAttributesHolder attributes,
                                            @AndroidDpCoordinate int x,
                                            @AndroidDpCoordinate int y);
+
+  @Override
+  protected boolean isHittable() {
+    if (myComponent.isSelected()) {
+      return myComponent.canShowBaseline() || !myComponent.isDragging();
+    }
+    return true;
+  }
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
@@ -131,28 +150,31 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
     myOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
     myOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
     myChangedComponent = false;
+    getTargetNotchSnapper().reset();
     getTargetNotchSnapper().gatherNotches(myComponent);
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     if (myComponent.getParent() == null) {
       return;
     }
     myComponent.setDragging(true);
     NlComponent component = myComponent.getAuthoritativeNlComponent();
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    mySnappedCoordinates.x = myTargetSnapper.trySnapX(x - myOffsetX);
-    mySnappedCoordinates.y = myTargetSnapper.trySnapY(y - myOffsetY);
-    updateAttributes(attributes, mySnappedCoordinates.x, mySnappedCoordinates.y);
-    attributes.apply();
+    x -= myOffsetX;
+    y -= myOffsetY;
+    int snappedX = myTargetSnapper.trySnapHorizontal(x).orElse(x);
+    int snappedY = myTargetSnapper.trySnapVertical(y).orElse(y);
+    ComponentModification modification = new ComponentModification(component, "Drag");
+    updateAttributes(modification, snappedX, snappedY);
+    modification.apply();
     component.fireLiveChangeEvent();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
     myChangedComponent = true;
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     if (!myComponent.isDragging()) {
       return;
     }
@@ -163,15 +185,19 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
         commitChanges = false;
       }
       NlComponent component = myComponent.getAuthoritativeNlComponent();
-      AttributesTransaction attributes = component.startAttributeTransaction();
-      mySnappedCoordinates.x = myTargetSnapper.trySnapX(x - myOffsetX);
-      mySnappedCoordinates.y = myTargetSnapper.trySnapY(y - myOffsetY);
-      myTargetSnapper.applyNotches(myComponent, attributes, mySnappedCoordinates);
-      updateAttributes(attributes, mySnappedCoordinates.x, mySnappedCoordinates.y);
-      attributes.apply();
+      ComponentModification modification = new ComponentModification(component, "Drag");
+      x -= myOffsetX;
+      y -= myOffsetY;
+      int snappedX = myTargetSnapper.trySnapHorizontal(x).orElse(x);
+      int snappedY = myTargetSnapper.trySnapVertical(y).orElse(y);
+      if (isAutoConnectionEnabled()) {
+        myTargetSnapper.applyNotches(modification);
+      }
+      updateAttributes(modification, snappedX, snappedY);
+      modification.apply();
 
       if (commitChanges) {
-        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.getTagName()), attributes::commit);
+        modification.commit();
       }
     }
     if (myChangedComponent) {
@@ -182,11 +208,18 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
   /////////////////////////////////////////////////////////////////////////////
 
   /**
+   * @return true if the constraint should be applied, false otherwise.
+   */
+  protected boolean isAutoConnectionEnabled() {
+    return true;
+  }
+
+  /**
    * Reset the status when the dragging is canceled.
    */
   public void cancel() {
     myComponent.setDragging(false);
-    myTargetSnapper.cleanNotch();
+    myTargetSnapper.reset();
     myChangedComponent = false;
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
   }
@@ -196,7 +229,6 @@ public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappab
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 
-  @Override
   @NotNull
   public TargetSnapper getTargetNotchSnapper() {
     return myTargetSnapper;

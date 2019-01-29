@@ -16,8 +16,8 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.Features;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.*;
@@ -27,12 +27,13 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
@@ -54,7 +55,6 @@ import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,7 +66,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  * etc for use when rendering a layout.
  */
 public class Configuration implements Disposable, ModificationTracker {
-
+  public static final String AVD_ID_PREFIX = "_android_virtual_device_id_";
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
   /** The associated file */
@@ -207,27 +207,24 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @NotNull
   @VisibleForTesting
-  static Configuration create(@NotNull ConfigurationManager manager,
-                              @Nullable VirtualFile file,
-                              @NotNull FolderConfiguration editedConfig) {
+  public static Configuration create(@NotNull ConfigurationManager manager,
+                                     @Nullable VirtualFile file,
+                                     @NotNull FolderConfiguration editedConfig) {
     return new Configuration(manager, file, editedConfig);
   }
 
   /**
-   * Creates a configuration suitable for the given file
+   * Creates a configuration suitable for the given file.
    *
    * @param base the base configuration to base the file configuration off of
    * @param file the file to look up a configuration for
    * @return a suitable configuration
    */
   @NotNull
-  public static Configuration create(@NotNull Configuration base,
-                                     @NotNull VirtualFile file) {
-    // TODO: Figure out whether we need this, or if it should be replaced by
-    // a call to ConfigurationManager#createSimilar()
+  public static Configuration create(@NotNull Configuration base, @NotNull VirtualFile file) {
+    // TODO: Figure out whether we need this, or if it should be replaced by a call to ConfigurationManager#createSimilar()
     Configuration configuration = base.clone();
-    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(base.getModule());
-    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
+    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
     configuration.getEditedConfig().set(FolderConfiguration.getConfigForFolder(file.getParent().getName()));
     matcher.adaptConfigSelection(true /*needBestMatch*/);
 
@@ -251,7 +248,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Creates a new {@linkplain Configuration} that is a copy from a different configuration
+   * Creates a new {@linkplain Configuration} that is a copy from a different configuration.
    *
    * @param original the original to copy from
    * @return a new configuration copied from the original
@@ -320,8 +317,7 @@ public class Configuration implements Disposable, ModificationTracker {
     destination.myTheme = source.getTheme();
     //destination.myDisplayName = source.getDisplayName();
 
-    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(source.myManager.getModule());
-    ConfigurationMatcher matcher = new ConfigurationMatcher(destination, resources, destination.myFile);
+    ConfigurationMatcher matcher = new ConfigurationMatcher(destination, destination.myFile);
     //if (!matcher.isCurrentFileBestMatchFor(editedConfig)) {
       matcher.adaptConfigSelection(true /*needBestMatch*/);
     //}
@@ -470,7 +466,7 @@ public class Configuration implements Disposable, ModificationTracker {
       FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
-          LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(module);
+          LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(module);
           if (resources != null && myFile != null) {
             ResourceFolderType folderType = ResourceHelper.getFolderType(myFile);
             if (folderType != null) {
@@ -492,7 +488,8 @@ public class Configuration implements Disposable, ModificationTracker {
                 List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
                 if (!types.isEmpty()) {
                   ResourceType type = types.get(0);
-                  List<VirtualFile> matches = resources.getMatchingFiles(myFile, type, currentConfig);
+                  List<VirtualFile> matches =
+                      ConfigurationMatcher.getMatchingFiles(resources, myFile, ResourceNamespace.TODO(), type, currentConfig);
                   if (matches.contains(myFile)) {
                     return device;
                   }
@@ -501,7 +498,7 @@ public class Configuration implements Disposable, ModificationTracker {
             } else if ("Kotlin".equals(myFile.getFileType().getName())) {
               return device;
             } else if (myFile.equals(myManager.getProject().getProjectFile())) {
-              return device;              // takes care of correct device selection for Theme Editor
+              return device;              // Takes care of correct device selection for Theme Editor.
             }
           }
         }
@@ -564,7 +561,7 @@ public class Configuration implements Disposable, ModificationTracker {
    *
    * @return the theme style name
    */
-  @Nullable
+  @NotNull
   public String getTheme() {
     if (myTheme == null) {
       myTheme = myManager.computePreferredTheme(this);
@@ -955,8 +952,9 @@ public class Configuration implements Disposable, ModificationTracker {
     // sync the selected locale
     Locale locale = getLocale();
     myFullConfig.setLocaleQualifier(locale.qualifier);
-    if (myEditedConfig.getLayoutDirectionQualifier() != null) {
-      myFullConfig.setLayoutDirectionQualifier(myEditedConfig.getLayoutDirectionQualifier());
+    LayoutDirectionQualifier layoutDirectionQualifier = myEditedConfig.getLayoutDirectionQualifier();
+    if (layoutDirectionQualifier != null && layoutDirectionQualifier != layoutDirectionQualifier.getNullQualifier()) {
+      myFullConfig.setLayoutDirectionQualifier(layoutDirectionQualifier);
     } else if (!locale.hasLanguage()) {
       // Avoid getting the layout library if the locale doesn't have any language.
       myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
@@ -1204,7 +1202,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Returns a {@link LocalResourceRepository} for the framework resources based on the current
+   * Returns an {@link ResourceRepository} for the framework resources based on the current
    * configuration selection.
    *
    * @return the framework resources or null if not found.
@@ -1241,8 +1239,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   public boolean isBestMatchFor(VirtualFile file, FolderConfiguration config) {
-    LocalResourceRepository resources = AppResourceRepository.getOrCreateInstance(getModule());
-    return new ConfigurationMatcher(this, resources, file).isCurrentFileBestMatchFor(config);
+    return new ConfigurationMatcher(this, file).isCurrentFileBestMatchFor(config);
   }
 
   @Override
@@ -1272,7 +1269,6 @@ public class Configuration implements Disposable, ModificationTracker {
     return myModificationCount;
   }
 
-
   /**
    * Returns a target that is only suitable to be used for rendering (as opposed to a target that can be used for attribute resolution).
    */
@@ -1282,13 +1278,6 @@ public class Configuration implements Disposable, ModificationTracker {
       return null;
     }
 
-    try {
-      return StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
-    }
-    catch (IOException e) {
-      assert false : "Unable to load embedded layoutlib";
-    }
-
-    return null;
+    return StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
   }
 }

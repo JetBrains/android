@@ -21,7 +21,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
@@ -71,7 +70,7 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
 
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     File[] binaryPaths = {binaryPath};
-    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths,false);
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, false);
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
 
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
@@ -173,6 +172,28 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     verify(myLibraryFilePaths, never()).findJavadocJarPath(javadocPath);
   }
 
+  public void testSetupUpWithMissingFile() throws IOException {
+    File binaryPath = createTempFile("fakeLibrary.jar", "");
+    File sourcePath = createTempFile("fakeLibrary-sources.jar", "");
+    File javadocPath = createTempFile("fakeLibrary-javadoc.jar", "");
+    assertTrue(binaryPath.delete());
+    // Library should only have sources added by url.
+    Library newLibrary = createLibrary(binaryPath, sourcePath, javadocPath);
+
+    String libraryName = binaryPath.getName();
+    Module module = getModule();
+
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    File[] binaryPaths = {binaryPath};
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, binaryPath, binaryPaths, false);
+    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
+
+    List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
+    assertThat(libraryOrderEntries).hasSize(1); // Only one library should be in the library table.
+    LibraryOrderEntry libraryOrderEntry = libraryOrderEntries.get(0);
+    assertNotSame(newLibrary, libraryOrderEntry.getLibrary()); // The existing library should have been recreated.
+  }
+
   @NotNull
   private static List<LibraryOrderEntry> getLibraryOrderEntries(@NotNull Module module) {
     List<LibraryOrderEntry> libraryOrderEntries = new ArrayList<>();
@@ -184,5 +205,35 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
       }
     }
     return libraryOrderEntries;
+  }
+
+  public void testSetUpLibraryWithSameNameDifferentPath() throws IOException {
+    File cachedBinaryPath = createTempFile("cachedFakeLibrary.jar", "");
+    File cachedSourcePath = createTempFile("cachedFakeLibrary-sources.jar", "");
+    File cachedJavadocPath = createTempFile("cachedFakeLibrary-javadoc.jar", "");
+    Library cachedLibrary = createLibrary(cachedBinaryPath, cachedSourcePath, cachedJavadocPath);
+
+    File updatedBinaryPath = createTempFile("updatedFakeLibrary.jar", "");
+    File updatedSourcePath = createTempFile("updatedFakeLibrary-sources.jar", "");
+    File updatedJavadocPath = createTempFile("updatedFakeLibrary-javadoc.jar", "");
+    when(myLibraryFilePaths.findSourceJarPath(updatedBinaryPath)).thenReturn(updatedSourcePath);
+    when(myLibraryFilePaths.findJavadocJarPath(updatedBinaryPath)).thenReturn(updatedJavadocPath);
+
+    String libraryName = "Gradle: " + cachedBinaryPath.getName();
+    Module module = getModule();
+
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    File[] binaryPaths = {updatedBinaryPath};
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, updatedBinaryPath, binaryPaths, false);
+    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
+
+    List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
+    assertThat(libraryOrderEntries).hasSize(1); // Only one library should be in the library table.
+    LibraryOrderEntry libraryOrderEntry = libraryOrderEntries.get(0);
+
+    // Verify that a new library is created.
+    assertNotSame(cachedLibrary, libraryOrderEntry.getLibrary()); // The existing library should have been changed.
+    verify(myLibraryFilePaths).findSourceJarPath(updatedBinaryPath);
+    verify(myLibraryFilePaths).findJavadocJarPath(updatedBinaryPath);
   }
 }

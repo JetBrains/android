@@ -18,21 +18,27 @@ package org.jetbrains.android.databinding;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidLibrary;
 import com.android.ide.common.blame.Message;
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
+import com.intellij.testFramework.Parameterized;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.*;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,20 +47,21 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
 
 /**
  * This class compiles a real project with data binding then checks whether the generated Binding classes match the virtual ones.
  */
 public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
-  private static final String DATA_BINDING_COMPONENT_CLASS_NAME = SdkConstants.CLASS_DATA_BINDING_COMPONENT.replace(".", "/");
   @NotNull
   private ClassReader findViewDataBindingClass() throws IOException {
     File classes = null;
 
     AndroidModuleModel model = AndroidModuleModel.get(myAndroidFacet);
     for (AndroidLibrary lib : model.getMainArtifact().getDependencies().getLibraries()) {
-      if (lib.getName().startsWith("com.android.databinding:library")) {
+      if (lib.getName().startsWith(myDataBindingLibArtifact)) {
         classes = lib.getJarFile();
       }
     }
@@ -62,27 +69,56 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     assertTrue(classes.exists());
 
     try (JarFile classesJar = new JarFile(classes, true)) {
-      ZipEntry entry = classesJar.getEntry(SdkConstants.CLASS_DATA_BINDING_BASE_BINDING.replace(".", "/") + ".class");
+      ZipEntry entry = classesJar.getEntry(myDataBindingBaseBindingClass);
       assertNotNull(entry);
       return new ClassReader(classesJar.getInputStream(entry));
     }
   }
 
+  @NotNull
+  private DataBindingMode myMode;
+  @NotNull
+  private String myProjectName;
+  @NotNull
+  private String myDataBindingComponentClassName;
+  @NotNull
+  private String myDataBindingLibArtifact;
+  @NotNull
+  private String myDataBindingBaseBindingClass;
+
+  private void init(DataBindingMode mode) {
+    myMode = mode;
+    myProjectName = mode == DataBindingMode.ANDROIDX ? PROJECT_WITH_DATA_BINDING_ANDROID_X : PROJECT_WITH_DATA_BINDING;
+    myDataBindingComponentClassName = mode.dataBindingComponent.replace(".", "/");
+    myDataBindingLibArtifact = mode == DataBindingMode.ANDROIDX ? ANDROIDX_DATA_BINDING_LIB_ARTIFACT : DATA_BINDING_LIB_ARTIFACT;
+    myDataBindingBaseBindingClass = mode.viewDataBinding.replace(".", "/") + ".class";
+  }
+
+  public void testGeneratedCodeMatchAndroidX() throws Exception {
+    init(DataBindingMode.ANDROIDX);
+    verifyGeneratedCode();
+  }
+
   public void testGeneratedCodeMatch() throws Exception {
-    loadProject(PROJECT_WITH_DATA_BINDING);
+    init(DataBindingMode.SUPPORT);
+    verifyGeneratedCode();
+  }
+
+  private void verifyGeneratedCode() throws Exception {
+    loadProject(myProjectName);
     // temporary fix until test model can detect dependencies properly
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
     assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful());
 
     GradleSyncState syncState = GradleSyncState.getInstance(getProject());
     assertFalse(syncState.isSyncNeeded().toBoolean());
-    assertTrue(ModuleDataBinding.getInstance(myAndroidFacet).isEnabled());
+    assertEquals(ModuleDataBinding.getInstance(myAndroidFacet).getDataBindingMode(), myMode);
 
 
     // trigger initialization
-    ModuleResourceRepository.getOrCreateInstance(myAndroidFacet);
+    ResourceRepositoryManager.getModuleResources(myAndroidFacet);
 
-    File classesOut = new File(getProject().getBasePath(), "/app/build/intermediates/classes/debug");
+    File classesOut = new File(getProject().getBasePath(), "/app/build/intermediates/javac//debug/compileDebugJavaWithJavac/classes");
     //noinspection unchecked
     Collection<File> classes = FileUtils.listFiles(classesOut, new String[]{"class"}, true);
     assertTrue("if we cannot find any class, something is wrong with the test", classes.size() > 0);
@@ -116,7 +152,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
 
     int verifiedClassCount = 0;
     for (ClassReader classReader : klassMap.values()) {
-      if (!shouldVerify(viewDataBindingClass, classReader, superClassLookup)) {
+      if (!shouldVerify(viewDataBindingClass, classReader)) {
         continue;
       }
       verifiedClassCount++;
@@ -136,12 +172,10 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
     assertEquals("These classes are missing", "", StringUtil.join(missingClasses, "\n"));
   }
 
-  private static boolean shouldVerify(ClassReader viewDataBindingClass, ClassReader classReader, Map<ClassReader,
-    ClassReader> superClassLookup) {
+  private boolean shouldVerify(ClassReader viewDataBindingClass, ClassReader classReader) {
     return classReader != null &&
            (viewDataBindingClass.getClassName().equals(classReader.getSuperName()) ||
-            DATA_BINDING_COMPONENT_CLASS_NAME.equals(classReader.getClassName()) ||
-            shouldVerify(viewDataBindingClass, superClassLookup.get(classReader), superClassLookup));
+            myDataBindingComponentClassName.equals(classReader.getClassName()));
   }
 
   @NotNull

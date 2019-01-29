@@ -1,0 +1,6 @@
+0000000000008cc0|Java_com_eugene_sum_MainActivity_add|/usr/local/google/home/ezemtsov/projects/android-apps/sum/app/src/main/cpp/native-lib.cpp|9
+00000000000093f4|JNI_OnLoad|/usr/local/google/home/ezemtsov/projects/android-apps/sum/app/src/main/cpp/native-lib.cpp|66
+0000000000008ce8|TestSavedClass(_jobject*)|/usr/local/google/home/ezemtsov/projects/android-apps/sum/app/src/main/cpp/native-lib.cpp|19
+000000000000909c|TestSimpleMethodCall(_JNIEnv*, _jobject*)|/usr/local/google/home/ezemtsov/projects/android-apps/sum/app/src/main/cpp/native-lib.cpp|36
+00000000000092e8|Swap(_JNIEnv*, _jobject*, _jobject*)|/usr/local/google/home/ezemtsov/projects/android-apps/sum/app/src/main/cpp/native-lib.cpp|53
+0000000000009220|Test(_JNIEnv*, _jobject*, _jobject*)|/usr/local/google/home/ezemtsov/projects/android-apps/sum/app/src/main/cpp/native-lib.cpp|43

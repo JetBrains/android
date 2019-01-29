@@ -23,14 +23,12 @@ import com.intellij.testFramework.IdeaTestCase;
 
 import java.util.Collections;
 
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_LOADED;
 import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link AndroidGradleProjectStartupActivity}.
  */
 public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
-  private IdeComponents myIdeComponents;
   private GradleProjectInfo myGradleProjectInfo;
   private AndroidGradleProjectStartupActivity myStartupActivity;
   private GradleSyncInvoker mySyncInvoker;
@@ -38,20 +36,19 @@ public class AndroidGradleProjectStartupActivityTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myIdeComponents = new IdeComponents(myProject);
-    mySyncInvoker = myIdeComponents.mockService(GradleSyncInvoker.class);
-    myGradleProjectInfo = myIdeComponents.mockProjectService(GradleProjectInfo.class);
+    IdeComponents ideComponents = new IdeComponents(myProject);
+    mySyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker.class);
+    myGradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class);
     myStartupActivity = new AndroidGradleProjectStartupActivity();
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      myIdeComponents.restore();
+      myGradleProjectInfo = null;
     }
     finally {
       super.tearDown();
-      myGradleProjectInfo = null;
     }
   }
 

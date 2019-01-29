@@ -19,6 +19,7 @@ import com.android.tools.idea.Projects;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectWideFacetAdapter;
 import com.intellij.facet.ProjectWideFacetListenersRegistry;
@@ -27,6 +28,7 @@ import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
 import com.intellij.ide.projectView.BaseProjectTreeBuilder;
 import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.*;
 import com.intellij.ide.projectView.impl.nodes.PackageElement;
@@ -37,6 +39,7 @@ import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -47,7 +50,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ui.tree.TreeUtil;
-import icons.AndroidArtworkIcons;
+import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidUtils;
@@ -63,6 +66,8 @@ import javax.swing.tree.TreePath;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.*;
@@ -78,6 +83,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   public static final DataKey<TreeNode[]> SELECTED_TREE_NODES = DataKey.create("selectedTreeNodes");
 
+  private AtomicBoolean isProcessingChanges = new AtomicBoolean(false);
+
   public AndroidProjectViewPane(Project project) {
     super(project);
     ProjectWideFacetListenersRegistry.getInstance(project).registerListener(new ProjectWideFacetAdapter<Facet>() {
@@ -92,14 +99,24 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       }
 
       private void somethingChanged() {
-        ProjectView projectView = ProjectView.getInstance(project);
-        AbstractProjectViewPane pane = projectView.getProjectViewPaneById(ID);
-        boolean visible = isInitiallyVisible();
-        if (visible && pane == null) {
-          projectView.addProjectPane(AndroidProjectViewPane.this);
-        }
-        else if (!visible && pane != null) {
-          projectView.removeProjectPane(pane);
+        if (!isProcessingChanges.getAndSet(true)) {
+          // Wait until other actions are over, in particular wait for all facets to be added.
+          ApplicationManager.getApplication().invokeLater(() -> {
+            try {
+              ProjectView projectView = ProjectView.getInstance(project);
+              AbstractProjectViewPane pane = projectView.getProjectViewPaneById(ID);
+              boolean visible = isInitiallyVisible();
+              if (visible && pane == null) {
+                projectView.addProjectPane(AndroidProjectViewPane.this);
+              }
+              else if (!visible && pane != null) {
+                projectView.removeProjectPane(pane);
+              }
+            }
+            finally {
+              isProcessingChanges.set(false);
+            }
+          });
         }
       }
     });
@@ -114,7 +131,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   @NotNull
   @Override
   public Icon getIcon() {
-    return AndroidArtworkIcons.Icons.Android;
+    return AndroidIcons.Android;
   }
 
   @NotNull
@@ -168,7 +185,16 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   protected ProjectAbstractTreeStructureBase createStructure() {
     return new ProjectTreeStructure(myProject, ID) {
       @Override
-      protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
+      public List<TreeStructureProvider> getProviders() {
+        List<TreeStructureProvider> providers = super.getProviders();
+        if (providers == null) {
+          return null;
+        }
+        return providers.stream().map(provider ->  new BuildScriptTreeStructureProvider(provider)).collect(Collectors.toList());
+      }
+
+      @Override
+      protected AbstractTreeNode createRoot(Project project, ViewSettings settings) {
         return new AndroidViewProjectNode(project, settings, AndroidProjectViewPane.this);
       }
     };
@@ -176,22 +202,20 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   @NotNull
   @Override
-  protected BaseProjectTreeBuilder createBuilder(@NotNull DefaultTreeModel treeModel) {
+  protected BaseProjectTreeBuilder createBuilder(DefaultTreeModel treeModel) {
     return new AndroidProjectTreeBuilder(myProject, myTree, treeModel, (ProjectAbstractTreeStructureBase)myTreeStructure, null);
   }
 
   @NotNull
   @Override
-  protected ProjectViewTree createTree(@NotNull final DefaultTreeModel treeModel) {
+  protected ProjectViewTree createTree(final DefaultTreeModel treeModel) {
     return new MyProjectViewTree(treeModel);
   }
 
   @NotNull
   @Override
-  protected AbstractTreeUpdater createTreeUpdater(@NotNull AbstractTreeBuilder treeBuilder) {
-    return new AbstractTreeUpdater(treeBuilder) {
-      // unique class to simplify search through the logs
-    };
+  protected AbstractTreeUpdater createTreeUpdater(AbstractTreeBuilder treeBuilder) {
+    return new AbstractTreeUpdater(treeBuilder);
   }
 
   @Override
@@ -228,7 +252,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
           dirs.add(dir);
         }
       }
-      selectedDirectories = dirs.toArray(new PsiDirectory[dirs.size()]);
+      selectedDirectories = dirs.toArray(PsiDirectory.EMPTY_ARRAY);
     }
 
     return selectedDirectories;
@@ -246,7 +270,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   }
 
   @Override
-  public Object getData(@NotNull String dataId) {
+  public Object getData(String dataId) {
     if (PROJECT.is(dataId)) {
       return myProject;
     }
@@ -302,7 +326,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
               virtualFiles.add(file.getVirtualFile());
             }
           }
-          return virtualFiles.toArray(new VirtualFile[virtualFiles.size()]);
+          return virtualFiles.toArray(VirtualFile.EMPTY_ARRAY);
         }
       }
 
@@ -315,7 +339,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
               virtualFiles.add(directory.getVirtualFile());
             }
           }
-          return virtualFiles.toArray(new VirtualFile[virtualFiles.size()]);
+          return virtualFiles.toArray(VirtualFile.EMPTY_ARRAY);
         }
       }
     }
@@ -368,7 +392,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
         result.add((TreeNode)lastPathComponent);
       }
     }
-    return result.toArray(new TreeNode[result.size()]);
+    return result.toArray(new TreeNode[0]);
   }
 
   private boolean isTopModuleDirectoryOrParent(@NotNull VirtualFile directory) {
@@ -394,7 +418,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
     @Nullable
     @Override
-    public Object getData(@NotNull @NonNls String dataId) {
+    public Object getData(@NonNls String dataId) {
       return AndroidProjectViewPane.this.getData(dataId);
     }
   }

@@ -22,6 +22,7 @@ import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
@@ -29,11 +30,11 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutArrange;
 import com.android.tools.idea.uibuilder.scout.ScoutWidget;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -55,11 +56,11 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTarget) {
     if (myComponent instanceof TemporarySceneComponent) {
       Scene scene = myComponent.getScene();
-      int dx = getTargetNotchSnapper().trySnapX(x);
-      int dy = getTargetNotchSnapper().trySnapY(y);
+      int dx = getTargetNotchSnapper().trySnapHorizontal(x).orElse(x);
+      int dy = getTargetNotchSnapper().trySnapVertical(y).orElse(y);
       myComponent.setPosition(dx, dy);
       scene.needsRebuildList();
     }
@@ -79,7 +80,11 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
       AttributesTransaction attributes = component.startAttributeTransaction();
       int dx = x - myOffsetX;
       int dy = y - myOffsetY;
-      Point snappedCoordinates = getTargetNotchSnapper().applyNotches(myComponent, attributes, dx, dy);
+      TargetSnapper snapper = getTargetNotchSnapper();
+      Point snappedCoordinates = new Point(snapper.trySnapHorizontal(dx).orElse(dx), snapper.trySnapVertical(dy).orElse(dy));
+      if (isAutoConnectionEnabled()) {
+        snapper.applyNotches(attributes);
+      }
       updateAttributes(attributes, snappedCoordinates.x, snappedCoordinates.y);
       setGuidelineBegin(attributes, x, y);
       boolean horizontalMatchParent = false;
@@ -124,5 +129,23 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
         attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, positionY);
       }
     }
+  }
+
+  private int getLeftTargetOrigin(SceneComponent target) {
+    int origin = target.getDrawX();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
+    if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF) != null) {
+      origin += target.getDrawWidth();
+    }
+    return origin;
+  }
+
+  protected int getTopTargetOrigin(SceneComponent target) {
+    int origin = target.getDrawY();
+    NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
+    if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF) != null) {
+      origin += target.getDrawHeight();
+    }
+    return origin;
   }
 }

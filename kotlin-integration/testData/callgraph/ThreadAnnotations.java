@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package android.support.annotation;
-
-public @interface UiThread {}
-
-public @interface WorkerThread {}
+import androidx.annotation.UiThread;
+import androidx.annotation.WorkerThread;
 
 @FunctionalInterface
 public interface Runnable {
@@ -25,6 +22,12 @@ public interface Runnable {
 }
 
 class Test {
+
+  // Make sure the old annotation names still work.
+  @android.support.annotation.UiThread static void oldAnnotationA() { oldAnnotationB() }
+  static void oldAnnotationB() { oldAnnotationC() }
+  @android.support.annotation.WorkerThread static void oldAnnotationC() {}
+
   @UiThread static void uiThreadStatic() { unannotatedStatic(); }
   static void unannotatedStatic() { workerThreadStatic(); }
   @WorkerThread static void workerThreadStatic() {}

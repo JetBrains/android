@@ -28,8 +28,9 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.google.common.collect.Lists;
-import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -44,8 +45,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Test methods of {@link GradleApkProvider}.
  */
-public class GradleApkProviderGetApkTest extends LightPlatformTestCase {
-  @Mock private AndroidFacet myAndroidFacet;
+public class GradleApkProviderGetApkTest extends IdeaTestCase {
+  private AndroidFacet myAndroidFacet;
   @Mock private AndroidModelFeatures myModelFeatures;
   @Mock private IdeVariant myVariant;
   @Mock private PostBuildModelProvider myOutputModelProvider;
@@ -55,6 +56,7 @@ public class GradleApkProviderGetApkTest extends LightPlatformTestCase {
   @Mock private File myTestApkFile;
 
   private GradleApkProvider myApkProvider;
+  private AndroidFacetConfiguration myConfiguration;
 
   @Override
   protected void setUp() throws Exception {
@@ -77,12 +79,15 @@ public class GradleApkProviderGetApkTest extends LightPlatformTestCase {
     List<OutputFile> testBestFoundOutput = Arrays.asList(testOutputFile1, testOutputFile2);
 
     when(androidModel.getFeatures()).thenReturn(myModelFeatures);
-    when(myAndroidFacet.getAndroidModel()).thenReturn(androidModel);
+
+    myConfiguration = new AndroidFacetConfiguration();
+    myAndroidFacet = new AndroidFacet(myModule, AndroidFacet.NAME, myConfiguration);
+    myConfiguration.setModel(androidModel);
 
     List<AndroidArtifactOutput> mainOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
     List<AndroidArtifactOutput> testOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
-    List<OutputFile> mainOutputs2 = Lists.newArrayList(mainOutputs);
-    List<OutputFile> testOutputs2 = Lists.newArrayList(testOutputs);
+    List<OutputFile> mainOutputs2 = Lists.transform(mainOutputs, input -> (OutputFile)input);
+    List<OutputFile> testOutputs2 = Lists.transform(testOutputs, input -> (OutputFile)input);
 
     IdeAndroidArtifact mainArtifact = mock(IdeAndroidArtifact.class);
     IdeAndroidArtifact testArtifact = mock(IdeAndroidArtifact.class);
@@ -98,7 +103,7 @@ public class GradleApkProviderGetApkTest extends LightPlatformTestCase {
     when(bestOutputFinder.findBestOutput(myVariant, myDevice, testOutputs2)).thenReturn(testBestFoundOutput);
 
     myApkProvider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), myOutputModelProvider,
-                                          bestOutputFinder, true);
+                                          bestOutputFinder, true, () -> GradleApkProvider.OutputKind.Default);
 
     when(myOutputModelProvider.getPostBuildModel()).thenReturn(myPostBuildModel);
 

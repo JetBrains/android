@@ -15,22 +15,24 @@
  */
 package com.android.tools.idea.gradle.dependencies;
 
-import com.android.SdkConstants;
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.collect.ImmutableList;
-
-import java.util.Collections;
-import java.util.List;
-
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_OLDER_SUPPORT_LIB;
 import static com.android.tools.idea.testing.TestProjectPaths.SPLIT_BUILD_FILES;
 import static com.google.common.truth.Truth.assertThat;
+
+import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests for {@link GradleDependencyManager}.
@@ -39,6 +41,8 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
   private static final GradleCoordinate APP_COMPAT_DEPENDENCY = new GradleCoordinate("com.android.support", "appcompat-v7", "+");
   private static final GradleCoordinate RECYCLER_VIEW_DEPENDENCY = new GradleCoordinate("com.android.support", "recyclerview-v7", "+");
   private static final GradleCoordinate DUMMY_DEPENDENCY = new GradleCoordinate("dummy.group", "dummy.artifact", "0.0.0");
+  private static final GradleCoordinate VECTOR_DRAWABLE_DEPENDENCY =
+    new GradleCoordinate("com.android.support", "support-vector-drawable", "+");
 
   private static final List<GradleCoordinate> DEPENDENCIES = ImmutableList.of(APP_COMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
 
@@ -68,8 +72,8 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertTrue(found);
 
     // @formatter:off
-    List<ResourceItem> items = AppResourceRepository.getOrCreateInstance(myAndroidFacet)
-                                                    .getResourceItem(ResourceType.DECLARE_STYLEABLE, "RecyclerView");
+    List<ResourceItem> items = ResourceRepositoryManager.getAppResources(myAndroidFacet)
+                                                    .getResources(RES_AUTO, ResourceType.STYLEABLE, "RecyclerView");
     // @formatter:on
     assertThat(items).isNotEmpty();
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
@@ -85,7 +89,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     // 1. RecyclerView artifact should not be declared in build script.
     // 2. RecyclerView should not be declared or resolved.
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
-    assertFalse(isRecyclerViewDeclared());
+    assertFalse(isRecyclerViewRegistered());
     assertFalse(isRecyclerViewResolved());
 
     boolean result = dependencyManager.addDependenciesAndSync(myModules.getAppModule(), dependencies, null);
@@ -95,7 +99,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     // 2. RecyclerView should be declared and resolved (because the required artifact has been synced)
     assertTrue(result);
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
-    assertTrue(isRecyclerViewDeclared());
+    assertTrue(isRecyclerViewRegistered());
     assertTrue(isRecyclerViewResolved());
   }
 
@@ -108,7 +112,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     // 1. RecyclerView artifact should not be declared in build script.
     //    // 2. RecyclerView should not be declared or resolved.
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isNotEmpty();
-    assertFalse(isRecyclerViewDeclared());
+    assertFalse(isRecyclerViewRegistered());
     assertFalse(isRecyclerViewResolved());
 
     boolean result = dependencyManager.addDependenciesWithoutSync(myModules.getAppModule(), dependencies);
@@ -118,7 +122,7 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     // 2. RecyclerView should be declared but NOT yet resolved (because we didn't sync)
     assertTrue(result);
     assertThat(dependencyManager.findMissingDependencies(myModules.getAppModule(), dependencies)).isEmpty();
-    assertTrue(isRecyclerViewDeclared());
+    assertTrue(isRecyclerViewRegistered());
     assertFalse(isRecyclerViewResolved());
   }
 
@@ -134,13 +138,27 @@ public class GradleDependencyManagerTest extends AndroidGradleTestCase {
     assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.3.1");
   }
 
-  private boolean isRecyclerViewDeclared() {
+  public void testCanAddDependencyWhichAlreadyIsAnIndirectDependency() throws Exception {
+    loadSimpleApplication();
+
+    // Make sure the app module depends on the vector drawable library:
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(myModules.getAppModule());
+    assertTrue(GradleUtil.dependsOn(gradleModel, VECTOR_DRAWABLE_DEPENDENCY.getId()));
+
+    // Now check that the vector drawable library is NOT an explicit dependency:
+    List<GradleCoordinate> vectorDrawable = Collections.singletonList(VECTOR_DRAWABLE_DEPENDENCY);
+    GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(getProject());
+    List<GradleCoordinate> missing = dependencyManager.findMissingDependencies(myModules.getAppModule(), vectorDrawable);
+    assertFalse(missing.isEmpty());
+  }
+
+  private boolean isRecyclerViewRegistered() {
     return ProjectSystemUtil.getModuleSystem(myModules.getAppModule())
-             .getDeclaredVersion(GoogleMavenArtifactId.RECYCLERVIEW_V7) != null;
+             .getRegisteredDependency(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("+")) != null;
   }
 
   private boolean isRecyclerViewResolved() {
     return ProjectSystemUtil.getModuleSystem(myModules.getAppModule())
-             .getResolvedVersion(GoogleMavenArtifactId.RECYCLERVIEW_V7) != null;
+             .getResolvedDependency(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("+")) != null;
   }
 }

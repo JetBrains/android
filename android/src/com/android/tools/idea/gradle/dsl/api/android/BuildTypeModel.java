@@ -15,29 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.android.tools.idea.gradle.dsl.api.FlavorTypeModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public interface BuildTypeModel extends FlavorTypeModel {
-  @NotNull
-  ResolvedPropertyModel applicationIdSuffix();
-
-  @Nullable
-  List<GradleNotNullValue<BuildConfigField>> buildConfigFields();
-
-  void addBuildConfigField(@NotNull BuildConfigField buildConfigField);
-
-  void removeBuildConfigField(@NotNull BuildConfigField buildConfigField);
-
-  void removeAllBuildConfigFields();
-
-  void replaceBuildConfigField(@NotNull BuildConfigField oldBuildConfigField, @NotNull BuildConfigField newBuildConfigField);
-
   @NotNull
   ResolvedPropertyModel debuggable();
 
@@ -66,15 +47,5 @@ public interface BuildTypeModel extends FlavorTypeModel {
   ResolvedPropertyModel testCoverageEnabled();
 
   @NotNull
-  ResolvedPropertyModel versionNameSuffix();
-
-  @NotNull
   ResolvedPropertyModel zipAlignEnabled();
-
-  /**
-   * Represents a {@code buildConfigField} statement defined in the build type block of the Gradle file.
-   */
-  interface BuildConfigField extends TypeNameValueElement {
-
-  }
 }

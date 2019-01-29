@@ -24,7 +24,9 @@ import javax.swing.*;
 
 /**
  * Step for FirstRunWizard for selecting a color scheme.
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.SelectThemeStep}
  */
+@Deprecated
 public class SelectThemeStep extends FirstRunWizardStep {
   private final CustomizeUIThemeStepPanel themePanel;
 

@@ -43,6 +43,7 @@ public final class AvdDeviceData {
   private OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<IdDisplay>();
   private StringProperty myManufacturer = new StringValueProperty();
   private StringProperty myTagId = new StringValueProperty();
+  private StringProperty myDeviceId = new StringValueProperty();
 
   private DoubleProperty myDiagonalScreenSize = new DoubleValueProperty();
   private IntProperty myScreenResolutionWidth = new IntValueProperty();
@@ -66,6 +67,7 @@ public final class AvdDeviceData {
   private BoolProperty myHasGps = new BoolValueProperty();
   private BoolProperty myHasProximitySensor = new BoolValueProperty();
   private OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<File>();
+  private OptionalProperty<File> mySelectedSnapshotFile = new OptionalValueProperty<>(new File(""));
 
   private BoolValueProperty myIsTv = new BoolValueProperty();
   private BoolValueProperty myIsWear = new BoolValueProperty();
@@ -163,6 +165,11 @@ public final class AvdDeviceData {
   }
 
   @NotNull
+  public StringProperty deviceId() {
+    return myDeviceId;
+  }
+
+  @NotNull
   public DoubleProperty diagonalScreenSize() {
     return myDiagonalScreenSize;
   }
@@ -255,6 +262,11 @@ public final class AvdDeviceData {
   @NotNull
   public OptionalProperty<File> customSkinFile() {
     return myCustomSkinFile;
+  }
+
+  @NotNull
+  public OptionalProperty<File> selectedSnapshotFile() {
+    return mySelectedSnapshotFile;
   }
 
   @NotNull
@@ -361,6 +373,7 @@ public final class AvdDeviceData {
         }
       }
     }
+    myDeviceId.set(device.getId());
     Hardware defaultHardware = device.getDefaultHardware();
     Screen screen = defaultHardware.getScreen();
 

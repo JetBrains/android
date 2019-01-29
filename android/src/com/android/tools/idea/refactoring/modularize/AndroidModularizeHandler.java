@@ -16,14 +16,16 @@
 package com.android.tools.idea.refactoring.modularize;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -47,6 +49,7 @@ import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.actions.BaseRefactoringAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,7 +85,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
-          if (!IdeaSourceProvider.getCurrentSourceProviders(facet).isEmpty() && !facet.getAllResourceDirectories().isEmpty()) {
+          if (!IdeaSourceProvider.getCurrentSourceProviders(facet).isEmpty() && !ResourceFolderManager.getInstance(facet).getFolders().isEmpty()) {
             suitableModules.add(module);
           }
         }
@@ -218,10 +221,10 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         });
       }
 
-      Set<ResourceUrl> seenResourceUrls = new HashSet<>(myResourceRefSet.size());
+      Set<ResourceReference> seenResources = new HashSet<>(myResourceRefSet.size());
       for (ResourceItem item : myResourceRefSet) {
-        ResourceUrl url = item.getResourceUrl(false);
-        if (seenResourceUrls.add(url)) {
+        ResourceReference ref = item.getReferenceToSelf();
+        if (seenResources.add(ref)) {
           PsiField[] fields;
           PsiElement elm = getResourceDefinition(item);
           if (elm instanceof PsiFile) {
@@ -286,7 +289,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       XmlResourceReferenceVisitor(@NotNull AndroidFacet facet, @NotNull PsiElement source) {
         myFacet = facet;
         mySource = source;
-        myResourceRepository = ModuleResourceRepository.getOrCreateInstance(facet);
+        myResourceRepository = ResourceRepositoryManager.getModuleResources(facet);
       }
 
       @Override
@@ -302,17 +305,15 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       private void processPotentialReference(String text) {
         ResourceUrl url = ResourceUrl.parse(text);
         if (url != null) {
-          if (!url.framework && !url.create && url.type != ResourceType.ID) {
-            List<ResourceItem> matches = myResourceRepository.getResourceItem(url.type, url.name);
-            if (matches != null) {
-              for (ResourceItem match : matches) {
-                PsiElement target = getResourceDefinition(match);
-                if (target != null) {
-                  if (myResourceRefSet.add(match)) {
-                    myVisitQueue.offer(target);
-                  }
-                  myGraphBuilder.markReference(mySource, target);
+          if (!url.isFramework() && !url.isCreate() && url.type != ResourceType.ID) {
+            List<ResourceItem> matches = myResourceRepository.getResources(ResourceNamespace.TODO(), url.type, url.name);
+            for (ResourceItem match : matches) {
+              PsiElement target = getResourceDefinition(match);
+              if (target != null) {
+                if (myResourceRefSet.add(match)) {
+                  myVisitQueue.offer(target);
                 }
+                myGraphBuilder.markReference(mySource, target);
               }
             }
           }
@@ -338,7 +339,7 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
       JavaReferenceVisitor(@NotNull AndroidFacet facet, @NotNull PsiElement source) {
         myFacet = facet;
         mySource = source;
-        myResourceRepository = ModuleResourceRepository.getOrCreateInstance(facet);
+        myResourceRepository = ResourceRepositoryManager.getModuleResources(facet);
       }
 
       @Override
@@ -353,16 +354,14 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
             if (type != null && type != ResourceType.ID) {
               String name = AndroidPsiUtils.getResourceName(expression);
 
-              List<ResourceItem> matches = myResourceRepository.getResourceItem(type, name);
-              if (matches != null) {
-                for (ResourceItem match : matches) {
-                  PsiElement target = getResourceDefinition(match);
-                  if (target != null) {
-                    if (myResourceRefSet.add(match)) {
-                      myVisitQueue.offer(target);
-                    }
-                    myGraphBuilder.markReference(mySource, target);
+              List<ResourceItem> matches = myResourceRepository.getResources(ResourceNamespace.TODO(), type, name);
+              for (ResourceItem match : matches) {
+                PsiElement target = getResourceDefinition(match);
+                if (target != null) {
+                  if (myResourceRefSet.add(match)) {
+                    myVisitQueue.offer(target);
                   }
+                  myGraphBuilder.markReference(mySource, target);
                 }
               }
             }

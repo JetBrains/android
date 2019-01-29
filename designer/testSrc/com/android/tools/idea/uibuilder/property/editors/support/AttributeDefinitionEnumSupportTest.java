@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.editors.support;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.common.property.NlProperty;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +27,7 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -33,8 +35,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AttributeDefinitionEnumSupportTest {
   @Mock
   private NlProperty myProperty;
-  @Mock
-  private AttributeDefinition myDefinition;
+
   @Mock
   private ResourceResolver myResolver;
 
@@ -42,9 +43,11 @@ public class AttributeDefinitionEnumSupportTest {
 
   @Before
   public void setUp() {
+    AttributeDefinition definition = new AttributeDefinition(ResourceNamespace.RES_AUTO, "my_attr");
+    definition.setValueMappings(ImmutableMap.of("item1", 1, "item2", 2));
     initMocks(this);
     when(myProperty.getResolver()).thenReturn(myResolver);
-    when(myProperty.getDefinition()).thenReturn(myDefinition);
+    when(myProperty.getDefinition()).thenReturn(definition);
     when(myProperty.resolveValue(anyString())).thenAnswer(invocation -> invocation.getArguments()[0]);
     when(myProperty.resolveValue("@string/hello_world")).thenReturn("Hello World");
     mySupport = new AttributeDefinitionEnumSupport(myProperty);
@@ -52,7 +55,6 @@ public class AttributeDefinitionEnumSupportTest {
 
   @Test
   public void testFindPossibleValues() {
-    when(myDefinition.getValues()).thenReturn(new String[]{"item1", "item2"});
     assertThat(mySupport.getAllValues()).containsExactly(
       new ValueWithDisplayString("item1", "item1"),
       new ValueWithDisplayString("item2", "item2")).inOrder();

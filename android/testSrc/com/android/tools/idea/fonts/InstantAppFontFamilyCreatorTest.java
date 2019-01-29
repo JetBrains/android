@@ -23,6 +23,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
@@ -90,7 +91,7 @@ public class InstantAppFontFamilyCreatorTest extends AndroidGradleTestCase {
 
   private static void verifyResourceDoesNotExist(@NotNull AndroidFacet facet, @NotNull ResourceFolderType type, @NotNull String fileName) {
     @SuppressWarnings("deprecation")
-    VirtualFile resourceDirectory = facet.getPrimaryResourceDir();
+    VirtualFile resourceDirectory = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     if (resourceDirectory == null) {
       return;
     }

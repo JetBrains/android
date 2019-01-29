@@ -15,10 +15,15 @@
  */
 package com.android.tools.adtui.flat;
 
+import com.android.tools.adtui.stdui.GraphicsUtilKt;
+import com.android.tools.adtui.stdui.StandardColors;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.components.BorderLayoutPanel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboBoxUI;
@@ -29,6 +34,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 class FlatComboBoxUI extends BasicComboBoxUI {
+  private static final int LIGHT_THEME_PADDING = 5;
+  private static final int DARK_THEME_PADDING = 2;
   private final MouseAdapter myHoverAdapter;
   private boolean myHover;
 
@@ -67,8 +74,24 @@ class FlatComboBoxUI extends BasicComboBoxUI {
       @Override
       protected void configurePopup() {
         super.configurePopup();
-        setBorderPainted(false);
-        setBorder(JBUI.Borders.empty());
+        if (SystemInfo.isMac) {
+          setBorderPainted(false);
+          setBorder(JBUI.Borders.empty());
+        }
+        else {
+          setBorder(JBUI.Borders.customLine(StandardColors.INNER_BORDER_COLOR));
+          setBackground(UIManager.getColor("ComboBox.background"));
+        }
+      }
+
+      @Override
+      protected void configureList() {
+        super.configureList();
+        list.setBackground(UIManager.getColor("TextField.background"));
+        ListCellRenderer renderer = list.getCellRenderer();
+        if (!(renderer instanceof ComboBoxRendererWrapper) && renderer != null) {
+          list.setCellRenderer(new ComboBoxRendererWrapper(renderer));
+        }
       }
 
       @Override
@@ -88,7 +111,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
 
   @Override
   protected void installDefaults() {
-    padding = JBUI.insets(0, 0, 0, 2);
+    padding = JBUI.insets(0, UIUtil.isUnderDarcula() ? DARK_THEME_PADDING : LIGHT_THEME_PADDING, 0, 2);
     squareButton = false;
   }
 
@@ -101,14 +124,14 @@ class FlatComboBoxUI extends BasicComboBoxUI {
   @Override
   public Dimension getMinimumSize(JComponent c) {
     Dimension size = super.getMinimumSize(c);
-    return new Dimension(size.width, Math.max(size.height, JBUI.scale(25)));
+    return new Dimension(size.width, UIUtil.fixComboBoxHeight(Math.max(size.height, JBUI.scale(25))));
   }
 
   @Override
   public void paint(Graphics g, JComponent c) {
     // TODO: Create a unique style for showing focus, for now use the hover state visuals.
     if (myHover || isPopupVisible(comboBox) || c.isFocusOwner())  {
-      FlatUiUtils.paintBackground(g, c);
+      GraphicsUtilKt.paintBackground(g, c);
     }
     super.paint(g, c);
   }
@@ -154,13 +177,39 @@ class FlatComboBoxUI extends BasicComboBoxUI {
 
     @Override
     public Dimension getMinimumSize() {
-      return new JBDimension(15, 25);
+      return new JBDimension(15, 24);
     }
 
     @Override
     protected void paintComponent(Graphics g) {
       Dimension size = getSize();
       AllIcons.General.ArrowDownSmall.paintIcon(this, g, 0, size.height / 2 - 2);
+    }
+  }
+
+  /**
+   * Based on {@link com.intellij.ide.ui.laf.intellij.WinIntelliJComboBoxUI.ComboBoxRendererWrapper}. This wrapper
+   * allows us to add a padding for each element in the listbox.
+   */
+  private static class ComboBoxRendererWrapper implements ListCellRenderer<Object> {
+    private final ListCellRenderer<Object> myRenderer;
+
+    public ComboBoxRendererWrapper(@NotNull ListCellRenderer<Object> renderer) {
+      myRenderer = renderer;
+    }
+
+    @Override
+    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+      Component c = myRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      BorderLayoutPanel panel = JBUI.Panels.simplePanel(c).withBorder(
+        list.getComponentOrientation().isLeftToRight() ? JBUI.Borders.empty(0,
+                                                                            UIUtil.isUnderDarcula()
+                                                                            ? DARK_THEME_PADDING
+                                                                            : LIGHT_THEME_PADDING,
+                                                                            0, 1)
+                                                       : JBUI.Borders.empty(0, 1, 0, 5));
+      panel.setBackground(c.getBackground());
+      return panel;
     }
   }
 }

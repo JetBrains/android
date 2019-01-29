@@ -93,6 +93,7 @@ public class ViewInspectorProvider implements InspectorProvider<NlPropertiesMana
     private final List<String> myPropertyNames;
     private final List<NlComponentEditor> myEditors;
     private final int mySrcPropertyIndex;
+    private final int mySrcPropertyToolsIndex;
 
     ViewInspectorComponent(@NotNull String tagName,
                                   @NotNull Map<String, NlProperty> properties,
@@ -101,6 +102,7 @@ public class ViewInspectorProvider implements InspectorProvider<NlPropertiesMana
       myComponentName = tagName.substring(tagName.lastIndexOf('.') + 1);
       myPropertyNames = new ArrayList<>(propertyNames);
       mySrcPropertyIndex = myPropertyNames.indexOf(ATTR_SRC);
+      mySrcPropertyToolsIndex = myPropertyNames.indexOf(TOOLS_NS_NAME_PREFIX + ATTR_SRC);
       myEditors = new ArrayList<>(myPropertyNames.size());
       createEditors(properties, propertiesManager);
     }
@@ -151,7 +153,7 @@ public class ViewInspectorProvider implements InspectorProvider<NlPropertiesMana
         String propertyName = property.getName();
         JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), editor.getComponent());
         if (TOOLS_URI.equals(property.getNamespace())) {
-          label.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
+          label.setIcon(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE);
         }
         editor.setLabel(label);
       }
@@ -163,10 +165,13 @@ public class ViewInspectorProvider implements InspectorProvider<NlPropertiesMana
     }
 
     private void useSrcCompatIfExist(@NotNull Map<String, NlProperty> properties) {
-      if (mySrcPropertyIndex < 0) {
-        return;
+      if (mySrcPropertyIndex >= 0) {
+        String nameToUse = properties.containsKey(ATTR_SRC_COMPAT) ? ATTR_SRC_COMPAT : ATTR_SRC;
+        myPropertyNames.set(mySrcPropertyIndex, nameToUse);
+        if (mySrcPropertyToolsIndex >= 0) {
+          myPropertyNames.set(mySrcPropertyToolsIndex, TOOLS_NS_NAME_PREFIX + nameToUse);
+        }
       }
-      myPropertyNames.set(mySrcPropertyIndex, properties.containsKey(ATTR_SRC_COMPAT) ? ATTR_SRC_COMPAT : ATTR_SRC);
     }
   }
 }

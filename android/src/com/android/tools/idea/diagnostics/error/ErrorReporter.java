@@ -17,8 +17,9 @@
 package com.android.tools.idea.diagnostics.error;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.diagnostics.crash.CrashReport;
-import com.android.tools.idea.diagnostics.crash.CrashReporter;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
+import com.android.tools.idea.diagnostics.crash.StudioPerformanceWatcherReport;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.diagnostic.AbstractMessage;
@@ -65,7 +66,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
   @Override
   public boolean submit(@NotNull IdeaLoggingEvent[] events,
                         @Nullable String description,
-                        @NotNull Component parentComponent,
+                        @Nullable Component parentComponent,
                         @NotNull Consumer<SubmittedReportInfo> callback) {
     IdeaLoggingEvent event = events[0];
     ErrorBean bean = new ErrorBean(event.getThrowable(), IdeaLogger.ourLastActionId);
@@ -158,18 +159,31 @@ public class ErrorReporter extends ErrorReportSubmitter {
     if ("Exception".equals(type)) {
       ImmutableMap<String, String> productData = ImmutableMap.of("md5", (String)map.get("md5"),
                                                                  "summary", (String)map.get("summary"));
-      CrashReporter.getInstance().submit(
-        CrashReport.Builder.createForException(t).addProductData(productData).build());
+      StudioExceptionReport exceptionReport = new StudioExceptionReport.Builder().setThrowable(t).addProductData(productData).build();
+      StudioCrashReporter.getInstance().submit(exceptionReport);
     }
     else if ("ANR".equals(type)) {
-      CrashReporter.getInstance().submit(
-        CrashReport.Builder.createForPerfReport((String)map.get("file"), (String)map.get("threadDump")).build());
+      StudioPerformanceWatcherReport perfReport =
+        new StudioPerformanceWatcherReport.Builder().setFile((String)map.get("file")).setThreadDump((String)map.get("threadDump")).build();
+      // Performance reports are not limited by a rate limiter.
+      StudioCrashReporter.getInstance().submit(perfReport, true);
     }
     else if ("Crashes".equals(type)) {
+      /*
       //noinspection unchecked
-      List<String> descriptions = (List<String>)map.get("descriptions");
-      CrashReporter.getInstance().submit(
-        CrashReport.Builder.createForCrashes(descriptions).build());
+      List<StudioCrashDetails> crashDetails = (List<StudioCrashDetails>)map.get("crashDetails");
+      List<String> descriptions = crashDetails.stream().map(details -> details.getDescription()).collect(Collectors.toList());
+      // If at least one report was JVM crash, submit the batch as a JVM crash
+      boolean isJvmCrash = crashDetails.stream().anyMatch(details -> details.isJvmCrash());
+      // As there may be multiple crashes reported together, take the shortest uptime (most of the time there is only
+      // a single crash anyway).
+      long uptimeInMs = crashDetails.stream().mapToLong(details -> details.getUptimeInMs()).min().orElse(-1);
+
+      StudioCrashReport report =
+        new StudioCrashReport.Builder().setDescriptions(descriptions).setIsJvmCrash(isJvmCrash).setUptimeInMs(uptimeInMs).build();
+      // Crash reports are not limited by a rate limiter.
+      StudioCrashReporter.getInstance().submit(report, true);
+      */
     }
     return true;
   }

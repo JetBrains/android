@@ -17,11 +17,16 @@ package com.android.tools.adtui.chart.hchart
 
 import com.android.tools.adtui.model.DefaultHNode
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
-import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
-import java.awt.Dimension
+
+import java.awt.*
+
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.SystemInfo.isMac
+import java.awt.geom.Rectangle2D
 
 class HTreeChartTest {
   private lateinit var myUi: FakeUi
@@ -30,6 +35,8 @@ class HTreeChartTest {
   // We make the chart's dimension to be shorter than the tree's height, so we can test dragging
   // towards north and south.
   private val myContentHeight = 75
+  // The total height is the height of the content plus the height of the padding.
+  private val myTotalHeight = myContentHeight + 10
   private val myViewHeight = 50
   // Y axis' initial position, which is the north/south boundary of a top-down/bottom-up chart.
   private val myInitialYPosition = 0
@@ -41,13 +48,18 @@ class HTreeChartTest {
 
   private fun setUp(orientation: HTreeChart.Orientation) {
     myRange = Range(0.0, 100.0)
-    myChart = HTreeChart(Range(0.0, 100.0), myRange, orientation)
+
+    myChart = HTreeChart.Builder(HNodeTree(0, 5, 2), myRange, FakeRenderer())
+      .setGlobalXRange(Range(0.0, 100.0))
+      .setOrientation(orientation)
+      .build()
+
     myChart.size = Dimension(100, myViewHeight)
     myUi = FakeUi(myChart)
     myChart.yRange.set(10.0, 10.0)
     // Set a root pointing to a tree with more than one nodes, to perform some meaningful drags.
-    myChart.setHTree(HNodeTree(0,5,2))
-    assertThat(myChart.maximumHeight).isEqualTo(myContentHeight)
+
+    assertThat(myChart.maximumHeight).isEqualTo(myTotalHeight)
   }
 
   /**
@@ -63,6 +75,11 @@ class HTreeChartTest {
       }
     }
     return subroot
+  }
+
+  private fun getFakeActionKey() = when (isMac) {
+    true -> FakeKeyboard.Key.META
+    false -> FakeKeyboard.Key.CTRL
   }
 
   @Test
@@ -133,8 +150,8 @@ class HTreeChartTest {
     myUi.mouse.press(5, 5)
     myUi.mouse.dragTo(5, 45)
 
-    assertThat(myChart.yRange.min.toInt()).isEqualTo(myContentHeight - myViewHeight)
-    assertThat(myChart.yRange.max.toInt()).isEqualTo(myContentHeight - myViewHeight)
+    assertThat(myChart.yRange.min.toInt()).isEqualTo(myTotalHeight - myViewHeight)
+    assertThat(myChart.yRange.max.toInt()).isEqualTo(myTotalHeight - myViewHeight)
   }
 
   @Test
@@ -168,7 +185,7 @@ class HTreeChartTest {
 
     // Resize the chart so the view's height is larger than the content's.
     // The drag should be no-op.
-    myChart.size = Dimension(100, myContentHeight + 20)
+    myChart.size = Dimension(100, myTotalHeight + 20)
     myUi.mouse.press(5, 5)
     myUi.mouse.dragTo(5, 7)
 
@@ -238,8 +255,8 @@ class HTreeChartTest {
     assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
     myUi.mouse.press(5, 45)
     myUi.mouse.dragTo(5, 0)
-    assertThat(myChart.yRange.min.toInt()).isEqualTo(myContentHeight - myViewHeight)
-    assertThat(myChart.yRange.max.toInt()).isEqualTo(myContentHeight - myViewHeight)
+    assertThat(myChart.yRange.min.toInt()).isEqualTo(myTotalHeight - myViewHeight)
+    assertThat(myChart.yRange.max.toInt()).isEqualTo(myTotalHeight - myViewHeight)
   }
 
   @Test
@@ -247,6 +264,7 @@ class HTreeChartTest {
     setUp(HTreeChart.Orientation.TOP_DOWN)
     assertThat(myRange.min).isWithin(EPSILON).of(0.0)
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
+    myUi.keyboard.press(getFakeActionKey())
     myUi.mouse.wheel(40, 20, -1)
     assertThat(myRange.min).isWithin(EPSILON).of(2.0)
     assertThat(myRange.max).isWithin(EPSILON).of(97.0)
@@ -259,6 +277,7 @@ class HTreeChartTest {
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
     // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
     myRange.set(10.0, 60.0)
+    myUi.keyboard.press(getFakeActionKey())
     myUi.mouse.wheel(40, 20, 5)
     assertThat(myRange.min).isWithin(EPSILON).of(5.0)
     assertThat(myRange.max).isWithin(EPSILON).of(67.5)
@@ -271,6 +290,7 @@ class HTreeChartTest {
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
     // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
     myRange.set(1.0, 51.0)
+    myUi.keyboard.press(getFakeActionKey())
     myUi.mouse.wheel(80, 20, 5)
     assertThat(myRange.min).isWithin(EPSILON).of(0.0)
     assertThat(myRange.max).isWithin(EPSILON).of(53.5)
@@ -283,6 +303,7 @@ class HTreeChartTest {
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
     // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
     myRange.set(49.0, 99.0)
+    myUi.keyboard.press(getFakeActionKey())
     myUi.mouse.wheel(20, 20, 5)
     assertThat(myRange.min).isWithin(EPSILON).of(46.5)
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
@@ -295,12 +316,41 @@ class HTreeChartTest {
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
     // Zoom in by 2X. Only zoomed-in chart supports horizontal drag.
     myRange.set(10.0, 90.0)
+    myUi.keyboard.press(getFakeActionKey())
     myUi.mouse.wheel(25, 20, 15)
     assertThat(myRange.min).isWithin(EPSILON).of(0.0)
     assertThat(myRange.max).isWithin(EPSILON).of(100.0)
   }
 
+  @Test
+  fun testChartMouseWheelScrollUp() {
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
+
+    myUi.mouse.wheel(25, 25, 1)
+
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(2.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(2.0)
+  }
+
+  @Test
+  fun testChartMouseWheelScrollDown() {
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(10.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(10.0)
+
+    myUi.mouse.wheel(25, 25, -1)
+
+    assertThat(myChart.yRange.min).isWithin(EPSILON).of(18.0)
+    assertThat(myChart.yRange.max).isWithin(EPSILON).of(18.0)
+  }
+
+  class FakeRenderer : DefaultHRenderer<String>() {
+    override fun getFillColor(nodeData: String) = Color.white
+
+    override fun generateFittingText(nodeData: String, rect: Rectangle2D, fontMetrics: FontMetrics) = ""
+  }
+
   companion object {
-    private const val EPSILON = 1e-3
+    private val EPSILON = 1e-3
   }
 }

@@ -9,13 +9,20 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="module" module-name="intellij.android" />
+    <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
-    <orderEntry type="library" name="analytics-protos" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" name="com.android.tools.build:builder-model" level="project" />
+    <orderEntry type="library" name="com.android.tools:sdk-common" level="project" />
+    <orderEntry type="library" name="com.android.tools:common" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="com.android.tools.apkparser:apkanalyzer" level="project" />
+    <orderEntry type="module" module-name="intellij.java.psi" />
+    <orderEntry type="library" name="com.android.tools.analytics-library:protos" level="project" />
+    <orderEntry type="library" name="com.android.tools:repository" level="project" />
+    <orderEntry type="library" name="com.android.tools:sdklib" level="project" />
   </component>
 </module>

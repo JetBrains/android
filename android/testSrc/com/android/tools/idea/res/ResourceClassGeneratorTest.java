@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.ResourceRepository;
-import com.android.ide.common.res2.ResourceTable;
-import com.android.ide.common.resources.TestResourceRepository;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.resources.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.util.Pair;
+import com.android.tools.idea.res.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
@@ -31,21 +28,40 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static java.io.File.separatorChar;
 
 public class ResourceClassGeneratorTest extends AndroidTestCase {
   private static final String LIBRARY_NAME = "com.test:test-library:1.0.0";
+  private final ResourceRepositoryFixture resourceFixture = new ResourceRepositoryFixture();
 
-  public void test() throws Exception {
-    final ResourceRepository repository = TestResourceRepository.createRes2(new Object[]{
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    resourceFixture.setUp();
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      resourceFixture.tearDown();
+    } finally {
+      super.tearDown();
+    }
+  }
+
+  public void testResourceClassGenerator() throws Exception {
+    TestResourceRepository repository = resourceFixture.createTestResources(RES_AUTO, new Object[] {
       "layout/layout1.xml", "<!--contents doesn't matter-->",
 
       "layout-land/layout1.xml", "<!--contents doesn't matter-->",
@@ -87,7 +103,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     AppResourceRepository appResources = new AppResourceRepository(myFacet, Collections.singletonList(resources),
                                                                    Collections.emptyList());
 
-    ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
+    ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);
     String name = "my.test.pkg.R";
     Class<?> clz = generateClass(generator, name);
@@ -115,12 +131,12 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     }
     Field field1 = clz.getField("menu_wallpaper");
     Object value1 = field1.get(null);
-    assertEquals(Integer.TYPE, field1.getType());
+    assertSame(Integer.TYPE, field1.getType());
     assertNotNull(value1);
     assertEquals(2, clz.getFields().length);
     Field field2 = clz.getField("show_all_apps");
     assertNotNull(field2);
-    assertEquals(Integer.TYPE, field2.getType());
+    assertSame(Integer.TYPE, field2.getType());
     assertTrue(Modifier.isPublic(field2.getModifiers()));
     assertTrue(Modifier.isFinal(field2.getModifiers()));
     assertTrue(Modifier.isStatic(field2.getModifiers()));
@@ -131,14 +147,14 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     r = clz.newInstance();
     assertNotNull(r);
 
+    ResourceIdManager idManager = ResourceIdManager.get(myModule);
     // Make sure the id's match what we've dynamically allocated in the resource repository
-    @SuppressWarnings("deprecation")
-    Pair<ResourceType,String> pair = appResources.resolveResourceId((Integer)clz.getField("menu_wallpaper").get(null));
-    assertNotNull(pair);
-    assertEquals(ResourceType.STRING, pair.getFirst());
-    assertEquals("menu_wallpaper", pair.getSecond());
-    assertEquals(clz.getField("menu_wallpaper").get(null), appResources.getResourceId(ResourceType.STRING, "menu_wallpaper"));
-    assertEquals(clz.getField("show_all_apps").get(null), appResources.getResourceId(ResourceType.STRING, "show_all_apps"));
+    ResourceReference resource = idManager.findById((Integer)clz.getField("menu_wallpaper").get(null));
+    assertNotNull(resource);
+    assertEquals(ResourceType.STRING, resource.getResourceType());
+    assertEquals("menu_wallpaper", resource.getName());
+    assertEquals(clz.getField("menu_wallpaper").get(null), idManager.getOrGenerateId(new ResourceReference(RES_AUTO, ResourceType.STRING, "menu_wallpaper")));
+    assertEquals(clz.getField("show_all_apps").get(null), idManager.getOrGenerateId(new ResourceReference(RES_AUTO, ResourceType.STRING, "show_all_apps")));
 
     // Test attr class!
     name = "my.test.pkg.R$attr";
@@ -183,7 +199,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testStyleableMerge() throws Exception {
-    final ResourceRepository repositoryA = TestResourceRepository.createRes2(new Object[]{
+    TestResourceRepository repositoryA = resourceFixture.createTestResources(RES_AUTO, new Object[] {
       "values/styles.xml", "" +
                            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
@@ -204,8 +220,9 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                      FilenameConstants.EXPLODED_AAR + separatorChar +
                      "my_aar_lib" + separatorChar +
                      "res";
-    FileResourceRepository libraryRepository = FileResourceRepository.get(new File(aarPath), LIBRARY_NAME);
-    AppResourceRepository appResources = new AppResourceRepository(myFacet, ImmutableList.of(resourcesA, libraryRepository),
+    AarSourceResourceRepository libraryRepository = AarSourceResourceRepository.create(new File(aarPath), LIBRARY_NAME);
+    AppResourceRepository appResources = new AppResourceRepository(myFacet,
+                                                                   ImmutableList.of(resourcesA, libraryRepository),
                                                                    Collections.singletonList(libraryRepository));
 
     // 3 declared in the library, 3 declared in the "project", 2 of them are duplicated so:
@@ -215,9 +232,9 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     //    2 styles declared in both
     //------------------------------------------
     //    4 total styles
-    assertEquals(4, appResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE).size());
+    assertEquals(4, appResources.getResources(RES_AUTO, ResourceType.STYLEABLE).keySet().size());
 
-    ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
+    ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);
     String name = "my.test.pkg.R";
     Class<?> clz = generateClass(generator, name);
@@ -235,8 +252,8 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
       "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_app_attr1\n" +
       "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_app_attr2\n" +
       "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_app_attr3\n" +
-      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_framework_attr1\n" +
-      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_framework_attr2\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_colorForeground\n" +
+      "public static final int my.test.pkg.R$styleable.Styleable_with_underscore_android_icon\n" +
       "public static final int[] my.test.pkg.R$styleable.Styleable_with_dots\n" +
       "public static final int my.test.pkg.R$styleable.Styleable_with_dots_some_attr\n" + // Duplicated attr
       "public static final int my.test.pkg.R$styleable.Styleable_with_dots_app_declared_attr\n" +
@@ -256,15 +273,19 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertNotNull(clz.newInstance());
   }
 
+  @NotNull
+  private ResourceClassGenerator buildGenerator(AppResourceRepository appResources) {
+    return ResourceClassGenerator.create(ResourceIdManager.get(myModule), appResources, RES_AUTO);
+  }
+
   public void testIndexOverflow() throws Exception {
     StringBuilder attributes = new StringBuilder();
     for (int i = 0; i < 1000; i++) {
       attributes.append("    <attr name=\"overflow_").append(i).append("\" />\n");
     }
 
-    final ResourceRepository repository = TestResourceRepository.createRes2(new Object[]{
-      "values/styles.xml", "" +
-                           "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+    TestResourceRepository repository = resourceFixture.createTestResources(RES_AUTO, new Object[] {
+      "values/styles.xml", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
                            "    <declare-styleable name=\"AppStyleable\">\n" +
                            attributes.toString() +
@@ -273,9 +294,9 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     LocalResourceRepository resources = new LocalResourceRepositoryDelegate("resources", repository);
     AppResourceRepository appResources = new AppResourceRepository(myFacet, ImmutableList.of(resources), Collections.emptyList());
 
-    assertEquals(1, appResources.getItemsOfType(ResourceType.DECLARE_STYLEABLE).size());
+    assertEquals(1, appResources.getResources(RES_AUTO, ResourceType.STYLEABLE).size());
 
-    ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
+    ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);
 
     String name = "my.test.pkg.R$styleable";
@@ -289,34 +310,38 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   private static class LocalResourceRepositoryDelegate extends LocalResourceRepository {
+    private final TestResourceRepository myDelegate;
 
-    private final ResourceRepository myDelegate;
-
-    protected LocalResourceRepositoryDelegate(@NotNull String displayName, ResourceRepository delegate) {
+    protected LocalResourceRepositoryDelegate(@NotNull String displayName, TestResourceRepository delegate) {
       super(displayName);
       myDelegate = delegate;
     }
 
-    @NonNull
     @Override
+    @NotNull
     protected ResourceTable getFullTable() {
-      return myDelegate.getItems();
+      return myDelegate.getFullTable();
     }
 
+    @Override
     @Nullable
-    @Override
-    protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NonNull ResourceType type, boolean create) {
-      return myDelegate.getItems().get(namespace, type);
+    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type, boolean create) {
+      return getFullTable().get(namespace, type);
     }
 
-    @NonNull
     @Override
-    public Set<String> getNamespaces() {
+    @NotNull
+    public Set<ResourceNamespace> getNamespaces() {
       return myDelegate.getNamespaces();
     }
 
-    @NotNull
     @Override
+    public void getLeafResourceRepositories(@NotNull Collection<SingleNamespaceResourceRepository> result) {
+      myDelegate.getLeafResourceRepositories(result);
+    }
+
+    @Override
+    @NotNull
     protected Set<VirtualFile> computeResourceDirs() {
       return ImmutableSet.of();
     }
@@ -362,7 +387,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertNotNull(field2);
     assertNotNull(clz.getField("GridLayout_Layout_android_layout_width"));
     assertNotNull(clz.getField("GridLayout_Layout_layout_columnSpan"));
-    assertEquals(Integer.TYPE, field2.getType());
+    assertSame(Integer.TYPE, field2.getType());
     assertTrue(Modifier.isPublic(field2.getModifiers()));
     assertTrue(Modifier.isFinal(field2.getModifiers()));
     assertTrue(Modifier.isStatic(field2.getModifiers()));
@@ -384,7 +409,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertEquals(id, gravityValue);
 
     // The exact source order of attributes must be matched such that array indexing of the styleable arrays
-    // reaches the right elements. For this reason, we use a LinkedHashMap in DeclareStyleableResourceValue.
+    // reaches the right elements. For this reason, we use a LinkedHashMap in StyleableResourceValue.
     // Without this, using the v7 GridLayout widget and putting app:layout_gravity="left" on a child will
     // give value conversion errors.
     assertEquals(2, layoutColumnSpanIndex);
@@ -392,8 +417,8 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testWithAars() throws Exception {
-    AppResourceRepository appResources = AppResourceRepositoryTest.createTestAppResourceRepository(myFacet);
-    ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
+    AppResourceRepository appResources = (AppResourceRepository)ResourcesTestsUtil.createTestAppResourceRepository(myFacet);
+    ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);
     Class<?> clz = generateClass(generator, "pkg.R$id");
     assertNotNull(clz);
@@ -415,12 +440,12 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     assertNotNull(clz.newInstance());
     assertNotNull(clz.getDeclaredField("Styleable_with_dots"));
     Field styleable3 = clz.getDeclaredField("Styleable_with_underscore");
-    assertEquals(styleable3.getType(), (new int[0]).getClass());
+    assertSame(int[].class, styleable3.getType());
     int[] array = (int[])styleable3.get(null);
-    int idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_framework_attr1").get(null);
-    assertEquals(0x01010125, array[idx]);
-    idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_framework_attr2").get(null);
-    assertEquals(0x01010142, array[idx]);
+    int idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_icon").get(null);
+    assertEquals(0x01010002, array[idx]);
+    idx = (Integer)clz.getDeclaredField("Styleable_with_underscore_android_colorForeground").get(null);
+    assertEquals(0x01010030, array[idx]);
   }
 
   @Nullable

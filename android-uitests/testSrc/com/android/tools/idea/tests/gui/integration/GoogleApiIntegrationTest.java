@@ -15,30 +15,45 @@
  */
 package com.android.tools.idea.tests.gui.integration;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ConfirmUninstallServiceDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith (GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GoogleApiIntegrationTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   private static final String REG_EXP =
       "(.*'com.google.android.gms:play-services-ads:.*'.*\n" +
       ".*'com.google.android.gms:play-services-auth:.*'.*\n" +
       ".*'com.google.firebase:firebase-messaging:.*'.*)";
+
+  @Before
+  public void setUp() {
+    StudioFlags.NEW_PSD_ENABLED.override(false);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride();
+  }
 
   /**
    * To verify that Developer Services dependencies can be added to a module.
@@ -62,9 +77,9 @@ public class GoogleApiIntegrationTest {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY)
+  @RunIn(TestGroup.SANITY_BAZEL)
   public void testGoogleApiIntegration() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 
     ProjectStructureDialogFixture projectStructureDialog =
         ideFrame.openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...");

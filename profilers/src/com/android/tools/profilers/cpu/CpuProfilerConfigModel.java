@@ -18,8 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerMode;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
-import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
 import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.Iterables;
 import org.jetbrains.annotations.NotNull;
@@ -28,12 +28,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This class is responsible for managing the profiling configuration for the CPU profiler. It is shared between
  * {@link CpuProfilerStage} and CpuProfilingConfigurationsDialog.
  */
 public class CpuProfilerConfigModel {
+  private static final String LAST_SELECTED_CONFIGURATION_NAME = "last.selected.configuration.name";
+
+  /**
+   * Represents the selected configuration or the configuration being used in the case of ongoing trace recording.
+   * While a trace recording in progress, it is not possible to change {@link #myProfilingConfiguration}, i.e it is achieved
+   * by disabling the dropdown in UI. Thus, in most cases the selected configuration is the same as
+   * the configuration used for the ongoing recording.
+   */
   private ProfilingConfiguration myProfilingConfiguration;
 
   /**
@@ -56,45 +65,23 @@ public class CpuProfilerConfigModel {
   @NotNull
   private List<ProfilingConfiguration> myDefaultProfilingConfigurations;
 
-  /**
-   * {@link ProfilingConfiguration} object that stores the data (profiler type, profiling mode, sampling interval and buffer size limit)
-   * that should be used in the next stopProfiling call. This field is required because stopProfiling should receive the same profiler type
-   * as the one passed to startProfiling. Also, in stopProfiling we track the configurations used to capture.
-   * We can't use {@link #myProfilingConfiguration} because it can be changed when we exit the Stage or change its value using the combobox.
-   * Using a separate field, we can retrieve the relevant data from device in {@link #updateProfilingState()}.
-   */
-  private ProfilingConfiguration myActiveConfig;
-
   @NotNull
   private final StudioProfilers myProfilers;
 
+  @NotNull
+  private CpuProfilerStage myProfilerStage;
+
   private AspectObserver myAspectObserver;
 
-  public CpuProfilerConfigModel(@NotNull StudioProfilers profilers, CpuProfilerStage profilerStage) {
+  public CpuProfilerConfigModel(@NotNull StudioProfilers profilers, @NotNull CpuProfilerStage profilerStage) {
     myProfilers = profilers;
+    myProfilerStage = profilerStage;
     myCustomProfilingConfigurations = new ArrayList<>();
     myCustomProfilingConfigurationsDeviceFiltered = new ArrayList<>();
     myDefaultProfilingConfigurations = new ArrayList<>();
     myAspectObserver = new AspectObserver();
-
-    profilerStage.getAspect().addDependency(myAspectObserver)
+    myProfilerStage.getAspect().addDependency(myAspectObserver)
       .onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, this::updateProfilingConfigurations);
-  }
-
-  public void setActiveConfig(CpuProfilerType profilerType, CpuProfilingAppStartRequest.Mode mode,
-                              int bufferSizeLimitMb, int samplingIntervalUs) {
-    // The configuration name field is not actually used when retrieving the active configuration. The reason behind that is configurations,
-    // including their name, can be edited when a capture is still in progress. We only need to store the parameters used when starting
-    // the capture (i.e. buffer size, profiler type, profiling mode and sampling interval). The capture name is not used on the server side
-    // when starting a capture, so we simply ignore it here as well.
-    String anyConfigName = "Current config";
-    myActiveConfig = new ProfilingConfiguration(anyConfigName, profilerType, mode);
-    myActiveConfig.setProfilingBufferSizeInMb(bufferSizeLimitMb);
-    myActiveConfig.setProfilingSamplingIntervalUs(samplingIntervalUs);
-  }
-
-  public ProfilingConfiguration getActiveConfig() {
-    return myActiveConfig;
   }
 
   @NotNull
@@ -102,8 +89,10 @@ public class CpuProfilerConfigModel {
     return myProfilingConfiguration;
   }
 
-  public void setProfilingConfiguration(@NotNull ProfilingConfiguration mode) {
-    myProfilingConfiguration = mode;
+  public void setProfilingConfiguration(@NotNull ProfilingConfiguration configuration) {
+    myProfilingConfiguration = configuration;
+    myProfilerStage.getAspect().changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
+    myProfilers.getIdeServices().getTemporaryProfilerPreferences().setValue(LAST_SELECTED_CONFIGURATION_NAME, configuration.getName());
   }
 
   @NotNull
@@ -122,30 +111,39 @@ public class CpuProfilerConfigModel {
   }
 
   public void updateProfilingConfigurations() {
-    List<ProfilingConfiguration> savedConfigs = myProfilers.getIdeServices().getCpuProfilingConfigurations();
+    List<ProfilingConfiguration> savedConfigs = myProfilers.getIdeServices().getUserCpuProfilerConfigs();
     myCustomProfilingConfigurations = filterConfigurations(savedConfigs, false);
     myCustomProfilingConfigurationsDeviceFiltered = filterConfigurations(savedConfigs, true);
 
-    List<ProfilingConfiguration> defaultConfigs = ProfilingConfiguration.getDefaultProfilingConfigurations();
+    List<ProfilingConfiguration> defaultConfigs = myProfilers.getIdeServices().getDefaultCpuProfilerConfigs();
     myDefaultProfilingConfigurations = filterConfigurations(defaultConfigs, true);
 
     Common.Device selectedDevice = myProfilers.getDevice();
     // Anytime before we check the device feature level we need to validate we have a device. The device will be null in test
     // causing a null pointer exception here.
-    boolean isSimplePerfEnabled = selectedDevice != null && selectedDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
-                                  myProfilers.getIdeServices().getFeatureConfig().isSimplePerfEnabled();
+    boolean isSimpleperfEnabled = selectedDevice != null && selectedDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
     if (myProfilingConfiguration == null) {
-      // TODO (b/68691584): Remember the last selected configuration and suggest it instead of default configurations.
-      // If there is a preference for a native configuration, we select simpleperf.
-      if (myProfilers.getIdeServices().isNativeProfilingConfigurationPreferred() && isSimplePerfEnabled) {
+      // First we try to get the last selected config.
+      String selectedConfigName =
+        myProfilers.getIdeServices().getTemporaryProfilerPreferences().getValue(LAST_SELECTED_CONFIGURATION_NAME, "");
+      ProfilingConfiguration selectedConfig =
+        Stream.concat(defaultConfigs.stream(), savedConfigs.stream())
+              .filter(c -> c.getName().equals(selectedConfigName))
+              .findFirst()
+              .orElse(null);
+      if (selectedConfig != null) {
+        myProfilingConfiguration = selectedConfig;
+      }
+      else if (myProfilers.getIdeServices().isNativeProfilingConfigurationPreferred() && isSimpleperfEnabled) {
+        // If there is a preference for a native configuration, we select simpleperf.
         myProfilingConfiguration =
           Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfilerType.SIMPLEPERF);
       }
-      // Otherwise we select ART sampled.
       else {
+        // Otherwise we select ART sampled.
         myProfilingConfiguration =
           Iterables.find(defaultConfigs, pref -> pref != null && pref.getProfilerType() == CpuProfilerType.ART
-                                                 && pref.getMode() == CpuProfilingAppStartRequest.Mode.SAMPLED);
+                                                 && pref.getMode() == CpuProfilerMode.SAMPLED);
       }
     }
   }
@@ -156,9 +154,6 @@ public class CpuProfilerConfigModel {
     Predicate<ProfilingConfiguration> filter = pref -> {
       if (selectedDevice != null && pref.getRequiredDeviceLevel() > selectedDevice.getFeatureLevel() && filterOnDevice) {
         return false;
-      }
-      if (pref.getProfilerType() == CpuProfilerType.SIMPLEPERF) {
-        return myProfilers.getIdeServices().getFeatureConfig().isSimplePerfEnabled();
       }
       if (pref.getProfilerType() == CpuProfilerType.ATRACE) {
         return myProfilers.getIdeServices().getFeatureConfig().isAtraceEnabled();

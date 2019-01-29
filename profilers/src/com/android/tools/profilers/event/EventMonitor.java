@@ -15,11 +15,17 @@
  */
 package com.android.tools.profilers.event;
 
+import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
-import com.android.tools.adtui.model.event.SimpleEventType;
-import com.android.tools.adtui.model.event.StackedEventType;
+import com.android.tools.adtui.model.event.UserEvent;
+import com.android.tools.adtui.model.event.LifecycleEvent;
 import com.android.tools.profilers.*;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -27,13 +33,13 @@ import java.util.function.Supplier;
 public class EventMonitor extends ProfilerMonitor {
 
   @NotNull
-  private final EventModel<SimpleEventType> mySimpleEvents;
+  private final EventModel<UserEvent> myUserEvents;
 
   @NotNull
-  private final EventModel<StackedEventType> myActivityEvents;
+  private final EventModel<LifecycleEvent> myActivityEvents;
 
   @NotNull
-  private final EventModel<StackedEventType> myFragmentEvents;
+  private final EventModel<LifecycleEvent> myFragmentEvents;
 
   private boolean myEnabled;
 
@@ -41,19 +47,25 @@ public class EventMonitor extends ProfilerMonitor {
 
   public EventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
-    SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(),
-                                                             myProfilers.getSession());
-    mySimpleEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
 
-    ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(),
-                                                                     myProfilers.getSession(),
-                                                                     false);
+    UserEventDataSeries events = new UserEventDataSeries(myProfilers.getClient(), myProfilers.getSession());
+    myUserEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
+
+    LifecycleEventDataSeries activities = new LifecycleEventDataSeries(myProfilers.getClient(), myProfilers.getSession(), false);
     myActivityEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), activities));
 
-    ActivityEventDataSeries fragments = new ActivityEventDataSeries(myProfilers.getClient(),
-                                                                     myProfilers.getSession(),
-                                                                    true);
-    myFragmentEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), fragments));
+    if (myProfilers.getIdeServices().getFeatureConfig().isFragmentsEnabled()) {
+      LifecycleEventDataSeries fragments = new LifecycleEventDataSeries(myProfilers.getClient(), myProfilers.getSession(), true);
+      myFragmentEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), fragments));
+    }
+    else {
+      myFragmentEvents = new EventModel<>(new RangedSeries<>(new Range(1, -1), new DataSeries<EventAction<LifecycleEvent>>() {
+        @Override
+        public List<SeriesData<EventAction<LifecycleEvent>>> getDataForXRange(Range xRange) {
+          return new ArrayList<>();
+        }
+      }));
+    }
 
     myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::onAgentStatusChanged);
     onAgentStatusChanged();
@@ -61,30 +73,24 @@ public class EventMonitor extends ProfilerMonitor {
 
   @Override
   public void enter() {
-    myProfilers.getUpdater().register(mySimpleEvents);
-    myProfilers.getUpdater().register(myActivityEvents);
-    myProfilers.getUpdater().register(myFragmentEvents);
   }
 
   @Override
   public void exit() {
-    myProfilers.getUpdater().unregister(mySimpleEvents);
-    myProfilers.getUpdater().unregister(myActivityEvents);
-    myProfilers.getUpdater().unregister(myFragmentEvents);
   }
 
   @NotNull
-  public EventModel<SimpleEventType> getSimpleEvents() {
-    return mySimpleEvents;
+  public EventModel<UserEvent> getUserEvents() {
+    return myUserEvents;
   }
 
   @NotNull
-  public EventModel<StackedEventType> getActivityEvents() {
+  public EventModel<LifecycleEvent> getActivityEvents() {
     return myActivityEvents;
   }
 
   @NotNull
-  public EventModel<StackedEventType> getFragmentEvents() {
+  public EventModel<LifecycleEvent> getFragmentEvents() {
     return myFragmentEvents;
   }
 
@@ -98,7 +104,7 @@ public class EventMonitor extends ProfilerMonitor {
     if (myTooltipBuilder != null) {
       return myTooltipBuilder.get();
     }
-    return new EventActivityTooltip(this);
+    return new LifecycleTooltip(this);
   }
 
   public void setTooltipBuilder(Supplier<ProfilerMonitorTooltip<EventMonitor>> tooltip) {

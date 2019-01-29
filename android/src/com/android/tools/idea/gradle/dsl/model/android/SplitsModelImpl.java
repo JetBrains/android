@@ -44,16 +44,14 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
     AbiDslElement abiDslElement = myDslElement.getPropertyElement(ABI_BLOCK_NAME, AbiDslElement.class);
     if (abiDslElement == null) {
       abiDslElement = new AbiDslElement(myDslElement);
-      myDslElement.setNewElement(ABI_BLOCK_NAME, abiDslElement);
+      myDslElement.setNewElement(abiDslElement);
     }
     return new AbiModelImpl(abiDslElement);
   }
 
   @Override
-  @NotNull
-  public SplitsModel removeAbi() {
+  public void removeAbi() {
     myDslElement.removeProperty(ABI_BLOCK_NAME);
-    return this;
   }
 
 
@@ -63,16 +61,14 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
     DensityDslElement densityDslElement = myDslElement.getPropertyElement(DENSITY_BLOCK_NAME, DensityDslElement.class);
     if (densityDslElement == null) {
       densityDslElement = new DensityDslElement(myDslElement);
-      myDslElement.setNewElement(DENSITY_BLOCK_NAME, densityDslElement);
+      myDslElement.setNewElement(densityDslElement);
     }
     return new DensityModelImpl(densityDslElement);
   }
 
   @Override
-  @NotNull
-  public SplitsModel removeDensity() {
+  public void removeDensity() {
     myDslElement.removeProperty(DENSITY_BLOCK_NAME);
-    return this;
   }
 
   @Override
@@ -81,15 +77,13 @@ public class SplitsModelImpl extends GradleDslBlockModel implements SplitsModel 
     LanguageDslElement languageDslElement = myDslElement.getPropertyElement(LANGUAGE_BLOCK_NAME, LanguageDslElement.class);
     if (languageDslElement == null) {
       languageDslElement = new LanguageDslElement(myDslElement);
-      myDslElement.setNewElement(LANGUAGE_BLOCK_NAME, languageDslElement);
+      myDslElement.setNewElement(languageDslElement);
     }
     return new LanguageModelImpl(languageDslElement);
   }
 
   @Override
-  @NotNull
-  public SplitsModel removeLanguage() {
+  public void removeLanguage() {
     myDslElement.removeProperty(LANGUAGE_BLOCK_NAME);
-    return this;
   }
 }

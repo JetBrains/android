@@ -46,7 +46,6 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -87,7 +86,6 @@ public class BuildVariantView {
   private JBTable myVariantsTable;
   private JPanel myNotificationPanel;
 
-  private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = new ArrayList<>();
   private final List<Conflict> myConflicts = new ArrayList<>();
 
   @NotNull
@@ -96,28 +94,15 @@ public class BuildVariantView {
   }
 
   public BuildVariantView(@NotNull Project project) {
-    myProject = project;
-    myUpdater = new BuildVariantUpdater();
-    ((JComponent)myVariantsTable.getParent().getParent()).setBorder(JBUI.Borders.empty());
+    this(project, BuildVariantUpdater.getInstance(project));
   }
 
   @VisibleForTesting
-  void setUpdater(@NotNull BuildVariantUpdater updater) {
+  public BuildVariantView(@NotNull Project project, @NotNull BuildVariantUpdater updater) {
+    myProject = project;
     myUpdater = updater;
-  }
-
-  public void addListener(@NotNull BuildVariantSelectionChangeListener listener) {
-    //noinspection SynchronizeOnThis
-    synchronized (this) {
-      myBuildVariantSelectionChangeListeners.add(listener);
-    }
-  }
-
-  public void removeListener(@NotNull BuildVariantSelectionChangeListener listener) {
-    //noinspection SynchronizeOnThis
-    synchronized (this) {
-      myBuildVariantSelectionChangeListeners.remove(listener);
-    }
+    myUpdater.addSelectionChangeListener(this::invokeListeners);
+    ((JComponent)myVariantsTable.getParent().getParent()).setBorder(JBUI.Borders.empty());
   }
 
   private void createUIComponents() {
@@ -159,31 +144,17 @@ public class BuildVariantView {
 
       assert androidFacet != null || ndkFacet != null; // getGradleModules() returns only relevant modules.
 
-      String variantName = null;
+      String variantName;
 
-      if (androidFacet != null) {
-        JpsAndroidModuleProperties facetProperties = androidFacet.getProperties();
-        variantName = facetProperties.SELECTED_BUILD_VARIANT;
+      if (ndkFacet != null) {
+        variantName = ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT;
+      }
+      else {
+        variantName = androidFacet.getProperties().SELECTED_BUILD_VARIANT;
       }
 
       BuildVariantItem[] variantNames = getVariantItems(module);
       if (variantNames != null) {
-        if (androidFacet != null) {
-          AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-          // AndroidModel may be null when applying a quick fix (e.g. "Fix Gradle version")
-          if (androidModel != null) {
-            variantName = androidModel.getSelectedVariant().getName();
-          }
-        }
-        else {
-          // As only the modules backed by either AndroidGradleModel or NativeAndroidGradleModel are shown in the Build Variants View,
-          // when a module is not backed by AndroidGradleModel, it surely contains a valid NativeAndroidGradleModel.
-          NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-          if (ndkModuleModel != null) {
-            variantName = ndkModuleModel.getSelectedVariant().getName();
-          }
-        }
-
         variantNamesPerRow.add(variantNames);
       }
 
@@ -211,7 +182,7 @@ public class BuildVariantView {
     List<Module> gradleModules = new ArrayList<>();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.requiresAndroidModel() && androidFacet.getAndroidModel() != null) {
+      if (androidFacet != null && androidFacet.requiresAndroidModel() && androidFacet.getConfiguration().getModel() != null) {
         gradleModules.add(module);
         continue;
       }
@@ -251,16 +222,17 @@ public class BuildVariantView {
 
   @Nullable
   private static Collection<String> getVariantNames(@NotNull Module module) {
+    // Get variant names from NDKModuleModel instead of AndroidModuleModel for native modules,
+    // they are different for native modules because NDKModuleModel is ABI based.
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+    if (ndkModuleModel != null) {
+      return ndkModuleModel.getNdkVariantNames();
+    }
+
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
       return androidModel.getVariantNames();
     }
-
-    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
-    if (ndkModuleModel != null) {
-      return ndkModuleModel.getVariantNames();
-    }
-
     return null;
   }
 
@@ -304,7 +276,6 @@ public class BuildVariantView {
      * </ul>
      * <p/>
      * This listener will not be invoked if the project structure update fails.
-     *
      */
     void selectionChanged();
   }
@@ -344,7 +315,7 @@ public class BuildVariantView {
       prevConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_PREVIOUS_OCCURENCE));
       group.add(prevConflictAction);
 
-      ActionToolbar toolbar = actionManager.createActionToolbar("", group, true);
+      ActionToolbar toolbar = actionManager.createActionToolbar("AndroidBuildVariantViewNotifications", group, true);
       toolbar.setReservePlaceAutoPopupIcon(false);
       toolbar.setMinimumButtonSize(JBUI.size(23, 23)); // a little smaller than default (25 x 25)
 
@@ -490,7 +461,7 @@ public class BuildVariantView {
         editor.addItemListener(e -> {
           if (e.getStateChange() == ItemEvent.SELECTED) {
             BuildVariantItem selectedVariant = (BuildVariantItem)e.getItem();
-            buildVariantSelected(selectedVariant.myModuleName, selectedVariant.myBuildVariantName);
+            myUpdater.updateSelectedVariant(myProject, selectedVariant.myModuleName, selectedVariant.myBuildVariantName);
           }
         });
         DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
@@ -522,27 +493,13 @@ public class BuildVariantView {
     }
   }
 
-  @VisibleForTesting
-  void buildVariantSelected(@NotNull String moduleName, @NotNull String variantName) {
-    if (myUpdater.updateSelectedVariant(myProject, moduleName, variantName)) {
-      invokeListeners();
-    }
-  }
-
   private void invokeListeners() {
-    Runnable invokeListenersTask = () -> {
-      updateContents();
-      for (BuildVariantSelectionChangeListener listener : myBuildVariantSelectionChangeListeners) {
-        listener.selectionChanged();
-      }
-    };
-
     Application application = ApplicationManager.getApplication();
     if (application.isUnitTestMode()) {
-      invokeListenersTask.run();
+      updateContents();
     }
     else {
-      application.invokeLater(invokeListenersTask);
+      application.invokeLater(this::updateContents);
     }
   }
 

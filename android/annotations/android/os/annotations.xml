@@ -418,6 +418,15 @@
   <item name="android.os.Bundle void putStringArrayList(java.lang.String, java.util.ArrayList&lt;java.lang.String&gt;) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.os.Debug void attachJvmtiAgent(java.lang.String, java.lang.String, java.lang.ClassLoader) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Debug void attachJvmtiAgent(java.lang.String, java.lang.String, java.lang.ClassLoader) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Debug void attachJvmtiAgent(java.lang.String, java.lang.String, java.lang.ClassLoader) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.os.DropBoxManager">
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.DROPBOX_SERVICE" />
@@ -425,6 +434,21 @@
   </item>
   <item name="android.os.FileObserver void onEvent(int, java.lang.String) 1">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.os.Handler android.os.Handler createAsync(android.os.Looper)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Handler android.os.Handler createAsync(android.os.Looper) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Handler android.os.Handler createAsync(android.os.Looper, android.os.Handler.Callback)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Handler android.os.Handler createAsync(android.os.Looper, android.os.Handler.Callback) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.Handler android.os.Handler createAsync(android.os.Looper, android.os.Handler.Callback) 1">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.HardwarePropertiesManager">
     <annotation name="android.support.annotation.SystemService">
@@ -615,6 +639,11 @@
       <val name="value" val="android.content.Context.POWER_SERVICE" />
     </annotation>
   </item>
+  <item name="android.os.PowerManager int getLocationPowerSaveMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.PowerManager.LOCATION_MODE_NO_CHANGE, android.os.PowerManager.LOCATION_MODE_GPS_DISABLED_WHEN_SCREEN_OFF, android.os.PowerManager.LOCATION_MODE_ALL_DISABLED_WHEN_SCREEN_OFF, android.os.PowerManager.LOCATION_MODE_FOREGROUND_ONLY}" />
+    </annotation>
+  </item>
   <item name="android.os.RecoverySystem">
   </item>
   <item name="android.os.RecoverySystem void installPackage(android.content.Context, java.io.File)">
@@ -643,6 +672,18 @@
   <item name="android.os.SharedMemory void writeToParcel(android.os.Parcel, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyListener(java.util.concurrent.Executor, android.os.StrictMode.OnThreadViolationListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyListener(java.util.concurrent.Executor, android.os.StrictMode.OnThreadViolationListener) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder penaltyListener(java.util.concurrent.Executor, android.os.StrictMode.OnVmViolationListener) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder penaltyListener(java.util.concurrent.Executor, android.os.StrictMode.OnVmViolationListener) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.os.UserManager">
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.USER_SERVICE" />
@@ -662,6 +703,14 @@
   </item>
   <item name="android.os.UserManager android.os.Bundle getApplicationRestrictions(java.lang.String)">
     <annotation name="android.support.annotation.WorkerThread" />
+  </item>
+  <item name="android.os.UserManager boolean requestQuietModeEnabled(boolean, android.os.UserHandle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.os.UserManager.UserOperationException int getUserOperationResult()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.os.UserManager.USER_OPERATION_SUCCESS, android.os.UserManager.USER_OPERATION_ERROR_UNKNOWN, android.os.UserManager.USER_OPERATION_ERROR_MANAGED_PROFILE, android.os.UserManager.USER_OPERATION_ERROR_MAX_RUNNING_USERS, android.os.UserManager.USER_OPERATION_ERROR_CURRENT_USER, android.os.UserManager.USER_OPERATION_ERROR_LOW_STORAGE, android.os.UserManager.USER_OPERATION_ERROR_MAX_USERS}" />
+    </annotation>
   </item>
   <item name="android.os.Vibrator">
     <annotation name="android.support.annotation.SystemService">

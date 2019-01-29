@@ -32,7 +32,7 @@ public class ScoutTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT)
+                 component(CONSTRAINT_LAYOUT.defaultName())
                    .id("@+id/content_main")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")
@@ -79,7 +79,7 @@ public class ScoutTest extends SceneTest {
     DisplayList disp = DisplayList.getDisplayList(simpleList);
     assertEquals(simpleList, DisplayList.getDisplayList(simpleList).serialize());
     assertEquals(10, disp.getCommands().size());
-    String result = disp.generateSortedDisplayList(SceneContext.get());
+    String result = disp.generateSortedDisplayList();
     String sorted = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                     "Clip,0,0,1000,1000\n" +
                     "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +

@@ -15,35 +15,57 @@
  */
 package com.android.tools.idea.naveditor.surface;
 
+import static com.android.SdkConstants.ATTR_GRAPH;
+import static com.android.annotations.VisibleForTesting.Visibility;
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.editor.NlEditorPanel;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.*;
+import com.android.tools.idea.common.model.SelectionModel;
+import com.android.tools.idea.common.scene.LerpDouble;
+import com.android.tools.idea.common.scene.LerpPoint;
+import com.android.tools.idea.common.scene.LerpValue;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.SceneInteraction;
+import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.configurations.ConfigurationStateManager;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
+import com.android.tools.idea.naveditor.model.ActionType;
+import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
+import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -53,42 +75,72 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.reference.SoftReference;
 import com.intellij.ui.JBColor;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.dom.navigation.NavigationSchema;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
+import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.TAG_INCLUDE;
-import static com.android.annotations.VisibleForTesting.Visibility;
+import javax.swing.JViewport;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * {@link DesignSurface} for the navigation editor.
  */
 public class NavDesignSurface extends DesignSurface {
   private static final int SCROLL_DURATION_MS = 300;
+  private static final Object CONNECTION_CLIENT_PROPERTY_KEY = new Object();
 
-  private NavigationSchema mySchema;
   private NlComponent myCurrentNavigation;
   @VisibleForTesting
   AtomicReference<Future<?>> myScheduleRef = new AtomicReference<>();
+  private final NlEditorPanel myEditorPanel;
 
+  private static final WeakHashMap<AndroidFacet, SoftReference<ConfigurationManager>> ourConfigurationManagers = new WeakHashMap<>();
+
+  @TestOnly
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
-    super(project, parentDisposable);
+    this(project, null, parentDisposable);
+  }
+
+  /**
+   * {@code editorPanel} should only be null in tests
+   */
+  public NavDesignSurface(@NotNull Project project, @Nullable NlEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
+    super(project, new SelectionModel(), parentDisposable);
     setBackground(JBColor.white);
+
+    // TODO: add nav-specific issues
+    // getIssueModel().addIssueProvider(new NavIssueProvider(project));
+    myEditorPanel = editorPanel;
+
+    addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        removeComponentListener(this);
+        requestRender();
+      }
+    });
   }
 
   @Override
@@ -102,19 +154,34 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  public float getSceneScalingFactor() {
-    return 1f;
+  public Object getData(@NotNull @NonNls String dataId) {
+    if (PlatformDataKeys.CONTEXT_MENU_POINT.is(dataId)) {
+      NlComponent selection = getSelectionModel().getPrimary();
+      if (selection != null && NavComponentHelperKt.isAction(selection)) {
+        Scene scene = getScene();
+        if (scene != null) {
+          SceneComponent sceneComponent = scene.getSceneComponent(selection);
+          if (sceneComponent != null) {
+            Point2D.Float p2d = NavActionHelperKt.getAnyPoint(sceneComponent, SceneContext.get(getCurrentSceneView()));
+            if (p2d != null) {
+              return new Point((int)p2d.x, (int)p2d.y);
+            }
+          }
+        }
+      }
+    }
+    return super.getData(dataId);
   }
 
-  @NotNull
-  public NavigationSchema getSchema() {
-    // TODO: simplify this logic if possible:
-    if (mySchema == null) {
-      NlModel model = getModel();
-      assert model != null;  // TODO: make sure this cannot happen
-      mySchema = NavigationSchema.get(model.getFacet());
-    }
-    return mySchema;
+  @VisibleForTesting
+  @Nullable
+  NlEditorPanel getEditorPanel() {
+    return myEditorPanel;
+  }
+
+  @Override
+  public float getSceneScalingFactor() {
+    return 1f;
   }
 
   @Override
@@ -145,10 +212,12 @@ public class NavDesignSurface extends DesignSurface {
    */
   @Override
   public CompletableFuture<?> goingToSetModel(NlModel model) {
+    // So it's cached in the future
+    model.getConfiguration().getResourceResolver();
+
     AndroidFacet facet = model.getFacet();
     CompletableFuture<?> result = new CompletableFuture<>();
     Application application = ApplicationManager.getApplication();
-    Project project = model.getProject();
     application.executeOnPooledThread(() -> {
       // First, try to create the schema. It should work if our project depends on the nav library.
       if (tryToCreateSchema(facet)) {
@@ -156,7 +225,7 @@ public class NavDesignSurface extends DesignSurface {
       }
       // If it didn't work, it's probably because the nav library isn't included. Prompt for it to be added.
       else if (requestAddDependency(facet)) {
-        ListenableFuture<?> syncResult = ProjectSystemUtil.getSyncManager(project)
+        ListenableFuture<?> syncResult = ProjectSystemUtil.getSyncManager(getProject())
           .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
         // When sync is done, try to create the schema again.
         Futures.addCallback(syncResult, new FutureCallback<Object>() {
@@ -164,44 +233,64 @@ public class NavDesignSurface extends DesignSurface {
           public void onSuccess(@Nullable Object unused) {
             application.executeOnPooledThread(() -> {
               if (!tryToCreateSchema(facet)) {
-                showFailToAddMessage(project);
+                showFailToAddMessage(result, model);
               }
-              result.complete(null);
+              else {
+                result.complete(null);
+              }
             });
           }
 
           @Override
           public void onFailure(@Nullable Throwable t) {
-            showFailToAddMessage(project);
-            result.complete(null);
+            showFailToAddMessage(result, model);
           }
         }, AppExecutorUtil.getAppExecutorService());
       }
       else {
-        showFailToAddMessage(project);
-        result.complete(null);
+        showFailToAddMessage(result, model);
       }
     });
     return result;
   }
 
-  private static void showFailToAddMessage(@NotNull Project project) {
+  private void showFailToAddMessage(@NotNull CompletableFuture<?> result, @NotNull NlModel model) {
+    if (myEditorPanel != null) {
+      ProjectSystemSyncManager.SyncResultListener syncFailedListener = new ProjectSystemSyncManager.SyncResultListener() {
+        @Override
+        public void syncEnded(@NotNull ProjectSystemSyncManager.SyncResult result) {
+          ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            if (tryToCreateSchema(model.getFacet())) {
+              myEditorPanel.initNeleModel();
+              ((MessageBusConnection)myEditorPanel.getClientProperty(CONNECTION_CLIENT_PROPERTY_KEY)).disconnect();
+              myEditorPanel.putClientProperty(CONNECTION_CLIENT_PROPERTY_KEY, null);
+            }
+          });
+        }
+      };
+      MessageBusConnection connection = getProject().getMessageBus().connect(this);
+      myEditorPanel.putClientProperty(CONNECTION_CLIENT_PROPERTY_KEY, connection);
+      connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncFailedListener);
+    }
     ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(
-      project, "Failed to add navigation library dependency", "Failed to Add Dependency"));
+      getProject(), "Failed to add navigation library dependency", "Failed to Add Dependency"));
+    result.completeExceptionally(new Exception("Failed to add nav library dependency"));
   }
 
   private static boolean requestAddDependency(@NotNull AndroidFacet facet) {
     AtomicBoolean didAdd = new AtomicBoolean(false);
     ApplicationManager.getApplication().invokeAndWait(
       () -> didAdd.set(DependencyManagementUtil.addDependencies(
-        facet.getModule(), ImmutableList.of(GoogleMavenArtifactId.NAVIGATION), true, false, true).isEmpty()));
+        // TODO: check for and add androidx dependency when it's released
+        facet.getModule(), ImmutableList.of(GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+")), true, false).isEmpty()));
     return didAdd.get();
   }
 
   private static boolean tryToCreateSchema(@NotNull AndroidFacet facet) {
-    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> {
+    Module module = facet.getModule();
+    return DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
       try {
-        NavigationSchema.createIfNecessary(facet);
+        NavigationSchema.createIfNecessary(module);
         return true;
       }
       catch (ClassNotFoundException e) {
@@ -211,18 +300,78 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
+  public void activate() {
+    super.activate();
+    NlModel model = getModel();
+    if (model != null) {
+      Module module = model.getModule();
+      try {
+        NavigationSchema.createIfNecessary(module);
+      }
+      catch (ClassNotFoundException e) {
+        // We don't have a schema at all, no need to try to update.
+        return;
+      }
+
+      NavigationSchema schema = NavigationSchema.get(module);
+      if (!schema.quickValidate()) {
+        NlEditorPanel editorPanel = getEditorPanel();
+        if (editorPanel != null) {
+          editorPanel.getWorkBench().showLoading("Refreshing Navigators...");
+        }
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+          try {
+            schema.rebuildSchema().get();
+            if (editorPanel != null) {
+              ApplicationManager.getApplication().invokeLater(() -> editorPanel.getWorkBench().hideLoading());
+            }
+          }
+          catch (Exception e) {
+            if (editorPanel != null) {
+              ApplicationManager.getApplication().invokeLater(
+                () -> editorPanel.getWorkBench().loadingStopped("Error refreshing Navigators"));
+            }
+          }
+        });
+      }
+      else {
+        schema.rebuildSchema();
+      }
+    }
+  }
+
+  @Override
   protected void layoutContent() {
     requestRender();
   }
 
   @NotNull
   public NlComponent getCurrentNavigation() {
-    if (myCurrentNavigation == null || myCurrentNavigation.getModel() != getModel()) {
-      if (getModel() != null) {
-        myCurrentNavigation = getModel().getComponents().get(0);
-      }
+    if (!validateCurrentNavigation()) {
+      refreshRoot();
     }
     return myCurrentNavigation;
+  }
+
+  private Boolean validateCurrentNavigation() {
+    NlComponent current = myCurrentNavigation;
+    if (current == null || current.getModel() != getModel()) {
+      return false;
+    }
+
+    while (current.getParent() != null) {
+      NlComponent parent = current.getParent();
+      if (!parent.getChildren().contains(current)) {
+        return false;
+      }
+
+      current = parent;
+    }
+
+    List<NlComponent> components = getModel().getComponents();
+    assert (components.size() == 1);
+
+    return (current == components.get(0));
   }
 
   public void setCurrentNavigation(@NotNull NlComponent currentNavigation) {
@@ -294,16 +443,38 @@ public class NavDesignSurface extends DesignSurface {
 
   @Override
   protected double getMinScale() {
-    return 0.1;
+    return isEmpty() ? 1.0 : 0.1;
+  }
+
+  @Override
+  protected double getMaxScale() {
+    return isEmpty() ? 1.0 : 3.0;
+  }
+
+  @Override
+  public boolean canZoomToFit() {
+    return !isEmpty();
+  }
+
+  @Override
+  protected double getFitScale(boolean fitInto) {
+    return Math.min(super.getFitScale(fitInto), 1.0);
+  }
+
+  private boolean isEmpty() {
+    NavSceneManager sceneManager = getSceneManager();
+    return sceneManager == null || sceneManager.isEmpty();
   }
 
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component) {
-    String tagName = component.getTagName();
+    if (myCurrentNavigation == component) {
+      return;
+    }
     String id;
-    if (getSchema().getDestinationType(tagName) == NavigationSchema.DestinationType.NAVIGATION) {
-      if (tagName.equals(TAG_INCLUDE)) {
-        id = component.getAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_GRAPH);
+    if (NavComponentHelperKt.isNavigation(component)) {
+      if (NavComponentHelperKt.isInclude(component)) {
+        id = component.getAttribute(SdkConstants.AUTO_URI, ATTR_GRAPH);
         if (id == null) {
           // includes are always supposed to have a graph specified, but if not, give up.
           return;
@@ -395,7 +566,9 @@ public class NavDesignSurface extends DesignSurface {
     }
 
     @NavCoordinate Rectangle selectionBounds =
-      NavSceneManager.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent)).collect(Collectors.toList()));
+      NavSceneManager.getBoundingBox(list.stream().map(nlComponent -> scene.getSceneComponent(nlComponent))
+                                         .filter(sceneComponent -> sceneComponent != null)
+                                         .collect(Collectors.toList()));
     @SwingCoordinate Dimension swingViewportSize = getScrollPane().getViewport().getExtentSize();
 
     @SwingCoordinate int swingStartCenterXInViewport =
@@ -403,31 +576,29 @@ public class NavDesignSurface extends DesignSurface {
     @SwingCoordinate int swingStartCenterYInViewport =
       Coordinates.getSwingY(view, (int)selectionBounds.getCenterY()) - getScrollPosition().y;
 
-    @SwingCoordinate LerpValue xLerp = new LerpValue(swingStartCenterXInViewport, swingViewportSize.width / 2, getScrollDurationMs());
-    @SwingCoordinate LerpValue yLerp = new LerpValue(swingStartCenterYInViewport, swingViewportSize.height / 2, getScrollDurationMs());
-    LerpValue zoomLerp = new LerpValue((int)(view.getScale() * 100), (int)(getFitScale(selectionBounds.getSize(), true) * 100),
-                                       getScrollDurationMs());
+    @SwingCoordinate Point start = new Point(swingStartCenterXInViewport, swingStartCenterYInViewport);
+    @SwingCoordinate Point end = new Point(swingViewportSize.width / 2, swingViewportSize.height / 2);
+    @SwingCoordinate LerpPoint lerpPoint = new LerpPoint(start, end, getScrollDurationMs());
+    LerpValue zoomLerp = new LerpDouble(view.getScale(), getFitScale(selectionBounds.getSize(), true),
+                                        getScrollDurationMs());
 
     if (getScheduleRef().get() != null) {
       getScheduleRef().get().cancel(false);
     }
 
-    Runnable action = () -> {
-      UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
-        long time = System.currentTimeMillis();
-        @SwingCoordinate int xSwingValue = xLerp.getValue(time);
-        @SwingCoordinate int ySwingValue = yLerp.getValue(time);
-        @SwingCoordinate int targetSwingX = Coordinates.getSwingX(view, (int)selectionBounds.getCenterX());
-        @SwingCoordinate int targetSwingY = Coordinates.getSwingY(view, (int)selectionBounds.getCenterY());
+    Runnable action = () -> UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
+      long time = System.currentTimeMillis();
+      @SwingCoordinate Point pointSwingValue = lerpPoint.getValue(time);
+      @SwingCoordinate int targetSwingX = Coordinates.getSwingX(view, (int)selectionBounds.getCenterX());
+      @SwingCoordinate int targetSwingY = Coordinates.getSwingY(view, (int)selectionBounds.getCenterY());
 
-        setScrollPosition(targetSwingX - xSwingValue, targetSwingY - ySwingValue);
-        setScale(zoomLerp.getValue(time) / 100., targetSwingX, targetSwingY);
-        if (xSwingValue == xLerp.getEnd() && ySwingValue == yLerp.getEnd()) {
-          getScheduleRef().get().cancel(false);
-          getScheduleRef().set(null);
-        }
-      });
-    };
+      setScrollPosition(targetSwingX - pointSwingValue.x, targetSwingY - pointSwingValue.y);
+      setScale((double)zoomLerp.getValue(time), targetSwingX, targetSwingY);
+      if (lerpPoint.isComplete(time)) {
+        getScheduleRef().get().cancel(false);
+        getScheduleRef().set(null);
+      }
+    });
 
     getScheduleRef().set(AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(action, 0, 10, TimeUnit.MILLISECONDS));
   }
@@ -441,5 +612,114 @@ public class NavDesignSurface extends DesignSurface {
   @VisibleForTesting
   int getScrollDurationMs() {
     return SCROLL_DURATION_MS;
+  }
+
+  /**
+   * Sometimes the model gets regenerated and we need to update the current view root component. This tries to do that as best as possible.
+   */
+  public void refreshRoot() {
+    NlModel model = getModel();
+    if (model == null) {
+      return;
+    }
+    NlComponent match = model.getComponents().get(0);
+    if (myCurrentNavigation != null) {
+      boolean includingParent = false;
+      TagSnapshot currentSnapshot = myCurrentNavigation.getSnapshot();
+      NlComponent currentParent = myCurrentNavigation.getParent();
+      for (NlComponent component : (Iterable<NlComponent>)model.flattenComponents()::iterator) {
+        if (!NavComponentHelperKt.isNavigation(component)) {
+          continue;
+        }
+        if (component == myCurrentNavigation) {
+          // The old component still exists, so don't change anything
+          return;
+        }
+        TagSnapshot componentSnapshot = component.getSnapshot();
+        if (currentSnapshot != null && currentSnapshot == componentSnapshot) {
+          // This corresponds exactly to the old component, and is surely the best we can do.
+          match = component;
+          break;
+        }
+        // We might not have found the best match yet, keep looking
+        if (!includingParent) {
+          if (Objects.equals(component.getId(), myCurrentNavigation.getId())) {
+            match = component;
+            NlComponent componentParent = component.getParent();
+            if ((componentParent == null) != (currentParent == null)) {
+              continue;
+            }
+            if (componentParent == null || Objects.equals(componentParent.getId(), currentParent.getId())) {
+              // Both the component ids and the parent ids match, so this is a pretty good match.
+              includingParent = true;
+            }
+          }
+        }
+      }
+    }
+
+    if (myCurrentNavigation != match) {
+      myCurrentNavigation = match;
+      getSelectionModel().setSelection((ImmutableList.of(myCurrentNavigation)));
+    }
+
+    zoomToFit();
+  }
+
+  @NotNull
+  @Override
+  protected DesignSurfaceActionHandler createActionHandler() {
+    return new NavDesignSurfaceActionHandler(this);
+  }
+
+  @NotNull
+  @Override
+  public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {
+    SoftReference<ConfigurationManager> ref = ourConfigurationManagers.get(facet);
+    ConfigurationManager result = null;
+    if (ref != null) {
+      result = ref.get();
+    }
+    if (result == null) {
+      result = new ConfigurationManager(facet.getModule()) {
+        @Override
+        public ConfigurationStateManager getStateManager() {
+          // Nav editor doesn't want persistent configuration state
+          return new ConfigurationStateManager();
+        }
+      };
+      ourConfigurationManagers.put(facet, new SoftReference<>(result));
+    }
+    return result;
+  }
+
+  @Override
+  protected boolean getSupportPinchAndZoom() {
+    // TODO: Enable pinch and zoom for navigation editor
+    return false;
+  }
+
+  /**
+   * Returns all the components under the current navigation
+   * that are selectable in the design surface
+   * Contains:
+   * Current root navigation
+   * Global actions under current root
+   * Destinations under current root
+   * Actions under the above destinations that point to a visible destination
+   *
+   * @return the list of destinations
+   */
+  @NotNull
+  public List<NlComponent> getSelectableComponents() {
+    NlComponent root = getCurrentNavigation();
+    return root.flatten().filter(component ->
+                                   component == root ||
+                                   (NavComponentHelperKt.isDestination(component) && component.getParent() == root) ||
+                                   (NavComponentHelperKt.isAction(component) &&
+                                    (component.getParent() == root ||
+                                     (component.getParent() != null && component.getParent().getParent() == root) ||
+                                     NavComponentHelperKt.getActionType(component, root) == ActionType.EXIT_DESTINATION))
+    ).collect(Collectors.toList());
   }
 }

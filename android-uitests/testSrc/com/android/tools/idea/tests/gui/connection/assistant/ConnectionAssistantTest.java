@@ -14,20 +14,22 @@
 package com.android.tools.idea.tests.gui.connection.assistant;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ConnectionAssistantTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   @Before
   public void setUp() throws Exception {
@@ -49,7 +51,7 @@ public class ConnectionAssistantTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void launchConnectionAssistantViaDeployTargetDialog() throws Exception {
     assertThat(ToolWindowManager.getInstance(guiTest.ideFrame().getProject()).getToolWindow("Assistant")).isNull();
     guiTest.ideFrame().runApp("app").clickHelp();
@@ -71,7 +73,7 @@ public class ConnectionAssistantTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void launchConnectionAssistantViaMenu() throws Exception {
     assertThat(ToolWindowManager.getInstance(guiTest.ideFrame().getProject()).getToolWindow("Assistant")).isNull();
     guiTest.ideFrame().invokeMenuPath("Tools", "Connection Assistant");

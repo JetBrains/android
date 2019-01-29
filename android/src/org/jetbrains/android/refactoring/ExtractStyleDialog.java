@@ -36,6 +36,7 @@ import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -264,7 +265,7 @@ class ExtractStyleDialog extends DialogWrapper {
     if (facet == null) {
       return null;
     }
-    return facet.getPrimaryResourceDir();
+    return ResourceFolderManager.getInstance(facet).getPrimaryFolder();
   }
 
   public boolean isToSearchStyleApplications() {

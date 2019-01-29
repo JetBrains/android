@@ -123,7 +123,7 @@ public class PaletteTest extends AndroidTestCase {
   }
 
   private void assertCoordinatorLayoutItem(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, COORDINATOR_LAYOUT, DESIGN_LIB_ARTIFACT, SUGGESTED);
+    assertStandardLayout(item, COORDINATOR_LAYOUT.defaultName(), DESIGN_LIB_ARTIFACT, SUGGESTED);
   }
 
   private void assertIncludeItem(@NotNull Palette.BaseItem item) {

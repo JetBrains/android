@@ -16,37 +16,47 @@
 
 package com.android.tools.idea.logcat;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatLongEpochMessageParser;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.logcat.LogCatMessageParser;
+import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.regex.Pattern;
+
 /**
  * An {@link AndroidOutputReceiver} which receives output from logcat and processes each line,
  * searching for callstacks and reformatting the final output before it is printed to the
  * logcat console.
  *
- * This class expects the logcat format to be 'logcat -v long' (which prints out a header and then
+ * <p>This class expects the logcat format to be 'logcat -v long' (which prints out a header and then
  * 1+ lines of log text below, for each log message).
  */
 public final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Disposable {
-
-  private final LogCatMessageParser myParser = new LogCatMessageParser();
-
-  /** Prefix to use for stack trace lines. */
+  /**
+   * Prefix to use for stack trace lines.
+   */
   private static final String STACK_TRACE_LINE_PREFIX = StringUtil.repeatSymbol(' ', 4);
 
-  /** Prefix to use for the stack trace "Caused by:" lines. */
+  /**
+   * Prefix to use for the stack trace "Caused by:" lines.
+   */
   private static final String STACK_TRACE_CAUSE_LINE_PREFIX = Character.toString(' ');
 
-  private volatile boolean myCanceled = false;
-  private final AndroidLogcatService.LogcatListener myLogcatListener;
+  private static final Pattern CARRIAGE_RETURN = Pattern.compile("\r", Pattern.LITERAL);
+
+  private final LogCatMessageParser myLongEpochParser;
+  private final LogCatMessageParser myLongParser;
   private final IDevice myDevice;
+  private final StackTraceExpander myStackTraceExpander;
+  private final LogcatListener myLogcatListener;
 
   /**
    * We don't always want to add a newline when we get one, as we can't tell if it came from the
@@ -54,14 +64,17 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
    * verifies the newlines came from a user.
    */
   private int myDelayedNewlineCount;
-  private final StackTraceExpander myStackTraceExpander;
+
   @Nullable private LogCatHeader myActiveHeader;
   private int myLineIndex;
+  private volatile boolean myCanceled;
 
-  public AndroidLogcatReceiver(@NotNull IDevice device, @NotNull AndroidLogcatService.LogcatListener logcatListener) {
+  AndroidLogcatReceiver(@NotNull IDevice device, @NotNull LogcatListener listener) {
+    myLongEpochParser = new LogCatLongEpochMessageParser();
+    myLongParser = new LogCatMessageParser();
     myDevice = device;
-    myLogcatListener = logcatListener;
     myStackTraceExpander = new StackTraceExpander(STACK_TRACE_LINE_PREFIX, STACK_TRACE_CAUSE_LINE_PREFIX);
+    myLogcatListener = listener;
   }
 
   @Override
@@ -76,15 +89,20 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
     // Unfortunately this isn't a case where we can fix the root cause because adb and logcat are
     // both external to Android Studio. In fact, the latest adb/logcat versions have already fixed
     // this issue! But we still need to run properly with older versions. Also, putting this fix in
-    // MultilineReceiver isn't right either because it is used for more than just receiving logcat.
-    line = line.replaceAll("\\r", "");
+    // MultiLineReceiver isn't right either because it is used for more than just receiving logcat.
+    line = CARRIAGE_RETURN.matcher(line).replaceAll("");
 
     if (line.isEmpty()) {
       myDelayedNewlineCount++;
       return;
     }
 
-    LogCatHeader header = myParser.processLogHeader(line, myDevice);
+    LogCatHeader header = myLongEpochParser.processLogHeader(line, myDevice);
+
+    if (header == null) {
+      header = myLongParser.processLogHeader(line, myDevice);
+    }
+
     if (header != null) {
       myStackTraceExpander.reset();
       myActiveHeader = header;
@@ -137,5 +155,10 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
 
   public void cancel() {
     myCanceled = true;
+  }
+
+  @VisibleForTesting
+  int getDelayedNewlineCount() {
+    return myDelayedNewlineCount;
   }
 }

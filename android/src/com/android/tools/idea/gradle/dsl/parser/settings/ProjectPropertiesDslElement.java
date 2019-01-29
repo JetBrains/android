@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.settings;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNewExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -27,24 +27,19 @@ import java.io.File;
 
 public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
   @NonNls private static final String PROJECT_DIR = "projectDir";
-  @NonNls private static final String BUILD_FILE_NAME = "buildFileName";
+  @NonNls public static final String BUILD_FILE_NAME = "buildFileName";
 
-  public ProjectPropertiesDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
+  public ProjectPropertiesDslElement(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
   }
 
   @Nullable
   public File projectDir() {
-    GradleDslNewExpression projectDir = getPropertyElement(PROJECT_DIR, GradleDslNewExpression.class);
+    GradleDslMethodCall projectDir = getPropertyElement(PROJECT_DIR, GradleDslMethodCall.class);
     if (projectDir != null) {
       return projectDir.getValue(File.class);
     }
     return null;
-  }
-
-  @NotNull
-  public GradleNullableValue<String> buildFileName() {
-    return getLiteralProperty(BUILD_FILE_NAME, String.class);
   }
 
   @Nullable

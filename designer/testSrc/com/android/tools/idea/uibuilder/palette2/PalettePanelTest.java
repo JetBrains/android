@@ -27,9 +27,9 @@ import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
-import com.android.tools.idea.uibuilder.model.DnDTransferItem;
-import com.android.tools.idea.uibuilder.model.ItemTransferable;
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
@@ -74,6 +74,9 @@ public class PalettePanelTest extends LayoutTestCase {
   private JPopupMenu myPopupMenuComponent;
   private PalettePanel myPanel;
   private SyncNlModel myModel;
+
+  private static final int BUTTON_CATEGORY_INDEX = 2;
+  private static final int CHECKBOX_ITEM_INDEX = 2;
 
   @Override
   public void setUp() throws Exception {
@@ -123,7 +126,7 @@ public class PalettePanelTest extends LayoutTestCase {
     }
   }
 
-  public void testCopyIsUnavailableWhenNothingIsSelected() throws Exception {
+  public void testCopyIsUnavailableWhenNothingIsSelected() {
     DataContext context = mock(DataContext.class);
     CopyProvider provider = (CopyProvider)myPanel.getData(PlatformDataKeys.COPY_PROVIDER.getName());
     assertThat(provider).isNotNull();
@@ -205,9 +208,6 @@ public class PalettePanelTest extends LayoutTestCase {
 
     myPanel.setToolContext(createDesignSurface(NlLayoutType.PREFERENCE_SCREEN));
     assertThat(isCategoryListVisible()).isTrue();
-
-    myPanel.setToolContext(createDesignSurface(NlLayoutType.STATE_LIST));
-    assertThat(isCategoryListVisible()).isFalse();
   }
 
   public void testTypingInCategoryListStartsFiltering() {
@@ -218,7 +218,7 @@ public class PalettePanelTest extends LayoutTestCase {
     checkTypingStartsFiltering(myPanel.getItemList());
   }
 
-  public void testShiftHelpOnPaletteItem() throws Exception {
+  public void testShiftHelpOnPaletteItem() {
     setUpLayoutDesignSurface();
 
     ActionListener listener = myPanel.getItemList().getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_MASK));
@@ -249,7 +249,6 @@ public class PalettePanelTest extends LayoutTestCase {
     TransferHandler handler = list.getTransferHandler();
     imitateDragAndDrop(handler, list);
 
-    verify(usageTracker).logDropFromPalette(CONSTRAINT_LAYOUT, representation, "Layouts", -1);
   }
 
   public void testDragAndDropInDumbMode() throws Exception {
@@ -272,11 +271,11 @@ public class PalettePanelTest extends LayoutTestCase {
     }
   }
 
-  public void testAddToDesignFromEnterKey() throws Exception {
+  public void testAddToDesignFromEnterKey() {
     DesignSurface surface = setUpLayoutDesignSurface();
 
-    myPanel.getCategoryList().setSelectedIndex(2); // Buttons
-    myPanel.getItemList().setSelectedIndex(2);     // CheckBox
+    myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
+    myPanel.getItemList().setSelectedIndex(CHECKBOX_ITEM_INDEX);
 
     ActionListener listener = myPanel.getItemList().getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
     assertThat(listener).isNotNull();
@@ -285,15 +284,15 @@ public class PalettePanelTest extends LayoutTestCase {
     listener.actionPerformed(event);
 
     assertThat(myTreeDumper.toTree(surface.getModel().getComponents())).isEqualTo(
-      "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-      "    NlComponent{tag=<TextView>, bounds=[0,106:768x200, instance=1}\n" +
-      "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+      "NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+      "    NlComponent{tag=<TextView>, bounds=[0,6:768x200, instance=1}\n" +
+      "    NlComponent{tag=<CheckBox>, bounds=[768,0:2x310, instance=2}");
 
     assertThat(myTreeDumper.toTree(surface.getSelectionModel().getSelection())).isEqualTo(
-      "NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+      "NlComponent{tag=<CheckBox>, bounds=[768,0:2x310, instance=2}");
   }
 
-  public void testOpenContextPopupOnMousePressed() throws Exception {
+  public void testOpenContextPopupOnMousePressed() {
     setUpLayoutDesignSurface();
 
     ItemList itemList = myPanel.getItemList();
@@ -308,7 +307,7 @@ public class PalettePanelTest extends LayoutTestCase {
     assertThat(itemList.getSelectedIndex()).isEqualTo(3);
   }
 
-  public void testOpenContextPopupOnMouseReleased() throws Exception {
+  public void testOpenContextPopupOnMouseReleased() {
     setUpLayoutDesignSurface();
 
     ItemList itemList = myPanel.getItemList();
@@ -323,24 +322,24 @@ public class PalettePanelTest extends LayoutTestCase {
     assertThat(itemList.getSelectedIndex()).isEqualTo(3);
   }
 
-  public void testAddToDesign() throws Exception {
+  public void testAddToDesign() {
     DesignSurface surface = setUpLayoutDesignSurface();
-    myPanel.getCategoryList().setSelectedIndex(2); // Buttons
-    myPanel.getItemList().setSelectedIndex(2);     // CheckBox
+    myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
+    myPanel.getItemList().setSelectedIndex(CHECKBOX_ITEM_INDEX);
 
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getAddToDesignAction().actionPerformed(event);
 
     assertThat(myTreeDumper.toTree(surface.getModel().getComponents())).isEqualTo(
-      "NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-      "    NlComponent{tag=<TextView>, bounds=[0,106:768x200, instance=1}\n" +
-      "    NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+      "NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+      "    NlComponent{tag=<TextView>, bounds=[0,6:768x200, instance=1}\n" +
+      "    NlComponent{tag=<CheckBox>, bounds=[768,0:2x310, instance=2}");
 
     assertThat(myTreeDumper.toTree(surface.getSelectionModel().getSelection())).isEqualTo(
-      "NlComponent{tag=<CheckBox>, bounds=[768,100:2x310, instance=2}");
+      "NlComponent{tag=<CheckBox>, bounds=[768,0:2x310, instance=2}");
   }
 
-  public void testAddToDesignUpdateDoesNotCauseDependencyDialog() throws Exception {
+  public void testAddToDesignUpdateDoesNotCauseDependencyDialog() {
     setUpLayoutDesignSurface();
     myPanel.getCategoryList().setSelectedIndex(6); // Google
     myPanel.getItemList().setSelectedIndex(0);     // AdView
@@ -356,10 +355,10 @@ public class PalettePanelTest extends LayoutTestCase {
     myPanel.getAddToDesignAction().update(event);
   }
 
-  public void testOpenAndroidDocumentation() throws Exception {
+  public void testOpenAndroidDocumentation() {
     setUpLayoutDesignSurface();
-    myPanel.getCategoryList().setSelectedIndex(2); // Buttons
-    myPanel.getItemList().setSelectedIndex(2);     // CheckBox
+    myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
+    myPanel.getItemList().setSelectedIndex(CHECKBOX_ITEM_INDEX);
 
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getAndroidDocAction().actionPerformed(event);
@@ -367,10 +366,10 @@ public class PalettePanelTest extends LayoutTestCase {
     verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/widget/CheckBox.html"), isNull(), isNull());
   }
 
-  public void testOpenMaterialDesignDocumentation() throws Exception {
+  public void testOpenMaterialDesignDocumentation() {
     setUpLayoutDesignSurface();
-    myPanel.getCategoryList().setSelectedIndex(2); // Buttons
-    myPanel.getItemList().setSelectedIndex(2);     // CheckBox
+    myPanel.getCategoryList().setSelectedIndex(BUTTON_CATEGORY_INDEX);
+    myPanel.getItemList().setSelectedIndex(CHECKBOX_ITEM_INDEX);
 
     AnActionEvent event = mock(AnActionEvent.class);
     myPanel.getMaterialDocAction().actionPerformed(event);
@@ -427,7 +426,7 @@ public class PalettePanelTest extends LayoutTestCase {
     myModel = createModel().build();
     DesignSurface surface = myModel.getSurface();
     LayoutTestUtilities.createScreen(myModel);
-    when(surface.getLayoutType()).thenReturn(layoutType);
+    doReturn(layoutType).when(surface).getLayoutType();
     myPanel.setToolContext(myModel.getSurface());
     return surface;
   }
@@ -443,13 +442,6 @@ public class PalettePanelTest extends LayoutTestCase {
 
   private boolean isCategoryListVisible() {
     return myPanel.getCategoryList().getParent().getParent().isVisible();
-  }
-
-  private static void fireComponentResize(@NotNull JComponent component) {
-    ComponentEvent event = mock(ComponentEvent.class);
-    for (ComponentListener listener : component.getComponentListeners()) {
-      listener.componentResized(event);
-    }
   }
 
   private static class StartFiltering implements StartFilteringListener {

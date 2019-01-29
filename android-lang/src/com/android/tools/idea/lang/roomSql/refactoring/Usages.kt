@@ -65,9 +65,11 @@ class RoomIdIndexer : ScanningIdIndexer() {
  */
 class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>() {
   private fun getSchema(element: PsiElement) = ReadAction.compute<RoomSchema?, Nothing> {
-    val file = element.containingFile
-    if (file == null) return@compute null
-    RoomSchemaManager.getInstance(element.project)?.getSchema(file)
+    if (element.containingFile != null) {
+      RoomSchemaManager.getInstance(element.project)?.getSchema(element.containingFile)
+    } else {
+      null
+    }
   }
 
   override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<in PsiReference>) {
@@ -107,9 +109,9 @@ class RoomReferenceSearchExecutor : QueryExecutorBase<PsiReference, ReferencesSe
     return when (element) {
       is PsiClass -> getSchema(element)?.findEntity(element) ?: return null
       is PsiField -> getSchema(element)
-          ?.findEntity(element.containingClass ?: return null)
-          ?.columns
-          ?.find { it.psiField.element == element }
+        ?.findEntity(element.containingClass ?: return null)
+        ?.columns
+        ?.find { it.psiField.element == element }
           ?: return null
       else -> return null
     }

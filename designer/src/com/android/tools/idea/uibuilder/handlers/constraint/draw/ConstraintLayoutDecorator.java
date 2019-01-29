@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import static com.android.tools.idea.flags.StudioFlags.NELE_SHOW_ON_HOVER;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
@@ -22,6 +24,8 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
+import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -195,21 +199,26 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       }
       Rectangle rect = new Rectangle();
       component.fillRect(rect);
-      DisplayList.UNClip unClip = list.addClip(sceneContext, rect);
+      DisplayList.UNClip unClip = null;
+      if (!StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
+        unClip = list.addClip(sceneContext, rect);
+      }
       Scene scene = component.getScene();
 
       boolean showAllConstraints = ConstraintLayoutHandler.getVisualProperty(ConstraintLayoutHandler.SHOW_CONSTRAINTS_PREF_KEY);
       List<NlComponent> selection = scene.getSelection();
       for (SceneComponent child : children) {
         child.buildDisplayList(time, list, sceneContext);
-        if (sceneContext.showOnlySelection()) {
+        if (SceneLayer.SHOW_ON_HOVER && sceneContext.showOnlySelection()) {
           continue;
         }
         if ((showAllConstraints && scene.getRoot() == component) || selection.contains(child.getNlComponent())) {
           buildListConnections(list, time, sceneContext, component, child); // draw child connections
         }
       }
-      list.add(unClip);
+      if (unClip != null) {
+        list.add(unClip);
+      }
     }
   }
 
@@ -244,7 +253,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         String type = connectTypes[i];
         DecoratorUtilities.ViewStates current, prev;
         if (componentCurrentState != DecoratorUtilities.ViewStates.SELECTED) { // selection fix
-          // TODO we need to have a clear mechinisem for selection event to propagate
+          // TODO we need to have a clear mechanism for selection event to propagate
           current = DecoratorUtilities.getTimedChange_value(c, type);
           if (current == DecoratorUtilities.ViewStates.SELECTED) { // we need to turn off
             long t = (componentChangeStateTime != null) ? componentChangeStateTime : System.nanoTime();
@@ -345,8 +354,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         if (child.getParent().equals(sc)) { // flag a child connection
           destType = DrawConnection.DEST_PARENT;
         }
-        else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.equalsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))
-              || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.equalsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))) {
+        else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))
+              || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.isEqualsIgnoreCase(NlComponentHelperKt.getComponentClassName(sc.getNlComponent()))) {
           destType = DrawConnection.DEST_GUIDELINE;
         }
         int connectType = DrawConnection.TYPE_NORMAL;

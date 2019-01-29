@@ -17,15 +17,17 @@ package com.android.tools.idea.gradle.dsl.parser.android.productFlavors.external
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractBuildOptionsDslElement extends GradleDslBlockElement {
-  protected AbstractBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull String name) {
+  protected AbstractBuildOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    String property = element.getName();
     if (property.equals("abiFilters") ||
         property.equals("arguments") ||
         property.equals("cFlags") ||
@@ -34,6 +36,6 @@ public abstract class AbstractBuildOptionsDslElement extends GradleDslBlockEleme
       addToParsedExpressionList(property, element);
       return;
     }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

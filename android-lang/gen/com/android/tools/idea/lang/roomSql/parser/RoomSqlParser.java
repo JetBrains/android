@@ -3927,20 +3927,21 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   public static boolean update_statement(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "update_statement")) return false;
     if (!nextTokenIs(builder, UPDATE)) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
+    boolean result, pinned;
+    Marker marker = enter_section_(builder, level, _NONE_, UPDATE_STATEMENT, null);
     result = consumeToken(builder, UPDATE);
-    result = result && update_statement_1(builder, level + 1);
-    result = result && single_table_statement_table(builder, level + 1);
-    result = result && update_statement_3(builder, level + 1);
-    result = result && consumeToken(builder, SET);
-    result = result && column_name(builder, level + 1);
-    result = result && consumeToken(builder, EQ);
-    result = result && expression(builder, level + 1, -1);
-    result = result && update_statement_8(builder, level + 1);
-    result = result && update_statement_9(builder, level + 1);
-    exit_section_(builder, marker, UPDATE_STATEMENT, result);
-    return result;
+    pinned = result; // pin = 1
+    result = result && report_error_(builder, update_statement_1(builder, level + 1));
+    result = pinned && report_error_(builder, single_table_statement_table(builder, level + 1)) && result;
+    result = pinned && report_error_(builder, update_statement_3(builder, level + 1)) && result;
+    result = pinned && report_error_(builder, consumeToken(builder, SET)) && result;
+    result = pinned && report_error_(builder, column_name(builder, level + 1)) && result;
+    result = pinned && report_error_(builder, consumeToken(builder, EQ)) && result;
+    result = pinned && report_error_(builder, expression(builder, level + 1, -1)) && result;
+    result = pinned && report_error_(builder, update_statement_8(builder, level + 1)) && result;
+    result = pinned && update_statement_9(builder, level + 1) && result;
+    exit_section_(builder, level, marker, result, pinned, null);
+    return result || pinned;
   }
 
   // ( OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE )?
@@ -4304,26 +4305,26 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
   // Expression root: expression
   // Operator priority table:
   // 0: ATOM(raise_function_expression)
-  // 1: ATOM(case_expression)
-  // 2: ATOM(exists_expression)
-  // 3: POSTFIX(in_expression)
-  // 4: POSTFIX(isnull_expression)
-  // 5: BINARY(like_expression)
-  // 6: PREFIX(cast_expression)
-  // 7: PREFIX(paren_expression)
-  // 8: ATOM(function_call_expression)
-  // 9: BINARY(or_expression)
-  // 10: BINARY(and_expression)
-  // 11: BINARY(equivalence_expression) BINARY(between_expression)
-  // 12: BINARY(comparison_expression)
-  // 13: BINARY(bit_expression)
-  // 14: BINARY(add_expression)
-  // 15: BINARY(mul_expression)
-  // 16: BINARY(concat_expression)
-  // 17: PREFIX(unary_expression)
-  // 18: POSTFIX(collate_expression)
-  // 19: ATOM(literal_expression)
-  // 20: ATOM(column_ref_expression)
+  // 1: BINARY(or_expression)
+  // 2: BINARY(and_expression)
+  // 3: ATOM(case_expression)
+  // 4: ATOM(exists_expression)
+  // 5: POSTFIX(in_expression)
+  // 6: POSTFIX(isnull_expression)
+  // 7: BINARY(like_expression)
+  // 8: PREFIX(cast_expression)
+  // 9: ATOM(function_call_expression)
+  // 10: BINARY(equivalence_expression) BINARY(between_expression)
+  // 11: BINARY(comparison_expression)
+  // 12: BINARY(bit_expression)
+  // 13: BINARY(add_expression)
+  // 14: BINARY(mul_expression)
+  // 15: BINARY(concat_expression)
+  // 16: PREFIX(unary_expression)
+  // 17: POSTFIX(collate_expression)
+  // 18: ATOM(literal_expression)
+  // 19: ATOM(column_ref_expression)
+  // 20: PREFIX(paren_expression)
   public static boolean expression(PsiBuilder builder, int level, int priority) {
     if (!recursion_guard_(builder, level, "expression")) return false;
     addVariant(builder, "<expression>");
@@ -4333,11 +4334,11 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!result) result = case_expression(builder, level + 1);
     if (!result) result = exists_expression(builder, level + 1);
     if (!result) result = cast_expression(builder, level + 1);
-    if (!result) result = paren_expression(builder, level + 1);
     if (!result) result = function_call_expression(builder, level + 1);
     if (!result) result = unary_expression(builder, level + 1);
     if (!result) result = literal_expression(builder, level + 1);
     if (!result) result = column_ref_expression(builder, level + 1);
+    if (!result) result = paren_expression(builder, level + 1);
     pinned = result;
     result = result && expression_0(builder, level + 1, priority);
     exit_section_(builder, level, marker, null, result, pinned, null);
@@ -4349,57 +4350,57 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     boolean result = true;
     while (true) {
       Marker marker = enter_section_(builder, level, _LEFT_, null);
-      if (priority < 3 && in_expression_0(builder, level + 1)) {
+      if (priority < 1 && consumeTokenSmart(builder, OR)) {
+        result = expression(builder, level, 1);
+        exit_section_(builder, level, marker, OR_EXPRESSION, result, true, null);
+      }
+      else if (priority < 2 && consumeTokenSmart(builder, AND)) {
+        result = expression(builder, level, 2);
+        exit_section_(builder, level, marker, AND_EXPRESSION, result, true, null);
+      }
+      else if (priority < 5 && in_expression_0(builder, level + 1)) {
         result = true;
         exit_section_(builder, level, marker, IN_EXPRESSION, result, true, null);
       }
-      else if (priority < 4 && isnull_expression_0(builder, level + 1)) {
+      else if (priority < 6 && isnull_expression_0(builder, level + 1)) {
         result = true;
         exit_section_(builder, level, marker, ISNULL_EXPRESSION, result, true, null);
       }
-      else if (priority < 5 && like_expression_0(builder, level + 1)) {
-        result = report_error_(builder, expression(builder, level, 5));
+      else if (priority < 7 && like_expression_0(builder, level + 1)) {
+        result = report_error_(builder, expression(builder, level, 7));
         result = like_expression_1(builder, level + 1) && result;
         exit_section_(builder, level, marker, LIKE_EXPRESSION, result, true, null);
       }
-      else if (priority < 9 && consumeTokenSmart(builder, OR)) {
-        result = expression(builder, level, 9);
-        exit_section_(builder, level, marker, OR_EXPRESSION, result, true, null);
-      }
-      else if (priority < 10 && consumeTokenSmart(builder, AND)) {
+      else if (priority < 10 && equivalence_expression_0(builder, level + 1)) {
         result = expression(builder, level, 10);
-        exit_section_(builder, level, marker, AND_EXPRESSION, result, true, null);
-      }
-      else if (priority < 11 && equivalence_expression_0(builder, level + 1)) {
-        result = expression(builder, level, 11);
         exit_section_(builder, level, marker, EQUIVALENCE_EXPRESSION, result, true, null);
       }
-      else if (priority < 11 && between_expression_0(builder, level + 1)) {
-        result = report_error_(builder, expression(builder, level, 11));
+      else if (priority < 10 && between_expression_0(builder, level + 1)) {
+        result = report_error_(builder, expression(builder, level, 10));
         result = between_expression_1(builder, level + 1) && result;
         exit_section_(builder, level, marker, BETWEEN_EXPRESSION, result, true, null);
       }
-      else if (priority < 12 && comparison_expression_0(builder, level + 1)) {
-        result = expression(builder, level, 12);
+      else if (priority < 11 && comparison_expression_0(builder, level + 1)) {
+        result = expression(builder, level, 11);
         exit_section_(builder, level, marker, COMPARISON_EXPRESSION, result, true, null);
       }
-      else if (priority < 13 && bit_expression_0(builder, level + 1)) {
-        result = expression(builder, level, 13);
+      else if (priority < 12 && bit_expression_0(builder, level + 1)) {
+        result = expression(builder, level, 12);
         exit_section_(builder, level, marker, BIT_EXPRESSION, result, true, null);
       }
-      else if (priority < 14 && add_expression_0(builder, level + 1)) {
-        result = expression(builder, level, 14);
+      else if (priority < 13 && add_expression_0(builder, level + 1)) {
+        result = expression(builder, level, 13);
         exit_section_(builder, level, marker, ADD_EXPRESSION, result, true, null);
       }
-      else if (priority < 15 && mul_expression_0(builder, level + 1)) {
-        result = expression(builder, level, 15);
+      else if (priority < 14 && mul_expression_0(builder, level + 1)) {
+        result = expression(builder, level, 14);
         exit_section_(builder, level, marker, MUL_EXPRESSION, result, true, null);
       }
-      else if (priority < 16 && consumeTokenSmart(builder, CONCAT)) {
-        result = expression(builder, level, 16);
+      else if (priority < 15 && consumeTokenSmart(builder, CONCAT)) {
+        result = expression(builder, level, 15);
         exit_section_(builder, level, marker, CONCAT_EXPRESSION, result, true, null);
       }
-      else if (priority < 18 && collate_expression_0(builder, level + 1)) {
+      else if (priority < 17 && collate_expression_0(builder, level + 1)) {
         result = true;
         exit_section_(builder, level, marker, COLLATE_EXPRESSION, result, true, null);
       }
@@ -4751,7 +4752,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     Marker marker = enter_section_(builder, level, _NONE_, null);
     result = parseTokensSmart(builder, 0, CAST, LPAREN);
     pinned = result;
-    result = pinned && expression(builder, level, 6);
+    result = pinned && expression(builder, level, 8);
     result = pinned && report_error_(builder, cast_expression_1(builder, level + 1)) && result;
     exit_section_(builder, level, marker, CAST_EXPRESSION, result, pinned, null);
     return result || pinned;
@@ -4767,19 +4768,6 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     result = result && consumeToken(builder, RPAREN);
     exit_section_(builder, marker, null, result);
     return result;
-  }
-
-  public static boolean paren_expression(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "paren_expression")) return false;
-    if (!nextTokenIsSmart(builder, LPAREN)) return false;
-    boolean result, pinned;
-    Marker marker = enter_section_(builder, level, _NONE_, null);
-    result = consumeTokenSmart(builder, LPAREN);
-    pinned = result;
-    result = pinned && expression(builder, level, 7);
-    result = pinned && report_error_(builder, consumeToken(builder, RPAREN)) && result;
-    exit_section_(builder, level, marker, PAREN_EXPRESSION, result, pinned, null);
-    return result || pinned;
   }
 
   // function_name '(' ( ( DISTINCT )? expression ( ',' expression )* | '*' )? ')'
@@ -4854,7 +4842,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // '==' | '=' | '!=' | '<>' | IS NOT? | IN | LIKE | GLOB | MATCH | REGEXP
+  // '==' | '=' | '!=' | '<>' | IS NOT? | LIKE | GLOB | MATCH | REGEXP
   private static boolean equivalence_expression_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "equivalence_expression_0")) return false;
     boolean result;
@@ -4864,7 +4852,6 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     if (!result) result = consumeTokenSmart(builder, NOT_EQ);
     if (!result) result = consumeTokenSmart(builder, UNEQ);
     if (!result) result = equivalence_expression_0_4(builder, level + 1);
-    if (!result) result = consumeTokenSmart(builder, IN);
     if (!result) result = consumeTokenSmart(builder, LIKE);
     if (!result) result = consumeTokenSmart(builder, GLOB);
     if (!result) result = consumeTokenSmart(builder, MATCH);
@@ -4975,7 +4962,7 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     Marker marker = enter_section_(builder, level, _NONE_, null);
     result = unary_expression_0(builder, level + 1);
     pinned = result;
-    result = pinned && expression(builder, level, 17);
+    result = pinned && expression(builder, level, 16);
     exit_section_(builder, level, marker, UNARY_EXPRESSION, result, pinned, null);
     return result || pinned;
   }
@@ -5053,6 +5040,19 @@ public class RoomSqlParser implements PsiParser, LightPsiParser {
     result = result && column_name(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
+  }
+
+  public static boolean paren_expression(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "paren_expression")) return false;
+    if (!nextTokenIsSmart(builder, LPAREN)) return false;
+    boolean result, pinned;
+    Marker marker = enter_section_(builder, level, _NONE_, null);
+    result = consumeTokenSmart(builder, LPAREN);
+    pinned = result;
+    result = pinned && expression(builder, level, -1);
+    result = pinned && report_error_(builder, consumeToken(builder, RPAREN)) && result;
+    exit_section_(builder, level, marker, PAREN_EXPRESSION, result, pinned, null);
+    return result || pinned;
   }
 
   final static Parser subquery_recover_parser_ = new Parser() {

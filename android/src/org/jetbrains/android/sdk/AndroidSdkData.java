@@ -176,7 +176,7 @@ public class AndroidSdkData {
   @NotNull
   public IAndroidTarget[] getTargets() {
     Collection<IAndroidTarget> targets = getTargetCollection();
-    return targets.toArray(new IAndroidTarget[targets.size()]);
+    return targets.toArray(new IAndroidTarget[0]);
   }
 
   @NotNull
@@ -199,7 +199,7 @@ public class AndroidSdkData {
     else {
       result.addAll(targets);
     }
-    return result.toArray(new IAndroidTarget[result.size()]);
+    return result.toArray(new IAndroidTarget[0]);
   }
 
   @Nullable

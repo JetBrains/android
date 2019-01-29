@@ -17,14 +17,14 @@ package com.android.tools.idea.uibuilder.scene.decorator
 
 import com.android.SdkConstants
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawComponentBackground
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
-import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler
+import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import java.awt.*
 
 class LinearLayoutDecorator : SceneDecorator() {

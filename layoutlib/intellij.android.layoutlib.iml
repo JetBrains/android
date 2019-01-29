@@ -12,11 +12,12 @@
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
-    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="library" name="ASM" level="project" />
-    <orderEntry type="library" name="com.android.tools:annotations:26.1.2" level="project" />
-    <orderEntry type="library" name="com.android.tools:sdk-common:26.1.2" level="project" />
+    <orderEntry type="library" name="com.android.tools:annotations" level="project" />
+    <orderEntry type="library" name="com.android.tools:common" level="project" />
+    <orderEntry type="library" name="com.android.tools:sdk-common" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="library" name="com.android.tools:sdklib" level="project" />
+    <orderEntry type="library" name="com.android.tools.layoutlib:layoutlib-api" level="project" />
   </component>
 </module>

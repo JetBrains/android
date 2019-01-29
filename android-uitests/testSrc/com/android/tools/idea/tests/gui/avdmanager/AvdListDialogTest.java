@@ -16,30 +16,37 @@
 package com.android.tools.idea.tests.gui.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ConfigureAvdOptionsStepFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunWith(GuiTestRunner.class)
+import java.util.concurrent.TimeUnit;
+
+@RunWith(GuiTestRemoteRunner.class)
 public class AvdListDialogTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+
+  @Before
+  public void setUp() throws Exception {
+    guiTest.importSimpleLocalApplication();
+  }
 
   /**
    * TT ID: TODO need to add a test tracker ID
    *
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   @Test
   public void testCreateAvd() throws Exception {
-    guiTest.importSimpleApplication();
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
@@ -71,11 +78,9 @@ public class AvdListDialogTest {
    * TT ID: TODO need to add a test tracker ID
    *
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/115748835, fast
   @Test
   public void testEditAvd() throws Exception {
-    guiTest.importSimpleApplication();
-
     makeNexus5();
 
     AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();

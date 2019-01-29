@@ -32,11 +32,11 @@ public final class TextInstruction extends RenderInstruction {
   @NotNull private final Font myFont;
   @NotNull private final Dimension mySize;
 
-  public TextInstruction(@NotNull Font font, @NotNull String text) {
-    myFont = font;
+  public TextInstruction(@NotNull FontMetrics metrics, @NotNull String text) {
+    myFont = metrics.getFont();
     myText = text;
 
-    Rectangle2D bounds = myFont.getStringBounds(myText, new FontRenderContext(null, true, true));
+    Rectangle2D bounds = myFont.getStringBounds(myText, metrics.getFontRenderContext());
     int w = (int)bounds.getWidth();
     int h = (int)bounds.getHeight();
 
@@ -64,6 +64,8 @@ public final class TextInstruction extends RenderInstruction {
     g2d.setColor(c.getForeground());
     g2d.setFont(myFont);
     FontMetrics metrics = UIUtilities.getFontMetrics(c, myFont);
+    Rectangle2D newBounds = myFont.getStringBounds(myText, metrics.getFontRenderContext());
+    mySize.setSize((int)newBounds.getWidth(), (int)newBounds.getHeight());
     int textY = bounds.y + metrics.getAscent() + ((bounds.height - mySize.height) / 2);
     g2d.drawString(myText, bounds.x, textY);
   }

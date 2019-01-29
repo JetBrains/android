@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement;
 import org.jetbrains.annotations.NonNls;
@@ -33,61 +33,19 @@ public class DataBindingModelImpl extends GradleDslBlockModel implements DataBin
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> addDefaultAdapters() {
-    return myDslElement.getLiteralProperty(ADD_DEFAULT_ADAPTERS, Boolean.class);
+  public ResolvedPropertyModel addDefaultAdapters() {
+    return getModelForProperty(ADD_DEFAULT_ADAPTERS, true);
   }
 
   @Override
   @NotNull
-  public DataBindingModel setAddDefaultAdapters(boolean addDefaultAdapters) {
-    myDslElement.setNewLiteral(ADD_DEFAULT_ADAPTERS, addDefaultAdapters);
-    return this;
+  public ResolvedPropertyModel enabled() {
+    return getModelForProperty(ENABLED, true);
   }
 
   @Override
   @NotNull
-  public DataBindingModel removeAddDefaultAdapters() {
-    myDslElement.removeProperty(ADD_DEFAULT_ADAPTERS);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public GradleNullableValue<Boolean> enabled() {
-    return myDslElement.getLiteralProperty(ENABLED, Boolean.class);
-  }
-
-  @Override
-  @NotNull
-  public DataBindingModel setEnabled(boolean enabled) {
-    myDslElement.setNewLiteral(ENABLED, enabled);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public DataBindingModel removeEnabled() {
-    myDslElement.removeProperty(ENABLED);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public GradleNullableValue<String> version() {
-    return myDslElement.getLiteralProperty(VERSION, String.class);
-  }
-
-  @Override
-  @NotNull
-  public DataBindingModel setVersion(@NotNull String version) {
-    myDslElement.setNewLiteral(VERSION, version);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public DataBindingModel removeVersion() {
-    myDslElement.removeProperty(VERSION);
-    return this;
+  public ResolvedPropertyModel version() {
+    return getModelForProperty(VERSION, true);
   }
 }

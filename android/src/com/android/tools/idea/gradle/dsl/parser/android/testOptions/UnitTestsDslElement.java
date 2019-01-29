@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android.testOptions;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +25,6 @@ public class UnitTestsDslElement extends GradleDslBlockElement {
   @NonNls public static final String UNIT_TESTS_BLOCK_NAME = "unitTests";
 
   public UnitTestsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, UNIT_TESTS_BLOCK_NAME);
+    super(parent, GradleNameElement.create(UNIT_TESTS_BLOCK_NAME));
   }
 }

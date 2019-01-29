@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.xml.XmlBuilder;
 import icons.StudioIcons;
 import org.intellij.lang.annotations.Language;
@@ -70,23 +69,6 @@ public abstract class PaletteComponentHandler {
   }
 
   /**
-   * Returns a 24x24 icon used to represent this component as a larger image on the palette.<br>
-   * This default implementation assumes the icon is one of the builtin icons.
-   *
-   * @param tagName the tag name of the component
-   * @return an icon to identify the component
-   */
-  @NotNull
-  public Icon getLargeIcon(@NotNull String tagName) {
-    return loadBuiltinLargeIcon(tagName);
-  }
-
-  @NotNull
-  public String getGradleCoordinateId(@NotNull NlComponent component) {
-    return getGradleCoordinateId(component.getTagName());
-  }
-
-  /**
    * Returns the Gradle coordinate ID (ex. "com.android.support:support-v4") of the library
    * this component belongs to. The palette will use this information to provide a download
    * link if the library is not present in the project dependencies.<br>
@@ -97,7 +79,55 @@ public abstract class PaletteComponentHandler {
    */
   @NotNull
   public String getGradleCoordinateId(@NotNull String tagName) {
-    return getBuiltinCoordinate(tagName);
+    if (tagName.startsWith(ANDROID_SUPPORT_V4_PKG)) {
+      return SUPPORT_LIB_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROID_SUPPORT_V7_PKG)) {
+      return APPCOMPAT_LIB_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROID_SUPPORT_DESIGN_PKG)) {
+      return DESIGN_LIB_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROID_MATERIAL_PKG)) {
+      return ANDROIDX_MATERIAL_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROID_SUPPORT_LEANBACK_V17_PKG)) {
+      return LEANBACK_V17_ARTIFACT;
+    }
+    else if (tagName.startsWith(GOOGLE_PLAY_SERVICES_ADS_PKG)) {
+      return ADS_ARTIFACT;
+    }
+    else if (tagName.startsWith(GOOGLE_PLAY_SERVICES_MAPS_PKG)) {
+      return MAPS_ARTIFACT;
+    }
+    else if (tagName.startsWith(CONSTRAINT_LAYOUT_PKG)) {
+      return CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_CONSTRAINT_LAYOUT_PKG)) {
+      return ANDROIDX_CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_RECYCLER_VIEW_PKG)) {
+      return ANDROIDX_RECYCLER_VIEW_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_CARD_VIEW_PKG)) {
+      return ANDROIDX_CARD_VIEW_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_GRID_LAYOUT_PKG)) {
+      return ANDROIDX_GRID_LAYOUT_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_LEANBACK_PKG)) {
+      return ANDROIDX_LEANBACK_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_CORE_PKG)) {
+      return ANDROIDX_SUPPORT_LIB_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_VIEWPAGER_PKG)) {
+      return ANDROIDX_VIEW_PAGER_LIB_ARTIFACT;
+    }
+    else if (tagName.startsWith(ANDROIDX_APPCOMPAT_PKG)) {
+      return ANDROIDX_APPCOMPAT_LIB_ARTIFACT;
+    }
+    return IN_PLATFORM;
   }
 
   /**
@@ -144,34 +174,5 @@ public abstract class PaletteComponentHandler {
   protected Icon loadBuiltinIcon(@NotNull String tagName) {
     Icon icon = AndroidDomElementDescriptorProvider.getIconForViewTag(getSimpleTagName(tagName));
     return icon != null ? icon : StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW;
-  }
-
-  @NotNull
-  protected Icon loadBuiltinLargeIcon(@NotNull String tagName) {
-    Icon icon = AndroidDomElementDescriptorProvider.getLargeIconForViewTag(getSimpleTagName(tagName));
-    return icon != null ? icon : StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW_LARGE;
-  }
-
-  @NotNull
-  private static String getBuiltinCoordinate(@NotNull String tagName) {
-    if (tagName.startsWith(ANDROID_SUPPORT_V4_PKG)) {
-      return SUPPORT_LIB_ARTIFACT;
-    }
-    if (tagName.startsWith(ANDROID_SUPPORT_V7_PKG)) {
-      return APPCOMPAT_LIB_ARTIFACT;
-    }
-    if (tagName.startsWith(ANDROID_SUPPORT_DESIGN_PKG)) {
-      return DESIGN_LIB_ARTIFACT;
-    }
-    if (tagName.startsWith(ANDROID_SUPPORT_LEANBACK_V17_PKG)) {
-      return LEANBACK_V17_ARTIFACT;
-    }
-    if (tagName.startsWith(GOOGLE_PLAY_SERVICES_ADS_PKG)) {
-      return ADS_ARTIFACT;
-    }
-    if (tagName.startsWith(GOOGLE_PLAY_SERVICES_MAPS_PKG)) {
-      return MAPS_ARTIFACT;
-    }
-    return IN_PLATFORM;
   }
 }

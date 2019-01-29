@@ -105,7 +105,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     // add logcat specific actions
     actionList.add(0, new ClearLogCatAction(console));
 
-    return actionList.toArray(new AnAction[actionList.size()]);
+    return actionList.toArray(AnAction.EMPTY_ARRAY);
   }
 
   /**

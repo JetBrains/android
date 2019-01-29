@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.common.model.NlModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -59,7 +61,7 @@ public final class ResourcesUtil {
                                            @NotNull AndroidFacet facet) {
     List<VirtualFile> drawableSubDirs = AndroidResourceUtil.getResourceSubdirs(
       ResourceFolderType.DRAWABLE,
-      ModuleResourceRepository.getOrCreateInstance(facet).getResourceDirs());
+      ResourceRepositoryManager.getModuleResources(facet).getResourceDirs());
 
     for (VirtualFile dir : drawableSubDirs) {
       if (dir.findChild(String.format("%s.%s", drawableName, drawableType)) != null) {
@@ -92,7 +94,7 @@ public final class ResourcesUtil {
     // Create a new file in the res/drawable folder
     List<VirtualFile> drawableSubDirs = AndroidResourceUtil.getResourceSubdirs(
       ResourceFolderType.DRAWABLE,
-      ModuleResourceRepository.getOrCreateInstance(facet).getResourceDirs());
+      ResourceRepositoryManager.getModuleResources(facet).getResourceDirs());
 
     try {
       byte[] imageInByte = imageToByteArray(image, drawableType);

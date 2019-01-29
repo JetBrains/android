@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
-import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.Configurable;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.lint.LintIdeClient;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.checks.ApiLookup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -39,7 +37,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -58,7 +55,6 @@ import static com.android.SdkConstants.*;
  * Utility methods for style resolution.
  */
 public class ResolutionUtils {
-
   private static final Logger LOG = Logger.getInstance(ResolutionUtils.class);
 
   // Utility methods class isn't meant to be constructed, all methods are static.
@@ -77,12 +73,27 @@ public class ResolutionUtils {
     String startChar = TAG_ATTR.equals(type) ? PREFIX_THEME_REF : PREFIX_RESOURCE_REF;
     int colonIndex = qualifiedName.indexOf(':');
     if (colonIndex != -1) {
-      // The theme name contains a namespace, change the format to be "@namespace:style/ThemeName"
+      // The theme name contains a namespace, change the format to be "@namespace:style/ThemeName".
       String namespace = qualifiedName.substring(0, colonIndex + 1); // Namespace plus + colon
       String themeNameWithoutNamespace = StringUtil.trimStart(qualifiedName, namespace);
       return startChar + namespace + type + "/" + themeNameWithoutNamespace;
     }
     return startChar + type + "/" + qualifiedName;
+  }
+
+  /**
+   * @deprecated Avoid qualified style and theme names and use {@link ResourceReference}s instead.
+   */
+  @Deprecated
+  @NotNull
+  public static ResourceReference getStyleReference(@NotNull String themeName) {
+    if (themeName.startsWith(ANDROID_NS_NAME_PREFIX)) {
+      return ResourceReference.style(ResourceNamespace.ANDROID, themeName.substring(ANDROID_NS_NAME_PREFIX.length()));
+    }
+    else {
+      assert themeName.indexOf(':') < 0;
+      return ResourceReference.style(ResourceNamespace.TODO(), themeName);
+    }
   }
 
   /**
@@ -116,12 +127,12 @@ public class ResolutionUtils {
   }
 
   /**
-   * Returns the item name, including the appropriate namespace.
+   * Returns the name of the attr for this item, including the appropriate namespace.
    */
   @NotNull
-  public static String getQualifiedItemName(@NotNull ItemResourceValue item) {
-    String name = item.getName();
-    return item.isFrameworkAttr() ? PREFIX_ANDROID + name : name;
+  public static String getQualifiedItemAttrName(@NotNull StyleItemResourceValue item) {
+    ResourceReference attr = item.getAttr();
+    return attr != null ? attr.getRelativeResourceUrl(ResourceNamespace.TODO()).getQualifiedName() : item.getAttrName();
   }
 
   /**
@@ -131,15 +142,33 @@ public class ResolutionUtils {
    * will be returned as "@android:color/black"
    */
   @NotNull
-  public static String getQualifiedValue(@NotNull ItemResourceValue item) {
+  public static String getQualifiedValue(@NotNull StyleItemResourceValue item) {
     ResourceUrl url = ResourceUrl.parse(item.getRawXmlValue(), item.isFramework());
     return url == null ? item.getRawXmlValue() : url.toString();
   }
 
   @Nullable
-  private static StyleResourceValue getStyleResourceValue(@NotNull ResourceResolver resolver, @NotNull String qualifiedStyleName) {
+  public static ConfiguredThemeEditorStyle getThemeEditorStyle(@NotNull Configuration configuration,
+                                                               @NotNull ResourceReference styleReference,
+                                                               @Nullable Module module) {
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assert resolver != null;
+    StyleResourceValue style = resolver.getStyle(styleReference);
+    return style == null ? null : new ConfiguredThemeEditorStyle(configuration, style, module);
+  }
+
+  /**
+   * @deprecated Use {@link #getThemeEditorStyle(Configuration, ResourceReference, Module)}.
+   */
+  @Deprecated
+  @Nullable
+  public static ConfiguredThemeEditorStyle getThemeEditorStyle(@NotNull Configuration configuration, @NotNull String qualifiedStyleName,
+                                                               @Nullable Module module) {
+    ResourceResolver resolver = configuration.getResourceResolver();
+    assert resolver != null;
     assert !qualifiedStyleName.startsWith(ANDROID_STYLE_RESOURCE_PREFIX);
     assert !qualifiedStyleName.startsWith(STYLE_RESOURCE_PREFIX);
+
     String styleName;
     boolean isFrameworkStyle;
 
@@ -151,32 +180,33 @@ public class ResolutionUtils {
       isFrameworkStyle = false;
     }
 
-    return resolver.getStyle(styleName, isFrameworkStyle);
-  }
-
-  /**
-   * Constructs a {@link ConfiguredThemeEditorStyle} instance for a theme with the given name and source module, using the passed resolver.
-   */
-  @Nullable
-  public static ConfiguredThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull ResourceResolver resolver, @NotNull final String qualifiedStyleName, @Nullable Module module) {
-    final StyleResourceValue style = getStyleResourceValue(resolver, qualifiedStyleName);
+    StyleResourceValue style = configuration.getResourceResolver().getStyle(styleName, isFrameworkStyle);
     return style == null ? null : new ConfiguredThemeEditorStyle(configuration, style, module);
   }
 
   @Nullable
-  public static ConfiguredThemeEditorStyle getStyle(@NotNull Configuration configuration, @NotNull final String qualifiedStyleName, @Nullable Module module) {
-    ResourceResolver resolver = configuration.getResourceResolver();
-    assert resolver != null;
-    return getStyle(configuration, configuration.getResourceResolver(), qualifiedStyleName, module);
+  public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration,
+                                                           @NotNull StyleItemResourceValue itemResValue) {
+    ResourceReference attr = itemResValue.getAttr();
+    return attr == null ? null : getAttributeDefinition(configuration.getModule(), attr);
   }
 
   @Nullable
-  public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration, @NotNull ItemResourceValue itemResValue) {
-    return getAttributeDefinition(configuration.getModule(), configuration, getQualifiedItemName(itemResValue));
+  public static AttributeDefinition getAttributeDefinition(@NotNull Module module, @NotNull ResourceReference attr) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null : String.format("Module %s is not an Android module", module.getName());
+
+    AttributeDefinitions definitions = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getAttributeDefinitions();
+    return definitions.getAttrDefinition(attr);
   }
 
+  /**
+   * @deprecated Use {@link ##getAttributeDefinition(Module, ResourceReference)}.
+   */
+  @Deprecated
   @Nullable
-  public static AttributeDefinition getAttributeDefinition(@NotNull Module module, @Nullable Configuration configuration, @NotNull String name) {
+  public static AttributeDefinition getAttributeDefinition(@NotNull Module module, @Nullable Configuration configuration,
+                                                           @NotNull String name) {
     AttributeDefinitions definitions;
 
     if (name.startsWith(ANDROID_NS_NAME_PREFIX)) {
@@ -234,7 +264,7 @@ public class ResolutionUtils {
       }
       return apiLookup.getFieldVersion("android/R$attr", name.substring(ANDROID_NS_NAME_PREFIX_LEN));
     } else {
-      if (!resUrl.framework) {
+      if (!resUrl.isFramework()) {
         // not an android value
         return -1;
       }
@@ -244,31 +274,26 @@ public class ResolutionUtils {
 
   @Nullable/*if this style doesn't have parent*/
   public static String getParentQualifiedName(@NotNull StyleResourceValue style) {
-    String parentName = ResourceResolver.getParentName(style);
-    if (parentName == null) {
+    ResourceReference parent = style.getParentStyle();
+    if (parent == null) {
       return null;
     }
-    if (parentName.startsWith(PREFIX_RESOURCE_REF)) {
-      parentName = getQualifiedNameFromResourceUrl(parentName);
-    }
-    if (style.isFramework() && !parentName.startsWith(PREFIX_ANDROID)) {
-      parentName = PREFIX_ANDROID + parentName;
-    }
-    return parentName;
+
+    return parent.getRelativeResourceUrl(ResourceNamespace.TODO()).getQualifiedName();
   }
 
   @NotNull
-  public static Collection<ItemResourceValue> getThemeAttributes(@NotNull ResourceResolver resolver, final @NotNull String themeUrl) {
-    Map<String, ItemResourceValue> allItems = new HashMap<>();
+  public static Collection<StyleItemResourceValue> getThemeAttributes(@NotNull ResourceResolver resolver, final @NotNull String themeUrl) {
+    Map<String, StyleItemResourceValue> allItems = new HashMap<>();
     String themeName = getQualifiedNameFromResourceUrl(themeUrl);
     do {
       StyleResourceValue theme = resolver.getStyle(getNameFromQualifiedName(themeName), themeName.startsWith(PREFIX_ANDROID));
       if (theme == null) {
         break;
       }
-      Collection<ItemResourceValue> themeItems = theme.getValues();
-      for (ItemResourceValue item : themeItems) {
-        String itemName = getQualifiedItemName(item);
+      Collection<StyleItemResourceValue> themeItems = theme.getDefinedItems();
+      for (StyleItemResourceValue item : themeItems) {
+        String itemName = getQualifiedItemAttrName(item);
         if (!allItems.containsKey(itemName)) {
           allItems.put(itemName, item);
         }
@@ -281,7 +306,7 @@ public class ResolutionUtils {
   }
 
   @Nullable/*if we can't work out the type, e.g a 'reference' with a '@null' value or enum*/
-  public static ResourceType getAttrType(@NotNull ItemResourceValue item, @NotNull Configuration configuration) {
+  public static ResourceType getAttrType(@NotNull StyleItemResourceValue item, @NotNull Configuration configuration) {
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
     ResourceValue resolvedValue = resolver.resolveResValue(item);
@@ -319,12 +344,13 @@ public class ResolutionUtils {
       assert target != null;
       ResourceRepository resourceRepository = configurationManager.getResolverCache().getFrameworkResources(configuration, target);
       assert resourceRepository != null;
-      ResourceItem resourceItem = resourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
-      configurables = resourceItem.getSourceFileList();
+      configurables =
+          resourceRepository.getResources(ResourceNamespace.ANDROID, resolvedValue.getResourceType(), resolvedValue.getName());
     }
     else {
-      AppResourceRepository appResourceRepository = AppResourceRepository.getOrCreateInstance(facet);
-      configurables = appResourceRepository.getResourceItem(resolvedValue.getResourceType(), resolvedValue.getName());
+      LocalResourceRepository LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet);
+      configurables =
+          LocalResourceRepository.getResources(ResourceNamespace.TODO(), resolvedValue.getResourceType(), resolvedValue.getName());
     }
     Configurable configurable = configuration.findMatchingConfigurable(configurables);
     assert configurable != null;

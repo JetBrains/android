@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -49,12 +50,20 @@ public class ThemeEditorNotificationProvider extends EditorNotifications.Provide
   @Nullable
   @Override
   public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull final FileEditor fileEditor) {
+    if (!StudioFlags.THEME_EDITOR_ENABLED.get()) {
+      return null;
+    }
+
     if (myDismissed) {
       return null;
     }
 
     final PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myProject, file);
     if (!ThemeEditorProvider.isAndroidTheme(psiFile)) {
+      return null;
+    }
+
+    if (!ThemeEditorUtils.findAndroidModules(myProject).findAny().isPresent()) {
       return null;
     }
 

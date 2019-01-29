@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
@@ -62,30 +62,10 @@ public class TableLayoutHandler extends LinearLayoutHandler {
     if (insertType.isCreate()) {
       // Start the table with 4 rows
       for (int i = 0; i < 4; i++) {
-        NlComponentHelperKt.createChild(node, editor, FQCN_TABLE_ROW, null, InsertType.VIEW_HANDLER);
+        NlComponentHelperKt.createChild(node, editor, FQCN_TABLE_ROW, null, InsertType.PROGRAMMATIC);
       }
     }
 
     return true;
-  }
-
-  @Nullable
-  @Override
-  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
-                                           @NotNull NlComponent component,
-                                           @Nullable SegmentType horizontalEdgeType,
-                                           @Nullable SegmentType verticalEdgeType) {
-    // Children of a table layout cannot set their widths (it is controlled by column
-    // settings on the table). They can set their heights (though for TableRow, the
-    // height is always wrap_content).
-    if (horizontalEdgeType == null) { // Widths are edited by vertical edges.
-      // The user is not editing a vertical height so don't allow resizing at all
-      return null;
-    }
-    if (TABLE_ROW.equals(component.getTagName())) {
-      // TableRows are always WRAP_CONTENT
-      return null;
-    }
-    return super.createResizeHandler(editor, component, horizontalEdgeType, verticalEdgeType);
   }
 }

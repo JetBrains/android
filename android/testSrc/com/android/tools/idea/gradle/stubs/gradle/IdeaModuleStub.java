@@ -49,7 +49,7 @@ public class IdeaModuleStub implements IdeaModule {
     myFileStructure = new FileStructure(parent.getRootDir(), name);
     myContentRoots.add(new IdeaContentRootStub(getRootDir()));
     File projectFile = myFileStructure.createProjectFile(GradleConstants.DEFAULT_SCRIPT_NAME);
-    myGradleProject = new GradleProjectStub(name, ":" + name, projectFile, tasks);
+    myGradleProject = new GradleProjectStub(name, ":" + name, parent.getRootDir(), projectFile, tasks);
   }
 
   /**
@@ -58,6 +58,11 @@ public class IdeaModuleStub implements IdeaModule {
   @NotNull
   public File getRootDir() {
     return myFileStructure.getRootFolderPath();
+  }
+
+  @Override
+  public String getJdkName() throws UnsupportedMethodException {
+    throw new UnsupportedOperationException();
   }
 
   @NotNull
@@ -121,9 +126,4 @@ public class IdeaModuleStub implements IdeaModule {
 
   @Override
   public IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException { throw new UnsupportedOperationException(); }
-
-  @Override
-  public String getJdkName() throws UnsupportedMethodException {
-    throw new UnsupportedOperationException();
-  }
 }

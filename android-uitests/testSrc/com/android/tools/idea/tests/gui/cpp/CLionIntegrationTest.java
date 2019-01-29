@@ -16,26 +16,27 @@
 package com.android.tools.idea.tests.gui.cpp;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith (GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class CLionIntegrationTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   private static final String NATIVE_C_FILE_PATH = "app/src/main/cpp/hello-jni.c";
   private static final String NATIVE_C_HEADER_FILE = "hello-jni.h";
@@ -64,7 +65,7 @@ public class CLionIntegrationTest {
    *   4. There should be an error indication.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void cLionIntegration() throws Exception {
     IdeFrameFixture ideFrame =
@@ -78,13 +79,14 @@ public class CLionIntegrationTest {
     String inspectionResults = ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
       .clickOk()
       .getResults();
-    assertThat(inspectionResults).contains("Unused import statement");
+    assertThat(inspectionResults).contains("Unused macro");
     assertThat(editor.getHighlights(HighlightSeverity.ERROR)).isEmpty();
 
     // Check code completion.
     editor.moveBetween("int kid_age = 3;", "").enterText("\nBUFFER");
     ideFrame.invokeMenuPath("Code", "Completion", "Basic");
-    assertThat(editor.getCurrentLine()).contains("BUFFER_OFFSET");
+    Wait.seconds(5).expecting("")
+      .until(() -> editor.getCurrentLine().contains("BUFFER_OFFSET"));
 
     // Complete the new statement.
     editor.moveBetween("BUFFER_OFFSET(", "")

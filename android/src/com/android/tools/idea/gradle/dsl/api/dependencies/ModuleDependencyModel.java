@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 public interface ModuleDependencyModel extends DependencyModel {
@@ -30,14 +29,8 @@ public interface ModuleDependencyModel extends DependencyModel {
   void setName(@NotNull String name);
 
   @NotNull
-  GradleNotNullValue<String> path();
-
-  void setPath(@NotNull String path);
+  ResolvedPropertyModel path();
 
   @NotNull
-  GradleNullableValue<String> configuration();
-
-  void setConfiguration(@NotNull String configuration);
-
-  void removeConfiguration();
+  ResolvedPropertyModel configuration();
 }

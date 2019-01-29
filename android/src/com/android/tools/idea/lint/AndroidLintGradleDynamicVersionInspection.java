@@ -40,7 +40,7 @@ public class AndroidLintGradleDynamicVersionInspection extends AndroidLintInspec
     GradleCoordinate plus = LintFix.getData(fixData, GradleCoordinate.class);
     if (plus != null && plus.getArtifactId() != null) {
       return new AndroidLintQuickFix[]{
-        new ReplaceStringQuickFix("Replace with specific version", plus.getRevision(), "specific version") {
+        new ReplaceStringQuickFix("Replace with specific version", null, plus.getRevision(), "specific version") {
           @Nullable
           @Override
           protected String getNewValue() {

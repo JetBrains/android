@@ -38,12 +38,10 @@ import static com.android.testutils.TestUtils.getWorkspaceFile;
   // https://github.com/bazelbuild/bazel/issues/374
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
-
-  // Empty test in gradle-feature - http://b.android.com/230792
-  com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
-
+  // This is not actually a test but a tool. See http://b/111785663
+  com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.generator.GenerateShippedSyncTest.class,
   // http://b/35788260
-  com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class,
+  com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class
 })
 public class IdeaTestSuite extends IdeaTestSuiteBase {
 
@@ -60,6 +58,7 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
         "tools/adt/idea/android/testData",
         "tools/adt/idea/android/lib",
         "tools/base/templates",
+        "tools/idea/build.txt",
         "tools/idea/java",
         "prebuilts/studio/jdk",
         "prebuilts/studio/layoutlib",
@@ -67,6 +66,7 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
 
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
+    setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/adt/idea/android/android-gradle-1.5.0_repo.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
 

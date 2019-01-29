@@ -27,7 +27,11 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceDirectoryDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.*;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.HostPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent;
@@ -41,6 +45,7 @@ import org.fest.swing.fixture.JMenuItemFixture;
 import org.fest.swing.fixture.JPanelFixture;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,6 +54,8 @@ import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.List;
 
+import static junit.framework.TestCase.assertTrue;
+
 /**
  * Fixture wrapping the the layout editor for a particular file
  */
@@ -56,6 +63,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   private final DesignSurfaceFixture<? extends DesignSurfaceFixture, ? extends DesignSurface> myDesignSurfaceFixture;
   private NlPropertyInspectorFixture myPropertyFixture;
   private NlPaletteFixture myPaletteFixture;
+  private WorkBenchLoadingPanelFixture myLoadingPanelFixture;
   private final ComponentDragAndDrop myDragAndDrop;
 
   public NlEditorFixture(@NotNull Robot robot, @NotNull NlEditor editor) {
@@ -71,17 +79,22 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
       throw new RuntimeException("Unsupported DesignSurface type " + surface.getClass().getName());
     }
     myDragAndDrop = new ComponentDragAndDrop(robot);
+
+    myLoadingPanelFixture = new WorkBenchLoadingPanelFixture(robot, target().getWorkBench().getLoadingPanel());
   }
 
   @NotNull
   public NlEditorFixture waitForRenderToFinish() {
-    myDesignSurfaceFixture.waitForRenderToFinish();
+    waitForRenderToFinish(Wait.seconds(10));
     return this;
   }
 
   @NotNull
   public NlEditorFixture waitForRenderToFinish(@NotNull Wait wait) {
     myDesignSurfaceFixture.waitForRenderToFinish(wait);
+    wait.expecting("WorkBench is showing").until(() -> !myLoadingPanelFixture.isLoading());
+    // Fade out of the loading panel takes 500ms
+    Pause.pause(1000);
     return this;
   }
 
@@ -99,6 +112,38 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return myDesignSurfaceFixture.getScale();
   }
 
+  /**
+   * Waits for the design tab of the layout editor to either load (waiting for sync and indexing
+   * to complete if necessary) or display an error message. Callers can check whether or not the
+   * design editor is usable after this method completes by calling canInteractWithSurface().
+   *
+   * @see #canInteractWithSurface()
+   */
+  @NotNull
+  public NlEditorFixture waitForSurfaceToLoad() {
+    // A long timeout is necessary in case the IDE needs to perform indexing (since the design surface will not render
+    // until sync and indexing are finished). We can't simply wait for background tasks to complete before calling
+    // this method because there might be a delay between the sync and indexing steps that causes the wait to finish prematurely.
+    Wait.seconds(90).expecting("Design surface finished loading").until(() -> {
+      if (myLoadingPanelFixture.hasError()) {
+        return true;
+      }
+
+      return myDesignSurfaceFixture.target().isShowing();
+    });
+
+    return this;
+  }
+
+  public boolean canInteractWithSurface() {
+    return !myLoadingPanelFixture.hasError() && myDesignSurfaceFixture.target().isShowing();
+  }
+
+  public NlEditorFixture assertCanInteractWithSurface() {
+    assertTrue(canInteractWithSurface());
+    return this;
+  }
+
   public boolean hasRenderErrors() {
     return myDesignSurfaceFixture.hasRenderErrors();
   }
@@ -110,6 +155,11 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   @NotNull
   public DesignSurfaceFixture getSurface() {
     return myDesignSurfaceFixture;
+  }
+
+  @NotNull
+  public NavDesignSurfaceFixture getNavSurface() {
+    return (NavDesignSurfaceFixture)myDesignSurfaceFixture;
   }
 
   @NotNull
@@ -173,14 +223,26 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
   }
 
   @NotNull
-  public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
+  public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item, int relativeX, int relativeY) {
     getPalette().dragComponent(group, item);
 
     DesignSurface target = myDesignSurfaceFixture.target();
     SceneView sceneView = target.getCurrentSceneView();
 
     myDragAndDrop
-      .drop(target, new Point(sceneView.getX() + sceneView.getSize().width / 2, sceneView.getY() + sceneView.getSize().height / 2));
+      .drop(target, new Point(sceneView.getX() + relativeX, sceneView.getY() + relativeY));
+
+    // Wait for the button to settle. It sometimes moves after being dropped onto the canvas.
+    robot().waitForIdle();
+    return this;
+  }
+
+  @NotNull
+  public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
+    DesignSurface target = myDesignSurfaceFixture.target();
+    SceneView sceneView = target.getCurrentSceneView();
+
+    dragComponentToSurface(group, item, sceneView.getSize().width / 2, sceneView.getSize().height / 2);
     return this;
   }
 
@@ -323,5 +385,13 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public void invokeContextMenuAction(@NotNull String actionLabel) {
     new JMenuItemFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(JMenuItem.class, actionLabel))).click();
+  }
+
+  public HostPanelFixture hostPanel() {
+    return HostPanelFixture.Companion.create(robot());
+  }
+
+  public DestinationListFixture destinationList() {
+    return DestinationListFixture.Companion.create(robot());
   }
 }

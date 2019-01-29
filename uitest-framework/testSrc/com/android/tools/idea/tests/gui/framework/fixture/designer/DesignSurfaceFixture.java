@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer;
 
+import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
@@ -84,7 +86,12 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
     return target().getScale();
   }
 
-  public void doubleClick(@NotNull Point point) {
+  /**
+   * Clicks in the design surface on the point that corresponds to {@link AndroidCoordinate} (x, y)
+   */
+  public void doubleClick(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+    SceneView view = target().getCurrentSceneView();
+    Point point = new Point(Coordinates.getSwingX(view, x), Coordinates.getSwingY(view, y));
     robot().click(target(), point, MouseButton.LEFT_BUTTON, 2);
   }
 

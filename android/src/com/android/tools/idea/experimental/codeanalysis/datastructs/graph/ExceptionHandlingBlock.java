@@ -24,7 +24,7 @@ public class ExceptionHandlingBlock {
 
   @NotNull
   public PsiType[] getHandlerTypes() {
-    return new PsiType[0];
+    return PsiType.EMPTY_ARRAY;
   }
 
   @Nullable

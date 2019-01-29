@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.run.util.LaunchUtils;
+import com.android.tools.idea.stats.RunStatsService;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -39,7 +40,7 @@ import java.util.concurrent.TimeoutException;
 /** A utility class to wait for an emulator to be fully launched (ready for "pm install") and connected to adb. */
 public class EmulatorConnectionListener {
   // Wait for a device corresponding to given emulator to come online for the given timeout period
-  public static ListenableFuture<IDevice> getDeviceForEmulator(@NotNull Project project,
+  public static ListenableFuture<IDevice> getDeviceForEmulator(@Nullable Project project,
                                                                @NotNull String avdName,
                                                                @Nullable ProcessHandler emulatorProcessHandler,
                                                                long timeout,
@@ -63,7 +64,7 @@ public class EmulatorConnectionListener {
     private final ProcessHandler myEmulatorProcessHandler;
     private final long myTimeout; // in POLL_TIMEUNIT units
 
-    private WaitForEmulatorTask(@NotNull Project project,
+    private WaitForEmulatorTask(@Nullable Project project,
                                 @NotNull SettableFuture<IDevice> device,
                                 @NotNull String avdName,
                                 @NotNull ProcessHandler emulatorProcessHandler,

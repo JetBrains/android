@@ -42,7 +42,7 @@ public final class CreateClassActionTest extends AndroidTestCase {
   }
 
   public void testGetDestinationDirectoryIdeDoesntHaveOneDirectory() throws IOException {
-    AndroidModel oldModel = myFacet.getAndroidModel();
+    AndroidModel oldModel = myFacet.getConfiguration().getModel();
 
     Path path = FileSystems.getDefault().getPath(myModule.getProject().getBasePath(), "app", "src", "main", "java");
     TestFileUtils.createDirectoriesAndRefreshVfs(path);
@@ -50,7 +50,7 @@ public final class CreateClassActionTest extends AndroidTestCase {
     IdeView ide = mockIdeView(Arrays.asList(Mockito.mock(PsiDirectory.class), Mockito.mock(PsiDirectory.class)));
 
     try {
-      myFacet.setAndroidModel(mockAndroidModel(Collections.singletonList(path.toFile())));
+      myFacet.getConfiguration().setModel(mockAndroidModel(Collections.singletonList(path.toFile())));
 
       PsiFileSystemItem directory = CreateClassAction.getDestinationDirectory(ide, myModule);
       assert directory != null;
@@ -58,7 +58,7 @@ public final class CreateClassActionTest extends AndroidTestCase {
       assertEquals(toSystemIndependentPath(path.toString()), directory.getVirtualFile().getPath());
     }
     finally {
-      myFacet.setAndroidModel(oldModel);
+      myFacet.getConfiguration().setModel(oldModel);
     }
   }
 

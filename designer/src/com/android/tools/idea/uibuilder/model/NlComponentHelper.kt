@@ -15,17 +15,48 @@
  */
 package com.android.tools.idea.uibuilder.model
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROIDX_PKG_PREFIX
+import com.android.SdkConstants.ANDROID_NS_NAME_PREFIX
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ANDROID_VIEW_PKG
+import com.android.SdkConstants.ANDROID_WEBKIT_PKG
+import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.ATTR_MOCKUP
+import com.android.SdkConstants.CLASS_VIEWGROUP
+import com.android.SdkConstants.PreferenceTags
+import com.android.SdkConstants.REQUEST_FOCUS
+import com.android.SdkConstants.SPACE
+import com.android.SdkConstants.TAG_GROUP
+import com.android.SdkConstants.TAG_ITEM
+import com.android.SdkConstants.TAG_MENU
+import com.android.SdkConstants.TAG_SELECTOR
+import com.android.SdkConstants.TOOLS_URI
+import com.android.SdkConstants.VALUE_WRAP_CONTENT
+import com.android.SdkConstants.VIEW
+import com.android.SdkConstants.VIEW_INCLUDE
+import com.android.SdkConstants.VIEW_MERGE
 import com.android.annotations.VisibleForTesting
-import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.ResourceType
-import com.android.resources.ResourceUrl
+import com.android.support.AndroidxName
+import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandAction
 import com.android.tools.idea.common.model.AndroidCoordinate
+import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.api.*
+import com.android.tools.idea.common.model.NlDependencyManager
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.api.DragHandler
+import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
+import com.android.tools.idea.uibuilder.api.ViewEditor
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler
+import com.android.tools.idea.uibuilder.api.ViewHandler
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.application.ApplicationManager
@@ -34,12 +65,6 @@ import com.intellij.openapi.util.Computable
 /*
  * Layout editor-specific helper methods and data for NlComponent
  */
-
-/**
- * Regex to get the base name of a component id, where the basename of
- * "component123" is "component"
- */
-private val BASE_ID_PATTERN = Regex("(.*[^0-9])([0-9]+)?")
 
 @AndroidCoordinate
 var NlComponent.x: Int
@@ -55,12 +80,14 @@ var NlComponent.y: Int
     this.nlComponentData.y = value
   }
 
+@AndroidCoordinate
 var NlComponent.w: Int
   get() = this.nlComponentData.w
   set(value) {
     this.nlComponentData.w = value
   }
 
+@AndroidCoordinate
 var NlComponent.h: Int
   get() = this.nlComponentData.h
   set(value) {
@@ -73,7 +100,10 @@ var NlComponent.viewInfo: ViewInfo?
     this.nlComponentData.viewInfo = value
   }
 
-fun NlComponent.setBounds(x: Int, y: Int, w: Int, h: Int) {
+fun NlComponent.setBounds(@AndroidCoordinate x: Int,
+                          @AndroidCoordinate y: Int,
+                          @AndroidCoordinate w: Int,
+                          @AndroidCoordinate h: Int) {
   this.x = x
   this.y = y
   this.w = w
@@ -124,16 +154,6 @@ fun NlComponent.needsDefaultId(): Boolean {
   }
 
   return true
-}
-
-/**
- * Returns the basename of a component id, where the basename of
- * "component123" is "component" or null if the id is empty or null, or no baseName can be found
- */
-fun NlComponent.getBaseIdName(): String? {
-  return this.id?.let {
-    return BASE_ID_PATTERN.find(it)?.groups?.get(1)?.value
-  }
 }
 
 /**
@@ -271,6 +291,37 @@ fun NlComponent.isOrHasSuperclass(className: String): Boolean {
       viewClass = viewClass.superclass
     }
   }
+
+  // We do not have viewInfo but we can still try to exactly match the tag name
+  return className == tagName
+}
+
+/**
+ * Returns true if this NlComponent's class is the specified class,
+ * or if one of its super classes is the specified class.
+
+ * @param className A fully qualified class name
+ */
+fun NlComponent.isOrHasSuperclass(className: AndroidxName): Boolean {
+  return isOrHasSuperclass(className.oldName()) || isOrHasSuperclass(className.newName())
+}
+
+/**
+ * Returns true if this NlComponent's class has a class in the androidx. namespace
+ */
+fun NlComponent.isOrHasAndroidxSuperclass(): Boolean {
+  val viewInfo = viewInfo
+  if (viewInfo != null) {
+    val viewObject = viewInfo.viewObject ?: return ApplicationManager.getApplication().isUnitTestMode && tagName.startsWith(
+        ANDROIDX_PKG_PREFIX)
+    var viewClass: Class<*> = viewObject.javaClass
+    while (viewClass != Any::class.java) {
+      if (viewClass.name.startsWith(ANDROIDX_PKG_PREFIX)) {
+        return true
+      }
+      viewClass = viewClass.superclass
+    }
+  }
   return false
 }
 
@@ -338,11 +389,12 @@ val NlComponent.viewGroupHandler: ViewGroupHandler?
 fun NlComponent.createChild(editor: ViewEditor,
                             fqcn: String,
                             before: NlComponent?,
-                            insertType: InsertType): NlComponent? {
+                            insertType: InsertType
+): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
   val tag = tag.createChildTag(tagName, null, null, false)
 
-  return model.createComponent(editor, tag, this, before, insertType)
+  return model.createComponent(editor.scene.designSurface, tag, this, before, insertType)
 }
 
 fun NlComponent.clearAttributes() {
@@ -394,7 +446,7 @@ class NlComponentMixin(component: NlComponent)
     val resources = component.model.configuration.resourceResolver ?: return null
 
     // Pretend the style was referenced from a proper resource by constructing a temporary ResourceValue. TODO: aapt namespace?
-    val tmpResourceValue = ResourceValue(ResourceUrl.create(null, ResourceType.STYLE, component.tagName), styleAttributeValue)
+    val tmpResourceValue = ResourceValueImpl(ResourceNamespace.TODO(), ResourceType.STYLE, component.tagName, styleAttributeValue)
 
     val styleResourceValue = resources.resolveResValue(tmpResourceValue) as? StyleResourceValue ?: return null
 
@@ -407,6 +459,117 @@ class NlComponentMixin(component: NlComponent)
     component.id?.let { return it }
     val str = component.componentClassName ?: return null
     return str.substring(str.lastIndexOf('.') + 1)
+  }
+
+  override fun canAddTo(receiver: NlComponent): Boolean {
+    if (!receiver.hasNlComponentInfo) {
+      return false
+    }
+    val parentHandler = receiver.viewHandler as? ViewGroupHandler ?: return false
+
+    if (!parentHandler.acceptsChild(receiver, component)) {
+      return false
+    }
+
+    val handler = ViewHandlerManager.get(component.model.project).getHandler(component)
+
+    if (handler != null && !handler.acceptsParent(receiver, component)) {
+      return false
+    }
+    return true
+  }
+
+  /**
+   * Find the Gradle dependency for the given component and return them as a list of String
+   */
+  override fun getDependencies(): Set<String> {
+    val artifacts = mutableSetOf<String>()
+    val handler = ViewHandlerManager.get(component.model.project).getHandler(component) ?: return emptySet()
+    val artifactId = handler.getGradleCoordinateId(component.tag.name)
+    if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
+      artifacts.add(artifactId)
+    }
+    component.children.flatMap { it.dependencies }.toCollection(artifacts)
+
+    return artifacts.toSet()
+  }
+
+  override fun beforeMove(insertType: InsertType, receiver: NlComponent, ids: MutableSet<String>) {
+    var realInsertType = insertType
+    if (insertType.isMove) {
+      realInsertType = if (component.parent === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
+    }
+
+    // AssignId
+    if (component.needsDefaultId() && !realInsertType.isMove) {
+      component.incrementId(ids)
+    }
+  }
+
+  override fun afterMove(insertType: InsertType, previousParent: NlComponent?, receiver: NlComponent, surface: DesignSurface?) {
+    var realInsertType = insertType
+    if (insertType.isMove) {
+      realInsertType = if (component.parent === receiver) InsertType.MOVE_WITHIN else InsertType.MOVE_INTO
+    }
+
+    val editor by lazy { ViewEditorImpl(component.model, surface?.scene) }
+    if (previousParent != receiver) {
+      previousParent?.viewGroupHandler?.onChildRemoved(editor, previousParent, component, realInsertType)
+    }
+
+    receiver.viewGroupHandler?.onChildInserted(editor, receiver, component, realInsertType)
+  }
+
+  override fun postCreate(surface: DesignSurface?, insertType: InsertType): Boolean {
+    if (surface == null) {
+      return false
+    }
+    val realTag = component.tag
+    if (component.parent != null) {
+      // Required attribute for all views; drop handlers can adjust as necessary
+      if (realTag.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI) == null) {
+        realTag.setAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI, VALUE_WRAP_CONTENT)
+      }
+      if (realTag.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI) == null) {
+        realTag.setAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI, VALUE_WRAP_CONTENT)
+      }
+    }
+    else {
+      // No namespace yet: use the default prefix instead
+      if (realTag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH) == null) {
+        realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT)
+      }
+      if (realTag.getAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT) == null) {
+        realTag.setAttribute(ANDROID_NS_NAME_PREFIX + ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT)
+      }
+    }
+
+    // Notify view handlers
+    val viewHandlerManager = ViewHandlerManager.get(component.model.project)
+    val childHandler = viewHandlerManager.getHandler(component)
+
+    val editor = ViewEditorImpl.getOrCreate(surface.scene ?: return false)
+    if (childHandler != null) {
+      var ok = childHandler.onCreate(editor, component.parent, component, insertType)
+      if (component.parent != null) {
+        ok = ok and NlDependencyManager.get().addDependencies((listOf(component)), component.model.facet)
+      }
+      if (!ok) {
+        component.parent?.removeChild(component)
+        realTag.delete()
+        return false
+      }
+    }
+    component.parent?.let {
+      val parentHandler = viewHandlerManager.getHandler(it)
+      (parentHandler as? ViewGroupHandler)?.onChildInserted(editor, it, component, insertType)
+    }
+    return true
+  }
+
+  override fun postCreateFromTransferrable(dndComponent: DnDTransferComponent) {
+    component.w = dndComponent.width
+    component.h = dndComponent.height
   }
 }
 

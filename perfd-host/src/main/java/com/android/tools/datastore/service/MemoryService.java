@@ -15,47 +15,89 @@
  */
 package com.android.tools.datastore.service;
 
+import static com.android.tools.datastore.DataStoreDatabase.Characteristic.PERFORMANT;
+
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
 import com.android.tools.datastore.DeviceId;
+import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.datastore.database.MemoryStatsTable;
 import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
+import com.android.tools.datastore.poller.NativeSymbolsPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.BatchAllocationSample;
+import com.android.tools.profiler.proto.MemoryProfiler.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
+import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
-import static com.android.tools.datastore.DataStoreDatabase.Characteristic.PERFORMANT;
+import org.jetbrains.annotations.NotNull;
 
 public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase implements ServicePassThrough {
   private static final BackingNamespace LIVE_ALLOCATION_NAMESPACE = new BackingNamespace("LiveAllocations", PERFORMANT);
 
   private final Map<Long, PollRunner> myRunners = new HashMap<>();
   private final Map<Long, PollRunner> myJvmtiRunners = new HashMap<>();
+  private final Map<Long, PollRunner> mySymbolizationRunners = new HashMap<>();
   private final MemoryStatsTable myStatsTable;
   private final MemoryLiveAllocationTable myAllocationsTable;
   private final Consumer<Runnable> myFetchExecutor;
   private final DataStoreService myService;
+  private final LogService myLogService;
 
   // TODO Revisit fetch mechanism
-  public MemoryService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
+  public MemoryService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor, @NotNull LogService logService) {
+    myLogService = logService;
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
     myStatsTable = new MemoryStatsTable();
-    myAllocationsTable = new MemoryLiveAllocationTable();
+    myAllocationsTable = new MemoryLiveAllocationTable(myLogService);
   }
 
   @Override
@@ -64,10 +106,18 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     if (client != null) {
       observer.onNext(client.startMonitoringApp(request));
       observer.onCompleted();
+
       Common.Session session = request.getSession();
+      DeviceId deviceId = DeviceId.fromSession(session);
       long sessionId = session.getSessionId();
+
       myJvmtiRunners.put(sessionId, new MemoryJvmtiDataPoller(session, myAllocationsTable, client));
       myRunners.put(sessionId, new MemoryDataPoller(session, myStatsTable, client, myFetchExecutor));
+      mySymbolizationRunners.put(sessionId,
+                                 new NativeSymbolsPoller(session, myAllocationsTable, myService.getNativeSymbolizer(),
+                                                         myService.getProfilerClient(deviceId), myLogService));
+
+      myFetchExecutor.accept(mySymbolizationRunners.get(sessionId));
       myFetchExecutor.accept(myJvmtiRunners.get(sessionId));
       myFetchExecutor.accept(myRunners.get(sessionId));
     }
@@ -85,6 +135,10 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       runner.stop();
     }
     runner = myJvmtiRunners.remove(sessionId);
+    if (runner != null) {
+      runner.stop();
+    }
+    runner = mySymbolizationRunners.remove(sessionId);
     if (runner != null) {
       runner.stop();
     }
@@ -155,6 +209,17 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
+  public void importHeapDump(ImportHeapDumpRequest request, StreamObserver<ImportHeapDumpResponse> responseObserver) {
+    ImportHeapDumpResponse.Builder responseBuilder = ImportHeapDumpResponse.newBuilder();
+    myStatsTable.insertOrReplaceHeapInfo(request.getSession(), request.getInfo());
+    myStatsTable
+      .insertHeapDumpData(request.getSession(), request.getInfo().getStartTime(), DumpDataResponse.Status.SUCCESS, request.getData());
+    responseBuilder.setStatus(ImportHeapDumpResponse.Status.SUCCESS);
+    responseObserver.onNext(responseBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void trackAllocations(TrackAllocationsRequest request,
                                StreamObserver<TrackAllocationsResponse> responseObserver) {
     MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
@@ -169,6 +234,26 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       }
     }
     responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void importLegacyAllocations(ImportLegacyAllocationsRequest request,
+                                      StreamObserver<ImportLegacyAllocationsResponse> responseObserver) {
+    assert request.getInfo().getLegacy();
+    myStatsTable.insertOrReplaceAllocationsInfo(request.getSession(), request.getInfo());
+
+    AllocationContextsResponse contexts = request.getContexts();
+    LegacyAllocationEventsResponse allocations = request.getAllocations();
+    if (!contexts.equals(AllocationContextsResponse.getDefaultInstance())) {
+      myStatsTable
+        .insertLegacyAllocationContext(request.getSession(), contexts.getAllocatedClassesList(), contexts.getAllocationStacksList());
+    }
+    if (!allocations.equals(LegacyAllocationEventsResponse.getDefaultInstance())) {
+      myStatsTable.updateLegacyAllocationEvents(request.getSession(), request.getInfo().getStartTime(), allocations);
+    }
+
+    responseObserver.onNext(ImportLegacyAllocationsResponse.newBuilder().setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build());
     responseObserver.onCompleted();
   }
 
@@ -257,6 +342,15 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
+  public void getJvmtiData(MemoryRequest request, StreamObserver<MemoryData> responseObserver) {
+    MemoryData response = MemoryData.newBuilder().addAllAllocSamplingRateEvents(
+      myAllocationsTable.getAllocationSamplingRateEvents(request.getSession().getSessionId(), request.getStartTime(), request.getEndTime()))
+                                    .build();
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void getAllocations(AllocationSnapshotRequest request, StreamObserver<BatchAllocationSample> responseObserver) {
     BatchAllocationSample response;
     if (request.getLiveObjectsOnly()) {
@@ -286,6 +380,14 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
+  public void resolveNativeBacktrace(ResolveNativeBacktraceRequest request,
+                                     StreamObserver<NativeCallStack> responseObserver) {
+    NativeCallStack callStack = myAllocationsTable.resolveNativeBacktrace(request.getSession(), request.getBacktrace());
+    responseObserver.onNext(callStack);
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void getLatestAllocationTime(LatestAllocationTimeRequest request,
                                       StreamObserver<LatestAllocationTimeResponse> responseObserver) {
     LatestAllocationTimeResponse response = myAllocationsTable.getLatestDataTimestamp(request.getSession());
@@ -309,6 +411,19 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     }
     else {
       observer.onNext(ForceGarbageCollectionResponse.getDefaultInstance());
+    }
+    observer.onCompleted();
+  }
+
+  @Override
+  public void setAllocationSamplingRate(SetAllocationSamplingRateRequest request,
+                                        StreamObserver<SetAllocationSamplingRateResponse> observer) {
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    if (client != null) {
+      observer.onNext(client.setAllocationSamplingRate(request));
+    }
+    else {
+      observer.onNext(SetAllocationSamplingRateResponse.getDefaultInstance());
     }
     observer.onCompleted();
   }

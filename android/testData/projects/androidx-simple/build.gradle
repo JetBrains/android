@@ -1,0 +1,18 @@
+buildscript {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:+'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:+"
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+}

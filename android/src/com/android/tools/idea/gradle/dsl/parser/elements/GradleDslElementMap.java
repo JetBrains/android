@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class GradleDslElementMap extends GradlePropertiesDslElement {
   protected GradleDslElementMap(@NotNull GradleDslElement parent, @NotNull String name) {
-    super(parent, null, name);
+    super(parent, null, GradleNameElement.create(name));
   }
 
   @NotNull

@@ -46,9 +46,16 @@ enum class SceneMode(val displayName: String,
     @VisibleForTesting
     val SCREEN_MODE_PROPERTY = "NlScreenMode"
 
-    fun loadPreferredMode(): SceneMode {
-      val modeName = PropertiesComponent.getInstance().getValue(SCREEN_MODE_PROPERTY, DEFAULT_SCREEN_MODE.name)
-      return try {
+    var cachedSceneMode: SceneMode? = null
+
+    @Synchronized fun loadPreferredMode(): SceneMode {
+      if (cachedSceneMode != null) {
+        return cachedSceneMode!!
+      }
+
+      val modeName = PropertiesComponent.getInstance()?.getValue(SCREEN_MODE_PROPERTY, DEFAULT_SCREEN_MODE.name)
+                     ?: return DEFAULT_SCREEN_MODE // In unit testing we might not have the PropertiesComponent
+      cachedSceneMode = try {
         valueOf(modeName)
       }
       catch (e: IllegalArgumentException) {
@@ -58,8 +65,17 @@ enum class SceneMode(val displayName: String,
             .warn("The mode $modeName is not recognized, use default mode $SCREEN_MODE_PROPERTY instead")
         DEFAULT_SCREEN_MODE
       }
+
+      return cachedSceneMode!!
     }
 
-    fun savePreferredMode(mode: SceneMode) = PropertiesComponent.getInstance().setValue(SCREEN_MODE_PROPERTY, mode.name)
+    @Synchronized  fun savePreferredMode(mode: SceneMode) {
+      if (cachedSceneMode == mode) {
+        return
+      }
+
+      cachedSceneMode = mode
+      PropertiesComponent.getInstance().setValue(SCREEN_MODE_PROPERTY, mode.name)
+    }
   }
 }

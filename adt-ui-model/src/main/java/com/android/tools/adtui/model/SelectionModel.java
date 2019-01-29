@@ -35,7 +35,9 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   private final Range mySelectionRange;
 
   /**
-   * The previous selection range, useful for determining which event to fire (created or cleared).
+   * The previous selection range, which we need to check against in order to fire selection events
+   * indirectly (when someone modifies our underlying range externally instead of through this
+   * class's API).
    */
   @NotNull
   private final Range myPreviousSelectionRange;
@@ -49,10 +51,13 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   private boolean mySelectionEnabled;
 
   /**
-   * If updating, don't fire selection events.
+   * If updating, postpone firing selection events until {@link #endUpdate()}.
    */
   private boolean myIsUpdating;
   private boolean myPostponeSelectionEvent;
+
+  @Nullable
+  private Consumer<SelectionListener> myEventToFire;
 
   public SelectionModel(@NotNull Range selection) {
     mySelectionRange = selection;
@@ -74,7 +79,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
 
   /**
    * Add a listener which is fired whenever the selection is created, modified, or changed.
-   *
+   * <p>
    * Unlike the {@link Aspect#SELECTION} aspect, this event will not be fired between calls to
    * {@link #beginUpdate()} and {@link #endUpdate()}
    */
@@ -92,26 +97,27 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
       return;
     }
 
-    Consumer<SelectionListener> event = null;
-    if (myPreviousSelectionRange.isEmpty() && !mySelectionRange.isEmpty()) {
-      event = SelectionListener::selectionCreated;
+    if (myEventToFire != null) {
+      myListeners.forEach(myEventToFire);
+      myEventToFire = null;
     }
-    else if (!myPreviousSelectionRange.isEmpty() && mySelectionRange.isEmpty()) {
-      event = SelectionListener::selectionCleared;
-    }
-    else if (myPreviousSelectionRange.isEmpty() && mySelectionRange.isEmpty()) {
-      event = SelectionListener::selectionCreationFailure;
-    }
+  }
 
-    myPreviousSelectionRange.set(mySelectionRange);
-    if (event != null) {
-      myListeners.forEach(event);
-    }
+  private void notifyEvent(@NotNull Consumer<SelectionListener> event) {
+    myEventToFire = event;
+    fireListeners();
   }
 
   private void selectionChanged() {
     changed(Aspect.SELECTION);
-    fireListeners();
+
+    if (mySelectionRange.isEmpty()) {
+      notifyEvent(SelectionListener::selectionCleared);
+    }
+    else if (myPreviousSelectionRange.isEmpty()) {
+      notifyEvent(SelectionListener::selectionCreated);
+    }
+    myPreviousSelectionRange.set(mySelectionRange);
   }
 
   /**
@@ -124,7 +130,10 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
 
   /**
    * Mark the end of a previously called {@link #beginUpdate()}. When an update is finished,
-   * any events will be triggered if they would have been fired during the update.
+   * the most recent event will be triggered if it would have been fired during the update,
+   * while any previous events would be swallowed. This is useful, for example, to distinguish
+   * the user simply clearing the selection vs. creating a new one (which would be
+   * beginUpdate -> clear -> set -> endUpdate)
    */
   public void endUpdate() {
     if (myIsUpdating) {
@@ -155,15 +164,40 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     }
 
     Range proposedRange = new Range(min, max);
-    Range resultRange = null;
-    ConfigurableDurationData resultDurationData = null;
-    boolean found = false;
+    ConstrainedRangeResult result = getConstrainedRange(proposedRange);
 
+    if (result == null) {
+      mySelectionRange.clear();
+      notifyEvent(SelectionListener::selectionCreationFailure);
+    }
+    else {
+      Range finalRange = result.getData() != null && result.getData().canSelectPartialRange()
+                         ? result.getRange().getIntersection(proposedRange)
+                         : result.getRange();
+      if (!mySelectionRange.isSameAs(finalRange)) {
+        // Clear the previous range, which will allow logic in `selectionChanged` to realize this
+        // is a new selection, not a modification of an existing selection
+        myPreviousSelectionRange.clear();
+        mySelectionRange.set(finalRange);
+      }
+    }
+  }
+
+  /**
+   * Returns a structure containing the constrained range or null if the proposed range is not able to fit within the constraints.
+   */
+  @Nullable
+  private ConstrainedRangeResult getConstrainedRange(@NotNull Range proposedRange) {
+    if (myConstraints.isEmpty()) {
+      return new ConstrainedRangeResult(proposedRange, null);
+    }
+    boolean found = false;
+    ConstrainedRangeResult result = null;
     for (DurationDataModel<? extends ConfigurableDurationData> constraint : myConstraints) {
       DataSeries<? extends ConfigurableDurationData> series = constraint.getSeries().getDataSeries();
-      List<? extends SeriesData<? extends ConfigurableDurationData>> constraints = series.getDataForXRange(new Range(min, max));
+      List<? extends SeriesData<? extends ConfigurableDurationData>> constraints = series.getDataForXRange(proposedRange);
       for (SeriesData<? extends ConfigurableDurationData> data : constraints) {
-        long duration = data.value.getDuration();
+        long duration = data.value.getDurationUs();
         if (duration == Long.MAX_VALUE && !data.value.getSelectableWhenMaxDuration()) {
           continue;
         }
@@ -172,8 +206,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
         Range r = new Range(data.x, dataMax);
         // Check if this constraint intersects the proposedRange.
         if (!r.getIntersection(proposedRange).isEmpty()) {
-          resultRange = r;
-          resultDurationData = data.value;
+          result = new ConstrainedRangeResult(r, data.value);
           // If this constraint already intersects the current range, use it.
           if (!r.getIntersection(mySelectionRange).isEmpty()) {
             found = true;
@@ -185,23 +218,15 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
         break;
       }
     }
-    if (resultRange == null) {
-      mySelectionRange.clear();
-      if (myPreviousSelectionRange.isEmpty()) {
-        selectionChanged();
-      }
-    }
-    else if (!mySelectionRange.equals(resultRange)) {
-      // In this case, we're completely replacing the existing selection with a brand new selection.
-      // If we didn't clear the previous range, it would look like we were just modifying the old selection.
-      myPreviousSelectionRange.clear();
-      if (resultDurationData.canSelectPartialRange()) {
-        mySelectionRange.set(resultRange.getIntersection(proposedRange));
-      }
-      else {
-        mySelectionRange.set(resultRange);
-      }
-    }
+    return result;
+  }
+
+  /**
+   * Test if the specified range can be used as a selection.
+   */
+  public boolean canSelectRange(@NotNull Range testRange) {
+    ConstrainedRangeResult result = getConstrainedRange(testRange);
+    return result != null;
   }
 
   @NotNull
@@ -214,5 +239,30 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
    */
   public void setSelectionEnabled(boolean enabled) {
     mySelectionEnabled = enabled;
+  }
+
+  /**
+   * Container class to return the result of {@link #getConstrainedRange(Range)}
+   */
+  private static class ConstrainedRangeResult {
+    @NotNull
+    private final Range myRange;
+
+    ConfigurableDurationData myData;
+
+    @NotNull
+    public Range getRange() {
+      return myRange;
+    }
+
+    @Nullable
+    public ConfigurableDurationData getData() {
+      return myData;
+    }
+
+    public ConstrainedRangeResult(@NotNull Range range, @Nullable ConfigurableDurationData data) {
+      myRange = range;
+      myData = data;
+    }
   }
 }

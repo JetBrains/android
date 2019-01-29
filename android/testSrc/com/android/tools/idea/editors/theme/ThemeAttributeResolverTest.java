@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.resources.Style;
@@ -39,7 +40,6 @@ import java.util.List;
 import java.util.Set;
 
 public class ThemeAttributeResolverTest extends AndroidTestCase {
-
 
   public boolean createNewStyle(@NotNull final VirtualFile resourceDir,
                                 @NotNull final String newStyleName,
@@ -77,9 +77,9 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
 
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
 
-    createNewStyle(resourceDir, "ThemeA", "android:Theme", "red", Lists.newArrayList("values-v13", "values-v16"));
-    createNewStyle(resourceDir, "ThemeB", "ThemeA", "blue", Lists.newArrayList("values-v12"));
-    createNewStyle(resourceDir, "ThemeB", "ThemeA", null, Lists.newArrayList("values-v15"));
+    createNewStyle(resourceDir, "ThemeA", "android:Theme", "red", ImmutableList.of("values-v13", "values-v16"));
+    createNewStyle(resourceDir, "ThemeB", "ThemeA", "blue", ImmutableList.of("values-v12"));
+    createNewStyle(resourceDir, "ThemeB", "ThemeA", null, ImmutableList.of("values-v15"));
 
     // ResourceFolderRepository needs to rescan the files to pick up the changes.
     UIUtil.dispatchAllInvocationEvents();
@@ -88,16 +88,16 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     ConfiguredThemeEditorStyle style = themeResolver.getTheme("ThemeB");
     assertNotNull(style);
 
-    Set<String> answer = Sets.newHashSet("-v16:red", "-v15:red", "-v14:blue");
+    Set<String> answer = ImmutableSet.of("v16:red", "v15:red", "v14:blue");
 
     List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, configuration.getConfigurationManager());
     boolean foundColorPrimary = false;
     for (EditedStyleItem item : items) {
-      if (item.getName().equals("colorPrimary") && item.getAttrGroup().equals("Other non-theme attributes.")) {
+      if (item.getAttrName().equals("colorPrimary") && item.getAttrGroup().equals("Other non-theme attributes.")) {
         foundColorPrimary = true;
         assertEquals(answer.size(), item.getAllConfiguredItems().size());
-        for (ConfiguredElement<ItemResourceValue> value : item.getAllConfiguredItems()) {
-          assertTrue(answer.contains(value.getConfiguration().getUniqueKey() + ":" + value.getElement().getValue()));
+        for (ConfiguredElement<StyleItemResourceValue> value : item.getAllConfiguredItems()) {
+          assertTrue(answer.contains(value.getConfiguration().getQualifierString() + ":" + value.getElement().getValue()));
         }
       }
     }
@@ -112,8 +112,8 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     VirtualFile resourceDir = myFile.getParent().getParent();
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myFile);
 
-    createNewStyle(resourceDir, "ThemeA", "android:Theme", "red", Lists.newArrayList("values-port", "values-square", "values-land"));
-    createNewStyle(resourceDir, "ThemeB", "ThemeA", null, Lists.newArrayList("values", "values-port"));
+    createNewStyle(resourceDir, "ThemeA", "android:Theme", "red", ImmutableList.of("values-port", "values-square", "values-land"));
+    createNewStyle(resourceDir, "ThemeB", "ThemeA", null, ImmutableList.of("values", "values-port"));
 
     // ResourceFolderRepository needs to rescan the files to pick up the changes.
     UIUtil.dispatchAllInvocationEvents();
@@ -121,17 +121,15 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     ThemeResolver themeResolver = new ThemeResolver(configuration);
     ConfiguredThemeEditorStyle style = themeResolver.getTheme("ThemeB");
     assertNotNull(style);
-    Set<String> answer = Sets.newHashSet("-port:red", "-land:red", "-square:red");
 
     List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, configuration.getConfigurationManager());
     boolean foundColorPrimary = false;
     for (EditedStyleItem item : items) {
-      if (item.getName().equals("colorPrimary") && item.getAttrGroup().equals("Other non-theme attributes.")) {
+      if (item.getAttrName().equals("colorPrimary") && item.getAttrGroup().equals("Other non-theme attributes.")) {
         foundColorPrimary = true;
-        assertEquals(answer.size(), item.getAllConfiguredItems().size());
-        for (ConfiguredElement<ItemResourceValue> value : item.getAllConfiguredItems()) {
-          assertTrue(answer.contains(value.getConfiguration().getUniqueKey() + ":" + value.getElement().getValue()));
-        }
+        assertSameElements(ContainerUtil.map(item.getAllConfiguredItems(),
+                                             value -> value.getConfiguration().getQualifierString() + ":" + value.getElement().getValue()),
+                           ImmutableSet.of("port:red", "land:red", "square:red"));
       }
     }
     assertTrue(foundColorPrimary);

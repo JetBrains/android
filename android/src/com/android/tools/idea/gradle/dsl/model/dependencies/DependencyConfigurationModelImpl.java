@@ -17,11 +17,10 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyConfigurationModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ExcludedDependencyModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
-import com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,22 +32,17 @@ public class DependencyConfigurationModelImpl implements DependencyConfiguration
   @NonNls private static final String FORCE = "force";
   @NonNls private static final String TRANSITIVE = "transitive";
 
-  @NotNull DependencyConfigurationDslElement myConfigurationElement;
+  @NotNull GradleDslClosure myConfigurationElement;
 
-  public DependencyConfigurationModelImpl(@NotNull DependencyConfigurationDslElement configurationElement) {
+  public DependencyConfigurationModelImpl(@NotNull GradleDslClosure configurationElement) {
     myConfigurationElement = configurationElement;
   }
 
   @Override
   @NotNull
   public List<ExcludedDependencyModel> excludes() {
-    GradleDslElementList elementList = myConfigurationElement.getPropertyElement(EXCLUDE, GradleDslElementList.class);
-    if (elementList == null) {
-      return ImmutableList.of();
-    }
-
     List<ExcludedDependencyModel> excludedDependencies = new ArrayList<>();
-    for (GradleDslExpressionMap excludeElement : elementList.getElements(GradleDslExpressionMap.class)) {
+    for (GradleDslExpressionMap excludeElement : myConfigurationElement.getPropertyElements(EXCLUDE, GradleDslExpressionMap.class)) {
       excludedDependencies.add(new ExcludedDependencyModelImpl(excludeElement));
     }
     return excludedDependencies;
@@ -56,13 +50,13 @@ public class DependencyConfigurationModelImpl implements DependencyConfiguration
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> force() {
-    return myConfigurationElement.getLiteralProperty(FORCE, Boolean.class);
+  public ResolvedPropertyModel force() {
+    return GradlePropertyModelBuilder.create(myConfigurationElement, FORCE).asMethod(true).buildResolved();
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<Boolean> transitive() {
-    return myConfigurationElement.getLiteralProperty(TRANSITIVE, Boolean.class);
+  public ResolvedPropertyModel transitive() {
+    return GradlePropertyModelBuilder.create(myConfigurationElement, TRANSITIVE).asMethod(true).buildResolved();
   }
 }

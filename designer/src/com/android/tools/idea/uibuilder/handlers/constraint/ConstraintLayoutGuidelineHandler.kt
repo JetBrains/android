@@ -27,12 +27,8 @@ import javax.swing.Icon
  */
 class ConstraintLayoutGuidelineHandler : ViewHandler() {
 
-  override fun getGradleCoordinateId(tagName: String): String {
-    return CONSTRAINT_LAYOUT_LIB_ARTIFACT
-  }
-
   override fun getIcon(component: NlComponent): Icon {
-    if (component.tagName != CONSTRAINT_LAYOUT_GUIDELINE) {
+    if (!CONSTRAINT_LAYOUT_GUIDELINE.isEquals(component.tagName)) {
       return super.getIcon(component)
     }
     return if (isVertical(component)) {

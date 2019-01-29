@@ -50,7 +50,7 @@ public final class TextAssetEditor extends JPanel implements AssetComponent<Text
     JTextField textField = new JTextField();
     List<String> fontFamilies = TextAsset.getAllFontFamilies();
     //noinspection UndesirableClassUsage
-    JComboBox<String> fontCombo = new JComboBox<>(fontFamilies.toArray(new String[fontFamilies.size()]));
+    JComboBox<String> fontCombo = new JComboBox<>(fontFamilies.toArray(new String[0]));
 
     add(textField, new TabularLayout.Constraint(0, 0));
     add(fontCombo, new TabularLayout.Constraint(0, 1));

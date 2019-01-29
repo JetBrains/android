@@ -15,11 +15,9 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.tools.idea.lint.LintIdeGradleDetector;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeProject;
 import com.android.tools.idea.lint.LintIdeViewTypeDetector;
-import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.checks.ViewTypeDetector;
 import com.android.tools.lint.detector.api.*;
 import com.android.utils.XmlUtils;
@@ -28,7 +26,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -43,6 +40,14 @@ import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSIO
 import static com.android.utils.SdkUtils.escapePropertyValue;
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
 
+// TODO: For inspections that have safe fixes, mark the inspections with the interface
+// com.intellij.codeInspection.CleanupLocalInspectionTool . However, that also requires
+// it to provide a LocalInspectionTool via getSharedLocalInspectionToolWrapper.
+
+// Note that if the test fails with class loading issues, make sure the run config includes
+// this VM option:
+// -Dplugin.path=<some prefix>/prebuilts/tools/common/kotlin-plugin/Kotlin
+
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static final boolean LIST_ISSUES_WITH_QUICK_FIXES = false;
@@ -51,12 +56,12 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   public void testAllLintChecksRegistered() throws Exception {
     assertTrue(
       "Not all lint checks have been registered. See the standard output for instructions on how to register the missing checks.",
-      checkAllLintChecksRegistered(getProject()));
+      checkAllLintChecksRegistered());
   }
 
   private static boolean ourDone;
   @SuppressWarnings("deprecation")
-  private static boolean checkAllLintChecksRegistered(Project project) throws Exception {
+  private static boolean checkAllLintChecksRegistered() throws Exception {
     if (ourDone) {
       return true;
     }
@@ -348,21 +353,6 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     return true;
   }
 
-  private static String getCategoryBundleKey(Category category) {
-    StringBuilder sb = new StringBuilder(100);
-    sb.append("android.lint.inspections.group.name.");
-    String name = category.getFullName().toLowerCase(Locale.US);
-    for (int i = 0, n = name.length(); i < n; i++) {
-      char c = name.charAt(i);
-      if (Character.isLetter(c)) {
-        sb.append(c);
-      } else {
-        sb.append('.');
-      }
-    }
-    return sb.toString();
-  }
-
   private static String getIssueFieldName(Issue issue) {
     Class<? extends Detector> detectorClass = getDetectorClass(issue);
 
@@ -390,9 +380,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     Class<? extends Detector> detectorClass = issue.getImplementation().getDetectorClass();
 
     // Undo the effects of LintIdeIssueRegistry
-    if (detectorClass == LintIdeGradleDetector.class) {
-      detectorClass = GradleDetector.class;
-    } else if (detectorClass == LintIdeViewTypeDetector.class) {
+    if (detectorClass == LintIdeViewTypeDetector.class) {
       detectorClass = ViewTypeDetector.class;
     }
     return detectorClass;

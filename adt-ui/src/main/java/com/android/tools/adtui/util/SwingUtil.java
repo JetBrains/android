@@ -15,7 +15,10 @@
  */
 package com.android.tools.adtui.util;
 
+import com.google.common.math.IntMath;
 import com.intellij.util.ui.UIUtil;
+import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -25,26 +28,34 @@ import javax.swing.JList;
 import javax.swing.JSeparator;
 import javax.swing.UIManager;
 import javax.swing.plaf.basic.ComboPopup;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 
 public class SwingUtil {
 
   private static final String DOWN = "selectNext";
   private static final String UP = "selectPrevious";
 
-  public static void doNotSelectSeparators(JComboBox combo) {
+  public static void doNotSelectSeparators(@NotNull JComboBox combo) {
+    doNotSelectItems(combo, (e) -> e instanceof JSeparator);
+  }
+
+  public static void doNotSelectItems(@NotNull JComboBox combo, @NotNull Function<Object, Boolean> skipItem) {
     ActionMap actions = combo.getActionMap();
-    actions.put(DOWN, new Actions(DOWN, combo));
-    actions.put(UP, new Actions(UP, combo));
+    actions.put(DOWN, new Actions(DOWN, combo, skipItem));
+    actions.put(UP, new Actions(UP, combo, skipItem));
   }
 
   private static class Actions extends AbstractAction {
 
     private JComboBox comboBox;
+    private Function<Object, Boolean> mySkipItem;
 
-    Actions(String name, JComboBox comboBox) {
+    public Actions(String name, JComboBox comboBox, Function<Object, Boolean> skipItem) {
       super(name);
       this.comboBox = comboBox;
+      this.mySkipItem = skipItem;
     }
 
     /**
@@ -88,10 +99,11 @@ public class SwingUtil {
     }
 
     private int newIndex(int current, boolean next) {
+      int startIndex = current;
       do {
-        current = next ? current + 1 : current - 1;
+        current = IntMath.mod(next ? current + 1 : current - 1, comboBox.getItemCount());
       }
-      while (current >= 0 && current < comboBox.getItemCount() && comboBox.getItemAt(current) instanceof JSeparator);
+      while (startIndex != current && mySkipItem.apply(comboBox.getItemAt(current)));
       return current;
     }
 
@@ -140,5 +152,16 @@ public class SwingUtil {
         comboBox.repaint();
       }
     }
+  }
+
+  /**
+   * @return a {@link MouseEvent} similar to the given {@param event} except that its {@link MouseEvent#getID()} will be the {@param id}.
+   */
+  @NotNull
+  public static MouseEvent convertMouseEventID(@NotNull MouseEvent event, int id) {
+    return new MouseEvent((Component)event.getSource(),
+                          id, event.getWhen(), event.getModifiers(), event.getX(), event.getY(),
+                          event.getClickCount(), event.isPopupTrigger(),
+                          event.getButton());
   }
 }

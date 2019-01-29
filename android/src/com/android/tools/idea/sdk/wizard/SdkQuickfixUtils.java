@@ -107,6 +107,20 @@ public final class SdkQuickfixUtils {
     return createDialog(project, null, requestedPaths, null, null, getSdkHandler(), noOpMessage, false);
   }
 
+  /**
+   * Create an SdkQuickFix dialog.
+   *
+   * @param project        The {@link Project} to use as a parent for the wizard dialog.
+   * @param requestedPaths The paths of packages to install. Callers should ensure that the given packages include remote versions.
+   * @param backgroundable Whether the dialog should show a "background" button on the progress step.
+   */
+  @Nullable
+  public static ModelWizardDialog createDialogForPaths(@Nullable Project project,
+                                                       @NotNull Collection<String> requestedPaths,
+                                                       boolean backgroundable) {
+    return createDialog(project, null, requestedPaths, null, null, getSdkHandler(), null, backgroundable);
+  }
+
   public static void showSdkMissingDialog() {
     String msg = message("android.sdk.missing.msg");
     String title = message("android.sdk.missing.title");
@@ -156,22 +170,27 @@ public final class SdkQuickfixUtils {
     }
 
     List<String> unknownPaths = new ArrayList<>();
-    List<UpdatablePackage> resolvedPackages;
-    mgr.load(0, null, null, null,
-             new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
-             new StudioDownloader(), StudioSettingsController.getInstance(), true);
-    RepositoryPackages packages = mgr.getPackages();
-    if (requestedPackages == null) {
-      requestedPackages = new ArrayList<>();
-    }
-    requestedPackages.addAll(lookupPaths(requestedPaths, packages, unknownPaths));
+    List<UpdatablePackage> resolvedPackages = new ArrayList<>();
+    if (requestedPackages != null && !requestedPackages.isEmpty()
+        || requestedPaths != null && !requestedPaths.isEmpty()) {
+      // This is an expensive call involving a number of manifest download operations,
+      // so make it only when some installations are requested.
+      mgr.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
+               new StudioProgressRunner(true, false, "Finding Available SDK Components", project),
+               new StudioDownloader(), StudioSettingsController.getInstance(), true);
+      RepositoryPackages packages = mgr.getPackages();
+      if (requestedPackages == null) {
+        requestedPackages = new ArrayList<>();
+      }
+      requestedPackages.addAll(lookupPaths(requestedPaths, packages, unknownPaths));
 
-    try {
-      resolvedPackages = resolve(requestedPackages, packages);
-    }
-    catch (PackageResolutionException e) {
-      Messages.showErrorDialog(e.getMessage(), "Error Resolving Packages");
-      return null;
+      try {
+        resolvedPackages = resolve(requestedPackages, packages);
+      }
+      catch (PackageResolutionException e) {
+        Messages.showErrorDialog(e.getMessage(), "Error Resolving Packages");
+        return null;
+      }
     }
 
     Set<LocalPackage> resolvedUninstalls = new HashSet<>();

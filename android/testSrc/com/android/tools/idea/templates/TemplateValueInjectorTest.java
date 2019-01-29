@@ -25,7 +25,6 @@ import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.npw.template.ConvertJavaToKotlinDefaultImpl;
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.intellij.ide.plugins.PluginManagerCore;
@@ -65,10 +64,10 @@ public class TemplateValueInjectorTest{
 
     PluginManagerCore.getPlugins();
     String kotlinEpName = ConvertJavaToKotlinProvider.EP_NAME.getName();
-    if (!getRootArea().hasExtensionPoint(kotlinEpName)) {
-      getRootArea().registerExtensionPoint(kotlinEpName, ConvertJavaToKotlinDefaultImpl.class.getName());
-      Disposer.register(myDisposable, () -> getRootArea().unregisterExtensionPoint(kotlinEpName));
-    }
+    //if (!getRootArea().hasExtensionPoint(kotlinEpName)) {
+    //  getRootArea().registerExtensionPoint(kotlinEpName, ConvertJavaToKotlinProviderImpl.class.getName());
+    //  Disposer.register(myDisposable, () -> getRootArea().unregisterExtensionPoint(kotlinEpName));
+    //}
   }
 
   @After

@@ -48,6 +48,7 @@ public class ToolComponentsPanel {
 
   private TreeTableView myToolsSummaryTable;
   private JCheckBox myToolsDetailsCheckbox;
+  private JCheckBox myHideObsoletePackagesCheckbox;
   private JPanel myToolsPanel;
   private TreeTableView myToolsDetailTable;
   private JPanel myToolsLoadingPanel;
@@ -78,6 +79,7 @@ public class ToolComponentsPanel {
 
   public ToolComponentsPanel() {
     myToolsDetailsCheckbox.addActionListener(e -> updateToolsTable());
+    myHideObsoletePackagesCheckbox.addActionListener(e -> updateToolsItems());
   }
 
   private void updateToolsTable() {
@@ -98,6 +100,9 @@ public class ToolComponentsPanel {
       boolean isMaven = false;
       for (UpdatablePackage info : versions) {
         RepoPackage representative = info.getRepresentative();
+        if (representative.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
+          continue;
+        }
         if (representative.getTypeDetails() instanceof DetailsTypes.MavenType) {
           isMaven = true;
         }
@@ -107,24 +112,30 @@ public class ToolComponentsPanel {
 
         detailsNodes.add(new DetailsTreeNode(model, myModificationListener, myConfigurable));
       }
-      MultiVersionTreeNode summaryNode = new MultiVersionTreeNode(detailsNodes);
-      if (isMaven) {
-        mavenSummaryParent.add(summaryNode);
-      }
-      else {
-        myToolsSummaryRootNode.add(summaryNode);
-      }
+      if (!detailsNodes.isEmpty()) {
+        MultiVersionTreeNode summaryNode = new MultiVersionTreeNode(detailsNodes);
+        if (isMaven) {
+          mavenSummaryParent.add(summaryNode);
+        }
+        else {
+          myToolsSummaryRootNode.add(summaryNode);
+        }
 
-      UpdaterTreeNode multiVersionParent = new ParentTreeNode(summaryNode.getDisplayName());
-      detailsNodes.forEach(multiVersionParent::add);
-      if (isMaven) {
-        mavenDetailsParent.add(multiVersionParent);
-      }
-      else {
-        myToolsDetailsRootNode.add(multiVersionParent);
+        UpdaterTreeNode multiVersionParent = new ParentTreeNode(summaryNode.getDisplayName());
+        detailsNodes.forEach(multiVersionParent::add);
+        if (isMaven) {
+          mavenDetailsParent.add(multiVersionParent);
+        }
+        else {
+          myToolsDetailsRootNode.add(multiVersionParent);
+        }
       }
     }
     for (UpdatablePackage info : myToolsPackages) {
+      RepoPackage representative = info.getRepresentative();
+      if (representative.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
+        continue;
+      }
       PackageNodeModel holder = new PackageNodeModel(info);
       myStates.add(holder);
       UpdaterTreeNode node = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
@@ -135,14 +146,12 @@ public class ToolComponentsPanel {
       else {
         myToolsDetailsRootNode.add(node);
       }
-      if (!info.getRepresentative().obsolete()) {
-        UpdaterTreeNode summaryNode = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
-        if (isMaven) {
-          mavenSummaryParent.add(summaryNode);
-        }
-        else {
-          myToolsSummaryRootNode.add(summaryNode);
-        }
+      UpdaterTreeNode summaryNode = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
+      if (isMaven) {
+        mavenSummaryParent.add(summaryNode);
+      }
+      else {
+        myToolsSummaryRootNode.add(summaryNode);
       }
     }
     if (mavenSummaryParent.getChildCount() > 0) {

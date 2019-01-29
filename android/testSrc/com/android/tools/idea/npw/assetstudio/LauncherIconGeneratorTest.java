@@ -15,41 +15,45 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT;
+import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.getResDirectory;
+
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.ThreadTracker;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.*;
-
-import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import javax.imageio.ImageIO;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link LauncherIconGenerator}.
  */
 public class LauncherIconGeneratorTest extends AndroidTestCase {
-  private static final double MAX_PERCENT_DIFFERENT = 0.005;
-
-  private final List<String> myWarnings = new ArrayList<>();
+  private List<String> myWarnings = new ArrayList<>();
   private LauncherIconGenerator myIconGenerator;
 
-  private final AndroidModuleTemplate myProjectPaths = new AndroidModuleTemplate() {
+  private AndroidModuleTemplate myProjectPaths = new AndroidModuleTemplate() {
     @Override
     @Nullable
     public File getModuleRoot() {
@@ -69,9 +73,9 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     }
 
     @Override
-    @Nullable
-    public File getResDirectory() {
-      return new File(getModuleRoot(), "res");
+    @NotNull
+    public List<File> getResDirectories() {
+      return ImmutableList.of(new File("/other/root"), new File(getModuleRoot(), "res"));
     }
 
     @Override
@@ -92,8 +96,10 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     super.setUp();
     makeSureThatProjectVirtualFileIsNotNull();
 
-    myIconGenerator = new LauncherIconGenerator(myFacet, 15);
+    DrawableRenderer renderer = new DrawableRenderer(myFacet);
+    myIconGenerator = new LauncherIconGenerator(getProject(), 15, renderer);
     disposeOnTearDown(myIconGenerator);
+    disposeOnTearDown(renderer);
     myIconGenerator.outputName().set("ic_launcher");
     myIconGenerator.foregroundLayerName().set("ic_launcher_foreground");
     myIconGenerator.backgroundLayerName().set("ic_launcher_background");
@@ -107,8 +113,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
       // The RenderTask dispose thread may still be running.
       ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "RenderTask dispose");
       assertTrue(String.join("\n", myWarnings), myWarnings.isEmpty());
-    }
-    finally {
+    } finally {
       super.tearDown();
     }
   }
@@ -132,13 +137,13 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
   }
 
   private void checkGeneratedIcons(String[] expectedFilenames) throws IOException {
-    Map<File, GeneratedIcon> pathIconMap = myIconGenerator.generateIntoIconMap(myProjectPaths);
+    Map<File, GeneratedIcon> pathIconMap = myIconGenerator.generateIntoIconMap(getResDirectory(myProjectPaths));
     Set<File> unexpectedFiles = new HashSet<>(pathIconMap.keySet());
     File goldenDir = new File(FileUtil.join(getTestDataPath(), getTestName(true), "golden"));
     for (String filename : expectedFilenames) {
       File file = new File(myProjectPaths.getModuleRoot(), filename);
       GeneratedIcon icon = pathIconMap.get(file);
-      assertTrue(filename + " icon is not generated.", icon != null);
+      assertNotNull(filename + " icon is not generated.", icon);
       File goldenFile = new File(goldenDir, filename);
       if (!goldenFile.exists()) {
         createGolden(goldenFile, icon);
@@ -148,7 +153,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
                      Files.toString(goldenFile, StandardCharsets.UTF_8), ((GeneratedXmlResource)icon).getXmlText());
       } else {
         BufferedImage goldenImage = ImageIO.read(goldenFile);
-        assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(), MAX_PERCENT_DIFFERENT);
+        assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(), DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
       }
       unexpectedFiles.remove(file);
     }

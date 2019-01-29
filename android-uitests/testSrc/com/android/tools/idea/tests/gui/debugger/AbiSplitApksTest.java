@@ -15,24 +15,80 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.fakeadbserver.DeviceState;
+import com.android.fakeadbserver.FakeAdbServer;
+import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
+import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
+import com.android.fakeadbserver.shellcommandhandlers.GetPropCommandHandler;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
+import org.fest.swing.util.StringTextMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunWith(GuiTestRunner.class)
-public class AbiSplitApksTest extends DebuggerTestBase {
-  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+import java.io.File;
+import java.util.Arrays;
 
-  private final static String ABI_TYPE_X86 = "x86";
-  private final static String ABI_TYPE_X86_64 = "x86_64";
+import static com.android.testutils.truth.FileSubject.assertThat;
+
+@RunWith(GuiTestRemoteRunner.class)
+public class AbiSplitApksTest extends DebuggerTestBase {
+
+  private static final int GRADLE_SYNC_TIMEOUT_SECONDS = 90;
+
+  @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
+
+  private FakeAdbServer fakeAdbServer;
+
+  @Before
+  public void setupFakeAdbServer() throws Exception {
+
+    ActivityManagerCommandHandler.ProcessStarter startCmdHandler = new ActivityManagerCommandHandler.ProcessStarter() {
+      @NotNull
+      @Override
+      public String startProcess(@NotNull DeviceState deviceState) {
+        deviceState.startClient(1234, 1235, "com.example.basiccmakeapp", false);
+        return "Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]"
+               + " cmp=com.example.basiccmakeapp/com.example.basiccmakeapp.MainActivity }";
+      }
+    };
+    fakeAdbServer = new FakeAdbServer.Builder()
+      .installDefaultCommandHandlers()
+      .setShellCommandHandler(
+        ActivityManagerCommandHandler.COMMAND,
+        () -> new ActivityManagerCommandHandler(startCmdHandler)
+      )
+      // This test needs to query the device for ABIs, so we need some expanded functionality for the
+      // getprop command handler:
+      .setShellCommandHandler(
+        GetPropCommandHandler.COMMAND,
+        () -> new GetAbiListPropCommandHandler(Arrays.asList("x86_64"))
+      )
+      .setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new)
+      .build();
+
+    DeviceState device = fakeAdbServer.connectDevice(
+      "test_device",
+      "Google",
+      "Nexus 5X",
+      "8.1",
+      "27",
+      DeviceState.HostConnectionType.LOCAL
+    ).get();
+    device.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
+
+    fakeAdbServer.start();
+    AndroidDebugBridge.enableFakeAdbServerMode(fakeAdbServer.getPort());
+  }
 
   /**
    * Verifies ABI split apks are generated as per the target emulator/device during a native
@@ -57,93 +113,39 @@ public class AbiSplitApksTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70633876
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/79699588
   public void testX64AbiSplitApks() throws Exception {
-    testAbiSplitApks(ABI_TYPE_X86_64);
-  }
+    IdeFrameFixture ideFrame = guiTest.importProject("BasicCmakeAppForUI");
+    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
 
-  /**
-   * Verifies ABI split apks are generated as per the target emulator/device during a native
-   * debug session.
-   * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>
-   * TT ID: 6b2878da-4464-4c32-be85-dd20a2f1bff2
-   * <p>
-   *   <pre>
-   *   Test Steps:
-   *   1. Import BasicCmakeAppForUI.
-   *   2. Enable split by adding the following to app/build.gradle: android.splits.abi.enable true.
-   *   3. Start a native debugging session in Android Studio (deploy in emulator X86).
-   *   4. Now hit the stop button.
-   *   4. Go the folder ~<project folder="">/app/build/outputs/apk and check
-   *      the apk generated (Verify 1, 2).
-   *   Verify:
-   *   1. APK generated should not be universal (You can verify this by trying to install the apk
-   *      in a non X86 emulator or device)
-   *   2. APK generated should explicitly for the ABI X86
-   *   </pre>
-   */
-  @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70633876
-  public void testX86AbiSplitApks() throws Exception {
-    testAbiSplitApks(ABI_TYPE_X86);
-  }
-
-  private void testAbiSplitApks(@NotNull String abiType) throws Exception {
-    IdeFrameFixture ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmakeAppForUI");
-
-    ideFrame.invokeMenuPath("Run", "Edit Configurations...");
-    EditConfigurationsDialogFixture.find(guiTest.robot())
-      .selectDebuggerType("Native")
-      .clickOk();
+    DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);
 
     ideFrame.getEditor()
-      .open("app/build.gradle", EditorFixture.Tab.EDITOR)
-      .moveBetween("apply plugin: 'com.android.application'", "")
-      .enterText("\n\nandroid.splits.abi.enable true");
+            .open("app/build.gradle", EditorFixture.Tab.EDITOR)
+            .moveBetween("apply plugin: 'com.android.application'", "")
+            .enterText("\n\nandroid.splits.abi.enable true")
+            .invokeAction(EditorFixture.EditorAction.SAVE);
 
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(GRADLE_SYNC_TIMEOUT_SECONDS));
 
-    openAndToggleBreakPoints(ideFrame,
-                             "app/src/main/jni/native-lib.c",
-                             "return (*env)->NewStringUTF(env, message);");
-
-    String apkName = null;
-    if (abiType.equals(ABI_TYPE_X86)) {
-      apkName = "app-x86-debug.apk";
-      emulator.createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
-    } else if (abiType.equals(ABI_TYPE_X86_64)) {
-      apkName = "app-x86_64-debug.apk";
-      emulator.createAVD(
-        guiTest.ideFrame().invokeAvdManager(),
-        "x86 Images",
-        new ChooseSystemImageStepFixture.SystemImage("Marshmallow",
-                                                     "23",
-                                                     "x86_64",
-                                                     "Android 6.0 (Google APIs)"),
-        emulator.getDefaultAvdName());
-    } else {
-      throw new RuntimeException("Not supported ABI type provided: " + abiType);
-    }
-
-    ideFrame.debugApp(DEBUG_CONFIG_NAME)
-      .selectDevice(emulator.getDefaultAvdName())
+    String expectedApkName = "app-x86_64-debug.apk";
+    ideFrame.debugApp("app")
+      .selectDevice(new StringTextMatcher("Google Nexus 5X"))
       .clickOk();
 
-    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrame);
-    waitForSessionStart(debugToolWindowFixture);
-    ideFrame.stopApp();
-    ProjectViewFixture.PaneFixture projectPane = ideFrame.getProjectView().selectProjectPane();
+    // Wait for build to complete
+    guiTest.waitForBackgroundTasks();
 
-    projectPane.clickPath("BasicCmakeAppForUI",
-                          "app",
-                          "build",
-                          "intermediates",
-                          "instant-run-apk",
-                          "debug",
-                          apkName);
-    ideFrame.getProjectView().selectAndroidPane();
+    File projectRoot = ideFrame.getProjectPath();
+    File expectedPathOfApk = new File(projectRoot, "app/build/intermediates/instant-run-apk/debug/" + expectedApkName);
+
+    assertThat(expectedPathOfApk).exists();
+  }
+
+  @After
+  public void shutdownFakeAdb() throws Exception {
+    AndroidDebugBridge.terminate();
+    AndroidDebugBridge.disableFakeAdbServerMode();
+    fakeAdbServer.close();
   }
  }

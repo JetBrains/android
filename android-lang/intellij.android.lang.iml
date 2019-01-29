@@ -13,10 +13,9 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.java.analysis.impl" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="intellij.platform.uast" />
     <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="library" name="com.android.tools:common:26.1.2" level="project" />
+    <orderEntry type="library" name="com.android.tools:common" level="project" />
   </component>
 </module>

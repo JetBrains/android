@@ -23,16 +23,15 @@ import org.junit.runners.JUnit4;
 import javax.swing.*;
 import java.awt.*;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 import static org.junit.Assert.assertEquals;
-
-import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(JUnit4.class)
 public class AdtUiUtilsTest {
 
   @Test
-  public void testShrinkToFit() throws Exception {
+  public void testShrinkToFit() {
     JLabel testLabel = new JLabel("Test");
     FontMetrics testMetrics = testLabel.getFontMetrics(AdtUiUtils.DEFAULT_FONT);
 
@@ -47,14 +46,20 @@ public class AdtUiUtilsTest {
     // Not enough space for ellipsis so an empty string should be returned
     assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsisWidth - 1));
 
+    // Just enough space for ellipsis, but we should still return an empty string (since "..." on
+    // its own is useless)
+    assertEquals("", AdtUiUtils.shrinkToFit(testString, testMetrics, ellipsisWidth));
+
     for (int i = 5; i < 80; ++i) {
-      String shrunk = AdtUiUtils.shrinkToFit(testString, testMetrics, i * perCharacterWidth + ellipsisWidth);
+      int spaceAvailable = i * perCharacterWidth;
+
+      String shrunk = AdtUiUtils.shrinkToFit(testString, s -> testMetrics.stringWidth(s) <= spaceAvailable + ellipsisWidth);
       assertEquals(StringUtil.repeat("A", i) + "...", shrunk);
     }
   }
 
   @Test
-  public void testOverlayColor() throws Exception {
+  public void testOverlayColor() {
     float opacity = 0.8f;
     Color grey_0_8 = AdtUiUtils.overlayColor(Color.BLACK.getRGB(), Color.WHITE.getRGB(), opacity);
     long expected = Math.round(255 * opacity);

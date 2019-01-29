@@ -21,6 +21,7 @@ import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.utils.TraceUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
@@ -77,7 +78,6 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.graph.Graph;
 import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.xml.DomElement;
@@ -375,7 +375,7 @@ public class AndroidUtils {
       AndroidFacetConfiguration configuration = facet.getConfiguration();
       configuration.init(module, contentRoot);
       if (library) {
-        facet.setProjectType(PROJECT_TYPE_LIBRARY);
+        facet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
       }
       model.addFacet(facet);
     }
@@ -457,7 +457,7 @@ public class AndroidUtils {
     final List<AndroidFacet> result = new ArrayList<>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
-      if (facet.isAppProject()) {
+      if (facet.getConfiguration().isAppProject()) {
         result.add(facet);
       }
     }
@@ -478,7 +478,7 @@ public class AndroidUtils {
           if (depModule != null) {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
-            if (depFacet != null && depFacet.canBeDependency()) {
+            if (depFacet != null && depFacet.getConfiguration().canBeDependency()) {
               depFacets.add(depFacet);
             }
           }
@@ -562,7 +562,7 @@ public class AndroidUtils {
       if (messageBuilder.length() > 0) {
         messageBuilder.append("\n\n");
       }
-      messageBuilder.append(AndroidCommonUtils.getStackTrace(t));
+      messageBuilder.append(TraceUtils.getStackTrace(t));
     }
 
     final DialogWrapper wrapper = new DialogWrapper(project, false) {

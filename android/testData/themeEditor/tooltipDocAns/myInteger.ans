@@ -1,4 +1,4 @@
-<html><body><B>myInteger</B><br/> My Integer Documentation <br/><hr/><BR/>
+<html><body><B>myInteger</B><br/>My Integer Documentation<br/><hr/><BR/>
 ?attr/myInteger => ?android:scrollbarSize => 10dip<BR/>
 <BR/>
 </body></html>

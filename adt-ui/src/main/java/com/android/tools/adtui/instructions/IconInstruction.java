@@ -16,6 +16,7 @@
 package com.android.tools.adtui.instructions;
 
 
+import com.android.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +43,12 @@ public final class IconInstruction extends RenderInstruction {
   @Override
   public Dimension getSize() {
     return mySize;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public Icon getIcon() {
+    return myIcon;
   }
 
   @Override

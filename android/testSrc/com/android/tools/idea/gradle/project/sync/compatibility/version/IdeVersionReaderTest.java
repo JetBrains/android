@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.BuildNumber;
 import org.jetbrains.annotations.NotNull;
 
 import static org.mockito.Mockito.*;
@@ -35,16 +36,6 @@ public class IdeVersionReaderTest extends AndroidGradleTestCase {
     super.setUp();
     myVersionReader = new IdeVersionReader("Android Studio");
     myIdeComponents = new IdeComponents(getProject());
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testAppliesToWithAndroidStudio() {
@@ -93,6 +84,8 @@ public class IdeVersionReaderTest extends AndroidGradleTestCase {
 
   @NotNull
   private ApplicationInfo replaceApplicationInfo() {
-    return myIdeComponents.mockService(ApplicationInfo.class);
+    ApplicationInfo applicationInfo = myIdeComponents.mockApplicationService(ApplicationInfo.class);
+    when(applicationInfo.getBuild()).thenReturn(BuildNumber.fromString("123.4567.89.0"));
+    return applicationInfo;
   }
 }

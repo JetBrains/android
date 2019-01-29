@@ -23,7 +23,7 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
-import org.jetbrains.android.dom.navigation.NavDestinationElement;
+import org.jetbrains.android.dom.navigation.NavElement;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
@@ -162,8 +162,15 @@ public class SubtagsProcessingUtil {
     else if (element instanceof XmlResourceElement) {
       registerXmlResourcesSubtags(facet, element.getXmlTag(), (XmlResourceElement)element, subtagProcessor);
     }
-    else if (element instanceof NavDestinationElement) {
-      NavigationSchema schema = NavigationSchema.get(facet);
+    else if (element instanceof NavElement) {
+      try {
+        NavigationSchema.createIfNecessary(facet.getModule());
+      }
+      catch (ClassNotFoundException e) {
+        // We must not have added the nav library dependency yet, but encountered a nav file. Ignore for now.
+        return;
+      }
+      NavigationSchema schema = NavigationSchema.get(facet.getModule());
       Multimap<Class<? extends AndroidDomElement>, String> subtags = schema.getDestinationSubtags(element.getXmlTag().getName());
       for (Class<? extends AndroidDomElement> c : subtags.keys()) {
         registerSubtags(element.getXmlTag(), subtags.get(c), subtags.get(c), c, subtagProcessor);

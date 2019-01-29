@@ -19,10 +19,10 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertyAccumulator.PropertyNamePrefixAccumulator;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -30,11 +30,11 @@ import static com.android.SdkConstants.*;
 public class NlPropertiesGrouper {
   public List<PTableItem> group(@NotNull List<NlPropertyItem> properties,
                                 @SuppressWarnings("UnusedParameters") @NotNull List<NlComponent> components) {
-    List<PTableItem> result = Lists.newArrayListWithExpectedSize(properties.size());
+    List<PTableItem> result = new ArrayList<>(properties.size());
 
     // group theme attributes together
     NlPropertyAccumulator themePropertiesAccumulator = new NlPropertyAccumulator(
-      "Theme", "", p -> p != null && (p.getParentStylables().contains("Theme") || p.getName().equalsIgnoreCase("theme")));
+      "Theme", "", p -> p != null && (p.isThemeAttribute() || p.getName().equalsIgnoreCase("theme")));
 
     // Disable this for now...
     //
@@ -42,7 +42,7 @@ public class NlPropertiesGrouper {
     //NlPropertyAccumulator customViewPropertiesAccumulator = null;
     //String className = getCommonTagName(components);
     //if (className != null) {
-    //  customViewPropertiesAccumulator = new NlPropertyAccumulator(className, p -> p != null && p.getParentStylables().contains(className));
+    //  customViewPropertiesAccumulator = new NlPropertyAccumulator(className, p -> p != null && p.getParentStyleables().contains(className));
     //}
 
     // group margin, padding and layout attributes together
@@ -51,11 +51,12 @@ public class NlPropertiesGrouper {
 
     PropertyNamePrefixAccumulator constraintPropertiesAccumulator = new PropertyNamePrefixAccumulator("Constraints", "layout_constraint");
 
-    List<NlPropertyAccumulator> accumulators = Lists.newArrayList(
-      themePropertiesAccumulator,
-      paddingPropertiesAccumulator,
-      layoutViewPropertiesAccumulator,
-      constraintPropertiesAccumulator);
+    NlPropertyAccumulator[] accumulators = new NlPropertyAccumulator[] {
+        themePropertiesAccumulator,
+        paddingPropertiesAccumulator,
+        layoutViewPropertiesAccumulator,
+        constraintPropertiesAccumulator
+    };
 
     for (NlPropertyItem p : properties) {
       boolean added = false;
@@ -101,7 +102,7 @@ public class NlPropertiesGrouper {
 
   private static int findInsertionPoint(@NotNull List<PTableItem> properties) {
     for (int index = 0; index < MOST_IMPORTANT_ATTRIBUTES.size(); index++) {
-      if (properties.size() < index + 1 || !properties.get(index).getName().equals(MOST_IMPORTANT_ATTRIBUTES.get(index))) {
+      if (properties.size() <= index || !properties.get(index).getName().equals(MOST_IMPORTANT_ATTRIBUTES.get(index))) {
         return index;
       }
     }

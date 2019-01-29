@@ -17,19 +17,25 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.ConfigurablesTreeModel
 import com.google.common.collect.Lists
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.MasterDetailsComponent
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.ui.JBSplitter
-import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
-import java.util.*
+import com.intellij.util.ui.tree.TreeUtil
+import java.util.ArrayList
+import javax.swing.JComponent
+import javax.swing.event.TreeModelEvent
+import javax.swing.event.TreeModelListener
+import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 
 /**
@@ -38,30 +44,58 @@ import javax.swing.tree.TreePath
 abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     override val title: String,
     private val placeName: String,
-    private val treeModel: ConfigurablesTreeModel
-) : MasterDetailsComponent(), ModelPanel<ModelT> {
+    private val treeModel: ConfigurablesTreeModel,
+    private val uiSettings: PsUISettings
+) : MasterDetailsComponent(), ModelPanel<ModelT>, Place.Navigator, CrossModuleUiStateComponent, Disposable {
+
+  private var inQuietSelection = false
 
   abstract fun getRemoveAction(): AnAction?
   abstract fun getCreateActions(): List<AnAction>
+  abstract fun PsUISettings.getLastEditedItem(): String?
+  abstract fun PsUISettings.setLastEditedItem(value: String?)
 
   init {
     splitter.orientation = true
     (splitter as JBSplitter).splitterProportionKey = "android.psd.proportion.configurables"
     tree.model = treeModel
+    myRoot = treeModel.rootNode as MyNode
+    treeModel.addTreeModelListener(object: TreeModelListener{
+      override fun treeNodesInserted(e: TreeModelEvent?) {
+        val treePath = e?.treePath
+        if (treePath?.parentPath == null) {
+          tree.expandPath(treePath)
+        }
+      }
+
+      override fun treeStructureChanged(e: TreeModelEvent?)= Unit
+
+      override fun treeNodesChanged(e: TreeModelEvent?) = Unit
+
+      override fun treeNodesRemoved(e: TreeModelEvent?) = Unit
+    })
     tree.isRootVisible = false
+    TreeUtil.expandAll(tree)
   }
+
+  private var myComponent: JComponent? = null
+  override fun getComponent(): JComponent = myComponent ?: super.createComponent().also { myComponent = it }
+  final override fun createComponent(): Nothing = throw UnsupportedOperationException("Use getComponent() instead.")
+
+  override fun dispose() = disposeUIResources()
 
   override fun createActions(fromPopup: Boolean): ArrayList<AnAction>? {
     val result = mutableListOf<AnAction>()
 
     val createActions = getCreateActions()
-    if (createActions.isNotEmpty()) {
-      result.add(
-          MyActionGroupWrapper(object : ActionGroup("Add", "Add", IconUtil.getAddIcon()) {
-            override fun getChildren(e: AnActionEvent?): Array<AnAction> {
-              return createActions.toTypedArray()
-            }
-          }))
+    when {
+      createActions.size == 1 -> result.add(createActions[0])
+      createActions.isNotEmpty() -> result.add(
+        MyActionGroupWrapper(object : ActionGroup("Add", "Add", IconUtil.getAddIcon()) {
+          override fun getChildren(e: AnActionEvent?): Array<AnAction> {
+            return createActions.toTypedArray()
+          }
+        }))
     }
 
     val removeAction = getRemoveAction()
@@ -84,17 +118,8 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
   override fun getDisplayName(): String = title
 
   override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback? {
-    val path = place?.getPath(placeName) ?: return ActionCallback.DONE
-    val matchingNode =
-        treeModel
-            .rootNode
-            .breadthFirstEnumeration()
-            .asSequence()
-            .mapNotNull { it as? MasterDetailsComponent.MyNode }
-            .firstOrNull {
-              val namedConfigurable = it.userObject as? NamedConfigurable<*>
-              namedConfigurable?.displayName == path
-            }
+    val configurableDisplayName = place?.getPath(placeName) as? String ?: return ActionCallback.DONE
+    val matchingNode = findConfigurableNode(configurableDisplayName)
     if (matchingNode != null) {
       tree.selectionPath = TreePath(treeModel.getPathToRoot(matchingNode))
       val navigator = matchingNode.userObject as? Place.Navigator
@@ -102,6 +127,25 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
     }
     return ActionCallback.REJECTED
   }
+
+  private fun findConfigurableNode(configurableDisplayName: String): MyNode? =
+    treeModel
+      .rootNode
+      .breadthFirstEnumeration()
+      .asSequence()
+      .mapNotNull { it as? MyNode }
+      .firstOrNull {
+        val namedConfigurable = it.userObject as? NamedConfigurable<*>
+        namedConfigurable?.displayName == configurableDisplayName
+      }
+
+  private fun findFirstLeafConfigurableNode(): MyNode? =
+    treeModel
+      .rootNode
+      .breadthFirstEnumeration()
+      .asSequence()
+      .mapNotNull { it as? MyNode }
+      .firstOrNull { it != myRoot && it.childCount == 0 }
 
   override fun queryPlace(place: Place) {
     val selectedNode = tree.selectionPath?.lastPathComponent as? MasterDetailsComponent.MyNode
@@ -113,11 +157,44 @@ abstract class ConfigurablesMasterDetailsPanel<ModelT>(
   }
 
   override fun updateSelection(configurable: NamedConfigurable<*>?) {
+    // UpdateSelection might be expensive as it always rebuilds the element tree.
+    if (configurable === myCurrentConfigurable) return
     super.updateSelection(configurable)
-    myHistory.pushQueryPlace()
+    if (!inQuietSelection) {
+      saveUiState()
+      myHistory.pushQueryPlace()
+    }
   }
 
-  override fun setHistory(history: History?) {
-    super<MasterDetailsComponent>.setHistory(history)
+  override fun restoreUiState() {
+    val configurableNode = uiSettings.getLastEditedItem()?.let { findConfigurableNode(it) } ?: findFirstLeafConfigurableNode()
+    if (configurableNode != null) {
+      inQuietSelection = true
+      try {
+        selectNode(configurableNode)
+      }
+      finally {
+        inQuietSelection = false
+      }
+    }
+  }
+
+  private fun saveUiState() {
+    if (selectedConfigurable == null) return
+    uiSettings.setLastEditedItem(selectedConfigurable?.displayName)
+  }
+
+  protected fun selectNode(node: TreeNode?) {
+    if (node != null) {
+      tree.selectionPath = TreePath(treeModel.getPathToRoot(node))
+    }
+  }
+
+  // This override prevents this class from inheriting setHistory implementations from both MasterDetailsComponent and Place.Navigator
+  override fun setHistory(history: com.intellij.ui.navigation.History) {
+    myHistory = history
   }
 }
+
+fun validateAndShow(title: String = "Error", validateAction: () -> String?): Boolean =
+  validateAction()?.also { Messages.showErrorDialog(it, title) } == null

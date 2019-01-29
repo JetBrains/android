@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.module;
 
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.TestInvokeStrategy;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -60,9 +62,9 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     when(project.getBasePath()).thenReturn("/");
     when(moduleManager.getModules()).thenReturn(Module.EMPTY_ARRAY);
 
-    NewModuleModel newModuleModel = new NewModuleModel(project);
+    NewModuleModel newModuleModel = new NewModuleModel(project, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     ConfigureAndroidModuleStep configureAndroidModuleStep =
-      new ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, false, false, "Test Title");
+      new ConfigureAndroidModuleStep(newModuleModel, FormFactor.MOBILE, 25, "com.example", false, false, "Test Title");
 
     Disposer.register(getTestRootDisposable(), newModuleModel);
     Disposer.register(getTestRootDisposable(), configureAndroidModuleStep);

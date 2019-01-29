@@ -27,12 +27,14 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.FileModificationService;
+import com.intellij.codeInsight.NullableNotNullManager;
 import com.intellij.codeInspection.inferNullity.InferNullityAnnotationsAction;
 import com.intellij.codeInspection.inferNullity.NullityInferrer;
 import com.intellij.history.LocalHistory;
@@ -42,6 +44,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -62,6 +65,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,6 +89,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
 
   @Override
   protected void analyze(@NotNull Project project, @NotNull AnalysisScope scope) {
+    setUpNullityAnnotationDefaults(project);
+
     if (!GradleProjects.isBuildWithGradle(project)) {
       super.analyze(project, scope);
       return;
@@ -106,6 +112,19 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     else {
       showUsageView(project, usageInfos, scope, this);
     }
+  }
+
+  private static void setUpNullityAnnotationDefaults(@NotNull Project project) {
+    NullableNotNullManager nullityManager = NullableNotNullManager.getInstance(project);
+
+    if (Arrays.stream(ModuleManager.getInstance(project).getModules())
+              .anyMatch(module -> DependencyManagementUtil.dependsOnAndroidx(module))) {
+       nullityManager.setDefaultNotNull("androidx.annotation.NonNull");
+       nullityManager.setDefaultNullable("androidx.annotation.Nullable");
+     } else {
+       nullityManager.setDefaultNotNull("android.support.annotation.NonNull");
+       nullityManager.setDefaultNullable("android.support.annotation.Nullable");
+     }
   }
 
   private static Map<Module, PsiFile> findModulesFromUsage(UsageInfo[] infos) {
@@ -144,10 +163,13 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
         String configurationName =
           GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(configurationName)) {
-          String notation = dependency.compactNotation().value();
-          if (notation.startsWith(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ||
-              notation.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT) ||
-              notation.startsWith(SdkConstants.ANNOTATIONS_LIB_ARTIFACT)) {
+          String notation = dependency.compactNotation();
+          if (notation.startsWith(GoogleMavenArtifactId.APP_COMPAT_V7.toString()) ||
+              notation.startsWith(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7.toString()) ||
+              notation.startsWith(GoogleMavenArtifactId.SUPPORT_V4.toString()) ||
+              notation.startsWith(GoogleMavenArtifactId.ANDROIDX_SUPPORT_V4.toString()) ||
+              notation.startsWith(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS.toString()) ||
+              notation.startsWith(GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS.toString())) {
             dependencyFound = true;
             break;
           }
@@ -184,7 +206,10 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           @Override
           protected void run(@NotNull Result result) throws Throwable {
             RepositoryUrlManager manager = RepositoryUrlManager.get();
-            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS, true);
+            GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
+                                               GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
+                                               GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
+            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }

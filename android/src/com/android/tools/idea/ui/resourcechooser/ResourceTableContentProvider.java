@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser;
 
+import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroup;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.AbstractTableModel;
@@ -67,7 +68,7 @@ class ResourceTableContentProvider extends AbstractTableModel {
         ResourceChooserGroup group = myGroups[groupIndex];
         if (rowIndex == myGroupIndices[groupIndex]) {
           // It's the actual heading node
-          return group;
+          return group.getGroupLabel();
         }
         int index = rowIndex - myGroupIndices[groupIndex] - 1;
         return group.getItems().get(index);

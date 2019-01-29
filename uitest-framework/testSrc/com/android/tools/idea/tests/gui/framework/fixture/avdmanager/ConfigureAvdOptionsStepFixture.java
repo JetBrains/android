@@ -18,12 +18,19 @@ package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.openapi.diagnostic.Logger;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
+
+import java.awt.Component;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -55,7 +62,44 @@ public class ConfigureAvdOptionsStepFixture<W extends AbstractWizardFixture>
   @NotNull
   public ConfigureAvdOptionsStepFixture<W> setAvdName(@NotNull String name) {
     JTextComponent textFieldWithLabel = findTextFieldWithLabel("AVD Name");
-    replaceText(textFieldWithLabel, name);
+
+    // TODO remove this focus listener. This focus listener is used to help diagnose http://b/77152845
+    // See http://b/80101068 for work required to remove this focus listener
+    // Use an AtomicReference, since the listener is invoked on the EDT while the test runs
+    // in the test thread.
+    AtomicReference<Exception> focusStolenException = new AtomicReference<>();
+    FocusListener focusListener = new FocusListener() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        // This is expected. Focus most definitely _should_ be gained!
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        // Focus should not be lost while this listener is attached to the text field!
+        Logger logger = Logger.getInstance(ConfigureAvdOptionsStepFixture.class);
+        Exception focusLostException = new Exception("Focus was stolen from AVD name field");
+        Component opposite = e.getOppositeComponent();
+        logger.error(
+          "Focus was lost from the AVD name field to "
+            + opposite.getName()
+            + " which is a " + opposite.getClass().toString(),
+          focusLostException
+        );
+        focusStolenException.set(focusLostException);
+      }
+    };
+
+    try {
+      GuiTask.execute(() -> textFieldWithLabel.addFocusListener(focusListener));
+      replaceText(textFieldWithLabel, name);
+    } finally {
+      GuiTask.execute(() -> textFieldWithLabel.removeFocusListener(focusListener));
+    }
+    Exception focusLostException = focusStolenException.get();
+    if (focusLostException != null) {
+      throw new RuntimeException(focusLostException);
+    }
     return this;
   }
 

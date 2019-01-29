@@ -60,7 +60,7 @@ public class LinearDragHandlerTest extends LayoutTestCase {
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     surface.getSelectionModel().setSelection(ImmutableList.of(button));
     surface.setModel(model);
-    Transferable transferable = surface.getSelectionModel().getTransferable(model.getId());
+    Transferable transferable = surface.getSelectionAsTransferable();
     InteractionManager manager = new InteractionManager(surface);
     manager.startListening();
     LayoutTestUtilities.dragDrop(manager, 0, 0, 13, 0, transferable, DnDConstants.ACTION_MOVE);

@@ -15,64 +15,22 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
-import com.android.builder.model.*;
-import com.android.builder.model.level2.Library;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeBaseArtifact;
-import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.project.AndroidNotification;
-import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.utils.SdkUtils;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.CharMatcher;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.impl.ApplicationImpl;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import javax.swing.*;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-import static com.android.SdkConstants.*;
-import static com.android.builder.model.AndroidProject.*;
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
+import static com.android.SdkConstants.FD_RES_CLASS;
+import static com.android.SdkConstants.FD_SOURCE_GEN;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE_TRANSLATE;
 import static com.android.tools.idea.gradle.util.GradleBuilds.ENABLE_TRANSLATION_JVM_ARG;
@@ -93,11 +51,80 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-import static icons.StudioIcons.Shell.Filetree.*;
+import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
+import static icons.StudioIcons.Shell.Filetree.ANDROID_TEST_ROOT;
+import static icons.StudioIcons.Shell.Filetree.FEATURE_MODULE;
+import static icons.StudioIcons.Shell.Filetree.INSTANT_APPS;
+import static icons.StudioIcons.Shell.Filetree.LIBRARY_MODULE;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.jps.model.serialization.PathMacroUtil.DIRECTORY_STORE_NAME;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
+
+import com.android.SdkConstants;
+import com.android.annotations.NonNull;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.BaseArtifact;
+import com.android.builder.model.MavenCoordinates;
+import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.utils.SdkUtils;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.CharMatcher;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.impl.ApplicationImpl;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import javax.swing.Icon;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
  * Utilities related to Gradle.
@@ -205,7 +232,12 @@ public final class GradleUtil {
 
   @NotNull
   public static Icon getAndroidModuleIcon(@NotNull AndroidModuleModel androidModuleModel) {
-    switch (androidModuleModel.getAndroidProject().getProjectType()) {
+    return getAndroidModuleIcon(androidModuleModel.getAndroidProject().getProjectType());
+  }
+
+  @NotNull
+  public static Icon getAndroidModuleIcon(int androidProjectType) {
+    switch (androidProjectType) {
       case PROJECT_TYPE_APP:
         return ANDROID_MODULE;
       case PROJECT_TYPE_FEATURE:
@@ -405,7 +437,7 @@ public final class GradleUtil {
   }
 
   @Nullable
-  private static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
+  public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
     return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
   }
 
@@ -732,8 +764,8 @@ public final class GradleUtil {
         GradleBuildModel buildModel = GradleBuildModel.get(module);
         if (buildModel != null) {
           AndroidModel android = buildModel.android();
-          if (android != null && !version.equals(android.buildToolsVersion().value())) {
-            android.setBuildToolsVersion(version);
+          if (!version.equals(android.buildToolsVersion().toString())) {
+            android.buildToolsVersion().setValue(version);
             modelsToUpdate.add(buildModel);
           }
         }
@@ -872,5 +904,50 @@ public final class GradleUtil {
     }
 
     return s;
+  }
+
+  /**
+   * Checks if the given folder contains sources generated by aapt. When the IDE uses light R and Manifest classes, these folders are not
+   * marked as sources of the module.
+   *
+   * <p>Note that folder names used by AGP suggest this is only for generated R.java files (generated/source/r,
+   * generate/not_namespaced_r_class_sources) but in reality this is where aapt output goes, so this includes Manifest.java if custom
+   * permissions are defined in the manifest.
+   */
+  public static boolean isAaptGeneratedSourcesFolder(@NotNull File folder, @NotNull AndroidModuleModel androidModuleModel) {
+    try {
+      File generatedFolder = new File(androidModuleModel.getAndroidProject().getBuildFolder(), "generated");
+      if (FileUtil.namesEqual(folder.getParentFile().getName(), FD_RES_CLASS)) {
+        // Naming convention used in 3.1 and below.
+        return filesEqual(folder.getParentFile().getParentFile(),
+                          new File(generatedFolder, FD_SOURCE_GEN));
+      }
+      else if (FileUtil.namesEqual(folder.getName(), FD_RES_CLASS)) {
+        // Naming convention used in 3.2 and above.
+        return filesEqual(folder.getParentFile().getParentFile().getParentFile(),
+                          new File(generatedFolder, FilenameConstants.NOT_NAMESPACED_R_CLASS_SOURCES));
+      }
+      else {
+        return false;
+      }
+    }
+    catch (NullPointerException e) {
+      return false;
+    }
+  }
+
+  /**
+   * Wrapper around {@link BaseArtifact#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
+   * IDE.
+   */
+  public static Collection<File> getGeneratedSourceFoldersToUse(@NotNull IdeBaseArtifact artifact, @NotNull AndroidModuleModel model) {
+    if (StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      return artifact.getGeneratedSourceFolders()
+        .stream()
+        .filter(folder -> !isAaptGeneratedSourcesFolder(folder, model))
+        .collect(Collectors.toList());
+    } else {
+      return artifact.getGeneratedSourceFolders();
+    }
   }
 }

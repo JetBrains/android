@@ -21,7 +21,6 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.ui.components.labels.ActionLink;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,9 +56,6 @@ public class ActionLinkFixture extends JComponentFixture<ActionLinkFixture, Acti
       });
 
     ActionLink actionLink = actionLinkRef.get();
-    if (actionLink == null) {
-      throw new ComponentLookupException("Failed to find ActionLink with ID '" + actionId + "'");
-    }
     return new ActionLinkFixture(robot, actionLink);
   }
 

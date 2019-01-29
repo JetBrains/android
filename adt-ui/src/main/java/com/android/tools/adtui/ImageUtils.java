@@ -15,20 +15,31 @@
  */
 package com.android.tools.adtui;
 
-import com.intellij.openapi.util.SystemInfo;
+import static java.awt.RenderingHints.KEY_ANTIALIASING;
+import static java.awt.RenderingHints.KEY_INTERPOLATION;
+import static java.awt.RenderingHints.KEY_RENDERING;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_OFF;
+import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
+import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
+import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
+
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ImageObserver;
 import java.awt.image.WritableRaster;
-
-import static java.awt.RenderingHints.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utilities related to image processing.
@@ -105,11 +116,7 @@ public class ImageUtils {
   }
 
   public static boolean isRetinaImage(@Nullable BufferedImage image) {
-    if (image == null) {
-      return false;
-    }
-    return image instanceof JBHiDPIScaledImage ||
-           SystemInfo.isAppleJvm && UIUtil.isAppleRetina() && BufferedImage.class != image.getClass();
+    return image instanceof JBHiDPIScaledImage;
   }
 
   public static BufferedImage createDipImage(int width, int height, int type) {
@@ -269,7 +276,9 @@ public class ImageUtils {
     int destWidth = Math.max(1, (int) (xScale * sourceWidth));
     int destHeight = Math.max(1, (int) (yScale * sourceHeight));
     int imageType = source.getType();
-    if (imageType == BufferedImage.TYPE_CUSTOM) {
+    if (imageType == BufferedImage.TYPE_CUSTOM
+        || imageType == BufferedImage.TYPE_BYTE_INDEXED
+        || imageType == BufferedImage.TYPE_BYTE_BINARY) {
       imageType = BufferedImage.TYPE_INT_ARGB;
     }
     if (xScale > 0.5 && yScale > 0.5) {
@@ -515,7 +524,7 @@ public class ImageUtils {
     // This algorithm is linear with respect to the number of pixels in the cropped
     // area of the image. A sublinear algorithm is not possible since each cropped
     // pixel has to be examined at least once because the non-blank part of the image
-    // my be disjoint.
+    // may be disjoint.
 
     // First determine top edge.
     topEdge:

@@ -1,43 +1,40 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ide.common.resources.FrameworkResources;
+import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.idea.res.FrameworkResourceRepository;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.NanoXmlBuilder;
 import com.intellij.util.xml.NanoXmlUtil;
 import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -48,7 +45,10 @@ public class AndroidTargetData {
   private final AndroidSdkData mySdkData;
   private final IAndroidTarget myTarget;
 
-  private volatile AttributeDefinitionsImpl myAttrDefs;
+  private final Object myAttrDefsLock = new Object();
+  @GuardedBy("myAttrDefsLock")
+  private AttributeDefinitions myAttrDefs;
+
   private volatile LayoutLibrary myLayoutLibrary;
 
   private final Object myPublicResourceCacheLock = new Object();
@@ -58,7 +58,7 @@ public class AndroidTargetData {
   private TIntObjectHashMap<String> myPublicResourceIdMap;
 
   private volatile MyStaticConstantsData myStaticConstantsData;
-  private FrameworkResources myFrameworkResources;
+  private FrameworkResourceRepository myFrameworkResources;
 
   public AndroidTargetData(@NotNull AndroidSdkData sdkData, @NotNull IAndroidTarget target) {
     mySdkData = sdkData;
@@ -68,32 +68,25 @@ public class AndroidTargetData {
   /**
    * Filters attributes through the public.xml file
    */
-  @Nullable
+  @NotNull
   public AttributeDefinitions getPublicAttrDefs(@NotNull Project project) {
-    final AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
-    return attrDefs != null ? new PublicAttributeDefinitions(attrDefs) : null;
+    AttributeDefinitions attrDefs = getAllAttrDefs(project);
+    return new PublicAttributeDefinitions(attrDefs);
   }
 
   /**
    * Returns all attributes
    */
-  @Nullable
-  public AttributeDefinitionsImpl getAllAttrDefs(@NotNull final Project project) {
-    if (myAttrDefs == null) {
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
-          final String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
-          final String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
-
-          final XmlFile[] files = findXmlFiles(project, attrsPath, attrsManifestPath);
-          if (files != null) {
-            myAttrDefs = new AttributeDefinitionsImpl(files);
-          }
-        }
-      });
+  @NotNull
+  public AttributeDefinitions getAllAttrDefs(@NotNull Project project) {
+    synchronized (myAttrDefsLock) {
+      if (myAttrDefs == null) {
+        String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES));
+        String attrsManifestPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.MANIFEST_ATTRIBUTES));
+        myAttrDefs = AttributeDefinitionsImpl.parseFrameworkFiles(new File(attrsPath), new File(attrsManifestPath));
+      }
+      return myAttrDefs;
     }
-    return myAttrDefs;
   }
 
   @Nullable
@@ -117,23 +110,23 @@ public class AndroidTargetData {
   }
 
   public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
-    final Map<String, Set<String>> publicResourceCache = getPublicResourceCache();
+    Map<String, Set<String>> publicResourceCache = getPublicResourceCache();
 
     if (publicResourceCache == null) {
       return false;
     }
-    final Set<String> set = publicResourceCache.get(type);
+    Set<String> set = publicResourceCache.get(type);
     return set != null && set.contains(name);
   }
 
   private void parsePublicResCache() {
-    final String resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
-    final String publicXmlPath = resDirPath + '/' + SdkConstants.FD_RES_VALUES + "/public.xml";
-    final VirtualFile publicXml = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(publicXmlPath));
+    String resDirPath = myTarget.getPath(IAndroidTarget.RESOURCES);
+    String publicXmlPath = resDirPath + '/' + SdkConstants.FD_RES_VALUES + "/public.xml";
+    VirtualFile publicXml = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(publicXmlPath));
 
     if (publicXml != null) {
       try {
-        final MyPublicResourceCacheBuilder builder = new MyPublicResourceCacheBuilder();
+        MyPublicResourceCacheBuilder builder = new MyPublicResourceCacheBuilder();
         NanoXmlUtil.parse(publicXml.getInputStream(), builder);
 
         synchronized (myPublicResourceCacheLock) {
@@ -159,14 +152,51 @@ public class AndroidTargetData {
         }
       }
 
-      final AttributeDefinitionsImpl attrDefs = getAllAttrDefs(project);
-      if (attrDefs == null) {
-        return null;
+      if (!(myTarget instanceof StudioEmbeddedRenderTarget)) {
+        LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
-      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, attrDefs.getEnumMap());
+      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues());
     }
 
     return myLayoutLibrary;
+  }
+
+  /**
+   * The keys of the returned map are attr names. The values are maps defining numerical values of the corresponding enums or flags.
+   */
+  @NotNull
+  private Map<String, Map<String, Integer>> getFrameworkEnumValues() {
+    ResourceRepository resources = getFrameworkResources(false);
+    if (resources == null) {
+      return Collections.emptyMap();
+    }
+
+    Map<String, Map<String, Integer>> result = new HashMap<>();
+    Collection<ResourceItem> items = resources.getResources(ResourceNamespace.ANDROID, ResourceType.ATTR).values();
+    for (ResourceItem item: items) {
+      ResourceValue attr = item.getResourceValue();
+      if (attr instanceof AttrResourceValue) {
+        Map<String, Integer> valueMap = ((AttrResourceValue)attr).getAttributeValues();
+        if (valueMap != null && !valueMap.isEmpty()) {
+          result.put(attr.getName(), valueMap);
+        }
+      }
+    }
+
+    items = resources.getResources(ResourceNamespace.ANDROID, ResourceType.STYLEABLE).values();
+    for (ResourceItem item: items) {
+      ResourceValue styleable = item.getResourceValue();
+      if (styleable instanceof StyleableResourceValue) {
+        List<AttrResourceValue> attrs = ((StyleableResourceValue)styleable).getAllAttributes();
+        for (AttrResourceValue attr: attrs) {
+          Map<String, Integer> valueMap = attr.getAttributeValues();
+          if (valueMap != null && !valueMap.isEmpty()) {
+            result.put(attr.getName(), valueMap);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   public void clearLayoutBitmapCache(Module module) {
@@ -180,26 +210,6 @@ public class AndroidTargetData {
     return myTarget;
   }
 
-  @Nullable
-  private static XmlFile[] findXmlFiles(final Project project, final String... paths) {
-    XmlFile[] xmlFiles = new XmlFile[paths.length];
-    for (int i = 0; i < paths.length; i++) {
-      String path = paths[i];
-      final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-      PsiFile psiFile = file != null ? AndroidPsiUtils.getPsiFileSafely(project, file) : null;
-      if (psiFile == null) {
-        LOG.info("File " + path + " is not found");
-        return null;
-      }
-      if (!(psiFile instanceof XmlFile)) {
-        LOG.info("File " + path + "  is not an xml psiFile");
-        return null;
-      }
-      xmlFiles[i] = (XmlFile)psiFile;
-    }
-    return xmlFiles;
-  }
-
   @NotNull
   public synchronized MyStaticConstantsData getStaticConstantsData() {
     if (myStaticConstantsData == null) {
@@ -209,13 +219,19 @@ public class AndroidTargetData {
   }
 
   @Nullable
-  public synchronized FrameworkResources getFrameworkResources(boolean withLocale) throws IOException {
-    // if the framework resources that we got was created by someone else who didn't need locale data
-    if (withLocale && myFrameworkResources instanceof FrameworkResourceLoader.IdeFrameworkResources && ((FrameworkResourceLoader.IdeFrameworkResources)myFrameworkResources).getSkippedLocales()) {
+  public synchronized ResourceRepository getFrameworkResources(boolean withLocale) {
+    // If the framework resources that we got was created by someone else who didn't need locale data.
+    if (myFrameworkResources != null && withLocale && !myFrameworkResources.isWithLocaleResources()) {
       myFrameworkResources = null;
     }
     if (myFrameworkResources == null) {
-      myFrameworkResources = FrameworkResourceLoader.load(myTarget, withLocale);
+      File resFolder = myTarget.getFile(IAndroidTarget.RESOURCES);
+      if (!resFolder.isDirectory()) {
+        LOG.error(AndroidBundle.message("android.directory.cannot.be.found.error", resFolder.getPath()));
+        return null;
+      }
+
+      myFrameworkResources = FrameworkResourceRepository.create(resFolder, withLocale, true);
     }
     return myFrameworkResources;
   }
@@ -235,8 +251,8 @@ public class AndroidTargetData {
     }
 
     @Override
-    protected boolean isAttributeAcceptable(@NotNull String name) {
-      return isResourcePublic(ResourceType.ATTR.getName(), name);
+    protected boolean isAttributeAcceptable(@NotNull ResourceReference attr) {
+      return attr.getNamespace().equals(ResourceNamespace.ANDROID) && isResourcePublic(ResourceType.ATTR.getName(), attr.getName());
     }
   }
 
@@ -264,7 +280,7 @@ public class AndroidTargetData {
         if (myId != 0) {
           myIdMap.put(myId, SdkConstants.ANDROID_PREFIX + myType + "/" + myName);
 
-          // Within <public-group> we increase the id based on a given first id
+          // Within <public-group> we increase the id based on a given first id.
           if (inGroup) {
             myId++;
           }
@@ -358,29 +374,21 @@ public class AndroidTargetData {
 
     @Nullable
     private Set<String> collectValues(int pathId) {
-      final Set<String> result = new HashSet<>();
-      try {
-        final BufferedReader reader = new BufferedReader(new FileReader(myTarget.getPath(pathId)));
+      try (BufferedReader reader = new BufferedReader(new FileReader(myTarget.getPath(pathId)))) {
+        Set<String> result = new HashSet<>();
+        String line;
+        while ((line = reader.readLine()) != null) {
+          line = line.trim();
 
-        try {
-          String line;
-
-          while ((line = reader.readLine()) != null) {
-            line = line.trim();
-
-            if (!line.isEmpty() && !line.startsWith("#")) {
-              result.add(line);
-            }
+          if (!line.isEmpty() && !line.startsWith("#")) {
+            result.add(line);
           }
         }
-        finally {
-          reader.close();
-        }
+        return result;
       }
       catch (IOException e) {
         return null;
       }
-      return result;
     }
   }
 }

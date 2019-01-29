@@ -21,7 +21,9 @@ import com.intellij.notification.EventLog;
 import com.intellij.notification.LogModel;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,12 +34,13 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.THEME)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class MultiModuleThemeEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
 
+  @Ignore("b/63539615")
   @Test
   public void testMultipleModules() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");
@@ -67,6 +70,7 @@ public class MultiModuleThemeEditorTest {
     assertThat(library3Themes).containsNoneOf("AppTheme", "Library1DependentTheme", "Library1Theme", "Library2Theme");
   }
 
+  @Ignore("b/69001321")
   @Test
   public void testModuleWithoutThemes() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiAndroidModule");

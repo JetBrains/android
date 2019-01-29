@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.resources.configuration.Configurable;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
@@ -24,7 +23,6 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyl
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ThemeEditorStyle;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.MultiMap;
 import org.jetbrains.annotations.NotNull;
@@ -33,15 +31,16 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 /**
- * Helper class to get all the items and values defined in the given style, taking into account the inheritance
+ * Helper class to get all the items and values defined in the given style, taking into account the inheritance.
  */
 public class ThemeAttributeResolver {
   private static final Logger LOG = Logger.getInstance(ThemeAttributeResolver.class);
 
   final private ConfigurationManager myManager;
   final private ConfiguredThemeEditorStyle myStyle;
-  final private MultiMap<String, ConfiguredElement<ItemResourceValue>> myItemValueMap =
-    new MultiMap<String, ConfiguredElement<ItemResourceValue>>();
+
+  // TODO(namespaces): use a ResourceReference to the attr as key.
+  final private MultiMap<String, ConfiguredElement<StyleItemResourceValue>> myItemValueMap = new MultiMap<>();
 
   private ThemeAttributeResolver(ConfiguredThemeEditorStyle style, ConfigurationManager manager) {
     myStyle = style;
@@ -54,7 +53,7 @@ public class ThemeAttributeResolver {
   @Nullable/*if there is no configuration that matches to restrictions*/
   private static RestrictedConfiguration getRestrictedConfiguration(@NotNull ThemeEditorStyle theme,
                                                                     @NotNull FolderConfiguration compatible) {
-    ArrayList<FolderConfiguration> incompatibles = Lists.newArrayList();
+    ArrayList<FolderConfiguration> incompatibles = new ArrayList<>();
     for (FolderConfiguration folder : theme.getFolders()) {
       if (!compatible.equals(folder)) {
         incompatibles.add(folder);
@@ -78,9 +77,9 @@ public class ThemeAttributeResolver {
       return;
     }
 
-    Set<String> newSeenAttributes = new HashSet<String>(seenAttributes);
-    for (ItemResourceValue item : themeEditorStyle.getValues(configuration)) {
-      String itemName = ResolutionUtils.getQualifiedItemName(item);
+    Set<String> newSeenAttributes = new HashSet<>(seenAttributes);
+    for (StyleItemResourceValue item : themeEditorStyle.getValues(configuration)) {
+      String itemName = ResolutionUtils.getQualifiedItemAttrName(item);
       if (!newSeenAttributes.contains(itemName)) {
         myItemValueMap.putValue(itemName, ConfiguredElement.create(styleRestricted.getAny(), item));
         newSeenAttributes.add(itemName);
@@ -89,7 +88,7 @@ public class ThemeAttributeResolver {
     String parentName = themeEditorStyle.getParentName(configuration);
 
     if (parentName == null) {
-      // We have reached the top of the theme hierarchy (i.e "android:Theme")
+      // We have reached the top of the theme hierarchy (i.e "android:Theme").
       return;
     }
     ThemeEditorStyle parent = new ThemeEditorStyle(myManager, parentName);
@@ -102,17 +101,16 @@ public class ThemeAttributeResolver {
   private List<EditedStyleItem> resolveAll() {
     ThemeEditorStyle theme = new ThemeEditorStyle(myManager, myStyle.getQualifiedName());
     for (FolderConfiguration folder : theme.getFolders()) {
-      resolveFromInheritance(myStyle, folder, new RestrictedConfiguration(), new HashSet<String>());
+      resolveFromInheritance(myStyle, folder, new RestrictedConfiguration(), new HashSet<>());
     }
 
-    List<EditedStyleItem> result = Lists.newArrayList();
+    List<EditedStyleItem> result = new ArrayList<>();
     FolderConfiguration configuration = myStyle.getConfiguration().getFullConfig();
     for (String key : myItemValueMap.keySet()) {
-      Collection<ConfiguredElement<ItemResourceValue>> itemValues = myItemValueMap.get(key);
-      final ConfiguredElement<ItemResourceValue> selectedValue =
-        (ConfiguredElement<ItemResourceValue>)configuration.findMatchingConfigurable(Lists.<Configurable>newArrayList(itemValues));
+      Collection<ConfiguredElement<StyleItemResourceValue>> itemValues = myItemValueMap.get(key);
+      ConfiguredElement<StyleItemResourceValue> selectedValue = configuration.findMatchingConfigurable(new ArrayList<>(itemValues));
       if (selectedValue == null) {
-        // TODO: there is NO value for this attribute in the current config,so instead we need to show "no value for current device"
+        // TODO: there is NO value for this attribute in the current config,so instead we need to show "no value for current device".
         result.add(new EditedStyleItem(itemValues.iterator().next(), itemValues, myStyle));
       }
       else {

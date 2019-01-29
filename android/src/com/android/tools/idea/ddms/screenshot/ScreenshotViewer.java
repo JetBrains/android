@@ -16,6 +16,7 @@
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;
@@ -24,7 +25,6 @@ import com.android.tools.idea.device.DeviceArtPainter;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.pixelprobe.color.Colors;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -48,7 +48,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.ui.components.JBScrollPane;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.containers.ContainerUtil;
 import org.intellij.images.editor.ImageEditor;
 import org.intellij.images.editor.ImageFileEditor;
@@ -102,7 +102,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private JButton myRefreshButton;
   private JButton myRotateRightButton;
   private JButton myRotateLeftButton;
-  private JBScrollPane myScrollPane;
+  private JScrollPane myScrollPane;
   private JCheckBox myFrameScreenshotCheckBox;
   private JComboBox<String> myDeviceArtCombo;
   private JCheckBox myDropShadowCheckBox;
@@ -206,6 +206,14 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     setModal(false);
     setTitle(AndroidBundle.message("android.ddms.actions.screenshot"));
     init();
+  }
+
+  /**
+   * Makes the screenshot viewer's focus on the image itself when opened, to allow keyboard shortcut copying
+   */
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myImageFileEditor.getComponent();
   }
 
   // returns the list of descriptors capable of framing the given image
@@ -396,14 +404,16 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
   }
 
-  private void updateEditorImage() {
+  @VisibleForTesting
+  void updateEditorImage() {
     BufferedImage image = myDisplayedImageRef.get();
     ImageEditor imageEditor = myImageFileEditor.getImageEditor();
 
     imageEditor.getDocument().setValue(image);
     pack();
 
-    updateZoom();
+    // After image has updated, set the focus to image to allow keyboard shortcut copying
+    IdeFocusManager.getInstance(myProject).requestFocusInProject(getPreferredFocusedComponent(), myProject);
   }
 
   private FileEditorProvider getImageFileEditorProvider() {
@@ -516,7 +526,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       metadata.setFromTree("javax_imageio_png_1.0", node);
 
       pngWriter.write(new IIOImage(image, null, metadata));
-    } else {
+    }
+    else {
       pngWriter.write(image);
     }
     pngWriter.dispose();
@@ -526,6 +537,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private static byte[] deflate(byte[] data) {
+    @SuppressWarnings("resource")
     ByteArrayOutputStream out = new ByteArrayOutputStream(data.length);
 
     Deflater deflater = new Deflater();
@@ -546,7 +558,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     Iterator<ImageWriter> iterator = ImageIO.getImageWriters(type, format);
     if (iterator.hasNext()) {
       return iterator.next();
-    } else {
+    }
+    else {
       return null;
     }
   }
@@ -560,6 +573,17 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   public File getScreenshot() {
     return myScreenshotFile;
+  }
+
+  @VisibleForTesting
+  void setScrollPane(@NotNull JScrollPane scrollPane) {
+    // noinspection BoundFieldAssignment
+    myScrollPane = scrollPane;
+  }
+
+  @VisibleForTesting
+  ImageFileEditor getImageFileEditor() {
+    return myImageFileEditor;
   }
 
   private VirtualFile loadScreenshotPath() {
@@ -595,7 +619,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
 
     @Override
-    public Object getTransferData(DataFlavor dataFlavor) throws UnsupportedFlavorException, IOException {
+    public Object getTransferData(DataFlavor dataFlavor) throws UnsupportedFlavorException {
       if (!DataFlavor.imageFlavor.equals(dataFlavor)) {
         throw new UnsupportedFlavorException(dataFlavor);
       }

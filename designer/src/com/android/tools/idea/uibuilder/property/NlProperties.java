@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.utils.Pair;
 import com.google.common.base.Joiner;
@@ -34,6 +34,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.util.ClassUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.XmlName;
 import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor;
@@ -90,22 +94,19 @@ public class NlProperties {
     assert !components.isEmpty();
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
     ResourceManager localResourceManager = resourceManagers.getLocalResourceManager();
-    ResourceManager systemResourceManager = resourceManagers.getSystemResourceManager();
-    if (systemResourceManager == null) {
+    ResourceManager frameworkResourceManager = resourceManagers.getFrameworkResourceManager();
+    if (frameworkResourceManager == null) {
       Logger.getInstance(NlProperties.class).error("No system resource manager for module: " + facet.getModule().getName());
       return ImmutableTable.of();
     }
 
     AttributeDefinitions localAttrDefs = localResourceManager.getAttributeDefinitions();
-    AttributeDefinitions systemAttrDefs = systemResourceManager.getAttributeDefinitions();
+    AttributeDefinitions systemAttrDefs = frameworkResourceManager.getAttributeDefinitions();
 
     Table<String, String, NlPropertyItem> combinedProperties = null;
     Project project = facet.getModule().getProject();
     ApiLookup apiLookup = LintIdeClient.getApiLookup(project);
     int minApi = AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getFeatureLevel();
-    NlModel model = components.get(0).getModel();
-    boolean appCompatUsed = NlModelHelperKt.moduleDependsOnAppCompat(model) &&
-                            NlModelHelperKt.currentActivityIsDerivedFromAppCompatActivity(model);
 
     for (NlComponent component : components) {
       XmlTag tag = component.getTag();
@@ -129,22 +130,31 @@ public class NlProperties {
         }
         AttributeDefinitions attrDefs = NS_RESOURCES.equals(name.getNamespaceKey()) ? systemAttrDefs : localAttrDefs;
         AttributeDefinition attrDef = attrDefs == null ? null : attrDefs.getAttrDefByName(name.getLocalName());
+        if (!NlPropertyItem.isDefinitionAcceptable(name, attrDef)) {
+          // Ignore attributes we don't have information about.
+          // This will ignore special data binding attributes such as:
+          //    CheckBox.onCheckedChanged
+          //    SearchView.onSearchClick
+          //    ZoomControls.onZoomOut
+          // among others.
+          //
+          // TODO: Investigate further:
+          // There is code in TagSnapshot.getValue that blocks the value of these attributes.
+          // Ignore these attributes for now.
+          continue;
+        }
         NlPropertyItem property = NlPropertyItem.create(name, attrDef, components, propertiesManager);
         properties.put(StringUtil.notNullize(name.getNamespaceKey()), property.getName(), property);
       }
 
-      if (appCompatUsed && localAttrDefs != null && tag.getLocalName().indexOf('.') < 0) {
-        StyleableDefinition styleable = localAttrDefs.getStyleableByName("AppCompat" + tag.getLocalName());
-        if (styleable != null) {
-          for (AttributeDefinition attrDef : styleable.getAttributes()) {
-            if (properties.contains(NS_RESOURCES, attrDef.getName())) {
-              // If the corresponding framework attribute is supported, prefer the framework attribute.
-              continue;
-            }
-            XmlName name = getXmlName(attrDef.getName(), AUTO_URI);
-            NlPropertyItem property = NlPropertyItem.create(name, attrDef, components, propertiesManager);
-            properties.put(StringUtil.notNullize(name.getNamespaceKey()), property.getName(), property);
-          }
+      PsiElement declaration = elementDescriptor.getDeclaration();
+      PsiClass tagClass = (declaration instanceof PsiClass) ? (PsiClass)declaration : null;
+      String className = tagClass != null ? tagClass.getQualifiedName() : null;
+      if (NlComponentHelperKt.getHasNlComponentInfo(component)) {
+        ViewInfo view = NlComponentHelperKt.getViewInfo(component);
+        String viewClassName = view != null ? view.getClassName() : null;
+        if (localAttrDefs != null && viewClassName != null && className != null && !viewClassName.equals(className)) {
+          addAttributesFromInflatedStyleable(properties, localAttrDefs, tagClass, viewClassName, propertiesManager, components);
         }
       }
 
@@ -153,11 +163,12 @@ public class NlProperties {
         case AUTO_COMPLETE_TEXT_VIEW:
           // An AutoCompleteTextView has a popup that is created at runtime.
           // Properties for this popup can be added to the AutoCompleteTextView tag.
-          properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND, NlPropertyItem.create(
-            new XmlName(ATTR_POPUP_BACKGROUND, ANDROID_URI),
-            systemAttrDefs != null ? systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND) : null,
-            components,
-            propertiesManager));
+          XmlName popup = new XmlName(ATTR_POPUP_BACKGROUND, ANDROID_URI);
+          AttributeDefinition definition = systemAttrDefs != null ? systemAttrDefs.getAttrDefByName(ATTR_POPUP_BACKGROUND) : null;
+          if (NlPropertyItem.isDefinitionAcceptable(popup, definition)) {
+            properties.put(ANDROID_URI, ATTR_POPUP_BACKGROUND,
+                           NlPropertyItem.create(popup, definition, components, propertiesManager));
+          }
           break;
       }
 
@@ -176,6 +187,33 @@ public class NlProperties {
 
     //noinspection ConstantConditions
     return combinedProperties;
+  }
+
+  private static void addAttributesFromInflatedStyleable(@NotNull Table<String, String, NlPropertyItem> properties,
+                                                         @NotNull AttributeDefinitions localAttrDefs,
+                                                         @NotNull PsiClass xmlClass,
+                                                         @NotNull String inflatedClassName,
+                                                         @NotNull PropertiesManager propertiesManager,
+                                                         @NotNull List<NlComponent> components) {
+    PsiManager psiManager = PsiManager.getInstance(xmlClass.getProject());
+    PsiClass inflatedClass = ClassUtil.findPsiClass(psiManager, inflatedClassName);
+    while (inflatedClass != null && inflatedClass != xmlClass) {
+      String styleableName = inflatedClass.getName();
+      StyleableDefinition styleable = styleableName != null ? localAttrDefs.getStyleableByName(styleableName) : null;
+      if (styleable != null) {
+        for (AttributeDefinition attrDef : styleable.getAttributes()) {
+          if (properties.contains(NS_RESOURCES, attrDef.getName())) {
+            // If the corresponding framework attribute is supported, prefer the framework attribute.
+            continue;
+          }
+          XmlName name = getXmlName(attrDef.getName(), AUTO_URI);
+          NlPropertyItem property = NlPropertyItem.create(name, attrDef, components, propertiesManager);
+          properties.put(StringUtil.notNullize(name.getNamespaceKey()), property.getName(), property);
+        }
+      }
+
+      inflatedClass = inflatedClass.getSuperClass();
+    }
   }
 
   private static void initStarState(@NotNull Table<String, String, NlPropertyItem> properties) {
@@ -259,7 +297,7 @@ public class NlProperties {
   @NotNull
   private static XmlName getXmlName(@NotNull String qualifiedName, @NotNull String defaultNamespace) {
     if (qualifiedName.startsWith(ANDROID_NS_NAME_PREFIX)) {
-      return new XmlName(ANDROID_URI, StringUtil.trimStart(qualifiedName, ANDROID_NS_NAME_PREFIX));
+      return new XmlName(StringUtil.trimStart(qualifiedName, ANDROID_NS_NAME_PREFIX), ANDROID_URI);
     }
     return new XmlName(qualifiedName, defaultNamespace);
   }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import static com.intellij.util.ui.JBUI.scale;
+
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
@@ -62,7 +64,7 @@ public class DrawConnection implements DrawCommand {
   final static int[] dirDeltaX = {-1, +1, 0, 0};
   final static int[] dirDeltaY = {0, 0, -1, 1};
   final static int[] ourOppositeDirection = {1, 0, 3, 2};
-  public static final int GAP = 10;
+  public static final int GAP = scale(10);
   int myConnectionType;
   @SwingCoordinate Rectangle mySource = new Rectangle();
   int mySourceDirection;
@@ -80,11 +82,11 @@ public class DrawConnection implements DrawCommand {
   int myModeFrom; // use to describe various display modes 0=default 1 = Source selected
   int myModeTo;
   long myStateChangeTime;
-  static Stroke myBackgroundStroke = new BasicStroke(8);
-  static Stroke myDashStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 6}, 0f);
-  static Stroke mySpringStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 4}, 0f);
-  static Stroke myChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, 2.5f, 9, 1);
-  static Stroke myChainStroke2 = new FancyStroke(FancyStroke.Type.HALF_CHAIN2, 2.5f, 9, 1);
+  static Stroke myBackgroundStroke = new BasicStroke(scale(8));
+  static Stroke myDashStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(6)}, 0f);
+  static Stroke mySpringStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(4)}, 0f);
+  static Stroke myChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, scale(2.5f), scale(9), 1);
+  static Stroke myChainStroke2 = new FancyStroke(FancyStroke.Type.HALF_CHAIN2, scale(2.5f), scale(9), 1);
 
   @Override
   public int getLevel() {
@@ -406,6 +408,8 @@ public class DrawConnection implements DrawCommand {
         int springEndX = endx;
         int springEndY = endy;
         if (myDestType != DEST_NORMAL) {
+          int rectGap = scale(4);
+          int rectDim = scale(9);
           if (margin != 0) {
             String marginString = Integer.toString(margin);
             if (destDirection == DIR_LEFT || destDirection == DIR_RIGHT) {
@@ -438,16 +442,18 @@ public class DrawConnection implements DrawCommand {
           if (endx == startx) {
             g.setColor(constraintColor);
             DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, springEndY);
-            g.fillRect(startx - 4, springEndY, 9, 1);
+            g.fillRect(startx - rectGap, springEndY, rectDim, 1);
           }
           else {
             g.setColor(constraintColor);
             DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, springEndX, endy);
-            g.fillRect(springEndX, endy - 4, 1, 9);
+            g.fillRect(springEndX, endy - rectGap, 1, rectDim);
           }
         }
         else {
           g.setColor(constraintColor);
+          int rectGap = scale(2);
+          int rectDim = scale(5);
           if (destDirection == DIR_LEFT || destDirection == DIR_RIGHT) {
             g.setColor(constraintColor);
             DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, endx, starty);
@@ -456,7 +462,7 @@ public class DrawConnection implements DrawCommand {
             drawArrow = false;
             g.drawLine(endx, starty, endx, endy);
             g.setStroke(defaultStroke);
-            g.fillRoundRect(endx-2,endy-2,5,5,2,2);
+            g.fillRoundRect(endx-rectGap,endy-rectGap,rectDim,rectDim,rectGap,rectGap);
 
           }
           else {
@@ -467,7 +473,7 @@ public class DrawConnection implements DrawCommand {
             drawArrow = false;
             g.drawLine(startx, endy, endx, endy);
             g.setStroke(defaultStroke);
-            g.fillRoundRect(endx-2,endy-2,5,5,2,2);
+            g.fillRoundRect(endx-rectGap,endy-rectGap,rectDim,rectDim,rectGap,rectGap);
           }
         }
         g.setColor(constraintColor);

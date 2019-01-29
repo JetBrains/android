@@ -28,11 +28,25 @@ public class ButtonHandler extends TextViewHandler {
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
       ATTR_STYLE,
+      ATTR_STATE_LIST_ANIMATOR,
+      ATTR_ON_CLICK,
+      ATTR_ELEVATION,
+      ATTR_INSET_LEFT,
+      ATTR_INSET_RIGHT,
+      ATTR_INSET_TOP,
+      ATTR_INSET_BOTTOM,
       ATTR_BACKGROUND,
       ATTR_BACKGROUND_TINT,
-      ATTR_STATE_LIST_ANIMATOR,
-      ATTR_ELEVATION,
-      ATTR_VISIBILITY,
-      ATTR_ON_CLICK);
+      ATTR_BACKGROUND_TINT_MODE,
+      ATTR_ICON,
+      ATTR_ICON_PADDING,
+      ATTR_ICON_TINT,
+      ATTR_ICON_TINT_MODE,
+      ATTR_ADDITIONAL_PADDING_START_FOR_ICON,
+      ATTR_ADDITIONAL_PADDING_END_FOR_ICON,
+      ATTR_STROKE_COLOR,
+      ATTR_STROKE_WIDTH,
+      ATTR_CORNER_RADIUS,
+      ATTR_RIPPLE_COLOR);
   }
 }

@@ -16,17 +16,20 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.ATTR_ICON;
-import static com.android.SdkConstants.DRAWABLE_PREFIX;
+import javax.swing.*;
+
+import static com.android.SdkConstants.*;
 
 public final class SearchItemHandler extends MenuHandler {
   private static final String SEARCH_ICON = "ic_search_black_24dp";
@@ -55,9 +58,19 @@ public final class SearchItemHandler extends MenuHandler {
       return true;
     }
 
-    String value = editor.getMinSdkVersion().getApiLevel() < 11 ? "android.support.v7.widget.SearchView" : "android.widget.SearchView";
-    newChild.setAndroidAttribute("actionViewClass", value);
+    NlWriteCommandAction.run(newChild, "", () -> {
+      String value = editor.getMinSdkVersion().getApiLevel() < 11 ? "android.support.v7.widget.SearchView" : "android.widget.SearchView";
+      // TODO: Adjust for correct namespace
+      String namespace = editor.moduleDependsOnAppCompat() ? AUTO_URI : ANDROID_URI;
+      newChild.setAttribute(namespace, "actionViewClass", value);
+    });
 
     return true;
+  }
+
+  @NotNull
+  @Override
+  public Icon getIcon(@NotNull NlComponent component) {
+    return StudioIcons.LayoutEditor.Menu.SEARCH;
   }
 }

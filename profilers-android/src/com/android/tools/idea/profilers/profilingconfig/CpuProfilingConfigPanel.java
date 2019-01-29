@@ -15,23 +15,25 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.ProfilingTechnology;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.util.ui.JBUI;
+import java.awt.event.ItemEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.util.function.Consumer;
 
 /**
  * The configuration panel for the Android profiler settings.
@@ -42,7 +44,46 @@ public class CpuProfilingConfigPanel {
 
   private static final int MAX_SAMPLING_INTERVAL_US = 100000;
 
-  private static final int MIN_FILE_SIZE_LIMIT_MB = 4;
+  private static final int ONE_GB_IN_MB = 1024;
+
+  private static final int SAMPLING_SPINNER_STEP_SIZE = 100;
+
+  @VisibleForTesting
+  static final int MIN_FILE_SIZE_LIMIT_MB = 4;
+
+  @VisibleForTesting
+  static final String SAMPLING_INTERVAL = "Sampling interval:";
+
+  @VisibleForTesting
+  static final String SAMPLING_INTERVAL_UNIT = "microseconds (µs)";
+
+  @VisibleForTesting
+  static final String FILE_SIZE_LIMIT = "File size limit:";
+
+  @VisibleForTesting
+  static final String DISABLE_LIVE_ALLOCATION = "Suspend Memory Allocation Tracking";
+
+  @VisibleForTesting
+  static final String DISABLE_LIVE_ALLOCATION_DESCRIPTION =
+    "<html>To minimize performance overhead during CPU recording, suspend memory allocation tracking.</html>";
+
+  @VisibleForTesting
+  static final String ART_SAMPLED_DESCRIPTION = "Samples Java code using Android Runtime.";
+
+  @VisibleForTesting
+  static final String ART_INSTRUMENTED_DESCRIPTION = "Instruments Java code using Android Runtime.";
+
+  @VisibleForTesting
+  static final String SIMPLEPERF_DESCRIPTION = "<html>Samples native code using simpleperf. " +
+                                               "Available for Android 8.0 (API level 26) and higher.</html>";
+
+  @VisibleForTesting
+  static final String ATRACE_DESCRIPTION = "<html>Traces Java and native code at the Android platform level. " +
+                                               "Available for Android 8.0 (API level 26) and higher.</html>";
+
+  @VisibleForTesting
+  static final String FILE_SIZE_LIMIT_DESCRIPTION =
+    "<html>Maximum recording output file size. On Android 8.0 (API level 26) and higher, this value is ignored.</html>";
 
   /**
    * Max size of the buffer file that contains the output of the recording.
@@ -63,21 +104,25 @@ public class CpuProfilingConfigPanel {
    * Sampling interval of the configuration.
    * Should be disabled for instrumented configurations.
    */
-  private JTextField mySamplingInterval;
+  private JSpinner mySamplingInterval;
 
-  private final JLabel mySamplingIntervalText = new JLabel("Sampling interval:");
+  private final JLabel mySamplingIntervalText = new JLabel(SAMPLING_INTERVAL);
 
-  private final JLabel mySamplingIntervalUnit = new JLabel("microseconds (µs)");
+  private final JLabel mySamplingIntervalUnit = new JLabel(SAMPLING_INTERVAL_UNIT);
 
   /**
-   * Size of the buffer file containing the output of the recording.
+   * Controls the size of the buffer file containing the output of the recording.
    * Should be disabled when selected device is O+.
    */
-  private JTextField myFileSizeLimit;
+  private JSlider myFileSize;
 
-  private final JLabel myFileSizeLimitText = new JLabel("File size limit:");
+  private JLabel myFileSizeLimit;
 
-  private final JLabel myFileSizeLimitUnit = new JLabel("MB");
+  private final JLabel myFileSizeLimitText = new JLabel(FILE_SIZE_LIMIT);
+  private final JLabel myFileSizeLimitDescriptionText = new JLabel(FILE_SIZE_LIMIT_DESCRIPTION);
+
+  private final JCheckBox myDisableLiveAllocation = new JCheckBox(DISABLE_LIVE_ALLOCATION);
+  private final JLabel myDisableLiveAllocationDescriptionText = new JLabel(DISABLE_LIVE_ALLOCATION_DESCRIPTION);
 
   /**
    * Radio button representing Art Sampled configuration.
@@ -95,9 +140,19 @@ public class CpuProfilingConfigPanel {
   private JRadioButton mySimpleperfButton;
 
   /**
-   * Current configuration that should receive the values set on the panel.
+   * Radio button representing system trace (atrace) configuration.
    */
-  private ProfilingConfiguration myConfiguration;
+  private JRadioButton myATraceButton;
+
+  private final JLabel myArtSampledDescriptionText = new JLabel(ART_SAMPLED_DESCRIPTION);
+  private final JLabel myArtInstrumentedDescriptionText = new JLabel(ART_INSTRUMENTED_DESCRIPTION);
+  private final JLabel mySimpleperfDescriptionText = new JLabel(SIMPLEPERF_DESCRIPTION);
+  private final JLabel myATraceDescriptionText = new JLabel(ATRACE_DESCRIPTION);
+
+  /**
+   * Current configuration that should receive the values set on the panel. Null if no configuration is currently selected.
+   */
+  @Nullable private ProfilingConfiguration myConfiguration;
 
   /**
    * Whether device API is at least O.
@@ -111,37 +166,13 @@ public class CpuProfilingConfigPanel {
     createUiComponents();
   }
 
-  private static Logger getLogger() {
-    return Logger.getInstance(CpuProfilingConfigPanel.class);
+  @VisibleForTesting
+  int getMaxFileSizeLimitMb() {
+    return myMaxFileSizeLimitMb;
   }
 
-  /**
-   * Creates a text field that validate its content when focus is lost.
-   * The content should be an integer between min and max (inclusive).
-   * A given callback is called if the input value is a valid integer between min and max.
-   * If the content is not a valid number, a default value should replace it.
-   * If the input text is valid number outside the range [min, max], it should be replaced by the closest valid value.
-   */
-  private static JTextField createNumberTextField(int min, int max, int defaultValue, Consumer<Integer> callback, String tooltip) {
-    JTextField textField = new JTextField();
-    textField.setHorizontalAlignment(JTextField.RIGHT);
-    textField.setToolTipText(tooltip);
-    textField.addFocusListener(new FocusAdapter() {
-      @Override
-      public void focusLost(FocusEvent e) {
-        super.focusLost(e);
-        try {
-          int value = Integer.parseInt(textField.getText());
-          value = Math.max(Math.min(max, value), min);
-          textField.setText(String.valueOf(value));
-          callback.accept(value);
-        }
-        catch (Exception ex) {
-          textField.setText(String.valueOf(defaultValue));
-        }
-      }
-    });
-    return textField;
+  private static Logger getLogger() {
+    return Logger.getInstance(CpuProfilingConfigPanel.class);
   }
 
   JComponent getComponent() {
@@ -150,6 +181,17 @@ public class CpuProfilingConfigPanel {
 
   JComponent getPreferredFocusComponent() {
     return myConfigName;
+  }
+
+  /**
+   * Gets the file size limit in MB and returns it as a string in MB if the size is less than 1 GB,
+   * otherwise it's returned in GB.
+   */
+  private static String getFileSizeLimitText(int fileSizeLimitInMB) {
+    if (fileSizeLimitInMB < ONE_GB_IN_MB) {
+      return String.format("%d MB", fileSizeLimitInMB);
+    }
+    return String.format("%.2f GB", fileSizeLimitInMB / 1024.0);
   }
 
   void setConfiguration(@Nullable ProfilingConfiguration configuration, boolean isDefaultConfiguration) {
@@ -161,14 +203,17 @@ public class CpuProfilingConfigPanel {
       myConfigName.setText(configuration.getName());
       myConfigName.setEnabled(true);
       myConfigName.selectAll();
-
-      setAndEnableRadioButtons(configuration);
-
-      myFileSizeLimit.setText(String.valueOf(configuration.getProfilingBufferSizeInMb()));
-      // Starting from Android O, there is no limit on file size, so there is no need to set it.
+      setEnabledTraceTechnologyPanel(true);
+      setRadioButtons(configuration);
       setEnabledFileSizeLimit(!myIsDeviceAtLeastO);
+      boolean isSamplingEnabled = configuration.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED;
+      setEnabledSamplingIntervalPanel(isSamplingEnabled);
+      myFileSize.setValue(configuration.getProfilingBufferSizeInMb());
 
-      mySamplingInterval.setText(String.valueOf(configuration.getProfilingSamplingIntervalUs()));
+      mySamplingInterval.getModel().setValue(configuration.getProfilingSamplingIntervalUs());
+
+      myDisableLiveAllocation.setSelected(configuration.isDisableLiveAllocation());
+      setEnabledDisableLiveAllocation(true);
     }
     // Default configurations shouldn't be editable.
     if (isDefaultConfiguration) {
@@ -176,28 +221,25 @@ public class CpuProfilingConfigPanel {
     }
   }
 
-  private void setAndEnableRadioButtons(@NotNull ProfilingConfiguration configuration) {
-    myArtSampledButton.setEnabled(true);
-    myArtInstrumentedButton.setEnabled(true);
-    // There is a flag check before adding this button to the UI, so we can safely set it to enabled here.
-    mySimpleperfButton.setEnabled(true);
+  private void setRadioButtons(@NotNull ProfilingConfiguration configuration) {
+
     if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.ART) {
-      if (configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) {
+      if (configuration.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED) {
         myArtSampledButton.setSelected(true);
-        setEnabledSamplingIntervalPanel(true);
       }
-      else if (configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED) {
+      else if (configuration.getMode() == CpuProfiler.CpuProfilerMode.INSTRUMENTED) {
         myArtInstrumentedButton.setSelected(true);
-        setEnabledSamplingIntervalPanel(false);
       }
       else {
         getLogger().warn("Invalid trace technology detected.");
       }
     }
     else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.SIMPLEPERF) {
-      assert configuration.getMode() == CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED;
+      assert configuration.getMode() == CpuProfiler.CpuProfilerMode.SAMPLED;
       mySimpleperfButton.setSelected(true);
-      setEnabledSamplingIntervalPanel(true);
+    }
+    else if (configuration.getProfilerType() == CpuProfiler.CpuProfilerType.ATRACE) {
+      myATraceButton.setSelected(true);
     }
     else {
       getLogger().warn("Invalid trace technology detected.");
@@ -209,17 +251,18 @@ public class CpuProfilingConfigPanel {
     myArtSampledButton.setSelected(false);
     myArtInstrumentedButton.setSelected(false);
     mySimpleperfButton.setSelected(false);
-    mySamplingInterval.setText("");
+    mySamplingInterval.getModel().setValue(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US);
+    myFileSize.setValue(ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB);
     myFileSizeLimit.setText("");
+    myDisableLiveAllocation.setSelected(false);
   }
 
   private void disableFields() {
     myConfigName.setEnabled(false);
-    myArtSampledButton.setEnabled(false);
-    myArtInstrumentedButton.setEnabled(false);
-    mySimpleperfButton.setEnabled(false);
+    setEnabledTraceTechnologyPanel(false);
     setEnabledSamplingIntervalPanel(false);
     setEnabledFileSizeLimit(false);
+    setEnabledDisableLiveAllocation(false);
   }
 
   private void createUiComponents() {
@@ -227,26 +270,23 @@ public class CpuProfilingConfigPanel {
     myConfigPanel.setLayout(new VerticalFlowLayout());
 
     createConfigNamePanel();
-    addSeparator();
+    createSectionHeaderPanel("Trace type");
     createTraceTechnologyPanel();
-    addSeparator();
     createSamplingIntervalPanel();
-    addSeparator();
     createFileLimitPanel();
+    if (myIsDeviceAtLeastO && StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get()) {
+      createSectionHeaderPanel("Performance");
+      createDisableLiveAllocationPanel();
+    }
 
     disableFields();
   }
 
-  private void addSeparator() {
-    JPanel separatorPanel = new JPanel(new TabularLayout("*", "10px"));
-    separatorPanel.add(new JSeparator(), new TabularLayout.Constraint(0, 0));
-    myConfigPanel.add(separatorPanel);
-  }
-
   private void createConfigNamePanel() {
-    JPanel namePanel = new JPanel(new TabularLayout("Fit,200px", "25px"));
+    JPanel namePanel = new JPanel(new TabularLayout("Fit-,200px", "25px"));
+    namePanel.setBorder(JBUI.Borders.emptyBottom(4));
     JLabel nameLabel = new JLabel("Name:");
-    nameLabel.setBorder(new EmptyBorder(0, 0, 0, 5));
+    nameLabel.setBorder(JBUI.Borders.emptyRight(5));
     namePanel.add(nameLabel, new TabularLayout.Constraint(0, 0));
 
     myConfigName = new JTextField();
@@ -263,45 +303,70 @@ public class CpuProfilingConfigPanel {
     myConfigPanel.add(namePanel);
   }
 
+  private void createSectionHeaderPanel(String sectionName) {
+    JPanel sectionHeaderPanel = new JPanel(new TabularLayout("Fit,10px,*"));
+    sectionHeaderPanel.setBorder(JBUI.Borders.emptyTop(12));
+    // Fix to the separator not aligning with the text.
+    JPanel separatorColumnPanel = new JPanel(new TabularLayout("*", "*,*"));
+    separatorColumnPanel.add(new JSeparator(), new TabularLayout.Constraint(1, 0));
+    sectionHeaderPanel.add(new JLabel(sectionName), new TabularLayout.Constraint(0, 0));
+    sectionHeaderPanel.add(separatorColumnPanel, new TabularLayout.Constraint(0, 2));
+    myConfigPanel.add(sectionHeaderPanel);
+  }
+
   private void createTraceTechnologyPanel() {
-    myConfigPanel.add(new JLabel("Trace technology"));
-
     ButtonGroup profilersType = new ButtonGroup();
-    myArtSampledButton = new JRadioButton(ProfilingConfiguration.ART_SAMPLED);
-    createRadioButtonUi(myArtSampledButton, "Samples Java code using Android Runtime.", TraceTechnology.ART_SAMPLED, profilersType);
+    myArtSampledButton = new JRadioButton(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName());
+    createRadioButtonUi(myArtSampledButton, myArtSampledDescriptionText, TraceTechnology.ART_SAMPLED, profilersType);
 
-    myArtInstrumentedButton = new JRadioButton(ProfilingConfiguration.ART_INSTRUMENTED);
-    createRadioButtonUi(myArtInstrumentedButton, "Instruments Java code using Android Runtime.",
-                        TraceTechnology.ART_INSTRUMENTED, profilersType);
+    myArtInstrumentedButton = new JRadioButton(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName());
+    createRadioButtonUi(myArtInstrumentedButton, myArtInstrumentedDescriptionText, TraceTechnology.ART_INSTRUMENTED, profilersType);
 
-    mySimpleperfButton = new JRadioButton(ProfilingConfiguration.SIMPLEPERF);
-    if (StudioFlags.PROFILER_USE_SIMPLEPERF.get()) {
-      createRadioButtonUi(mySimpleperfButton, "<html>Samples native code using simpleperf. " +
-                                              "Available for Android 8.0 (API level 26) and higher.</html>",
-                          TraceTechnology.SIMPLEPERF, profilersType);
-    }
+    mySimpleperfButton = new JRadioButton(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName());
+    createRadioButtonUi(mySimpleperfButton, mySimpleperfDescriptionText, TraceTechnology.SIMPLEPERF, profilersType);
+
+    myATraceButton = new JRadioButton(CpuProfilerConfig.Technology.ATRACE.getName());
+    createRadioButtonUi(myATraceButton, myATraceDescriptionText, TraceTechnology.ATRACE, profilersType);
+  }
+
+  private void setEnabledTraceTechnologyPanel(boolean isEnabled) {
+    myArtSampledButton.setEnabled(isEnabled);
+    myArtInstrumentedButton.setEnabled(isEnabled);
+    mySimpleperfButton.setEnabled(isEnabled);
+    myATraceButton.setEnabled(isEnabled);
+    myArtSampledDescriptionText.setEnabled(isEnabled);
+    myArtInstrumentedDescriptionText.setEnabled(isEnabled);
+    mySimpleperfDescriptionText.setEnabled(isEnabled);
+    myATraceDescriptionText.setEnabled(isEnabled);
   }
 
   private void updateConfigurationProfilerAndMode(TraceTechnology technology) {
+    // This is only called when a radio button is selected, so myConfiguration should never be null.
+    assert myConfiguration != null;
     switch (technology) {
       case ART_SAMPLED:
         myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+        myConfiguration.setMode(CpuProfiler.CpuProfilerMode.SAMPLED);
         setEnabledSamplingIntervalPanel(true);
         break;
       case ART_INSTRUMENTED:
         myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.ART);
-        myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
+        myConfiguration.setMode(CpuProfiler.CpuProfilerMode.INSTRUMENTED);
         setEnabledSamplingIntervalPanel(false);
         break;
       case SIMPLEPERF:
         myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.SIMPLEPERF);
-        myConfiguration.setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED);
+        myConfiguration.setMode(CpuProfiler.CpuProfilerMode.SAMPLED);
         setEnabledSamplingIntervalPanel(true);
+        break;
+      case ATRACE:
+        myConfiguration.setProfilerType(CpuProfiler.CpuProfilerType.ATRACE);
+        myConfiguration.setMode(CpuProfiler.CpuProfilerMode.INSTRUMENTED);
+        setEnabledSamplingIntervalPanel(false);
     }
   }
 
-  private void createRadioButtonUi(JRadioButton button, String description, TraceTechnology technology, ButtonGroup group) {
+  private void createRadioButtonUi(JRadioButton button, JLabel descriptionLabel, TraceTechnology technology, ButtonGroup group) {
     button.addActionListener(e -> {
       if (e.getSource() == button) {
         JRadioButton bt = (JRadioButton)e.getSource();
@@ -311,12 +376,12 @@ public class CpuProfilingConfigPanel {
       }
     });
     group.add(button);
-    myConfigPanel.add(button);
 
-    JLabel descriptionLabel = new JLabel(description);
+    myConfigPanel.add(button);
     descriptionLabel.setFont(descriptionLabel.getFont().deriveFont(12f));
-    // TODO: align the description with the radio button text.
-    descriptionLabel.setBorder(new EmptyBorder(0, 30, 0, 0));
+    descriptionLabel.setForeground(ProfilerColors.CPU_RECORDING_CONFIGURATION_DESCRIPTION);
+    // TODO(b/116355169): align the description with the radio button text.
+    descriptionLabel.setBorder(JBUI.Borders.emptyLeft(30));
     myConfigPanel.add(descriptionLabel);
   }
 
@@ -326,56 +391,88 @@ public class CpuProfilingConfigPanel {
     mySamplingIntervalUnit.setEnabled(isEnabled);
   }
 
-  /**
-   * Layout used by sampling interval and file size related components.
-   * The same layout is used so their components keep aligned.
-   */
-  private static TabularLayout getSamplingIntervalFileSizeLayout() {
-    return new TabularLayout("120px,75px,Fit,*", "25px");
-  }
-
   private void createSamplingIntervalPanel() {
-    JPanel samplingIntervalPanel = new JPanel(getSamplingIntervalFileSizeLayout());
+    JPanel samplingIntervalPanel = new JPanel(new TabularLayout("120px,Fit,Fit-,*", "Fit"));
+    samplingIntervalPanel.setBorder(JBUI.Borders.emptyTop(12));
     samplingIntervalPanel.add(mySamplingIntervalText, new TabularLayout.Constraint(0, 0));
-    mySamplingInterval = createNumberTextField(MIN_SAMPLING_INTERVAL_US, MAX_SAMPLING_INTERVAL_US,
-                                               ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US,
-                                               value -> myConfiguration.setProfilingSamplingIntervalUs(value),
-                                               String.format("The sampling interval should be a value between %d and %d microseconds",
-                                                             MIN_SAMPLING_INTERVAL_US, MAX_SAMPLING_INTERVAL_US));
+    SpinnerModel model = new SpinnerNumberModel(ProfilingConfiguration.DEFAULT_SAMPLING_INTERVAL_US,
+                                                MIN_SAMPLING_INTERVAL_US,
+                                                MAX_SAMPLING_INTERVAL_US,
+                                                SAMPLING_SPINNER_STEP_SIZE);
+    mySamplingInterval = new JSpinner(model);
+    mySamplingInterval.addChangeListener(e -> {
+      if (myConfiguration != null) {
+        JSpinner source = (JSpinner)e.getSource();
+        myConfiguration.setProfilingSamplingIntervalUs((Integer)source.getValue());
+      }
+    });
     samplingIntervalPanel.add(mySamplingInterval, new TabularLayout.Constraint(0, 1));
-    mySamplingIntervalUnit.setBorder(new EmptyBorder(0, 5, 0, 0));
+    mySamplingIntervalUnit.setBorder(JBUI.Borders.emptyLeft(5));
     samplingIntervalPanel.add(mySamplingIntervalUnit, new TabularLayout.Constraint(0, 2));
     myConfigPanel.add(samplingIntervalPanel);
   }
 
   private void setEnabledFileSizeLimit(boolean isEnabled) {
+    myFileSize.setEnabled(isEnabled);
     myFileSizeLimit.setEnabled(isEnabled);
     myFileSizeLimitText.setEnabled(isEnabled);
-    myFileSizeLimitUnit.setEnabled(isEnabled);
+    myFileSizeLimitDescriptionText.setEnabled(isEnabled);
   }
 
   private void createFileLimitPanel() {
-    JPanel fileSizeLimitPanel = new JPanel(getSamplingIntervalFileSizeLayout());
+    myFileSize = new JSlider(MIN_FILE_SIZE_LIMIT_MB, myMaxFileSizeLimitMb, ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB);
+    myFileSize.setMajorTickSpacing((myMaxFileSizeLimitMb - MIN_FILE_SIZE_LIMIT_MB) / 10);
+    myFileSize.setPaintTicks(true);
+    myFileSize.addChangeListener(e -> {
+      if (myConfiguration != null) {
+        JSlider source = (JSlider)e.getSource();
+        myFileSizeLimit.setText(getFileSizeLimitText(source.getValue()));
+        myConfiguration.setProfilingBufferSizeInMb(source.getValue());
+      }
+    });
+    myFileSizeLimit = new JLabel(getFileSizeLimitText(ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB));
+    JPanel fileSizeLimitPanel = new JPanel(new TabularLayout("120px,*,75px", "Fit"));
+    fileSizeLimitPanel.setBorder(JBUI.Borders.emptyTop(8));
     fileSizeLimitPanel.add(myFileSizeLimitText, new TabularLayout.Constraint(0, 0));
-    myFileSizeLimit = createNumberTextField(MIN_FILE_SIZE_LIMIT_MB, myMaxFileSizeLimitMb, ProfilingConfiguration.DEFAULT_BUFFER_SIZE_MB,
-                                            value -> myConfiguration.setProfilingBufferSizeInMb(value),
-                                            String.format("The file buffer maximum size should be a value between %d and %d MB",
-                                                          MIN_FILE_SIZE_LIMIT_MB, myMaxFileSizeLimitMb));
-    fileSizeLimitPanel.add(myFileSizeLimit, new TabularLayout.Constraint(0, 1));
 
-    myFileSizeLimitUnit.setBorder(new EmptyBorder(0, 5, 0, 0));
-    fileSizeLimitPanel.add(myFileSizeLimitUnit, new TabularLayout.Constraint(0, 2));
+    fileSizeLimitPanel.add(myFileSize, new TabularLayout.Constraint(0, 1));
+
+    fileSizeLimitPanel.add(myFileSizeLimit, new TabularLayout.Constraint(0, 2));
     myConfigPanel.add(fileSizeLimitPanel);
 
-    JLabel description = new JLabel("<html>Maximum size of the output file from recording. On Android 8.0 (API level 26) and higher, " +
-                                    "there is no limit on the file size and the value is ignored.</html>");
-    description.setFont(description.getFont().deriveFont(12f));
-    myConfigPanel.add(description);
+    myConfigPanel.add(Box.createVerticalStrut(JBUI.scale(6)));
+
+    myFileSizeLimitDescriptionText.setBorder(JBUI.Borders.emptyTop(8));
+    myFileSizeLimitDescriptionText.setForeground(ProfilerColors.CPU_RECORDING_CONFIGURATION_DESCRIPTION);
+    myFileSizeLimitDescriptionText.setFont(myFileSizeLimitDescriptionText.getFont().deriveFont(12f));
+    myConfigPanel.add(myFileSizeLimitDescriptionText);
+  }
+
+  private void createDisableLiveAllocationPanel() {
+    myDisableLiveAllocation.addItemListener(e -> {
+      if (myConfiguration != null) {
+        myConfiguration.setDisableLiveAllocation(e.getStateChange() == ItemEvent.SELECTED);
+      }
+    });
+
+    myDisableLiveAllocation.setBorder(JBUI.Borders.emptyTop(8));
+    myConfigPanel.add(myDisableLiveAllocation);
+    // TODO(b/116355169): align the description with the checkbox button text.
+    myDisableLiveAllocationDescriptionText.setBorder(JBUI.Borders.empty(4, 30, 0, 0));
+    myDisableLiveAllocationDescriptionText.setForeground(ProfilerColors.CPU_RECORDING_CONFIGURATION_DESCRIPTION);
+    myDisableLiveAllocationDescriptionText.setFont(myFileSizeLimitDescriptionText.getFont().deriveFont(12f));
+    myConfigPanel.add(myDisableLiveAllocationDescriptionText);
+  }
+
+  private void setEnabledDisableLiveAllocation(boolean isEnabled) {
+    myDisableLiveAllocation.setEnabled(isEnabled);
+    myDisableLiveAllocationDescriptionText.setEnabled(isEnabled);
   }
 
   private enum TraceTechnology {
     ART_SAMPLED,
     ART_INSTRUMENTED,
-    SIMPLEPERF
+    SIMPLEPERF,
+    ATRACE
   }
 }

@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
-import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.LayoutlibCallback;
-import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.idea.concurrent.FutureUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderProblem;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
+import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
@@ -44,7 +47,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -53,7 +55,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Renders XML drawables to raster images.
  */
-class DrawableRenderer implements Disposable {
+public class DrawableRenderer implements Disposable {
   @NotNull private final ListenableFuture<RenderTask> myRenderTaskFuture;
   @NotNull private final Object myRenderLock = new Object();
   @NotNull private final MyLayoutPullParserFactory myParserFactory;
@@ -65,7 +67,7 @@ class DrawableRenderer implements Disposable {
    *
    * @param facet the Android facet
    */
-  DrawableRenderer(@NotNull AndroidFacet facet) {
+  public DrawableRenderer(@NotNull AndroidFacet facet) {
     Module module = facet.getModule();
     RenderLogger logger = new RenderLogger(LauncherIconGenerator.class.getSimpleName(), module);
     myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
@@ -74,8 +76,11 @@ class DrawableRenderer implements Disposable {
     myRenderTaskFuture = FutureUtils.executeOnPooledThread(() -> {
       try {
         Configuration configuration = ThemeEditorUtils.getConfigurationForModule(module);
-        RenderService service = RenderService.getInstance(facet);
-        RenderTask renderTask = service.createTask(null, configuration, logger, null, myParserFactory);
+        RenderService service = RenderService.getInstance(module.getProject());
+        RenderTask renderTask = service.taskBuilder(facet, configuration)
+                                 .withLogger(logger)
+                                 .withParserFactory(myParserFactory)
+                                 .build();
         assert renderTask != null;
         renderTask.getLayoutlibCallback().setLogger(logger);
         if (logger.hasProblems()) {
@@ -88,6 +93,7 @@ class DrawableRenderer implements Disposable {
       }
     });
   }
+
   /**
    * Produces a raster image for the given XML drawable.
    *
@@ -97,10 +103,10 @@ class DrawableRenderer implements Disposable {
    */
   @NotNull
   public ListenableFuture<BufferedImage> renderDrawable(@NotNull String xmlDrawableText, @NotNull Dimension size) {
-    String xmlText = VectorDrawableTransformer.resizeAndCenter(xmlDrawableText, size, 1, null);
-    ResourceUrl url = ResourceUrl.create(null, ResourceType.DRAWABLE, "ic_image_preview");
+    String xmlText = VectorDrawableTransformer.transform(xmlDrawableText, size, 1, null, null, 1);
     String resourceName = String.format("preview_%x.xml", myCounter.getAndIncrement());
-    ResourceValue value = new ResourceValue(url, resourceName);
+    ResourceValue value = new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, "ic_image_preview",
+                                                "file://" + resourceName);
 
     RenderTask renderTask = getRenderTask();
     if (renderTask == null) {
@@ -108,7 +114,7 @@ class DrawableRenderer implements Disposable {
     }
 
     synchronized (myRenderLock) {
-      myParserFactory.addFileContent(new File(resourceName), xmlText);
+      myParserFactory.addFileContent(new PathString(resourceName), xmlText);
       renderTask.setOverrideRenderSize(size.width, size.height);
       renderTask.setMaxRenderSize(size.width, size.height);
 
@@ -138,7 +144,7 @@ class DrawableRenderer implements Disposable {
   }
 
   private static class MyLayoutPullParserFactory implements ILayoutPullParserFactory {
-    @NotNull private final ConcurrentMap<File, String> myFileContent = new ConcurrentHashMap<>();
+    @NotNull private final ConcurrentMap<PathString, String> myFileContent = new ConcurrentHashMap<>();
     @NotNull private final Project myProject;
     @NotNull private final RenderLogger myLogger;
 
@@ -149,17 +155,17 @@ class DrawableRenderer implements Disposable {
 
     @Override
     @Nullable
-    public ILayoutPullParser create(@NotNull File file, @NotNull LayoutlibCallback layoutlibCallback) {
+    public ILayoutPullParser create(@NotNull PathString file, @NotNull LayoutlibCallback layoutlibCallback) {
       String content = myFileContent.remove(file); // File contents is removed upon use to avoid leaking memory.
       if (content == null) {
         return null;
       }
 
-      XmlFile xmlFile = (XmlFile)createEphemeralPsiFile(myProject, file.getName(), StdFileTypes.XML, content);
+      XmlFile xmlFile = (XmlFile)createEphemeralPsiFile(myProject, file.getFileName(), StdFileTypes.XML, content);
       return LayoutPsiPullParser.create(xmlFile, myLogger);
     }
 
-    void addFileContent(@NotNull File file, @NotNull String content) {
+    void addFileContent(@NotNull PathString file, @NotNull String content) {
       myFileContent.put(file, content);
     }
 

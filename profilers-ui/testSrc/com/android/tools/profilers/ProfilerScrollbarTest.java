@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
 import org.junit.Before;
@@ -23,6 +25,7 @@ import org.junit.Test;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -33,10 +36,13 @@ public class ProfilerScrollbarTest {
   private ProfilerScrollbar myScrollbar;
   private JPanel myPanel;
   private FakeUi myUi;
+  private FakeTimer myTimer;
 
   @Before
-  public void setUp() throws Exception {
-    myTimeline = new ProfilerTimeline();
+  public void setUp() {
+    myTimer = new FakeTimer();
+    Updater updater = new Updater(myTimer);
+    myTimeline = new ProfilerTimeline(updater);
     myPanel = new JPanel();
     myPanel.setSize(100, 100);
     myScrollbar = new ProfilerScrollbar(myTimeline, myPanel);
@@ -46,8 +52,21 @@ public class ProfilerScrollbarTest {
     panel.add(myScrollbar, BorderLayout.SOUTH);
     panel.setSize(100, 110);
     myUi = new FakeUi(panel);
-    myTimeline.getDataRange().set(0, 10000);
     myTimeline.getViewRange().set(0, 5000);
+    myTimer.tick(TimeUnit.MICROSECONDS.toNanos(10000));
+    myTimeline.setIsPaused(true); // Set paused so we don't update data time in future updates.
+  }
+
+  @Test
+  public void testInitialization() {
+    ProfilerScrollbar scrollbar = new ProfilerScrollbar(myTimeline, myPanel);
+
+    // Scrollbar's model should be correct without an explicit update.
+    // Note: model units are kept in 1000th of a range unit
+    assertEquals(0, scrollbar.getModel().getMinimum());
+    assertEquals(10, scrollbar.getModel().getMaximum());
+    assertEquals(0, scrollbar.getModel().getValue());
+    assertEquals(5, scrollbar.getModel().getExtent());
   }
 
   @Test
@@ -76,29 +95,57 @@ public class ProfilerScrollbarTest {
   @Test
   public void testZoom() {
     // Zoom in
-    double delta = myScrollbar.getWheelDelta();
+    double delta = myScrollbar.getZoomWheelDelta();
     myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
 
     myUi.mouse.wheel(50, 50, -1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
     assertEquals(0 + delta * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(5000 - delta * 0.5, myTimeline.getViewRange().getMax(), EPSILON);
 
     // Zoom in twice
-    double delta2 = myScrollbar.getWheelDelta() * 2;
+    double delta2 = myScrollbar.getZoomWheelDelta() * 2;
     myUi.mouse.wheel(50, 50, -2);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
     assertEquals(0 + (delta + delta2) * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(5000 - (delta + delta2) * 0.5, myTimeline.getViewRange().getMax(), EPSILON);
 
     // Zoom out
-    double delta3 = myScrollbar.getWheelDelta();
+    double delta3 = myScrollbar.getZoomWheelDelta();
     myUi.mouse.wheel(50, 50, 1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
     assertEquals(0 + (delta + delta2 - delta3) * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(5000 - (delta + delta2 - delta3) * 0.5, myTimeline.getViewRange().getMax(), EPSILON);
   }
 
   @Test
+  public void testCanZoomWhenNotScrollable() {
+    int initialMax = 10000;
+    myTimeline.getViewRange().set(0, initialMax);
+    // Zoom in
+    double delta = myScrollbar.getZoomWheelDelta();
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+
+    assertTrue(myScrollbar.isScrollable());
+    myUi.mouse.wheel(50, 50, -1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
+    assertEquals(0 + delta * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
+    assertEquals(initialMax - delta * 0.5, myTimeline.getViewRange().getMax(), EPSILON);
+
+    // Set our data min large enough that when we zoom in it moves our view min.
+    myTimeline.getDataRange().setMin(myTimeline.getViewRange().getMin() + 2000);
+    assertFalse(myScrollbar.isScrollable());
+    // Zoom in again
+    double delta2 = myScrollbar.getZoomWheelDelta() * 2;
+    myUi.mouse.wheel(50, 50, -2);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
+    assertEquals(0 + (delta + delta2) * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
+    assertEquals(initialMax, myTimeline.getViewRange().getMax(), EPSILON);
+  }
+
+  @Test
   public void testPan() {
-    double delta = myScrollbar.getWheelDelta();
+    double delta = myScrollbar.getPanWheelDelta();
     myUi.mouse.wheel(50, 50, 1);
     assertEquals(0 + delta, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(5000 + delta, myTimeline.getViewRange().getMax(), EPSILON);
@@ -114,7 +161,8 @@ public class ProfilerScrollbarTest {
 
   @Test
   public void testAdjust() {
-
+    // Disable paused so we get proper streaming states.
+    myTimeline.setIsPaused(false);
     assertEquals(0, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(5000, myTimeline.getViewRange().getMax(), EPSILON);
 
@@ -171,5 +219,39 @@ public class ProfilerScrollbarTest {
     myUi.mouse.click(95, 105);
     assertEquals(5000, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(6000, myTimeline.getViewRange().getMax(), EPSILON);
+  }
+
+  @Test
+  public void testScrollableAtMaxRange() {
+    myTimeline.getViewRange().set(0, 10000);
+
+    double delta = myScrollbar.getZoomWheelDelta();
+    myUi.keyboard.press(FakeKeyboard.MENU_KEY); // Menu+wheel == zoom
+
+    // Zoom out should work but does nothing.
+    myUi.mouse.wheel(50, 50, 1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
+    assertEquals(0, myTimeline.getViewRange().getMin(), EPSILON);
+    assertEquals(10000, myTimeline.getViewRange().getMax(), EPSILON);
+
+    // Zoom in should still work
+    myUi.mouse.wheel(50, 50, -1);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
+    assertEquals(0 + delta * 0.5, myTimeline.getViewRange().getMin(), EPSILON);
+    assertEquals(10000 - delta * 0.5, myTimeline.getViewRange().getMax(), EPSILON);
+  }
+
+  @Test
+  public void testNotScrollableIfViewRangeGreaterThatDataRange() {
+    myTimeline.getDataRange().set(0, 100);
+    myTimeline.getViewRange().set(-100, 200);
+
+    assertFalse(myScrollbar.isScrollable());
+
+    // We should not be able to pan if we are not scrollable.
+    myUi.mouse.wheel(50, 50, 1);
+    assertEquals(-100, myTimeline.getViewRange().getMin(), EPSILON);
+    // View range should never be greater than data range.
+    assertEquals(200, myTimeline.getViewRange().getMax(), EPSILON);
   }
 }

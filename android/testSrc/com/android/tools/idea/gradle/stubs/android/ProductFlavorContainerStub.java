@@ -41,7 +41,7 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
    * @param fileStructure the file structure of the Gradle project this
    *                      {@code ProductFlavorContainer} belongs to.
    */
-  ProductFlavorContainerStub(
+  public ProductFlavorContainerStub(
     @NotNull String flavorName,
     @NotNull FileStructure fileStructure,
     @Nullable String dimension

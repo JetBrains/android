@@ -18,7 +18,6 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.activity.AndroidActivityLauncher;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.TimeUnit;
 
 public class UpdateAppInfoTask implements LaunchTask {
+  private static final String ID = "UPDATE_APP_INFO";
   private final Project myProject;
   private final InstantRunContext myInstantRunContext;
 
@@ -51,6 +51,12 @@ public class UpdateAppInfoTask implements LaunchTask {
 
     // The timeout is quite large to accomodate ARM emulators.
     return ShellCommandLauncher.execute(command, device, launchStatus, printer, 15, TimeUnit.SECONDS);
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 
   @NotNull

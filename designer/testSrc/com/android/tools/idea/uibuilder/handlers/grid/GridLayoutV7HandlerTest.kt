@@ -107,7 +107,7 @@ class GridLayoutV7HandlerTest : SceneTest() {
 
   override fun createModel(): ModelBuilder {
     val builder = model("grid_layout_v7.xml",
-        component(GRID_LAYOUT_V7)
+        component(GRID_LAYOUT_V7.defaultName())
             .withBounds(0, 0, 1000, 1000)
             .matchParentWidth()
             .matchParentHeight()

@@ -22,8 +22,8 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 
 import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;
@@ -186,6 +186,9 @@ public class DrawTextRegion extends DrawRegion {
       return;
     }
 
+    Font originalFont = g2d.getFont();
+    Color originalColor = g2d.getColor();
+
     ColorSet colorSet = sceneContext.getColorSet();
     int horizontalPadding = mHorizontalPadding + mHorizontalMargin;
     int verticalPadding = mVerticalPadding + mVerticalMargin;
@@ -266,6 +269,9 @@ public class DrawTextRegion extends DrawRegion {
       g2d.drawString(string, ftx, fty);
       g2d.setClip(clip);
     }
+
+    g2d.setFont(originalFont);
+    g2d.setColor(originalColor);
   }
 
   private static int switchAlignment(String string, int alignmentX) {

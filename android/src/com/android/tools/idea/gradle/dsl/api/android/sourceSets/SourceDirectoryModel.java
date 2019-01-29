@@ -15,58 +15,20 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.sourceSets;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public interface SourceDirectoryModel {
+public interface SourceDirectoryModel extends GradleDslModel {
   @NotNull
   String name();
 
-  @Nullable
-  List<GradleNotNullValue<String>> excludes();
+  @NotNull
+  ResolvedPropertyModel excludes();
 
   @NotNull
-  SourceDirectoryModel addExclude(@NotNull String exclude);
+  ResolvedPropertyModel includes();
 
   @NotNull
-  SourceDirectoryModel removeExclude(@NotNull String exclude);
-
-  @NotNull
-  SourceDirectoryModel removeAllExcludes();
-
-  @NotNull
-  SourceDirectoryModel replaceExclude(@NotNull String oldExclude, @NotNull String newExclude);
-
-  @Nullable
-  List<GradleNotNullValue<String>> includes();
-
-  @NotNull
-  SourceDirectoryModel addInclude(@NotNull String include);
-
-  @NotNull
-  SourceDirectoryModel removeInclude(@NotNull String include);
-
-  @NotNull
-  SourceDirectoryModel removeAllIncludes();
-
-  @NotNull
-  SourceDirectoryModel replaceInclude(@NotNull String oldInclude, @NotNull String newInclude);
-
-  @Nullable
-  List<GradleNotNullValue<String>> srcDirs();
-
-  @NotNull
-  SourceDirectoryModel addSrcDir(@NotNull String srcDir);
-
-  @NotNull
-  SourceDirectoryModel removeSrcDir(@NotNull String srcDir);
-
-  @NotNull
-  SourceDirectoryModel removeAllSrcDirs();
-
-  @NotNull
-  SourceDirectoryModel replaceSrcDir(@NotNull String oldSrcDir, @NotNull String newSrcDir);
+  ResolvedPropertyModel srcDirs();
 }

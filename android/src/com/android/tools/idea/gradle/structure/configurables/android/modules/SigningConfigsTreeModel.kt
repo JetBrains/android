@@ -15,34 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.modules
 
-import com.android.tools.idea.gradle.structure.configurables.*
+import com.android.tools.idea.gradle.structure.configurables.NamedContainerConfigurableBase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.NamedConfigurable
-import javax.swing.tree.DefaultMutableTreeNode
+import com.intellij.openapi.util.Disposer
 
-class SigningConfigsTreeModel(
-    module: PsAndroidModule,
-    rootNode: DefaultMutableTreeNode
-) : ConfigurablesTreeModel(module, rootNode) {
-
-  fun createSigningConfig(newName: String): Pair<SigningConfigConfigurable, DefaultMutableTreeNode> {
-    val signingConfig = module.addNewSigningConfig(newName)
-    val configurable = SigningConfigConfigurable(signingConfig)
-    val node = createNode(rootNode, configurable)
-    return configurable to node
-  }
+class SigningConfigsConfigurable(val module: PsAndroidModule) : NamedContainerConfigurableBase<PsSigningConfig>("Signing Configs") {
+  override fun getChildrenModels(): Collection<PsSigningConfig> = module.signingConfigs
+  override fun createChildConfigurable(model: PsSigningConfig): NamedConfigurable<PsSigningConfig> =
+    SigningConfigConfigurable(model).also { Disposer.register(this, it) }
+  override fun onChange(disposable: Disposable, listener: () -> Unit) = module.signingConfigs.onChange(disposable, listener)
+  override fun dispose() = Unit
 }
-
-fun createSigningConfigsModel(module: PsAndroidModule): SigningConfigsTreeModel =
-    SigningConfigsTreeModel(
-        module,
-        createConfigurablesTree(
-            object : NamedContainerConfigurableBase<PsSigningConfig>("Signing Configs") {
-              override fun getChildren(): List<NamedConfigurable<PsSigningConfig>> =
-                  listFromGenerator<PsSigningConfig> { consumer -> module.forEachSigningConfig { consumer(it) } }
-                      .map(::SigningConfigConfigurable)
-            }
-        ))
-
-

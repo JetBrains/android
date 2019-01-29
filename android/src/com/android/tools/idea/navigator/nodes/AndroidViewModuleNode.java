@@ -15,11 +15,12 @@ package com.android.tools.idea.navigator.nodes;
 
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 /**
  * Specialization of {@link ProjectViewModuleNode} for Android view.
@@ -31,10 +32,18 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
 
   @Override
   public boolean equals(Object o) {
+    if (o == this) {
+      return true;
+    }
     // All flavors of AndroidViewModuleNode representing the same module are considered equal (http://b/70635980).
     if (!(o instanceof AndroidViewModuleNode)) {
       return false;
     }
-    return Comparing.equal(getValue(), ((AbstractTreeNode)o).getValue());
+    return Comparing.equal(getEqualityObject(), ((AndroidViewModuleNode)o).getEqualityObject());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(getEqualityObject());
   }
 }

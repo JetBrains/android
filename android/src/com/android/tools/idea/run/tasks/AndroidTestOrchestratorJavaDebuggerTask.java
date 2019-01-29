@@ -57,7 +57,10 @@ public class AndroidTestOrchestratorJavaDebuggerTask extends ReattachingDebugCon
                       @NotNull IDevice device,
                       @NotNull ProcessHandlerLaunchStatus status,
                       @NotNull ProcessHandlerConsolePrinter printer) {
-    orchestratorHandler = new AndroidProcessHandler("android.support.test.orchestrator", true);
+    orchestratorHandler = new AndroidProcessHandler.Builder()
+      .setApplicationId("android.support.test.orchestrator")
+      .monitorRemoteProcesses(true)
+      .build();
     orchestratorHandler.addTargetDevice(device);
     orchestratorHandler.startNotify();
 

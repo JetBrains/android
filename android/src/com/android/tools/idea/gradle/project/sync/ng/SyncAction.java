@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.builder.model.AndroidProject;
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,22 +33,48 @@ import java.util.*;
 public class SyncAction implements BuildAction<SyncProjectModels>, Serializable {
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
+  @NotNull private final SyncActionOptions myOptions;
+  @NotNull private final SyncProjectModels.Factory myModelsFactory;
 
-  public SyncAction() {
-    this(Collections.emptySet(), Collections.emptySet());
+  public SyncAction(@NotNull Set<Class<?>> extraAndroidModelTypes,
+                    @NotNull Set<Class<?>> extraJavaModelTypes,
+                    @NotNull SyncActionOptions options) {
+    this(extraAndroidModelTypes, extraJavaModelTypes, options, new SyncProjectModels.Factory());
   }
 
-  public SyncAction(@NotNull Set<Class<?>> extraAndroidModelTypes, @NotNull Set<Class<?>> extraJavaModelTypes) {
+  SyncAction(@NotNull Set<Class<?>> extraAndroidModelTypes,
+             @NotNull Set<Class<?>> extraJavaModelTypes,
+             @NotNull SyncActionOptions options,
+             @NotNull SyncProjectModels.Factory modelsFactory) {
     myExtraAndroidModelTypes = extraAndroidModelTypes;
     myExtraJavaModelTypes = extraJavaModelTypes;
+    myOptions = options;
+    myModelsFactory = modelsFactory;
   }
 
   @Override
   @Nullable
   public SyncProjectModels execute(@NotNull BuildController controller) {
-    GradleBuild gradleBuild = controller.getBuildModel();
-    SyncProjectModels models = new SyncProjectModels(myExtraAndroidModelTypes, myExtraJavaModelTypes);
-    models.populate(gradleBuild, controller);
+    SyncProjectModels models = myModelsFactory.create(myExtraAndroidModelTypes, myExtraJavaModelTypes, myOptions);
+    models.populate(controller);
     return models;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  Set<Class<?>> getExtraAndroidModelTypes() {
+    return myExtraAndroidModelTypes;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  Set<Class<?>> getExtraJavaModelTypes() {
+    return myExtraJavaModelTypes;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  SyncActionOptions getOptions() {
+    return myOptions;
   }
 }

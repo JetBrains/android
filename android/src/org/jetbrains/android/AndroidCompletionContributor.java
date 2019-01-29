@@ -50,6 +50,7 @@ import org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomF
 import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.layout.*;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
+import org.jetbrains.android.dom.motion.MotionDomFileDescription;
 import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;

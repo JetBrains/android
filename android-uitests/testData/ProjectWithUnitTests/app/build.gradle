@@ -29,12 +29,12 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:+'
-    compile project(':lib')
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:+'
+    implementation project(':lib')
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-core:1.9.5'
-    testCompile 'org.jdeferred:jdeferred-android-aar:1.2.3'
-    testCompile 'commons-logging:commons-logging:1.1.1'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:+'
+    testImplementation 'org.jdeferred:jdeferred-android-aar:1.2.3'
+    testImplementation 'commons-logging:commons-logging:1.1.1'
 }

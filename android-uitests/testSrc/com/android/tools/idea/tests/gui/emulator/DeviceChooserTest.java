@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.ScalableIcon;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.LayeredIcon;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -35,6 +36,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import javax.swing.*;
 
@@ -42,10 +44,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.method;
 import static org.fest.reflect.core.Reflection.field;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class DeviceChooserTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private final static String APP_NAME = "app";
@@ -87,7 +89,7 @@ public class DeviceChooserTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   @Test
   public void testDeviceChooser() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");

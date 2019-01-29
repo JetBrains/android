@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,12 +31,13 @@ public class HeapSet extends ClassifierSet {
   @NotNull private final CaptureObject myCaptureObject;
   @NotNull private ClassGrouping myClassGrouping = ClassGrouping.ARRANGE_BY_CLASS;
   private final int myId;
-  @Nullable private Pattern myFilter;
+  @NotNull private Filter myFilter;
 
   public HeapSet(@NotNull CaptureObject captureObject, @NotNull String heapName, int id) {
     super(heapName);
     myCaptureObject = captureObject;
     myId = id;
+    myFilter = Filter.EMPTY_FILTER;
     setClassGrouping(ClassGrouping.ARRANGE_BY_CLASS);
   }
 
@@ -61,21 +63,22 @@ public class HeapSet extends ClassifierSet {
     return myId;
   }
 
-  // Select and apply the filter if it is different from previous one.
-  public void selectFilter(@Nullable Pattern filter) {
-    // We do not apply filter when both old and new filters are null
-    if (myFilter == null && filter == null) {
+  // Select and apply a filter.
+  // When there are content changes in HeapSet, we need to re-select the same filter.
+  public void selectFilter(@NotNull Filter filter) {
+    // If both the old and new filters are empty, no alloc/dealloc events will be filtered out and we do not need to do anything
+    // even when HeapSet has content changes.
+    if (myFilter.isEmpty() && filter.isEmpty()) {
       return;
     }
 
-    boolean filterChanged =
-      filter == null || myFilter == null || filter.flags() != myFilter.flags() || !filter.pattern().equals(myFilter.pattern());
+    boolean filterChanged = !myFilter.equals(filter);
     myFilter = filter;
     applyFilter(filterChanged);
   }
 
-  @Nullable
-  public Pattern getFilter() {
+  @NotNull
+  public Filter getFilter() {
     return myFilter;
   }
 

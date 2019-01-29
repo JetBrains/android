@@ -15,24 +15,27 @@
  */
 package com.android.tools.idea.gradle.dsl.api.ext;
 
+import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a reference to another property or variable.
  */
-public class ReferenceTo {
-  @NotNull private String myReferenceText;
+public final class ReferenceTo extends RawText {
+  @NotNull private static final String SIGNING_CONFIGS = "signingConfigs";
 
   public ReferenceTo(@NotNull String text) {
-    myReferenceText = text;
+    super(text);
   }
 
   public ReferenceTo(@NotNull GradlePropertyModel model) {
-    myReferenceText = model.getFullyQualifiedName();
+    super(model.getFullyQualifiedName());
   }
 
-  @NotNull
-  public String getText() {
-    return myReferenceText;
+  public ReferenceTo(@NotNull SigningConfigModel model) { super(SIGNING_CONFIGS + "." + model.name());
+  }
+
+  public static ReferenceTo createForSigningConfig(@NotNull String signingConfigName) {
+    return new ReferenceTo(SIGNING_CONFIGS + "." + signingConfigName);
   }
 }

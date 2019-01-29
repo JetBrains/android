@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.details.DependencyDetails;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
 import com.android.tools.idea.gradle.structure.configurables.ui.ChooseModuleDialog;
 import com.android.tools.idea.gradle.structure.configurables.ui.EmptyPanel;
 import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialog;
+import com.android.tools.idea.gradle.structure.dependencies.AddLibraryDependencyDialogKt;
 import com.android.tools.idea.gradle.structure.dependencies.AddModuleDependencyDialog;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.structure.dialog.Header;
@@ -55,7 +56,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.FOR_NAVIGATION;
 import static com.intellij.icons.AllIcons.Nodes.Module;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
@@ -120,25 +120,20 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     myInfoPanel.setIssuesViewer(myIssuesViewer);
   }
 
-  protected void displayIssues(@NotNull Collection<PsIssue> issues) {
+  protected void displayIssues(@NotNull Collection<PsIssue> issues, @Nullable PsPath scope) {
     assert myIssuesViewer != null;
-    myIssuesViewer.display(issues);
+    myIssuesViewer.display(issues, scope);
     myInfoPanel.revalidateAndRepaintPanel();
     ApplicationManager.getApplication().invokeLater(() -> myInfoScrollPane.getVerticalScrollBar().setValue(0));
   }
 
-  protected void updateDetails(@Nullable PsDependency selected) {
-    String scope = selected != null ? selected.getJoinedConfigurationNames() : null;
-    updateDetails(selected, scope);
-  }
-
-  protected void updateDetails(@Nullable PsDependency selected, @Nullable String configurationNames) {
+  protected void updateDetails(@Nullable PsBaseDependency selected) {
     if (selected != null) {
       myCurrentDependencyDetails = findDetails(selected);
       if (myCurrentDependencyDetails != null) {
         myInfoPanel.setDependencyDetails(myCurrentDependencyDetails);
         myInfoScrollPane.setViewportView(myInfoPanel.getPanel());
-        myCurrentDependencyDetails.display(selected, configurationNames);
+        myCurrentDependencyDetails.display(selected);
         return;
       }
     }
@@ -147,7 +142,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   }
 
   @Nullable
-  private DependencyDetails findDetails(@NotNull PsDependency selected) {
+  private DependencyDetails findDetails(@NotNull PsBaseDependency selected) {
     for (DependencyDetails details : myDependencyDetails) {
       if (details.getSupportedModelType().isInstance(selected)) {
         return details;
@@ -270,7 +265,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     if (details != null) {
       PsBaseDependency model = details.getModel();
       if (model != null) {
-        dependency = model.toText(FOR_NAVIGATION);
+        dependency = model.toText();
       }
     }
     putPath(place, dependency);
@@ -283,11 +278,9 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   @NotNull
   protected abstract String getPlaceName();
 
-  public abstract void selectDependency(@Nullable String dependency);
-
   private class AddLibraryDependencyAction extends AbstractAddDependencyAction {
     AddLibraryDependencyAction() {
-      super(AddLibraryDependencyDialog.TITLE, "Library Dependency", LIBRARY_ICON, 1);
+      super(AddLibraryDependencyDialogKt.ADD_LIBRARY_DEPENDENCY_DIALOG_TITLE, "Library Dependency", LIBRARY_ICON, 1);
     }
 
     @Override

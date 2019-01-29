@@ -50,7 +50,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerStackedLineChart() {
-    register(new LineChartImageDiffEntry("stacked_line_chart_baseline.png") {
+    register(new LineChartImageDiffEntry("line_chart_stacked_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a filled, stacked line chart and register the components to the choreographer
@@ -62,7 +62,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
   // Ensures that the stacked lines works correctly with a y range that's min value is not zero.
   private void registerStackedLineChartWithNonZeroMinValue() {
-    register(new LineChartImageDiffEntry("stacked_line_chart_with_non_zero_min_value_baseline.png") {
+    register(new LineChartImageDiffEntry("line_chart_stacked_with_non_zero_min_value_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a filled, stacked line chart and register the components to the choreographer
@@ -83,7 +83,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSimpleLineChart() {
-    register(new LineChartImageDiffEntry("simple_line_chart_baseline.png") {
+    register(new LineChartImageDiffEntry("line_chart_simple_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
@@ -94,7 +94,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerRepeatedValuesLineChart() {
-    register(new LineChartImageDiffEntry("repeated_values_line_chart_baseline.png") {
+    register(new LineChartImageDiffEntry("line_chart_repeated_values_baseline.png") {
       @Override
       protected void generateComponent() {
         addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)));
@@ -120,7 +120,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSteppedLineChart() {
-    register(new LineChartImageDiffEntry("stepped_line_chart_baseline.png") {
+    register(new LineChartImageDiffEntry("line_chart_stepped_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a stepped line chart and register the components to the choreographer. Add thick lines to generate relevant images.
@@ -138,7 +138,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerSimpleEventLineChart() {
-    register(new LineChartImageDiffEntry("simple_event_line_chart_baseline.png") {
+    register(new LineChartImageDiffEntry("line_chart_simple_event_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
@@ -152,7 +152,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerAttachedEventLineChart() {
-    register(new LineChartImageDiffEntry("attached_event_line_chart_baseline.png") {
+    register(new LineChartImageDiffEntry("line_chart_attached_event_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
@@ -166,7 +166,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerEventWithCustomConfigLineChart() {
-    register(new LineChartImageDiffEntry("event_with_custom_config_line_chart_baseline.png") {
+    register(new LineChartImageDiffEntry("line_chart_event_with_custom_config_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
@@ -185,7 +185,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
   }
 
   private void registerFilledEventLineChart() {
-    register(new LineChartImageDiffEntry("filled_event_line_chart_baseline.png") {
+    register(new LineChartImageDiffEntry("line_chart_filled_event_baseline.png") {
       @Override
       protected void generateComponent() {
         // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.

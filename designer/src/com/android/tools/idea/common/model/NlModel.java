@@ -15,30 +15,51 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
+import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
+
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.rendering.RefreshRenderAction;
-import com.android.tools.idea.rendering.TagSnapshot;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
-import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.uibuilder.model.NlComponentHelper;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlModelHelper;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
@@ -47,26 +68,32 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
+import com.intellij.util.ThreeState;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import static com.android.SdkConstants.*;
+import kotlin.Unit;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Model for an XML file
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
   private static final boolean CHECK_MODEL_INTEGRITY = false;
+  private static final String MATERIAL2_BASE_THEME = STYLE_RESOURCE_PREFIX + "Platform.MaterialComponents";
   private final Set<String> myPendingIds = Sets.newHashSet();
 
   @NotNull private final AndroidFacet myFacet;
@@ -81,6 +108,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final ModelVersion myModelVersion = new ModelVersion();
   private final NlLayoutType myType;
   private long myConfigurationModificationCount;
+  private ThreeState myUsingMaterial2Theme = ThreeState.UNSURE;
 
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
@@ -88,17 +116,26 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
+                               @NotNull VirtualFile file,
+                               @NotNull ConfigurationManager configurationManager) {
+    return new NlModel(parent, facet, file, configurationManager.getConfiguration(file));
+  }
+
+  @NotNull
+  public static NlModel create(@Nullable Disposable parent,
+                               @NotNull AndroidFacet facet,
                                @NotNull VirtualFile file) {
-    return new NlModel(parent, facet, file);
+    return create(parent, facet, file, ConfigurationManager.getOrCreateInstance(facet));
   }
 
   @VisibleForTesting
   protected NlModel(@Nullable Disposable parent,
                     @NotNull AndroidFacet facet,
-                    @NotNull VirtualFile file) {
+                    @NotNull VirtualFile file,
+                    @NotNull Configuration configuration) {
     myFacet = facet;
     myFile = file;
-    myConfiguration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(myFile);
+    myConfiguration = configuration;
     myConfigurationModificationCount = myConfiguration.getModificationCount();
     myId = System.nanoTime() ^ file.getName().hashCode();
     if (parent != null) {
@@ -135,15 +172,52 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   public void updateTheme() {
-    String theme = myConfiguration.getTheme();
-    ResourceUrl themeUrl = theme != null ? ResourceUrl.parse(myConfiguration.getTheme()) : null;
-    if (themeUrl != null &&
-        themeUrl.type == ResourceType.STYLE) {
+    ResourceUrl themeUrl = ResourceUrl.parse(myConfiguration.getTheme());
+    if (themeUrl != null && themeUrl.type == ResourceType.STYLE) {
       ResourceResolver resolver = myConfiguration.getResourceResolver();
-      if (resolver == null || resolver.getTheme(themeUrl.name, themeUrl.framework) == null) {
+      if (resolver == null || resolver.getTheme(themeUrl.name, themeUrl.isFramework()) == null) {
         myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
       }
     }
+    myUsingMaterial2Theme = ThreeState.UNSURE;
+  }
+
+  public boolean usingMaterial2Theme() {
+    if (myUsingMaterial2Theme == ThreeState.UNSURE) {
+      myUsingMaterial2Theme = checkUsingMaterial2Theme();
+    }
+    return myUsingMaterial2Theme == ThreeState.YES;
+  }
+
+  private ThreeState checkUsingMaterial2Theme() {
+    StyleResourceValue material2Theme = findTheme(MATERIAL2_BASE_THEME);
+    StyleResourceValue appTheme = findTheme(myConfiguration.getTheme());
+    ResourceResolver resolver = myConfiguration.getResourceResolver();
+    if (resolver == null || material2Theme == null || appTheme == null) {
+      return ThreeState.NO;
+    }
+    return ThreeState.fromBoolean(resolver.themeIsChildOfAny(appTheme, material2Theme));
+  }
+
+  @Nullable
+  private StyleResourceValue findTheme(@NotNull String name) {
+    ResourceUrl style = ResourceUrl.parse(name);
+    if (style == null) {
+      return null;
+    }
+    ResourceNamespace.Resolver namespaceResolver = ResourceNamespace.Resolver.EMPTY_RESOLVER;
+    if (myRootComponent != null) {
+      namespaceResolver = ResourceHelper.getNamespaceResolver(myRootComponent.getTag());
+    }
+    ResourceReference reference = style.resolve(ResourceNamespace.TODO(), namespaceResolver);
+    if (reference == null) {
+      return null;
+    }
+    ResourceResolver resolver = myConfiguration.getResourceResolver();
+    if (resolver == null) {
+      return null;
+    }
+    return resolver.getStyle(reference);
   }
 
   private void deactivate() {
@@ -757,6 +831,24 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return null;
   }
 
+  @Nullable
+  public ResourceReference findAttributeByPsi(@NotNull PsiElement element) {
+    assert ApplicationManager.getApplication().isReadAccessAllowed();
+
+    while (element != null) {
+      if (element instanceof XmlAttribute) {
+        XmlAttribute attribute = (XmlAttribute)element;
+        ResourceNamespace namespace = ResourceHelper.resolveResourceNamespace(attribute, attribute.getNamespacePrefix());
+        if (namespace == null) {
+          return null;
+        }
+        return ResourceReference.attr(namespace, attribute.getLocalName());
+      }
+      element = element.getParent();
+    }
+    return null;
+  }
+
   public void delete(final Collection<NlComponent> components) {
     // Group by parent and ask each one to participate
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(myFacet.getModule().getProject(), "Delete Component", getFile()) {
@@ -789,7 +881,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
           XmlTag tag = component.getTag();
           if (tag.isValid()) {
+            PsiElement parentTag = tag.getParent();
             tag.delete();
+            if (parentTag instanceof XmlTag) {
+              ((XmlTag)parentTag).collapseIfEmpty();
+            }
           }
         }
       }
@@ -805,13 +901,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * <p/>
    * Note: The caller is responsible for calling {@link #notifyModified(ChangeType)} if the creation completes successfully.
    *
-   * @param tag    The XmlTag for the component.
-   * @param parent The parent to add this component to.
-   * @param before The sibling to insert immediately before, or null to append
+   * @param surface    The current DesignSurface. Only used by postCreate, so if your postCreate doesn't use it it's not necessary.
+   * @param tag        The XmlTag for the component.
+   * @param parent     The parent to add this component to.
+   * @param before     The sibling to insert immediately before, or null to append
+   * @param insertType The reason for this creation.
    */
-  public NlComponent createComponent(@NotNull XmlTag tag,
+  public NlComponent createComponent(@Nullable DesignSurface surface,
+                                     @NotNull XmlTag tag,
                                      @Nullable NlComponent parent,
-                                     @Nullable NlComponent before) {
+                                     @Nullable NlComponent before,
+                                     @NotNull InsertType insertType) {
     if (parent != null) {
       // Creating a component intended to be inserted into an existing layout
       XmlTag parentTag = parent.getTag();
@@ -830,13 +930,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (parent != null) {
       parent.addChild(child, before);
     }
-
-    return child;
+    if (child.postCreate(surface, insertType)) {
+      return child;
+    }
+    return null;
   }
 
   /**
    * Simply create a component. In most cases you probably want
-   * {@link #createComponent(XmlTag, NlComponent, NlComponent)}.
+   * {@link #createComponent(DesignSurface, XmlTag, NlComponent, NlComponent, InsertType)}.
    */
   public NlComponent createComponent(@NotNull XmlTag tag) {
     NlComponent component = new NlComponent(this, tag);
@@ -855,6 +957,22 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     return component;
   }
+
+  public List<NlComponent> createComponents(@NotNull DnDTransferItem item, @NotNull InsertType insertType, @NotNull DesignSurface surface) {
+    List<NlComponent> components = new ArrayList<>(item.getComponents().size());
+    for (DnDTransferComponent dndComponent : item.getComponents()) {
+      XmlTag tag = XmlTagUtil.createTag(getProject(), dndComponent.getRepresentation());
+      NlComponent component = createComponent(surface, tag, null, null, insertType);
+      if (component == null) {
+        // User may have cancelled
+        return Collections.emptyList();
+      }
+      component.postCreateFromTransferrable(dndComponent);
+      components.add(component);
+    }
+    return components;
+  }
+
 
   /**
    * Returns true if the specified components can be added to the specified receiver.
@@ -875,21 +993,21 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     if (toAdd.isEmpty()) {
       return false;
     }
-    if (!NlModelHelperKt.canAddComponents(this, receiver, toAdd)) {
+    if (toAdd.stream().anyMatch(c -> !c.canAddTo(receiver))) {
       return false;
     }
 
-    for (NlComponent component : toAdd) {
-      // If the receiver is a (possibly indirect) child of any of the dragged components, then reject the operation
-      NlComponent same = receiver;
-      while (same != null) {
-        if (same == component) {
-          return false;
-        }
-        same = same.getParent();
-      }
+    // If the receiver is a (possibly indirect) child of any of the dragged components, then reject the operation
+    if (isDescendant(receiver, toAdd)) {
+      return false;
     }
-    return ignoreMissingDependencies || NlModelHelperKt.checkIfUserWantsToAddDependencies(this, toAdd);
+
+    return ignoreMissingDependencies || checkIfUserWantsToAddDependencies(toAdd);
+  }
+
+  private boolean checkIfUserWantsToAddDependencies(List<NlComponent> toAdd) {
+    // May bring up a dialog such that the user can confirm the addition of the new dependencies:
+    return NlDependencyManager.Companion.get().checkIfUserWantsToAddDependencies(toAdd, getFacet());
   }
 
   /**
@@ -900,15 +1018,28 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                             @NotNull NlComponent receiver,
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
-                            @Nullable ViewEditor editor) {
+                            @Nullable DesignSurface surface) {
     if (!canAddComponents(toAdd, receiver, before)) {
       return;
     }
 
-    NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType),
-                             () -> handleAddition(toAdd, receiver, before, insertType, editor));
+    NlDependencyManager.Companion.get().addDependencies(
+      toAdd, getFacet(), () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface));
+  }
 
-    notifyModified(ChangeType.ADD_COMPONENTS);
+  @Nullable
+  private Unit addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
+                                          @NotNull NlComponent receiver,
+                                          @Nullable NlComponent before,
+                                          @NotNull InsertType insertType,
+                                          @Nullable DesignSurface surface) {
+    DumbService.getInstance(getProject()).runWhenSmart(() -> {
+      NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType),
+                               () -> handleAddition(toAdd, receiver, before, insertType, surface));
+
+      notifyModified(ChangeType.ADD_COMPONENTS);
+    });
+    return null;
   }
 
   @NotNull
@@ -931,25 +1062,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                       final @NotNull InsertType insertType) {
     NlWriteCommandAction.run(added, generateAddComponentsDescription(added, insertType), () -> {
       for (NlComponent component : added) {
-        NlComponent parent = component.getParent();
-        if (parent != null) {
-          parent.removeChild(component);
-        }
-        receiver.addChild(component, before);
-        if (receiver.getTag() != component.getTag()) {
-          XmlTag prev = component.getTag();
-          transferNamespaces(prev);
-          if (before != null) {
-            component.setTag((XmlTag)receiver.getTag().addBefore(component.getTag(), before.getTag()));
-          }
-          else {
-            component.setTag(receiver.getTag().addSubTag(component.getTag(), false));
-          }
-          if (insertType.isMove()) {
-            prev.delete();
-          }
-        }
-        removeNamespaceAttributes(component);
+        component.addTags(receiver, before, insertType);
       }
     });
 
@@ -960,8 +1073,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Looks up the existing set of id's reachable from this model
    */
   public Set<String> getIds() {
-    AppResourceRepository resources = AppResourceRepository.getOrCreateInstance(getFacet());
-    Set<String> ids = new HashSet<>(resources.getItemsOfType(ResourceType.ID));
+    LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(getFacet());
+    Set<String> ids = new HashSet<>(resources.getResources(ResourceNamespace.TODO(), ResourceType.ID).keySet());
     Set<String> pendingIds = getPendingIds();
     if (!pendingIds.isEmpty()) {
       Set<String> all = new HashSet<>(pendingIds.size() + ids.size());
@@ -976,145 +1089,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                               @NotNull NlComponent receiver,
                               @Nullable NlComponent before,
                               @NotNull InsertType insertType,
-                              @Nullable ViewEditor editor) {
-    NlDependencyManager.Companion.get().addDependencies(added, getFacet());
-
-    InsertType realInsertType = insertType;
+                              @Nullable DesignSurface surface) {
     Set<String> ids = getIds();
 
     for (NlComponent component : added) {
-
-      if (insertType.isMove()) {
-        realInsertType = component.getParent() == receiver ? InsertType.MOVE_WITHIN : InsertType.MOVE_INTO;
-      }
-
-      // AssignId
-      if (NlComponentHelperKt.needsDefaultId(component) && !realInsertType.isMove()) {
-        String id = component.getId();
-        if (id == null || id.isEmpty()) {
-          ids.add(component.assignId(ids));
-        }
-        else {
-          String baseName = NlComponentHelperKt.getBaseIdName(component);
-          if (baseName != null && !baseName.isEmpty()) {
-            ids.add(component.assignId(baseName, ids));
-          }
-        }
-      }
-
-      NlComponent parent = component.getParent();
-      if (parent != null) {
-        parent.removeChild(component);
-      }
-      receiver.addChild(component, before);
-      if (receiver.getTag() != component.getTag()) {
-        XmlTag prev = component.getTag();
-        transferNamespaces(prev);
-        if (before != null) {
-          component.setTag((XmlTag)receiver.getTag().addBefore(component.getTag(), before.getTag()));
-        }
-        else {
-          component.setTag(receiver.getTag().addSubTag(component.getTag(), false));
-        }
-        if (insertType.isMove()) {
-          prev.delete();
-        }
-      }
-
-      if (editor != null) {
-        notifyViewHandler(receiver, realInsertType, component, editor);
-      }
-      removeNamespaceAttributes(component);
-    }
-  }
-
-  private static void notifyViewHandler(@NotNull NlComponent receiver,
-                                        @NotNull InsertType insertType,
-                                        @NotNull NlComponent component,
-                                        @NotNull ViewEditor editor) {
-    ViewGroupHandler groupHandler = NlComponentHelperKt.getViewGroupHandler(receiver);
-    if (groupHandler != null) {
-      groupHandler.onChildInserted(editor, receiver, component, insertType);
-    }
-  }
-
-  /**
-   * Given a root tag which is not yet part of the current document, (1) look up any namespaces defined on that root tag, transfer
-   * those to the current document, and (2) update all attribute prefixes for namespaces to match those in the current document
-   */
-  private void transferNamespaces(@NotNull XmlTag tag) {
-    // Transfer namespace attributes
-    XmlFile file = getFile();
-    XmlDocument xmlDocument = file.getDocument();
-    assert xmlDocument != null;
-    XmlTag rootTag = xmlDocument.getRootTag();
-    assert rootTag != null;
-    Map<String, String> prefixToNamespace = rootTag.getLocalNamespaceDeclarations();
-    Map<String, String> namespaceToPrefix = Maps.newHashMap();
-    for (Map.Entry<String, String> entry : prefixToNamespace.entrySet()) {
-      namespaceToPrefix.put(entry.getValue(), entry.getKey());
-    }
-    Map<String, String> oldPrefixToPrefix = Maps.newHashMap();
-
-    for (Map.Entry<String, String> entry : tag.getLocalNamespaceDeclarations().entrySet()) {
-      String namespace = entry.getValue();
-      String prefix = entry.getKey();
-      String currentPrefix = namespaceToPrefix.get(namespace);
-      if (currentPrefix == null) {
-        // The namespace isn't used in the document. Import it.
-        String newPrefix = AndroidResourceUtil.ensureNamespaceImported(file, namespace, prefix);
-        if (!prefix.equals(newPrefix)) {
-          // We imported the namespace, but the prefix used in the new document isn't available
-          // so we need to update all attribute references to the new name
-          oldPrefixToPrefix.put(prefix, newPrefix);
-          namespaceToPrefix.put(namespace, newPrefix);
-        }
-      }
-      else if (!prefix.equals(currentPrefix)) {
-        // The namespace is already imported, but using a different prefix. We need
-        // to switch the prefixes.
-        oldPrefixToPrefix.put(prefix, currentPrefix);
-      }
-    }
-
-    if (!oldPrefixToPrefix.isEmpty()) {
-      updatePrefixes(tag, oldPrefixToPrefix);
-    }
-  }
-
-  /**
-   * Recursively update all attributes such that XML attributes with prefixes in the {@code oldPrefixToPrefix} key set
-   * are replaced with the corresponding values
-   */
-  private static void updatePrefixes(@NotNull XmlTag tag, @NotNull Map<String, String> oldPrefixToPrefix) {
-    for (XmlAttribute attribute : tag.getAttributes()) {
-      String prefix = attribute.getNamespacePrefix();
-      if (!prefix.isEmpty()) {
-        if (prefix.equals(XMLNS)) {
-          String newPrefix = oldPrefixToPrefix.get(attribute.getLocalName());
-          if (newPrefix != null) {
-            attribute.setName(XMLNS_PREFIX + newPrefix);
-          }
-        }
-        else {
-          String newPrefix = oldPrefixToPrefix.get(prefix);
-          if (newPrefix != null) {
-            attribute.setName(newPrefix + ':' + attribute.getLocalName());
-          }
-        }
-      }
-    }
-
-    for (XmlTag child : tag.getSubTags()) {
-      updatePrefixes(child, oldPrefixToPrefix);
-    }
-  }
-
-  private static void removeNamespaceAttributes(NlComponent component) {
-    for (XmlAttribute attribute : component.getTag().getAttributes()) {
-      if (attribute.getName().startsWith(XMLNS_PREFIX)) {
-        attribute.delete();
-      }
+      component.moveTo(receiver, before, insertType, ids, surface);
     }
   }
 

@@ -15,55 +15,79 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.util.GeneratedSourceFolders;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 import java.io.File;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ExtraGeneratedFolderValidationStrategy}.
  */
 public class ExtraGeneratedFolderValidationStrategyTest extends AndroidGradleTestCase {
+  @Mock private GeneratedSourceFolders myGeneratedSourceFolders;
   private ExtraGeneratedFolderValidationStrategy myStrategy;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myStrategy = new ExtraGeneratedFolderValidationStrategy(getProject());
+    initMocks(this);
+    myStrategy = new ExtraGeneratedFolderValidationStrategy(getProject(), myGeneratedSourceFolders);
   }
 
-  public void testValidate() {
-    List<File> extraFolders = Lists.newArrayList(new File("a"), new File("b"));
+  public void testValidateWithGeneratedSourceFoldersAreInCorrectLocation() {
+    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
+    File aFile = new File("a");
+    File bFile = new File("b");
+    when(myGeneratedSourceFolders.isFolderGeneratedInCorrectLocation(aFile, androidProject)).thenReturn(true);
+    when(myGeneratedSourceFolders.isFolderGeneratedInCorrectLocation(bFile, androidProject)).thenReturn(true);
 
-    AndroidModuleModel androidModel = mockAndroidModel(extraFolders.toArray(new File[extraFolders.size()]));
+    AndroidModuleModel androidModel = mockAndroidModel(aFile, bFile);
+    when(androidModel.getAndroidProject()).thenReturn(androidProject);
 
     myStrategy.validate(mock(Module.class), androidModel);
-    assertThat(myStrategy.getExtraGeneratedSourceFolderPaths()).containsAllIn(extraFolders);
+    assertThat(myStrategy.getExtraGeneratedSourceFolderPaths()).isEmpty();
+  }
+
+  public void testValidateWithGeneratedSourceFoldersAreInIncorrectLocation() {
+    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
+    File aFile = new File("a");
+    File bFile = new File("b");
+    when(myGeneratedSourceFolders.isFolderGeneratedInCorrectLocation(aFile, androidProject)).thenReturn(false);
+    when(myGeneratedSourceFolders.isFolderGeneratedInCorrectLocation(bFile, androidProject)).thenReturn(false);
+
+    AndroidModuleModel androidModel = mockAndroidModel(aFile, bFile);
+    when(androidModel.getAndroidProject()).thenReturn(androidProject);
+
+    myStrategy.validate(mock(Module.class), androidModel);
+    assertThat(myStrategy.getExtraGeneratedSourceFolderPaths()).containsAllOf(aFile, bFile);
   }
 
   public void testValidateWithoutExtraFolders() {
-    AndroidModuleModel androidModel = mockAndroidModel(new File[0]);
+    AndroidModuleModel androidModel = mockAndroidModel();
 
     myStrategy.validate(mock(Module.class), androidModel);
     assertThat(myStrategy.getExtraGeneratedSourceFolderPaths()).isEmpty();
   }
 
   @NotNull
-  private static AndroidModuleModel mockAndroidModel(@NotNull File[] extraFolderPaths) {
+  private static AndroidModuleModel mockAndroidModel(@NotNull File... extraFolderPaths) {
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getExtraGeneratedSourceFolderPaths()).thenReturn(extraFolderPaths);
     return androidModel;

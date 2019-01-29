@@ -172,7 +172,6 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
     final HashMap<String, Icon> map = new HashMap<>();
     // The default icon for LinearLayout is horizontal version.
     map.put("LinearLayout", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ);
-    map.put("LinearLayoutLarge", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ_LARGE);
     return map;
   }
 }

@@ -82,7 +82,7 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
       }
     }
 
-    return result.toArray(new PsiReference[result.size()]);
+    return result.toArray(PsiReference.EMPTY_ARRAY);
   }
 
   @Nullable

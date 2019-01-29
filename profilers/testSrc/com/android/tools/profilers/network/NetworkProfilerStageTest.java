@@ -15,11 +15,25 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.*;
+import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.LineChartModel;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -28,22 +42,15 @@ import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Files;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
-
-import static com.android.tools.profiler.proto.NetworkProfiler.ConnectivityData;
-import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
-import static com.google.common.truth.Truth.assertThat;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class NetworkProfilerStageTest {
   private static final float EPSILON = 0.00001f;
@@ -52,9 +59,11 @@ public class NetworkProfilerStageTest {
     new ImmutableList.Builder<NetworkProfilerData>()
       .add(FakeNetworkService.newSpeedData(0, 1, 2))
       .add(FakeNetworkService.newSpeedData(10, 3, 4))
+      .add(FakeNetworkService.newSpeedData(100, 3000000, 4000000))
       .add(FakeNetworkService.newConnectionData(0, 4))
       .add(FakeNetworkService.newConnectionData(10, 6))
-      .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.HIGH))
+      .add(FakeNetworkService.newConnectionData(100, 8000))
+      .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE))
       .build();
 
   private static final String TEST_PAYLOAD_ID = "test";
@@ -75,11 +84,14 @@ public class NetworkProfilerStageTest {
 
   private FakeTimer myTimer;
 
+  private StudioProfilers myStudioProfilers;
+
   @Before
   public void setUp() {
     myTimer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
-    myStage = new NetworkProfilerStage(profilers);
+    myStudioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
+    myStudioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
+    myStage = new NetworkProfilerStage(myStudioProfilers);
     myStage.getStudioProfilers().getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(5));
     myStage.getStudioProfilers().setStage(myStage);
   }
@@ -110,17 +122,6 @@ public class NetworkProfilerStageTest {
       .isEqualTo(Payload.newRequestPayload(connectionsModel, data).getBytes());
     assertThat(Payload.newResponsePayload(connectionsModel, data).getBytes())
       .isEqualTo(Payload.newResponsePayload(connectionsModel, data).getBytes());
-  }
-
-  @Test
-  public void getRadioState() {
-    List<RangedSeries<NetworkRadioDataSeries.RadioState>> series = myStage.getRadioState().getSeries();
-    assertThat(series).hasSize(1);
-
-    List<SeriesData<NetworkRadioDataSeries.RadioState>> dataList = series.get(0).getSeries();
-    assertThat(dataList).hasSize(1);
-    assertThat(dataList.get(0).x).isEqualTo(TimeUnit.SECONDS.toMicros(5));
-    assertThat(dataList.get(0).value).isEqualTo(NetworkRadioDataSeries.RadioState.HIGH);
   }
 
   @Test
@@ -177,40 +178,6 @@ public class NetworkProfilerStageTest {
   }
 
   @Test
-  public void testRadioTooltip() {
-    myStage.enter();
-    myStage.setTooltip(new NetworkRadioTooltip(myStage));
-    assertThat(myStage.getTooltip()).isInstanceOf(NetworkRadioTooltip.class);
-    NetworkRadioTooltip tooltip = (NetworkRadioTooltip)myStage.getTooltip();
-
-    double tooltipTime = TimeUnit.SECONDS.toMicros(5);
-    double radioStart = TimeUnit.SECONDS.toMicros(5);
-    double radioEnd = TimeUnit.SECONDS.toMicros(10);
-    ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
-    timeline.getDataRange().setMax(radioEnd);
-
-    // Tooltip position change should update radio state.
-    timeline.getTooltipRange().set(tooltipTime, tooltipTime);
-    assertThat(tooltip.getRadioStateData().getRadioState()).isEqualTo(NetworkRadioDataSeries.RadioState.HIGH);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMin()).isWithin(EPSILON).of(radioStart);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMax()).isWithin(EPSILON).of(radioEnd);
-
-    // As data range expands, radio state range should update accordingly.
-    radioEnd = TimeUnit.SECONDS.toMicros(15);
-    timeline.getDataRange().setMax(radioEnd);
-    assertThat(tooltip.getRadioStateData().getRadioState()).isEqualTo(NetworkRadioDataSeries.RadioState.HIGH);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMin()).isWithin(EPSILON).of(radioStart);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMax()).isWithin(EPSILON).of(radioEnd);
-
-    // View range shifts shouldn't affect radio state range.
-    timeline.getViewRange().set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(6));
-    tooltipTime = TimeUnit.SECONDS.toMicros(6);
-    timeline.getTooltipRange().set(tooltipTime, tooltipTime);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMin()).isWithin(EPSILON).of(radioStart);
-    assertThat(tooltip.getRadioStateData().getRadioStateRange().getMax()).isWithin(EPSILON).of(radioEnd);
-  }
-
-  @Test
   public void getDetailedNetworkUsage() {
     List<RangedContinuousSeries> series = myStage.getDetailedNetworkUsage().getSeries();
     assertThat(series).hasSize(3);
@@ -243,10 +210,6 @@ public class NetworkProfilerStageTest {
   public void updaterRegisteredCorrectly() {
     AspectObserver observer = new AspectObserver();
 
-    final boolean[] radioStateUpdated = {false};
-    myStage.getRadioState().addDependency(observer).onChange(
-      StateChartModel.Aspect.STATE_CHART, () -> radioStateUpdated[0] = true);
-
     final boolean[] networkUsageUpdated = {false};
     myStage.getDetailedNetworkUsage().addDependency(observer).onChange(
       LineChartModel.Aspect.LINE_CHART, () -> networkUsageUpdated[0] = true);
@@ -269,11 +232,23 @@ public class NetworkProfilerStageTest {
     );
 
     myTimer.tick(1);
-    assertThat(radioStateUpdated[0]).isTrue();
     assertThat(networkUsageUpdated[0]).isTrue();
     assertThat(trafficAxisUpdated[0]).isTrue();
     assertThat(connectionAxisUpdated[0]).isTrue();
+    assertThat(legendsUpdated[0]).isFalse();
+    assertThat(tooltipLegendsUpdated[0]).isFalse();
+
+    myStudioProfilers.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(2));
+    assertThat(networkUsageUpdated[0]).isTrue();
+
+    // Make sure the axis lerps correctly when we move the range there.
+    myStudioProfilers.getTimeline().getDataRange().setMax(TimeUnit.SECONDS.toMicros(101));
+    myStudioProfilers.getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(99), TimeUnit.SECONDS.toMicros(101));
+    myTimer.tick(100);
     assertThat(legendsUpdated[0]).isTrue();
+    assertThat(trafficAxisUpdated[0]).isTrue();
+    assertThat(connectionAxisUpdated[0]).isTrue();
+    myStudioProfilers.getTimeline().getTooltipRange().set(TimeUnit.SECONDS.toMicros(100), TimeUnit.SECONDS.toMicros(100));
     assertThat(tooltipLegendsUpdated[0]).isTrue();
   }
 
@@ -281,10 +256,6 @@ public class NetworkProfilerStageTest {
   public void updaterUnregisteredCorrectlyOnExit() {
     myStage.exit();
     AspectObserver observer = new AspectObserver();
-
-    final boolean[] radioStateUpdated = {false};
-    myStage.getRadioState().addDependency(observer).onChange(
-      StateChartModel.Aspect.STATE_CHART, () -> radioStateUpdated[0] = true);
 
     final boolean[] networkUsageUpdated = {false};
     myStage.getDetailedNetworkUsage().addDependency(observer).onChange(
@@ -307,7 +278,6 @@ public class NetworkProfilerStageTest {
       LegendComponentModel.Aspect.LEGEND, () -> tooltipLegendsUpdated[0] = true);
 
     myTimer.tick(1);
-    assertThat(radioStateUpdated[0]).isFalse();
     assertThat(networkUsageUpdated[0]).isFalse();
     assertThat(trafficAxisUpdated[0]).isFalse();
     assertThat(connectionAxisUpdated[0]).isFalse();
@@ -319,8 +289,10 @@ public class NetworkProfilerStageTest {
   public void testSelectedConnection() {
     HttpData.Builder builder = TestHttpData.newBuilder(1, 2, 22);
     builder.setResponseFields("null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ")
-      .setResponsePayloadId("payloadId");
+      .setResponsePayloadId(TEST_PAYLOAD_ID);
     HttpData data = builder.build();
+    String content = "Unzipped payload";
+    myProfilerService.addFile(TEST_PAYLOAD_ID, ByteString.copyFrom(content.getBytes(Charset.defaultCharset())));
 
     AspectObserver observer = new AspectObserver();
     final boolean[] connectionChanged = {false};
@@ -329,10 +301,9 @@ public class NetworkProfilerStageTest {
     );
 
     myStage.setSelectedConnection(data);
-    File payloadFile = Payload.newResponsePayload(myStage.getConnectionsModel(), data).toFile();
-    assertThat(payloadFile).isNotNull();
-    assertThat(payloadFile.canWrite()).isFalse();
     assertThat(myStage.getSelectedConnection()).isEqualTo(data);
+    Payload selectedConnectionPayload = Payload.newResponsePayload(myStage.getConnectionsModel(), myStage.getSelectedConnection());
+    assertThat(selectedConnectionPayload.getBytes().toString(Charsets.UTF_8)).isEqualTo(content);
     assertThat(connectionChanged[0]).isEqualTo(true);
   }
 
@@ -366,7 +337,7 @@ public class NetworkProfilerStageTest {
     myProfilerService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
 
     assertThat(myStage.setSelectedConnection(data)).isTrue();
-    String output = Files.toString(Payload.newResponsePayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    String output = Payload.newResponsePayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
     assertThat(output).isEqualTo(unzippedPayload);
   }
 
@@ -383,7 +354,7 @@ public class NetworkProfilerStageTest {
     myProfilerService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
 
     assertThat(myStage.setSelectedConnection(data)).isTrue();
-    String output = Files.toString(Payload.newResponsePayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    String output = Payload.newResponsePayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
     assertThat(output).isEqualTo(unzippedPayload);
   }
 
@@ -406,7 +377,7 @@ public class NetworkProfilerStageTest {
     myProfilerService.addFile(TEST_PAYLOAD_ID, zippedBytesString);
 
     myStage.setSelectedConnection(data);
-    String output = Files.toString(Payload.newRequestPayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    String output = Payload.newRequestPayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
     assertThat(output).isEqualTo(unzippedPayload);
   }
 
@@ -423,7 +394,7 @@ public class NetworkProfilerStageTest {
     myProfilerService.addFile(TEST_PAYLOAD_ID, unzippedBytesString);
 
     myStage.setSelectedConnection(data);
-    String output = Files.toString(Payload.newRequestPayload(myStage.getConnectionsModel(), data).toFile(), Charsets.UTF_8);
+    String output = Payload.newRequestPayload(myStage.getConnectionsModel(), data).getBytes().toString(Charsets.UTF_8);
     assertThat(output).isEqualTo(unzippedPayload);
   }
 
@@ -469,17 +440,18 @@ public class NetworkProfilerStageTest {
   public void selectionDisabledWithoutAgent() {
     Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
 
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     // Need to re-enter the stage again given the device/process can be set and return to the default StudioMonitorStage.
     myStage.getStudioProfilers().setStage(myStage);
 
     assertThat(myStage.getStudioProfilers().isAgentAttached()).isTrue();
+
     myStage.getSelectionModel().set(0, 100);
     assertThat(selection.getMin()).isWithin(EPSILON).of(0);
     assertThat(selection.getMax()).isWithin(EPSILON).of(100);
 
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.DETACHED);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_DETACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
     assertThat(myStage.getStudioProfilers().isAgentAttached()).isFalse();
 

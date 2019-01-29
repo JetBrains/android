@@ -40,8 +40,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-    final Project project = e.getProject();
-    e.getPresentation().setEnabled(project != null && AndroidSdkUtils.isAndroidSdkAvailable());
+    e.getPresentation().setEnabled(AndroidSdkUtils.isAndroidSdkAvailable());
   }
 
   @Override

@@ -22,6 +22,7 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.CompleteLibraryClasses;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.structure.manifest.ProviderPresentationProvider;
@@ -36,6 +37,7 @@ public interface Provider extends ApplicationComponent {
   @Required
   @Convert(PackageClassConverter.class)
   @ExtendClass(AndroidUtils.PROVIDER_CLASS_NAME)
+  @CompleteLibraryClasses
   AndroidAttributeValue<PsiClass> getProviderClass();
 
   @Required

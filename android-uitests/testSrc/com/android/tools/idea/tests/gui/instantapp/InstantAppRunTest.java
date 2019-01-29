@@ -24,17 +24,19 @@ import com.android.tools.idea.explorer.adbimpl.AdbDeviceCapabilities;
 import com.android.tools.idea.explorer.adbimpl.AdbFileOperations;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.tests.gui.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture.SystemImage;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.containers.ContainerUtil;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -51,12 +53,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class InstantAppRunTest {
-  private static final String O_AVD_NAME = "O dev under test";
+  private static final SystemImage O_AVD_IMAGE = new SystemImage("Oreo", "26", "x86", "Android 8.0 (Google APIs)");
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule(false);
 
   /**
    * Verify imported instant apps can be deployed to an emulator running API 26 or newer.
@@ -79,74 +81,16 @@ public class InstantAppRunTest {
     String runConfigName = "topekabundle";
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("TopekaInstantApp");
 
-    emulator.createAVD(
+    String avdName = EmulatorGenerator.ensureAvdIsCreated(
       ideFrame.invokeAvdManager(),
-      "x86 Images",
-      new ChooseSystemImageStepFixture.SystemImage("O", "26", "x86", "Android 8.0 (Google APIs)"),
-      O_AVD_NAME
+      new AvdSpec.Builder()
+        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+        .setSystemImageSpec(O_AVD_IMAGE)
+        .build()
     );
 
     ideFrame.runApp(runConfigName)
-      .selectDevice(O_AVD_NAME)
-      .clickOk();
-
-    Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
-
-    ExecutionToolWindowFixture.ContentFixture runWindow = ideFrame.getRunToolWindow().findContent(runConfigName);
-    runWindow.waitForOutput(new PatternTextMatcher(CONNECTED_APP_PATTERN), TimeUnit.MINUTES.toSeconds(2));
-
-    runWindow.waitForStopClick();
-  }
-
-
-  /**
-   * Verify created instant apps can be deployed to an emulator running API 26 or newer.
-   *
-   * <p>TT ID: 84f8150d-0319-4e7e-b510-8227890aca3f
-   *
-   * <pre>
-   *   Test steps:
-   *   1. Create an instant app project.
-   *   2. Set up an emulator running API 26.
-   *   3. Run the instantapp run configuration.
-   *   Verify:
-   *   1. Check if the run tool window appears.
-   *   2. Check if the "Connected to process" message appears in the run tool window.
-   * </pre>
-   */
-  @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70567643
-  public void createAndRunInstantApp() throws Exception {
-    String runConfigName = "instantapp";
-    NewProjectWizardFixture newProj = guiTest.welcomeFrame().createNewProject();
-
-    newProj.clickNext();
-    newProj.getConfigureFormFactorStep()
-      .selectMinimumSdkApi(FormFactor.MOBILE, "23")
-      .findInstantAppCheckbox(FormFactor.MOBILE)
-      .select();
-
-    newProj.clickNext()
-      .clickNext()
-      .clickNext()
-      .clickFinish();
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    guiTest.waitForBackgroundTasks();
-
-    emulator.createAVD(
-      ideFrame.invokeAvdManager(),
-      "x86 Images",
-      new ChooseSystemImageStepFixture.SystemImage("Oreo", "26", "x86", "Android 8.0 (Google APIs)"),
-      O_AVD_NAME
-    );
-
-    // Stuff can be happening again in the background while the emulator is being created.
-    // We should wait for it to finish.
-    guiTest.waitForBackgroundTasks();
-
-    ideFrame.runApp(runConfigName)
-      .selectDevice(O_AVD_NAME)
+      .selectDevice(avdName)
       .clickOk();
 
     Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
@@ -174,19 +118,21 @@ public class InstantAppRunTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
   public void runFromCmdLine() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("TopekaInstantApp");
+    IdeFrameFixture ideFrame = guiTest.importProject("TopekaInstantApp", null);
+    guiTest.testSystem().waitForProjectSyncToFinish(ideFrame);
 
-    emulator.createAVD(
+    String avdName = EmulatorGenerator.ensureAvdIsCreated(
       ideFrame.invokeAvdManager(),
-      "x86 Images",
-      new ChooseSystemImageStepFixture.SystemImage("Oreo", "26", "x86", "Android 8.0 (Google APIs)"),
-      O_AVD_NAME
+      new AvdSpec.Builder()
+        .setSystemImageGroup(AvdSpec.SystemImageGroups.X86)
+        .setSystemImageSpec(O_AVD_IMAGE)
+        .build()
     );
 
     AvdManagerDialogFixture avdManager = ideFrame.invokeAvdManager();
-    avdManager.startAvdWithName(O_AVD_NAME);
+    avdManager.startAvdWithName(avdName);
     avdManager.close();
 
     // TODO: Move these adb commands over to DeviceQueries and AndroidDebugBridgeUtils
@@ -286,12 +232,11 @@ public class InstantAppRunTest {
     cmdLine.add("shell");
     cmdLine.add("am");
     cmdLine.add("start");
-    cmdLine.add("-a");
-    cmdLine.add("android.intent.action.VIEW");
-    cmdLine.add("-c");
-    cmdLine.add("android.intent.category.BROWSABLE");
-    cmdLine.add("-d");
-    cmdLine.add("http://topeka.samples.androidinstantapps.com/");
+    // Intent.FLAG_ACTIVITY_MATCH_EXTERNAL is required to launch in P+; ignored in pre-O.
+    cmdLine.add("-f");
+    cmdLine.add("0x00000800");
+    cmdLine.add("-n");
+    cmdLine.add("com.google.samples.apps.topeka/.activity.SignInActivity");
     return new ProcessBuilder(cmdLine);
   }
 

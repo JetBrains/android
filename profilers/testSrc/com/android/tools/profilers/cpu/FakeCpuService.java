@@ -21,14 +21,14 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Dummy implementation of {@link CpuServiceGrpc.CpuServiceImplBase}.
@@ -73,11 +73,26 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private boolean myIsAppBeingProfiled;
 
+  private long myOngoingCaptureStartTimestamp;
+
+  private CpuProfiler.TraceInitiationType myOngoingCaptureInitiationType;
+
   private int myTraceId = FAKE_TRACE_ID;
 
   private CpuProfiler.CpuProfilerType myProfilerType = CpuProfiler.CpuProfilerType.ART;
 
-  private CpuProfiler.CpuProfilingAppStartRequest myLastSuccessfulStartRequest;
+  private CpuProfiler.CpuProfilerConfiguration myProfilerConfiguration;
+
+  private List<CpuProfiler.GetThreadsResponse.Thread> myAdditionalThreads = new ArrayList<>();
+
+  private List<CpuProfiler.TraceInfo> myAdditionalTraceInfos = new ArrayList<>();
+
+  private List<String> myTraceFilePaths = new ArrayList<>();
+
+  /**
+   * Session used in start/stop capturing gRPC requests in this fake service.
+   */
+  private Common.Session myStartStopCapturingSession;
 
   @Override
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
@@ -87,10 +102,12 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     if (!myStartProfilingStatus.equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
       response.setErrorMessage("StartProfilingApp error");
     } else {
-      myLastSuccessfulStartRequest = request;
+      myProfilerConfiguration = request.getConfiguration();
       myIsAppBeingProfiled = true;
-      myProfilerType = request.getProfilerType();
+      myProfilerType = request.getConfiguration().getProfilerType();
+      myOngoingCaptureInitiationType = CpuProfiler.TraceInitiationType.INITIATED_BY_UI;
     }
+    myStartStopCapturingSession = request.getSession();
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -117,6 +134,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       response.setTrace(myTrace);
       response.setTraceId(myTraceId);
     }
+    myStartStopCapturingSession = request.getSession();
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -124,6 +142,10 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   public CpuProfiler.CpuProfilerType getProfilerType() {
     return myProfilerType;
+  }
+
+  public void setProfilerType(CpuProfiler.CpuProfilerType profilerType) {
+    myProfilerType = profilerType;
   }
 
   public void setTraceId(int id) {
@@ -136,12 +158,34 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     CpuProfiler.ProfilingStateResponse.Builder response = CpuProfiler.ProfilingStateResponse.newBuilder();
     response.setBeingProfiled(myIsAppBeingProfiled);
     if (myIsAppBeingProfiled) {
-      response.setStartRequest(myLastSuccessfulStartRequest);
-      myProfilerType = myLastSuccessfulStartRequest.getProfilerType();
+      response.setConfiguration(myProfilerConfiguration).setStartTimestamp(myOngoingCaptureStartTimestamp)
+              .setInitiationType(myOngoingCaptureInitiationType);
+      myProfilerType = myProfilerConfiguration.getProfilerType();
     }
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
+  }
+
+  public void setAppBeingProfiled(boolean profiled) {
+    myIsAppBeingProfiled = profiled;
+  }
+
+  /**
+   * Receives a {@link CpuProfiler.CpuProfilerConfiguration} and sets the state of the service to be profiling using such configuration.
+   * If the configuration passed is null, {@link #myIsAppBeingProfiled} should be set to false.
+   */
+  public void setOngoingCaptureConfiguration(@Nullable CpuProfiler.CpuProfilerConfiguration configuration, long startTimestamp) {
+    setOngoingCaptureConfiguration(configuration, startTimestamp, CpuProfiler.TraceInitiationType.INITIATED_BY_UI);
+  }
+
+  public void setOngoingCaptureConfiguration(@Nullable CpuProfiler.CpuProfilerConfiguration configuration,
+                                             long startTimestamp,
+                                             @NotNull CpuProfiler.TraceInitiationType initiationType) {
+    myProfilerConfiguration = configuration;
+    myOngoingCaptureStartTimestamp = startTimestamp;
+    myOngoingCaptureInitiationType = initiationType;
+    myIsAppBeingProfiled = configuration != null;
   }
 
   public void setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status status) {
@@ -182,6 +226,10 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     return mySession;
   }
 
+  public Common.Session getStartStopCapturingSession() {
+    return myStartStopCapturingSession;
+  }
+
   @Override
   public void getTraceInfo(CpuProfiler.GetTraceInfoRequest request, StreamObserver<CpuProfiler.GetTraceInfoResponse> responseObserver) {
     CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
@@ -194,6 +242,11 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
         }
         catch (IOException | ExecutionException | InterruptedException ignored) {
         }
+        if (myCapture == null) {
+          responseObserver.onNext(CpuProfiler.GetTraceInfoResponse.getDefaultInstance());
+          responseObserver.onCompleted();
+          return;
+        }
       }
       boolean traceWithinRange = !myCapture.getRange().getIntersection(requestRange).isEmpty();
       if (traceWithinRange) {
@@ -205,15 +258,18 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
         }
 
         CpuProfiler.TraceInfo traceInfo = CpuProfiler.TraceInfo.newBuilder()
-          .setTraceId(myTraceId)
-          .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCapture.getRange().getMin()))
-          .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCapture.getRange().getMax()))
-          .addAllThreads(threads)
-          .build();
+                                                               .setTraceId(myTraceId)
+                                                               .setFromTimestamp(
+                                                                 TimeUnit.MICROSECONDS.toNanos((long)myCapture.getRange().getMin()))
+                                                               .setToTimestamp(
+                                                                 TimeUnit.MICROSECONDS.toNanos((long)myCapture.getRange().getMax()))
+                                                               .setProfilerType(myCapture.getType())
+                                                               .addAllThreads(threads)
+                                                               .build();
         response.addTraceInfo(traceInfo);
       }
     }
-
+    response.addAllTraceInfo(myAdditionalTraceInfos);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
@@ -255,20 +311,33 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     myEmptyUsageData = emptyUsageData;
   }
 
+  public void addAdditionalThreads(int tid, String name, List<CpuProfiler.GetThreadsResponse.ThreadActivity> threads) {
+    myAdditionalThreads.add(newThread(tid, name, threads));
+  }
+
+  public void addTraceInfo(CpuProfiler.TraceInfo infoList) {
+    myAdditionalTraceInfos.add(infoList);
+  }
+
+  public void clearTraceInfo() {
+    myAdditionalTraceInfos.clear();
+  }
+
   @Override
   public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> responseObserver) {
     CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
-    List<CpuProfiler.GetThreadsResponse.Thread> threads;
+    List<CpuProfiler.GetThreadsResponse.Thread> threads = new ArrayList<>();
     if (myValidTrace) {
       try {
-        threads = buildTraceThreads();
+        threads.addAll(buildTraceThreads());
       } catch (InterruptedException | ExecutionException | IOException e) {
-        threads = buildThreads(request.getStartTimestamp(), request.getEndTimestamp());
+        threads.addAll(buildThreads(request.getStartTimestamp(), request.getEndTimestamp()));
       }
     } else {
-      threads = buildThreads(request.getStartTimestamp(), request.getEndTimestamp());
+      threads.addAll(buildThreads(request.getStartTimestamp(), request.getEndTimestamp()));
     }
 
+    threads.addAll(myAdditionalThreads);
     response.addAllThreads(threads);
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -289,8 +358,13 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   @Override
   public void saveTraceInfo(CpuProfiler.SaveTraceInfoRequest request, StreamObserver<CpuProfiler.EmptyCpuReply> responseObserver) {
+    myTraceFilePaths.add(request.getTraceInfo().getTraceFilePath());
     responseObserver.onNext(CpuProfiler.EmptyCpuReply.getDefaultInstance());
     responseObserver.onCompleted();
+  }
+
+  public List<String> getTraceFilePaths() {
+    return myTraceFilePaths;
   }
 
   /**

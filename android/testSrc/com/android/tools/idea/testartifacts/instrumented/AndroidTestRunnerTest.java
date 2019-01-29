@@ -16,7 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented;
 
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.testrunner.OnDeviceOrchestratorRemoteAndroidTestRunner;
+import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -83,7 +83,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertEmpty(androidTestRunConfiguration.INSTRUMENTATION_RUNNER_CLASS);
   }
 
-  public void testRunnerOdoNotUsed() throws Exception {
+  public void testRunnerAtoNotUsed() throws Exception {
     loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER);
     AndroidTestRunConfiguration.MyApplicationLaunchTask task = createLaunchTask("google.testapplication.ApplicationTest");
     IDevice device = mock(IDevice.class);
@@ -94,7 +94,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertInstanceOf(task.getRemoteAndroidTestRunner(artifact, device), RemoteAndroidTestRunner.class);
   }
 
-  public void testRunnerOdoUsed() throws Exception {
+  public void testRunnerAtoUsed() throws Exception {
     loadProject(TestProjectPaths.INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR);
     AndroidTestRunConfiguration.MyApplicationLaunchTask task = createLaunchTask("google.testapplication.ApplicationTest");
     IDevice device = mock(IDevice.class);
@@ -102,7 +102,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myAndroidFacet);
     assertNotNull(androidModuleModel);
     IdeAndroidArtifact artifact = androidModuleModel.getSelectedVariant().getAndroidTestArtifact();
-    assertInstanceOf(task.getRemoteAndroidTestRunner(artifact, device), OnDeviceOrchestratorRemoteAndroidTestRunner.class);
+    assertInstanceOf(task.getRemoteAndroidTestRunner(artifact, device), AndroidTestOrchestratorRemoteAndroidTestRunner.class);
   }
 
   public void testRunnerCorrectForTestOnlyModule() throws Exception {
@@ -125,6 +125,8 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertNotNull(androidTestRunConfiguration);
 
 
-    return (AndroidTestRunConfiguration.MyApplicationLaunchTask) androidTestRunConfiguration.getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, false, launchStatus);
+    return (AndroidTestRunConfiguration.MyApplicationLaunchTask)androidTestRunConfiguration
+      .getApplicationLaunchTask(applicationIdProvider, myAndroidFacet, "",
+                                false, launchStatus);
   }
 }

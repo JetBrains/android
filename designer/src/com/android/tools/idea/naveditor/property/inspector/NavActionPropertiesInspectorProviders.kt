@@ -17,13 +17,13 @@ import org.jetbrains.android.dom.navigation.NavigationSchema
 
 class NavActionTransitionInspectorProvider : NavPropertiesInspectorProvider(mapOf(
     NavigationSchema.ATTR_ENTER_ANIM to "Enter",
-    NavigationSchema.ATTR_EXIT_ANIM to "Exit"), "Transitions")
+    NavigationSchema.ATTR_EXIT_ANIM to "Exit",
+    NavigationSchema.ATTR_POP_ENTER_ANIM to "Pop Enter",
+    NavigationSchema.ATTR_POP_EXIT_ANIM to "Pop Exit"), "Animations")
 
 class NavActionPopInspectorProvider : NavPropertiesInspectorProvider(mapOf(
     NavigationSchema.ATTR_POP_UP_TO to "Pop To",
     NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE to "Inclusive"), "Pop Behavior")
 
 class NavActionLaunchOptionsInspectorProvider : NavPropertiesInspectorProvider(mapOf(
-    NavigationSchema.ATTR_SINGLE_TOP to "Single Top",
-    NavigationSchema.ATTR_DOCUMENT to "Document",
-    NavigationSchema.ATTR_CLEAR_TASK to "Clear Task"), "Launch Options")
+    NavigationSchema.ATTR_SINGLE_TOP to "Single Top"), "Launch Options")

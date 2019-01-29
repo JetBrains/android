@@ -29,7 +29,7 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
-import static org.fest.util.Preconditions.checkNotNull;
+import static com.google.common.base.Verify.verifyNotNull;
 
 public class TextEditorFixture {
   private final Robot myRobot;
@@ -45,7 +45,7 @@ public class TextEditorFixture {
   }
 
   public void focusAndWaitForFocusGain() {
-    myRobot.focusAndWaitForFocusGain(checkNotNull(myEditor.getPreferredFocusedComponent()));
+    myRobot.focusAndWaitForFocusGain(verifyNotNull(myEditor.getPreferredFocusedComponent()));
   }
 
   public void select() {

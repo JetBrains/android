@@ -26,8 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-
 public class SelectRefactoringDialogFixture extends IdeaDialogFixture<DialogWrapper> {
 
   @NotNull private final IdeFrameFixture ideFrameFixture;
@@ -50,20 +48,22 @@ public class SelectRefactoringDialogFixture extends IdeaDialogFixture<DialogWrap
     return new SelectRefactoringDialogFixture(ideFrameFixture, dialog, wrapperRef.get());
   }
 
+  @NotNull
   public SelectRefactoringDialogFixture selectRenameModule() {
     JRadioButton renameModuleRadioButton = robot().finder().find(target(), Matchers.byText(JRadioButton.class, "Rename module"));
     new JRadioButtonFixture(robot(), renameModuleRadioButton).select();
     return this;
   }
 
+  @NotNull
   public RenameModuleDialogFixture clickOk() {
-    findAndClickOkButton(this);
+    GuiTests.findAndClickOkButton(this);
     Wait.seconds(1).expecting(target().getTitle() + " dialog to disappear").until(() -> !target().isShowing());
     return RenameModuleDialogFixture.find(ideFrameFixture);
   }
 
   private SelectRefactoringDialogFixture(
-    @NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog target, @NotNull DialogWrapper dialogWrapper) {
+      @NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog target, @NotNull DialogWrapper dialogWrapper) {
     super(ideFrameFixture.robot(), target, dialogWrapper);
     this.ideFrameFixture = ideFrameFixture;
   }

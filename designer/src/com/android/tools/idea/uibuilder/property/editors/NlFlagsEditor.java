@@ -16,13 +16,14 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.adtui.common.AdtSecondaryPanel;
-import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
+import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder;
+import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -33,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.plaf.TextUI;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -195,6 +198,20 @@ public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEdi
 
     CustomTextField() {
       setBorder(new DarculaTextBorder());
+    }
+
+    @Override
+    public void setUI(TextUI ui) {
+      super.setUI(new CustomTextFieldUI());
+    }
+  }
+
+  private static class CustomTextFieldUI extends DarculaTextFieldUI {
+    @Override
+    protected void paintDarculaBackground(Graphics graphics2D, JTextComponent component) {
+      // Override the background color of this non editable JTextField
+      graphics2D.setColor(component.getBackground());
+      super.paintDarculaBackground(graphics2D, component);
     }
   }
 }

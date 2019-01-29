@@ -16,15 +16,16 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
@@ -40,6 +41,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagChild;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +67,7 @@ public class StringsWriteUtils {
         // That way, the Undo is always available from the translation editor
         CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
 
-        facet.getAllResourceDirectories().stream()
+        ResourceFolderManager.getInstance(facet).getFolders().stream()
           .map(directory -> directory.findChild(name))
           .filter(Objects::nonNull)
           .forEach(directory -> delete(directory, requestor));
@@ -108,7 +110,7 @@ public class StringsWriteUtils {
       files.add(tag.getContainingFile());
     }
     final boolean deleteTag = attribute.equals(SdkConstants.ATTR_NAME) && (value == null || value.isEmpty());
-    new WriteCommandAction.Simple(project, "Setting attribute " + attribute, files.toArray(new PsiFile[files.size()])) {
+    new WriteCommandAction.Simple(project, "Setting attribute " + attribute, files.toArray(PsiFile.EMPTY_ARRAY)) {
       @Override
       public void run() {
         // Makes the command global even if only one xml file is modified
@@ -220,13 +222,10 @@ public class StringsWriteUtils {
 
   @Nullable
   private static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
-    LocalResourceRepository repository = ModuleResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository repository = ResourceRepositoryManager.getModuleResources(facet);
     // Ensure that items *just* created are processed by the resource repository
     repository.sync();
-    List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key);
-    if (items == null) {
-      return null;
-    }
+    List<ResourceItem> items = repository.getResources(ResourceNamespace.TODO(), ResourceType.STRING, key);
 
     for (ResourceItem item : items) {
       FolderConfiguration config = item.getConfiguration();

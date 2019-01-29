@@ -21,6 +21,7 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
 import com.android.tools.profiler.proto.CpuProfiler.*;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -46,15 +47,17 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
   @NotNull private IDevice myDevice;
   @NotNull private final Object myLegacyProfilingLock = new Object();
+  // Using a stub instead of the chanel to allow for easier testing.
+  @NotNull private CpuServiceGrpc.CpuServiceBlockingStub myServiceStub;
   /**
    * Map from process id to the record of the profiling.
    * Existence in the map means there is an active ongoing profiling for that given app.
    */
   @NotNull private final Map<Integer, LegacyProfilingRecord> myLegacyProfilingRecord = new HashMap<>();
 
-  public StudioLegacyCpuTraceProfiler(@NotNull IDevice device) {
+  public StudioLegacyCpuTraceProfiler(@NotNull IDevice device, @NotNull CpuServiceGrpc.CpuServiceBlockingStub cpuStub) {
     myDevice = device;
-
+    myServiceStub = cpuStub;
     // Sets a global handler which contains callbacks related to method-level profiling using DDMS.
     LegacyProfilingHandler profilingHandler = LegacyProfilingHandler.getInstance();
     ClientData.setMethodProfilingHandler(profilingHandler);
@@ -83,15 +86,20 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       // com.android.ddmlib.HandleProfiling.sendSPSS(..) has buffer size as a parameter, but we cannot call it
       // because the class is not public. To set buffer size, we modify DdmPreferences which will be read by
       // client.startSamplingProfiler(..) and client.startMethodTracer().
-      DdmPreferences.setProfilerBufferSizeMb(request.getBufferSizeInMb());
+      DdmPreferences.setProfilerBufferSizeMb(request.getConfiguration().getBufferSizeInMb());
       long nowNs = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
       record = new LegacyProfilingRecord(request, nowNs, responseBuilder);
       myLegacyProfilingRecord.put(pid, record);
       try {
-        if (request.getMode() == CpuProfilingAppStartRequest.Mode.SAMPLED) {
-          client.startSamplingProfiler(request.getSamplingIntervalUs(), TimeUnit.MICROSECONDS);
+        if (request.getConfiguration().getProfilerType() == CpuProfilerType.ATRACE) {
+          responseBuilder.mergeFrom(myServiceStub.startProfilingApp(request));
+        }
+        else if (request.getConfiguration().getProfilerMode() == CpuProfilerMode.SAMPLED) {
+          assert request.getConfiguration().getProfilerType() == CpuProfilerType.ART;
+          client.startSamplingProfiler(request.getConfiguration().getSamplingIntervalUs(), TimeUnit.MICROSECONDS);
         }
         else {
+          assert request.getConfiguration().getProfilerType() == CpuProfilerType.ART;
           client.startMethodTracer();
         }
         // startSamplingProfiler() and startMethodTracer() calls above always return immediately.
@@ -130,17 +138,24 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
       }
 
       LegacyProfilingRecord record = myLegacyProfilingRecord.get(pid);
-      if (record == null || client.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.OFF) {
+      if (isMethodProfilingStatusOff(record, client)) {
         return responseBuilder.setStatus(CpuProfilingAppStopResponse.Status.FAILURE)
           .setErrorMessage("The app is not being profiled.").build();
       }
 
       record.setStopResponseBuilder(responseBuilder);
       try {
-        if (record.myStartRequest.getMode() == CpuProfilingAppStartRequest.Mode.SAMPLED) {
+        if (record.myStartRequest.getConfiguration().getProfilerType() == CpuProfilerType.ATRACE) {
+          CpuProfilingAppStopResponse response = myServiceStub.stopProfilingApp(request);
+          responseBuilder.mergeFrom(response);
+          record.myStopLatch.countDown();
+        }
+        else if (record.myStartRequest.getConfiguration().getProfilerMode() == CpuProfilerMode.SAMPLED) {
+          assert record.myStartRequest.getConfiguration().getProfilerType() == CpuProfilerType.ART;
           client.stopSamplingProfiler();
         }
         else {
+          assert record.myStartRequest.getConfiguration().getProfilerType() == CpuProfilerType.ART;
           client.stopMethodTracer();
         }
         record.myStopLatch.await();
@@ -159,7 +174,7 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
   public ProfilingStateResponse checkAppProfilingState(ProfilingStateRequest request) {
     int pid = request.getSession().getPid();
     long nowNs = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
-    ProfilingStateResponse.Builder responseBuilder = ProfilingStateResponse.newBuilder();
+    ProfilingStateResponse.Builder responseBuilder = ProfilingStateResponse.newBuilder().setCheckTimestamp(nowNs);
     String appPkgName = myDevice.getClientName(pid);
     Client client = appPkgName != null ? myDevice.getClient(appPkgName) : null;
     if (client == null) {
@@ -168,18 +183,26 @@ public class StudioLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
 
     synchronized (myLegacyProfilingLock) {
       LegacyProfilingRecord record = myLegacyProfilingRecord.get(pid);
-      if (record == null || client.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.OFF) {
+      if (isMethodProfilingStatusOff(record, client)) {
         return responseBuilder.setBeingProfiled(false).build();
       }
       else {
         return responseBuilder
           .setBeingProfiled(true)
-          .setStartRequest(record.myStartRequest)
+          .setConfiguration(record.myStartRequest.getConfiguration())
           .setStartTimestamp(record.myStartRequestTimestamp)
-          .setCheckTimestamp(nowNs)
           .build();
       }
     }
+  }
+
+  /**
+   * This method returns true if the method profiling status is off for art traces only. For all other trace types (mainly systrace) we
+   * return false because method profiling is not an available feature.
+   */
+  private boolean isMethodProfilingStatusOff(LegacyProfilingRecord record, Client client) {
+    return record == null || (client.getClientData().getMethodProfilingStatus() == ClientData.MethodProfilingStatus.OFF &&
+                       record.myStartRequest.getConfiguration().getProfilerType() == CpuProfilerType.ART);
   }
 
   private static class LegacyProfilingHandler implements ClientData.IMethodProfilingHandler {

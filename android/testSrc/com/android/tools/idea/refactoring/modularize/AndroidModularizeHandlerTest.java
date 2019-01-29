@@ -50,6 +50,12 @@ public class AndroidModularizeHandlerTest extends AndroidTestCase {
   }
 
   @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    myProcessor = null;
+  }
+
+  @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
     addModuleWithAndroidFacet(projectBuilder, modules, "feature", PROJECT_TYPE_LIBRARY, false);

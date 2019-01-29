@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
@@ -37,7 +36,8 @@ import static com.android.tools.profilers.memory.adapters.FakeCaptureObject.DEFA
 import static org.junit.Assert.*;
 
 public class MemoryNavigationTest {
-  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeMemoryService());
+  @Rule public final FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeProfilerService(), new FakeMemoryService());
 
   private MemoryProfilerStage myStage;
   private MemoryProfilerStageView myStageView;

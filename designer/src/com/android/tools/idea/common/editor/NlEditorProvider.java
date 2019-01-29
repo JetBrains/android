@@ -25,6 +25,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +46,12 @@ public class NlEditorProvider implements FileEditorProvider, DumbAware {
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile virtualFile) {
     Object psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
-    return psiFile instanceof XmlFile && NlLayoutType.supports((XmlFile)psiFile);
+    if (psiFile instanceof XmlFile) {
+      XmlFile xmlFile = (XmlFile) psiFile;
+      AndroidFacet facet = AndroidFacet.getInstance(xmlFile);
+      return facet != null && NlLayoutType.supports(xmlFile);
+    }
+    return false;
   }
 
   @NotNull

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -23,8 +24,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFi
 import com.android.tools.idea.tests.gui.framework.fixture.theme.NewStyleDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorTableFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,11 +46,21 @@ import static org.junit.Assert.*;
  * UI tests for the theme selector in the Theme Editor
  */
 @RunIn(TestGroup.THEME)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ThemeSelectorTest {
 
   @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Before
+  public void setup() {
+    StudioFlags.THEME_EDITOR_ENABLED.override(true);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.THEME_EDITOR_ENABLED.clearOverride();
+  }
 
   /**
    * Tests the theme renaming functionality of the theme selector
@@ -170,17 +184,21 @@ public class ThemeSelectorTest {
     // The expected elements are:
     // 0. AppTheme
     // 1. -- Separator
-    // 2. AppCompat Light
-    // 3. AppCompat
-    // 4. -- Separator
-    // 5. Show all themes
-    assertThat(parentsArray).hasLength(6);
+    // 2. Material Light
+    // 3. Material
+    // 4. AppCompat Light
+    // 5. AppCompat
+    // 6. -- Separator
+    // 7. Show all themes
+    assertThat(parentsArray).hasLength(8);
     assertThat(parentsArray[0]).isEqualTo("AppTheme");
-    assertThat(parentsArray[2]).isEqualTo("Theme.AppCompat.Light.NoActionBar");
-    assertThat(parentsArray[3]).isEqualTo("Theme.AppCompat.NoActionBar");
-    assertThat(parentsArray[5]).isEqualTo("Show all themes");
     assertThat(parentsArray[1]).startsWith("javax.swing.JSeparator");
-    assertThat(parentsArray[4]).startsWith("javax.swing.JSeparator");
+    assertThat(parentsArray[2]).isEqualTo("android:Theme.Material.Light.NoActionBar");
+    assertThat(parentsArray[3]).isEqualTo("android:Theme.Material.NoActionBar");
+    assertThat(parentsArray[4]).isEqualTo("Theme.AppCompat.Light.NoActionBar");
+    assertThat(parentsArray[5]).isEqualTo("Theme.AppCompat.NoActionBar");
+    assertThat(parentsArray[6]).startsWith("javax.swing.JSeparator");
+    assertThat(parentsArray[7]).isEqualTo("Show all themes");
 
     parentComboBox.selectItem("Theme.AppCompat.NoActionBar");
     newNameTextField.requireText("Theme.AppTheme.NoActionBar");
@@ -205,18 +223,18 @@ public class ThemeSelectorTest {
     TableCell parentCell = row(0).column(0);
     assertEquals("android:Theme.Holo", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
-    themeEditor.focus(); // required to ensure that the Select Previous Tab action is available
-    EditorFixture editor = guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab").getEditor();
+    EditorFixture editor = guiTest.ideFrame().getEditor().switchToTab("styles.xml");
     assertThat(editor.getCurrentFileContents()).contains("name=\"AppTheme");
     editor.moveBetween("", "name=\"NewTheme");
     assertThat(editor.getCurrentLine().trim()).isEqualTo("<style name=\"NewTheme\" parent=\"android:Theme.Holo\" />");
 
     // Tests Undo
+    editor.switchToTab("Theme Editor");
+    themeEditor.focus(); // so that menu actions are available
     guiTest.ideFrame()
-      .invokeMenuPath("Window", "Editor Tabs", "Select Next Tab")
       .invokeMenuPath("Edit", "Undo Create new style NewTheme");
     themeEditor.waitForThemeSelection("AppTheme");
-    guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
+    editor.switchToTab("styles.xml");
     assertThat(editor.getCurrentFileContents()).doesNotContain("name=\"NewTheme");
   }
 
@@ -235,7 +253,7 @@ public class ThemeSelectorTest {
       .getEditor()
       .close()  // TODO: Make the test work without having to close the theme editor
       .open("app/build.gradle")
-      .moveBetween("compile 'com.android.support:app", "")
+      .moveBetween("implementation 'com.android.support:app", "")
       .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
       .invokeAction(EditorFixture.EditorAction.SAVE)
       .awaitNotification(
@@ -247,7 +265,8 @@ public class ThemeSelectorTest {
     themeEditor = ThemeEditorGuiTestUtils.openThemeEditor(guiTest.ideFrame());
     themeList = themeEditor.getThemesList();
     assertThat(themeList).doesNotContain("Theme.AppCompat.Light.NoActionBar");
-    assertThat(themeList).contains("android:Theme.Material.NoActionBar");
+    assertThat(themeList).doesNotContain("Theme.AppCompat.NoActionBar");
     assertThat(themeList).contains("android:Theme.Material.Light.NoActionBar");
+    assertThat(themeList).contains("android:Theme.Material.NoActionBar");
   }
 }

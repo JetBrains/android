@@ -38,11 +38,7 @@ public class RestrictedConfigurationTest extends AndroidTestCase {
     FolderConfiguration restrictedConfiguration = RestrictedConfiguration.restrict(compatible, incompatibles).getAny();
     assertNotNull(restrictedConfiguration);
 
-    // folderConfiguration.getUniqueKey() returns with a "-"
-    if (!answerQualifier.isEmpty()) {
-      answerQualifier = "-" + answerQualifier;
-    }
-    assertEquals(answerQualifier, restrictedConfiguration.getUniqueKey());
+    assertEquals(answerQualifier, restrictedConfiguration.getQualifierString());
 
     // Making sure that 'restrictedConfiguration' matches only with 'compatible'
     List<ConfiguredElement<String>> allConfigurations = Lists.newArrayList();

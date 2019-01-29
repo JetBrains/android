@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import com.android.tools.idea.debug.AndroidNativeDebugProcess;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginWarningParser;
 import com.android.tools.idea.gradle.project.build.output.GradleBuildOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -30,6 +30,7 @@ import com.google.common.collect.Multimap;
 import com.intellij.build.BuildViewManager;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.events.BuildEvent;
+import com.intellij.build.events.FailureResult;
 import com.intellij.build.events.impl.*;
 import com.intellij.build.output.BuildOutputInstantReaderImpl;
 import com.intellij.build.output.BuildOutputParser;
@@ -40,6 +41,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.TransactionGuard;
@@ -58,9 +60,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.Ref;
-import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
-import com.intellij.xdebugger.XDebuggerManager;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,6 +94,7 @@ public class GradleBuildInvoker {
   @NotNull private final List<String> myOneTimeGradleOptions = new ArrayList<>();
   @NotNull private final Multimap<String, String> myLastBuildTasks = ArrayListMultimap.create();
   @NotNull private final BuildStopper myBuildStopper = new BuildStopper();
+  @NotNull private final NativeDebugSessionFinder myNativeDebugSessionFinder;
 
   @NotNull
   public static GradleBuildInvoker getInstance(@NotNull Project project) {
@@ -101,35 +102,33 @@ public class GradleBuildInvoker {
   }
 
   public GradleBuildInvoker(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
-    this(project, documentManager, new GradleTasksExecutorFactory());
+    this(project, documentManager, new GradleTasksExecutorFactory(), new NativeDebugSessionFinder(project));
   }
 
   @VisibleForTesting
   protected GradleBuildInvoker(@NotNull Project project,
                                @NotNull FileDocumentManager documentManager,
-                               @NotNull GradleTasksExecutorFactory tasksExecutorFactory) {
+                               @NotNull GradleTasksExecutorFactory tasksExecutorFactory,
+                               @NotNull NativeDebugSessionFinder nativeDebugSessionFinder) {
     myProject = project;
     myDocumentManager = documentManager;
     myTaskExecutorFactory = tasksExecutorFactory;
+    myNativeDebugSessionFinder = nativeDebugSessionFinder;
   }
 
   public void cleanProject() {
-    Ref<Boolean> cancelClean = new Ref<>(false);
-    ApplicationManager.getApplication().invokeAndWait(() -> cancelClean.set(stopNativeDebuggingOrCancel()), ModalityState.NON_MODAL);
-    if (cancelClean.get()) {
+    if (stopNativeDebugSessionOrStopBuild()) {
       return;
     }
     setProjectBuildMode(CLEAN);
     // "Clean" also generates sources.
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
     File projectPath = getBaseDirPath(myProject);
-    ListMultimap<Path, String> tasks =
-      GradleTaskFinder.getInstance()
-        .findTasksToExecute(projectPath, modules, SOURCE_GEN, TestCompileType.NONE);
+    ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, SOURCE_GEN,
+                                                                                         TestCompileType.NONE);
     tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
     for (Path rootPath : tasks.keySet()) {
-      executeTasks(rootPath.toFile(), tasks.get(rootPath),
-                   Collections.singletonList(createGenerateSourcesOnlyProperty()));
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), Collections.singletonList(createGenerateSourcesOnlyProperty()));
     }
   }
 
@@ -147,15 +146,12 @@ public class GradleBuildInvoker {
 
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
     File projectPath = getBaseDirPath(myProject);
-    ListMultimap<Path, String> tasks =
-      GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
+    GradleTaskFinder gradleTaskFinder = GradleTaskFinder.getInstance();
+    ListMultimap<Path, String> tasks = gradleTaskFinder.findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
     if (cleanProject) {
-      Ref<Boolean> cancelClean = new Ref<>(false);
-      ApplicationManager.getApplication().invokeAndWait(() -> cancelClean.set(stopNativeDebuggingOrCancel()), ModalityState.NON_MODAL);
-      if (cancelClean.get()) {
+      if (stopNativeDebugSessionOrStopBuild()) {
         return;
       }
-
       tasks.keys().elementSet().forEach(key -> tasks.get(key).add(0, CLEAN_TASK_NAME));
     }
     for (Path rootPath : tasks.keySet()) {
@@ -164,48 +160,47 @@ public class GradleBuildInvoker {
   }
 
   /**
-   * Gets the currently-running native debug session if it exists.
-   *
-   * @return the native debug session or {@code null} if none exists.
+   * @return {@code true} if the user selects to stop the current build.
    */
-  @Nullable
-  private XDebugSession getNativeDebugSession() {
-    for (XDebugSession session : XDebuggerManager.getInstance(myProject).getDebugSessions()) {
-      XDebugProcess debugProcess = session.getDebugProcess();
-      if (debugProcess instanceof AndroidNativeDebugProcess) {
-        return session;
+  private boolean stopNativeDebugSessionOrStopBuild() {
+    XDebugSession nativeDebugSession = myNativeDebugSessionFinder.findNativeDebugSession();
+    if (nativeDebugSession != null) {
+      Ref<Integer> yesNoCancelRef = new Ref<>();
+      Application application = ApplicationManager.getApplication();
+      application.invokeAndWait(() -> yesNoCancelRef.set(promptUserToStopNativeDebugSession()), ModalityState.NON_MODAL);
+      @YesNoCancelResult int yesNoCancel = yesNoCancelRef.get();
+      switch (yesNoCancel) {
+        case YES:
+          // User selected "Terminate".
+          nativeDebugSession.stop();
+          break;
+        case CANCEL:
+          // User selected "Cancel". Do not continue with build.
+          return true;
       }
     }
-    return null;
+    return false;
   }
 
-  /**
-   * Asks the user if they want to stop native debugging.
-   *
-   * @return true if the user hit the "Cancel" button, meaning the current task should stop.
-   */
-  private boolean stopNativeDebuggingOrCancel() {
-    XDebugSession session = getNativeDebugSession();
-    if (session == null) {
-      return false;
-    }
+  @YesNoCancelResult
+  private int promptUserToStopNativeDebugSession() {
     // If we have a native debugging process running, we need to kill it to release the files from being held open by the OS.
-    final String propKey = "gradle.project.build.invoker.clean-terminates-debugger";
+    String propKey = "gradle.project.build.invoker.clean-terminates-debugger";
     // We set the property globally, rather than on a per-project basis since the debugger either keeps files open on the OS or not.
     // If the user sets the property, it is stored in <config-dir>/config/options/options.xml
     String value = PropertiesComponent.getInstance().getValue(propKey);
 
-    @YesNoCancelResult
-    int res;
     if (value == null) {
-      res = MessageDialogBuilder.yesNoCancel("Terminate debugging",
-                                             "Cleaning or rebuilding your project while debugging can lead to unexpected " +
-                                             "behavior.\n" +
-                                             "You can choose to either terminate the debugger before cleaning your project " +
-                                             "or keep debugging while cleaning.\n" +
-                                             "Clicking \"Cancel\" stops Gradle from cleaning or rebuilding your project, " +
-                                             "and preserves your debug process.")
-        .project(myProject).yesText("Terminate").noText("Do not terminate").cancelText("Cancel").doNotAsk(
+      Ref<Integer> yesNoCancelRef = new Ref<>();
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        String message = "Cleaning or rebuilding your project while debugging can lead to unexpected " +
+                         "behavior.\n" +
+                         "You can choose to either terminate the debugger before cleaning your project " +
+                         "or keep debugging while cleaning.\n" +
+                         "Clicking \"Cancel\" stops Gradle from cleaning or rebuilding your project, " +
+                         "and preserves your debug process.";
+        MessageDialogBuilder.YesNoCancel dialogBuilder = MessageDialogBuilder.yesNoCancel("Terminate debugging", message);
+        int answer = dialogBuilder.project(myProject).yesText("Terminate").noText("Do not terminate").cancelText("Cancel").doNotAsk(
           new DialogWrapper.DoNotAskOption.Adapter() {
             @Override
             public void rememberChoice(boolean isSelected, int exitCode) {
@@ -214,27 +209,14 @@ public class GradleBuildInvoker {
               }
             }
           })
-        .show();
+          .show();
+        yesNoCancelRef.set(answer);
+      }, ModalityState.NON_MODAL);
+      @YesNoCancelResult int answer = yesNoCancelRef.get();
+      return answer;
     }
-    else {
-      getLogger().info(propKey + ": " + value);
-      if (value.equals("true")) {
-        res = YES;
-      }
-      else {
-        res = NO;
-      }
-    }
-    switch (res) {
-      case YES:
-        session.stop();
-        break;
-      case NO:
-        break;
-      case CANCEL:
-        return true;
-    }
-    return false;
+    getLogger().debug(propKey + ": " + value);
+    return value.equals("true") ? YES : NO;
   }
 
   @NotNull
@@ -271,6 +253,19 @@ public class GradleBuildInvoker {
     setProjectBuildMode(buildMode);
     File projectPath = getBaseDirPath(myProject);
     ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, testCompileType);
+    for (Path rootPath : tasks.keySet()) {
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
+    }
+  }
+
+  public void bundle(@NotNull Module[] modules,
+                     @NotNull List<String> arguments,
+                     @Nullable BuildAction<?> buildAction) {
+    BuildMode buildMode = BUNDLE;
+    setProjectBuildMode(buildMode);
+    File projectPath = getBaseDirPath(myProject);
+    ListMultimap<Path, String> tasks =
+      GradleTaskFinder.getInstance().findTasksToExecute(projectPath, modules, buildMode, TestCompileType.NONE);
     for (Path rootPath : tasks.keySet()) {
       executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
     }
@@ -384,7 +379,7 @@ public class GradleBuildInvoker {
   public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, String executionName) {
     BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
     List<BuildOutputParser> buildOutputParsers =
-      Arrays.asList(new JavacOutputParser(), new KotlincOutputParser(), new GradleBuildOutputParser());
+      Arrays.asList(new AndroidGradlePluginWarningParser(), new JavacOutputParser(), new KotlincOutputParser(), new GradleBuildOutputParser());
 
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
@@ -455,7 +450,7 @@ public class GradleBuildInvoker {
         @Override
         public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
           String title = executionName + " failed";
-          FailureResultImpl failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
+          FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject);
           buildViewManager.onEvent(new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "build failed", failureResult));
         }
 
@@ -523,7 +518,7 @@ public class GradleBuildInvoker {
   @VisibleForTesting
   @NotNull
   protected AfterGradleInvocationTask[] getAfterInvocationTasks() {
-    return myAfterTasks.toArray(new AfterGradleInvocationTask[myAfterTasks.size()]);
+    return myAfterTasks.toArray(new AfterGradleInvocationTask[0]);
   }
 
   public void remove(@NotNull AfterGradleInvocationTask task) {

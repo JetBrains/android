@@ -15,55 +15,17 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public interface PackagingOptionsModel {
-  @Nullable
-  List<GradleNotNullValue<String>> excludes();
+public interface PackagingOptionsModel extends GradleDslModel {
+  @NotNull
+  ResolvedPropertyModel excludes();
 
   @NotNull
-  PackagingOptionsModel addExclude(@NotNull String exclude);
+  ResolvedPropertyModel merges();
 
   @NotNull
-  PackagingOptionsModel removeExclude(@NotNull String exclude);
-
-  @NotNull
-  PackagingOptionsModel removeAllExclude();
-
-  @NotNull
-  PackagingOptionsModel replaceExclude(@NotNull String oldExclude, @NotNull String newExclude);
-
-  @Nullable
-  List<GradleNotNullValue<String>> merges();
-
-  @NotNull
-  PackagingOptionsModel addMerge(@NotNull String merge);
-
-  @NotNull
-  PackagingOptionsModel removeMerge(@NotNull String merge);
-
-  @NotNull
-  PackagingOptionsModel removeAllMerges();
-
-  @NotNull
-  PackagingOptionsModel replaceMerge(@NotNull String oldMerge, @NotNull String newMerge);
-
-  @Nullable
-  List<GradleNotNullValue<String>> pickFirsts();
-
-  @NotNull
-  PackagingOptionsModel addPickFirst(@NotNull String pickFirst);
-
-  @NotNull
-  PackagingOptionsModel removePickFirst(@NotNull String pickFirst);
-
-  @NotNull
-  PackagingOptionsModel removeAllPickFirsts();
-
-  @NotNull
-  PackagingOptionsModel replacePickFirst(@NotNull String oldPickFirst, @NotNull String newPickFirst);
+  ResolvedPropertyModel pickFirsts();
 }

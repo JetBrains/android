@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.naveditor.property
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
+import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.ListMultimap
 
 abstract class ListProperty(name: String, components: List<NlComponent>) : SimpleProperty(name, components) {
-  val properties: MutableMap<String, NlProperty> = mutableMapOf()
+  val properties: ListMultimap<String, NlProperty> = ArrayListMultimap.create()
 
   abstract fun refreshList()
 
-  override fun getChildProperty(name: String): NlProperty = properties[name]!!
+  override fun getChildProperty(name: String): NlProperty = throw NotImplementedError()
+
+  @VisibleForTesting
+  fun getChildProperties(name: String): List<NlProperty> = properties[name]
 }

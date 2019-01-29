@@ -62,10 +62,10 @@ public final class WizardUtils {
 
   @Nullable
   public static String validatePackageName(@Nullable String packageName) {
+    packageName = (packageName == null) ? "" : packageName;
     if (packageName.length() >= PACKAGE_LENGTH_LIMIT) {
       return AndroidBundle.message("android.wizard.module.package.too.long");
     }
-    packageName = (packageName == null) ? "" : packageName;
     return AndroidUtils.validateAndroidPackageName(packageName);
   }
 
@@ -107,7 +107,7 @@ public final class WizardUtils {
   public static String getUniqueName(String initialValue, Validator<String> validator) {
     int i = 2;
     String uniqueName = initialValue;
-    while (i <= 100 && validator.validate(uniqueName) != Validator.Result.OK) {
+    while (i <= 100 && validator.validate(uniqueName).getSeverity() == Validator.Severity.ERROR) {
       uniqueName = initialValue + Integer.toString(i);
       i++;
     }

@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -25,15 +26,15 @@ public class DexOptionsDslElement extends GradlePropertiesDslElement {
   @NonNls public static final String DEX_OPTIONS_BLOCK_NAME = "dexOptions";
 
   public DexOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, null, DEX_OPTIONS_BLOCK_NAME);
+    super(parent, null, GradleNameElement.create(DEX_OPTIONS_BLOCK_NAME));
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (element instanceof GradleDslExpression && (property.equals("additionalParameters"))) {
-      addAsParsedDslExpressionList(property, (GradleDslExpression)element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element instanceof GradleDslSimpleExpression && (element.getName().equals("additionalParameters"))) {
+      addAsParsedDslExpressionList((GradleDslSimpleExpression)element);
       return;
     }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

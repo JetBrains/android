@@ -47,6 +47,12 @@ public class LineChart extends AnimatedComponent {
     Path2D myPreviousDashPath;
   }
 
+  /**
+   * If data series are shown as bucket bar and given LineConfig#myDataBucketInterval,
+   * how much percent the bar width and how much percent the gap, i.e. (bar + gap) = interval.
+   */
+  private static final double BUCKET_BAR_PERCENTAGE = 0.7;
+
   @NotNull final LineChartModel myModel;
 
   /**
@@ -208,18 +214,76 @@ public class LineChart extends AnimatedComponent {
       // Actual value of first point
       double firstX = 0;
       seriesList = myReducer.reduceData(seriesList, config);
-      for (SeriesData<Long> data : seriesList) {
+      double xBucketInterval = config.getDataBucketInterval() / xLength;
+      double xBucketBarWidth = xBucketInterval * BUCKET_BAR_PERCENTAGE;
+      // If we are a stepped chart or bar chart, we don't need to worry about start and end points' Y value.
+      boolean optimizeYZooming = !config.isStepped() && xBucketInterval == 0;
+      for (int i = 0; i < seriesList.size(); i++) {
+        SeriesData<Long> data = seriesList.get(i);
+        SeriesData<Long> dataNext = seriesList.get(i + 1 == seriesList.size() ? i : i + 1);
+        SeriesData<Long> dataPrev = seriesList.get(i - 1 < 0 ? i : i - 1);
         // TODO: refactor to allow different types (e.g. double)
         double xd = (data.x - xMin) / xLength;
         // Swing's (0, 0) coordinate is in top-left. As we use bottom-left (0, 0), we need to adjust the y coordinate.
         double yd = 1 - (data.value - yMin) / yLength;
 
+        // This change significantly speeds up drawing when zoomed into the chart. Without this change a line could extend
+        // a few thousand pixels off the screen in both directions. The fill/draw function would then spend a lot of time
+        // computing a line fill for pixels never to be rendered.
+        // Truncate points that are off screen. Ones that cross the border get pushed to the border, and the
+        // height gets scaled accordingly.
+        // For example, two out of bounds points would get snapped into place.
+        //                |                    |
+        //                |                    * <-- *
+        //          * --> *                    |
+        //                |                    |
+        // X Axis: -------|--------------------|------
+        //                0                    1
+
+        double originalXd = xd;
+        if (xd < 0) {
+          double xdNext = (dataNext.x - xMin) / xLength;
+          // If our next point is also offscreen then ignore this point and continue.
+          if (xdNext < 0) {
+            continue;
+          }
+
+          //Get the Y offset of our next point.
+          double ydNext = 1 - (dataNext.value - yMin) / yLength;
+
+          // If we are a dash line we get the closest normalized point to are graph otherwise we just set our point to 0.
+          double newPosition = 0;
+          if (config.isDash()) {
+            newPosition = xd % 1.0f;
+          }
+          if (optimizeYZooming) {
+            // If we are not stepped we need to adjust the starting Y position to be a linear interpolation of our new X point.
+            double ratio = (newPosition - xd) / (xdNext - xd);
+            yd = (1 - ratio) * yd + (ratio * ydNext);
+          }
+          // Set our new X position and carry on.
+          xd = newPosition;
+        } else if (xd > 1) {
+          double xdPrev = (dataPrev.x - xMin) / xLength;
+          if (xdPrev > 1) {
+            break;
+          }
+          if (optimizeYZooming) {
+            double ratio = (1 - xdPrev) / (xd - xdPrev);
+            double ydPrev = 1 - (dataPrev.value - yMin) / yLength;
+            yd = (1 - ratio) * ydPrev + (ratio * yd);
+          }
+          xd = 1;
+        }
+
         if (path.getCurrentPoint() == null) {
-          path.moveTo(xd, yd);
           firstXd = xd;
           firstX = data.x;
-        }
-        else {
+          // If for bucket data, because the previous ending x value is next data point's starting
+          // x value, i.e. (xd + interval, 1), move the path start point to (xd, 1).
+          // Otherwise, move the path start point to (xd, yd).
+          path.moveTo(xd, xBucketInterval != 0 ? 1 : yd);
+        } else if (xBucketInterval == 0) {
           // If the chart is stepped, a horizontal line should be drawn from the current
           // point (e.g. (x0, y0)) to the destination's X value (e.g. (x1, y0)) before
           // drawing a line to the destination point itself (e.g. (x1, y1)).
@@ -228,6 +292,18 @@ public class LineChart extends AnimatedComponent {
             path.lineTo(xd, y);
           }
           path.lineTo(xd, yd);
+        }
+
+        if (xBucketInterval != 0) {
+          // Move line to (xd, 1) first because data points may not be equal time buckets, for example, data points are (1000, 1),
+          // (1200, 2), (2000, 3).
+          double barX = Math.min(1, originalXd + xBucketBarWidth);
+          if (barX - xd > EPSILON) {
+            path.lineTo(xd, 1);
+            path.lineTo(xd, yd);
+            path.lineTo(barX, yd);
+            path.lineTo(barX, 1);
+          }
         }
       }
 
@@ -341,7 +417,9 @@ public class LineChart extends AnimatedComponent {
     }
 
     // 1st pass - draw all the lines in the background.
-    drawLines(g2d, transformedPaths, configs);
+    for (int i = 0; i < transformedPaths.size(); ++i) {
+      drawLine(g2d, transformedPaths.get(i), configs.get(i));
+    }
 
     // 2nd pass - call each custom renderer instances to redraw any regions/lines as needed.
     myCustomRenderers.forEach(renderer -> renderer.renderLines(this, g2d, transformedPaths, myLinePathSeries));
@@ -349,31 +427,25 @@ public class LineChart extends AnimatedComponent {
     addDebugInfo("Draw time: %.2fms", (System.nanoTime() - drawStartTime) / 1e6);
   }
 
-  public static void drawLines(Graphics2D g2d, List<Path2D> transformedPaths, List<LineConfig> configs) {
-    assert transformedPaths.size() == configs.size();
+  public static void drawLine(@NotNull Graphics2D g2d,
+                              @NotNull Path2D path,
+                              @NotNull LineConfig config) {
+    g2d.setColor(config.getColor());
+    g2d.setStroke(config.isDash() && config.isAdjustDash() ? config.getAdjustedStroke() : config.getStroke());
+    if (config.isStepped()) {
+      // In stepped mode, everything is at right angles, and turning off anti-aliasing
+      // in this case makes everything look sharper in a good way.
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+    }
+    else {
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    }
 
-    for (int i = 0; i < transformedPaths.size(); ++i) {
-      Path2D path = transformedPaths.get(i);
-      LineConfig config = configs.get(i);
-      Color lineColor = config.getColor();
-
-      g2d.setColor(lineColor);
-      g2d.setStroke(config.isDash() && config.isAdjustDash() ? config.getAdjustedStroke() : config.getStroke());
-      if (config.isStepped()) {
-        // In stepped mode, everything is at right angles, and turning off anti-aliasing
-        // in this case makes everything look sharper in a good way.
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-      }
-      else {
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      }
-
-      if (config.isFilled()) {
-        g2d.fill(path);
-      }
-      else {
-        g2d.draw(path);
-      }
+    if (config.isFilled()) {
+      g2d.fill(path);
+    }
+    else {
+      g2d.draw(path);
     }
   }
 

@@ -22,7 +22,9 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
-import com.intellij.ide.impl.ProjectPaneSelectInTarget;
+import com.intellij.ide.impl.ProjectViewSelectInPaneTarget;
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
@@ -408,8 +410,10 @@ public class TemplateUtils {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
     if (psiFile != null) {
-      ProjectPaneSelectInTarget selectAction = new ProjectPaneSelectInTarget(project);
-      selectAction.select(psiFile, false);
+      AbstractProjectViewPane currentPane = ProjectView.getInstance(project).getCurrentProjectViewPane();
+      if (currentPane != null) {
+        new ProjectViewSelectInPaneTarget(project, currentPane, true).select(psiFile, false);
+      }
     }
   }
 

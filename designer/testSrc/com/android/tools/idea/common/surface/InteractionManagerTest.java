@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.common.surface;
 
+import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -32,9 +33,14 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseListener;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import java.awt.*;
@@ -75,8 +81,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     dragDrop(manager, 0, 0, 100, 100, transferable);
     Disposer.dispose(model);
 
-    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,100:2x2, instance=0}\n" +
-                      "    NlComponent{tag=<TextView>, bounds=[0,100:2x2, instance=1}";
+    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,0:2x2, instance=0}\n" +
+                      "    NlComponent{tag=<TextView>, bounds=[0,0:2x2, instance=1}";
     assertEquals(expected, new NlTreeDumper().toTree(model.getComponents()));
     assertEquals("Hello World", model.find("textView").getAttribute(ANDROID_URI, ATTR_TEXT));
   }
@@ -105,8 +111,8 @@ public class InteractionManagerTest extends LayoutTestCase {
     dragDrop(manager, 0, 0, 100, 100, transferable);
     Disposer.dispose(model);
 
-    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,100:2x2, instance=0}\n" +
-                      "    NlComponent{tag=<ImageView>, bounds=[0,100:2x2, instance=1}";
+    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,0:2x2, instance=0}\n" +
+                      "    NlComponent{tag=<ImageView>, bounds=[0,0:2x2, instance=1}";
     assertEquals(expected, new NlTreeDumper().toTree(model.getComponents()));
     assertEquals("@android:drawable/selected_image", model.find("imageView").getAttribute(ANDROID_URI, ATTR_SRC));
   }
@@ -116,12 +122,39 @@ public class InteractionManagerTest extends LayoutTestCase {
     DesignSurface surface = manager.getSurface();
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
-    LayoutTestUtilities.clickMouse(manager, MouseEvent.BUTTON1, 1,
+    clickMouse(manager, MouseEvent.BUTTON1, 1,
                                    Coordinates.getSwingXDip(screenView, textView.getCenterX()),
                                    Coordinates.getSwingYDip(screenView, textView.getCenterY()), 0);
     ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
     assertEquals(1, selections.size());
     assertEquals(textView.getNlComponent(), selections.get(0));
+  }
+
+  public void testSelectDraggedComponent() {
+    InteractionManager manager = setupConstraintLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
+    SceneComponent textView = screenView.getScene().getSceneComponent("textView");
+    SelectionModel selectionModel = surface.getSelectionModel();
+    ImmutableList<NlComponent> selections = selectionModel.getSelection();
+    assertEquals(0, selections.size());
+    int startX = Coordinates.getSwingXDip(screenView, textView.getCenterX());
+    int startY = Coordinates.getSwingYDip(screenView, textView.getCenterY());
+
+    pressMouse(manager, MouseEvent.BUTTON1, startX, startY, 0);
+    selections = selectionModel.getSelection();
+    assertEquals(0, selections.size());
+
+    dragMouse(manager, startX, startY, startX + 50, startY + 20, 0);
+    selections = selectionModel.getSelection();
+    assertEquals(1, selections.size());
+    assertEquals(textView.getNlComponent(), selections.get(0));
+
+    releaseMouse(manager, MouseEvent.BUTTON1, startX + 50, startY + 20, 0);
+    selections = selectionModel.getSelection();
+    assertEquals(1, selections.size());
+    assertEquals(textView.getNlComponent(), selections.get(0));
+    manager.stopListening();
   }
 
   public void testMultiSelectComponent() {
@@ -131,16 +164,35 @@ public class InteractionManagerTest extends LayoutTestCase {
 
     surface.getSelectionModel().clear();
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
-    LayoutTestUtilities.clickMouse(manager, MouseEvent.BUTTON1, 1,
+    clickMouse(manager, MouseEvent.BUTTON1, 1,
                                    Coordinates.getSwingXDip(screenView, textView.getCenterX()),
                                    Coordinates.getSwingYDip(screenView, textView.getCenterY()), 0);
 
     SceneComponent button = screenView.getScene().getSceneComponent("button");
-    LayoutTestUtilities.clickMouse(manager, MouseEvent.BUTTON1, 1,
+    clickMouse(manager, MouseEvent.BUTTON1, 1,
                                    Coordinates.getSwingXDip(screenView, button.getCenterX()),
                                    Coordinates.getSwingYDip(screenView, button.getCenterY()), InputEvent.SHIFT_DOWN_MASK);
 
     ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
+    assertEquals(2, selections.size());
+    assertEquals(textView.getNlComponent(), selections.get(0));
+    assertEquals(button.getNlComponent(), selections.get(1));
+
+    // Now deselect one
+    clickMouse(manager, MouseEvent.BUTTON1, 1,
+               Coordinates.getSwingXDip(screenView, button.getCenterX()),
+               Coordinates.getSwingYDip(screenView, button.getCenterY()), InputEvent.SHIFT_DOWN_MASK);
+
+    selections = surface.getSelectionModel().getSelection();
+    assertEquals(1, selections.size());
+    assertEquals(textView.getNlComponent(), selections.get(0));
+
+    // Now select with ctrl
+    clickMouse(manager, MouseEvent.BUTTON1, 1,
+               Coordinates.getSwingXDip(screenView, button.getCenterX()),
+               Coordinates.getSwingYDip(screenView, button.getCenterY()), InputEvent.CTRL_MASK);
+
+    selections = surface.getSelectionModel().getSelection();
     assertEquals(2, selections.size());
     assertEquals(textView.getNlComponent(), selections.get(0));
     assertEquals(button.getNlComponent(), selections.get(1));
@@ -158,9 +210,9 @@ public class InteractionManagerTest extends LayoutTestCase {
 
     int endX = Coordinates.getSwingXDip(screenView, button.getDrawX()) + 3;
     int endY = Coordinates.getSwingXDip(screenView, button.getDrawY()) + 3;
-    LayoutTestUtilities.pressMouse(manager, MouseEvent.BUTTON1, startX, startY, 0);
-    LayoutTestUtilities.dragMouse(manager, startX, startY, endX, endY, 0);
-    LayoutTestUtilities.releaseMouse(manager, MouseEvent.BUTTON1, endX, endY, 0);
+    pressMouse(manager, MouseEvent.BUTTON1, startX, startY, 0);
+    dragMouse(manager, startX, startY, endX, endY, 0);
+    releaseMouse(manager, MouseEvent.BUTTON1, endX, endY, 0);
 
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     ImmutableList<NlComponent> selections = surface.getSelectionModel().getSelection();
@@ -172,9 +224,9 @@ public class InteractionManagerTest extends LayoutTestCase {
     startY = Coordinates.getSwingYDip(screenView, button.getDrawY() + button.getDrawHeight() + 20);
     endX = Coordinates.getSwingXDip(screenView, button.getDrawX() + button.getDrawWidth()) - 3;
     endY = Coordinates.getSwingXDip(screenView, button.getDrawY() + button.getDrawHeight()) - 3;
-    LayoutTestUtilities.pressMouse(manager, MouseEvent.BUTTON1, startX, startY, 0);
-    LayoutTestUtilities.dragMouse(manager, startX, startY, endX, endY, 0);
-    LayoutTestUtilities.releaseMouse(manager, MouseEvent.BUTTON1, endX, endY, 0);
+    pressMouse(manager, MouseEvent.BUTTON1, startX, startY, 0);
+    dragMouse(manager, startX, startY, endX, endY, 0);
+    releaseMouse(manager, MouseEvent.BUTTON1, endX, endY, 0);
 
     selections = surface.getSelectionModel().getSelection();
     assertEquals(ImmutableList.of(button.getNlComponent()), selections);
@@ -200,7 +252,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
-    selectionModel.getHandles(textView.getNlComponent());
+    textView.layout(SceneContext.get(screenView), 0);
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),
                          Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight()));
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
@@ -267,7 +319,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
-    selectionModel.getHandles(textView.getNlComponent());
+    textView.layout(SceneContext.get(screenView), 0);
     manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),
                          Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight()));
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
@@ -293,8 +345,46 @@ public class InteractionManagerTest extends LayoutTestCase {
     Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
   }
 
+  public void testCursorChangeWhenSetPanningTrue() {
+    InteractionManager manager = setupConstraintLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+
+    manager.setPanning(true);
+
+    Mockito.verify(surface).setCursor(AdtUiCursors.GRAB);
+  }
+
+  public void testCursorChangeOnModifiedKeyPressed() {
+    InteractionManager manager = setupConstraintLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    Point moved = new Point(0, 0);
+    Mockito.when(surface.getScrollPosition()).thenReturn(moved);
+    int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
+                          (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
+                                            : InputEvent.CTRL_DOWN_MASK);
+
+    assertTrue(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_PRESSED, modifierKeyMask), 0, 0));
+    Mockito.verify(surface).setCursor(AdtUiCursors.GRABBING);
+  }
+
+  public void testInterceptPanModifiedKeyReleased() {
+    InteractionManager manager = setupConstraintLayoutCursorTest();
+    DesignSurface surface = manager.getSurface();
+    Mockito.when(surface.getScrollPosition()).thenReturn(new Point(0, 0));
+
+    assertFalse(manager.interceptPanInteraction(setupPanningMouseEvent(MouseEvent.MOUSE_RELEASED, 0), 0, 0));
+    Mockito.verify(surface, Mockito.never()).setCursor(AdtUiCursors.GRABBING);
+  }
+
+  private MouseEvent setupPanningMouseEvent(int id, int modifierKeyMask) {
+    Component sourceMock = Mockito.mock(Component.class);
+    Mockito.when(sourceMock.getLocationOnScreen()).thenReturn(new Point(0, 0));
+    return new MouseEvent(
+      sourceMock, id, 0, modifierKeyMask, 0, 0, 0, false);
+  }
+
   private InteractionManager setupConstraintLayoutCursorTest() {
-    SyncNlModel model = model("constraint.xml", component(CONSTRAINT_LAYOUT)
+    SyncNlModel model = model("constraint.xml", component(CONSTRAINT_LAYOUT.defaultName())
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
       .matchParentHeight()

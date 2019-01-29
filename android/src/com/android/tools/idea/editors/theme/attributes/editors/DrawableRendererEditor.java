@@ -60,9 +60,11 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
   public static RenderTask configureRenderTask(@NotNull final Module module, @NotNull final Configuration configuration) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    final RenderService service = RenderService.getInstance(facet);
+    final RenderService service = RenderService.getInstance(module.getProject());
     RenderLogger logger = new RenderLogger("ThemeEditorLogger", null);
-    RenderTask task = service.createTask(null, configuration, logger, null);
+    RenderTask task = service.taskBuilder(facet, configuration)
+      .withLogger(logger)
+      .build();
     assert task != null;
     task.getLayoutlibCallback().setLogger(logger);
     return task;
@@ -78,7 +80,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     int iconWidth = Math.max(iconSize.width, MIN_DRAWABLE_PREVIEW_SIZE);
     int iconHeight = Math.max(iconSize.height, MIN_DRAWABLE_PREVIEW_SIZE);
 
-    if (myRenderTask == null || myRenderTask.getModule() != context.getCurrentContextModule()) {
+    if (myRenderTask == null || myRenderTask.getContext().getModule() != context.getCurrentContextModule()) {
       myRenderTask = configureRenderTask(context.getCurrentContextModule(), context.getConfiguration());
     }
 

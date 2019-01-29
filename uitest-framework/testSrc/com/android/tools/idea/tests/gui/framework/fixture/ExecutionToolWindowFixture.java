@@ -45,13 +45,12 @@ import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.TextMatcher;
-import org.fest.util.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
@@ -60,8 +59,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 import static org.fest.reflect.core.Reflection.method;
-import static org.fest.util.Preconditions.checkNotNull;
-import static org.junit.Assert.fail;
 
 public class ExecutionToolWindowFixture extends ToolWindowFixture {
   public static class ContentFixture {
@@ -76,33 +73,55 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     /**
-     * Waits until it grabs the console window and then returns true if its text matches that of {@code matcher}.
+     * Waits until it grabs the console window and then true if its text matches that of {@code matcher}.
      * Note: This method may not terminate if the console view cannot be found.
      */
     public void waitForOutput(@NotNull final TextMatcher matcher, long secondsToWait) {
-      Wait.seconds(secondsToWait).expecting("LogCat tool window output check for package name").until(() -> outputMatches(matcher));
+      Wait.seconds(secondsToWait).
+        expecting("LogCat tool window output check for package name")
+        .until(() -> outputMatches(matcher));
     }
 
     public boolean outputMatches(@NotNull TextMatcher matcher) {
-      return matcher.isMatching(getOutput());
+      String output = pollOutput();
+      if (output == null) {
+        return false;
+      }
+      return matcher.isMatching(output);
     }
 
     @NotNull
-    public String getOutput() {
-      ConsoleViewImpl consoleView;
-      while ((consoleView = findConsoleView()) == null || consoleView.getEditor() == null) {
-        // If our handle has been replaced, find it again.
+    public String getOutput(long secondsToWait) {
+      Ref<String> outputText = new Ref<>();
+      Wait.seconds(secondsToWait)
+        .expecting("output text to not be null")
+        .until(() -> {
+          String output = pollOutput();
+          if (output != null) {
+            outputText.set(output);
+          }
+          return output != null;
+        });
+      return outputText.get();
+    }
+
+    @Nullable
+    private String pollOutput() {
+      ConsoleViewImpl consoleView = findVisibleConsoleView();
+      if (consoleView == null || consoleView.getEditor() == null) {
         JComponent consoleComponent = getTabComponent("Console");
         myRobot.click(consoleComponent);
+        return null;
       }
+
       return consoleView.getEditor().getDocument().getText();
     }
 
-    // Returns the console or null if it is not found.
+    // Returns the currently visible console or null if it is not found.
     @Nullable
-    private ConsoleViewImpl findConsoleView() {
+    private ConsoleViewImpl findVisibleConsoleView() {
       try {
-        return myRobot.finder().findByType(myParentToolWindow.myToolWindow.getComponent(), ConsoleViewImpl.class, false);
+        return myRobot.finder().findByType(myParentToolWindow.myToolWindow.getComponent(), ConsoleViewImpl.class, true);
       } catch (ComponentLookupException e) {
         return null;
       }
@@ -117,10 +136,8 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     @Nullable
     public XDebuggerTree getDebuggerTree() {
       try {
+        // There is a click on tab inside of getTabComponent() method.
         JComponent debuggerComponent = getTabComponent("Debugger");
-        if (debuggerComponent != null) {
-          myRobot.click(debuggerComponent);
-        }
         ThreeComponentsSplitter threeComponentsSplitter =
             myRobot.finder().findByType(debuggerComponent, ThreeComponentsSplitter.class, false);
         JComponent innerComponent = threeComponentsSplitter.getInnerComponent();
@@ -195,43 +212,28 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           Matchers.byText(ActionMenuItem.class, "Add Watchpoint"));
       myRobot.click(addWatchpoint);
 
-      Ref<JPanel> out = new Ref<>();
-      Wait.seconds(5).expecting("").until(() -> {
-        // Check the dialog is showing and enabled by checking key components within it are showing and enabled.
-        Collection<JPanel> allFound = myRobot.finder().findAll(ideFrame.target(), Matchers.byType(JPanel.class));
-        JPanel watchpointJpanel = null;
-        int componentWithMnemonicsCount = 0;
-        for (JPanel jPanel : allFound) {
+      JPanel watchpointConfig = myRobot.finder().find(ideFrame.target(), new GenericTypeMatcher<JPanel>(JPanel.class) {
+        @Override
+        protected boolean isMatching(@NotNull JPanel jPanel) {
           try {
             if (jPanel instanceof ComponentWithMnemonics) {
-              componentWithMnemonicsCount++;
               myRobot.finder().find(jPanel, Matchers.byText(JCheckBox.class, "Enabled"));
               myRobot.finder().find(jPanel, Matchers.byText(JCheckBox.class, "Suspend"));
               myRobot.finder().find(jPanel, Matchers.byText(JLabel.class, "Access Type:"));
               myRobot.finder().find(jPanel, Matchers.byText(LinkLabel.class, "More (Ctrl+Shift+F8)"));
               myRobot.finder().find(jPanel, Matchers.byText(JButton.class, "Done"));
-              watchpointJpanel = jPanel;
+              return true;
             }
           }
           catch (ComponentLookupException e) {
             return false;
           }
-        }
 
-        if (watchpointJpanel == null) {
           return false;
         }
-
-        if (componentWithMnemonicsCount > 1) {
-          fail("Found more than one ComponentWithMnemonics type which matches the criteria.");
-        }
-
-        out.set(watchpointJpanel);
-        return true;
       });
-      assertThat(out.get()).isNotNull();
 
-      return new WatchpointConfigFixture(myRobot, out.get());
+      return new WatchpointConfigFixture(myRobot, watchpointConfig);
     }
 
     public void clickResumeButton() {
@@ -285,7 +287,6 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           }
         });
       }
-      assertThat(tabLabel.isShowing()).isTrue();
       myRobot.click(tabLabel);
       return waitUntilShowing(myRobot, Matchers.byType(tabContentType));
     }
@@ -306,7 +307,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
     }
 
     @TestOnly
-    public boolean stop() {
+    public ContentFixture stop() {
       for (final ActionButton button : getToolbarButtons()) {
         final AnAction action = button.getAction();
         if (action != null && action.getClass().getName().equals("com.intellij.execution.actions.StopAction")) {
@@ -314,12 +315,12 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           boolean enabled = method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
           if (enabled) {
             GuiTask.execute(() -> button.click());
-            return true;
+            return this;
           }
-          return false;
+          throw new IllegalStateException(button.getName() + " button is disabled");
         }
       }
-      return false;
+      throw new IllegalStateException("no StopAction button found");
     }
 
     public void waitForStopClick() {
@@ -345,10 +346,10 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     private List<ActionButton> getConsoleToolbarButtons() {
-      ConsoleViewImpl consoleView = checkNotNull(findConsoleView());
+      ConsoleViewImpl consoleView = verifyNotNull(findVisibleConsoleView());
       Container commonAncestor = SwingUtilities.getAncestorOfClass(JBTabs.class, consoleView);
       Container actionToolbar = myRobot.finder().find(commonAncestor, Matchers.byType(ActionToolbarImpl.class));
-      return Lists.newArrayList(myRobot.finder().findAll(actionToolbar, Matchers.byType(ActionButton.class)));
+      return new ArrayList<>(myRobot.finder().findAll(actionToolbar, Matchers.byType(ActionButton.class)));
     }
   }  // End class ContentFixture
 

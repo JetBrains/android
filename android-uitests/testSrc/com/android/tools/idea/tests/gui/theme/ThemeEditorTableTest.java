@@ -16,16 +16,20 @@
 package com.android.tools.idea.tests.gui.theme;
 
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.*;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,11 +48,21 @@ import static org.junit.Assert.*;
  * UI tests regarding the attributes table of the theme editor
  */
 @RunIn(TestGroup.THEME)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ThemeEditorTableTest {
 
   @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+
+  @Before
+  public void setup() {
+    StudioFlags.THEME_EDITOR_ENABLED.override(true);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.THEME_EDITOR_ENABLED.clearOverride();
+  }
 
   @Test
   public void testParentValueCell() throws IOException {
@@ -64,18 +78,21 @@ public class ThemeEditorTableTest {
     // The expected elements are:
     // 0. Holo Light
     // 1. -- Separator
-    // 2. AppCompat Light
-    // 3. AppCompat
-    // 4. -- Separator
-    // 5. Show all themes
-    assertThat(parentsList).hasSize(6);
+    // 2. Material Light
+    // 3. Material
+    // 4. AppCompat Light
+    // 5. AppCompat
+    // 6. -- Separator
+    // 7. Show all themes
+    assertThat(parentsList).hasSize(8);
     assertThat(parentsList.get(0)).isEqualTo("android:Theme.Holo.Light.DarkActionBar");
-    assertThat(parentsList.get(2)).isEqualTo("Theme.AppCompat.Light.NoActionBar");
-    assertThat(parentsList.get(3)).isEqualTo("Theme.AppCompat.NoActionBar");
-    assertThat(parentsList.get(5)).isEqualTo("Show all themes");
-
     assertThat(parentsList.get(1)).startsWith("javax.swing.JSeparator");
-    assertThat(parentsList.get(4)).startsWith("javax.swing.JSeparator");
+    assertThat(parentsList.get(2)).isEqualTo("android:Theme.Material.Light.NoActionBar");
+    assertThat(parentsList.get(3)).isEqualTo("android:Theme.Material.NoActionBar");
+    assertThat(parentsList.get(4)).isEqualTo("Theme.AppCompat.Light.NoActionBar");
+    assertThat(parentsList.get(5)).isEqualTo("Theme.AppCompat.NoActionBar");
+    assertThat(parentsList.get(6)).startsWith("javax.swing.JSeparator");
+    assertThat(parentsList.get(7)).isEqualTo("Show all themes");
 
     JTableCellFixture parentCellFixture = themeEditorTable.cell(parentCell);
     parentCellFixture.requireEditable();
@@ -85,7 +102,7 @@ public class ThemeEditorTableTest {
     parentCellFixture.startEditing();
     JComboBoxFixture parentComboBox = new JComboBoxFixture(guiTest.robot(), guiTest
       .robot().finder().findByType((JComponent)parentEditor, JComboBox.class));
-    parentComboBox.selectItem(4);
+    parentComboBox.selectItem(6);
     parentCellFixture.stopEditing();
     assertEquals("android:Theme.Holo.Light.DarkActionBar", themeEditorTable.getComboBoxSelectionAt(parentCell));
 
@@ -106,10 +123,12 @@ public class ThemeEditorTableTest {
     Wait.seconds(1).expecting("potential tooltips to disappear").until(() -> guiTest.robot().findActivePopupMenu() == null);
     testParentPopup(themeEditorTable.cell(parentCell), newParent, themeEditor);
 
-    guiTest.ideFrame().invokeMenuPath("Window", "Editor Tabs", "Select Previous Tab");
-    EditorFixture editor = guiTest.ideFrame().getEditor();
-    editor.moveBetween("", "AppTheme");
-    assertThat(editor.getCurrentLine().trim()).isEqualTo("<style name=\"AppTheme\" parent=\"Theme.AppCompat.NoActionBar\">");
+    String appThemeLine = guiTest.ideFrame()
+      .getEditor()
+      .switchToTab("styles.xml")
+      .moveBetween("", "AppTheme")
+      .getCurrentLine();
+    assertThat(appThemeLine.trim()).isEqualTo("<style name=\"AppTheme\" parent=\"Theme.AppCompat.NoActionBar\">");
   }
 
   private static void testParentPopup(@NotNull JTableCellFixture cell, @NotNull final String parentName,
@@ -233,9 +252,11 @@ public class ThemeEditorTableTest {
         return !component.equals(dialog.target());
       }
     });
-    secondDialog.getResourceNameTable().cell("android:disabledAlpha").click();
+    secondDialog.getResourceNameTable().cell("disabledAlpha").click();
     secondDialog.clickOK();
-    Wait.seconds(1).expecting("component update").until(() -> "?android:attr/disabledAlpha".equals(state1.getAlphaValue()));
+    Wait.seconds(1)
+        .expecting("component value to be \"@dimen/disabledAlpha\" but was " + state1.getAlphaValue())
+        .until(() -> "@dimen/disabledAlpha".equals(state1.getAlphaValue()));
 
     dialog.requireNoError();
 
@@ -306,29 +327,7 @@ public class ThemeEditorTableTest {
     JEditorPane docComp = guiTest.robot().finder().findByType(docWindow, JEditorPane.class);
     JTextComponentFixture quickDoc = new JTextComponentFixture(guiTest.robot(), docComp);
 
-    String expected = "<html>\n" +
-                      "  <head>\n" +
-                      "    \n" +
-                      "  </head>\n" +
-                      "  <body>\n" +
-                      "    <b>android:colorPrimary</b> (Added in API level 21)<br>The primary \n" +
-                      "    branding color for the app. By default, this is the color applied to the \n" +
-                      "    action bar background.<br><hr>\n" +
-                      "\n" +
-                      "    <table border=\"0\" align=\"center\" style=\"background-color: rgb(230,230,230); width: 200px\">\n" +
-                      "      <tr height=\"100\">\n" +
-                      "        <td align=\"center\" valign=\"middle\" height=\"100\">\n" +
-                      "          #e6e6e6\n" +
-                      "        </td>\n" +
-                      "      </tr>\n" +
-                      "    </table>\n" +
-                      "    <br>\n" +
-                      "    <br>\n" +
-                      "    ?android:attr/colorPrimary =&gt; @color/holo_light_primary =&gt; #ffe6e6e6<br><br>\n" +
-                      "  </body>\n" +
-                      "</html>\n";
-
-    quickDoc.requireText(expected);
+    assertThat(quickDoc.text()).contains("color for the app");
   }
 
   @Test

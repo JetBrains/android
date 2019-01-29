@@ -154,7 +154,7 @@ public final class AndroidVersionsInfoTest {
     when(androidTarget.getDescription()).thenReturn("Addon Title");
 
     AndroidVersionsInfo.VersionItem versionItem = myMockAndroidVersionsInfo.new VersionItem(androidTarget);
-    assertEquals("API 27: Addon Title", versionItem.getLabel());
+    assertEquals("API " + HIGHEST_KNOWN_API + ": Addon Title", versionItem.getLabel());
   }
 
   /**

@@ -16,7 +16,7 @@
 package com.android.tools.idea.testing;
 
 import com.android.tools.idea.gradle.project.sync.SdkSync;
-import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import static org.mockito.Mockito.mock;
@@ -24,24 +24,28 @@ import static org.mockito.Mockito.mock;
 /**
  * Tests for {@link IdeComponents}.
  */
-public class IdeComponentsTest extends LightPlatformTestCase {
+public class IdeComponentsTest extends IdeaTestCase {
+
   public void testReplaceApplicationService() {
     SdkSync originalSdkSync = SdkSync.getInstance();
-    IdeComponents ideComponents = new IdeComponents(getProject());
-    try {
+    try (TempDisposable scope = new TempDisposable()){
       SdkSync mockSdkSync = mock(SdkSync.class);
-      ideComponents.replaceService(SdkSync.class, mockSdkSync);
+      new IdeComponents(myProject, scope).replaceApplicationService(SdkSync.class, mockSdkSync);
       assertSame(mockSdkSync, SdkSync.getInstance());
     }
     finally {
-      ideComponents.restore();
       assertSame(originalSdkSync, SdkSync.getInstance());
     }
   }
 
   public void testReplaceProjectService() {
-    GradleSettings mockSettings = mock(GradleSettings.class);
-    IdeComponents.replaceService(getProject(), GradleSettings.class, mockSettings);
-    assertSame(mockSettings, GradleSettings.getInstance(getProject()));
+    GradleSettings originalSettings = GradleSettings.getInstance(getProject());
+    try (TempDisposable scope = new TempDisposable()){
+      GradleSettings mockSettings = mock(GradleSettings.class);
+      new IdeComponents(getProject(), scope).replaceProjectService(GradleSettings.class, mockSettings);
+      assertSame(mockSettings, GradleSettings.getInstance(getProject()));
+    } finally {
+      assertSame(originalSettings, GradleSettings.getInstance(getProject()));
+    }
   }
 }

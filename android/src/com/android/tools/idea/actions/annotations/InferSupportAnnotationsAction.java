@@ -70,6 +70,7 @@ import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.SequentialTask;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -220,7 +221,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
 
     List<UsageInfo> usages = new ArrayList<>();
     inferrer.collect(usages, scope);
-    return usages.toArray(new UsageInfo[usages.size()]);
+    return usages.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
   // For Android we need to check SDK version and possibly update the gradle project file
@@ -246,9 +247,12 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
         String configurationName =
           GradleUtil.mapConfigurationName(COMPILE, GradleUtil.getAndroidGradleModelVersionInUse(module), false);
         for (ArtifactDependencyModel dependency : dependenciesModel.artifacts(configurationName)) {
-          String notation = dependency.compactNotation().value();
+          String notation = dependency.compactNotation();
           if (notation.startsWith(SdkConstants.APPCOMPAT_LIB_ARTIFACT) ||
+              notation.startsWith(SdkConstants.ANDROIDX_APPCOMPAT_LIB_ARTIFACT) ||
               notation.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT) ||
+              notation.startsWith(SdkConstants.ANDROIDX_SUPPORT_LIB_ARTIFACT) ||
+              notation.startsWith(SdkConstants.ANDROIDX_ANNOTATIONS_ARTIFACT) ||
               notation.startsWith(SdkConstants.ANNOTATIONS_LIB_ARTIFACT)) {
             dependencyFound = true;
             break;
@@ -286,7 +290,10 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
           @Override
           protected void run(@NotNull Result result) throws Throwable {
             RepositoryUrlManager manager = RepositoryUrlManager.get();
-            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(GoogleMavenArtifactId.SUPPORT_ANNOTATIONS, true);
+            GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
+                                               GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
+                                               GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
+            String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
@@ -393,7 +400,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
 
     Runnable refactoringRunnable = applyRunnable(project, () -> {
       Set<UsageInfo> infos = UsageViewUtil.getNotExcludedUsageInfos(usageView);
-      return infos.toArray(new UsageInfo[infos.size()]);
+      return infos.toArray(UsageInfo.EMPTY_ARRAY);
     });
 
     String canNotMakeString =

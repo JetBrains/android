@@ -30,7 +30,9 @@ import static com.intellij.util.ThreeState.NO;
 import static com.intellij.util.ThreeState.YES;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link GradleVersions}.
@@ -46,19 +48,6 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
     mySettingsFinder = mock(GradleProjectSettingsFinder.class);
     myGradleVersions = new GradleVersions(mySettingsFinder);
     myIdeComponents = new IdeComponents(getProject());
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    catch (Throwable e) {
-      addSuppressedException(e);
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testReadGradleVersionFromGradleSyncState() throws Exception {
@@ -119,7 +108,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
 
     // Check exactly 4
     GradleVersions spyVersions = spy(myGradleVersions);
-    myIdeComponents.replaceService(GradleVersions.class, spyVersions);
+    myIdeComponents.replaceApplicationService(GradleVersions.class, spyVersions);
     when(spyVersions.getGradleVersion(project)).thenReturn(new GradleVersion(4,0,0));
     assertTrue(GradleVersions.getInstance().isGradle4OrNewer(project));
 
@@ -143,7 +132,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
   @NotNull
   private GradleSyncState createMockGradleSyncState() {
     GradleSyncState syncState = mock(GradleSyncState.class);
-    IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
+    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
     return syncState;
   }
 

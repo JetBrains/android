@@ -27,20 +27,28 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.ui.GuiTestingService;
+import com.google.common.collect.Iterables;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -63,13 +71,17 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
 import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision;
-import static com.android.tools.idea.npw.template.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
+import static com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion;
+import static com.android.tools.idea.npw.model.JavaToKotlinHandler.getJavaToKotlinConversionProvider;
+import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.intellij.openapi.util.io.FileUtil.join;
+import static org.jetbrains.android.refactoring.MigrateToAndroidxUtil.isAndroidx;
 
 /**
  * Utility class that sets common Template values used by a project Module.
@@ -96,12 +108,13 @@ public final class TemplateValueInjector {
     addDebugKeyStore(myTemplateValues, facet);
 
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, false); // Android Modules are called Gradle Projects
-    myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
+    myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, facet.getConfiguration().isLibraryProject());
 
     String appTheme = MergedManifest.get(facet).getManifestTheme();
     myTemplateValues.put(ATTR_HAS_APPLICATION_THEME, appTheme != null);
 
-    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
+    Module module = facet.getModule();
+    AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform != null) {
       IAndroidTarget target = platform.getTarget();
       myTemplateValues.put(ATTR_BUILD_API, target.getVersion().getFeatureLevel());
@@ -119,13 +132,19 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
     myTemplateValues.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
 
-    Project project = facet.getModule().getProject();
+    Project project = module.getProject();
     addGradleVersions(project);
     addKotlinVersion();
 
-    if (facet.getProjectType() == PROJECT_TYPE_FEATURE) {
-      setInstantAppSupport(true, project, facet.getModule().getName());
+    int projectType = facet.getConfiguration().getProjectType();
+    if (projectType == PROJECT_TYPE_FEATURE) {
+      setInstantAppSupport(true, project, module.getName());
     }
+    else if (projectType == PROJECT_TYPE_DYNAMIC_FEATURE) {
+      setDynamicFeatureSupport(module);
+    }
+
+    myTemplateValues.put(ATTR_ANDROIDX_SUPPORT, isAndroidx(project));
 
     return this;
   }
@@ -156,7 +175,7 @@ public final class TemplateValueInjector {
     if (target != null) { // this is a preview release
       BuildToolInfo info = target.getBuildToolInfo();
       if (info != null) {
-        myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, info.getRevision().toString());
+        addBuildToolVersion(project, info.getRevision());
       }
     }
     addGradleVersions(project);
@@ -218,7 +237,7 @@ public final class TemplateValueInjector {
       myTemplateValues.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
     }
 
-    File resDir = paths.getResDirectory();
+    File resDir = Iterables.getFirst(paths.getResDirectories(), null);
     if (resDir != null) {
       myTemplateValues.put(ATTR_RES_DIR, getRelativePath(moduleRoot, resDir));
       myTemplateValues.put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resDir.getPath()));
@@ -252,7 +271,7 @@ public final class TemplateValueInjector {
    * {@link com.android.tools.idea.templates.TemplateMetadata#ATTR_GRADLE_PLUGIN_VERSION},
    * {@link com.android.tools.idea.templates.TemplateMetadata#ATTR_GRADLE_VERSION}, etc.
    */
-  public TemplateValueInjector setProjectDefaults(@Nullable Project project, @NotNull String moduleTitle, boolean isInstantApp) {
+  public TemplateValueInjector setProjectDefaults(@Nullable Project project, @NotNull String moduleTitle) {
     myTemplateValues.put(ATTR_APP_TITLE, moduleTitle);
 
     // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
@@ -278,8 +297,8 @@ public final class TemplateValueInjector {
 
     final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     ProgressIndicator progress = new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class);
-    Revision buildToolRevision = getRecommendedBuildToolsRevision(sdkHandler, progress, isInstantApp);
-    myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, buildToolRevision.toString());
+
+    addBuildToolVersion(project, getRecommendedBuildToolsRevision(sdkHandler, progress));
 
     File sdkLocation = sdkHandler.getLocation();
     if (sdkLocation != null) {
@@ -288,6 +307,13 @@ public final class TemplateValueInjector {
       String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(GoogleMavenArtifactId.ESPRESSO_CORE.getMavenGroupId(),
                                                                              GoogleMavenArtifactId.ESPRESSO_CORE.getMavenArtifactId(),
                                                                              null, false, sdkLocation, FileOpUtils.create());
+
+      if (espressoVersion == null) {
+        espressoVersion = RepositoryUrlManager.get().getLibraryRevision(GoogleMavenArtifactId.ANDROIDX_ESPRESSO_CORE.getMavenGroupId(),
+                                                                        GoogleMavenArtifactId.ANDROIDX_ESPRESSO_CORE.getMavenArtifactId(),
+                                                                        null, false, sdkLocation, FileOpUtils.create());
+      }
+
       if (espressoVersion != null) {
         myTemplateValues.put(ATTR_ESPRESSO_VERSION, espressoVersion);
       }
@@ -308,8 +334,9 @@ public final class TemplateValueInjector {
     File projectRoot = new File(projectPath);
     File baseModuleRoot = new File(projectRoot, "base");
     File baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
+    Module baseFeature = null;
     if (isExistingProject) {
-      Module baseFeature = InstantApps.findBaseFeature(project);
+      baseFeature = InstantApps.findBaseFeature(project);
       if (baseFeature == null) {
         baseModuleRoot = new File(projectRoot, moduleName);
         baseModuleResourceRoot = new File(baseModuleRoot, defaultResourceSuffix);
@@ -319,15 +346,38 @@ public final class TemplateValueInjector {
           myTemplateValues.put(ATTR_MONOLITHIC_MODULE_NAME, monolithicModuleName);
         }
       }
-      else {
-        AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
-        assert moduleModel != null;
-        baseModuleRoot = moduleModel.getRootDirPath();
-        Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
-        assert !resDirectories.isEmpty();
-        baseModuleResourceRoot = resDirectories.iterator().next();
-      }
     }
+
+    if (baseFeature == null) {
+      myTemplateValues.put(ATTR_BASE_FEATURE_NAME, baseModuleRoot.getName());
+      myTemplateValues.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
+      myTemplateValues.put(ATTR_BASE_FEATURE_RES_DIR, baseModuleResourceRoot.getPath());
+    }
+    else {
+      setBaseFeature(baseFeature);
+    }
+
+    return this;
+  }
+
+  public TemplateValueInjector setDynamicFeatureSupport(@NotNull Module module) {
+    myTemplateValues.put(ATTR_IS_DYNAMIC_FEATURE, true);
+
+    Module baseFeature = DynamicAppUtils.getBaseFeature(module);
+    if (baseFeature == null) {
+      throw new RuntimeException("Dynamic Feature Module '" + module.getName() + "' has no Base Module");
+    }
+
+    return setBaseFeature(baseFeature);
+  }
+
+  public TemplateValueInjector setBaseFeature(@NotNull Module baseFeature) {
+    AndroidModuleModel moduleModel = AndroidModuleModel.get(baseFeature);
+    assert moduleModel != null;
+    File baseModuleRoot = moduleModel.getRootDirPath();
+    Collection<File> resDirectories = moduleModel.getDefaultSourceProvider().getResDirectories();
+    assert !resDirectories.isEmpty();
+    File baseModuleResourceRoot = resDirectories.iterator().next(); // Put the new resources in any of the available res directories
 
     myTemplateValues.put(ATTR_BASE_FEATURE_NAME, baseModuleRoot.getName());
     myTemplateValues.put(ATTR_BASE_FEATURE_DIR, baseModuleRoot.getPath());
@@ -337,14 +387,43 @@ public final class TemplateValueInjector {
   }
 
   public void addGradleVersions(@Nullable Project project) {
-    myTemplateValues.put(ATTR_GRADLE_PLUGIN_VERSION, determineGradlePluginVersion(project));
+    myTemplateValues.put(ATTR_GRADLE_PLUGIN_VERSION, determineGradlePluginVersion(project).toString());
     myTemplateValues.put(ATTR_GRADLE_VERSION, SdkConstants.GRADLE_LATEST_VERSION);
   }
 
+  public TemplateValueInjector addTemplateAdditionalValues(@NotNull String packageName, boolean isInstantApp,
+                                                           @NotNull ObjectProperty<NamedModuleTemplate> template) {
+    myTemplateValues.put(ATTR_PACKAGE_NAME, packageName);
+    myTemplateValues.put(ATTR_SOURCE_PROVIDER_NAME, template.get().getName());
+    myTemplateValues.put(ATTR_IS_INSTANT_APP, isInstantApp);
+    myTemplateValues.put(ATTR_COMPANY_DOMAIN, getInitialDomain(false));
+
+    return this;
+  }
+
   private void addKotlinVersion() {
+    assert PluginManager.getPlugin(PluginId.findId(("org.jetbrains.kotlin"))) != null ||
+           !GuiTestingService.getInstance().isGuiTestingMode()
+      : "Run Test Configuration missing. You should set -Dplugin.path=../../../../prebuilts/tools/common/kotlin-plugin/Kotlin";
+
     // Always add the kotlin version attribute. If we are adding a new kotlin activity, we may need to add dependencies
     final ConvertJavaToKotlinProvider provider = getJavaToKotlinConversionProvider();
-    myTemplateValues.put(ATTR_KOTLIN_VERSION, provider.getKotlinVersion());
+    String kotlinVersion = provider.getKotlinVersion();
+    myTemplateValues.put(ATTR_KOTLIN_VERSION, kotlinVersion);
+    if (isEAP(kotlinVersion)) {
+      myTemplateValues.put(ATTR_KOTLIN_EAP_REPO, true);
+      myTemplateValues.put(ATTR_KOTLIN_EAP_REPO_URL, KOTLIN_EAP_REPO_URL);
+    }
+  }
+
+  private boolean isEAP(String version) {
+    return version.contains("rc") || version.contains("eap") || version.contains("-M");
+  }
+
+  private void addBuildToolVersion(@Nullable Project project, @NotNull Revision buildToolRevision) {
+    GradleVersion gradlePluginVersion = determineGradlePluginVersion(project);
+    myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, buildToolRevision.toString());
+    myTemplateValues.put(ATTR_EXPLICIT_BUILD_TOOLS_VERSION, needsExplicitBuildToolsVersion(gradlePluginVersion, buildToolRevision));
   }
 
   private static void addDebugKeyStore(@NotNull Map<String, Object> templateValues, @Nullable AndroidFacet facet) {
@@ -376,20 +455,20 @@ public final class TemplateValueInjector {
    * @param project If {@code null} (ie we are creating a new project) returns the recommended gradle version.
    */
   @NotNull
-  private static String determineGradlePluginVersion(@Nullable Project project) {
-    String defaultGradleVersion = AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion();
+  private static GradleVersion determineGradlePluginVersion(@Nullable Project project) {
+    GradleVersion defaultGradleVersion = GradleVersion.parse(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
     if (project == null) {
       return defaultGradleVersion;
     }
 
     GradleVersion versionInUse = GradleUtil.getAndroidGradleModelVersionInUse(project);
     if (versionInUse != null) {
-      return versionInUse.toString();
+      return versionInUse;
     }
 
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.searchInBuildFilesOnly(project);
     GradleVersion pluginVersion = (androidPluginInfo == null) ? null : androidPluginInfo.getPluginVersion();
-    return (pluginVersion == null) ? defaultGradleVersion : pluginVersion.toString();
+    return (pluginVersion == null) ? defaultGradleVersion : pluginVersion;
   }
 
   private static Logger getLog() {

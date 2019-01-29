@@ -16,14 +16,17 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
+import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,14 +49,13 @@ import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.List;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class ModuleClassLoaderTest extends AndroidTestCase {
-
   /**
    * Generates an empty R class file with one static field ID = "FileID"
    */
@@ -98,14 +100,22 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     });
   }
 
-
   /**
    * Verifies that the AAR generated R classes are given priority vs the build generated files. This is important in cases like support
    * library upgrades/downgrades. In those cases, the build generated file, will be outdated so it shouldn't be used by the ModuleClassLoader.
    * By preferring the AAR geneated versions, we make sure we are always up-to-date.
    * See <a href="http://b.android.com/229382">229382</a>
    */
-  public void testAARPriority() throws ClassNotFoundException, IOException {
+  public void testAARPriority() throws Exception {
+    doTestAARPriority();
+  }
+
+  public void testAARPriorityNamespaced() throws Exception {
+    enableNamespacing("test");
+    doTestAARPriority();
+  }
+
+  private void doTestAARPriority() throws IOException {
     LayoutLibrary layoutLibrary = mock(LayoutLibrary.class);
 
     Module module = myFixture.getModule();
@@ -116,32 +126,33 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
 
     generateRClass("test", new File(outputDir, "R.class"));
 
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
+    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getOrCreateInstance(module);
+    ResourceNamespace namespace = repositoryManager.getNamespace();
+    List<LocalResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
+    assertEquals(1, repositories.size());
     ResourceClassRegistry rClassRegistry = ResourceClassRegistry.get(module.getProject());
-    rClassRegistry.addLibrary(appResources, "test");
+    rClassRegistry.addLibrary(repositories.get(0), ResourceIdManager.get(module), "test", namespace);
 
-    AtomicBoolean noSuchField = new AtomicBoolean(false);
     ApplicationManager.getApplication().runReadAction(() -> {
       ModuleClassLoader loader = ModuleClassLoader.get(layoutLibrary, module);
       try {
         Class<?> rClass = loader.loadClass("test.R");
         rClass.getDeclaredField("ID");
+        fail("Field \"ID\" is not expected");
       }
-      catch (NoSuchFieldException e) {
-        noSuchField.set(true);
+      catch (NoSuchFieldException expected) {
       }
       catch (ClassNotFoundException e) {
         fail("Unexpected exception " + e.getLocalizedMessage());
       }
     });
 
-    assertTrue(noSuchField.get());
   }
 
   public void testIsSourceModified() throws IOException {
     File rootDirPath = Projects.getBaseDirPath(getProject());
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
-    myFacet.setAndroidModel(
+    myFacet.getConfiguration().setModel(
       new AndroidModuleModel(androidProject.getName(), rootDirPath, androidProject, "debug", new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
     assertThat(myFacet.requiresAndroidModel()).isTrue();

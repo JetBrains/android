@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.JAVA_LANG;
+
 import com.android.SdkConstants;
-import com.android.ide.common.res2.DataBindingResourceType;
+import com.android.ide.common.resources.DataBindingResourceType;
 import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.lang.databinding.DataBindingXmlReferenceContributor;
 import com.android.tools.idea.res.DataBindingInfo;
@@ -25,10 +27,23 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.ElementManipulator;
+import com.intellij.psi.ElementManipulators;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.PsiPrimitiveType;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceBase;
+import com.intellij.psi.PsiTypeElement;
 import com.intellij.psi.impl.PsiJavaParserFacadeImpl;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -36,80 +51,39 @@ import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.CustomReferenceConverter;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.ResolvingConverter;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.lang.databinding.DataBindingCompletionUtil.JAVA_LANG;
+import org.jetbrains.android.AndroidResolveScopeEnlarger;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The converter for "type" attribute of "import" element in databinding layouts.
  */
 public class DataBindingConverter extends ResolvingConverter<PsiElement> implements CustomReferenceConverter<PsiElement> {
-  /**
-   * Resolves a class name using import statements in the data binding information.
-   *
-   * @param className the class name, possibly not qualified. The class name may contain dots if it corresponds to a nested class.
-   * @param dataBindingInfo the data binding information containing the import statements to use for class resolution.
-   * @return the fully qualified class name, or the original name if the first segment of {@code className} doesn't match
-   *     any import statement.
-   */
-  @NotNull
-  protected static String resolveImport(@NotNull String className, @Nullable DataBindingInfo dataBindingInfo) {
-    if (dataBindingInfo != null) {
-      int dotOffset = className.indexOf('.');
-      if (dotOffset != 0) {
-        String firstSegment = dotOffset >= 0 ? className.substring(0, dotOffset) : className;
-        String importedType = getImport(firstSegment, dataBindingInfo);
-        if (importedType != null) {
-          return dotOffset >= 0 ? importedType + className.substring(dotOffset) : importedType;
-        }
-      }
-    }
-    return className;
-  }
-
+  @Nullable
   private static String getImport(@NotNull String alias, @NotNull ConvertContext context) {
     DataBindingInfo bindingInfo = getDataBindingInfo(context);
     if (bindingInfo == null) {
       return null;
     }
-    return getImport(alias, bindingInfo);
-  }
-
-  private static String getImport(String name, DataBindingInfo dataBindingInfo) {
-    for (PsiDataBindingResourceItem importItem : dataBindingInfo.getItems(DataBindingResourceType.IMPORT)) {
-      String alias = DataBindingUtil.getAlias(importItem);
-      if (alias == null) {
-        String importedType = importItem.getTypeDeclaration();
-        if (importedType != null && importedType.endsWith(name)
-            && importedType.length() > name.length() + 1
-            && importedType.charAt(importedType.length() - name.length()) == '.') {
-          return importedType;
-        }
-      } else if (name.equals(alias)) {
-        return importItem.getTypeDeclaration();
-      }
-    }
-    return null;
+    return bindingInfo.resolveImport(alias);
   }
 
   /**
    * Completion is handled by {@link com.android.tools.idea.lang.databinding.DataBindingCompletionContributor}. So, nothing to do here.
    */
-  @NotNull
   @Override
+  @NotNull
   public Collection<? extends PsiClass> getVariants(ConvertContext context) {
     return Collections.emptyList();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public PsiElement fromString(@Nullable @NonNls String type, ConvertContext context) {
     if (type == null) {
       return null;
@@ -119,10 +93,13 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
       return null;
     }
     DataBindingInfo dataBindingInfo = getDataBindingInfo(context);
-    String qualifiedName = resolveImport(type, dataBindingInfo);
+    String qualifiedName = DataBindingUtil.resolveImport(type, dataBindingInfo);
     Project project = context.getProject();
     JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(project);
-    GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
+    GlobalSearchScope scope = enlargeScope(module.getModuleWithDependenciesAndLibrariesScope(false),
+                                           project,
+                                           context.getFile());
+
     if (!qualifiedName.isEmpty() && qualifiedName.indexOf('.') < 0) {
       if (Character.isLowerCase(qualifiedName.charAt(0))) {
         PsiPrimitiveType primitiveType = PsiJavaParserFacadeImpl.getPrimitiveType(qualifiedName);
@@ -144,8 +121,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     return psiFacade.findClass(qualifiedName, scope);
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toString(@Nullable PsiElement element, ConvertContext context) {
     if (element instanceof PsiClass) {
       String type = ((PsiClass)element).getQualifiedName();
@@ -179,7 +156,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     if (!segments.isEmpty()) {
       String alias = null;
       int maxMatchedSegments = 0;
-      for (PsiDataBindingResourceItem psiImport : dataBindingInfo.getItems(DataBindingResourceType.IMPORT)) {
+      for (PsiDataBindingResourceItem psiImport : dataBindingInfo.getItems(DataBindingResourceType.IMPORT).values()) {
         String importedType = psiImport.getTypeDeclaration();
         int matchedSegments = getNumberOfMatchedSegments(importedType, segments);
         if (matchedSegments > maxMatchedSegments) {
@@ -201,8 +178,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     for (int i = 0; i < qName.size(); i++) {
       String segment = qName.get(i);
       int endOffset = offset + segment.length();
-      if (!str.regionMatches(offset, segment, 0, segment.length())
-          || (endOffset != str.length() && str.charAt(endOffset) != '.')) {
+      if (!str.startsWith(segment, offset) || (endOffset != str.length() && str.charAt(endOffset) != '.')) {
         return i;
       }
       offset = endOffset + 1;
@@ -210,8 +186,8 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     return qName.size();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public PsiReference[] createReferences(GenericDomValue<PsiElement> value, PsiElement element, ConvertContext context) {
     assert element instanceof XmlAttributeValue;
     XmlAttributeValue attrValue = (XmlAttributeValue)element;
@@ -220,7 +196,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     List<PsiReference> result = new ArrayList<>();
     int startOffset = attrValue.getValueTextRange().getStartOffset() - attrValue.getTextRange().getStartOffset();
     createReferences(element, strValue, false, startOffset, context, result);
-    return result.toArray(new PsiReference[result.size()]);
+    return result.toArray(PsiReference.EMPTY_ARRAY);
   }
 
   /**
@@ -292,7 +268,7 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     private final String myReferenceTo;
     private final Module myModule;
 
-    AliasedReference(PsiElement referenceFrom, TextRange range, String referenceTo, Module module) {
+    public AliasedReference(PsiElement referenceFrom, TextRange range, String referenceTo, Module module) {
       super(referenceFrom, range, true);
       myReferenceTo = referenceTo;
       myModule = module;
@@ -312,9 +288,14 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
         return aPackage;
       }
 
-      PsiClass aClass = facade.findClass(myReferenceTo, myModule != null
-                                                        ? myModule.getModuleWithDependenciesAndLibrariesScope(false)
-                                                        : myElement.getResolveScope());
+      Module module = myModule;
+      GlobalSearchScope scope = module != null
+                                ? module.getModuleWithDependenciesAndLibrariesScope(false)
+                                : myElement.getResolveScope();
+
+      scope = enlargeScope(scope, myElement.getProject(), myElement.getContainingFile());
+
+      PsiClass aClass = facade.findClass(myReferenceTo, scope);
       if (aClass != null) {
         return aClass;
       }
@@ -325,14 +306,14 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
      * Don't care about variants here since completion by
      * {@link org.jetbrains.android.AndroidCompletionContributor#completeDataBindingTypeAttr}.
      */
-    @NotNull
     @Override
+    @NotNull
     public Object[] getVariants() {
       return ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
 
-    @NotNull
     @Override
+    @NotNull
     public String getCanonicalText() {
       return myReferenceTo;
     }
@@ -351,16 +332,36 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
     }
   }
 
+  /**
+   * Returns a new {@link GlobalSearchScope} enlarged with the right light classes (see {@link AndroidResolveScopeEnlarger}).
+   *
+   * <p>Usually this happens automatically, as the resolution process calls {@link PsiElement#getResolveScope()} of the {@link PsiReference}
+   * element which in turn calls into {@link com.intellij.psi.impl.ResolveScopeManager} which uses the
+   * {@link com.intellij.psi.ResolveScopeEnlarger} extension. Unfortunately this doesn't work in XML, because
+   * {@link com.intellij.psi.xml.XmlFile} implements {@link com.intellij.psi.FileResolveScopeProvider} by returning the "all scope" and that
+   * doesn't work with light R classes (because their virtual files are made up and don't belong to the project).
+   *
+   * @see AndroidResolveScopeEnlarger
+   * @see com.intellij.psi.impl.ResolveScopeManager
+   */
+  private static GlobalSearchScope enlargeScope(GlobalSearchScope scope, Project project, PsiFile psiFile) {
+    SearchScope lightClassesScope = new AndroidResolveScopeEnlarger().getAdditionalResolveScope(psiFile.getVirtualFile(), project);
+    if (lightClassesScope != null) {
+      scope = scope.union(lightClassesScope);
+    }
+    return scope;
+  }
+
   private static class ClassReference extends PsiReferenceBase<PsiElement> {
     @NotNull private final PsiElement myResolveTo;
 
-    ClassReference(@NotNull PsiElement element, @NotNull TextRange range, @NotNull PsiElement resolveTo) {
+    public ClassReference(@NotNull PsiElement element, @NotNull TextRange range, @NotNull PsiElement resolveTo) {
       super(element, range, true);
       myResolveTo = resolveTo;
     }
 
-    @Nullable
     @Override
+    @Nullable
     public PsiElement resolve() {
       ResolveCache cache = ResolveCache.getInstance(myElement.getProject());
       return cache.resolveWithCaching(this, (psiReference, incompleteCode) -> resolveInner(), false, false);
@@ -368,6 +369,12 @@ public class DataBindingConverter extends ResolvingConverter<PsiElement> impleme
 
     private PsiElement resolveInner() {
       return myResolveTo;
+    }
+
+    @Override
+    @NotNull
+    public Object[] getVariants() {
+      return ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
   }
 }

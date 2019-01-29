@@ -25,6 +25,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.util.concurrent.FutureCallback;
@@ -190,6 +191,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private final ViewEditor myEditor;
   private final Disposable myDisposable;
   private final JBLoadingPanel myLoadingPanel;
+  private final boolean myUserAndroidxDependency;
   private JPanel myContentPane;
   private JButton myButtonOK;
   private JButton myButtonCancel;
@@ -218,8 +220,9 @@ public class AppBarConfigurationDialog extends JDialog {
   private String myBackgroundImage;
   private String myFloatingActionButtonImage;
 
-  public AppBarConfigurationDialog(@NotNull ViewEditor editor) {
+  public AppBarConfigurationDialog(@NotNull ViewEditor editor, boolean useAndroidxDependency) {
     myEditor = editor;
+    myUserAndroidxDependency = useAndroidxDependency;
     myDisposable = Disposer.newDisposable();
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myDisposable, 20);
     myLoadingPanel.add(myContentPane);
@@ -299,7 +302,8 @@ public class AppBarConfigurationDialog extends JDialog {
   public boolean open() {
     NlModel model = myEditor.getModel();
     Project project = model.getProject();
-    boolean hasDesignLib = DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.DESIGN);
+    boolean hasDesignLib = DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.DESIGN) ||
+                           DependencyManagementUtil.dependsOn(model.getModule(), GoogleMavenArtifactId.ANDROIDX_DESIGN);
     if (!hasDesignLib && !addDesignLibrary()) {
       return false;
     }
@@ -337,8 +341,11 @@ public class AppBarConfigurationDialog extends JDialog {
 
     Module module = myEditor.getModel().getModule();
 
+    GoogleMavenArtifactId artifact = myUserAndroidxDependency ?
+                                     GoogleMavenArtifactId.ANDROIDX_DESIGN :
+                                     GoogleMavenArtifactId.DESIGN;
     boolean designAdded = DependencyManagementUtil
-      .addDependencies(module, Collections.singletonList(GoogleMavenArtifactId.DESIGN), true, false)
+      .addDependencies(module, Collections.singletonList(artifact.getCoordinate("+")), true, false)
       .isEmpty();
 
     if (!designAdded) {
@@ -375,7 +382,7 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   private void onBuildError() {
-    myPreview.setText("Preview is unavailable until after a successful build");
+    myPreview.setText("Preview is unavailable until after a successful project sync");
     myPreview.setIcon(AllIcons.General.Warning);
     myCollapsedLabel.setVisible(false);
     myExpandedLabel.setVisible(false);
@@ -634,13 +641,13 @@ public class AppBarConfigurationDialog extends JDialog {
   @NotNull
   private static String getDesignContent(@NotNull XmlFile file) {
     XmlTag content = file.getRootTag();
-    if (content != null && content.getName().equals(COORDINATOR_LAYOUT)) {
+    if (content != null && COORDINATOR_LAYOUT.isEquals(content.getName())) {
       XmlTag root = content;
       content = null;
       for (XmlTag tag : root.getSubTags()) {
-        if (!tag.getName().equals(APP_BAR_LAYOUT) &&
-            !tag.getName().equals(FLOATING_ACTION_BUTTON)) {
-          if (tag.getName().equals(CLASS_NESTED_SCROLL_VIEW)) {
+        if (!APP_BAR_LAYOUT.isEquals(tag.getName()) &&
+            !FLOATING_ACTION_BUTTON.isEquals(tag.getName())) {
+          if (CLASS_NESTED_SCROLL_VIEW.isEquals(tag.getName())) {
             content = tag.getSubTags().length > 0 ? tag.getSubTags()[0] : null;
           }
           else {
@@ -700,13 +707,16 @@ public class AppBarConfigurationDialog extends JDialog {
 
   private BufferedImage renderImage(@NotNull PsiFile xmlFile) {
     AndroidFacet facet = myEditor.getModel().getFacet();
-    RenderService renderService = RenderService.getInstance(facet);
-    RenderLogger logger = renderService.createLogger();
-    final RenderTask task = renderService.createTask(xmlFile, myEditor.getConfiguration(), logger, null);
+    RenderService renderService = RenderService.getInstance(myEditor.getModel().getProject());
+    RenderLogger logger = renderService.createLogger(facet);
+    final RenderTask task = renderService.taskBuilder(facet, myEditor.getConfiguration())
+                                         .withLogger(logger)
+                                         .withPsiFile(xmlFile)
+                                         .build();
     RenderResult result = null;
     if (task != null) {
       task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
-      task.setFolderType(ResourceFolderType.LAYOUT);
+      task.getContext().setFolderType(ResourceFolderType.LAYOUT);
       result = Futures.getUnchecked(task.render());
       task.dispose();
     }

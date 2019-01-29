@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profiler.proto.Common;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBPanel;
@@ -29,8 +30,9 @@ import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+
+import static com.android.tools.profilers.ProfilerFonts.H2_FONT;
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends AspectObserver {
 
@@ -107,14 +109,27 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     }
     else {
       myContainer.setBackground(ProfilerColors.MONITOR_DISABLED);
-      myContainer.setLayout(new TabularLayout("*,Fit,*", "6*,4*"));
+      populateDisabledView(myContainer);
+    }
+  }
 
-      JLabel disabledMessage = new JLabel(getDisabledMessage());
-      disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
-      disabledMessage.setVerticalAlignment(SwingConstants.CENTER);
-      disabledMessage.setFont(disabledMessage.getFont().deriveFont(15.5f));
-      myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
+  protected void populateDisabledView(JPanel container) {
+    TabularLayout layout = new TabularLayout("*,Fit-,*", "*");
+    myContainer.setLayout(layout);
+    boolean canConfigureAdvancedProfiling = myMonitor.getProfilers().getDevice() != null &&
+                                            myMonitor.getProfilers().getDevice().getFeatureLevel() < Common.Device.AndroidVersion.O_VALUE;
+    if (canConfigureAdvancedProfiling) {
+      layout.setRowSizing(0, "6*");
+      layout.setRowSizing(1, "4*");
+    }
 
+    JLabel disabledMessage = new JLabel(getDisabledMessage());
+    disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
+    disabledMessage.setVerticalAlignment(SwingConstants.CENTER);
+    disabledMessage.setFont(H2_FONT);
+    myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
+
+    if (canConfigureAdvancedProfiling) {
       HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
       linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration", "");
       linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
@@ -124,7 +139,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
         }
       });
       myContainer.add(linkToConfigMessage, new TabularLayout.Constraint(1, 1));
-      linkToConfigMessage.setFont(linkToConfigMessage.getFont().deriveFont(12f));
+      linkToConfigMessage.setFont(STANDARD_FONT);
     }
   }
 
@@ -134,23 +149,8 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
    */
   public void registerTooltip(@NotNull RangeTooltipComponent tooltip, Stage stage) {
     JComponent component = getComponent();
+    component.addMouseListener(new ProfilerTooltipMouseAdapter(stage, () -> myMonitor.isEnabled() ? myMonitor.buildTooltip() : null));
     tooltip.registerListenersOn(component);
-    component.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        if (myMonitor.isEnabled()) {
-          stage.setTooltip(myMonitor.buildTooltip());
-        }
-        else {
-          stage.setTooltip(null);
-        }
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        stage.setTooltip(null);
-      }
-    });
   }
 
   abstract protected void populateUi(JPanel container);

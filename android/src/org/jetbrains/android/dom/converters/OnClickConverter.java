@@ -167,8 +167,8 @@ public abstract class OnClickConverter extends Converter<String> implements Cust
         }
       }
       return !result.isEmpty()
-             ? result.toArray(new ResolveResult[result.size()])
-             : resultsWithMistake.toArray(new ResolveResult[resultsWithMistake.size()]);
+             ? result.toArray(ResolveResult.EMPTY_ARRAY)
+             : resultsWithMistake.toArray(ResolveResult.EMPTY_ARRAY);
     }
 
     @NotNull

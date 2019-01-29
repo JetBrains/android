@@ -99,7 +99,7 @@ public class ComponentHelpActionTest extends AndroidTestCase {
   }
 
   public void testSupportLibraryTag() {
-    myTagName = SdkConstants.CONSTRAINT_LAYOUT;
+    myTagName = SdkConstants.CONSTRAINT_LAYOUT.defaultName();
     myAction.actionPerformed(myEvent);
     verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/support/constraint/ConstraintLayout.html"), isNull(), isNull());
   }

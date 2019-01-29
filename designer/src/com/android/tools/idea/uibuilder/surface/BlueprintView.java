@@ -23,8 +23,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-
 /**
  * View of a device/screen/layout.
  * This is actually painted by {@link ScreenViewLayer}.
@@ -40,10 +38,10 @@ public class BlueprintView extends ScreenView {
   @Override
   protected ImmutableList<Layer> createLayers() {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
-    builder.add(
-      new MyBottomLayer(this),
-      new SelectionLayer(this),
-      new MockupLayer(this));
+    if (myShowBorder) {
+      builder.add(new BorderLayer(this));
+    }
+    builder.add(new MockupLayer(this));
     if (!myIsSecondary) {
       builder.add(new CanvasResizeLayer(getSurface(), this));
     }
@@ -55,29 +53,5 @@ public class BlueprintView extends ScreenView {
   @Override
   public ColorSet getColorSet() {
     return myColorSet;
-  }
-
-  @Override
-  public void paintBorder(@NotNull Graphics2D g) {
-    ScreenView.BorderPainter.paint(g, this);
-  }
-
-  private static class MyBottomLayer extends Layer {
-
-    private final ScreenViewBase myScreenView;
-
-    MyBottomLayer(@NotNull ScreenViewBase screenView) {
-      myScreenView = screenView;
-    }
-
-    @Override
-    public void paint(@NotNull Graphics2D g2d) {
-      Shape screenShape = myScreenView.getScreenShape();
-      if (screenShape != null) {
-        g2d.draw(screenShape);
-        return;
-      }
-      myScreenView.paintBorder(g2d);
-    }
   }
 }

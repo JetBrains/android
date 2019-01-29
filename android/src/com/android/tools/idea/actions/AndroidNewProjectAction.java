@@ -16,8 +16,10 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.npw.project.ConfigureAndroidProjectStep;
-import com.android.tools.idea.npw.project.NewProjectModel;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.npw.model.NewProjectModel;
+import com.android.tools.idea.npw.project.ChooseAndroidProjectStep;
+import com.android.tools.idea.npw.project.deprecated.ConfigureAndroidProjectStep;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -29,10 +31,14 @@ import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder.UxStyle.DYNAMIC_APP;
+import static com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder.UxStyle.INSTANT_APP;
+import static com.intellij.idea.ActionsBundle.actionText;
+
 
 public class AndroidNewProjectAction extends AnAction implements DumbAware {
   public AndroidNewProjectAction() {
-    this("New Project...");
+    this(actionText("NewDirectoryProject"));
   }
 
   public AndroidNewProjectAction(@NotNull String text) {
@@ -53,10 +59,28 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
       return;
     }
 
-    NewProjectModel model = new NewProjectModel();
-    ModelWizard wizard = new ModelWizard.Builder()
-      .addStep(new ConfigureAndroidProjectStep(model))
-      .build();
-    new StudioWizardDialogBuilder(wizard, "Create New Project").setUseNewUx(true).build().show();
+    NewProjectModel projectModel = new NewProjectModel();
+    ModelWizard wizard = null;
+    StudioWizardDialogBuilder.UxStyle style;
+
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+        wizard = new ModelWizard.Builder()
+          .addStep(new ChooseAndroidProjectStep(projectModel))
+          .build();
+        style = DYNAMIC_APP;
+    }
+    else {
+      wizard = new ModelWizard.Builder()
+        .addStep(new ConfigureAndroidProjectStep(projectModel))
+        .build();
+      style = INSTANT_APP;
+    }
+    wizard.addResultListener(new ModelWizard.WizardListener() {
+      @Override
+      public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
+        projectModel.onWizardFinished(result);
+      }
+    });
+    new StudioWizardDialogBuilder(wizard, actionText("WelcomeScreen.CreateNewProject")).setUxStyle(style).build().show();
   }
 }

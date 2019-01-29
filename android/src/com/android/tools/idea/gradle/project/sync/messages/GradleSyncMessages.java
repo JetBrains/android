@@ -48,6 +48,5 @@ public class GradleSyncMessages extends AbstractSyncMessages {
   public void removeProjectMessages() {
     removeMessages(PROJECT_STRUCTURE_ISSUES, MISSING_DEPENDENCIES, VARIANT_SELECTION_CONFLICTS, GENERATED_SOURCES,
                    VERSION_COMPATIBILITY_ISSUE_GROUP, SyncMessage.DEFAULT_GROUP);
-    clearEvents();
   }
 }

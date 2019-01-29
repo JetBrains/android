@@ -15,33 +15,33 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
-import com.android.tools.idea.gradle.structure.model.PsDependency;
+import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
-import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
+public class PsDependencyComparator implements Comparator<PsBaseDependency> {
+  @NotNull private final PsUISettings myUiSettings;
 
-public class PsDependencyComparator implements Comparator<PsDependency> {
-  @NotNull public static final PsDependencyComparator INSTANCE = new PsDependencyComparator();
-
-  private PsDependencyComparator() {
+  public PsDependencyComparator(@NotNull PsUISettings uiSettings) {
+    myUiSettings = uiSettings;
   }
 
   @Override
-  public int compare(PsDependency d1, PsDependency d2) {
+  public int compare(PsBaseDependency d1, PsBaseDependency d2) {
     if (d1 instanceof PsLibraryDependency) {
       if (d2 instanceof PsLibraryDependency) {
-        String s1 = ((PsLibraryDependency)d1).getResolvedSpec().getDisplayText();
-        String s2 = ((PsLibraryDependency)d2).getResolvedSpec().getDisplayText();
+        String s1 = ((PsLibraryDependency)d1).getSpec().getDisplayText(myUiSettings);
+        String s2 = ((PsLibraryDependency)d2).getSpec().getDisplayText(myUiSettings);
         return s1.compareTo(s2);
       }
     }
     else if (d1 instanceof PsModuleDependency) {
       if (d2 instanceof PsModuleDependency) {
-        return d1.toText(PLAIN_TEXT).compareTo(d2.toText(PLAIN_TEXT));
+        return d1.toText().compareTo(d2.toText());
       }
       else if (d2 instanceof PsLibraryDependency) {
         return 1;

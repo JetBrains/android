@@ -48,15 +48,15 @@ interface SqlColumn : SqlDefinition {
 }
 
 class AliasedTable(
-    val delegate: SqlTable,
-    override val name: String?,
-    override val resolveTo: PsiElement
+  val delegate: SqlTable,
+  override val name: String?,
+  override val resolveTo: PsiElement
 ) : SqlTable by delegate
 
 class AliasedColumn(
-    val delegate: SqlColumn,
-    override val name: String,
-    override val resolveTo: PsiElement
+  val delegate: SqlColumn,
+  override val name: String,
+  override val resolveTo: PsiElement
 ) : SqlColumn by delegate
 
 class ExprColumn(override val definingElement: PsiElement) : SqlColumn {

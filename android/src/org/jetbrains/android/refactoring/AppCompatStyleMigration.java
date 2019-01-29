@@ -16,12 +16,14 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -97,7 +99,7 @@ class AppCompatStyleMigration {
 
     addStyleUsagesFromManifest(facet, frameworkResources, result);
 
-    ProjectResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(facet);
+    LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(facet);
 
     addUsagesFromStyles(project, frameworkResources, result, projectResources);
 
@@ -108,7 +110,7 @@ class AppCompatStyleMigration {
 
   private void addUsagesFromLayout(Project project,
                                    List<ChangeStyleUsageInfo> result,
-                                   ProjectResourceRepository projectResources) {
+                                   LocalResourceRepository projectResources) {
 
     Set<XmlFile> psiLayoutFiles =
       MigrateToAppCompatUtil.getPsiFilesOfType(project, projectResources, ResourceType.LAYOUT);
@@ -133,10 +135,12 @@ class AppCompatStyleMigration {
               if (attributeValue.startsWith(PREFIX_THEME_REF)
                   && attributeValue.contains(PREFIX_ANDROID)) {
                 ResourceUrl url = ResourceUrl.parse(attributeValue);
-                if (url != null && url.framework && isAppCompatAttribute(url.name)) {
-                  ResourceUrl toChange = ResourceUrl.create(null, ResourceType.ATTR, url.name);
-                  if (url.theme) {
-                    toChange = toChange.asThemeUrl();
+                if (url != null && url.isFramework() && isAppCompatAttribute(url.name)) {
+                  ResourceUrl toChange;
+                  if (url.isTheme()) {
+                    toChange = ResourceUrl.createThemeReference(null, ResourceType.ATTR, url.name);
+                  } else {
+                    toChange = ResourceUrl.create(null, ResourceType.ATTR, url.name);
                   }
                   String newResource = toChange.toString();
 
@@ -164,7 +168,7 @@ class AppCompatStyleMigration {
       if (attrRes == null) {
         return;
       }
-      if (attrRes.framework) {
+      if (attrRes.isFramework()) {
         // example:
         // @android:style/TextAppearance.Material.Widget.Button =>
         // @style/TextAppearance.AppCompat.Widget.Button
@@ -183,7 +187,7 @@ class AppCompatStyleMigration {
   private void addUsagesFromStyles(@NotNull Project project,
                                    ResourceRepository frameworkResources,
                                    List<ChangeStyleUsageInfo> result,
-                                   ProjectResourceRepository projectResources) {
+                                   LocalResourceRepository projectResources) {
     Set<XmlFile> xmlFiles = MigrateToAppCompatUtil.getPsiFilesOfType(project, projectResources, ResourceType.STYLE);
 
     for (XmlFile xmlFile : xmlFiles) {
@@ -202,7 +206,7 @@ class AppCompatStyleMigration {
           String parentValue = parent.getValue();
           String parentStyle = StringUtil.trimStart(parentValue, PREFIX_ANDROID);
           if (parentValue.startsWith(PREFIX_ANDROID)
-              && frameworkResources.hasResourceItem(ResourceType.STYLE, parentStyle)) {
+              && frameworkResources.hasResources(ResourceNamespace.ANDROID, ResourceType.STYLE, parentStyle)) {
             String changeToStyle = toAppCompatThemeOrStyleName(parentStyle);
             // Ensure that the final resulting name is present in the AppCompat styles
             if (isAppCompatStyle(changeToStyle)) {
@@ -223,7 +227,7 @@ class AppCompatStyleMigration {
           String itemNameNoAndroidPrefix = itemNameAttr == null ? null : StringUtil.trimStart(itemNameAttr, PREFIX_ANDROID);
           if (itemNameAttr != null
               && itemNameAttr.startsWith(PREFIX_ANDROID)
-              && frameworkResources.hasResourceItem(ResourceType.ATTR, itemNameNoAndroidPrefix)
+              && frameworkResources.hasResources(ResourceNamespace.ANDROID, ResourceType.ATTR, itemNameNoAndroidPrefix)
               && isAppCompatAttribute(itemNameNoAndroidPrefix)) {
 
             //noinspection ConstantConditions
@@ -235,14 +239,16 @@ class AppCompatStyleMigration {
           // Process item body such as ?android:selectableItemBackground
           XmlTagValue tagValue = xmlItemTag.getValue();
           String tagValueText = tagValue.getText();
-          if (frameworkResources.hasResourceItem(tagValueText)) {
+          if (hasResourceItem(frameworkResources, tagValueText)) {
             ResourceUrl attrUrl = ResourceUrl.parse(tagValueText);
 
-            if (attrUrl != null && attrUrl.framework && isAppCompatAttribute(attrUrl.name)
+            if (attrUrl != null && attrUrl.isFramework() && isAppCompatAttribute(attrUrl.name)
                 && xmlItemTag.getValue().getTextElements().length == 1) {
-              ResourceUrl changeToStyleAttr = ResourceUrl.create(null, ResourceType.ATTR, attrUrl.name);
-              if (attrUrl.theme) {
-                changeToStyleAttr = changeToStyleAttr.asThemeUrl();
+              ResourceUrl changeToStyleAttr;
+              if (attrUrl.isTheme()) {
+                changeToStyleAttr = ResourceUrl.createThemeReference(null, ResourceType.ATTR, attrUrl.name);
+              } else {
+                changeToStyleAttr = ResourceUrl.create(null, ResourceType.ATTR, attrUrl.name);
               }
 
               String changedStyle = changeToStyleAttr.toString();
@@ -304,7 +310,7 @@ class AppCompatStyleMigration {
                                           ResourceRepository frameworkResources,
                                           List<ChangeStyleUsageInfo> result) {
     if (theme != null && theme.getValueElement() != null && theme.getValue() != null
-      && frameworkResources.hasResourceItem(theme.getValue())) {
+        && hasResourceItem(frameworkResources, theme.getValue())) {
       String themeValue = theme.getValue();
       ResourceUrl themeUrl = ResourceUrl.parse(themeValue);
       if (themeUrl != null) {
@@ -315,5 +321,75 @@ class AppCompatStyleMigration {
         }
       }
     }
+  }
+
+  /**
+   * Returns true if this resource repository contains a resource of the given URL.
+   *
+   * @param frameworkResources the repository containing framework resources
+   * @param url the resource URL
+   * @return true if the resource is present in the repository
+   */
+  private static boolean hasResourceItem(@NotNull ResourceRepository frameworkResources, @NotNull String url) {
+    // Handle theme references
+    if (url.startsWith(PREFIX_THEME_REF)) {
+      String remainder = url.substring(PREFIX_THEME_REF.length());
+      if (url.startsWith(ATTR_REF_PREFIX)) {
+        url = PREFIX_RESOURCE_REF + url.substring(PREFIX_THEME_REF.length());
+        return hasResourceItem(frameworkResources, url);
+      }
+      int colon = url.indexOf(':');
+      if (colon >= 0) {
+        // Convert from ?android:progressBarStyleBig to ?android:attr/progressBarStyleBig
+        if (remainder.indexOf('/', colon) == -1) {
+          remainder = remainder.substring(0, colon) + RESOURCE_CLZ_ATTR + '/'
+                      + remainder.substring(colon);
+        }
+        url = PREFIX_RESOURCE_REF + remainder;
+        return hasResourceItem(frameworkResources, url);
+      } else {
+        int slash = url.indexOf('/');
+        if (slash < 0) {
+          url = PREFIX_RESOURCE_REF + RESOURCE_CLZ_ATTR + '/' + remainder;
+          return hasResourceItem(frameworkResources, url);
+        }
+      }
+    }
+
+    if (!url.startsWith(PREFIX_RESOURCE_REF)) {
+      return false;
+    }
+
+    assert url.startsWith("@") || url.startsWith("?") : url;
+
+    int typeEnd = url.indexOf('/', 1);
+    if (typeEnd >= 0) {
+      int nameBegin = typeEnd + 1;
+
+      // Skip @ and @+
+      int typeBegin = url.startsWith("@+") ? 2 : 1; //$NON-NLS-1$
+
+      int colon = url.lastIndexOf(':', typeEnd);
+      ResourceNamespace namespace = ResourceNamespace.RES_AUTO;
+      if (colon >= 0) {
+        if (colon - typeBegin == ANDROID_NS_NAME.length()
+            && url.startsWith(ANDROID_NS_NAME, typeBegin)) {
+          namespace = ResourceNamespace.ANDROID;
+        } else {
+          // TODO: namespaces
+          namespace = ResourceNamespace.TODO();
+        }
+        typeBegin = colon + 1;
+      }
+
+      String typeName = url.substring(typeBegin, typeEnd);
+      ResourceType type = ResourceType.fromXmlValue(typeName);
+      if (type != null) {
+        String name = url.substring(nameBegin);
+        return frameworkResources.hasResources(namespace, type, name);
+      }
+    }
+
+    return false;
   }
 }

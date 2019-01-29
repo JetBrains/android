@@ -17,11 +17,15 @@ package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.intellij.openapi.util.ActionCallback
-import com.intellij.ui.TabbedPaneWrapper
+import com.intellij.openapi.util.Disposer
+import com.intellij.ui.components.JBTabbedPane
+import com.intellij.ui.components.panels.Wrapper
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
+import java.awt.Insets
+import javax.swing.SwingConstants
 
 /**
  * A base class for multi-tab configuration panels implementing [Place.Navigator] interface to maintain navigation history.
@@ -31,18 +35,42 @@ import com.intellij.ui.navigation.Place.queryFurther
 abstract class AbstractTabbedMainPanel(
     context: PsContext,
     private val placeName: String
-) : AbstractMainPanel(context) {
+) : AbstractMainPanel(context), CrossModuleUiStateComponent {
 
-  @Suppress("LeakingThis")
-  private val tabbedPane = TabbedPaneWrapper(this).also {
-    add(it.component)
+  private var inQuietSelection = false
+
+  private val tabbedPane = object : JBTabbedPane(SwingConstants.TOP) {
+    override fun getInsetsForTabComponent(): Insets = Insets(0, 0, 0, 0)
+  }.also {
+    add(it)
+    it.addChangeListener {
+      if (topLevelAncestor != null) ensureSelectedTabComponentInstantiated()
+    }
   }
+
+
 
   private val tabPanels: MutableList<ModelPanel<*>> = mutableListOf()
 
   protected fun <T> addTab(panel: ModelPanel<T>) {
-    tabbedPane.addTab(panel.title, panel.createComponent())
+    tabbedPane.addTab(panel.title, Wrapper())
     tabPanels.add(panel)
+    Disposer.register(this, panel)
+  }
+
+  private fun ensureSelectedTabComponentInstantiated() {
+    val selectedIndex = tabbedPane.selectedIndex
+    if (selectedIndex >= 0) {
+      val wrapper = tabbedPane.getComponentAt(selectedIndex) as Wrapper
+      if (wrapper.componentCount == 0) {
+        wrapper.setContent(tabPanels[selectedIndex].getComponent())
+      }
+    }
+  }
+
+  override fun addNotify() {
+    super.addNotify()
+    ensureSelectedTabComponentInstantiated()
   }
 
   override fun dispose() = Unit
@@ -52,7 +80,10 @@ abstract class AbstractTabbedMainPanel(
       super.setHistory(history)
       tabPanels.forEach { it.setHistory(history) }
       tabbedPane.addChangeListener {
-        history.pushQueryPlace()
+        if (!inQuietSelection) {
+          context.uiSettings.setLastSelectedTab(tabbedPane.selectedTitle.orEmpty())
+          history.pushQueryPlace()
+        }
       }
     }
   }
@@ -70,7 +101,7 @@ abstract class AbstractTabbedMainPanel(
     }
 
     val path = place?.getPath(placeName)
-    val tabPanel = tabPanels.find { it.title == path }
+    val tabPanel = findPanel(path as String?)
 
     return if (tabPanel != null) {
       navigateToTab(tabPanel)
@@ -79,4 +110,31 @@ abstract class AbstractTabbedMainPanel(
       ActionCallback.DONE
     }
   }
+
+  private fun findPanel(path: String?): ModelPanel<*>? = tabPanels.find { it.title == path }
+
+  abstract fun PsUISettings.getLastSelectedTab(): String?
+  abstract fun PsUISettings.setLastSelectedTab(value: String)
+
+  override fun restoreUiState() {
+    // First, restore the state of the tabs before they may try to override it on selection change.
+    for (panelWithUiState in tabPanels.mapNotNull { it as? CrossModuleUiStateComponent }) {
+      panelWithUiState.restoreUiState()
+    }
+    // Then restore the tab selection itself.
+    val panel = findPanel(context.uiSettings.getLastSelectedTab())
+    if (panel != null) {
+      inQuietSelection = true
+      try {
+        tabbedPane.selectedTitle = panel.title
+      }
+      finally {
+        inQuietSelection = false
+      }
+    }
+  }
 }
+
+private var JBTabbedPane.selectedTitle: String
+  get() = if (selectedIndex >= 0) getTitleAt(selectedIndex) else ""
+  set(title) = (0 until tabCount).find { getTitleAt(it) == title }?.let { selectedIndex = it } ?: Unit

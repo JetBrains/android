@@ -98,6 +98,9 @@ public class AvdWizardUtils {
   public static final String HOST_GPU_MODE_KEY = AvdManager.AVD_INI_GPU_MODE;
 
   public static final String USE_COLD_BOOT = AvdManager.AVD_INI_FORCE_COLD_BOOT_MODE;
+  public static final String USE_FAST_BOOT = AvdManager.AVD_INI_FORCE_FAST_BOOT_MODE;
+  public static final String USE_CHOSEN_SNAPSHOT_BOOT = AvdManager.AVD_INI_FORCE_CHOSEN_SNAPSHOT_BOOT_MODE;
+  public static final String CHOSEN_SNAPSHOT_FILE = AvdManager.AVD_INI_CHOSEN_SNAPSHOT_FILE;
   public static final String COLD_BOOT_ONCE_VALUE = AvdManager.AVD_INI_COLD_BOOT_ONCE;
 
   public static final String IS_IN_EDIT_MODE_KEY = WIZARD_ONLY + "isInEditMode";
@@ -114,11 +117,6 @@ public class AvdWizardUtils {
   // Device definition keys
 
   public static final String HAS_HARDWARE_KEYBOARD_KEY = HardwareProperties.HW_KEYBOARD;
-
-  // Defaults
-  public static final AvdNetworkSpeed DEFAULT_NETWORK_SPEED = AvdNetworkSpeed.FULL;
-  public static final AvdNetworkLatency DEFAULT_NETWORK_LATENCY = AvdNetworkLatency.NONE;
-  public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(800, Unit.MiB);
 
   // Fonts
   public static final Font STANDARD_FONT = JBFont.create(new Font("Sans", Font.PLAIN, 12));
@@ -142,6 +140,9 @@ public class AvdWizardUtils {
 
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
   private static final int MAX_RAM_MB = 1536;
+
+  private static final Revision MIN_SNAPSHOT_MANAGEMENT_VERSION = new Revision(27, 2, 5);
+  private static final Revision MIN_WEBP_VERSION = new Revision(25, 2, 3);
 
   private static Map<String, HardwareProperties.HardwareProperty> ourHardwareProperties; // Hardware Properties
 
@@ -365,21 +366,22 @@ public class AvdWizardUtils {
 
   @VisibleForTesting
   static boolean emulatorSupportsWebp(@NotNull AndroidSdkHandler sdkHandler) {
+    return emulatorVersionIsAtLeast(sdkHandler, MIN_WEBP_VERSION);
+  }
+
+  static boolean emulatorSupportsSnapshotManagement(@NotNull AndroidSdkHandler sdkHandler) {
+    return emulatorVersionIsAtLeast(sdkHandler, MIN_SNAPSHOT_MANAGEMENT_VERSION);
+  }
+
+  private static boolean emulatorVersionIsAtLeast(@NotNull AndroidSdkHandler sdkHandler, Revision minRevision) {
     ProgressIndicator log = new StudioLoggerProgressIndicator(AvdWizardUtils.class);
     LocalPackage sdkPackage = sdkHandler.getLocalPackage(FD_EMULATOR, log);
     if (sdkPackage == null) {
       sdkPackage = sdkHandler.getLocalPackage(FD_TOOLS, log);
     }
     if (sdkPackage != null) {
-      Revision version = sdkPackage.getVersion();
-      // >= 25.2.3?
-      if (version.getMajor() > 25 ||
-          version.getMajor() == 25 && (version.getMinor() > 2 ||
-                                       version.getMinor() == 2 && version.getMicro() >= 3)) {
-        return true;
-      }
+      return sdkPackage.getVersion().compareTo(minRevision) >= 0;
     }
-
     return false;
   }
 

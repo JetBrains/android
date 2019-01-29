@@ -16,25 +16,26 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class PrivateResourceTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /**
    * Verifies that private resources from libraries are not suggested to the
@@ -63,7 +64,7 @@ public class PrivateResourceTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70635388
+  @RunIn(TestGroup.FAST_BAZEL)
   public void verifyNoPrivateResourcesSuggested() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("PrivateResource");
 
@@ -76,13 +77,15 @@ public class PrivateResourceTest {
       .clickOk();
 
     EditorFixture editor = ideFrame.getEditor();
-    editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR);
+    editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.EDITOR, Wait.seconds(30));
 
     guiTest.waitForBackgroundTasks();
 
     String[] autoCompleteSuggestions = editor.waitUntilErrorAnalysisFinishes()
       .select("(\"@string/app_name\")")
-      .enterText("\"@string/")
+      .enterText("\"\"")
+      .moveBetween("\"", "\"")
+      .enterText("@string/")
       .getAutoCompleteWindow()
       .contents();
 

@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.dom.resources;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.resources.ResourceType;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.GenericAttributeValue;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.converters.FormatConverter;
 import org.jetbrains.android.dom.converters.QuietResourceReferenceConverter;
 import org.jetbrains.android.dom.converters.StaticEnumConverter;
-import org.jetbrains.android.util.AndroidResourceUtil;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ import java.util.List;
 public interface Item extends ResourceElement {
   class TypeConverter extends StaticEnumConverter {
     public TypeConverter() {
-      super(AndroidResourceUtil.getNamesArray(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES));
+      super(ContainerUtil.map(ResourceType.REFERENCEABLE_TYPES, ResourceType::getName));
     }
   }
 

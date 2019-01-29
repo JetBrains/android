@@ -15,27 +15,48 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.DESIGN_MODE;
+import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.NEXT_DEVICE;
+import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.REFRESH_LAYOUT;
+import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.SWITCH_ORIENTATION;
+import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.TOGGLE_ISSUE_PANEL;
+import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_FIT;
+import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_IN;
+import static com.android.tools.idea.common.surface.ZoomShortcut.ZOOM_OUT;
+
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
 import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
-import com.android.tools.idea.common.actions.*;
+import com.android.tools.idea.common.actions.IssueNotificationAction;
+import com.android.tools.idea.common.actions.NextDeviceAction;
+import com.android.tools.idea.common.actions.SetZoomAction;
+import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
+import com.android.tools.idea.common.actions.ZoomLabelAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.ZoomType;
-import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.configurations.DeviceMenuAction;
+import com.android.tools.idea.configurations.LocaleMenuAction;
+import com.android.tools.idea.configurations.OrientationMenuAction;
+import com.android.tools.idea.configurations.TargetMenuAction;
+import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.rendering.RefreshRenderAction;
+import com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.*;
-
+/**
+ * Permanent toolbar for the {@link NlDesignSurface}. This toolbar and its contained object
+ * life cycles should match the {@link com.android.tools.idea.common.surface.DesignSurface} one.
+ */
 public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   public DefaultNlToolbarActionGroups(@NotNull NlDesignSurface surface) {
     super(surface);
+
   }
 
   @NotNull
@@ -43,15 +64,16 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(DESIGN_MODE.registerForAction(createDesignModeAction(),
-                                            new SwitchDesignModeAction((NlDesignSurface)mySurface), mySurface));
+    group.add(DESIGN_MODE.registerForHiddenAction(createDesignModeAction(),
+                                                  new SwitchDesignModeAction((NlDesignSurface)mySurface), mySurface, this));
     group.addSeparator();
 
-    group.add(SWITCH_ORIENTATION.registerForAction(new OrientationMenuAction(mySurface::getConfiguration, mySurface),
-                                                   new ToggleDeviceOrientationAction(mySurface), mySurface));
+    group.add(SWITCH_ORIENTATION.registerForHiddenAction(new OrientationMenuAction(mySurface::getConfiguration, mySurface),
+                                                         new ToggleDeviceOrientationAction(mySurface), mySurface, this));
     group.addSeparator();
-    group.add(NEXT_DEVICE.registerForAction(new DeviceMenuAction(mySurface::getConfiguration),
-                                            new SwitchDeviceAction(mySurface), mySurface));
+    DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration);
+    group.add(NEXT_DEVICE.registerForHiddenAction(menuAction, new NextDeviceAction(menuAction), mySurface, this));
+
     group.add(new TargetMenuAction(mySurface::getConfiguration));
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
 
@@ -70,7 +92,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     designSurfaceMenu.addAction(new BlueprintModeAction((NlDesignSurface)mySurface));
     designSurfaceMenu.addAction(new BlueprintAndDesignModeAction((NlDesignSurface)mySurface));
     designSurfaceMenu.addSeparator();
-    designSurfaceMenu.addAction(REFRESH_LAYOUT.registerForAction(new RefreshRenderAction(mySurface), mySurface));
+    designSurfaceMenu.addAction(REFRESH_LAYOUT.registerForAction(new RefreshRenderAction(mySurface), mySurface, this));
     return designSurfaceMenu;
   }
 
@@ -79,12 +101,12 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(ZOOM_OUT.registerForAction(new SetZoomAction(mySurface, ZoomType.OUT), mySurface));
+    group.add(ZOOM_OUT.registerForAction(new SetZoomAction(mySurface, ZoomType.OUT), mySurface, this));
     group.add(new ZoomLabelAction(mySurface));
-    group.add(ZOOM_IN.registerForAction(new SetZoomAction(mySurface, ZoomType.IN), mySurface));
-    group.add(ZOOM_FIT.registerForAction(new SetZoomAction(mySurface, ZoomType.FIT), mySurface));
+    group.add(ZOOM_IN.registerForAction(new SetZoomAction(mySurface, ZoomType.IN), mySurface, this));
+    group.add(ZOOM_FIT.registerForAction(new SetZoomAction(mySurface, ZoomType.FIT), mySurface, this));
     group.addSeparator();
-    group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface));
+    group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
 
     return group;
   }

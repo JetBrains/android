@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.scene.target.*;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,9 +56,9 @@ public class SceneComponent {
   @VisibleForTesting public static final int ANIMATION_DURATION = 350; // ms -- the duration of the animation
   public HashMap<String, Object> myCache = new HashMap<>();
   public SceneDecorator myDecorator;
-  private boolean myAllowsAutoconnect = true;
   private TargetProvider myTargetProvider;
   private ComponentProvider myComponentProvider;
+  private HitProvider myHitProvider;
 
   public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED, DRAG}
 
@@ -80,6 +81,7 @@ public class SceneComponent {
 
   @GuardedBy("myTargets")
   private final ArrayList<Target> myTargets = new ArrayList<>();
+  private final ActionGroupTarget myActionTargets = new ActionGroupTarget(this);
 
   @GuardedBy("myTargets")
   @Nullable private ImmutableList<Target> myCachedTargetList;
@@ -91,7 +93,7 @@ public class SceneComponent {
 
   private boolean myShowBaseline = false;
 
-  private Notch.Provider myNotchProvider;
+  @Nullable private Notch.Provider myNotchProvider = null;
 
   @AndroidDpCoordinate
   public int getCenterX() {
@@ -107,13 +109,13 @@ public class SceneComponent {
   //region Constructor & toString
   /////////////////////////////////////////////////////////////////////////////
 
-  public SceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
+  public SceneComponent(@NotNull Scene scene, @NotNull NlComponent component, @NotNull HitProvider hitProvider) {
     myScene = scene;
     myNlComponent = component;
     myScene.addComponent(this);
     SceneManager manager = scene.getSceneManager();
     myDecorator = manager.getSceneDecoratorFactory().get(component);
-    myAllowsAutoconnect = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
+    myHitProvider = hitProvider;
     setSelected(myScene.getDesignSurface().getSelectionModel().isSelected(component));
   }
 
@@ -140,8 +142,8 @@ public class SceneComponent {
    * Utility class to encapsulate animatable values
    */
   static class AnimatedValue {
-    int value;
-    int target;
+    @AndroidDpCoordinate int value;
+    @AndroidDpCoordinate int target;
     long startTime;
     int duration = ANIMATION_DURATION;
 
@@ -163,7 +165,7 @@ public class SceneComponent {
      * @param v    the target value to reach
      * @param time the start time to animate
      */
-    public void setTarget(int v, long time) {
+    public void setTarget(@AndroidDpCoordinate int v, long time) {
       if (target == v) {
         return;
       }
@@ -232,12 +234,21 @@ public class SceneComponent {
     myParent = parent;
   }
 
-  private TargetProvider getTargetProvider() {
-    return myTargetProvider;
+  /**
+   * @return the depth from root to this instance. Return 0 if this instance is root.
+   */
+  public int getDepth() {
+    int depth = 0;
+    SceneComponent current = myParent;
+    while (current != null) {
+      current = current.myParent;
+      depth += 1;
+    }
+    return depth;
   }
 
-  public boolean allowsAutoConnect() {
-    return myScene.isAutoconnectOn() && myAllowsAutoconnect;
+  private TargetProvider getTargetProvider() {
+    return myTargetProvider;
   }
 
   public boolean useRtlAttributes() {
@@ -293,6 +304,7 @@ public class SceneComponent {
 
   /**
    * Returns true if the widget is parent(0,0) - 0x0
+   *
    * @return true if no dimension
    */
   public boolean hasNoDimension() {
@@ -306,6 +318,7 @@ public class SceneComponent {
    * the value at the start of the animation.
    * <p>This is the equivalent of {@link SceneComponent#getDrawX(long 0)}</p>
    */
+  @AndroidDpCoordinate
   public int getDrawX() {
     return myAnimatedDrawX.getValue(0);
   }
@@ -315,6 +328,7 @@ public class SceneComponent {
    * the value at the start of the animation.
    * <p>This is the equivalent of {@link SceneComponent#getDrawY(long 0)}</p>
    */
+  @AndroidDpCoordinate
   public int getDrawY() {
     return myAnimatedDrawY.getValue(0);
   }
@@ -323,6 +337,7 @@ public class SceneComponent {
    * @return The width of this {@link SceneComponent}. If an animation is running, returns
    * the value at the start of the animation.
    */
+  @AndroidDpCoordinate
   public int getDrawWidth() {
     return myAnimatedDrawWidth.getValue(0);
   }
@@ -331,6 +346,7 @@ public class SceneComponent {
    * @return The height of this {@link SceneComponent}. If an animation is running, returns
    * the value at the start of the animation.
    */
+  @AndroidDpCoordinate
   public int getDrawHeight() {
     return myAnimatedDrawHeight.getValue(0);
   }
@@ -340,6 +356,7 @@ public class SceneComponent {
    * If beyond duration, returns the target value,
    * if time or progress is zero, returns the start value.
    */
+  @AndroidDpCoordinate
   public int getDrawX(long time) {
     return myAnimatedDrawX.getValue(time);
   }
@@ -349,6 +366,7 @@ public class SceneComponent {
    * If beyond duration, returns the target value,
    * if time or progress is zero, returns the start value.
    */
+  @AndroidDpCoordinate
   public int getDrawY(long time) {
     return myAnimatedDrawY.getValue(time);
   }
@@ -358,6 +376,7 @@ public class SceneComponent {
    * If beyond duration, returns the target value,
    * if time or progress is zero, returns the start value.
    */
+  @AndroidDpCoordinate
   public int getDrawWidth(long time) {
     return myAnimatedDrawWidth.getValue(time);
   }
@@ -367,6 +386,7 @@ public class SceneComponent {
    * If beyond duration, returns the target value,
    * if time or progress is zero, returns the start value.
    */
+  @AndroidDpCoordinate
   public int getDrawHeight(long time) {
     return myAnimatedDrawHeight.getValue(time);
   }
@@ -405,7 +425,7 @@ public class SceneComponent {
   /**
    * Set the position of this {@link SceneComponent} and begin the animation to the given
    * position at the given time.
-   *
+   * <p>
    * The position of the underlying NlComponent is set immediately.
    *
    * @param dx          The X position to animate the component to
@@ -446,7 +466,7 @@ public class SceneComponent {
   /**
    * Set the size of this {@link SceneComponent} and begin the animation to the given
    * position at the given time.
-   *
+   * <p>
    * The size of the underlying NlComponent is set immediately.
    *
    * @param width       The width to animate the component to
@@ -508,13 +528,6 @@ public class SceneComponent {
 
   public boolean isToolLocked() {
     return myIsToolLocked;
-  }
-
-  @NotNull
-  public Stream<SceneComponent> flatten() {
-    return Stream.concat(
-      Stream.of(this),
-      getChildren().stream().flatMap(SceneComponent::flatten));
   }
 
   public void setDrawState(@NotNull DrawState drawState) {
@@ -582,11 +595,12 @@ public class SceneComponent {
     return myDecorator;
   }
 
+  @Nullable
   public Notch.Provider getNotchProvider() {
     return myNotchProvider;
   }
 
-  public void setNotchProvider(Notch.Provider notchProvider) {
+  public void setNotchProvider(@Nullable Notch.Provider notchProvider) {
     myNotchProvider = notchProvider;
   }
 
@@ -676,13 +690,15 @@ public class SceneComponent {
     NlComponent component = getAuthoritativeNlComponent();
     ViewGroupHandler viewGroupHandler = NlComponentHelperKt.getViewGroupHandler(component);
     viewGroupHandler.clearAttributes(component);
-    for (SceneComponent child : getChildren()) {
-      viewGroupHandler.clearAttributes(child.getAuthoritativeNlComponent());
-    }
   }
 
-  protected void addTarget(@NotNull Target target) {
+  public void addTarget(@NotNull Target target) {
     target.setComponent(this);
+    if (target instanceof ActionTarget) {
+      // Action Targets are laid out by the ActionTargetGroup
+      myActionTargets.addAction((ActionTarget)target);
+      return;
+    }
     synchronized (myTargets) {
       myCachedTargetList = null;
       myTargets.add(target);
@@ -744,6 +760,7 @@ public class SceneComponent {
       Target target = targets.get(i);
       needsRebuildDisplayList |= target.layout(sceneTransform, myCurrentLeft, myCurrentTop, myCurrentRight, myCurrentBottom);
     }
+
     int childCount = myChildren.size();
     for (int i = 0; i < childCount; i++) {
       SceneComponent child = myChildren.get(i);
@@ -768,10 +785,9 @@ public class SceneComponent {
     if (myIsToolLocked) {
       return; // skip this if hidden
     }
-    picker.addRect(this, 0, sceneTransform.getSwingXDip(myCurrentLeft),
-                   sceneTransform.getSwingYDip(myCurrentTop),
-                   sceneTransform.getSwingXDip(myCurrentRight),
-                   sceneTransform.getSwingYDip(myCurrentBottom));
+
+    myHitProvider.addHit(this, sceneTransform, picker);
+
     ImmutableList<Target> targets = getTargets();
     int num = targets.size();
     for (int i = 0; i < num; i++) {
@@ -808,6 +824,19 @@ public class SceneComponent {
     return rec;
   }
 
+  @AndroidDpCoordinate
+  @NotNull
+  public Rectangle2D.Float fillDrawRect2D(long time, @Nullable @AndroidDpCoordinate Rectangle2D.Float rec) {
+    if (rec == null) {
+      rec = new Rectangle2D.Float();
+    }
+    rec.x = getDrawX(time);
+    rec.y = getDrawY(time);
+    rec.width = getDrawWidth(time);
+    rec.height = getDrawHeight(time);
+    return rec;
+  }
+
   public String getId() {
     return myNlComponent.getId();
   }
@@ -832,9 +861,6 @@ public class SceneComponent {
     myTargetProvider = targetProvider;
 
     updateTargets();
-    for (SceneComponent child : getChildren()) {
-      child.updateTargets();
-    }
   }
 
   /**
@@ -854,6 +880,8 @@ public class SceneComponent {
     synchronized (myTargets) {
       myCachedTargetList = null;
       myTargets.clear();
+      myActionTargets.clear();
+      myTargets.add(myActionTargets);
     }
 
     // update the Targets created by parent's TargetProvider
@@ -874,6 +902,16 @@ public class SceneComponent {
     // update the Targets of children
     for (SceneComponent child : getChildren()) {
       child.updateTargets();
+    }
+
+    if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
+      boolean hasDragTarget;
+      synchronized (myTargets) {
+        hasDragTarget = myTargets.removeIf(it -> it instanceof NonPlaceholderDragTarget);
+      }
+      if (hasDragTarget && myScene.getRoot() != this) {
+        addTarget(new CommonDragTarget());
+      }
     }
   }
 

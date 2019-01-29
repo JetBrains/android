@@ -43,8 +43,8 @@ public abstract class SyncErrorHandler {
   protected static final String EMPTY_LINE = "\n\n";
   protected static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
 
-  private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
-  private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
+  private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile(".* file '(.*)' line: ([\\d]+)");
+  private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile(".* file '(.*)'");
 
   @NotNull
   public static SyncErrorHandler[] getExtensions() {
@@ -89,7 +89,7 @@ public abstract class SyncErrorHandler {
     if (gradleMissingSignature != null) {
       builder.setGradleMissingSignature(gradleMissingSignature);
     }
-    UsageTracker.getInstance().log(builder);
+    UsageTracker.log(builder);
   }
 
   @NotNull

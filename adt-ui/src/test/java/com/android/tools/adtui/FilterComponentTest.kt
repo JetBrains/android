@@ -15,54 +15,90 @@
  */
 package com.android.tools.adtui
 
-import com.android.tools.adtui.flat.FlatToggleButton
-import org.junit.Before
+import com.android.tools.adtui.model.filter.Filter
+import com.android.tools.adtui.model.filter.FilterHandler
+import com.android.tools.adtui.model.filter.FilterResult
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.awt.BorderLayout
 import javax.swing.JPanel
-import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationManager
-import org.junit.Ignore
-import java.util.function.BiConsumer
-import java.util.regex.Pattern
 
 class FilterComponentTest {
-  private lateinit var myPanel: JPanel
-  private lateinit var myFilterComponent: FilterComponent
-  private lateinit var myFilterButton: FlatToggleButton
-  private lateinit var myPattern: Pattern
 
-  @Before
-  fun setUp() {
-    myPanel = JPanel(BorderLayout())
-    myFilterComponent = FilterComponent(245, 5, 0)
-    myFilterButton = FilterComponent.createFilterToggleButton()
-    myPanel.add(myFilterButton, BorderLayout.EAST)
-    myPanel.add(myFilterComponent, BorderLayout.SOUTH)
-    myFilterComponent.isVisible = false
-    FilterComponent.configureKeyBindingAndFocusBehaviors(myPanel, myFilterComponent, myFilterButton)
-    myPattern = Pattern.compile("")
+  class FilterComponentUi {
+    val panel = JPanel(BorderLayout())
+    val filterComponent = FilterComponent(245, 5, 0)
+    val filterButton = FilterComponent.createFilterToggleButton()
 
-    myFilterComponent.addOnFilterChange (BiConsumer { p, _ -> myPattern = p })
+    init {
+      panel.add(filterButton, BorderLayout.EAST)
+      panel.add(filterComponent, BorderLayout.SOUTH)
+      filterComponent.isVisible = false
+      FilterComponent.configureKeyBindingAndFocusBehaviors(panel, filterComponent, filterButton)
+    }
+  }
+
+  @Test
+  fun filterComponentCanBeInitializedWithFilter() {
+    val filter = Filter("XYZ", true, true)
+    val filterComponent = FilterComponent(filter, 123, 4, 0)
+
+    assertThat(filterComponent.searchField.text).isEqualTo(filter.filterString)
   }
 
   @Test
   fun clicksFilterButton() {
-    myFilterButton.doClick();
-    assertThat(myFilterComponent.isVisible).isTrue()
-    myFilterButton.doClick();
-    assertThat(myFilterComponent.isVisible).isFalse()
+    val ui = FilterComponentUi()
+
+    ui.filterButton.doClick()
+    assertThat(ui.filterComponent.isVisible).isTrue()
+    ui.filterButton.doClick()
+    assertThat(ui.filterComponent.isVisible).isFalse()
   }
 
-  @Ignore
   @Test
-  fun changeFilterContent() {
-    myFilterComponent.textEditor.text = "test[A-Z]ext";
-    myFilterComponent.matchCaseCheckBox.isSelected = true
-    myFilterComponent.regexCheckBox.isSelected = true
-    assertThat(myPattern.matcher("testText").matches()).isTrue()
-    assertThat(myPattern.matcher("testAext").matches()).isTrue()
-    assertThat(myPattern.matcher("testaext").matches()).isFalse()
-    assertThat(myPattern.matcher("test.ext").matches()).isFalse()
+  fun changeFilterResult() {
+    val ui = FilterComponentUi()
+
+    ui.filterComponent.model.setFilterHandler(object : FilterHandler() {
+      override fun applyFilter(filter: Filter): FilterResult {
+        return if (filter.isEmpty) {
+          // The FilterResult should not be enabled with empty filter.
+          // We return an enabled filter intentionally to test if FilterHandler can correct it.
+          FilterResult(0, true)
+        }
+        else {
+          FilterResult(Integer.parseInt(filter.filterString), true)
+        }
+      }
+    })
+    val normalBackground = ui.filterComponent.searchField.textEditor.background;
+    ui.filterComponent.model.filter = Filter("")
+    assertThat(ui.filterComponent.countLabel.text).isEqualTo("")
+    assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(normalBackground)
+    ui.filterComponent.model.filter = Filter("0")
+    assertThat(ui.filterComponent.countLabel.text).isEqualTo("No matches")
+    assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(FilterComponent.NO_MATCHES_COLOR)
+    ui.filterComponent.model.filter = Filter("1")
+    assertThat(ui.filterComponent.countLabel.text).isEqualTo("One match")
+    assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(normalBackground)
+    ui.filterComponent.model.filter = Filter("1234567")
+    assertThat(ui.filterComponent.countLabel.text).isEqualTo("1,234,567 matches")
+    assertThat(ui.filterComponent.searchField.textEditor.background).isEqualTo(normalBackground)
+  }
+
+  @Test
+  fun canHideCountLabel() {
+    val ui = FilterComponentUi()
+
+    ui.filterComponent.setMatchCountVisibility(false)
+    ui.filterComponent.model.setFilterHandler(object: FilterHandler() {
+      override fun applyFilter(filter: Filter): FilterResult {
+        return FilterResult(Integer.parseInt(filter.filterString), true)
+      }
+    })
+    ui.filterComponent.model.filter = Filter("1234567")
+    assertThat(ui.filterComponent.countLabel.text).isNotEmpty()
+    assertThat(ui.filterComponent.countLabel.isVisible).isFalse()
   }
 }

@@ -16,17 +16,20 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.intellij.ui.components.JBPanel;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.concurrent.TimeUnit;
+
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 public abstract class StageView<T extends Stage> extends AspectObserver {
   private final T myStage;
@@ -53,6 +56,8 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
    */
   @NotNull private final JLabel mySelectionTimeLabel;
 
+  // TODO (b/77709239): All Stages currently have a Panel that defines a tabular layout, and a tooltip.
+  // we should refactor this so common functionality is in the base class to avoid more duplication.
   public StageView(@NotNull StudioProfilersView profilersView, @NotNull T stage) {
     myProfilersView = profilersView;
     myStage = stage;
@@ -60,13 +65,11 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
     // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
-    myTooltipPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    myTooltipPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    myTooltipPanel.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
     myTooltipBinder = new ViewBinder<>();
 
-    mySelectionTimeLabel = new JLabel("");
-    mySelectionTimeLabel.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(12f));
-    mySelectionTimeLabel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
-
+    mySelectionTimeLabel = createSelectionTimeLabel();
     stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.TOOLTIP, this::tooltipChanged);
     stage.getStudioProfilers().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
     selectionChanged();
@@ -124,6 +127,17 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
 
   abstract public JComponent getToolbar();
 
+  public boolean isToolbarVisible() {
+    return true;
+  }
+
+  /**
+   * Whether navigation controllers (i.e. Jump to Live, Profilers Combobox, and Back arrow) are enabled/visible.
+   */
+  public boolean navigationControllersEnabled() {
+    return true;
+  }
+
   /**
    * A purely visual concept as to whether this stage wants the "process and devices" selection being shown to the user.
    * It is not possible to assume processes won't change while a stage is running. For example: a process dying.
@@ -163,12 +177,29 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     long selectionMaxUs = timeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax()));
     mySelectionTimeLabel.setIcon(StudioIcons.Profiler.Toolbar.CLOCK);
     if (selectionRange.isPoint()) {
-      mySelectionTimeLabel.setText(TimeAxisFormatter.DEFAULT.getClockFormattedString(selectionMinUs));
+      mySelectionTimeLabel.setText(TimeFormatter.getSimplifiedClockString(selectionMinUs));
     }
     else {
       mySelectionTimeLabel.setText(String.format("%s - %s",
-                                                 TimeAxisFormatter.DEFAULT.getClockFormattedString(selectionMinUs),
-                                                 TimeAxisFormatter.DEFAULT.getClockFormattedString(selectionMaxUs)));
+                                                 TimeFormatter.getSimplifiedClockString(selectionMinUs),
+                                                 TimeFormatter.getSimplifiedClockString(selectionMaxUs)));
     }
+  }
+
+  @NotNull
+  private JLabel createSelectionTimeLabel() {
+    JLabel selectionTimeLabel = new JLabel("");
+    selectionTimeLabel.setFont(STANDARD_FONT);
+    selectionTimeLabel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+    selectionTimeLabel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        ProfilerTimeline timeline = getStage().getStudioProfilers().getTimeline();
+        timeline.frameViewToRange(timeline.getSelectionRange());
+      }
+    });
+    selectionTimeLabel.setToolTipText("Selected range");
+    selectionTimeLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    return selectionTimeLabel;
   }
 }

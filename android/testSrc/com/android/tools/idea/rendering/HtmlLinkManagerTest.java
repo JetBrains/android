@@ -15,25 +15,26 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.tools.idea.projectsystem.*;
-import com.intellij.openapi.vfs.VirtualFile;
-import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
+import com.android.tools.idea.projectsystem.TestRepositories;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class HtmlLinkManagerTest extends TestCase {
+public class HtmlLinkManagerTest extends IdeaTestCase {
   public void testRunnable() {
     HtmlLinkManager manager = new HtmlLinkManager();
     final AtomicBoolean result1 = new AtomicBoolean(false);
-    final AtomicBoolean result2= new AtomicBoolean(false);
+    final AtomicBoolean result2 = new AtomicBoolean(false);
     Runnable runnable1 = new Runnable() {
       @Override
       public void run() {
@@ -49,70 +50,41 @@ public class HtmlLinkManagerTest extends TestCase {
     String url1 = manager.createRunnableLink(runnable1);
     String url2 = manager.createRunnableLink(runnable2);
     assertFalse(result1.get());
-    manager.handleUrl(url1, null, null, null, null);
+    manager.handleUrl(url1, null, null, null, null, null);
     assertTrue(result1.get());
     assertFalse(result2.get());
     result1.set(false);
-    manager.handleUrl(url2, null, null, null, null);
+    manager.handleUrl(url2, null, null, null, null, null);
     assertFalse(result1.get());
     assertTrue(result2.get());
   }
 
   public void testHandleAddDependency() {
-    List<GoogleMavenArtifactId> addedArtifacts = new ArrayList<>();
-
-    AndroidModuleSystem moduleSystem = new AndroidModuleSystem() {
-      @NotNull
-      @Override
-      public CapabilityStatus getInstantRunSupport() {
-        return new CapabilityNotSupported();
-      }
-
-      @NotNull
-      @Override
-      public CapabilityStatus canGeneratePngFromVectorGraphics() {
-        return new CapabilityNotSupported();
-      }
-
-      @Override
-      public void addDependencyWithoutSync(@NotNull GoogleMavenArtifactId artifactId, @Nullable GoogleMavenArtifactVersion version,
-                                           boolean includePreview)
-        throws DependencyManagementException {
-        assertNull(version);
-        addedArtifacts.add(artifactId);
-      }
-
-      @Nullable
-      @Override
-      public GoogleMavenArtifactVersion getDeclaredVersion(@NotNull GoogleMavenArtifactId artifactId) throws DependencyManagementException {
-        return null;
-      }
-
-      @Nullable
-      @Override
-      public GoogleMavenArtifactVersion getResolvedVersion(@NotNull GoogleMavenArtifactId artifactId) throws DependencyManagementException {
-        return null;
-      }
-
-      @NotNull
-      @Override
-      public List<NamedModuleTemplate> getModuleTemplates(@Nullable VirtualFile targetDirectory) {
-        return Collections.emptyList();
-      }
-    };
+    List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
+      .addAll(TestRepositories.GOOGLE_PLAY_SERVICES)
+      .addAll(TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
+      .addAll(TestRepositories.PLATFORM_SUPPORT_LIBS)
+      .build();
+    TestProjectSystem testProjectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
+    PlatformTestUtil
+      .registerExtension(Extensions.getArea(getProject()), ProjectSystemUtil.getEP_NAME(), testProjectSystem,
+                         getTestRootDisposable());
 
     // try multiple invalid links
-    HtmlLinkManager.handleAddDependency("addDependency:", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", moduleSystem);
-    assertEquals(0, addedArtifacts.size());
+    HtmlLinkManager.handleAddDependency("addDependency:", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", myModule);
+    assertThat(testProjectSystem.getAddedDependencies(myModule)).isEmpty();
 
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", moduleSystem);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", moduleSystem);
-    assertThat(addedArtifacts.stream().map(Object::toString).collect(Collectors.toList()))
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", myModule);
+    HtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", myModule);
+    assertThat(
+      testProjectSystem.getAddedDependencies(myModule).stream()
+                       .map(artifact -> artifact.getGroupId() + ":" + artifact.getArtifactId())
+                       .collect(Collectors.toList()))
       .containsExactly("com.android.support:palette-v7",
                        "com.google.android.gms:play-services",
                        "com.android.support.constraint:constraint-layout");

@@ -48,7 +48,7 @@ public class AndroidGradlePluginVersionReaderTest extends AndroidGradleTestCase 
 
   public void testAppliesToWithJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
-    Module libModule = myModules.getModule("lib");
+    Module libModule = myModules.getModule("javalib1");
     assertFalse(myVersionReader.appliesTo(libModule));
   }
 

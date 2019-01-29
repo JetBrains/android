@@ -8,6 +8,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface AndroidLintQuickFix extends WriteActionAware {
   AndroidLintQuickFix[] EMPTY_ARRAY = new AndroidLintQuickFix[0];
@@ -18,6 +19,9 @@ public interface AndroidLintQuickFix extends WriteActionAware {
 
   @NotNull
   String getName();
+
+  @Nullable
+  default String getFamilyName() { return null; }
 
   /** Wrapper class allowing a {@link LocalQuickFixOnPsiElement} to be used as a {@link AndroidLintQuickFix} */
   class LocalFixWrappee implements AndroidLintQuickFix {
@@ -37,6 +41,12 @@ public interface AndroidLintQuickFix extends WriteActionAware {
                                 @NotNull PsiElement endElement,
                                 @NotNull AndroidQuickfixContexts.ContextType contextType) {
       return startElement.isValid();
+    }
+
+    @Nullable
+    @Override
+    public String getFamilyName() {
+      return myFix.getFamilyName();
     }
 
     @NotNull
@@ -65,10 +75,7 @@ public interface AndroidLintQuickFix extends WriteActionAware {
     @NotNull
     @Override
     public String getFamilyName() {
-      // Ensure that we use different family names so actions are not collapsed into a single button in
-      // the inspections UI (and then *all* processed when the user invokes the action; see
-      // https://code.google.com/p/android/issues/detail?id=235641)
-      return myFix.getName();
+      return myFix.getFamilyName() != null ? myFix.getFamilyName() : myFix.getName();
     }
 
     @Override

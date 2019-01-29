@@ -19,36 +19,24 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory
+import com.android.tools.idea.naveditor.model.destinationType
+import com.android.tools.idea.naveditor.model.isAction
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import java.lang.reflect.Constructor
-import java.util.*
 
 /**
  * Creates [SceneComponent]s from [NlComponent]s for the navigation editor.
  */
-private val ourConstructorMap = HashMap<String, Constructor<out SceneDecorator>>()
-
-class NavSceneDecoratorFactory(schema: NavigationSchema) : SceneDecoratorFactory() {
-
-  init {
-    for ((key, value) in schema.tagTypeMap) {
-      val decoratorClass: Class<out SceneDecorator> = when (value) {
-        NavigationSchema.DestinationType.NAVIGATION -> NavigationDecorator::class.java
-        NavigationSchema.DestinationType.ACTIVITY -> ActivityDecorator::class.java
-        NavigationSchema.DestinationType.FRAGMENT -> FragmentDecorator::class.java
-        else -> throw IllegalStateException()
-      }
-
-      ourConstructorMap.put(key, decoratorClass.getConstructor())
-      ourConstructorMap.put(NavigationSchema.TAG_ACTION, ActionDecorator::class.java.getConstructor())
-    }
-  }
+class NavSceneDecoratorFactory : SceneDecoratorFactory() {
 
   override fun get(component: NlComponent): SceneDecorator {
-    return get(component.tagName).orElse(SceneDecoratorFactory.BASIC_DECORATOR)
-  }
-
-  override fun getConstructorMap(): Map<String, Constructor<out SceneDecorator>> {
-    return ourConstructorMap
+    if (component.isAction) {
+      return ActionDecorator
+    }
+    return when (component.destinationType) {
+      NavigationSchema.DestinationType.NAVIGATION -> NavigationDecorator
+      NavigationSchema.DestinationType.ACTIVITY -> ActivityDecorator
+      NavigationSchema.DestinationType.FRAGMENT, NavigationSchema.DestinationType.OTHER -> FragmentDecorator
+      else -> SceneDecoratorFactory.BASIC_DECORATOR
+    }
   }
 }

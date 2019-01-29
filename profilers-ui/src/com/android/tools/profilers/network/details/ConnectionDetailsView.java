@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.network.details;
 
-import com.android.tools.adtui.FlatTabbedPane;
+import com.android.tools.adtui.stdui.CommonTabbedPane;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.profilers.CloseButton;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -23,6 +23,7 @@ import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
+
 /**
  * View to display a single network request and its detailed information.
  */
@@ -40,7 +43,7 @@ public class ConnectionDetailsView extends JPanel {
   private final NetworkProfilerStageView myStageView;
 
   @NotNull
-  private final FlatTabbedPane myTabsPanel;
+  private final CommonTabbedPane myTabsPanel;
 
   @NotNull
   private final List<TabContent> myTabs = new ArrayList<>();
@@ -54,10 +57,10 @@ public class ConnectionDetailsView extends JPanel {
     // *   _ _
     //
     // where main contents span the whole area and a close button fits into the top right
-    JPanel rootPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
+    JPanel rootPanel = new JPanel(new TabularLayout("*,Fit-", "Fit-,*"));
 
-    myTabsPanel = new FlatTabbedPane();
-    myTabsPanel.getTabAreaInsets().top = -1;
+    myTabsPanel = new CommonTabbedPane();
+    myTabsPanel.setFont(STANDARD_FONT);
 
     populateTabs();
 
@@ -68,27 +71,21 @@ public class ConnectionDetailsView extends JPanel {
     });
 
     CloseButton closeButton = new CloseButton(e -> myStageView.getStage().setSelectedConnection(null));
-    rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
+    // Add a wrapper to move the close button center vertically.
+    JPanel closeButtonWrapper = new JPanel(new BorderLayout());
+    closeButtonWrapper.add(closeButton, BorderLayout.CENTER);
+    closeButtonWrapper.setBorder(new JBEmptyBorder(3, 0, 0, 0));
+    rootPanel.add(closeButtonWrapper, new TabularLayout.Constraint(0, 1));
     rootPanel.add(myTabsPanel, new TabularLayout.Constraint(0, 0, 2, 2));
 
     add(rootPanel);
   }
 
   private void populateTabs() {
-    boolean isRequestPayloadEnabled =
-      myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isNetworkRequestPayloadEnabled();
-
     myTabs.add(new OverviewTabContent(myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig(),
                                       myStageView.getIdeComponents(), myStageView.getStage().getConnectionsModel()));
-
-    if (isRequestPayloadEnabled) {
-      myTabs.add(new ResponseTabContent(myStageView.getIdeComponents(), myStageView.getStage().getConnectionsModel()));
-      myTabs.add(new RequestTabContent(myStageView.getIdeComponents(), myStageView.getStage().getConnectionsModel()));
-    }
-    else {
-      myTabs.add(new HeadersTabContent());
-    }
-
+    myTabs.add(new ResponseTabContent(myStageView.getIdeComponents(), myStageView.getStage().getConnectionsModel()));
+    myTabs.add(new RequestTabContent(myStageView.getIdeComponents(), myStageView.getStage().getConnectionsModel()));
     myTabs.add(new CallStackTabContent(myStageView.getStage().getConnectionsModel(),
                                        myStageView.getIdeComponents().createStackView(myStageView.getStage().getStackTraceModel())));
 

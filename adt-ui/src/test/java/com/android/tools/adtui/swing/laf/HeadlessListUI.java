@@ -18,6 +18,7 @@ package com.android.tools.adtui.swing.laf;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeMouse;
 
+import javax.swing.*;
 import javax.swing.plaf.basic.BasicGraphicsUtils;
 import javax.swing.plaf.basic.BasicListUI;
 import java.awt.*;
@@ -44,11 +45,39 @@ public class HeadlessListUI extends BasicListUI {
   @Override
   protected void installListeners() {
     list.addMouseListener(myMouseListener);
+
+    propertyChangeListener = createPropertyChangeListener();
+    listSelectionListener = createListSelectionListener();
+    listDataListener = createListDataListener();
+    list.addPropertyChangeListener(propertyChangeListener);
+    ListModel model = list.getModel();
+    if (model != null) {
+      model.addListDataListener(listDataListener);
+    }
+
+    ListSelectionModel selectionModel = list.getSelectionModel();
+    if (selectionModel != null) {
+      selectionModel.addListSelectionListener(listSelectionListener);
+    }
   }
 
   @Override
   protected void uninstallListeners() {
     list.removeMouseListener(myMouseListener);
+    list.removePropertyChangeListener(propertyChangeListener);
+    ListModel model = list.getModel();
+    if (model != null) {
+      model.removeListDataListener(listDataListener);
+    }
+
+    ListSelectionModel selectionModel = list.getSelectionModel();
+    if (selectionModel != null) {
+      selectionModel.removeListSelectionListener(listSelectionListener);
+    }
+
+    listSelectionListener = null;
+    listDataListener = null;
+    propertyChangeListener = null;
   }
 
   /**

@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.common.model.NlLayoutType;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
 
 /**
  * View of a device/screen/layout.
@@ -29,8 +30,14 @@ import java.awt.*;
  */
 public class ScreenView extends ScreenViewBase {
 
+  /**
+   * True if we are previewing a non-layout file in Preview Dialog (e.g. Previewing Vector Drawable), false otherwise.
+   */
+  protected final boolean myShowBorder;
+
   public ScreenView(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
     super(surface, manager);
+    myShowBorder = !getSurface().isPreviewSurface() || surface.getLayoutType() == NlLayoutType.LAYOUT;
   }
 
   @NotNull
@@ -38,39 +45,21 @@ public class ScreenView extends ScreenViewBase {
   protected ImmutableList<Layer> createLayers() {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
 
-    builder.add(new MyBottomLayer(this));
-    builder.add(new ScreenViewLayer(this));
-    builder.add(new SelectionLayer(this));
-
-    if (getSceneManager().getModel().getType().isLayout()) {
-      builder.add(new ConstraintsLayer(getSurface(), this, true));
+    if (myShowBorder) {
+      builder.add(new BorderLayer(this));
     }
+    builder.add(new ScreenViewLayer(this));
 
-    SceneLayer sceneLayer = new SceneLayer(getSurface(), this, false);
+    SceneLayer sceneLayer = new SceneLayer(getSurface(), this, SceneLayer.SHOW_ON_HOVER ? false : true);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
-    if (getSurface().getLayoutType().isSupportedByDesigner()) {
+    if (getSceneManager().getModel().getType().isSupportedByDesigner()) {
       builder.add(new CanvasResizeLayer(getSurface(), this));
     }
+
+    if (NELE_RENDER_DIAGNOSTICS.get()) {
+      builder.add(new DiagnosticsLayer(getSurface()));
+    }
     return builder.build();
-  }
-
-  private static class MyBottomLayer extends Layer {
-
-    private final ScreenViewBase myScreenView;
-
-    MyBottomLayer(@NotNull ScreenViewBase screenView) {
-      myScreenView = screenView;
-    }
-
-    @Override
-    public void paint(@NotNull Graphics2D g2d) {
-      Shape screenShape = myScreenView.getScreenShape();
-      if (screenShape != null) {
-        g2d.draw(screenShape);
-        return;
-      }
-      myScreenView.paintBorder(g2d);
-    }
   }
 }

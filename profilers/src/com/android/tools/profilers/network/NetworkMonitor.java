@@ -15,9 +15,10 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.Interpolatable;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
@@ -35,7 +36,7 @@ public class NetworkMonitor extends ProfilerMonitor {
   private static final BaseAxisFormatter BANDWIDTH_AXIS_FORMATTER_L1 = new NetworkTrafficFormatter(1, 2, 5);
   private final NetworkUsage myNetworkUsage;
   private final NetworkLegends myLegends;
-  private final AxisComponentModel myTrafficAxis;
+  private final ClampedAxisComponentModel myTrafficAxis;
   private final NetworkLegends myTooltipLegends;
 
   public NetworkMonitor(@NotNull StudioProfilers profilers) {
@@ -43,9 +44,7 @@ public class NetworkMonitor extends ProfilerMonitor {
 
     myNetworkUsage = new NetworkUsage(profilers);
 
-    myTrafficAxis = new AxisComponentModel(myNetworkUsage.getTrafficRange(), BANDWIDTH_AXIS_FORMATTER_L1);
-    myTrafficAxis.setClampToMajorTicks(true);
-
+    myTrafficAxis = new ClampedAxisComponentModel.Builder(myNetworkUsage.getTrafficRange(), BANDWIDTH_AXIS_FORMATTER_L1).build();
     myLegends = new NetworkLegends(myNetworkUsage, getTimeline().getDataRange(), false);
     myTooltipLegends = new NetworkLegends(myNetworkUsage, getTimeline().getTooltipRange(), true);
   }
@@ -65,16 +64,12 @@ public class NetworkMonitor extends ProfilerMonitor {
   public void exit() {
     myProfilers.getUpdater().unregister(myNetworkUsage);
     myProfilers.getUpdater().unregister(myTrafficAxis);
-    myProfilers.getUpdater().unregister(myLegends);
-    myProfilers.getUpdater().unregister(myTooltipLegends);
   }
 
   @Override
   public void enter() {
     myProfilers.getUpdater().register(myNetworkUsage);
     myProfilers.getUpdater().register(myTrafficAxis);
-    myProfilers.getUpdater().register(myLegends);
-    myProfilers.getUpdater().register(myTooltipLegends);
   }
 
   @Override
@@ -104,7 +99,7 @@ public class NetworkMonitor extends ProfilerMonitor {
     @NotNull private final SeriesLegend myTxLegend;
 
     public NetworkLegends(@NotNull NetworkUsage usage, @NotNull Range range, boolean hightlight) {
-      super(hightlight ? 0 : LEGEND_UPDATE_FREQUENCY_MS);
+      super(range);
       myTxLegend = new SeriesLegend(usage.getTxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_SENT.getLabel(hightlight),
                                     Interpolatable.SegmentInterpolator);
       myRxLegend = new SeriesLegend(usage.getRxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_RECEIVED.getLabel(hightlight),

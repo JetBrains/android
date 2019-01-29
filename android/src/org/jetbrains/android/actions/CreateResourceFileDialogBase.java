@@ -93,7 +93,7 @@ public abstract class CreateResourceFileDialogBase extends DialogWrapper {
   protected String setupSubActions(@NotNull Collection<CreateTypedResourceFileAction> actions,
                                    @NotNull TemplateKindCombo resourceTypeCombo,
                                    @Nullable ResourceFolderType folderType) {
-    CreateTypedResourceFileAction[] actionArray = actions.toArray(new CreateTypedResourceFileAction[actions.size()]);
+    CreateTypedResourceFileAction[] actionArray = actions.toArray(new CreateTypedResourceFileAction[0]);
 
     Arrays.sort(actionArray, (a1, a2) -> a1.toString().compareTo(a2.toString()));
     String selectedTemplate = null;

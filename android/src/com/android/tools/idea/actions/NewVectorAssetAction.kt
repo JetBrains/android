@@ -38,7 +38,7 @@ class NewVectorAssetAction : AndroidAssetStudioAction("Vector Asset", "Open Vect
     val module = facet.module
     val status = module.getModuleSystem().canGeneratePngFromVectorGraphics()
     if (status is CapabilityNotSupported) {
-      val androidModel = facet.androidModel
+      val androidModel = facet.configuration.model
       if (androidModel != null) {
         val minSdkVersion = androidModel.minSdkVersion
 

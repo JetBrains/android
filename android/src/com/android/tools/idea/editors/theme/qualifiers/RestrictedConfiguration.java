@@ -36,8 +36,7 @@ public class RestrictedConfiguration {
 
   public RestrictedConfiguration() {
     // we are creating Default FolderConfiguration, just to extract information for Reflection
-    FolderConfiguration configuration = new FolderConfiguration();
-    configuration.createDefault();
+    FolderConfiguration configuration = FolderConfiguration.createDefault();
 
     for (int i = 0; i < FolderConfiguration.getQualifierCount(); ++i) {
       ResourceQualifier qualifier = configuration.getQualifier(i);

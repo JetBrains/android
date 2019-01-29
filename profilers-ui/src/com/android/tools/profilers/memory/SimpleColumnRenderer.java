@@ -27,13 +27,22 @@ import java.util.function.Function;
 class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRenderer {
   @NotNull private final Function<MemoryObjectTreeNode<T>, String> myTextGetter;
   @NotNull private final Function<MemoryObjectTreeNode<T>, Icon> myIconGetter;
+  @NotNull private final Function<MemoryObjectTreeNode<T>, SimpleTextAttributes> myTextAttributesGetter;
   private final int myAlignment;
 
   SimpleColumnRenderer(@NotNull Function<MemoryObjectTreeNode<T>, String> textGetter,
                               @NotNull Function<MemoryObjectTreeNode<T>, Icon> iconGetter,
                               int alignment) {
+    this(textGetter, iconGetter, value -> SimpleTextAttributes.REGULAR_ATTRIBUTES, alignment);
+  }
+
+  public SimpleColumnRenderer(@NotNull Function<MemoryObjectTreeNode<T>, String> textGetter,
+                              @NotNull Function<MemoryObjectTreeNode<T>, Icon> iconGetter,
+                              @NotNull Function<MemoryObjectTreeNode<T>, SimpleTextAttributes> textAttributesGetter,
+                              int alignment) {
     myTextGetter = textGetter;
     myIconGetter = iconGetter;
+    myTextAttributesGetter = textAttributesGetter;
     myAlignment = alignment;
   }
 
@@ -53,7 +62,7 @@ class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRender
         See {@link com.intellij.ui.SimpleColoredComponent#getFragmentTag(int)} for details.
        */
       String text = myTextGetter.apply((MemoryObjectTreeNode<T>)value);
-      append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES, text);
+      append(text, myTextAttributesGetter.apply((MemoryObjectTreeNode<T>)value), text);
       setTextAlign(myAlignment);
 
       Icon icon = myIconGetter.apply((MemoryObjectTreeNode<T>)value);

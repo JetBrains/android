@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.ng;
 
-import com.intellij.facet.Facet;
-import com.intellij.facet.ModifiableFacetModel;
+import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.StdModuleTypes;
@@ -63,19 +62,13 @@ class ModuleFactory {
       orderEntry.accept(dependencyRemover, null);
     }
 
-    // Remove all facets.
-    ModifiableFacetModel facetModel = myModelsProvider.getModifiableFacetModel(newModule);
-    for (Facet facet : facetModel.getAllFacets()) {
-      facetModel.removeFacet(facet);
-    }
-
     return newModule;
   }
 
   @NotNull
   private File getModuleImlFilePath(@NotNull GradleProject gradleProject, @NotNull GradleModuleModels moduleModels) {
     String modulePath = getModulePath(gradleProject, moduleModels);
-    String imlFileName = gradleProject.getName() + DOT_DEFAULT_EXTENSION;
+    String imlFileName = moduleModels.getModuleName() + DOT_DEFAULT_EXTENSION;
     return new File(modulePath, imlFileName);
   }
 

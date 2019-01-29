@@ -27,15 +27,15 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -54,8 +54,6 @@ import java.util.List;
 import java.util.Objects;
 
 abstract public class EnumEditor extends BaseComponentEditor implements NlComponentEditor {
-  private static final int SMALL_WIDTH = 65;
-
   private EnumSupport myEnumSupport;
 
   private final JPanel myPanel;
@@ -107,6 +105,9 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
 
     myPanel.add(myCombo, BorderLayout.CENTER);
     if (browsePanel != null) {
+      if (includeBorder) {
+        browsePanel.setBorder(JBUI.Borders.empty(4, 1));
+      }
       myPanel.add(browsePanel, BorderLayout.LINE_END);
     }
 
@@ -131,8 +132,14 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
       @Override
       public void focusLost(FocusEvent event) {
         myDisplayRealValue = false;
+        if (myProperty == EmptyProperty.INSTANCE) {
+          return;
+        }
         ValueWithDisplayString value = createFromEditorValue(myEditor.getText());
-        if (!Objects.equals(value.getValue(), myProperty.getValue())) {
+        UndoManager undoManager = UndoManager.getInstance(myProperty.getModel().getProject());
+        // b/110880308: Avoid updating the property during undo/redo
+        if (!Objects.equals(value.getValue(), myProperty.getValue()) &&
+            !undoManager.isUndoInProgress() && !undoManager.isRedoInProgress()) {
           stopEditing(value.getValue());
         }
 
@@ -238,7 +245,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
     DefaultComboBoxModel<ValueWithDisplayString> model = (DefaultComboBoxModel<ValueWithDisplayString>)myCombo.getModel();
     int index = model.getIndexOf(value);
     if (index == -1) {
-      if (myAddedValueIndex >= 0) {
+      if (myAddedValueIndex >= 0 && model.getSize() > myAddedValueIndex) {
         model.removeElementAt(myAddedValueIndex);
       }
       myAddedValueIndex = findBestInsertionPoint(value);
@@ -252,9 +259,21 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
     myEditor.setForeground(value.getValue() != null ? CHANGED_VALUE_TEXT_COLOR : DEFAULT_VALUE_TEXT_COLOR);
   }
 
+  @TestOnly
+  public void selectItem(@Nullable String value) {
+    DefaultComboBoxModel<ValueWithDisplayString> model = (DefaultComboBoxModel<ValueWithDisplayString>)myCombo.getModel();
+    for (int i = 0; i < model.getSize(); i++) {
+      ValueWithDisplayString candidate = model.getElementAt(i);
+      if (Objects.equals(candidate.getValue(), value)) {
+        model.setSelectedItem(candidate);
+        return;
+      }
+    }
+  }
+
   private int findBestInsertionPoint(@NotNull ValueWithDisplayString newValue) {
     AttributeDefinition definition = myProperty.getDefinition();
-    boolean isDimension = definition != null && definition.getFormats().contains(AttributeFormat.Dimension);
+    boolean isDimension = definition != null && definition.getFormats().contains(AttributeFormat.DIMENSION);
     int startIndex = 1;
     if (!isDimension) {
       return startIndex;
@@ -418,7 +437,6 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
     private boolean myUseDarculaUI;
 
     public CustomComboBox() {
-      super(SMALL_WIDTH);
       setBackground(JBColor.WHITE);
       setBorders();
     }
@@ -464,14 +482,13 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
 
   private static class CustomDarculaComboBoxUI extends DarculaComboBoxUI {
 
-    CustomDarculaComboBoxUI(@NotNull JComboBox comboBox) {
-      super(comboBox);
+    public CustomDarculaComboBoxUI(@NotNull JComboBox comboBox) {
     }
 
     @Override
     protected Insets getInsets() {
       // Minimize the vertical padding used in the UI
-      return JBUI.insets(VERTICAL_PADDING, HORIZONTAL_PADDING, VERTICAL_PADDING, 4).asUIResource();
+      return JBUI.insets(VERTICAL_PADDING, HORIZONTAL_ENUM_PADDING, VERTICAL_PADDING, 4).asUIResource();
     }
 
     @Override

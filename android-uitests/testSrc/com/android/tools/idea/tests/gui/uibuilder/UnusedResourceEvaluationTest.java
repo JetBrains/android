@@ -16,19 +16,21 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RefactorToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RefactoringDialogFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunWith(GuiTestRunner.class)
+import java.util.concurrent.TimeUnit;
+
+@RunWith(GuiTestRemoteRunner.class)
 public class UnusedResourceEvaluationTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /**
    * Verifies no resources are removed from NoUnusedResourceApp since all
@@ -46,7 +48,7 @@ public class UnusedResourceEvaluationTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/70635124
+  @RunIn(TestGroup.FAST_BAZEL)
   public void removeUnusedResources() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("NoUnusedResourceApp");
     ideFrame.invokeMenuPath("Refactor", "Remove Unused Resources...");

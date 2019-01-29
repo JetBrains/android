@@ -28,12 +28,13 @@ import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.memory.MemoryProfiler;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.proguard.ProguardMap;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -78,16 +79,21 @@ public class HeapDumpCaptureObject implements CaptureObject {
 
   private boolean myHasNativeAllocations;
 
+  @NotNull
+  private final MemoryProfilerStage myStage;
+
   public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                @NotNull Common.Session session,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap,
-                               @NotNull FeatureTracker featureTracker) {
+                               @NotNull FeatureTracker featureTracker,
+                               @NotNull MemoryProfilerStage stage) {
     myClient = client;
     mySession = session;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
     myFeatureTracker = featureTracker;
+    myStage = stage;
   }
 
   @NotNull
@@ -108,16 +114,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
   }
 
   @Override
-  public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
-    DumpDataResponse response =
-      myClient.getHeapDump(DumpDataRequest.newBuilder().setSession(mySession).setDumpTime(myHeapDumpInfo.getStartTime()).build());
-    if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
-      response.getData().writeTo(outputStream);
-      myFeatureTracker.trackExportHeap();
-    }
-    else {
-      throw new IOException("Could not retrieve hprof dump.");
-    }
+  public void saveToFile(@NotNull OutputStream outputStream) {
+    MemoryProfiler.saveHeapDumpToFile(myClient, mySession, myHeapDumpInfo, outputStream, myFeatureTracker);
   }
 
   @VisibleForTesting
@@ -252,6 +250,8 @@ public class HeapDumpCaptureObject implements CaptureObject {
         myHeapSets.put(key.getId(), value);
       }
     });
+
+    myStage.refreshSelectedHeap();
 
     return true;
   }

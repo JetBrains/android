@@ -48,6 +48,6 @@ public class RecyclerViewCreator extends SimpleViewCreator {
   @NotNull
   @Override
   public String getAndroidViewTag() {
-    return SdkConstants.RECYCLER_VIEW;
+    return SdkConstants.RECYCLER_VIEW.defaultName();
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.ddmlib.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +56,8 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean supportsTestCommand()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
+    assert !ApplicationManager.getApplication().isDispatchThread();
+
     if (mySupportsTestCommand == null) {
       mySupportsTestCommand = supportsTestCommandWorker();
     }
@@ -63,6 +66,8 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean supportsRmForceFlag()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
+    assert !ApplicationManager.getApplication().isDispatchThread();
+
     if (mySupportsRmForceFlag == null) {
       mySupportsRmForceFlag = supportsRmForceFlagWorker();
     }
@@ -71,6 +76,8 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean supportsTouchCommand()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    assert !ApplicationManager.getApplication().isDispatchThread();
+
     if (mySupportsTouchCommand == null) {
       mySupportsTouchCommand = supportsTouchCommandWorker();
     }
@@ -79,6 +86,8 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean supportsSuRootCommand()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    assert !ApplicationManager.getApplication().isDispatchThread();
+
     if (mySupportsSuRootCommand == null) {
       mySupportsSuRootCommand = supportsSuRootCommandWorker();
     }
@@ -87,6 +96,8 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean isRoot()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    assert !ApplicationManager.getApplication().isDispatchThread();
+
     if (myIsRoot == null) {
       myIsRoot = isRootWorker();
     }
@@ -95,6 +106,8 @@ public class AdbDeviceCapabilities {
 
   public synchronized boolean supportsCpCommand()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
+    assert !ApplicationManager.getApplication().isDispatchThread();
+
     if (mySupportsCpCommand == null) {
       mySupportsCpCommand = supportsCpCommandWorker();
     }
@@ -103,6 +116,7 @@ public class AdbDeviceCapabilities {
 
   synchronized boolean hasEscapingLs()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    assert !ApplicationManager.getApplication().isDispatchThread();
 
     if (myEscapingLs == null) {
       myEscapingLs = hasEscapingLsWorker();
@@ -114,16 +128,12 @@ public class AdbDeviceCapabilities {
   @SuppressWarnings("unused")
   public synchronized boolean supportsMkTempCommand()
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    assert !ApplicationManager.getApplication().isDispatchThread();
 
     if (mySupportsMkTempCommand == null) {
       mySupportsMkTempCommand = supportsMkTempCommandWorker();
     }
     return mySupportsMkTempCommand;
-  }
-
-  @NotNull
-  private static String getDeviceTraceInfo(@NotNull IDevice device) {
-    return String.format("%s(%s)-%s", device.getName(), device.getSerialNumber(), device.getState());
   }
 
   @NotNull
@@ -151,7 +161,7 @@ public class AdbDeviceCapabilities {
       }
       catch (AdbShellCommandException e) {
         LOGGER.info(String.format("Device \"%s\" does not seem to support the \"test\" command: %s",
-                                  getDeviceTraceInfo(myDevice),
+                                  DeviceUtil.toDebugString(myDevice),
                                   getCommandOutputExtract(commandResult)),
                     e);
         return false;
@@ -177,7 +187,7 @@ public class AdbDeviceCapabilities {
       }
       catch (AdbShellCommandException e) {
         LOGGER.info(String.format("Device \"%s\" does not seem to support \"-f\" flag for rm: %s",
-                                  getDeviceTraceInfo(myDevice),
+                                  DeviceUtil.toDebugString(myDevice),
                                   getCommandOutputExtract(commandResult)),
                     e);
         return false;
@@ -202,7 +212,7 @@ public class AdbDeviceCapabilities {
       }
       catch (AdbShellCommandException e) {
         LOGGER.info(String.format("Device \"%s\" does not seem to support \"touch\" command: %s",
-                                  getDeviceTraceInfo(myDevice),
+                                  DeviceUtil.toDebugString(myDevice),
                                   getCommandOutputExtract(commandResult)),
                     e);
         return false;
@@ -222,7 +232,7 @@ public class AdbDeviceCapabilities {
     }
     catch (AdbShellCommandException e) {
       LOGGER.info(String.format("Device \"%s\" does not seem to support the \"su 0\" command: %s",
-                                getDeviceTraceInfo(myDevice),
+                                DeviceUtil.toDebugString(myDevice),
                                 getCommandOutputExtract(commandResult)),
                   e);
       return false;
@@ -261,7 +271,7 @@ public class AdbDeviceCapabilities {
       }
       catch (AdbShellCommandException e) {
         LOGGER.info(String.format("Device \"%s\" does not seem to support the \"cp\" command: %s",
-                                  getDeviceTraceInfo(myDevice),
+                                  DeviceUtil.toDebugString(myDevice),
                                   getCommandOutputExtract(commandResult)),
                     e);
         return false;
@@ -276,7 +286,7 @@ public class AdbDeviceCapabilities {
       touchEscapedPath();
     }
     catch (AdbShellCommandException exception) {
-      LOGGER.info("Device \"" + getDeviceTraceInfo(myDevice) + "\" does not seem to support the touch command", exception);
+      LOGGER.info("Device \"" + DeviceUtil.toDebugString(myDevice) + "\" does not seem to support the touch command", exception);
       return false;
     }
 
@@ -285,7 +295,7 @@ public class AdbDeviceCapabilities {
       return lsEscapedPath();
     }
     catch (AdbShellCommandException exception) {
-      LOGGER.info("Device \"" + getDeviceTraceInfo(myDevice) + "\" does not seem to support the ls command", exception);
+      LOGGER.info("Device \"" + DeviceUtil.toDebugString(myDevice) + "\" does not seem to support the ls command", exception);
       return false;
     }
   }
@@ -349,7 +359,7 @@ public class AdbDeviceCapabilities {
     }
     catch (AdbShellCommandException e) {
       LOGGER.info(String.format("Device \"%s\" does not seem to support the \"cp\" command: %s",
-                                getDeviceTraceInfo(myDevice),
+                                DeviceUtil.toDebugString(myDevice),
                                 getCommandOutputExtract(commandResult)),
                   e);
       return false;
@@ -398,7 +408,7 @@ public class AdbDeviceCapabilities {
         catch (AdbShellCommandException e) {
           // There is not much we can do if we can't delete the test file other than logging the error.
           LOGGER.warn(String.format("Device \"%s\": Error deleting temporary test file \"%s\": %s",
-                                    getDeviceTraceInfo(myDevice),
+                                    DeviceUtil.toDebugString(myDevice),
                                     myRemotePath,
                                     getCommandOutputExtract(commandResult)),
                       e);
@@ -407,7 +417,7 @@ public class AdbDeviceCapabilities {
       catch (Exception e) {
         // There is not much we can do if we can't delete the test file other than logging the error.
         LOGGER.warn(String.format("Device \"%s\": Error deleting temporary test file \"%s\"",
-                                  getDeviceTraceInfo(myDevice),
+                                  DeviceUtil.toDebugString(myDevice),
                                   myRemotePath),
                     e);
       }
@@ -425,12 +435,12 @@ public class AdbDeviceCapabilities {
         SyncService sync = myDevice.getSyncService();
         if (sync == null) {
           throw new IOException(String.format("Device \"%s\": Unable to open sync connection",
-                                              getDeviceTraceInfo(myDevice)));
+                                              DeviceUtil.toDebugString(myDevice)));
         }
 
         try {
           LOGGER.trace(String.format("Device \"%s\": Uploading temporary file \"%s\" to remote file \"%s\"",
-                                     getDeviceTraceInfo(myDevice),
+                                     DeviceUtil.toDebugString(myDevice),
                                      file,
                                      myRemotePath));
           sync.pushFile(file.getPath(), myRemotePath, SyncService.getNullProgressMonitor());
@@ -446,7 +456,7 @@ public class AdbDeviceCapabilities {
         }
         catch (Exception e) {
           LOGGER.warn(String.format("Device \"%s\": Error deleting temporary file \"%s\"",
-                                    getDeviceTraceInfo(myDevice),
+                                    DeviceUtil.toDebugString(myDevice),
                                     file),
                       e);
         }

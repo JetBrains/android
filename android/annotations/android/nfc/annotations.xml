@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.nfc.NfcAdapter ACTION_TRANSACTION_DETECTED">
+    <annotation name="android.support.annotation.RequiresPermission">
+      <val name="value" val="&quot;android.permission.NFC_TRANSACTION_EVENT&quot;" />
+    </annotation>
+  </item>
   <item name="android.nfc.NfcAdapter boolean invokeBeam(android.app.Activity)">
     <annotation name="android.support.annotation.RequiresPermission">
       <val name="value" val="&quot;android.permission.NFC&quot;" />

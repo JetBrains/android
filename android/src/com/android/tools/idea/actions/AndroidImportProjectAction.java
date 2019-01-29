@@ -221,7 +221,7 @@ public class AndroidImportProjectAction extends AnAction {
       path = ProjectImportProvider.getDefaultPath(file);
     }
 
-    ProjectImportProvider[] availableProviders = available.toArray(new ProjectImportProvider[available.size()]);
+    ProjectImportProvider[] availableProviders = available.toArray(new ProjectImportProvider[0]);
     return new AddModuleWizard(null, path, availableProviders);
   }
 

@@ -54,16 +54,17 @@ class StreamingLineReader(val maxLineLength: Int, val stream: StreamingReader) {
             if (stream[foundAt - 1] == '\r'.toByte()) foundAt -= 1
 
             val lineEndIndexInclusive = foundAt - 1
-            if (lineEndIndexInclusive - lineStartIndex > maxLineLength) continue
-            val window = stream.windowFor(lineStartIndex)
-            if (window === stream.windowFor(lineEndIndexInclusive)) {
-                // slice endIndex is exclusive
-                lineCallback(window.slice.slice(lineStartIndex - window.globalStartIndex,
-                        lineEndIndexInclusive - window.globalStartIndex + 1, tmpSlice))
-            } else {
-                stream.copyTo(tmpBuffer, lineStartIndex, lineEndIndexInclusive)
-                tmpBufferSlice.set(tmpBuffer, 0, lineEndIndexInclusive - lineStartIndex + 1)
-                lineCallback(tmpBufferSlice)
+            if (lineEndIndexInclusive - lineStartIndex < maxLineLength) {
+                val window = stream.windowFor(lineStartIndex)
+                if (window === stream.windowFor(lineEndIndexInclusive)) {
+                    // slice endIndex is exclusive
+                    lineCallback(window.slice.slice(lineStartIndex - window.globalStartIndex,
+                            lineEndIndexInclusive - window.globalStartIndex + 1, tmpSlice))
+                } else {
+                    stream.copyTo(tmpBuffer, lineStartIndex, lineEndIndexInclusive)
+                    tmpBufferSlice.set(tmpBuffer, 0, lineEndIndexInclusive - lineStartIndex + 1)
+                    lineCallback(tmpBufferSlice)
+                }
             }
             lineStartIndex = nextStart
         }

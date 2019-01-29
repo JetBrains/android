@@ -50,6 +50,6 @@ public class MakeGradleProjectAction extends AndroidStudioGradleAction {
     // This is necessary to avoid unnecessary work by attempting to build a module twice.
     // See: http://b/68723121
     List<Module> modules = ProjectStructure.getInstance(project).getLeafModules();
-    GradleBuildInvoker.getInstance(project).assemble(modules.toArray(new Module[modules.size()]), TestCompileType.ALL);
+    GradleBuildInvoker.getInstance(project).assemble(modules.toArray(Module.EMPTY_ARRAY), TestCompileType.ALL);
   }
 }

@@ -52,7 +52,7 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Query;
+        import androidx.room.Query;
 
         interface UserDao {
           @com.example.MadeUp("select * from User")
@@ -69,7 +69,7 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Query;
+        import androidx.room.Query;
 
         interface UserDao {
           @Query("select * from User")
@@ -89,7 +89,7 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Query;
+        import androidx.room.Query;
 
         interface UserDao {
           String TABLE = "User";
@@ -113,7 +113,7 @@ class RoomQueryInjectionTest : RoomLightTestCase() {
         """
         package com.example;
 
-        import android.arch.persistence.room.Query;
+        import androidx.room.Query;
 
         interface UserDao {
           String ENTITY = "User";

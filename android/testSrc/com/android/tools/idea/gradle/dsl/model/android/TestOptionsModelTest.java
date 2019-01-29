@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import com.android.builder.model.TestOptions;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import org.junit.Test;
 
 /**
  * Tests for {@link TestOptionsModel}.
@@ -29,14 +31,17 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
                                                   "    reportDir 'reportDirectory'\n" +
                                                   "    resultsDir 'resultsDirectory'\n" +
                                                   "    unitTests.returnDefaultValues true\n" +
+                                                  "    execution 'ANDROID_TEST_ORCHESTRATOR'" +
                                                   "  }\n" +
                                                   "}";
 
+  @Test
   public void testParseElements() throws Exception {
     writeToBuildFile(TEST_OPTIONS_TEXT);
     verifyTestOptionsValues();
   }
 
+  @Test
   public void testEditElements() throws Exception {
     writeToBuildFile(TEST_OPTIONS_TEXT);
     verifyTestOptionsValues();
@@ -46,9 +51,9 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
-    testOptions.setReportDir("otherReportDir");
-    testOptions.setResultsDir("otherResultsDir");
-    testOptions.unitTests().setReturnDefaultValues(false);
+    testOptions.reportDir().setValue("otherReportDir");
+    testOptions.resultsDir().setValue("otherResultsDir");
+    testOptions.unitTests().returnDefaultValues().setValue(false);
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -60,6 +65,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("unitTests.returnDefaultValues", Boolean.FALSE, testOptions.unitTests().returnDefaultValues());
   }
 
+  @Test
   public void testAddElements() throws Exception {
     String text = "android {\n" +
                   "  testOptions {\n" +
@@ -74,14 +80,16 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
-    testOptions.setReportDir("reportDirectory");
-    testOptions.setResultsDir("resultsDirectory");
-    testOptions.unitTests().setReturnDefaultValues(true);
+    testOptions.reportDir().setValue("reportDirectory");
+    testOptions.resultsDir().setValue("resultsDirectory");
+    testOptions.execution().setValue(TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR.name());
+    testOptions.unitTests().returnDefaultValues().setValue(true);
 
     applyChangesAndReparse(buildModel);
     verifyTestOptionsValues();
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
     writeToBuildFile(TEST_OPTIONS_TEXT);
     verifyTestOptionsValues();
@@ -92,9 +100,10 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
 
     TestOptionsModel testOptions = android.testOptions();
     assertTrue(hasPsiElement(testOptions));
-    testOptions.removeReportDir();
-    testOptions.removeResultsDir();
-    testOptions.unitTests().removeReturnDefaultValues();
+    testOptions.reportDir().delete();
+    testOptions.resultsDir().delete();
+    testOptions.execution().delete();
+    testOptions.unitTests().returnDefaultValues().delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -112,6 +121,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     TestOptionsModel testOptions = android.testOptions();
     assertEquals("reportDir", "reportDirectory", testOptions.reportDir());
     assertEquals("resultsDir", "resultsDirectory", testOptions.resultsDir());
+    assertEquals("execution", TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR.name(), testOptions.execution());
     assertEquals("unitTests.returnDefaultValues", Boolean.TRUE, testOptions.unitTests().returnDefaultValues());
   }
 
@@ -120,8 +130,9 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     TestOptionsModel testOptions = android.testOptions();
-    assertNull("reportDir", testOptions.reportDir());
-    assertNull("resultsDir", testOptions.resultsDir());
-    assertNull("unitTests.returnDefaultValues", testOptions.unitTests().returnDefaultValues());
+    assertMissingProperty("reportDir", testOptions.reportDir());
+    assertMissingProperty("resultsDir", testOptions.resultsDir());
+    assertMissingProperty("execution", testOptions.execution());
+    assertMissingProperty("unitTests.returnDefaultValues", testOptions.unitTests().returnDefaultValues());
   }
 }

@@ -36,6 +36,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,7 +95,7 @@ public class CreateResourceDialogUtils {
     // Otherwise use the main source set:
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      VirtualFile res = facet.getPrimaryResourceDir();
+      VirtualFile res = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
       if (res != null) {
         return PsiManager.getInstance(module.getProject()).findDirectory(res);
       }
@@ -109,7 +110,7 @@ public class CreateResourceDialogUtils {
     // However, in the Android Project view there is only a single "res" node, shared by multiple possible source
     // sets, so we *always* want to ask for the target source set there. We don't have a way to know which view
     // we're in here, so we default to always including the source set combo (if it's a Gradle project that is.)
-    if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
+    if (facet != null && facet.requiresAndroidModel() && facet.getConfiguration().getModel() != null) {
       List<SourceProvider> providers = IdeaSourceProvider.getAllSourceProviders(facet);
       DefaultComboBoxModel model = new DefaultComboBoxModel();
       for (SourceProvider sourceProvider : providers) {

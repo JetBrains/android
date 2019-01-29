@@ -18,7 +18,10 @@ package com.android.tools.idea.rendering;
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.AdapterBinding;
 import com.android.ide.common.rendering.api.DataBindingItem;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -44,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * Design-time metadata lookup for layouts, such as fragment and AdapterView bindings.
@@ -234,12 +237,14 @@ public class LayoutMetadata {
 
       if (header != null) {
         boolean isFramework = header.startsWith(ANDROID_LAYOUT_RESOURCE_PREFIX);
-        binding.addHeader(new ResourceReference(stripLayoutPrefix(header), isFramework));
+        binding.addHeader(
+            new ResourceReference(ResourceNamespace.fromBoolean(isFramework), ResourceType.LAYOUT, stripLayoutPrefix(header)));
       }
 
       if (footer != null) {
         boolean isFramework = footer.startsWith(ANDROID_LAYOUT_RESOURCE_PREFIX);
-        binding.addFooter(new ResourceReference(stripLayoutPrefix(footer), isFramework));
+        binding.addFooter(
+            new ResourceReference(ResourceNamespace.fromBoolean(isFramework), ResourceType.LAYOUT, stripLayoutPrefix(footer)));
       }
 
       if (layout != null) {
@@ -370,7 +375,7 @@ public class LayoutMetadata {
           affectedFiles.add(psiFile);
         }
       }
-      action = new WriteCommandAction<Void>(project, title, affectedFiles.toArray(new PsiFile[affectedFiles.size()])) {
+      action = new WriteCommandAction<Void>(project, title, affectedFiles.toArray(PsiFile.EMPTY_ARRAY)) {
         @Override
         protected void run(@NotNull Result<Void> result) throws Throwable {
           for (XmlTag tag : list) {

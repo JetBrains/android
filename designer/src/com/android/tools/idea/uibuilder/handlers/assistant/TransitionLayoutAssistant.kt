@@ -18,26 +18,25 @@ package com.android.tools.idea.uibuilder.handlers.assistant
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.editor.AnimationToolbar
-import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import java.awt.BorderLayout
-import java.awt.event.HierarchyListener
 import javax.swing.JPanel
 
-class TransitionLayoutAssistantPanel(val designSurface: DesignSurface, val component: NlComponent, val close: Function0<Unit>) :
+class MotionLayoutAssistantPanel(val designSurface: DesignSurface, val component: NlComponent, val close: (Boolean) -> Unit) :
     JPanel() {
   val toolbar: AnimationToolbar
 
   init {
     layout = BorderLayout()
 
-    val helper = TransitionLayoutHandler.TransitionLayoutComponentHelper(component)
+    val helper = MotionLayoutComponentHelper(component)
     val maxTimeMs = helper.maxTimeMs
     toolbar = AnimationToolbar.createAnimationToolbar({}, { timeMs ->
       val sceneManager = designSurface.sceneManager as? LayoutlibSceneManager
       if (sceneManager != null) {
         sceneManager.setElapsedFrameTimeMs(timeMs)
-        helper.setValue((timeMs - 500L) / maxTimeMs.toFloat())
+        helper.setProgress((timeMs - 500L) / maxTimeMs.toFloat())
       }
     }, 16, 500L, maxTimeMs + 500L)
     add(toolbar)

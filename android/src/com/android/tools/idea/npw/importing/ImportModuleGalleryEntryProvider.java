@@ -15,67 +15,69 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import com.android.tools.idea.npw.module.ModuleGalleryEntry;
+import com.android.tools.idea.npw.model.NewModuleModel;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
-import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.npw.module.ModuleGalleryEntry;
+import com.android.tools.idea.npw.template.TemplateHandle;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.ImmutableList;
-import icons.AndroidIcons;
-import org.jetbrains.android.util.AndroidBundle;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import java.awt.*;
+import java.io.File;
 import java.util.Collection;
+
+import static com.android.tools.idea.npw.ui.ActivityGallery.getTemplateImage;
+import static com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE;
+import static com.android.tools.idea.templates.Template.CATEGORY_APPLICATION;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class ImportModuleGalleryEntryProvider implements ModuleDescriptionProvider {
   @Override
-  public Collection<ModuleGalleryEntry> getDescriptions() {
+  public Collection<ModuleGalleryEntry> getDescriptions(Project project) {
+
+
     return ImmutableList.of(
-      new SourceImportModuleGalleryEntry(AndroidBundle.message("android.wizard.module.import.eclipse.title"),
-                                         AndroidBundle.message("android.wizard.module.import.eclipse.description"),
-                                         AndroidIcons.ModuleTemplates.EclipseModule),
-      new SourceImportModuleGalleryEntry(AndroidBundle.message("android.wizard.module.import.gradle.title"),
-                                         AndroidBundle.message("android.wizard.module.import.gradle.description"),
-                                         AndroidIcons.ModuleTemplates.GradleModule),
+      new SourceImportModuleGalleryEntry(message("android.wizard.module.import.eclipse.title")),
+      new SourceImportModuleGalleryEntry(message("android.wizard.module.import.gradle.title")),
       new ArchiveImportModuleGalleryEntry()
     );
   }
 
   private static class SourceImportModuleGalleryEntry implements ModuleGalleryEntry {
 
-    private final String myDescription;
-    Icon myIcon;
-    String myName;
+    @NotNull
+    private final TemplateHandle myTemplateHandle;
 
-    SourceImportModuleGalleryEntry(String name, String description, Icon icon) {
-      myName = name;
-      myIcon = icon;
-      myDescription = description;
+    SourceImportModuleGalleryEntry(String templateName) {
+      myTemplateHandle = new TemplateHandle(TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, templateName));
     }
 
     @Nullable
     @Override
-    public Icon getIcon() {
-      return myIcon;
+    public Image getIcon() {
+      return getTemplateImage(myTemplateHandle, false);
     }
 
     @NotNull
     @Override
     public String getName() {
-      return myName;
+      return myTemplateHandle.getMetadata().getTitle();
     }
 
     @Nullable
     @Override
     public String getDescription() {
-      return myDescription;
+      return myTemplateHandle.getMetadata().getDescription();
     }
 
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new SourceToGradleModuleStep(new SourceToGradleModuleModel(model.getProject().getValue()));
+      return new SourceToGradleModuleStep(new SourceToGradleModuleModel(model.getProject().getValue(), model.getProjectSyncInvoker()));
     }
   }
 
@@ -83,26 +85,27 @@ public class ImportModuleGalleryEntryProvider implements ModuleDescriptionProvid
 
     @Nullable
     @Override
-    public Icon getIcon() {
-      return AndroidIcons.ModuleTemplates.Android;
+    public Image getIcon() {
+      File androidModuleTemplate = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE);
+      return  getTemplateImage(new TemplateHandle(androidModuleTemplate), false);
     }
 
     @NotNull
     @Override
     public String getName() {
-      return AndroidBundle.message("android.wizard.module.import.title");
+      return message("android.wizard.module.import.title");
     }
 
     @Nullable
     @Override
     public String getDescription() {
-      return AndroidBundle.message("android.wizard.module.import.description");
+      return message("android.wizard.module.import.description");
     }
 
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ArchiveToGradleModuleStep(new ArchiveToGradleModuleModel(model.getProject().getValue()));
+      return new ArchiveToGradleModuleStep(new ArchiveToGradleModuleModel(model.getProject().getValue(), model.getProjectSyncInvoker()));
     }
   }
 }

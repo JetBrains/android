@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.lang.roomSql
 
-const val ROOM_PACKAGE_NAME = "android.arch.persistence.room"
-const val ENTITY_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Entity"
-const val DATABASE_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Database"
-const val DAO_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Dao"
-const val COLUMN_INFO_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.ColumnInfo"
-const val IGNORE_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Ignore"
-const val QUERY_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Query"
-const val EMBEDDED_ANNOTATION_NAME = "$ROOM_PACKAGE_NAME.Embedded"
+import com.android.support.AndroidxName
+
+object RoomAnnotations {
+  val PACKAGE_NAME = AndroidxName.of("android.arch.persistence.room.")
+  val ENTITY = AndroidxName.of(PACKAGE_NAME, "Entity")
+  val DATABASE = AndroidxName.of(PACKAGE_NAME, "Database")
+  val DAO = AndroidxName.of(PACKAGE_NAME, "Dao")
+  val COLUMN_INFO = AndroidxName.of(PACKAGE_NAME, "ColumnInfo")
+  val IGNORE = AndroidxName.of(PACKAGE_NAME, "Ignore")
+  val QUERY = AndroidxName.of(PACKAGE_NAME, "Query")
+  val EMBEDDED = AndroidxName.of(PACKAGE_NAME, "Embedded")
+}
 

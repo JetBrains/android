@@ -19,7 +19,7 @@ public abstract class ProfilerMonitorTooltipView<M extends ProfilerMonitor> exte
   private final M myMonitor;
 
   public ProfilerMonitorTooltipView(M monitor) {
-    super(monitor.getTimeline(), monitor.getName());
+    super(monitor.getTimeline());
     myMonitor = monitor;
   }
 

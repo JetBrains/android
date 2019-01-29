@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.android.splits.DensityModel;
 import com.android.tools.idea.gradle.dsl.api.android.splits.LanguageModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import org.junit.Test;
 
 /**
  * Tests for {@link SplitsModel}.
@@ -50,11 +51,13 @@ public class SplitsModelTest extends GradleFileModelTestCase {
                                             "  }\n" +
                                             "}";
 
+  @Test
   public void testParseElements() throws Exception {
     writeToBuildFile(SPLITS_TEXT);
     verifySplitsValues();
   }
 
+  @Test
   public void testEditElements() throws Exception {
     writeToBuildFile(SPLITS_TEXT);
     verifySplitsValues();
@@ -65,21 +68,21 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     SplitsModel splits = android.splits();
 
     AbiModel abi = splits.abi();
-    abi.setEnable(false);
-    abi.replaceExclude("abi-exclude-2", "abi-exclude-3");
-    abi.replaceInclude("abi-include-2", "abi-include-3");
-    abi.setUniversalApk(true);
+    abi.enable().setValue(false);
+    abi.exclude().getListValue("abi-exclude-2").setValue("abi-exclude-3");
+    abi.include().getListValue("abi-include-2").setValue("abi-include-3");
+    abi.universalApk().setValue(true);
 
     DensityModel density = splits.density();
-    density.setAuto(true);
-    density.replaceCompatibleScreen("screen2", "screen3");
-    density.setEnable(false);
-    density.replaceExclude("density-exclude-2", "density-exclude-3");
-    density.replaceInclude("density-include-2", "density-include-3");
+    density.auto().setValue(true);
+    density.compatibleScreens().getListValue("screen2").setValue("screen3");
+    density.enable().setValue(false);
+    density.exclude().getListValue("density-exclude-2").setValue("density-exclude-3");
+    density.include().getListValue("density-include-2").setValue("density-include-3");
 
     LanguageModel language = splits.language();
-    language.setEnable(true);
-    language.replaceInclude("language-include-2", "language-include-3");
+    language.enable().setValue(true);
+    language.include().getListValue("language-include-2").setValue("language-include-3");
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -104,6 +107,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of("language-include-1", "language-include-3"), language.include());
   }
 
+  @Test
   public void testAddElements() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -119,21 +123,24 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     SplitsModel splits = android.splits();
 
     AbiModel abi = splits.abi();
-    abi.setEnable(true);
-    abi.addExclude("abi-exclude");
-    abi.addInclude("abi-include");
-    abi.setUniversalApk(false);
+    abi.enable().setValue(true);
+    abi.exclude().addListValue().setValue("abi-exclude");
+    abi.include().addListValue().setValue("abi-include");
+    abi.universalApk().setValue(false);
+
+    abi.exclude().setValue("abi-exclude");
+
 
     DensityModel density = splits.density();
-    density.setAuto(false);
-    density.addCompatibleScreen("screen");
-    density.setEnable(true);
-    density.addExclude("density-exclude");
-    density.addInclude("density-include");
+    density.auto().setValue(false);
+    density.compatibleScreens().addListValue().setValue("screen");
+    density.enable().setValue(true);
+    density.exclude().addListValue().setValue("density-exclude");
+    density.include().addListValue().setValue("density-include");
 
     LanguageModel language = splits.language();
-    language.setEnable(false);
-    language.addInclude("language-include");
+    language.enable().setValue(false);
+    language.include().addListValue().setValue("language-include");
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -158,6 +165,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of("language-include"), language.include());
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
     writeToBuildFile(SPLITS_TEXT);
     verifySplitsValues();
@@ -170,23 +178,23 @@ public class SplitsModelTest extends GradleFileModelTestCase {
 
     AbiModel abi = splits.abi();
     assertTrue(hasPsiElement(abi));
-    abi.removeEnable();
-    abi.removeAllExclude();
-    abi.removeAllInclude();
-    abi.removeUniversalApk();
+    abi.enable().delete();
+    abi.exclude().delete();
+    abi.include().delete();
+    abi.universalApk().delete();
 
     DensityModel density = splits.density();
     assertTrue(hasPsiElement(density));
-    density.removeAuto();
-    density.removeAllCompatibleScreens();
-    density.removeEnable();
-    density.removeAllExclude();
-    density.removeAllInclude();
+    density.auto().delete();
+    density.compatibleScreens().delete();
+    density.enable().delete();
+    density.exclude().delete();
+    density.include().delete();
 
     LanguageModel language = splits.language();
     assertTrue(hasPsiElement(language));
-    language.removeEnable();
-    language.removeAllInclude();
+    language.enable().delete();
+    language.include().delete();
 
     applyChangesAndReparse(buildModel);
     verifyNullSplitsValues();
@@ -225,26 +233,27 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     SplitsModel splits = android.splits();
 
     AbiModel abi = splits.abi();
-    assertNull("enable", abi.enable());
-    assertNull("exclude", abi.exclude());
-    assertNull("include", abi.include());
-    assertNull("universalApk", abi.universalApk());
+    assertMissingProperty("enable", abi.enable());
+    assertMissingProperty("exclude", abi.exclude());
+    assertMissingProperty("include", abi.include());
+    assertMissingProperty("universalApk", abi.universalApk());
     assertFalse(hasPsiElement(abi));
 
     DensityModel density = splits.density();
-    assertNull("auto", density.auto());
-    assertNull("compatibleScreens", density.compatibleScreens());
-    assertNull("enable", density.enable());
-    assertNull("exclude", density.exclude());
-    assertNull("include", density.include());
+    assertMissingProperty("auto", density.auto());
+    assertMissingProperty("compatibleScreens", density.compatibleScreens());
+    assertMissingProperty("enable", density.enable());
+    assertMissingProperty("exclude", density.exclude());
+    assertMissingProperty("include", density.include());
     assertFalse(hasPsiElement(density));
 
     LanguageModel language = splits.language();
-    assertNull("enable", language.enable());
-    assertNull("include", language.include());
+    assertMissingProperty("enable", language.enable());
+    assertMissingProperty("include", language.include());
     assertFalse(hasPsiElement(language));
   }
 
+  @Test
   public void testRemoveBlockElements() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -282,6 +291,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertFalse(hasPsiElement(splits.language()));
   }
 
+  @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -319,12 +329,12 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     LanguageModel language = splits.language();
     assertEquals("include", ImmutableList.of("language-include-1", "language-include-2"), language.include());
 
-    abi.removeExclude("abi-exclude-1");
-    abi.removeInclude("abi-include-2");
-    density.removeCompatibleScreen("screen1");
-    density.removeExclude("density-exclude-2");
-    density.removeInclude("density-include-1");
-    language.removeInclude("language-include-2");
+    abi.exclude().getListValue("abi-exclude-1").delete();
+    abi.include().getListValue("abi-include-2").delete();
+    density.compatibleScreens().getListValue("screen1").delete();
+    density.exclude().getListValue("density-exclude-2").delete();
+    density.include().getListValue("density-include-1").delete();
+    language.include().getListValue("language-include-2").delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -344,6 +354,7 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertEquals("include", ImmutableList.of("language-include-1"), language.include());
   }
 
+  @Test
   public void testRemoveOnlyElementsInTheList() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -385,12 +396,12 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertTrue(hasPsiElement(language));
     assertEquals("include", ImmutableList.of("language-include"), language.include());
 
-    abi.removeExclude("abi-exclude");
-    abi.removeInclude("abi-include");
-    density.removeCompatibleScreen("screen");
-    density.removeExclude("density-exclude");
-    density.removeInclude("density-include");
-    language.removeInclude("language-include");
+    abi.exclude().getListValue("abi-exclude").delete();
+    abi.include().getListValue("abi-include").delete();
+    density.compatibleScreens().getListValue("screen").delete();
+    density.exclude().getListValue("density-exclude").delete();
+    density.include().getListValue("density-include").delete();
+    language.include().getListValue("language-include").delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -398,22 +409,23 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     splits = android.splits();
 
     abi = splits.abi();
-    assertNull("exclude", abi.exclude());
-    assertNull("include", abi.include());
+    assertMissingProperty("exclude", abi.exclude());
+    assertMissingProperty("include", abi.include());
     assertFalse(hasPsiElement(abi));
 
     density = splits.density();
-    assertNull("compatibleScreens", density.compatibleScreens());
-    assertNull("exclude", density.exclude());
-    assertNull("include", density.include());
+    assertMissingProperty("compatibleScreens", density.compatibleScreens());
+    assertMissingProperty("exclude", density.exclude());
+    assertMissingProperty("include", density.include());
 
     language = splits.language();
-    assertNull("include", language.include());
+    assertMissingProperty("include", language.include());
     assertFalse(hasPsiElement(language));
 
     assertFalse(hasPsiElement(splits));
   }
 
+  @Test
   public void testResetStatement() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -433,10 +445,39 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
     SplitsModel splits = android.splits();
-    assertNull("abi-include", splits.abi().include());
-    assertNull("density-include", splits.density().include());
+    assertTrue(splits.abi().reset());
+    assertTrue(splits.density().reset());
+    assertMissingProperty("abi-include", splits.abi().include());
+    assertMissingProperty("density-include", splits.density().include());
   }
 
+  @Test
+  public void testResetNoneExisting() throws Exception {
+    String text = "android {\n" +
+                  "  splits {\n" +
+                  "    abi {\n" +
+                  "      reset()\n" +
+                  "      include 'abi-include-2', 'abi-include-3'\n" +
+                  "    }\n" +
+                  "    density {\n" +
+                  "      include 'density-include-1', 'density-include-2'\n" +
+                  "      reset()\n" +
+                  "      include 'density-include-3'\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+    SplitsModel splits = android.splits();
+    assertTrue(splits.abi().reset());
+    assertTrue(splits.density().reset());
+    assertEquals("abi-include", ImmutableList.of("abi-include-2", "abi-include-3"), splits.abi().include());
+    assertEquals("density-include", ImmutableList.of("density-include-3"), splits.density().include());
+  }
+
+  @Test
   public void testResetAndInitialize() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -458,10 +499,13 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
     SplitsModel splits = android.splits();
+    assertTrue(splits.abi().reset());
+    assertTrue(splits.density().reset());
     assertEquals("abi-include", ImmutableList.of("abi-include-2", "abi-include-3"), splits.abi().include());
     assertEquals("density-include", ImmutableList.of("density-include-3"), splits.density().include());
   }
 
+  @Test
   public void testAddResetStatement() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -481,19 +525,22 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
     SplitsModel splits = android.splits();
     assertEquals("abi-include", ImmutableList.of("abi-include-1", "abi-include-2"), splits.abi().include());
-    assertEquals("density-include", ImmutableList.of("density-include-1", "density-include-2"), splits.density().include());
 
-    splits.abi().addReset();
-    splits.density().addReset();
+    splits.abi().setReset(true);
+    splits.density().setReset(true);
 
     applyChangesAndReparse(buildModel);
+
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();
-    assertNull("abi-include", splits.abi().include());
-    assertNull("density-include", splits.density().include());
+    assertTrue(splits.abi().reset());
+    assertTrue(splits.density().reset());
+    assertEquals("abi-include", ImmutableList.of("abi-include-1", "abi-include-2"), splits.abi().include());
+    assertEquals("density-include", ImmutableList.of("density-include-1", "density-include-2"), splits.density().include());
   }
 
+  @Test
   public void testRemoveResetStatement() throws Exception {
     String text = "android {\n" +
                   "  splits {\n" +
@@ -514,16 +561,18 @@ public class SplitsModelTest extends GradleFileModelTestCase {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
     SplitsModel splits = android.splits();
-    assertNull("abi-include", splits.abi().include());
-    assertNull("density-include", splits.density().include());
+    assertMissingProperty("abi-include", splits.abi().include());
+    assertMissingProperty("density-include", splits.density().include());
 
-    splits.abi().removeReset();
-    splits.density().removeReset();
+    splits.abi().setReset(false);
+    splits.density().setReset(false);
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
     assertNotNull(android);
     splits = android.splits();
+    assertFalse(splits.abi().reset());
+    assertFalse(splits.density().reset());
     assertEquals("abi-include", ImmutableList.of("abi-include-1", "abi-include-2"), splits.abi().include());
     assertEquals("density-include", ImmutableList.of("density-include-1", "density-include-2"), splits.density().include());
   }

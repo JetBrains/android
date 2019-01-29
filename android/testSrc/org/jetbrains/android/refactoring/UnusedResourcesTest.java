@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -25,12 +26,15 @@ import org.jetbrains.android.AndroidTestCase;
 public class UnusedResourcesTest extends AndroidTestCase {
   private static final String BASE_PATH = "refactoring/unusedResources/";
 
-  public void test() throws Exception {
+  public void testUnusedResources() {
     myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
     VirtualFile layout2 = myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout2.xml");
     myFixture.copyFileToProject(BASE_PATH + "TestCode.java", "src/p1/p2/TestCode.java");
-    myFixture.copyFileToProject(BASE_PATH + "R.java", "src/p1/p2/R.java");
+
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject(BASE_PATH + "R.java", "gen/p1/p2/R.java");
+    }
 
     boolean skipIds = true;
     UnusedResourcesHandler.invoke(getProject(), null, null, true, skipIds);

@@ -20,11 +20,13 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import org.junit.Test;
 
 /**
  * Tests for {@link DexOptionsModel}.
  */
 public class DexOptionsModelTest extends GradleFileModelTestCase {
+  @Test
   public void testParseElementsInApplicationStatements() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -55,6 +57,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("threadCount", Integer.valueOf(5), dexOptions.threadCount());
   }
 
+  @Test
   public void testParseElementsInAssignmentStatements() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -85,6 +88,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("threadCount", Integer.valueOf(10), dexOptions.threadCount());
   }
 
+  @Test
   public void testEditElements() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -115,14 +119,14 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("preDexLibraries", Boolean.FALSE, dexOptions.preDexLibraries());
     assertEquals("threadCount", Integer.valueOf(5), dexOptions.threadCount());
 
-    dexOptions.replaceAdditionalParameter("efgh", "xyz");
-    dexOptions.setJavaMaxHeapSize("1024m");
-    dexOptions.setJumboMode(false);
-    dexOptions.setKeepRuntimeAnnotatedClasses(true);
-    dexOptions.setMaxProcessCount(5);
-    dexOptions.setOptimize(false);
-    dexOptions.setPreDexLibraries(true);
-    dexOptions.setThreadCount(10);
+    dexOptions.additionalParameters().getListValue("efgh").setValue("xyz");
+    dexOptions.javaMaxHeapSize().setValue("1024m");
+    dexOptions.jumboMode().setValue(false);
+    dexOptions.keepRuntimeAnnotatedClasses().setValue(true);
+    dexOptions.maxProcessCount().setValue(5);
+    dexOptions.optimize().setValue(false);
+    dexOptions.preDexLibraries().setValue(true);
+    dexOptions.threadCount().setValue(10);
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -139,6 +143,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("threadCount", Integer.valueOf(10), dexOptions.threadCount());
   }
 
+  @Test
   public void testAddElements() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -152,23 +157,23 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     DexOptionsModel dexOptions = android.dexOptions();
-    assertNull("additionalParameters", dexOptions.additionalParameters());
-    assertNull("javaMaxHeapSize", dexOptions.javaMaxHeapSize());
-    assertNull("jumboMode", dexOptions.jumboMode());
-    assertNull("keepRuntimeAnnotatedClasses", dexOptions.keepRuntimeAnnotatedClasses());
-    assertNull("maxProcessCount", dexOptions.maxProcessCount());
-    assertNull("optimize", dexOptions.optimize());
-    assertNull("preDexLibraries", dexOptions.preDexLibraries());
-    assertNull("threadCount", dexOptions.threadCount());
+    assertMissingProperty("additionalParameters", dexOptions.additionalParameters());
+    assertMissingProperty("javaMaxHeapSize", dexOptions.javaMaxHeapSize());
+    assertMissingProperty("jumboMode", dexOptions.jumboMode());
+    assertMissingProperty("keepRuntimeAnnotatedClasses", dexOptions.keepRuntimeAnnotatedClasses());
+    assertMissingProperty("maxProcessCount", dexOptions.maxProcessCount());
+    assertMissingProperty("optimize", dexOptions.optimize());
+    assertMissingProperty("preDexLibraries", dexOptions.preDexLibraries());
+    assertMissingProperty("threadCount", dexOptions.threadCount());
 
-    dexOptions.addAdditionalParameter("abcd");
-    dexOptions.setJavaMaxHeapSize("2048m");
-    dexOptions.setJumboMode(true);
-    dexOptions.setKeepRuntimeAnnotatedClasses(false);
-    dexOptions.setMaxProcessCount(10);
-    dexOptions.setOptimize(true);
-    dexOptions.setPreDexLibraries(false);
-    dexOptions.setThreadCount(5);
+    dexOptions.additionalParameters().addListValue().setValue("abcd");
+    dexOptions.javaMaxHeapSize().setValue("2048m");
+    dexOptions.jumboMode().setValue(true);
+    dexOptions.keepRuntimeAnnotatedClasses().setValue(false);
+    dexOptions.maxProcessCount().setValue(10);
+    dexOptions.optimize().setValue(true);
+    dexOptions.preDexLibraries().setValue(false);
+    dexOptions.threadCount().setValue(5);
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -185,6 +190,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("threadCount", Integer.valueOf(5), dexOptions.threadCount());
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -216,14 +222,14 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("preDexLibraries", Boolean.FALSE, dexOptions.preDexLibraries());
     assertEquals("threadCount", Integer.valueOf(5), dexOptions.threadCount());
 
-    dexOptions.removeAllAdditionalParameters();
-    dexOptions.removeJavaMaxHeapSize();
-    dexOptions.removeJumboMode();
-    dexOptions.removeKeepRuntimeAnnotatedClasses();
-    dexOptions.removeMaxProcessCount();
-    dexOptions.removeOptimize();
-    dexOptions.removePreDexLibraries();
-    dexOptions.removeThreadCount();
+    dexOptions.additionalParameters().delete();
+    dexOptions.javaMaxHeapSize().delete();
+    dexOptions.jumboMode().delete();
+    dexOptions.keepRuntimeAnnotatedClasses().delete();
+    dexOptions.maxProcessCount().delete();
+    dexOptions.optimize().delete();
+    dexOptions.preDexLibraries().delete();
+    dexOptions.threadCount().delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -231,16 +237,17 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
 
     dexOptions = android.dexOptions();
     checkForInValidPsiElement(dexOptions, DexOptionsModelImpl.class);
-    assertNull("additionalParameters", dexOptions.additionalParameters());
-    assertNull("javaMaxHeapSize", dexOptions.javaMaxHeapSize());
-    assertNull("jumboMode", dexOptions.jumboMode());
-    assertNull("keepRuntimeAnnotatedClasses", dexOptions.keepRuntimeAnnotatedClasses());
-    assertNull("maxProcessCount", dexOptions.maxProcessCount());
-    assertNull("optimize", dexOptions.optimize());
-    assertNull("preDexLibraries", dexOptions.preDexLibraries());
-    assertNull("threadCount", dexOptions.threadCount());
+    assertMissingProperty("additionalParameters", dexOptions.additionalParameters());
+    assertMissingProperty("javaMaxHeapSize", dexOptions.javaMaxHeapSize());
+    assertMissingProperty("jumboMode", dexOptions.jumboMode());
+    assertMissingProperty("keepRuntimeAnnotatedClasses", dexOptions.keepRuntimeAnnotatedClasses());
+    assertMissingProperty("maxProcessCount", dexOptions.maxProcessCount());
+    assertMissingProperty("optimize", dexOptions.optimize());
+    assertMissingProperty("preDexLibraries", dexOptions.preDexLibraries());
+    assertMissingProperty("threadCount", dexOptions.threadCount());
   }
 
+  @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -257,7 +264,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     DexOptionsModel dexOptions = android.dexOptions();
     assertEquals("additionalParameters", ImmutableList.of("abcd", "efgh"), dexOptions.additionalParameters());
 
-    dexOptions.removeAdditionalParameter("abcd");
+    dexOptions.additionalParameters().getListValue("abcd").delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -267,6 +274,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("additionalParameters", ImmutableList.of("efgh"), dexOptions.additionalParameters());
   }
 
+  @Test
   public void testRemoveOnlyElementInTheList() throws Exception {
     String text = "android {\n" +
                   "  dexOptions {\n" +
@@ -284,7 +292,7 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
     checkForValidPsiElement(dexOptions, DexOptionsModelImpl.class);
     assertEquals("additionalParameters", ImmutableList.of("abcd"), dexOptions.additionalParameters());
 
-    dexOptions.removeAdditionalParameter("abcd");
+    dexOptions.additionalParameters().getListValue("abcd").delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -292,6 +300,6 @@ public class DexOptionsModelTest extends GradleFileModelTestCase {
 
     dexOptions = android.dexOptions();
     checkForInValidPsiElement(dexOptions, DexOptionsModelImpl.class);
-    assertNull("additionalParameters", dexOptions.additionalParameters());
+    assertMissingProperty("additionalParameters", dexOptions.additionalParameters());
   }
 }

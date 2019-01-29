@@ -22,7 +22,7 @@ import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import icons.AndroidIcons.FormFactors;
+import icons.StudioIllustrations.FormFactors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,14 +37,14 @@ import java.util.Map;
 public enum FormFactor {
   MOBILE("Mobile", "Phone and Tablet", 15, SdkVersionInfo.LOWEST_ACTIVE_API, SdkVersionInfo.HIGHEST_KNOWN_API, Lists.newArrayList(20),
          Lists.newArrayList(SystemImage.DEFAULT_TAG, SystemImage.GOOGLE_APIS_TAG, SystemImage.GOOGLE_APIS_X86_TAG), null,
-         FormFactors.Mobile_64, FormFactors.Mobile_128),
-  WEAR("Wear", "Wear", 21, SdkVersionInfo.LOWEST_ACTIVE_API_WEAR, SdkVersionInfo.HIGHEST_KNOWN_API_WEAR,
-       null, Lists.newArrayList(SystemImage.WEAR_TAG), null, FormFactors.Wear_64, FormFactors.Wear_128),
+         FormFactors.MOBILE, FormFactors.MOBILE_LARGE),
+  WEAR("Wear", "Wear OS", 21, SdkVersionInfo.LOWEST_ACTIVE_API_WEAR, SdkVersionInfo.HIGHEST_KNOWN_API_WEAR,
+       null, Lists.newArrayList(SystemImage.WEAR_TAG), null, FormFactors.WEAR, FormFactors.WEAR_LARGE),
   TV("TV", "TV", 21, SdkVersionInfo.LOWEST_ACTIVE_API_TV, SdkVersionInfo.HIGHEST_KNOWN_API_TV,
-     null, Lists.newArrayList(SystemImage.TV_TAG), null, FormFactors.Tv_64, FormFactors.Tv_128),
-  CAR("Car", "Android Auto", 21, 21, 21, null, null, MOBILE, FormFactors.Car_64, FormFactors.Car_128),
-  THINGS("Things", "Android Things", 24, 24, SdkVersionInfo.HIGHEST_KNOWN_API, null, null, null, FormFactors.Things_64, FormFactors.Things_128),
-  GLASS("Glass", "Glass", 19, -1, -1, null, Lists.newArrayList(SystemImage.GLASS_TAG), null, FormFactors.Glass_64, FormFactors.Glass_128);
+     null, Lists.newArrayList(SystemImage.TV_TAG), null, FormFactors.TV, FormFactors.TV_LARGE),
+  CAR("Car", "Android Auto", 21, 21, 21, null, null, MOBILE, FormFactors.CAR, FormFactors.CAR_LARGE),
+  THINGS("Things", "Android Things", 24, 24, SdkVersionInfo.HIGHEST_KNOWN_API, null, null, null, FormFactors.THINGS, FormFactors.THINGS_LARGE),
+  GLASS("Glass", "Glass", 19, -1, -1, null, Lists.newArrayList(SystemImage.GLASS_TAG), null, FormFactors.GLASS, FormFactors.GLASS_LARGE);
 
   private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
     .put(MOBILE.id, MOBILE)

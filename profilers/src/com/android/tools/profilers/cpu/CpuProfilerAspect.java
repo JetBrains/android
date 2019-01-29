@@ -16,7 +16,9 @@
 package com.android.tools.profilers.cpu;
 
 public enum CpuProfilerAspect {
-  // The capture state (e.g. capturing, parsing, set new capture) has changed.
+  // The parsing state (i.e. parsing or not parsing) has changed.
+  CAPTURE_PARSING,
+  // The capture state (e.g. idle, capturing) has changed.
   CAPTURE_STATE,
   // The selected capture has changed.
   CAPTURE_SELECTION,
@@ -28,6 +30,6 @@ public enum CpuProfilerAspect {
   PROFILING_CONFIGURATION,
   // Clock type (i.e. wall or thread) has changed.
   CLOCK_TYPE,
-  // Time elapsed since the capture has started has changed.
+  // Time elapsed since the capture recording or parsing has started has changed.
   CAPTURE_ELAPSED_TIME,
 }

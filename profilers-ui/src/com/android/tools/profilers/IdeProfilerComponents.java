@@ -15,21 +15,20 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.stacktrace.DataViewer;
-import com.android.tools.profilers.stacktrace.LoadingPanel;
-import com.android.tools.profilers.stacktrace.StackTraceModel;
-import com.android.tools.profilers.stacktrace.StackTraceView;
+import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.dataviewer.DataViewer;
+import com.android.tools.profilers.stacktrace.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.Collection;
+import java.util.function.Consumer;
 
 /**
  * Abstractions for various, custom UI components that are useful to use throughout the profilers,
  * which should be implemented by any system wishing to display our profilers.
- *
+ * <p>
  * Note: Expectations are that methods in here should alwayws return a created component. In other
  * words, this shouldn't become a home for 'void' utility methods. If such methods are needed,
  * create a helper interface with those void methods, and return that instead.
@@ -43,7 +42,13 @@ public interface IdeProfilerComponents {
   LoadingPanel createLoadingPanel(int delayMs);
 
   @NotNull
-  StackTraceView createStackView(@NotNull StackTraceModel model);
+  StackTraceGroup createStackGroup();
+
+  @NotNull
+  default StackTraceView createStackView(@NotNull StackTraceModel model) {
+    // Delegate to StackTraceGroup to simply create a stack trace view of group size 1
+    return createStackGroup().createStackView(model);
+  }
 
   @NotNull
   ContextMenuInstaller createContextMenuInstaller();
@@ -52,13 +57,33 @@ public interface IdeProfilerComponents {
   ExportDialog createExportDialog();
 
   @NotNull
-  DataViewer createFileViewer(@NotNull File file);
+  ImportDialog createImportDialog();
+
+  /**
+   * Creates a UI component that displays some data (which may be text or binary). The view uses the data's content type, if known,
+   * to render it correctly.
+   *
+   * @param styleHint A style which the viewer will attempt to apply; however, this may fail in some cases, so you are encouraged
+   *                  to check {@link DataViewer#getStyle()} if you need to confirm the style was actually accepted.
+   */
+  @NotNull
+  DataViewer createDataViewer(@NotNull byte[] bytes, @NotNull ContentType contentType, @NotNull DataViewer.Style styleHint);
 
   @NotNull
   JComponent createResizableImageComponent(@NotNull BufferedImage image);
 
   @NotNull
-  AutoCompleteTextField createAutoCompleteTextField(@NotNull String placeHolder,
-                                                    @NotNull String value,
-                                                    @NotNull Collection<String> variants);
+  UiMessageHandler createUiMessageHandler();
+
+  /**
+   * Open the dialog for managing the CPU profiling configurations.
+   *
+   * @param profilerModel  {@link CpuProfilerConfigModel} corresponding to the {@link ProfilingConfiguration} to be selected when opening
+   *                       the dialog.
+   * @param deviceLevel    API level of the device.
+   * @param dialogCallback Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
+   *                       that was selected on the configurations list when the dialog was closed.
+   */
+  void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel profilerModel, int deviceLevel,
+                                            @NotNull Consumer<ProfilingConfiguration> dialogCallback);
 }

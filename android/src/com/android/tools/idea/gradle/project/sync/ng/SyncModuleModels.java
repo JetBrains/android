@@ -16,42 +16,54 @@
 package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.ModelBuilderParameter;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.java.model.ArtifactModel;
+import com.android.java.model.GradlePluginModel;
 import com.android.java.model.JavaProject;
+import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class SyncModuleModels implements GradleModuleModels {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 5L;
 
-  @NotNull private final GradleProject myGradleProject;
+  @NotNull private final BuildIdentifier myBuildId;
   @NotNull private final Set<Class<?>> myExtraAndroidModelTypes;
   @NotNull private final Set<Class<?>> myExtraJavaModelTypes;
+  @NotNull private final SyncActionOptions myOptions;
 
-  @NotNull private final Map<Class, Object> myModelsByType = new HashMap<>();
+  @NotNull private final Map<Class, List<Object>> myModelsByType = new HashMap<>();
 
-  SyncModuleModels(@NotNull GradleProject gradleProject,
-                   @NotNull Set<Class<?>> extraAndroidModelTypes,
-                   @NotNull Set<Class<?>> extraJavaModelTypes) {
-    myGradleProject = gradleProject;
+  @NotNull private String myModuleName;
+
+  public SyncModuleModels(@NotNull GradleProject gradleProject,
+                          @NotNull BuildIdentifier buildId,
+                          @NotNull Set<Class<?>> extraAndroidModelTypes,
+                          @NotNull Set<Class<?>> extraJavaModelTypes,
+                          @NotNull SyncActionOptions options) {
+    myBuildId = buildId;
     myExtraAndroidModelTypes = extraAndroidModelTypes;
     myExtraJavaModelTypes = extraJavaModelTypes;
+    myModuleName = gradleProject.getName();
+    myOptions = options;
   }
 
   void populate(@NotNull GradleProject gradleProject, @NotNull BuildController controller) {
-    myModelsByType.put(GradleProject.class, gradleProject);
-    AndroidProject androidProject = findAndAddModel(gradleProject, controller, AndroidProject.class);
+    addModel(GradleProject.class, gradleProject);
+    findAndAddModel(gradleProject, controller, GradlePluginModel.class);
+    AndroidProject androidProject = findParameterizedAndroidModel(gradleProject, controller, AndroidProject.class);
     if (androidProject != null) {
       // "Native" projects also both AndroidProject and AndroidNativeProject
-      findAndAddModel(gradleProject, controller, NativeAndroidProject.class);
+      findParameterizedAndroidModel(gradleProject, controller, NativeAndroidProject.class);
       for (Class<?> type : myExtraAndroidModelTypes) {
         findAndAddModel(gradleProject, controller, type);
       }
@@ -69,29 +81,85 @@ public class SyncModuleModels implements GradleModuleModels {
     findAndAddModel(gradleProject, controller, ArtifactModel.class);
   }
 
-  @Override
-  @NotNull
-  public String getModuleName() {
-    return myGradleProject.getName();
+  @Nullable
+  private <T> T findParameterizedAndroidModel(@NotNull GradleProject gradleProject,
+                                              @NotNull BuildController controller,
+                                              @NotNull Class<T> modelType) {
+    if (myOptions.isSingleVariantSyncEnabled()) {
+      try {
+        T androidModel = controller.getModel(gradleProject, modelType, ModelBuilderParameter.class,
+                                             parameter -> parameter.setShouldBuildVariant(false));
+        if (androidModel != null) {
+          addModel(modelType, androidModel);
+          return androidModel;
+        }
+      }
+      catch (UnsupportedVersionException e) {
+        // Using old version of Gradle. Fall back to full variants sync for this module.
+      }
+    }
+    return findAndAddModel(gradleProject, controller, modelType);
   }
 
   @Nullable
   private <T> T findAndAddModel(@NotNull GradleProject gradleProject, @NotNull BuildController controller, @NotNull Class<T> modelType) {
     T model = controller.findModel(gradleProject, modelType);
     if (model != null) {
-      myModelsByType.put(modelType, model);
+      addModel(modelType, model);
     }
     return model;
   }
 
   @Override
+  @NotNull
+  public String getModuleName() {
+    return myModuleName;
+  }
+
+  /**
+   * Set module name to make sure module names are unique.
+   * Call this method if current module has duplicated name with another module.
+   */
+  public void setModuleName(@NotNull String moduleName) {
+    myModuleName = moduleName;
+  }
+
+  /**
+   * @return the build identifier of current module.
+   */
+  @NotNull
+  public BuildIdentifier getBuildId() {
+    return myBuildId;
+  }
+
+  @Override
   @Nullable
   public <T> T findModel(@NotNull Class<T> modelType) {
-    Object model = myModelsByType.get(modelType);
-    if (model != null) {
+    List<Object> models = myModelsByType.get(modelType);
+    if (models == null || models.isEmpty()) {
+      return null;
+    }
+    assert models.size() == 1 : "More than one models available, please use findModels() instead.";
+    Object model = models.get(0);
+    assert modelType.isInstance(model);
+    return modelType.cast(model);
+  }
+
+  @Override
+  @Nullable
+  public <T> List<T> findModels(@NotNull Class<T> modelType) {
+    List<Object> models = myModelsByType.get(modelType);
+    if (models == null || models.isEmpty()) {
+      return null;
+    }
+    return models.stream().map(model -> {
       assert modelType.isInstance(model);
       return modelType.cast(model);
-    }
-    return null;
+    }).collect(Collectors.toList());
+  }
+
+  public <T> void addModel(@NotNull Class<T> modelType, @NotNull T model) {
+    List<Object> models = myModelsByType.computeIfAbsent(modelType, k -> new ArrayList<>());
+    models.add(model);
   }
 }

@@ -1,7 +1,6 @@
 package com.android.tools.idea.lang.databinding;
-import com.intellij.lexer.*;
 import com.intellij.psi.tree.IElementType;
-import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
+import static DbTokenTypes.*;
 @SuppressWarnings("ALL")
 %%
 

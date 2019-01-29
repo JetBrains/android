@@ -27,15 +27,12 @@ import java.io.*;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link AndroidModuleModel}.
  */
 public class AndroidModuleModelTest extends AndroidGradleTestCase {
-  public void testDisabled() {
-    // http://b/35788105
-  }
-
   private AndroidProjectStub myAndroidProject;
   private AndroidModuleModel myAndroidModel;
 
@@ -92,5 +89,39 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     assertEquals(androidModel.getRootDirPath(), newAndroidModel.getRootDirPath());
     assertEquals(androidModel.getAndroidProject().getName(), newAndroidModel.getAndroidProject().getName());
     assertEquals(androidModel.getSelectedVariant().getName(), newAndroidModel.getSelectedVariant().getName());
+  }
+
+  public void testSelectedVariantExistsButNotRequested() {
+    AndroidProjectStub androidProject = new AndroidProjectStub("MyApp");
+    androidProject.clearVariants();
+    // Simulate the case that variant names are "release" and "debug", but only "release" variant is requested.
+    androidProject.addVariant("release");
+    androidProject.setVariantNames("debug", "release");
+
+    // Create AndroidModuleModel with "debug" as selected variant.
+    AndroidModuleModel androidModel =
+      new AndroidModuleModel(androidProject.getName(), getBaseDirPath(getProject()), androidProject, "debug", new IdeDependenciesFactory());
+
+    // Verify that "release" is set as selected variant.
+    assertThat(androidModel.getSelectedVariant().getName()).isEqualTo("release");
+
+    // Verify that findVariantToSelect selects specified variant if it has been requested, selects the first available one otherwise.
+    assertThat(androidModel.findVariantToSelect("release")).isEqualTo("release");
+    assertThat(androidModel.findVariantToSelect("debug")).isEqualTo("release");
+  }
+
+  public void testSelectedVariantWasRequested() {
+    AndroidProjectStub androidProject = new AndroidProjectStub("MyApp");
+    androidProject.clearVariants();
+    // Simulate the case that variant names are "release" and "debug", but only "release" variant is requested.
+    androidProject.addVariant("release");
+    androidProject.setVariantNames("debug", "release");
+
+    // Create AndroidModuleModel with "release" as selected variant.
+    AndroidModuleModel androidModel =
+      new AndroidModuleModel(androidProject.getName(), getBaseDirPath(getProject()), androidProject, "release",
+                             new IdeDependenciesFactory());
+    // Verify that "release" is set as selected variant.
+    assertThat(androidModel.getSelectedVariant().getName()).isEqualTo("release");
   }
 }

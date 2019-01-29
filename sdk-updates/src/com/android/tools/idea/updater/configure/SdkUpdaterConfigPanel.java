@@ -25,13 +25,13 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.progress.StudioProgressRunner;
-import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.progress.StudioProgressRunner;
+import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
 import com.android.tools.idea.welcome.wizard.deprecated.ConsolidatedProgressStep;
@@ -41,7 +41,10 @@ import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.common.collect.TreeMultimap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
@@ -66,6 +69,7 @@ import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.table.SelectionProvider;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.containers.ImmutableList;
 import com.intellij.util.ui.accessibility.ScreenReader;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -84,8 +88,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 
@@ -205,7 +209,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
                                @Nullable Downloader downloader,
                                @Nullable SettingsController settings,
                                @NotNull SdkUpdaterConfigurable configurable) {
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                      .setCategory(EventCategory.SDK_MANAGER)
                                      .setKind(EventKind.SDK_MANAGER_LOADED));
 
@@ -215,7 +219,9 @@ public class SdkUpdaterConfigPanel implements Disposable {
     mySettings = settings;
 
     Collection<File> sdkLocations = getSdkLocations();
-    mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
+    if (!sdkLocations.isEmpty()) {
+      mySelectedSdkLocation.set(sdkLocations.stream().findFirst());
+    }
     mySelectedSdkLocation.addListener(sender -> ApplicationManager.getApplication().invokeLater(this::reset));
 
     ((CardLayout)mySdkLocationPanel.getLayout()).show(mySdkLocationPanel, "SingleSdk");
@@ -266,7 +272,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
   private static Collection<File> getSdkLocations() {
     File androidHome = IdeSdks.getInstance().getAndroidSdkPath();
     if (androidHome != null) {
-      return ImmutableList.of(androidHome);
+      return ImmutableList.singleton(androidHome);
     }
 
     Set<File> locations = new HashSet<>();
@@ -508,19 +514,25 @@ public class SdkUpdaterConfigPanel implements Disposable {
   /**
    * Revalidates and refreshes our packages. Notifies platform and tools components of the start and end, so they can update their UIs.
    */
-  public void refresh() {
+  public void refresh(boolean forceRemoteReload) {
     validate();
-
-    myPlatformComponentsPanel.startLoading();
-    myToolComponentsPanel.startLoading();
 
     // TODO: make progress runner handle invokes?
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
     StudioProgressRunner progressRunner =
       new StudioProgressRunner(false, false, "Loading SDK", projects.length == 0 ? null : projects[0]);
-    myConfigurable.getRepoManager()
-      .load(0, ImmutableList.of(myLocalUpdater), ImmutableList.of(myRemoteUpdater), null,
-            progressRunner, myDownloader, mySettings, false);
+    if (forceRemoteReload) {
+      myPlatformComponentsPanel.startLoading();
+      myToolComponentsPanel.startLoading();
+      myConfigurable.getRepoManager()
+                    .load(0, ImmutableList.singleton(myLocalUpdater), ImmutableList.singleton(myRemoteUpdater), null,
+                          progressRunner, myDownloader, mySettings, false);
+    }
+    else {
+      myConfigurable.getRepoManager()
+                    .load(0, ImmutableList.singleton(myLocalUpdater), null, null,
+                          progressRunner, null, mySettings, false);
+    }
   }
 
   /**
@@ -597,7 +609,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
    * Resets our state back to what it was before the user made any changes.
    */
   public void reset() {
-    refresh();
+    refresh(true);
     Collection<File> sdkLocations = getSdkLocations();
     if (getSdkLocations().size() == 1) {
       mySdkLocationTextField.setText(sdkLocations.iterator().next().getPath());
@@ -615,10 +627,17 @@ public class SdkUpdaterConfigPanel implements Disposable {
   }
 
   /**
+   * Checks whether there have been any changes made to {@link RepositorySource}s via UI.
+   */
+  public boolean areSourcesModified() {
+    return myUpdateSitesPanel.isModified();
+  }
+
+  /**
    * Create our UI components that need custom creation.
    */
   private void createUIComponents() {
-    myUpdateSitesPanel = new UpdateSitesPanel(this::refresh);
+    myUpdateSitesPanel = new UpdateSitesPanel(() -> refresh(true));
   }
 
   /**

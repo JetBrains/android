@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
+import static com.intellij.util.ArrayUtilRt.EMPTY_STRING_ARRAY;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.vectordrawable.VdIcon;
-import com.android.tools.adtui.SearchField;
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Multimap;
@@ -27,32 +28,36 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.intellij.util.ArrayUtilRt.EMPTY_STRING_ARRAY;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A dialog to pick a pre-configured material icon in vector format.
@@ -60,11 +65,8 @@ import static com.intellij.util.ArrayUtilRt.EMPTY_STRING_ARRAY;
 public final class IconPickerDialog extends DialogWrapper {
   @NotNull private static final String[] ICON_CATEGORIES = initIconCategories();
 
-  @VisibleForTesting
-  static String[] initIconCategories() {
-    Collection<String> categories = MaterialDesignIcons.getCategories().stream()
-      .map(category -> category.equals("av") ? "AV" : StringUtil.capitalize(category))
-      .collect(Collectors.toList());
+  private static String[] initIconCategories() {
+    Collection<String> categories = MaterialDesignIcons.getCategories();
 
     Collection<String> allAndCategories = new ArrayList<>(categories.size() + 1);
 
@@ -131,7 +133,7 @@ public final class IconPickerDialog extends DialogWrapper {
   private JPanel myIconsPanel;
   @SuppressWarnings("unused") private JPanel myLicensePanel;
   private HyperlinkLabel myLicenseLabel;
-  private SearchField mySearchField;
+  private SearchTextField mySearchField;
 
   @Nullable private VdIcon mySelectedIcon;
 
@@ -142,7 +144,8 @@ public final class IconPickerDialog extends DialogWrapper {
     initializeIconMap();
 
     // On the left hand side, add the categories chooser.
-    JBList categoryList = new JBList((Object[])ICON_CATEGORIES);
+    String[] categories = getCategoryNames();
+    JBList<String> categoryList = new JBList<>(categories);
     JBScrollPane categoryPane = new JBScrollPane(categoryList);
     myCategoriesPanel.add(categoryPane);
 
@@ -237,9 +240,10 @@ public final class IconPickerDialog extends DialogWrapper {
       if (e.getValueIsAdjusting()) {
         return;
       }
-      String selectedValue = (String)categoryList.getSelectedValue();
-      if (selectedValue != null) {
-        updateIconList(selectedValue);
+      int selectedIndex = categoryList.getSelectedIndex();
+      if (selectedIndex >= 0) {
+        String category = ICON_CATEGORIES[selectedIndex];
+        updateIconList(category);
       }
     });
     categoryList.setSelectedIndex(0);
@@ -256,8 +260,16 @@ public final class IconPickerDialog extends DialogWrapper {
     init();
   }
 
+  @VisibleForTesting
+  @NotNull
+  static String[] getCategoryNames() {
+    return Arrays.stream(ICON_CATEGORIES)
+                 .map(category -> category.equals("av") ? "Audio/Video" : StringUtil.capitalize(category))
+                 .collect(Collectors.toList()).toArray(ArrayUtil.EMPTY_STRING_ARRAY);
+  }
+
   private void createUIComponents() {
-    mySearchField = new SearchField(false);
+    mySearchField = new SearchTextField(false);
     mySearchField.addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(@NotNull DocumentEvent e) {
@@ -282,7 +294,7 @@ public final class IconPickerDialog extends DialogWrapper {
     for (int r = 0; r < myIconTable.getRowCount(); r++) {
       for (int c = 0; c < myIconTable.getColumnCount(); c++) {
         VdIcon icon = (VdIcon)myIconTable.getValueAt(r, c);
-        if (icon.getURL().equals(selectedIcon.getURL())) {
+        if (icon != null && icon.getURL().equals(selectedIcon.getURL())) {
           myIconTable.changeSelection(r, c, false, false);
           return;
         }

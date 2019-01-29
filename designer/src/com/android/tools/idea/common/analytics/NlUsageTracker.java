@@ -18,6 +18,7 @@ package com.android.tools.idea.common.analytics;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -66,6 +67,14 @@ public interface NlUsageTracker {
   void logPropertyChange(@NotNull NlProperty property,
                          @NotNull NlPropertiesPanel.PropertiesViewMode propertiesMode,
                          int filterMatches);
+
+  /**
+   * Logs a property change action through either the inspector or the property table.
+   *
+   * @param property The property that was changed.
+   * @param filterMatches The number of matches if attribute name was selected by a filter or -1 if not filtered.
+   */
+  void logPropertyChange(@NotNull NelePropertyItem property, int filterMatches);
 
   /**
    * Logs a change in the set of favorite properties shown on the inspector.

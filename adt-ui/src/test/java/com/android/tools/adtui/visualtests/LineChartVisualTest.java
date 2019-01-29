@@ -27,6 +27,7 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.JBColor;
+import java.awt.event.ItemListener;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -61,6 +62,8 @@ public class LineChartVisualTest extends VisualTest {
   private DefaultDataSeries<DefaultDurationData> mDurationData1;
 
   private DefaultDataSeries<DefaultDurationData> mDurationData2;
+
+  private DefaultDataSeries<DefaultDurationData> mDurationData3;
 
   private DurationDataRenderer<DefaultDurationData> mDurationRendererBlocking;
 
@@ -103,8 +106,10 @@ public class LineChartVisualTest extends VisualTest {
 
     mDurationData1 = new DefaultDataSeries<>();
     mDurationData2 = new DefaultDataSeries<>();
+    mDurationData3 = new DefaultDataSeries<>();
     RangedSeries<DefaultDurationData> series1 = new RangedSeries<>(timeGlobalRangeUs, mDurationData1);
     RangedSeries<DefaultDurationData> series2 = new RangedSeries<>(timeGlobalRangeUs, mDurationData2);
+    RangedSeries<DefaultDurationData> series3 = new RangedSeries<>(timeGlobalRangeUs, mDurationData3);
     DurationDataModel<DefaultDurationData> model1 = new DurationDataModel<>(series1);
     mDurationRendererBlocking = new DurationDataRenderer.Builder<>(model1, Color.WHITE)
       .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
@@ -114,6 +119,16 @@ public class LineChartVisualTest extends VisualTest {
 
     DurationDataModel<DefaultDurationData> model2 = new DurationDataModel<>(series2);
     model2.setAttachedSeries(mRangedData.get(0), Interpolatable.SegmentInterpolator);
+    model2.setAttachPredicate(duration -> {
+      List<SeriesData<DefaultDurationData>> series = series3.getSeries();
+      for (SeriesData<DefaultDurationData> data : series) {
+        if (data.x <= duration.x && (data.value.getDurationUs() == Long.MAX_VALUE || (data.x + data.value.getDurationUs()) >= duration.x)) {
+          return false;
+        }
+      }
+      return  true;
+    });
+    model2.setRenderSeriesPredicate((data, series) -> !series.getName().equals("Widgets #0"));
     mDurationRendererAttached = new DurationDataRenderer.Builder<>(model2, Color.BLACK)
       .setLabelColors(Color.DARK_GRAY, Color.GRAY, Color.lightGray, Color.WHITE)
       .setIcon(UIManager.getIcon("Tree.leafIcon"))
@@ -224,6 +239,19 @@ public class LineChartVisualTest extends VisualTest {
         return firstLineStroke instanceof BasicStroke ? (int)((BasicStroke)firstLineStroke).getLineWidth() : 1;
       }
     }));
+    controls.add(VisualTest.createVariableSlider("Bucket interval", 0, 1000, new VisualTests.Value() {
+      @Override
+      public void set(int v) {
+        for (int i = 0; i < mRangedData.size(); i+=2) {
+          mLineChart.getLineConfig(mRangedData.get(i)).setDataBucketInterval(v * 1000);
+        }
+      }
+
+      @Override
+      public int get() {
+        return (int) mLineChart.getLineConfig(mRangedData.get(0)).getDataBucketInterval();
+      }
+    }));
     controls.add(VisualTest.createCheckbox("Shift xRange Min", itemEvent ->
       mAnimatedTimeRange.setShift(itemEvent.getStateChange() == ItemEvent.SELECTED)));
     controls.add(VisualTest.createCheckbox("Stepped chart", itemEvent -> {
@@ -282,7 +310,7 @@ public class LineChartVisualTest extends VisualTest {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         List<SeriesData<DefaultDurationData>> allEvents = mDurationData1.getAllData();
         SeriesData<DefaultDurationData> lastEvent = allEvents.get(allEvents.size() - 1);
-        lastEvent.value.setDuration(nowUs - lastEvent.x);
+        lastEvent.value.setDurationUs(nowUs - lastEvent.x);
       }
     });
     controls.add(tapButton);
@@ -303,10 +331,29 @@ public class LineChartVisualTest extends VisualTest {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
         List<SeriesData<DefaultDurationData>> allEvents = mDurationData2.getAllData();
         SeriesData<DefaultDurationData> lastEvent = allEvents.get(allEvents.size() - 1);
-        lastEvent.value.setDuration(nowUs - lastEvent.x);
+        lastEvent.value.setDurationUs(nowUs - lastEvent.x);
       }
     });
     controls.add(tapButton);
+
+    JCheckBox checkbox = VisualTest.createCheckbox("Toggle Duration3 (unattach Duration2 Data)", new ItemListener() {
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          // Starts a new test event and give it a max duration.
+          long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+          DefaultDurationData newEvent = new DefaultDurationData(Long.MAX_VALUE);
+          mDurationData3.add(nowUs, newEvent);
+        } else {
+          // Wraps up the latest event by assigning it a duration value relative to where it was started.
+          long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
+          List<SeriesData<DefaultDurationData>> allEvents = mDurationData3.getAllData();
+          SeriesData<DefaultDurationData> lastEvent = allEvents.get(allEvents.size() - 1);
+          lastEvent.value.setDurationUs(nowUs - lastEvent.x);
+        }
+      }
+    });
+    controls.add(checkbox);
 
     controls.add(mClickDisplayLabel);
 

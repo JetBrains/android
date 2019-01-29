@@ -1,29 +1,32 @@
-// Copyright (C) 2017 The Android Open Source Project
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.android.tools.idea.naveditor.property.editors
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
+import com.android.resources.ResourceVisibility
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.naveditor.model.actionDestination
-import com.android.tools.idea.naveditor.model.destinationType
+import com.android.tools.idea.naveditor.model.isFragment
+import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.getResourceItems
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener
 import com.android.tools.idea.uibuilder.property.editors.support.EnumSupport
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString
-import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.resourceManagers.LocalResourceManager
-import org.jetbrains.android.resourceManagers.ResourceManager
 
 // TODO: ideally this wouldn't be a separate editor, and EnumEditor could just get the EnumSupport from the property itself.
 class AnimationEditor(listener: NlEditingListener, comboBox: CustomComboBox) : EnumEditor(listener, comboBox, null, true, false) {
@@ -34,27 +37,34 @@ class AnimationEditor(listener: NlEditingListener, comboBox: CustomComboBox) : E
 
   private class AnimationEnumSupport(property: NlProperty) : EnumSupport(property) {
     override fun getAllValues(): List<ValueWithDisplayString> {
-      val resourceManager = LocalResourceManager.getInstance(myProperty.model.module) ?: return emptyList()
       val isFragment = myProperty.components
-          .mapNotNull { it.actionDestination }
-          .all { it.destinationType == NavigationSchema.DestinationType.FRAGMENT }
+        .mapNotNull { it.actionDestination }
+        .all { it.isFragment }
       // TODO: check the type of the start destination if the target is a graph
 
-      return getAnimatorsPopupContent(resourceManager, isFragment)
+
+      val repoManager = ResourceRepositoryManager.getOrCreateInstance(myProperty.model.module) ?: return emptyList()
+      return getAnimatorsPopupContent(repoManager, isFragment)
     }
 
     override fun createFromResolvedValue(resolvedValue: String, value: String?, hint: String?) =
-        ValueWithDisplayString(value?.substringAfter('/'), value)
+      ValueWithDisplayString(value?.substringAfter('/'), value)
   }
 }
 
-fun getAnimatorsPopupContent(resourceManager: ResourceManager, isFragment: Boolean): List<ValueWithDisplayString> {
+fun getAnimatorsPopupContent(repoManager: ResourceRepositoryManager, includeAnimators: Boolean): List<ValueWithDisplayString> {
   // TODO: filter out interpolators
-  val result = resourceManager.getResourceNames(ResourceType.ANIM, true)
-      .map { ValueWithDisplayString(it, "@${ResourceType.ANIM.getName()}/$it") }.toMutableList()
-  if (isFragment) {
-    resourceManager.getResourceNames(ResourceType.ANIMATOR, true)
-        .mapTo(result) { ValueWithDisplayString(it, "@${ResourceType.ANIMATOR.getName()}/$it") }
+  val appResources = repoManager.getAppResources(true)!!
+  val visibilityLookup = repoManager.resourceVisibility
+  val result: MutableList<ValueWithDisplayString> = appResources
+    .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIM, visibilityLookup, ResourceVisibility.PUBLIC)
+    .map { ValueWithDisplayString(it, "@${ResourceType.ANIM.getName()}/$it") }
+    .toMutableList()
+  if (includeAnimators) {
+    appResources
+      .getResourceItems(ResourceNamespace.TODO(), ResourceType.ANIMATOR, visibilityLookup, ResourceVisibility.PUBLIC)
+      .mapTo(result) { ValueWithDisplayString(it, "@${ResourceType.ANIMATOR.getName()}/$it") }
   }
+  result.sortBy { it.displayString }
   return result
 }

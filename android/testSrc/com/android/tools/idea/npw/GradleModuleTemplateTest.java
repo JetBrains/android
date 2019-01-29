@@ -17,6 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
 import java.io.File;
@@ -32,12 +33,12 @@ public final class GradleModuleTemplateTest {
     AndroidModuleTemplate paths = moduleTemplate.getPaths();
 
     assertEquals("main", moduleTemplate.getName());
-    assertEquals(paths.getModuleRoot(), new File("."));
-    assertEquals(paths.getSrcDirectory("my.package"), new File("./src/main/java/my/package"));
-    assertEquals(paths.getTestDirectory("my.package"), new File("./src/androidTest/java/my/package"));
-    assertEquals(paths.getAidlDirectory("my.package"), new File("./src/main/aidl/my/package"));
-    assertEquals(paths.getManifestDirectory(), new File("./src/main"));
-    assertEquals(paths.getResDirectory(), new File("./src/main/res"));
+    assertEquals(new File("."), paths.getModuleRoot());
+    assertEquals(new File("./src/main/java/my/package"), paths.getSrcDirectory("my.package"));
+    assertEquals(new File("./src/androidTest/java/my/package"), paths.getTestDirectory("my.package"));
+    assertEquals(new File("./src/main/aidl/my/package"), paths.getAidlDirectory("my.package"));
+    assertEquals(new File("./src/main"), paths.getManifestDirectory());
+    assertEquals(ImmutableList.of(new File("./src/main/res")), paths.getResDirectories());
   }
 
   @Test

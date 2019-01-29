@@ -16,10 +16,10 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,11 +35,12 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static org.junit.Assert.assertEquals;
 
 @RunIn(TestGroup.EDITING)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class AttributeResolveTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/73210921
   @Test
   public void testResolveNewlyAddedTag() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");

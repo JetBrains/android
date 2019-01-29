@@ -20,16 +20,15 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Set;
-
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.REFERENCE;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Represents a fully resolved property, that is it takes a property and provides an interface that squishes any references.
@@ -38,21 +37,20 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
  * reference changes in order to get a value.
  */
 public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
-  @NotNull private final GradlePropertyModelImpl myRealModel;
+  @NotNull protected final GradlePropertyModelImpl myRealModel;
+
+  public ResolvedPropertyModelImpl(@NotNull GradlePropertyModelImpl realModel) {
+    myRealModel = realModel;
+  }
 
   public ResolvedPropertyModelImpl(@NotNull GradleDslElement element) {
     myRealModel = new GradlePropertyModelImpl(element);
   }
 
-  // Used to create an empty property with no backing element.
-  public ResolvedPropertyModelImpl(@NotNull GradlePropertiesDslElement element, @NotNull PropertyType type, @NotNull String name) {
-    myRealModel = new GradlePropertyModelImpl(element, type, name);
-  }
-
   @NotNull
   @Override
   public ValueType getValueType() {
-    return getResolvedModel().getValueType();
+    return resolveModel().getValueType();
   }
 
   @NotNull
@@ -64,7 +62,7 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   @Nullable
   @Override
   public <T> T getValue(@NotNull TypeReference<T> typeReference) {
-    return getResolvedModel().getValue(typeReference);
+    return resolveModel().getValue(typeReference);
   }
 
   @Nullable
@@ -103,27 +101,146 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
   }
 
   @Override
+  @NotNull
+  public ResolvedPropertyModel convertToEmptyMap() {
+    myRealModel.convertToEmptyMap();
+    return this;
+  }
+
+  @Override
+  @NotNull
+  public GradlePropertyModel getMapValue(@NotNull String key) {
+    return myRealModel.getMapValue(key);
+  }
+
+  @Override
+  @NotNull
+  public GradlePropertyModel convertToEmptyList() {
+    myRealModel.convertToEmptyList();
+    return this;
+  }
+
+  @Override
+  @NotNull
+  public GradlePropertyModel addListValue() {
+    return myRealModel.addListValue();
+  }
+
+  @Override
+  @NotNull
+  public GradlePropertyModel addListValueAt(int index) {
+    return myRealModel.addListValueAt(index);
+  }
+
+  @Nullable
+  @Override
+  public GradlePropertyModel getListValue(@NotNull Object value) {
+    return myRealModel.getListValue(value);
+  }
+
+  @Override
   public void delete() {
     myRealModel.delete();
   }
 
-  private GradlePropertyModel getResolvedModel() {
-    GradlePropertyModel model = myRealModel;
-    Set<GradlePropertyModel> seenModels = new HashSet<>();
+  @Override
+  @NotNull
+  public ResolvedPropertyModel resolve() {
+    return this;
+  }
 
-    while (model.getValueType() == REFERENCE && !seenModels.contains(model)) {
-      if (model.getDependencies().isEmpty()) {
-        return model;
-      }
-      seenModels.add(model);
-      model = model.getDependencies().get(0);
+  @Nullable
+  @Override
+  public PsiElement getPsiElement() {
+    return myRealModel.getPsiElement();
+  }
+
+  @Nullable
+  @Override
+  public PsiElement getExpressionPsiElement() {
+    return myRealModel.getExpressionPsiElement();
+  }
+
+  @Nullable
+  @Override
+  public PsiElement getFullExpressionPsiElement() {
+    return myRealModel.getFullExpressionPsiElement();
+  }
+
+  @Nullable
+  @Override
+  public String toString() {
+    return resolveModel().toString();
+  }
+
+  @NotNull
+  @Override
+  public String forceString() {
+    return resolveModel().forceString();
+  }
+
+  @Nullable
+  @Override
+  public Integer toInt() {
+    return resolveModel().toInt();
+  }
+
+  @Nullable
+  @Override
+  public BigDecimal toBigDecimal() {
+    return resolveModel().toBigDecimal();
+  }
+
+  @Nullable
+  @Override
+  public Boolean toBoolean() {
+    return resolveModel().toBoolean();
+  }
+
+  @Nullable
+  @Override
+  public List<GradlePropertyModel> toList() {
+    List<GradlePropertyModel> list = resolveModel().toList();
+    if (list == null) {
+      return null;
     }
-    return model;
+    return list.stream().map(GradlePropertyModel::resolve).collect(Collectors.toList());
+  }
+
+  @Nullable
+  @Override
+  public Map<String, GradlePropertyModel> toMap() {
+    Map<String, GradlePropertyModel> map = resolveModel().toMap();
+    if (map == null) {
+      return null;
+    }
+    return map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().resolve()));
+  }
+
+  @Override
+  public void rename(@NotNull String name) {
+    myRealModel.rename(name);
+  }
+
+  @Override
+  public boolean isModified() {
+    return myRealModel.isModified();
   }
 
   @Override
   @NotNull
   public GradlePropertyModel getUnresolvedModel() {
     return myRealModel;
+  }
+
+  @NotNull
+  @Override
+  public GradlePropertyModel getResultModel() {
+    return resolveModel();
+  }
+
+  @NotNull
+  protected GradlePropertyModelImpl resolveModel() {
+    return PropertyUtil.resolveModel(myRealModel);
   }
 }

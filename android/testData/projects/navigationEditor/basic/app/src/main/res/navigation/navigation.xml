@@ -2,4 +2,5 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
   android:id="@+id/nav"
   android:label="myCoolLabel">
+  <fragment android:id="@+id/testFragment"/>
 </navigation>

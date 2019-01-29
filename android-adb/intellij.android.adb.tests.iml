@@ -12,9 +12,9 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="RUNTIME" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils:26.1.2" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools.ddms:ddmlib:26.1.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.ddms:ddmlib" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
-    <orderEntry type="library" scope="TEST" name="com.android.tools:common:26.1.2" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:common" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
   </component>
 </module>

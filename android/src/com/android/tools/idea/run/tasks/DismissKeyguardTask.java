@@ -21,7 +21,9 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import org.jetbrains.annotations.NotNull;
 
+
 public class DismissKeyguardTask implements LaunchTask {
+  private static final String ID = "DISMISS_KEYGUARD";
   @NotNull
   @Override
   public String getDescription() {
@@ -37,5 +39,11 @@ public class DismissKeyguardTask implements LaunchTask {
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     LaunchUtils.initiateDismissKeyguard(device);
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 }

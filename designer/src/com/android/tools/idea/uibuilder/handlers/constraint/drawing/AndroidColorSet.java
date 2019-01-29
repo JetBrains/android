@@ -18,6 +18,8 @@ package com.android.tools.idea.uibuilder.handlers.constraint.drawing;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.ColorTheme;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.WidgetDecorator;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.UIUtil;
 
 import java.awt.Color;
 
@@ -80,8 +82,9 @@ public class AndroidColorSet extends ColorSet {
 
         // Widget actions
 
-        mWidgetActionBackground = Color.lightGray;
-        mWidgetActionSelectedBackground = Color.white;
+        mWidgetActionBackground = UIUtil.getPanelBackground();
+        mWidgetActionSelectedBackground = UIUtil.getPanelBackground().brighter();
+        mWidgetActionSelectedBorder = UIUtil.getFocusedFillColor();
 
         // Tooltip
 
@@ -99,5 +102,10 @@ public class AndroidColorSet extends ColorSet {
         mInspectorFillColor = ColorTheme
                 .fadeToColor(ColorTheme.updateBrightness(mBackground, 1.3f),
                         Color.WHITE, 0.1f);
+
+        // Lasso colors
+
+        mLassoSelectionBorder = DEFAULT_LASSO_BORDER_COLOR;
+        mLassoSelectionFill = DEFAULT_LASSO_FILL_COLOR;
     }
 }

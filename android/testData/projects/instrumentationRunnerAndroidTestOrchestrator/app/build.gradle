@@ -29,5 +29,5 @@ android {
 }
 
 dependencies {
-    androidTestImplementation 'com.android.support:appcompat-v7:26.1.0'
+    androidTestImplementation 'com.android.support:appcompat-v7:+'
 }

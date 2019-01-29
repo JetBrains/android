@@ -17,24 +17,19 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.facet.Facet;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenameProcessor;
-import com.intellij.refactoring.rename.RenameViewDescriptor;
-import com.intellij.usageView.UsageInfo;
-import com.intellij.usageView.UsageViewDescriptor;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,41 +38,55 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class StringResourceData {
-  private final AndroidFacet myFacet;
-  private final Map<StringResourceKey, StringResource> myKeyToResourceMap;
+  private static final int MAX_LOCALE_LABEL_COUNT = 3;
 
-  public StringResourceData(@NotNull AndroidFacet facet,
-                            @NotNull Map<StringResourceKey, StringResource> keyToResourceMap) {
+  private final Facet myFacet;
+  private final Map<StringResourceKey, StringResource> myKeyToResourceMap;
+  private final StringResourceRepository myRepository;
+
+  StringResourceData(@NotNull Facet facet,
+                     @NotNull Map<StringResourceKey, StringResource> keyToResourceMap,
+                     @NotNull StringResourceRepository repository) {
     myFacet = facet;
     myKeyToResourceMap = keyToResourceMap;
+    myRepository = repository;
   }
 
-  public void changeKeyName(@NotNull StringResourceKey key, @NotNull String newName) {
-    ResourceItem res = getStringResource(key).getDefaultValueAsResourceItem();
-    if (res == null) return; // String does not exist in the default locale.
-    XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), res);
-    assert tag != null;
-    XmlAttribute name = tag.getAttribute(SdkConstants.ATTR_NAME);
-    assert name != null;
-    XmlAttributeValue nameValue = name.getValueElement();
-    assert nameValue != null;
+  public void setKeyName(@NotNull StringResourceKey key, @NotNull String name) {
+    if (key.getName().equals(name)) {
+      return;
+    }
 
-    Runnable rename = new RenameProcessor(myFacet.getModule().getProject(), nameValue, newName, false, false) {
-      @NotNull
-      @Override
-      protected UsageViewDescriptor createUsageViewDescriptor(@NotNull UsageInfo[] usages) {
-        LinkedHashMap<PsiElement, String> map = new LinkedHashMap<>();
+    boolean mapContainsName = myKeyToResourceMap.keySet().stream()
+                                                .map(k -> k.getName())
+                                                .anyMatch(n -> n.equals(name));
 
-        // Generated R.java files are read-only. Filter out PsiFields.
-        myAllRenames.keySet().stream()
-          .filter(element -> !(element instanceof PsiField))
-          .forEach(element -> map.put(element, myAllRenames.get(element)));
+    if (mapContainsName) {
+      return;
+    }
 
-        return new RenameViewDescriptor(map);
-      }
-    };
+    ResourceItem value = getStringResource(key).getDefaultValueAsResourceItem();
 
-    ApplicationManager.getApplication().invokeLater(rename);
+    if (value == null) {
+      return;
+    }
+
+    Project project = myFacet.getModule().getProject();
+
+    XmlTag stringElement = LocalResourceRepository.getItemTag(project, value);
+    assert stringElement != null;
+
+    XmlAttribute nameAttribute = stringElement.getAttribute(SdkConstants.ATTR_NAME);
+    assert nameAttribute != null;
+
+    PsiElement nameAttributeValue = nameAttribute.getValueElement();
+    assert nameAttributeValue != null;
+
+    new RenameProcessor(project, nameAttributeValue, name, false, false).run();
+
+    myKeyToResourceMap.remove(key);
+    key = new StringResourceKey(name, key.getDirectory());
+    myKeyToResourceMap.put(key, new StringResource(key, myRepository, project));
   }
 
   public boolean setTranslatable(@NotNull StringResourceKey key, boolean translatable) {
@@ -155,27 +164,28 @@ public class StringResourceData {
       return getLabel(Iterables.getFirst(locales, null));
     }
 
-    final int max = 3;
-    List<Locale> sorted = getLowest(locales, max);
-    if (size <= max) {
+    List<Locale> sorted = getLowest(locales);
+
+    if (size <= MAX_LOCALE_LABEL_COUNT) {
       return getLabels(sorted.subList(0, size - 1)) + " and " + getLabel(sorted.get(size - 1));
     }
     else {
-      return String.format("%1$s and %2$d more", getLabels(sorted), size - max);
+      return getLabels(sorted) + " and " + (size - MAX_LOCALE_LABEL_COUNT) + " more";
     }
   }
 
-  private static List<Locale> getLowest(Collection<Locale> locales, int n) {
+  @NotNull
+  private static List<Locale> getLowest(@NotNull Collection<Locale> locales) {
     return locales.stream()
-      .limit(n)
-      .sorted(Comparator.comparing(StringResourceData::getLabel))
-      .collect(Collectors.toList());
+                  .limit(MAX_LOCALE_LABEL_COUNT)
+                  .sorted(Comparator.comparing(StringResourceData::getLabel))
+                  .collect(Collectors.toList());
   }
 
   private static String getLabels(Collection<Locale> locales) {
     return locales.stream()
-      .map(StringResourceData::getLabel)
-      .collect(Collectors.joining(", "));
+                  .map(StringResourceData::getLabel)
+                  .collect(Collectors.joining(", "));
   }
 
   private static String getLabel(@Nullable Locale locale) {

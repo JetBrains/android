@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="android.telephony.mbms.DownloadRequest.Builder Builder(android.net.Uri, android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.mbms.DownloadRequest.Builder Builder(android.net.Uri, android.net.Uri) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.mbms.DownloadStatusListener void onStatusUpdated(android.telephony.mbms.DownloadRequest, android.telephony.mbms.FileInfo, int) 2">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.MbmsDownloadSession.STATUS_UNKNOWN, android.telephony.MbmsDownloadSession.STATUS_ACTIVELY_DOWNLOADING, android.telephony.MbmsDownloadSession.STATUS_PENDING_DOWNLOAD, android.telephony.MbmsDownloadSession.STATUS_PENDING_REPAIR, android.telephony.MbmsDownloadSession.STATUS_PENDING_DOWNLOAD_WINDOW}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.mbms.MbmsDownloadSessionCallback void onError(int, java.lang.String) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.mbms.MbmsErrors.ERROR_NO_UNIQUE_MIDDLEWARE, android.telephony.mbms.MbmsErrors.ERROR_MIDDLEWARE_LOST, android.telephony.mbms.MbmsErrors.ERROR_MIDDLEWARE_NOT_BOUND, android.telephony.mbms.MbmsErrors.InitializationErrors.ERROR_APP_PERMISSIONS_NOT_GRANTED, android.telephony.mbms.MbmsErrors.InitializationErrors.ERROR_DUPLICATE_INITIALIZE, android.telephony.mbms.MbmsErrors.InitializationErrors.ERROR_UNABLE_TO_INITIALIZE, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_MIDDLEWARE_NOT_YET_READY, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_OUT_OF_MEMORY, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_MIDDLEWARE_TEMPORARILY_UNAVAILABLE, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_IN_E911, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_NOT_CONNECTED_TO_HOME_CARRIER_LTE, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_UNABLE_TO_READ_SIM, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_CARRIER_CHANGE_NOT_ALLOWED, android.telephony.mbms.MbmsErrors.DownloadErrors.ERROR_CANNOT_CHANGE_TEMP_FILE_ROOT, android.telephony.mbms.MbmsErrors.DownloadErrors.ERROR_UNKNOWN_DOWNLOAD_REQUEST, android.telephony.mbms.MbmsErrors.DownloadErrors.ERROR_UNKNOWN_FILE_INFO}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.mbms.MbmsStreamingSessionCallback void onError(int, java.lang.String) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.mbms.MbmsErrors.ERROR_NO_UNIQUE_MIDDLEWARE, android.telephony.mbms.MbmsErrors.ERROR_MIDDLEWARE_LOST, android.telephony.mbms.MbmsErrors.ERROR_MIDDLEWARE_NOT_BOUND, android.telephony.mbms.MbmsErrors.InitializationErrors.ERROR_APP_PERMISSIONS_NOT_GRANTED, android.telephony.mbms.MbmsErrors.InitializationErrors.ERROR_DUPLICATE_INITIALIZE, android.telephony.mbms.MbmsErrors.InitializationErrors.ERROR_UNABLE_TO_INITIALIZE, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_MIDDLEWARE_NOT_YET_READY, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_OUT_OF_MEMORY, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_MIDDLEWARE_TEMPORARILY_UNAVAILABLE, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_IN_E911, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_NOT_CONNECTED_TO_HOME_CARRIER_LTE, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_UNABLE_TO_READ_SIM, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_CARRIER_CHANGE_NOT_ALLOWED, android.telephony.mbms.MbmsErrors.StreamingErrors.ERROR_CONCURRENT_SERVICE_LIMIT_REACHED, android.telephony.mbms.MbmsErrors.StreamingErrors.ERROR_UNABLE_TO_START_SERVICE, android.telephony.mbms.MbmsErrors.StreamingErrors.ERROR_DUPLICATE_START_STREAM}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.mbms.MbmsStreamingSessionCallback void onError(int, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.mbms.ServiceInfo java.lang.CharSequence getNameForLocale(java.util.Locale)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.mbms.ServiceInfo java.lang.CharSequence getNameForLocale(java.util.Locale) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.mbms.ServiceInfo java.util.Set&lt;java.util.Locale&gt; getNamedContentLocales()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.telephony.mbms.StreamingService android.net.Uri getPlaybackUri()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.mbms.StreamingServiceCallback void onError(int, java.lang.String) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.mbms.MbmsErrors.ERROR_NO_UNIQUE_MIDDLEWARE, android.telephony.mbms.MbmsErrors.ERROR_MIDDLEWARE_LOST, android.telephony.mbms.MbmsErrors.ERROR_MIDDLEWARE_NOT_BOUND, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_MIDDLEWARE_NOT_YET_READY, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_OUT_OF_MEMORY, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_MIDDLEWARE_TEMPORARILY_UNAVAILABLE, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_IN_E911, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_NOT_CONNECTED_TO_HOME_CARRIER_LTE, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_UNABLE_TO_READ_SIM, android.telephony.mbms.MbmsErrors.GeneralErrors.ERROR_CARRIER_CHANGE_NOT_ALLOWED, android.telephony.mbms.MbmsErrors.StreamingErrors.ERROR_CONCURRENT_SERVICE_LIMIT_REACHED, android.telephony.mbms.MbmsErrors.StreamingErrors.ERROR_UNABLE_TO_START_SERVICE, android.telephony.mbms.MbmsErrors.StreamingErrors.ERROR_DUPLICATE_START_STREAM}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.mbms.StreamingServiceCallback void onError(int, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.telephony.mbms.StreamingServiceCallback void onStreamStateUpdated(int, int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.mbms.StreamingService.STATE_STOPPED, android.telephony.mbms.StreamingService.STATE_STARTED, android.telephony.mbms.StreamingService.STATE_STALLED}" />
+    </annotation>
+  </item>
+  <item name="android.telephony.mbms.StreamingServiceCallback void onStreamStateUpdated(int, int) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.telephony.mbms.StreamingService.REASON_BY_USER_REQUEST, android.telephony.mbms.StreamingService.REASON_END_OF_SESSION, android.telephony.mbms.StreamingService.REASON_FREQUENCY_CONFLICT, android.telephony.mbms.StreamingService.REASON_OUT_OF_MEMORY, android.telephony.mbms.StreamingService.REASON_NOT_CONNECTED_TO_HOMECARRIER_LTE, android.telephony.mbms.StreamingService.REASON_LEFT_MBMS_BROADCAST_AREA, android.telephony.mbms.StreamingService.REASON_NONE}" />
+    </annotation>
+  </item>
+</root>
+

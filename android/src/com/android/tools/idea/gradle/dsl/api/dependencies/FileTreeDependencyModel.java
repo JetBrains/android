@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public interface FileTreeDependencyModel extends DependencyModel {
   @NotNull
-  GradleNotNullValue<String> dir();
-
-  void setDir(@NotNull String dir);
+  ResolvedPropertyModel dir();
 
   @NotNull
-  List<GradleNotNullValue<String>> includes();
+  ResolvedPropertyModel includes();
 
   @NotNull
-  List<GradleNotNullValue<String>> excludes();
+  ResolvedPropertyModel excludes();
 }

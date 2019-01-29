@@ -50,9 +50,7 @@ public class LintIdeIssueRegistry extends BuiltinIssueRegistry {
       for (Issue issue : sIssues) {
         Implementation implementation = issue.getImplementation();
         Class<? extends Detector> detectorClass = implementation.getDetectorClass();
-        if (detectorClass == GradleDetector.class) {
-          issue.setImplementation(LintIdeGradleDetector.IMPLEMENTATION);
-        } else if (detectorClass == ViewTypeDetector.class) {
+        if (detectorClass == ViewTypeDetector.class) {
           issue.setImplementation(LintIdeViewTypeDetector.IMPLEMENTATION);
         } else if (!isRelevant(issue)) {
           // Skip issue: not included inside the IDE

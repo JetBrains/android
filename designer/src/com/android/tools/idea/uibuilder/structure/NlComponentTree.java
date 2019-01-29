@@ -15,58 +15,80 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import com.android.tools.idea.common.model.*;
+import static com.android.tools.idea.common.property.PropertiesManager.UPDATE_DELAY_MSECS;
+import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
+
+import com.android.tools.idea.common.model.ModelListener;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionListener;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableList;
+import com.intellij.ide.DeleteProvider;
+import com.intellij.ide.ui.laf.darcula.ui.DarculaTreeUI;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.CustomShortcutSet;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.actionSystem.MouseShortcut;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColorUtil;
-import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.dnd.DropTarget;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.android.tools.idea.common.property.PropertiesManager.UPDATE_DELAY_MSECS;
-import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
+import javax.swing.ToolTipManager;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
                                                      DataProvider {
@@ -90,23 +112,26 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
     myBadgeHandler = new NlTreeBadgeHandler();
-
+    setUI(new MyUI());
     setModel(new NlComponentTreeModel());
-
     setBorder(new EmptyBorder(INSETS));
     setDesignSurface(designSurface);
     setName("componentTree");
     setRootVisible(true);
-    setShowsRootHandles(false);
     setToggleClickCount(2);
-    setCellRenderer(createCellRenderer());
+    setCellRenderer(new NlTreeCellRenderer(myBadgeHandler));
+    addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        invalidateUI();
+      }
+    });
 
     getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
     ToolTipManager.sharedInstance().registerComponent(this);
     TreeUtil.installActions(this);
     addTreeSelectionListener(new StructurePaneSelectionListener());
     new StructureSpeedSearch(this);
-
 
     enableDnD();
 
@@ -132,15 +157,58 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   public void setDesignSurface(@Nullable NlDesignSurface designSurface) {
     if (mySurface != null) {
       mySurface.getSelectionModel().removeListener(this);
+      mySurface.removeListener(this);
     }
     mySurface = designSurface;
     if (mySurface != null) {
       mySurface.getSelectionModel().addListener(this);
-      mySurface.getActionManager().registerActionsShortcuts(this);
-      mySurface.getActionManager().registerActionsShortcuts(this);
+      mySurface.getActionManager().registerActionsShortcuts(this, null);
+      mySurface.addListener(this);
+      overrideCtrlClick();
     }
     setModel(designSurface != null ? designSurface.getModel() : null);
     myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);
+  }
+
+  /**
+   * Hack to ensure that no IDEA shortcuts is called when using Ctrl+Click.
+   * <p>
+   * Ctrl+click has a broadly adopted meaning of multi-selecting elements.
+   * In IntelliJ, it is also used to jump to the declaration of the component by default.
+   * In the case of the component tree, we prefer to just add the component to the selection without jumping to
+   * the XML declaration.
+   */
+  private void overrideCtrlClick() {
+    MouseShortcut ctrlClickShortcut = new MouseShortcut(MouseEvent.BUTTON1, InputEvent.CTRL_MASK, 1);
+
+    // Get all the action registered for this component
+    List<AnAction> actions = ImmutableList.copyOf(ActionUtil.getActions(this));
+    for (AnAction action : actions) {
+
+      // Get all the shortcuts registered for this action and create
+      // a copy them into a new list filtering Ctrl+click if it is
+      // present.
+      Shortcut[] shortcuts = action.getShortcutSet().getShortcuts();
+      Shortcut existingShortcut = null;
+
+      for (Shortcut shortcut : shortcuts) {
+        if (shortcut.equals(ctrlClickShortcut)) {
+          existingShortcut = shortcut;
+          action.unregisterCustomShortcutSet(this);
+          break;
+        }
+      }
+
+      if (existingShortcut != null) {
+        List<Shortcut> newShortcuts = new ArrayList<>(shortcuts.length - 1);
+        for (Shortcut shortcut : shortcuts) {
+          if (shortcut != existingShortcut) {
+            newShortcuts.add(shortcut);
+          }
+        }
+        action.registerCustomShortcutSet(new CustomShortcutSet(newShortcuts.toArray(Shortcut.EMPTY_ARRAY)), this);
+      }
+    }
   }
 
   @Nullable
@@ -148,7 +216,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     return mySurface != null ? mySurface.getScene() : null;
   }
 
-  private void setModel(@Nullable NlModel model) {
+  private void setModel(@Nullable NlModel model, boolean forceUpdate) {
+    if (!forceUpdate && model == myModel) {
+      return;
+    }
     if (myModel != null) {
       myModel.removeListener(this);
     }
@@ -161,6 +232,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     updateHierarchy();
   }
 
+  private void setModel(@Nullable NlModel model) {
+    setModel(model, false);
+  }
+
   @Nullable
   public NlModel getDesignerModel() {
     return myModel;
@@ -168,40 +243,23 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public void dispose() {
-    if (mySurface != null) {
-      mySurface.getSelectionModel().removeListener(this);
-    }
+    setDesignSurface(null);
     if (myModel != null) {
       myModel.removeListener(this);
       myModel = null;
     }
+    ToolTipManager.sharedInstance().unregisterComponent(this);
     Disposer.dispose(myUpdateQueue);
   }
 
-  private ColoredTreeCellRenderer createCellRenderer() {
-    return new ColoredTreeCellRenderer() {
-      @Override
-      public void customizeCellRenderer(@NotNull JTree tree,
-                                        Object value,
-                                        boolean selected,
-                                        boolean expanded,
-                                        boolean leaf,
-                                        int row,
-                                        boolean hasFocus) {
-        setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 10));
-
-        if (value instanceof NlComponent) {
-          StructureTreeDecorator.decorate(this, (NlComponent)value, tree.hasFocus() && selected);
-        }
-        else if (value instanceof String) {
-          StructureTreeDecorator.decorate(this, (String)value);
-        }
-      }
-    };
+  @Override
+  public void updateUI() {
+    setUI(new MyUI());
   }
 
   private void invalidateUI() {
-    IJSwingUtilities.updateComponentTreeUI(this);
+    ((MyUI)ui).invalidateNodeSize();
+    repaint();
   }
 
   // ---- Methods for updating hierarchy while attempting to keep expanded nodes expanded ----
@@ -218,10 +276,15 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           }
           mySelectionIsUpdating.set(true);
 
-          Collection<NlComponent> components = getCollapsedComponents();
+          List<TreePath> expandedPaths = TreeUtil.collectExpandedPaths(NlComponentTree.this);
+          Object oldRoot = treeModel.getRoot();
           setModel(new NlComponentTreeModel(myModel));
-          collapseComponents(components);
-
+          if (oldRoot == treeModel.getRoot()) {
+            TreeUtil.restoreExpandedPaths(NlComponentTree.this, expandedPaths);
+          }
+          else {
+            TreeUtil.expandAll(NlComponentTree.this);
+          }
           invalidateUI();
         }
         finally {
@@ -234,50 +297,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     if (mySkipWait) {
       mySkipWait = false;
       myUpdateQueue.flush();
-    }
-  }
-
-  @NotNull
-  private Collection<NlComponent> getCollapsedComponents() {
-    int rowCount = getRowCount();
-    Collection<NlComponent> components = Sets.newHashSetWithExpectedSize(rowCount);
-
-    for (int row = 0; row < rowCount; row++) {
-      if (isCollapsed(row)) {
-        Object last = getPathForRow(row).getLastPathComponent();
-        if (!(last instanceof NlComponent)) {
-          continue;
-        }
-        NlComponent component = (NlComponent)last;
-
-        if (component.getChildCount() != 0) {
-          components.add(component);
-        }
-      }
-    }
-
-    return components;
-  }
-
-  private void collapseComponents(@NotNull Collection<NlComponent> components) {
-    NlComponent root = (NlComponent)getModel().getRoot();
-
-    if (root == null) {
-      return;
-    }
-
-    expandAll(root);
-    components.forEach(component -> collapsePath(newTreePath(component)));
-  }
-
-  private void expandAll(@NotNull NlComponent parent) {
-    // If all the children are leaves
-    if (parent.getChildren().stream().allMatch(child -> child.getChildCount() == 0)) {
-      expandPath(newTreePath(parent));
-    }
-    else {
-      // Recurse
-      parent.getChildren().forEach(this::expandAll);
     }
   }
 
@@ -358,6 +377,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private static void paintInsertionLine(@NotNull Graphics2D g, int x, int y, int width) {
     Polygon triangle = new Polygon();
     int indicatorSize = JBUI.scale(6);
+    x += JBUI.scale(6);
     triangle.addPoint(x + indicatorSize, y);
     triangle.addPoint(x, y + indicatorSize / 2);
     triangle.addPoint(x, y - indicatorSize / 2);
@@ -369,12 +389,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private static void paintColumnLine(@NotNull Graphics2D g, int x, int y1, int y2) {
-    int columnMargin = JBUI.scale(13);
-    x -= columnMargin;
     Stroke stroke = g.getStroke();
     g.setStroke(NlConstants.DASHED_STROKE);
     g.drawLine(x, y1, x, y2);
-    g.drawLine(x, y2, x + columnMargin, y2);
+    g.drawLine(x, y2, x, y2);
     g.setStroke(stroke);
   }
 
@@ -469,7 +487,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model) {
-    setModel(model);
+    setModel(model, true);
   }
 
   @Override
@@ -508,6 +526,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
             // TODO: Ensure the node is selected first
             mySurface.getActionManager().showPopup(e, (NlComponent)component);
           }
+          else {
+            ActionManager actionManager = ActionManager.getInstance();
+            actionManager.createActionPopupMenu(
+              ActionPlaces.EDITOR_POPUP,
+              new DefaultActionGroup(actionManager.getAction(IdeActions.ACTION_DELETE)))
+                         .getComponent().show(e.getComponent(), e.getX(), e.getY());
+          }
         }
       }
     }
@@ -529,7 +554,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
       ViewHandler handler = NlComponentHelperKt.getViewHandler((NlComponent)component);
       if (handler != null) {
-        handler.onActivateInComponentTree((NlComponent)component);
+        handler.onActivateInComponentTree((NlComponent)component, mySurface.getSceneManager().getViewEditor());
       }
     }
   }
@@ -563,14 +588,35 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       }
 
       Object component = ((TreePath)element).getLastPathComponent();
-      return compare(component instanceof NlComponent ? StructureTreeDecorator.toString((NlComponent)component) : "", pattern);
+      return compare(component instanceof NlComponent ? TreeSearchUtil.toString((NlComponent)component) : "", pattern);
     }
   }
 
   // ---- Implements DataProvider ----
   @Override
-  public Object getData(@NotNull @NonNls String dataId) {
+  public Object getData(@NonNls String dataId) {
+    TreePath path = getSelectionPath();
+    if (path != null && !(path.getLastPathComponent() instanceof NlComponent)) {
+      if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
+        return createNonNlComponentDeleteProvider();
+      }
+    }
     return mySurface == null ? null : mySurface.getData(dataId);
+  }
+
+  @NotNull
+  private DeleteProvider createNonNlComponentDeleteProvider() {
+    return new DeleteProvider() {
+      @Override
+      public void deleteElement(@NotNull DataContext dataContext) {
+        deleteNonNlComponent(getSelectionPaths());
+      }
+
+      @Override
+      public boolean canDeleteElement(@NotNull DataContext dataContext) {
+        return true;
+      }
+    };
   }
 
   /**
@@ -585,6 +631,36 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       if (component instanceof NlComponent) {
         NlTreeUtil.delegateEvent(DelegatedTreeEvent.Type.DELETE, this, ((NlComponent)component), -1);
       }
+    }
+  }
+
+  boolean shouldDisplayFittedText(int index) {
+    return !UIUtil.isClientPropertyTrue(this, ExpandableItemsHandler.EXPANDED_RENDERER) &&
+           !getExpandableItemsHandler().getExpandedItems().contains(index);
+  }
+
+  @Override
+  public boolean getShowsRootHandles() {
+    // This is needed because the intelliJ Tree class ignore
+    // setShowsRootHandles();
+    return false;
+  }
+
+  @Override
+  protected void setExpandedState(TreePath path, boolean state) {
+    // We never want to collapse the root
+    boolean isRoot = getRowForPath(path) == 0;
+    super.setExpandedState(path, isRoot || state);
+  }
+
+  @Override
+  protected boolean isCustomUI() {
+    return true;
+  }
+
+  private static class MyUI extends DarculaTreeUI {
+    public void invalidateNodeSize() {
+      treeState.invalidateSizes();
     }
   }
 }

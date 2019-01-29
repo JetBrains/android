@@ -15,33 +15,40 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.ProfilerTooltipView;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.ColorUtil;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
+
 public class CpuThreadsTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuThreadsTooltip myTooltip;
   @NotNull private final ProfilerTimeline myTimeline;
-
-  @VisibleForTesting
-  @NotNull protected final JLabel myContent;
+  @NotNull private final JPanel myContent;
+  @NotNull private final JLabel myLabel;
+  @NotNull private final JLabel myState;
+  @NotNull private final JLabel myDuration;
+  @NotNull private final JPanel myUnavailableDetails;
 
   protected CpuThreadsTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuThreadsTooltip tooltip) {
-    super(view.getTimeline(), "CPU");
+    super(view.getTimeline());
     myTimeline = view.getTimeline();
     myTooltip = tooltip;
-    myContent = new JLabel();
-    myContent.setFont(AdtUiUtils.DEFAULT_FONT);
-    myContent.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
-    tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::timeChanged);
+    // TODO(b/109661512): Move vgap scale into TabularLayout
+    myContent = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
+    myLabel = createTooltipLabel();
+    myState = createTooltipLabel();
+    myDuration = createTooltipLabel();
+    // TODO(b/109661512): Move vgap scale into TabularLayout
+    myUnavailableDetails = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(1)));
+    tooltip.addDependency(this).onChange(CpuThreadsTooltip.Aspect.THREAD_STATE, this::stateChanged);
   }
 
   @Override
@@ -50,29 +57,65 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
     myTooltip.removeDependencies(this);
   }
 
-  @Override
-  protected void timeChanged() {
+  private void addRow(JPanel parent, JComponent c) {
+    int nextRow = parent.getComponentCount();
+    parent.add(c, new TabularLayout.Constraint(nextRow, 0));
+  }
+
+  private void stateChanged() {
     Range range = myTimeline.getTooltipRange();
-    if (!range.isEmpty()) {
-      String time = TimeAxisFormatter.DEFAULT
-        .getFormattedString(myTimeline.getDataRange().getLength(), range.getMin() - myTimeline.getDataRange().getMin(), true);
-      String title = myTooltip.getThreadName() != null ? myTooltip.getThreadName() : "CPU";
-      myHeadingLabel.setText(String.format("<html>%s <span style='color:#%s'>%s</span></html",
-                                           title,
-                                           ColorUtil.toHex(ProfilerColors.TOOLTIP_TIME_COLOR),
-                                           time));
-      myContent.setText(myTooltip.getThreadState() == null ? "" : threadStateToString(myTooltip.getThreadState()));
-      updateMaximumLabelDimensions();
-    } else {
-      myHeadingLabel.setText("");
-      myContent.setText("");
+    myContent.removeAll();
+    if (range.isEmpty()) {
+      addRow(myContent, myUnavailableDetails);
+      return;
+    }
+    String title = myTooltip.getThreadName() != null ? myTooltip.getThreadName() : "CPU";
+    myLabel.setText(String.format("Thread: %s", title));
+    addRow(myContent, myLabel);
+
+    if (myTooltip.getThreadState() != null) {
+      myState.setText(threadStateToString(myTooltip.getThreadState()));
+      addRow(myContent, myState);
+
+      if (myTooltip.getDurationUs() > 0) {
+        myDuration.setText(TimeFormatter.getSingleUnitDurationString(myTooltip.getDurationUs()));
+        addRow(myContent, myDuration);
+      }
+
+      if (!threadStateIsCaptured(myTooltip.getThreadState())) {
+        addRow(myContent, myUnavailableDetails);
+      }
     }
   }
 
   @NotNull
   @Override
   protected JComponent createTooltip() {
+    JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+    //TODO (b/77491599): Remove workaround after tabular layout no longer defaults to min size:
+    separator.setMinimumSize(separator.getPreferredSize());
+    addRow(myUnavailableDetails, separator);
+    JLabel unavailableLabel = new JLabel("Details Unavailable");
+    unavailableLabel.setFont(TOOLTIP_BODY_FONT);
+    unavailableLabel.setForeground(ProfilerColors.TOOLTIP_LOW_CONTRAST);
+    addRow(myUnavailableDetails, unavailableLabel);
+    addRow(myContent, myUnavailableDetails);
     return myContent;
+  }
+
+  private static boolean threadStateIsCaptured(@NotNull CpuProfilerStage.ThreadState state) {
+    switch (state) {
+      case RUNNING_CAPTURED:
+      case RUNNABLE_CAPTURED:
+      case SLEEPING_CAPTURED:
+      case DEAD_CAPTURED:
+      case WAITING_CAPTURED:
+      case WAITING_IO_CAPTURED:
+      case HAS_ACTIVITY:
+        return true;
+      default:
+        return false;
+    }
   }
 
   private static String threadStateToString(@NotNull CpuProfilerStage.ThreadState state) {
@@ -80,6 +123,8 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
       case RUNNING:
       case RUNNING_CAPTURED:
         return "Running";
+      case RUNNABLE_CAPTURED:
+        return "Runnable";
       case SLEEPING:
       case SLEEPING_CAPTURED:
         return "Sleeping";
@@ -89,6 +134,12 @@ public class CpuThreadsTooltipView extends ProfilerTooltipView {
       case WAITING:
       case WAITING_CAPTURED:
         return "Waiting";
+      case WAITING_IO_CAPTURED:
+        return "Waiting on IO";
+      case HAS_ACTIVITY:
+        return "Thread activity";
+      case NO_ACTIVITY:
+        return "No thread activity";
       default:
         return "Unknown";
     }

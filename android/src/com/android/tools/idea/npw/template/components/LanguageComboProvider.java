@@ -30,7 +30,7 @@ import javax.swing.*;
 public final class LanguageComboProvider extends ComponentProvider<JComboBox> {
   @NotNull
   @Override
-  public JComboBox createComponent() {
+  public JComboBox<Language> createComponent() {
     JComboBox<Language> languageCombo = new ComboBox<>(new DefaultComboBoxModel<>(Language.values()));
     languageCombo.setRenderer(new ListCellRendererWrapper<Language>() {
       @Override

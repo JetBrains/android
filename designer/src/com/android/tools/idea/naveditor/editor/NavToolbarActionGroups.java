@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.naveditor.editor;
 
-import com.android.tools.idea.common.actions.SetZoomAction;
+import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.TOGGLE_ISSUE_PANEL;
+
+import com.android.tools.idea.common.actions.IssueNotificationAction;
+import com.android.tools.idea.common.actions.ZoomInAction;
 import com.android.tools.idea.common.actions.ZoomLabelAction;
+import com.android.tools.idea.common.actions.ZoomOutAction;
+import com.android.tools.idea.common.actions.ZoomToFitAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.ZoomType;
+import com.android.tools.idea.common.surface.ZoomShortcut;
 import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,23 +41,13 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new SetZoomAction(mySurface, ZoomType.OUT));
+
+    group.add(ZoomShortcut.ZOOM_OUT.registerForAction(new ZoomOutAction(mySurface), mySurface, this));
     group.add(new ZoomLabelAction(mySurface));
-    group.add(new SetZoomAction(mySurface, ZoomType.IN));
-    group.add(new ZoomToFitAction(mySurface));
+    group.add(ZoomShortcut.ZOOM_IN.registerForAction(new ZoomInAction(mySurface), mySurface, this));
+    group.add(ZoomShortcut.ZOOM_FIT.registerForAction(new ZoomToFitAction(mySurface), mySurface, this));
+    group.addSeparator();
+    group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
     return group;
-  }
-
-  static class ZoomToFitAction extends SetZoomAction {
-    ZoomToFitAction(@NotNull DesignSurface surface) {
-      super(surface, ZoomType.FIT);
-    }
-
-    @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-      super.actionPerformed(e);
-      //noinspection ConstantConditions  In practice we'll always have a view at this point
-      mySurface.getCurrentSceneView().setLocation(0, 0);
-    }
   }
 }

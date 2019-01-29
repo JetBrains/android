@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.folding;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.FoldingBuilderEx;
@@ -114,7 +115,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       });
     }
 
-    return result.toArray(new FoldingDescriptor[result.size()]);
+    return result.toArray(FoldingDescriptor.EMPTY);
   }
 
   @NotNull
@@ -229,14 +230,14 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       return null;
     }
 
-    return AppResourceRepository.getOrCreateInstance(module);
+    return ResourceRepositoryManager.getAppResources(module);
   }
 
   private static InlinedResource createdInlinedResource(@NotNull ResourceType type, @NotNull String name,
                                                         @NotNull PsiElement foldElement) {
     // Not part of a call: just fold the R.string reference itself
     LocalResourceRepository appResources = getAppResources(foldElement);
-    if (appResources != null && appResources.hasResourceItem(type, name)) {
+    if (appResources != null && appResources.hasResources(ResourceNamespace.TODO(), type, name)) {
       ASTNode node = foldElement.getNode();
       if (node != null) {
         TextRange textRange = foldElement.getTextRange();

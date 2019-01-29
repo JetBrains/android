@@ -17,54 +17,30 @@ package org.jetbrains.android.facet;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.res.FileResourceRepository;
-import com.android.tools.idea.res.ResourceFolderRegistry;
-import com.android.tools.idea.res.ResourceRepositories;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.templates.TemplateManager;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
-import static com.android.tools.idea.databinding.DataBindingUtil.refreshDataBindingStatus;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
-import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
 /**
@@ -74,15 +50,23 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
 
-  private AndroidModel myAndroidModel;
-  private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
-
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
     return modelsProvider.getModifiableFacetModel(module).getFacetByType(ID);
+  }
+
+  @Nullable
+  public static AndroidFacet getInstance(@NotNull VirtualFile file, @NotNull Project project) {
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
+
+    if (module == null) {
+      return null;
+    }
+
+    return getInstance(module);
   }
 
   @Nullable
@@ -126,54 +110,15 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * @return the Android model associated to this facet.
-   */
-  @Nullable
-  public AndroidModel getAndroidModel() {
-    return myAndroidModel;
-  }
-
-  /**
-   * Associates the given Android model to this facet.
-   *
-   * @param androidModel the new Android model.
-   */
-  public void setAndroidModel(@Nullable AndroidModel androidModel) {
-    myAndroidModel = androidModel;
-    refreshDataBindingStatus(this);
-  }
-
-  public boolean isAppProject() {
-    int projectType = getProjectType();
-    return projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP;
-  }
-
-  public boolean canBeDependency() {
-    int projectType = getProjectType();
-    return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_FEATURE;
-  }
-
-  public boolean isLibraryProject() {
-    return getProjectType() == PROJECT_TYPE_LIBRARY;
-  }
-
-  public int getProjectType() {
-    return getProperties().PROJECT_TYPE;
-  }
-
-  public void setProjectType(int type) {
-    getProperties().PROJECT_TYPE = type;
-  }
-
-  /**
    * Returns the main source provider for the project. For projects that are not backed by an {@link AndroidProject}, this method returns a
    * {@link SourceProvider} wrapper which provides information about the old project.
    */
   @NotNull
   public SourceProvider getMainSourceProvider() {
-    if (myAndroidModel != null) {
+    AndroidModel model = getConfiguration().getModel();
+    if (model != null) {
       //noinspection deprecation
-      return myAndroidModel.getDefaultSourceProvider();
+      return model.getDefaultSourceProvider();
     }
     else {
       if (myMainSourceSet == null) {
@@ -199,105 +144,20 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
     return myMainIdeaSourceSet;
   }
-
-  @NotNull
-  public ResourceFolderManager getResourceFolderManager() {
-    return myFolderManager;
-  }
-
+  
   /**
    * @return all resource directories, in the overlay order.
+   * @deprecated use getResourceFolderManager().getFolders() instead
    */
   @NotNull
-  public List<VirtualFile> getAllResourceDirectories() {
-    return myFolderManager.getFolders();
-  }
-
-  /**
-   * This returns the primary resource directory; the default location to place newly created resources etc.  This method is marked
-   * deprecated since we should be gradually adding in UI to allow users to choose specific resource folders among the available flavors
-   * (see {@link AndroidModuleModel#getFlavorSourceProviders()} etc).
-   *
-   * @return the primary resource dir, if any.
-   */
   @Deprecated
-  @Nullable
-  public VirtualFile getPrimaryResourceDir() {
-    List<VirtualFile> dirs = getAllResourceDirectories();
-    if (!dirs.isEmpty()) {
-      return dirs.get(0);
-    }
-    return null;
-  }
-
-  @Override
-  public void initFacet() {
-    ResourceRepositories.getOrCreateInstance(this);
-
-    StartupManager.getInstance(getProject()).runWhenProjectIsInitialized(() -> {
-      AndroidResourceFilesListener.notifyFacetInitialized(this);
-      if (ApplicationManager.getApplication().isUnitTestMode()) {
-        return;
-      }
-
-      addResourceFolderToSdkRootsIfNecessary();
-    });
-  }
-
-  private void addResourceFolderToSdkRootsIfNecessary() {
-    Module module = getModule();
-    if (module.isDisposed()) {
-      return;
-    }
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !AndroidSdks.getInstance().isAndroidSdk(sdk)) {
-      return;
-    }
-
-    AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
-    if (platform == null) {
-      return;
-    }
-
-    String resFolderPath = platform.getTarget().getPath(IAndroidTarget.RESOURCES);
-    if (resFolderPath == null) {
-      return;
-    }
-    List<VirtualFile> filesToAdd = new ArrayList<>();
-
-    VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(toSystemIndependentName(resFolderPath));
-    if (resFolder != null) {
-      filesToAdd.add(resFolder);
-    }
-
-    if (platform.needToAddAnnotationsJarToClasspath()) {
-      String sdkHomePath = toSystemIndependentName(platform.getSdkData().getLocation().getPath());
-      VirtualFile annotationsJar = JarFileSystem.getInstance().findFileByPath(sdkHomePath + ANNOTATIONS_JAR_RELATIVE_PATH + JAR_SEPARATOR);
-      if (annotationsJar != null) {
-        filesToAdd.add(annotationsJar);
-      }
-    }
-
-    addFilesToSdkIfNecessary(sdk, filesToAdd);
-  }
-
-  private static void addFilesToSdkIfNecessary(@NotNull Sdk sdk, @NotNull Collection<VirtualFile> files) {
-    List<VirtualFile> newFiles = new ArrayList<>(files);
-    newFiles.removeAll(Arrays.asList(sdk.getRootProvider().getFiles(OrderRootType.CLASSES)));
-
-    if (!newFiles.isEmpty()) {
-      SdkModificator modificator = sdk.getSdkModificator();
-
-      for (VirtualFile file : newFiles) {
-        modificator.addRoot(file, OrderRootType.CLASSES);
-      }
-      modificator.commitChanges();
-    }
+  public List<VirtualFile> getAllResourceDirectories() {
+    return ResourceFolderManager.getInstance(this).getFolders();
   }
 
   @Override
   public void disposeFacet() {
-    myAndroidModel = null;
+    getConfiguration().disposeFacet();
   }
 
   @Nullable
@@ -311,22 +171,10 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return (AndroidFacetType)FacetTypeRegistry.getInstance().findFacetType(ID);
   }
 
-  public void refreshResources() {
-    ResourceRepositories.getOrCreateInstance(this).refreshResources();
-    ConfigurationManager.getOrCreateInstance(getModule()).getResolverCache().reset();
-    ResourceFolderRegistry.reset();
-    FileResourceRepository.reset();
-  }
-
   @NotNull
   public JpsAndroidModuleProperties getProperties() {
     JpsAndroidModuleProperties state = getConfiguration().getState();
     assert state != null;
     return state;
-  }
-
-  @NotNull
-  private Project getProject() {
-    return getModule().getProject();
   }
 }

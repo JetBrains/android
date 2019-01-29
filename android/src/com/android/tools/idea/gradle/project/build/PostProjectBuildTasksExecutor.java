@@ -28,6 +28,8 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
@@ -176,13 +178,15 @@ public class PostProjectBuildTasksExecutor {
       if (isSyncNeeded(buildMode, errorCount)) {
         GradleSyncInvoker.Request request = GradleSyncInvoker.Request.projectModified();
         request.generateSourcesOnSuccess = false;
-        GradleSyncInvoker.getInstance().requestProjectSync(myProject, request);
+        // Start sync once other events have finished (b/76017112).
+        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSync(myProject, request));
       }
 
       if (isSyncRequestedDuringBuild(myProject)) {
         setSyncRequestedDuringBuild(myProject, null);
-        // Sync was invoked while the project was built. Now that the build is finished, request a full sync.
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_USER_REQUEST);
+        // Sync was invoked while the project was built. Now that the build is finished, request a full sync after previous events have
+        // finished (b/76017112).
+        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_USER_REQUEST));
       }
     }
   }
@@ -204,6 +208,20 @@ public class PostProjectBuildTasksExecutor {
     }
 
     return false;
+  }
+
+  /**
+   * Run task once other pending events have finished.
+   * @param task to be run
+   */
+  private static void runWhenEventsFinished(@NotNull Runnable task) {
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode()) {
+      application.invokeAndWait(task);
+    }
+    else {
+      application.invokeLater(task);
+    }
   }
 
   /**

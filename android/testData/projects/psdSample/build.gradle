@@ -14,3 +14,10 @@ allprojects {
         // This will be populated by AndroidGradleTestCase
     }
 }
+
+ext {
+    someVar = "Present"
+    rootBool = true
+    rootBool3 = rootBool
+    rootBool2 = rootBool3
+}

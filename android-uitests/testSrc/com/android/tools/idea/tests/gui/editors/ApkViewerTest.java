@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.editors;
 
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ApkViewerFixture;
@@ -25,50 +24,20 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.SelectPathFixture;
-import com.intellij.ide.projectView.impl.ProjectViewPane;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import static com.google.common.truth.Truth.assertThat;
-
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ApkViewerTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   private static final String APK_NAME = "app-debug.apk";
-
-  /***
-   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TT ID: be75b1ab-005d-43f8-97c2-b84efded54ac
-   * <pre>
-   *   Verifies APK Viewer gets launched when analyzing apk
-   *   Test Steps
-   *   1. Import a project
-   *   2. Build APK
-   *   3. Analyze APK
-   *   Verification
-   *   1. Ensure APK entries appear for classes.dex, AndroidManifest.xml
-   * </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void launchApkViewer() throws Exception {
-    List<String> apkEntries = guiTest.importSimpleLocalApplication()
-      .invokeMenuPath("Build", "Build APK(s)")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE)
-      .openFromMenu(SelectPathFixture::find, "Build", "Analyze APK...")
-      .clickOK()
-      .getEditor()
-      .getApkViewer(APK_NAME)
-      .getApkEntries();
-    assertThat(apkEntries).contains("AndroidManifest.xml");
-    assertThat(apkEntries).contains("classes.dex");
-  }
 
   /***
    * To verify that the file handle to apk is released by the APK analyzer after analyzing and
@@ -85,7 +54,7 @@ public class ApkViewerTest {
    *   6. Make some changes in source code, and re-build APK and verify the build is successful.
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testFileHandleRelease() throws Exception {
     final String SIMPLE_APP = "SimpleLocalApplication";
@@ -99,12 +68,12 @@ public class ApkViewerTest {
 
     IdeFrameFixture ideFrame = guiTest.importSimpleLocalApplication();
 
-    ProjectViewFixture projectView = ideFrame.invokeMenuPath("Build", "Build APK(s)")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE)
+    ProjectViewFixture projectView = ideFrame.invokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
+      .waitForBuildToFinish(BuildMode.ASSEMBLE, Wait.seconds(180))
       .getProjectView();
 
-    PaneFixture paneFixture = projectView.selectPane(ProjectViewPane.ID, "Project");
-    paneFixture.expand();
+    PaneFixture paneFixture = projectView.selectProjectPane();
+    paneFixture.expand(30);
     paneFixture.clickPath(SIMPLE_APP, APP, BUILD, OUTPUTS, APK, DEBUG);
 
     EditorFixture editor = ideFrame.getEditor();
@@ -122,7 +91,7 @@ public class ApkViewerTest {
       .enterText("\nSystem.out.println(\"Hello.\");")
       .close();
 
-    ideFrame.invokeMenuPath("Build", "Build APK(s)")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE);
+    ideFrame.invokeMenuPath("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
+      .waitForBuildToFinish(BuildMode.ASSEMBLE, Wait.seconds(180));
   }
 }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
@@ -30,14 +30,14 @@ public class SceneGuidelineConnectionTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .id("@id/root")
                                    .withBounds(0, 0, 1000, 1000)
                                    .width("500dp")
                                    .height("500dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
-                                     component(CONSTRAINT_LAYOUT_GUIDELINE)
+                                     component(CONSTRAINT_LAYOUT_GUIDELINE.defaultName())
                                        .id("@id/guideline")
                                        .withBounds(300, 0, 2, 1000)
                                        .width("0dp")
@@ -75,8 +75,8 @@ public class SceneGuidelineConnectionTest extends SceneTest {
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        android:layout_marginStart=\"8dp\"\n" +
+                 "        android:layout_marginLeft=\"8dp\"\n" +
                  "        app:layout_constraintStart_toStartOf=\"@+id/guideline\"\n" +
                  "        tools:layout_editor_absoluteY=\"200dp\" />");
   }

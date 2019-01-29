@@ -15,13 +15,12 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
-
-import java.awt.*;
+import java.awt.Color;
 
 public class ProfilerColors {
 
@@ -29,73 +28,119 @@ public class ProfilerColors {
   private ProfilerColors() {
   }
 
-  public static final Color CPU_USAGE = new JBColor(0x71D2B5, 0x387362);
+  public static final Color ACTIVE_SESSION_COLOR = new JBColor(0x58AB5C, 0x65BB69);
 
-  public static final Color CPU_USAGE_CAPTURED = new JBColor(0x0EA18D, 0x43CAA2);
+  public static final Color SELECTED_SESSION_COLOR = new JBColor(0x397FE4, 0x7CAEFE);
 
-  public static final Color CPU_OTHER_USAGE = new JBColor(0xD8EAF0, 0x3C454E);
+  public static final Color HOVERED_SESSION_COLOR = new JBColor(0xD6D6D6, 0x313435);
+
+  public static final Color SESSION_DIVIDER_COLOR = new JBColor(0xD8D6D6, 0x2F3031);
+
+  public static final Color AXIS_MARKER_COLOR = Gray._150.withAlpha(50);
+
+  public static final Color CPU_USAGE = new JBColor(0xa7e0d7, 0x397060);
+
+  public static final Color CPU_USAGE_CAPTURED = new JBColor(0x19AF9A, 0x43CAA2);
+
+  public static final Color CPU_USAGE_CAPTURED_HOVER = new JBColor(0x159482, 0x73D7BA);
+
+  public static final Color CPU_OTHER_USAGE = new JBColor(0xe9f3f6, 0x39444e);
 
   public static final Color CPU_OTHER_USAGE_CAPTURED = new JBColor(0xC8E0E8, 0x455B75);
 
-  public static final Color THREADS_COUNT = new JBColor(0x6AA78A, 0x5E9A7D);
+  public static final Color THREADS_COUNT = new JBColor(0x224E4D, 0xDAFFF4);
 
-  public static final Color THREADS_COUNT_CAPTURED = new JBColor(0x558A71, 0x71D7A6);
+  public static final Color THREADS_COUNT_CAPTURED = new JBColor(0x224E4D, 0xDAFFF4);
+
+  public static final Color CPU_TRACE_IDLE = new JBColor(0x218677, 0x33807E);
+
+  public static final Color CPU_TRACE_IDLE_HOVER = new JBColor(0x1C7265, 0x44ACA9);
 
   // TODO: define final color
   public static final Color CPU_CAPTURE_EVENT = new JBColor(0x888888, 0x888888);
 
   public static final Color ENERGY_USAGE = new JBColor(0x966EC3, 0x8D6FC2);
 
+  public static final Color CPU_KERNEL_APP_TEXT_SELECTED = new JBColor(0xEFFDFB, 0x2C443D);
+  public static final Color CPU_KERNEL_APP_TEXT_HOVER = CPU_KERNEL_APP_TEXT_SELECTED;
+  public static final Color CPU_KERNEL_APP_TEXT = new JBColor(0x4A877F, 0x56907D);
+  public static final Color CPU_KERNEL_OTHER_TEXT = new JBColor(0x6E8C9A, 0x606D7E);
+  public static final Color CPU_KERNEL_OTHER_TEXT_SELECTED = new JBColor(0x232D31, 0xA9C7E9);
+  public static final Color CPU_KERNEL_OTHER_TEXT_HOVER = new JBColor(0x232D31, 0xA9C7E9);
+  public static final Color CPU_KERNEL_APP = new JBColor(0xC3E4E0, 0x33534C);
+  public static final Color CPU_KERNEL_APP_SELECTED = CPU_USAGE_CAPTURED;
+  public static final Color CPU_KERNEL_APP_HOVER = new JBColor(0x169986, 0x6BD5B6);
+  public static final Color CPU_KERNEL_OTHER = new JBColor(0xE5F1F5, 0x353C45);
+  public static final Color CPU_KERNEL_OTHER_HOVER = new JBColor(0x80B7CA, 0x587495);
+
+  public static final Color SLOW_FRAME_COLOR = new JBColor(new Color(0xAAF0697D, true), new Color(0xAACD6767, true));
+  public static final Color SLOW_FRAME_COLOR_HIGHLIGHTED = new JBColor(new Color(0xAACD6767, true), new Color(0xAAF0697D, true));
+
+  public static final Color NORMAL_FRAME_COLOR = new JBColor(new Color(0xAAD4D4D4, true), new Color(0xAA58595A, true));
+  public static final Color NORMAL_FRAME_COLOR_HIGHLIGHTED = new JBColor(new Color(0xAAB9B9B9, true), new Color(0xAA767778, true));
+
   /**
-   * Represents pair of colors of non-selected and selected states of a thread.
-   * The first color is for a non-selected thread, the second one is for a selected thread.
+   * Represents pair of colors of non-selected and hovered states of a thread.
+   * The first color is for a non-selected thread, the second one is for a hovered thread.
    */
-  public static final EnumColors<CpuProfilerStage.ThreadState> THREAD_STATES = new EnumColors.Builder<CpuProfilerStage.ThreadState>(2)
-    .add(CpuProfilerStage.ThreadState.RUNNING,
-         CPU_USAGE,
-         new JBColor(0x57D9B2, 0x387358))
-    .add(CpuProfilerStage.ThreadState.RUNNING_CAPTURED,
-         new JBColor(0x53B5A0, 0x44B67F),
-         new JBColor(0x84DEA7, 0x84DEA7))
-    .add(CpuProfilerStage.ThreadState.WAITING,
-         new JBColor(0xD4E675, 0x94A244),
-         new JBColor(0xD4E675, 0x94A244))
-    .add(CpuProfilerStage.ThreadState.WAITING_CAPTURED,
-         new JBColor(0xEFF35C, 0xDCF35C),
-         new JBColor(0xEFF35C, 0xDCF35C))
-    .add(CpuProfilerStage.ThreadState.SLEEPING,
-         new JBColor(0xEDEFF1, 0x3B3E42),
-         new JBColor(0x7BA6E9, 0x7BA6E9))
-    .add(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED,
-         new JBColor(0xD4D7DA, 0x4B4E52),
-         new JBColor(0x8FB3EA, 0x8FB3EA))
-    .add(CpuProfilerStage.ThreadState.DEAD,
-         Gray.TRANSPARENT,
-         Gray.TRANSPARENT)
-    .add(CpuProfilerStage.ThreadState.DEAD_CAPTURED,
-         Gray.TRANSPARENT,
-         Gray.TRANSPARENT)
-    // TODO: remove UNKNOWN mapping when all states are covered.
-    .add(CpuProfilerStage.ThreadState.UNKNOWN,
-         new JBColor(0xC1D6F6, 0x5A6E7D),
-         new JBColor(0xC1D6F6, 0x5A6E7D))
-    .build();
+  public static final EnumColors.Builder<CpuProfilerStage.ThreadState> THREAD_STATES =
+    new EnumColors.Builder<CpuProfilerStage.ThreadState>(2)
+      .add(CpuProfilerStage.ThreadState.RUNNING,
+           CPU_USAGE,
+           new JBColor(0x159482, 0x73D7BA))
+      .add(CpuProfilerStage.ThreadState.RUNNING_CAPTURED,
+           CPU_USAGE_CAPTURED,
+           CPU_USAGE_CAPTURED_HOVER)
+      .add(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED,
+           CPU_TRACE_IDLE,
+           CPU_TRACE_IDLE_HOVER)
+      .add(CpuProfilerStage.ThreadState.WAITING,
+           new JBColor(0xeccc8e, 0xa5956a),
+           new JBColor(0xE3AD48, 0xF8E8C3))
+      .add(CpuProfilerStage.ThreadState.WAITING_CAPTURED,
+           new JBColor(0xEAC174, 0xF1D48C),
+           new JBColor(0xE3AD48, 0xF8E8C3))
+      .add(CpuProfilerStage.ThreadState.WAITING_IO_CAPTURED,
+           new JBColor(0xFFB74D, 0xFFCA28),
+           new JBColor(0xE3AD48, 0xF8E8C3))
+      .add(CpuProfilerStage.ThreadState.SLEEPING,
+           new JBColor(0xF2F6F8, 0x353739),
+           new JBColor(0xD5DADD, 0x595C61))
+      .add(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED,
+           new JBColor(0xE7ECED, 0x3C3E40),
+           new JBColor(0xD5DADD, 0x595C61))
+      .add(CpuProfilerStage.ThreadState.DEAD,
+           Gray.TRANSPARENT,
+           Gray.TRANSPARENT)
+      .add(CpuProfilerStage.ThreadState.DEAD_CAPTURED,
+           Gray.TRANSPARENT,
+           Gray.TRANSPARENT)
+      .add(CpuProfilerStage.ThreadState.HAS_ACTIVITY,
+           CPU_USAGE,
+           new JBColor(0x159482, 0x73D7BA))
+      .add(CpuProfilerStage.ThreadState.NO_ACTIVITY,
+           Gray.TRANSPARENT,
+           Gray.TRANSPARENT)
+      // TODO: remove UNKNOWN mapping when all states are covered.
+      .add(CpuProfilerStage.ThreadState.UNKNOWN,
+           new JBColor(0xC1D6F6, 0x5A6E7D),
+           new JBColor(0xC1D6F6, 0x5A6E7D));
 
   public static final Color TRANSPARENT_COLOR = new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
 
-  public static final Color DEFAULT_HOVER_COLOR = new JBColor(new Color(0x171650C5, true), new Color(0x0CFFFFFF, true));
-
-  public static final Color CPU_AXIS_GUIDE_COLOR = Gray._150.withAlpha(50);
+  public static final Color CPU_AXIS_GUIDE_COLOR = AXIS_MARKER_COLOR;
 
   public static final Color CPU_CAPTURE_STATUS = new JBColor(0x545454, 0xCACACA);
 
-  public static final Color THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
+  public static final Color CPU_CAPTURE_LINES = new JBColor(0x434343, 0xBCBCBC);
 
-  public static final Color THREAD_LABEL_TEXT = new JBColor(0x545454, 0x9C9C9C);
+  public static final Color CPU_THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
+
+  public static final Color THREAD_LABEL_TEXT = new JBColor(0x434343, 0xBCBCBC);
 
   public static final Color SELECTED_THREAD_LABEL_TEXT = Gray.xFF;
 
-  public static final Color THREAD_LABEL_BACKGROUND = new JBColor(new Color(0xBFFFFFFF, true), new Color(0xBF2B2D2E, true));
+  public static final Color THREAD_LABEL_BACKGROUND = new JBColor(new Color(0xEFFFFFFF, true), new Color(0xEF2B2D2E, true));
 
   public static final Color THREAD_LABEL_BORDER = new JBColor(new Color(0x0C000000, true), new Color(0x0CFFFFFF, true));
 
@@ -105,39 +150,43 @@ public class ProfilerColors {
 
   public static final Color CPU_CAPTURE_SPARKLINE_SELECTED = new JBColor(0x4785EB, 0x5887DC);
 
-  public static final Color CPU_CALLCHART_VENDOR = new JBColor(0xA2DEFF, 0x7EB1CC);
+  public static final Color CPU_CALLCHART_VENDOR = new JBColor(0xA2DEFF, 0xA2DEFF);
 
-  public static final Color CPU_CALLCHART_VENDOR_BORDER = new JBColor(AdtUiUtils.overlayColor(0xA2DEFF, Color.BLACK.getRGB(), 0.4f),
-                                                                      AdtUiUtils.overlayColor(0x7EB1CC, Color.BLACK.getRGB(), 0.4f));
+  public static final Color CPU_CALLCHART_VENDOR_HOVER = new JBColor(0xB2E5FF, 0xB2E5FF);
 
-  public static final Color CPU_CALLCHART_APP = new JBColor(0x9FEAAD, 0x92D09F);
+  public static final Color CPU_CALLCHART_APP = new JBColor(0x9FEAAD, 0x9FEAAD);
 
-  public static final Color CPU_CALLCHART_APP_BORDER = new JBColor(AdtUiUtils.overlayColor(0x9FEAAD, Color.BLACK.getRGB(), 0.4f),
-                                                                   AdtUiUtils.overlayColor(0x92D09F, Color.BLACK.getRGB(), 0.4f));
+  public static final Color CPU_CALLCHART_APP_HOVER = new JBColor(0xADF0B9, 0xADF0B9);
 
-  public static final Color CPU_CALLCHART_PLATFORM = new JBColor(0xFECC82, 0xD0AA6F);
+  public static final Color CPU_CALLCHART_PLATFORM = new JBColor(0xFECC82, 0xFECC82);
 
-  public static final Color CPU_CALLCHART_PLATFORM_BORDER = new JBColor(AdtUiUtils.overlayColor(0xFECC82, Color.BLACK.getRGB(), 0.4f),
-                                                                        AdtUiUtils.overlayColor(0xD0AA6F, Color.BLACK.getRGB(), 0.4f));
+  public static final Color CPU_CALLCHART_PLATFORM_HOVER = new JBColor(0xFFDAA2, 0xFFDAA2);
 
-  public static final Color CPU_FLAMECHART_VENDOR = new JBColor(0xFFB74D, 0xFFCA28);
+  public static final Color CPU_FLAMECHART_VENDOR = new JBColor(0xFFC56F, 0xFFC56F);
 
-  public static final Color CPU_FLAMECHART_VENDOR_BORDER = new JBColor(AdtUiUtils.overlayColor(0xFFB74D, Color.BLACK.getRGB(), 0.4f),
-                                                                       AdtUiUtils.overlayColor(0xFFCA28, Color.BLACK.getRGB(), 0.4f));
+  public static final Color CPU_FLAMECHART_VENDOR_HOVER = new JBColor(0xFFD495, 0xFFD495);
 
-  public static final Color CPU_FLAMECHART_APP = new JBColor(0xFF7043, 0xFF6E40);
+  public static final Color CPU_FLAMECHART_APP = new JBColor(0xFFE0B2, 0xFFE0B2);
 
-  public static final Color CPU_FLAMECHART_APP_BORDER = new JBColor(AdtUiUtils.overlayColor(0xFF7043, Color.BLACK.getRGB(), 0.4f),
-                                                                    AdtUiUtils.overlayColor(0xFF6E40, Color.BLACK.getRGB(), 0.4f));
+  public static final Color CPU_FLAMECHART_APP_IDLE = ColorUtil.darker(CPU_FLAMECHART_APP, 2);
 
-  public static final Color CPU_FLAMECHART_PLATFORM = new JBColor(0xFFEE58, 0xFFECB3);
+  public static final Color CPU_FLAMECHART_APP_HOVER = new JBColor(0xFFECD1, 0xFFECD1);
 
-  public static final Color CPU_FLAMECHART_PLATFORM_BORDER = new JBColor(AdtUiUtils.overlayColor(0xFFEE58, Color.BLACK.getRGB(), 0.4f),
-                                                                         AdtUiUtils.overlayColor(0xFFECB3, Color.BLACK.getRGB(), 0.4f));
+  public static final Color CPU_FLAMECHART_APP_HOVER_IDLE = ColorUtil.darker(CPU_FLAMECHART_APP_HOVER, 2);
+
+  public static final Color CPU_FLAMECHART_PLATFORM = new JBColor(0xFF855E, 0xFF855E);
+
+  public static final Color CPU_FLAMECHART_PLATFORM_HOVER = new JBColor(0xFF9674, 0xFF9674);
 
   public static final Color CPU_PROFILING_CONFIGURATIONS_SELECTED = new JBColor(0x1155CC, 0x1155CC);
 
+  public static final Color CPU_RECORDING_CONFIGURATION_DESCRIPTION = new JBColor(0x4E4E4E, 0xB5B5B5);
+
   public static final Color CPU_DURATION_LABEL_BACKGROUND = new JBColor(new Color(0x70000000, true), new Color(0x70000000, true));
+
+  public static final Color COMBOBOX_BORDER = new JBColor(0xAAAAAA, 0xAAAAAA);
+
+  public static final Color COMBOBOX_SELECTED_CELL = new JBColor(0x3875D6, 0x3875D6);
 
   public static final Color DEFAULT_BACKGROUND = new JBColor(0xFFFFFF, 0x313335);
 
@@ -166,8 +215,6 @@ public class ProfilerColors {
   public static final Color NETWORK_RADIO_LOW = new JBColor(0x99BFFF, 0x4B6690);
 
   public static final Color NETWORK_RADIO_HIGH = new JBColor(0x335A9A, 0x669FFF);
-
-  public static final Color NETWORK_TABLE_AXIS = CPU_AXIS_GUIDE_COLOR;
 
   public static final Color NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER = new JBColor(0xD3D3D3, 0x565656);
 
@@ -205,13 +252,15 @@ public class ProfilerColors {
 
   public static final Color MEMORY_ALLOC_BG = new JBColor(new Color(0xECF2FA), new Color(0x323940));
 
-  /**
-   * TODO: Get actual energy colors from UX. (Currently they're copied from memory)
-   */
-  public static final Color ENERGY_CPU = new JBColor(new Color(0x56BFEC), new Color(0x2B7DA2));
+  public static final Color ENERGY_BACKGROUND = new JBColor(new Color(0xF1B876), new Color(0xFFDFA6));
 
-  public static final Color ENERGY_NETWORK = new JBColor(new Color(0x80EDDC), new Color(0x4EA783));
+  public static final Color ENERGY_CPU = new JBColor(new Color(0xDCD0F3), new Color(0x685A83));
 
+  public static final Color ENERGY_NETWORK = new JBColor(new Color(0xB39DDB), new Color(0xA78BD8));
+
+  public static final Color ENERGY_WAKE_LOCK = new JBColor(new Color(0xF44271), new Color(0xF3596C));
+
+  public static final Color ENERGY_LOCATION = new JBColor(new Color(0x7152A7), new Color(0xDCC8FF));
 
   public static final Color MESSAGE_COLOR = new JBColor(0x787878, 0xC8C8C8);
 
@@ -219,7 +268,7 @@ public class ProfilerColors {
 
   public static final Color TOOLTIP_BACKGROUND = new JBColor(0xFFFFFF, 0x3D3F41);
 
-  public static final Color TOOLTIP_TEXT = new JBColor(0x545454, 0xCACACA);
+  public static final Color TOOLTIP_TEXT = JBColor.foreground();
 
-  public static final Color TOOLTIP_TIME_COLOR = new JBColor(0x888888, 0x838485);
+  public static final Color TOOLTIP_LOW_CONTRAST = new JBColor(0x888888, 0x838485);
 }

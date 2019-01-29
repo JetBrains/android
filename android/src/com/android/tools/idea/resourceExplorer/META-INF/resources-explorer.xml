@@ -16,9 +16,30 @@
     <extensionPoint
         qualifiedName="com.android.resourceImporter"
         interface="com.android.tools.idea.resourceExplorer.plugin.ResourceImporter"/>
+    <extensionPoint
+        qualifiedName="com.android.resourceViewer"
+        interface="com.android.tools.idea.resourceExplorer.plugin.DesignAssetRenderer"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
     <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.RasterResourceImporter"/>
+    <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.SVGImporter"/>
+    <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.VectorDrawableImporter"/>
+    <resourceImporter implementation="com.android.tools.idea.resourceExplorer.plugin.SketchImporter"/>
+    <resourceViewer implementation="com.android.tools.idea.resourceExplorer.plugin.SVGAssetRenderer"/>
+    <resourceViewer implementation="com.android.tools.idea.resourceExplorer.plugin.RasterAssetRenderer"/>
+    <resourceViewer implementation="com.android.tools.idea.resourceExplorer.plugin.DrawableAssetRenderer"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.resourceExplorer.plugin.DesignAssetRendererManager"/>
+    <customPasteProvider implementation="com.android.tools.idea.resourceExplorer.ResourcePasteProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.android.tools.idea.resourceExplorer.importer.ImportConfigurationManager"/>
+    <toolWindow anchor="left" icon="StudioIcons.Shell.ToolWindows.BUILD_VARIANTS" id="Resources Explorer"
+                factoryClass="com.android.tools.idea.resourceExplorer.ResourceExplorerToolFactory"
+                conditionClass="com.android.tools.idea.resourceExplorer.ResourceExplorerToolFactory"/>
   </extensions>
 </idea-plugin>

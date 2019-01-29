@@ -27,19 +27,20 @@ import com.android.tools.idea.common.surface.ZoomType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assume;
 import org.mockito.Mockito;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
@@ -77,7 +78,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     NlModel model = modelBuilder.build();
     mySurface.setModel(model);
     mySurface.setScreenMode(SceneMode.SCREEN_ONLY, false);
-    assertEquals(6, mySurface.myLayers.size());
+    assertEquals(5, mySurface.myLayers.size());
 
     droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
     mySurface.setScreenMode(SceneMode.BLUEPRINT_ONLY, false);
@@ -87,7 +88,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     droppedLayers = ImmutableList.copyOf(mySurface.myLayers);
     mySurface.setScreenMode(SceneMode.BOTH, false);
-    assertEquals(10, mySurface.myLayers.size());
+    assertEquals(9, mySurface.myLayers.size());
     // Make sure all dropped layers are disposed.
     assertEmpty(droppedLayers.stream().filter(Disposer::isDisposed).collect(Collectors.toList()));
 
@@ -133,12 +134,15 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getSceneManager().getRenderResult());
 
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
-    assertFalse(mySurface.getIssueModel().hasRenderError());
+    assertFalse(mySurface.getIssueModel().getIssues()
+                  .stream()
+                  .anyMatch(
+                    issue -> issue instanceof RenderIssueProvider.NlRenderIssueWrapper && issue.getSeverity() == HighlightSeverity.ERROR));
   }
+
 
   public void testRenderWhileBuilding() {
     ModelBuilder modelBuilder = model("absolute.xml",
@@ -159,7 +163,6 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(mySurface.getSceneManager().getRenderResult());
 
     mySurface.requestRender();
 
@@ -173,9 +176,9 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Because there is a missing view, some other extra errors will be generated about missing styles. This is caused by
     // MockView (which is based on TextView) that depends on some Material styles.
     // We only care about the missing class error.
-    assertTrue(mySurface.getIssueModel().getNlErrors().stream()
+    assertTrue(mySurface.getIssueModel().getIssues().stream()
                  .anyMatch(issue -> issue.getSummary().startsWith("Missing classes")));
-    assertFalse(mySurface.getIssueModel().getNlErrors().stream()
+    assertFalse(mySurface.getIssueModel().getIssues().stream()
                   .anyMatch(issue -> issue.getSummary().startsWith("The project is still building")));
   }
 
@@ -240,7 +243,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
@@ -272,7 +275,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
@@ -308,7 +311,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     NlComponent button2 = model.find("cuteLittleButton2");
@@ -348,7 +351,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     NlComponent button2 = model.find("cuteLittleButton2");
@@ -376,7 +379,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
@@ -409,7 +412,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       ))
       .build();
     mySurface.setModel(model);
-    DesignSurfaceActionHandler handler = new DesignSurfaceActionHandler(mySurface);
+    DesignSurfaceActionHandler handler = new NlDesignSurfaceActionHandler(mySurface);
     DataContext dataContext = Mockito.mock(DataContext.class);
     NlComponent button = model.find("cuteLittleButton");
     mySurface.getSelectionModel().setSelection(ImmutableList.of(button));
@@ -433,6 +436,11 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   }
 
   public void testZoom() {
+    if (SystemInfo.isMac && UIUtil.isRetina()) {
+      _testZoomOnMacWithRetina();
+      return;
+    }
+
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 200, 200)
       .matchParentWidth()
@@ -465,6 +473,51 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
     mySurface.zoom(ZoomType.OUT, 100, 100);
     assertEquals(new Point(7, 7), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    mySurface.zoom(ZoomType.OUT);
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+    mySurface.zoom(ZoomType.OUT);
+
+    assertEquals(mySurface.getScale(), origScale);
+    mySurface.zoom(ZoomType.OUT);
+    assertEquals(mySurface.getScale(), origScale);
+
+    mySurface.getScrollPane().setSize(2000, 2000);
+    assertEquals(1.0, mySurface.getMinScale());
+  }
+
+  private void _testZoomOnMacWithRetina() {
+    SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 200, 200)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(FRAME_LAYOUT)
+          .withBounds(100, 100, 100, 100)
+          .width("100dp")
+          .height("100dp")
+      ))
+      .build();
+    mySurface.setModel(model);
+    mySurface.getScrollPane().setSize(1000, 1000);
+    mySurface.zoomToFit();
+    double origScale = mySurface.getScale();
+    assertEquals(origScale, mySurface.getMinScale());
+
+    SceneView view = mySurface.getCurrentSceneView();
+    JViewport viewport = mySurface.getScrollPane().getViewport();
+    assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+
+    mySurface.zoom(ZoomType.IN);
+    double scale = mySurface.getScale();
+    assertTrue(scale > origScale);
+    assertEquals(new Point(-44, -44), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+
+    mySurface.zoom(ZoomType.IN, 100, 100);
+    assertTrue(mySurface.getScale() > scale);
+    assertEquals(new Point(-29, -29), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
+
+    mySurface.zoom(ZoomType.OUT, 100, 100);
+    assertEquals(new Point(-43, -43), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
     mySurface.zoom(ZoomType.OUT);
     assertEquals(new Point(-122, -122), Coordinates.getAndroidCoordinate(view, viewport.getViewPosition()));
     mySurface.zoom(ZoomType.OUT);

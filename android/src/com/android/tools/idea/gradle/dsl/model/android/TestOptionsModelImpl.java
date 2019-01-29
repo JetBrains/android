@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.UnitTestsModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.android.testOptions.UnitTestsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
@@ -30,6 +30,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitT
 public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOptionsModel {
   @NonNls private static final String REPORT_DIR = "reportDir";
   @NonNls private static final String RESULTS_DIR = "resultsDir";
+  @NonNls private static final String EXECUTION = "execution";
 
   public TestOptionsModelImpl(@NotNull TestOptionsDslElement dslElement) {
     super(dslElement);
@@ -37,42 +38,14 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
 
   @Override
   @NotNull
-  public GradleNullableValue<String> reportDir() {
-    return myDslElement.getLiteralProperty(REPORT_DIR, String.class);
+  public ResolvedPropertyModel reportDir() {
+    return getModelForProperty(REPORT_DIR, true);
   }
 
   @Override
   @NotNull
-  public TestOptionsModel setReportDir(@NotNull String reportDir) {
-    myDslElement.setNewLiteral(REPORT_DIR, reportDir);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public TestOptionsModel removeReportDir() {
-    myDslElement.removeProperty(REPORT_DIR);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public GradleNullableValue<String> resultsDir() {
-    return myDslElement.getLiteralProperty(RESULTS_DIR, String.class);
-  }
-
-  @Override
-  @NotNull
-  public TestOptionsModel setResultsDir(@NotNull String resultsDir) {
-    myDslElement.setNewLiteral(RESULTS_DIR, resultsDir);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public TestOptionsModel removeResultsDir() {
-    myDslElement.removeProperty(RESULTS_DIR);
-    return this;
+  public ResolvedPropertyModel resultsDir() {
+    return getModelForProperty(RESULTS_DIR, true);
   }
 
   @Override
@@ -81,8 +54,14 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
     UnitTestsDslElement unitTestsDslElement = myDslElement.getPropertyElement(UNIT_TESTS_BLOCK_NAME, UnitTestsDslElement.class);
     if (unitTestsDslElement == null) {
       unitTestsDslElement = new UnitTestsDslElement(myDslElement);
-      myDslElement.setNewElement(UNIT_TESTS_BLOCK_NAME, unitTestsDslElement);
+      myDslElement.setNewElement(unitTestsDslElement);
     }
     return new UnitTestsModelImpl(unitTestsDslElement);
+  }
+
+  @NotNull
+  @Override
+  public ResolvedPropertyModel execution() {
+    return getModelForProperty(EXECUTION, true);
   }
 }

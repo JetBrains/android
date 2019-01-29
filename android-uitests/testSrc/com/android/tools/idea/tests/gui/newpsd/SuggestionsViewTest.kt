@@ -17,24 +17,21 @@ package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestionsConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.waitForIdle
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
-import org.junit.After
+import org.junit.*
 import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertNotNull
 
 @RunIn(TestGroup.UNRELIABLE)
-@RunWith(GuiTestRunner::class)
+@RunWith(GuiTestRemoteRunner::class)
 class SuggestionsViewTest {
 
   @Rule
@@ -51,8 +48,7 @@ class SuggestionsViewTest {
     StudioFlags.NEW_PSD_ENABLED.clearOverride()
   }
 
-  // TODO(b/71720545): Remove ignore if refreshFiles() helps avoid disk and memory file content conflicts.
-  // @Ignore("b/71720545")
+  @Ignore("b/77848741")
   @Test
   fun showsAndProcessesMessages() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
@@ -82,7 +78,7 @@ class SuggestionsViewTest {
     message = updatesGroup.findMessageMatching("support-compat:26.0.0 \\(app\\) : Newer version available:")
     assertNotNull(message)
     assertTrue (message!!.isActionActionAvailable())
-    message?.clickAction()
+    message.clickAction()
     suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(30))
 
     suggestionsConfigurable.waitForGroups("Updates")
@@ -91,11 +87,12 @@ class SuggestionsViewTest {
         .seconds(3)
         .expecting("No message matching: support-compat:26.0.0 \\\\(app\\\\) : Newer version available:\")")
         .until { updatesGroup.findMessageMatching("support-compat:26.0.0 \\(app\\) : Newer version available:") == null }
+    waitForIdle()
 
     message = updatesGroup.findMessageMatching("appcompat-v7:26.0.1 \\(app\\) : Newer version available:")
     assertNotNull(message)
     assertTrue (message!!.isActionActionAvailable())
-    message?.clickAction()
+    message.clickAction()
     suggestionsConfigurable.waitAnalysesCompleted(Wait.seconds(30))
 
     updatesGroup = suggestionsConfigurable.findGroup("Updates")
@@ -113,6 +110,7 @@ class SuggestionsViewTest {
   }
 
   @Test
+  @Ignore("b/74443500")
   fun filtersMessagesByModule() {
     val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("PsdSimple")
 

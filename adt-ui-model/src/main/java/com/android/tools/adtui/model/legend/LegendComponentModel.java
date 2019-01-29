@@ -16,14 +16,12 @@
 package com.android.tools.adtui.model.legend;
 
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.updater.Updatable;
-import org.jetbrains.annotations.NotNull;
-
+import com.android.tools.adtui.model.Range;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
-public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspect> implements Updatable {
+public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspect> {
 
   public enum Aspect {
     LEGEND,
@@ -31,28 +29,20 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
 
   @NotNull
   private final List<Legend> myLegends;
-  private final long mUpdateFrequencyNs;
-  private long mElapsedNs;
 
-  public LegendComponentModel(int updateFrequencyMs) {
-    mUpdateFrequencyNs = TimeUnit.MILLISECONDS.toNanos(updateFrequencyMs);
+  public LegendComponentModel() {
     myLegends = new ArrayList<>();
-    // Set elapsedNs to full value to ensure update loop always triggers the first time
-    mElapsedNs = mUpdateFrequencyNs;
+  }
+
+  public LegendComponentModel(@NotNull Range dependentRange) {
+    this();
+    // TODO(b/117123979) Move this dependency into Legend.
+    dependentRange.addDependency(this).onChange(Range.Aspect.RANGE, () -> changed(Aspect.LEGEND));
   }
 
   @NotNull
   public List<Legend> getLegends() {
     return myLegends;
-  }
-
-  @Override
-  public void update(long elapsedNs) {
-    mElapsedNs += elapsedNs;
-    if (mElapsedNs >= mUpdateFrequencyNs) {
-      mElapsedNs = 0;
-      changed(Aspect.LEGEND);
-    }
   }
 
   public void add(@NotNull Legend legend) {

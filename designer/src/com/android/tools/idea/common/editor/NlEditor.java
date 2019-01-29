@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.common.editor;
 
-import com.android.tools.idea.common.lint.NlBackgroundEditorHighlighter;
-import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
+import com.android.tools.idea.common.lint.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,12 +76,20 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
 
   @Override
   public void selectNotify() {
-    getComponent().activate();
+    // select/deselectNotify will be called when the user selects (clicks) or opens a new editor. However, in some cases, the editor
+    // might be deselected but still visible. We first check whether we should pay attention to the select/deselect so we only do something
+    // if we are visible
+    if (ArrayUtil.contains(this, FileEditorManager.getInstance(myProject).getSelectedEditors())) {
+      getComponent().activate();
+    }
   }
 
   @Override
   public void deselectNotify() {
-    getComponent().deactivate();
+    // If we are still visible but the user deselected us, do not deactivate the model since we still need to receive updates
+    if (!ArrayUtil.contains(this, FileEditorManager.getInstance(myProject).getSelectedEditors())) {
+      getComponent().deactivate();
+    }
   }
 
   @Override
@@ -106,9 +115,9 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   public BackgroundEditorHighlighter getBackgroundHighlighter() {
     // The designer should display components that have problems detected by inspections. Ideally, we'd just get the result
     // of all the inspections on the XML file. However, it doesn't look like there is an API to obtain this for a file
-    // (there are  test APIs). So we add a single highlighter which uses lint..
+    // (there are test APIs). So we add a single highlighter which uses lint.
     if (myBackgroundHighlighter == null) {
-      myBackgroundHighlighter = new NlBackgroundEditorHighlighter(myEditorPanel);
+      myBackgroundHighlighter = new BackgroundEditorHighlighter(myEditorPanel);
     }
     return myBackgroundHighlighter;
   }
@@ -123,5 +132,11 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   @Override
   public StructureViewBuilder getStructureViewBuilder() {
     return null;
+  }
+
+  @Nullable
+  @Override
+  public VirtualFile getFile() {
+    return myFile;
   }
 }

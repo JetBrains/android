@@ -15,17 +15,47 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android
 
+import com.android.tools.idea.gradle.structure.configurables.ui.ComponentProvider
 import com.android.tools.idea.gradle.structure.model.PsChildModel
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.ActionCallback
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
+import javax.swing.JComponent
 
 /**
  * A base class for configurables for [PsChildModel] entities.
  */
-abstract class ChildModelConfigurable<T : PsChildModel>(val model: T) : NamedConfigurable<T>(), Place.Navigator {
+abstract class ChildModelConfigurable<T : PsChildModel, out PanelT>(
+  val model: T
+) : NamedConfigurable<T>(), Place.Navigator, Disposable
+  where PanelT : ComponentProvider,
+        PanelT : Disposable {
   var myHistory: History? = null
+  var disposed = false
+
+  private val lazyPanel = lazy(mode = LazyThreadSafetyMode.NONE) { createPanel().apply { setHistory(myHistory) } }
+  private val panel by lazyPanel
+
+  protected abstract fun createPanel(): PanelT
+
+  final override fun createOptionsPanel(): JComponent = panel.getComponent()
+
+  override fun dispose() {
+    disposeUIResources()
+  }
+
+  override fun disposeUIResources() {
+    // DisposedUIResources is also directly invoked by MasterDetailsComponent.
+    if (disposed) return
+    disposed = true
+    super.disposeUIResources()
+    if (lazyPanel.isInitialized()) {
+      Disposer.dispose(panel)
+    }
+  }
 
   override fun isModified() = model.isModified
   override fun apply() {

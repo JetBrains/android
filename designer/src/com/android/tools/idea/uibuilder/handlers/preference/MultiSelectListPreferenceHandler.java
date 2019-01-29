@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;

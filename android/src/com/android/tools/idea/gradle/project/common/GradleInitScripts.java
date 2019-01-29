@@ -24,6 +24,7 @@ import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import kotlin.reflect.KType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -205,7 +206,8 @@ public class GradleInitScripts {
   static class JavaLibraryPluginJars {
     @NotNull
     List<String> getJarPaths() {
-      return Arrays.asList(getJarPathForClass(JavaProject.class), getJarPathForClass(JavaLibraryPlugin.class));
+      return Arrays
+        .asList(getJarPathForClass(JavaProject.class), getJarPathForClass(JavaLibraryPlugin.class), getJarPathForClass(KType.class));
     }
   }
 }

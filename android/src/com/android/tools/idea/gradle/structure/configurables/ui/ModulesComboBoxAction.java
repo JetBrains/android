@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
+import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
@@ -25,25 +26,25 @@ import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.List;
 
 import static icons.StudioIcons.Shell.Filetree.ANDROID_MODULE;
 
 public class ModulesComboBoxAction extends LabeledComboBoxAction {
   @NotNull private final PsContext myContext;
-  @NotNull private final List<PsModule> myExtraTopModules;
+  @NotNull private final BasePerspectiveConfigurable myBasePerspective;
 
-  public ModulesComboBoxAction(@NotNull PsContext context, @NotNull List<PsModule> extraTopModules) {
+  public ModulesComboBoxAction(@NotNull PsContext context,
+                               @NotNull BasePerspectiveConfigurable basePerspective) {
     super("Module: ");
     myContext = context;
-    myExtraTopModules = extraTopModules;
+    myBasePerspective = basePerspective;
   }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     presentation.setIcon(ANDROID_MODULE);
-    presentation.setText(myContext.getSelectedModule());
+    presentation.setText(myBasePerspective.getSelectedModuleName());
   }
 
   @Override
@@ -51,7 +52,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
   protected DefaultActionGroup createPopupActionGroup(JComponent button) {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    for (PsModule module : myExtraTopModules) {
+    for (PsModule module : myBasePerspective.getExtraModules()) {
       group.add(new ModuleAction(module));
     }
 
@@ -68,8 +69,8 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
     }
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-      myContext.setSelectedModule(myModuleName, this);
+    public void actionPerformed(AnActionEvent e) {
+      myBasePerspective.selectModule(myModuleName);
     }
   }
 }

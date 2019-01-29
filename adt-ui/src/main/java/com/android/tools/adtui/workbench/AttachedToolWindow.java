@@ -26,6 +26,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.accessibility.ScreenReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,7 +72,7 @@ class AttachedToolWindow<T> implements Disposable {
   private boolean myAutoHideOpen;
   private int myToolOrder;
 
-  AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
+  public AttachedToolWindow(@NotNull ToolWindowDefinition<T> definition,
                             @NotNull ButtonDragListener<T> dragListener,
                             @NotNull String workBenchName,
                             @NotNull SideModel<T> model) {
@@ -81,7 +82,9 @@ class AttachedToolWindow<T> implements Disposable {
     myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = model;
     myPanel = new JPanel(new BorderLayout());
-    myPanel.setFocusCycleRoot(true);
+    if (!ScreenReader.isActive()) {
+      myPanel.setFocusCycleRoot(true);
+    }
     myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myActionButtons = new ArrayList<>(4);
     myMinimizedButton = new MinimizedButton(definition.getTitle(), definition.getIcon(), this);
@@ -413,7 +416,7 @@ class AttachedToolWindow<T> implements Disposable {
     private final Component myDragImage;
     private final Point myDragPoint;
 
-    DragEvent(@NotNull MouseEvent mouseEvent, @NotNull Component dragImage, @NotNull Point dragPoint) {
+    public DragEvent(@NotNull MouseEvent mouseEvent, @NotNull Component dragImage, @NotNull Point dragPoint) {
       myMouseEvent = mouseEvent;
       myDragImage = dragImage;
       myDragPoint = dragPoint;
@@ -455,7 +458,7 @@ class AttachedToolWindow<T> implements Disposable {
     private JLabel myDragImage;
     private Point myStartDragPosition;
 
-    MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow toolWindow) {
+    public MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow toolWindow) {
       super(title, icon);
       myToolWindow = toolWindow;
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
@@ -582,7 +585,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class SearchAction extends AnAction {
-    SearchAction() {
+    public SearchAction() {
       super("Search");
       Presentation presentation = getTemplatePresentation();
       presentation.setIcon(AllIcons.Actions.Find);
@@ -595,10 +598,8 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class GearAction extends AnAction {
-    GearAction() {
-      super("More Options");
-      Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(AllIcons.General.GearPlain);
+    public GearAction() {
+      super("More Options", null, AllIcons.General.GearPlain);
     }
 
     @Override
@@ -616,18 +617,8 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class HideAction extends AnAction {
-    HideAction() {
-      super(UIBundle.message("tool.window.hide.action.name"));
-      update(getTemplatePresentation());
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent event) {
-      update(event.getPresentation());
-    }
-
-    private void update(@NotNull Presentation presentation) {
-      presentation.setIcon(AllIcons.General.HideToolWindow);
+    public HideAction() {
+      super(UIBundle.message("tool.window.hide.action.name"), null, AllIcons.General.HideToolWindow);
     }
 
     @Override
@@ -639,18 +630,18 @@ class AttachedToolWindow<T> implements Disposable {
   private class TogglePropertyTypeAction extends ToggleAction {
     private final PropertyType myProperty;
 
-    TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
+    public TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
       super(text);
       myProperty = property;
     }
 
-    TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
+    public TogglePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
       myProperty = property;
       copyFrom(action);
     }
 
     @Override
-    public boolean isSelected(@NotNull AnActionEvent event) {
+    public boolean isSelected(AnActionEvent event) {
       return getProperty(myProperty);
     }
 
@@ -661,16 +652,16 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class ToggleOppositePropertyTypeAction extends TogglePropertyTypeAction {
-    ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
+    public ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull String text) {
       super(property, text);
     }
 
-    ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
+    public ToggleOppositePropertyTypeAction(@NotNull PropertyType property, @NotNull AnAction action) {
       super(property, action);
     }
 
     @Override
-    public boolean isSelected(@NotNull AnActionEvent event) {
+    public boolean isSelected(AnActionEvent event) {
       return !super.isSelected(event);
     }
 
@@ -681,7 +672,7 @@ class AttachedToolWindow<T> implements Disposable {
   }
 
   private class SwapAction extends AnAction {
-    SwapAction() {
+    public SwapAction() {
       super("Swap");
     }
 
@@ -700,7 +691,7 @@ class AttachedToolWindow<T> implements Disposable {
       addKeyboardListener(this);
       addDocumentListener(new DocumentAdapter() {
         @Override
-        protected void textChanged(@NotNull DocumentEvent e) {
+        protected void textChanged(DocumentEvent e) {
           if (myContent != null) {
             myContent.setFilter(getText().trim());
           }
@@ -721,6 +712,7 @@ class AttachedToolWindow<T> implements Disposable {
         showSearchField(false);
       }
       myOldFocusComponent = null;
+      super.onFocusLost();
     }
 
     @Override

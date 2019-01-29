@@ -15,16 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.testOptions;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 public interface UnitTestsModel {
   @NotNull
-  GradleNullableValue<Boolean> returnDefaultValues();
-
-  @NotNull
-  UnitTestsModel setReturnDefaultValues(boolean returnDefaultValues);
-
-  @NotNull
-  UnitTestsModel removeReturnDefaultValues();
+  ResolvedPropertyModel returnDefaultValues();
 }

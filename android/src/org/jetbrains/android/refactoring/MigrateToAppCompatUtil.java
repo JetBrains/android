@@ -16,13 +16,14 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.res2.AbstractResourceRepository;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeRequest;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ProjectResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.checks.AppCompatCustomViewDetector;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -33,7 +34,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.openapi.application.WriteAction;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManager;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -45,6 +48,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.usageView.UsageInfo;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.SmartList;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.MethodMigrationEntry;
@@ -56,8 +60,7 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
-import static com.android.SdkConstants.CLASS_ACTIVITY;
+import static com.android.SdkConstants.*;
 
 class MigrateToAppCompatUtil {
 
@@ -71,13 +74,20 @@ class MigrateToAppCompatUtil {
     return findRefs(project, aClass);
   }
 
+  public static List<UsageInfo> findPackageUsages(Project project, String qName) {
+    PsiPackage aPackage = JavaPsiFacade.getInstance(project).findPackage(qName);
+    return findRefs(project, aPackage);
+  }
+
   @NotNull
   private static List<UsageInfo> findRefs(@NonNull Project project, PsiElement element) {
     if (element == null) {
       return Collections.emptyList();
     }
     List<UsageInfo> results = new SmartList<>();
-    for (PsiReference usage : ReferencesSearch.search(element, GlobalSearchScope.projectScope(project), false)) {
+    // ignoreScope should work with false in this case but, for some reason, it does not return any results for
+    // certain classes even when it should. For now setting it to true to workaround b/79696324
+    for (PsiReference usage : ReferencesSearch.search(element, GlobalSearchScope.projectScope(project), true)) {
       if (usage.getElement().isWritable()) {
         results.add(new UsageInfo(usage));
       }
@@ -101,15 +111,6 @@ class MigrateToAppCompatUtil {
       return refs;
     }
     return Collections.emptyList();
-  }
-
-  // Code copied from MigrationUtil since it's not marked public
-  static PsiClass findOrCreateClass(Project project, final PsiMigration migration, final String qName) {
-    PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(qName, GlobalSearchScope.allScope(project));
-    if (aClass == null) {
-      aClass = WriteAction.compute(() -> migration.createClass(qName));
-    }
-    return aClass;
   }
 
   @NonNull
@@ -184,7 +185,7 @@ class MigrateToAppCompatUtil {
             @Override
             public Boolean dependsOn(@NotNull String artifact) {
               // Make it look like the App already depends on AppCompat to get the warnings for custom views.
-              if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
+              if (APPCOMPAT_LIB_ARTIFACT.equals(artifact) || ANDROIDX_APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
                 return Boolean.TRUE;
               }
               return super.dependsOn(artifact);
@@ -203,7 +204,7 @@ class MigrateToAppCompatUtil {
 
   /**
    * Get {@link XmlFile} instances of type {@link ResourceType} from the given
-   * {@link AbstractResourceRepository} and {@link Project}.
+   * {@link ResourceRepository} and {@link Project}.
    *
    * @param project      The project to use to get the PsiFile.
    * @param repository   The repository to be used for getting the items.
@@ -212,13 +213,13 @@ class MigrateToAppCompatUtil {
    */
   @NonNull
   static Set<XmlFile> getPsiFilesOfType(@NonNull Project project,
-                                        @NonNull AbstractResourceRepository repository,
+                                        @NonNull ResourceRepository repository,
                                         @NonNull ResourceType resourceType) {
 
-    Collection<String> itemsOfType = repository.getItemsOfType(resourceType);
+    Collection<String> itemsOfType = repository.getResources(ResourceNamespace.TODO(), resourceType).keySet();
 
     return itemsOfType.stream()
-      .map(name -> repository.getResourceItem(resourceType, name))
+      .map(name -> repository.getResources(ResourceNamespace.TODO(), resourceType, name))
       .flatMap(Collection::stream)
       .map(item -> LocalResourceRepository.getItemPsiFile(project, item))
       .filter(f -> f instanceof XmlFile)
@@ -234,7 +235,7 @@ class MigrateToAppCompatUtil {
    * @param operations A list of {@link AppCompatMigrationEntry.XmlElementMigration} instances that define
    *                   which tags/attributes and attribute values should be looked at.
    * @param resourceType The {@link ResourceType} such as LAYOUT, MENU that is used for fetching
-   *                     the resources from the {@link ProjectResourceRepository}.
+   *                     the resources from the {@link LocalResourceRepository}.
    * @return A list of UsageInfos that describe the changes to be migrated.
    */
   public static List<UsageInfo> findUsagesOfXmlElements(@NonNull Project project,
@@ -257,7 +258,7 @@ class MigrateToAppCompatUtil {
 
     List<UsageInfo> usageInfos = new ArrayList<>();
     for (Module module : modules) {
-      ProjectResourceRepository projectResources = ProjectResourceRepository.getOrCreateInstance(module);
+      LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(module);
       if (projectResources == null) {
         continue;
       }
@@ -325,5 +326,19 @@ class MigrateToAppCompatUtil {
       }
     }
     infos.removeAll(toRemove);
+  }
+
+  static boolean isKotlinSimpleNameReference(PsiReference reference) {
+    PluginId kotlinPluginId = PluginId.findId("org.jetbrains.kotlin");
+    IdeaPluginDescriptor kotlinPlugin = ObjectUtils.notNull(PluginManager.getPlugin(kotlinPluginId));
+    ClassLoader pluginClassLoader = kotlinPlugin.getPluginClassLoader();
+    try {
+      Class<?> simpleNameReferenceClass =
+        Class.forName("org.jetbrains.kotlin.idea.references.KtSimpleNameReference", true, pluginClassLoader);
+      return simpleNameReferenceClass.isInstance(reference);
+    }
+    catch (ClassNotFoundException e) {
+      return false;
+    }
   }
 }

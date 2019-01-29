@@ -100,7 +100,7 @@ public class CustomPanelInspectorProvider implements InspectorProvider<NlPropert
     @Override
     @NotNull
     public List<NlComponentEditor> getEditors() {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
 
     @Override
@@ -111,7 +111,7 @@ public class CustomPanelInspectorProvider implements InspectorProvider<NlPropert
     @Override
     public void attachToInspector(@NotNull InspectorPanel inspector) {
       refresh();
-      inspector.addPanel(myPanel);
+      inspector.addPanel(myPanel.getPanel());
     }
 
     @Override

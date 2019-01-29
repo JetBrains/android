@@ -73,11 +73,14 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertTrue(manager.hasCachedConfiguration(file1));
     assertTrue(manager.hasCachedConfiguration(file2));
 
+    int iterations = 0;
     try {
       GCUtil.tryGcSoftlyReachableObjects();
     } catch (Throwable t) {
       // The above method can throw java.lang.OutOfMemoryError; that's fine for this test
     }
+    while (manager.hasCachedConfiguration(file1) && iterations < 10);
+
     System.gc();
     assertFalse(manager.hasCachedConfiguration(file1));
     assertFalse(manager.hasCachedConfiguration(file2));

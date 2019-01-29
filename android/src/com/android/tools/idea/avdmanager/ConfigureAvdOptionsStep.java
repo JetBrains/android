@@ -17,13 +17,15 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.emulator.SnapshotProtoException;
+import com.android.emulator.SnapshotProtoParser;
 import com.android.repository.io.FileOpUtils;
 import com.android.resources.Keyboard;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.*;
-import com.android.sdklib.internal.avd.GpuMode;
+import com.android.sdklib.internal.avd.*;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.util.FormScalingUtil;
@@ -47,6 +49,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.CapturingProcessHandler;
+import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
@@ -57,6 +63,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -66,6 +73,7 @@ import com.intellij.util.Consumer;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
+import org.gradle.internal.impldep.org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,13 +81,10 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 
@@ -169,6 +174,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JPanel myBootOptionPanel;
   private JRadioButton myColdBootRadioButton;
   private JRadioButton myFastBootRadioButton;
+  private JRadioButton myChooseBootRadioButton;
+  private JComboBox myChosenSnapshotComboBox;
   private Iterable<JComponent> myAdvancedOptionsComponents;
 
   private Project myProject;
@@ -190,6 +197,37 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private AvdOptionsModel myModel;
 
+  @NotNull
+  private String mySelectedSnapshotFileName = "";
+
+  private class SnapshotListItem implements Comparable<SnapshotListItem> {
+    public String fileName;
+    public String logicalName;
+    public Long   date;
+
+    public SnapshotListItem(@NotNull String theFileName, @NotNull String theLogicalName, Long theDate) {
+      fileName = theFileName;
+      logicalName = theLogicalName;
+      date = theDate;
+    }
+
+    @Override
+    public int compareTo(@NotNull SnapshotListItem that) {
+      // Sort by:
+      //   a) Selected fileName
+      //   b) Date
+      boolean thisIsSelected = mySelectedSnapshotFileName.equals(fileName);
+      boolean thatIsSelected = mySelectedSnapshotFileName.equals(that.fileName);
+
+      if (thisIsSelected) return thatIsSelected ? 0 : -1;
+      if (thatIsSelected) return 1;
+
+      return date.compareTo(that.date);
+    }
+  }
+
+  private ArrayList<SnapshotListItem> mySnapshotList;
+
   public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
     super(model, "Android Virtual Device (AVD)");
     myModel = model;
@@ -207,6 +245,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     setAdvanceSettingsVisible(false);
     myScrollPane.getVerticalScrollBar().setUnitIncrement(10);
     initCpuCoreDropDown();
+    mySelectedSnapshotFileName = getModel().chosenSnapshotFile().get();
+    populateSnapshotList();
+    refreshSnapshotPulldown();
+    myChosenSnapshotComboBox.addItemListener(mySnapshotComboListener);
 
     boolean supportsVirtualCamera = EmulatorAdvFeatures.emulatorSupportsVirtualScene(
             AndroidSdks.getInstance().tryToChooseSdkHandler(),
@@ -238,8 +280,112 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   private void initCpuCoreDropDown() {
-    for (int core = 1; core <= AvdOptionsModel.MAX_NUMBER_OF_CORES; core++) {
+    for (int core = 1; core <= EmulatedProperties.MAX_NUMBER_OF_CORES; core++) {
       myCoreCount.addItem(core);
+    }
+  }
+
+  @TestOnly
+  @NotNull
+  public List<String> getSnapshotNamesList(@NotNull String selectedSnapshotFileName) {
+    mySelectedSnapshotFileName = selectedSnapshotFileName;
+    populateSnapshotList();
+    List<String> nameList = new ArrayList<>();
+    mySnapshotList.forEach(item -> nameList.add(item.fileName));
+    return nameList;
+  }
+
+  private void populateSnapshotList() {
+    mySnapshotList = new ArrayList<>();
+    if (myModel == null) {
+      return;
+    }
+    String avdDirPath = myModel.getAvdLocation();
+    if (avdDirPath == null) {
+      return;
+    }
+    File avdDir = new File(avdDirPath);
+    if (!avdDir.isDirectory()) {
+      return;
+    }
+    File snapshotBaseDir = new File(avdDir, "snapshots");
+    File[] possibleSnapshotDirs = snapshotBaseDir.listFiles();
+    if (possibleSnapshotDirs == null) {
+      return;
+    }
+    // Check every sub-directory under "snapshots/"
+    for (File snapshotDir : possibleSnapshotDirs) {
+      if (!snapshotDir.isDirectory()) continue;
+      File snapshotProtoBuf = new File(snapshotDir, "snapshot.pb");
+      if (!snapshotProtoBuf.exists()) continue;
+      String snapshotFileName = snapshotDir.getName();
+      if ("default_boot".equals(snapshotFileName)) continue; // Don't include the "Quick boot" option
+      try {
+        SnapshotProtoParser protoParser = new SnapshotProtoParser(snapshotProtoBuf, snapshotFileName);
+        String logicalName = protoParser.getLogicalName();
+        if (!logicalName.isEmpty()) {
+          mySnapshotList.add(new SnapshotListItem(snapshotFileName, logicalName, protoParser.getCreationTime()));
+        }
+      }
+      catch (SnapshotProtoException ssException) {
+        // Ignore this directory
+        Logger.getInstance(ConfigureAvdOptionsStep.class)
+              .info("Could not parse Snapshot protobuf: " + snapshotFileName, ssException);
+      }
+    }
+    Collections.sort(mySnapshotList);
+  }
+
+  private void refreshSnapshotPulldown() {
+    if (!AvdWizardUtils.emulatorSupportsSnapshotManagement(AndroidSdks.getInstance().tryToChooseSdkHandler())) {
+      // Emulator does not support stand-alone snapshot control
+      if (getModel().useChosenSnapshotBoot().get()) {
+        // The unsupported option is selected. De-select it.
+        getModel().useChosenSnapshotBoot().set(false);
+        getModel().useFastBoot().set(true);
+      }
+      myChosenSnapshotComboBox.setVisible(false);
+      myChooseBootRadioButton.setVisible(false);
+      return;
+    }
+    CollectionComboBoxModel<String> snapshotModel = new CollectionComboBoxModel<>();
+    // Put up to 3 snapshots onto the pull-down
+    mySnapshotList.stream()
+                  .limit(3)
+                  .forEach(item -> snapshotModel.add(item.logicalName));
+    int numNotShown = mySnapshotList.size() - snapshotModel.getSize();
+    String finalLine = (mySnapshotList.isEmpty()) ? "(no snapshots)" :
+                       (numNotShown == 0) ? "  Details ..." :
+                       String.format("  Details ... (+%d others)", numNotShown);
+    snapshotModel.add(finalLine);
+    myChosenSnapshotComboBox.setModel(snapshotModel);
+    myChosenSnapshotComboBox.setSelectedIndex(0);
+    // Make sure the boot mode is compatible with the snapshots
+    // that we found.
+    if (mySnapshotList.isEmpty()) {
+      mySelectedSnapshotFileName = "";
+      myChosenSnapshotComboBox.setEnabled(false);
+      myChooseBootRadioButton.setEnabled(false);
+      if (getModel().useChosenSnapshotBoot().get()) {
+        getModel().useChosenSnapshotBoot().set(false);
+        getModel().useFastBoot().set(true);
+      }
+    } else {
+      boolean previousSelectionExists = (mySelectedSnapshotFileName.equals(mySnapshotList.get(0).fileName));
+      mySelectedSnapshotFileName = mySnapshotList.get(0).fileName;
+      myChosenSnapshotComboBox.setEnabled(true);
+      myChooseBootRadioButton.setEnabled(true);
+      if (getModel().useChosenSnapshotBoot().get() && !previousSelectionExists) {
+        // The boot mode says to use a chosen snapshot, but that snapshot
+        // was not found. Change the boot mode.
+        getModel().useChosenSnapshotBoot().set(false);
+        getModel().useColdBoot().set(true);
+        getModel().chosenSnapshotFile().set(mySelectedSnapshotFileName);
+        // Note: If the user clicks Cancel, these changes will not be saved.
+        //       That's actually OK: we'll command the Emulator with an
+        //       invalid snapshot and the Emulator will Cold Boot. The actual
+        //       behavior is exactly what the UI says.
+      }
     }
   }
 
@@ -351,6 +497,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBootOptionPanel.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Boot Option");
     myColdBootRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Boot Option");
     myFastBootRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Boot Option");
+    myChooseBootRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Boot Option");
+    myChosenSnapshotComboBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Boot Option");
     mySkinComboBox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Custom Device Frame");
     myVmHeapStorage.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Virtual Machine Heap");
     myOrientationToggle.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Default Orientation");
@@ -394,7 +542,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
 
     mySelectedCoreCount = getModel().useQemu2().get() ? getModel().cpuCoreCount().getValueOr(1)
-                                                      : AvdOptionsModel.RECOMMENDED_NUMBER_OF_CORES;
+                                                      : EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES;
   }
 
   private void addListeners() {
@@ -533,6 +681,151 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     }
   };
 
+  private final ItemListener mySnapshotComboListener = new ItemListener() {
+    @Override
+    public void itemStateChanged(ItemEvent itemEvent) {
+      if (itemEvent.getStateChange() != ItemEvent.SELECTED) {
+        return;
+      }
+      if (myChosenSnapshotComboBox.getSelectedIndex() != myChosenSnapshotComboBox.getItemCount() - 1) {
+        // A snapshot was selected (not the "Details ..." line)
+        mySelectedSnapshotFileName = mySnapshotList.get(myChosenSnapshotComboBox.getSelectedIndex()).fileName;
+        getModel().chosenSnapshotFile().set(mySelectedSnapshotFileName);
+        myChooseBootRadioButton.setSelected(true);
+        return;
+      }
+      // The bottom item in the drop-down was selected. When the user selects this item,
+      // we invoke the detailed UI page in the Emulator.
+      invokeEmulatorSnapshotControl();
+    }
+
+    /** Launch the Emulator to display more details about snapshots and
+     * allow the user to select one.
+     */
+    private void invokeEmulatorSnapshotControl() {
+      File tempDir = null;
+      File paramFile = null;
+      File emuOutputFile = null;
+
+      try {
+        // Get a temporary file for us to give parameters to the Emulator
+        tempDir = AvdManagerConnection.tempFileDirectory();
+        if (tempDir == null) {
+          return;
+        }
+        try {
+          // Get the name of a different temporary file for the Emulator to return parameters to us
+          emuOutputFile = File.createTempFile("emu_output_", ".tmp", tempDir);
+          // Tell the Emulator to use this second file
+          String emuOutputFileInfo = "snapshotTempFile=" + emuOutputFile.getAbsolutePath();
+          paramFile = AvdManagerConnection.writeTempFile(Collections.singletonList(emuOutputFileInfo));
+        }
+        catch (IOException ioEx) {
+          Logger.getInstance(ConfigureAvdOptionsStep.class)
+                .info("Could not write temporary file to " + tempDir.getAbsolutePath(), ioEx);
+          return;
+        }
+        if (paramFile == null) {
+          return;
+        }
+        // Launch the Emulator
+        if (launchEmulatorForSnapshotControl(paramFile)) {
+          readEmulatorSnapshotSelection(emuOutputFile);
+        }
+        // The Emulator may have modified some snapshots and we may have modified mySelectedSnapshotName.
+        // Refresh our list.
+        populateSnapshotList();
+        refreshSnapshotPulldown();
+      }
+      finally {
+        // Clean up the temporary files that we created
+        deleteTempFile(emuOutputFile, "Could not delete temporary emulator snapshot output file ");
+        deleteTempFile(paramFile, "Could not delete temporary emulator snapshot parameter file ");
+        deleteTempFile(tempDir, "Could not delete temporary emulator snapshot directory ");
+      }
+    }
+
+    /** Launches the Emulator for the Snapshot Control UI.
+     * Creates a command line containing:
+     * "-ui-only snapshot-control -studio-params <paramFileForEmulator>"
+     *
+     * @param paramFileForEmulator The file with parameters for the Emulator
+     * @return true on success, false on failure
+     */
+    private boolean launchEmulatorForSnapshotControl(@NotNull File paramFileForEmulator) {
+      File emulatorBinary = connection.getEmulatorBinary();
+      if (!emulatorBinary.isFile()) {
+        return false;
+      }
+      GeneralCommandLine commandLine = new GeneralCommandLine();
+      commandLine.setExePath(emulatorBinary.getPath());
+      commandLine.addParameter("@" + myAvdId.getText());
+      commandLine.addParameters("-ui-only", "snapshot-control");
+      commandLine.addParameters("-studio-params", paramFileForEmulator.getAbsolutePath());
+
+      int exitValue;
+      try {
+        // Launch the Emulator
+        CapturingProcessHandler process = new CapturingProcessHandler(commandLine);
+        ProcessOutput output = process.runProcess();
+        exitValue = output.getExitCode();
+      }
+      catch (ExecutionException execEx) {
+        Logger.getInstance(ConfigureAvdOptionsStep.class)
+              .info("Could not launch emulator for snapshot control", execEx);
+        return false;
+      }
+      return (exitValue == 0);
+    }
+
+    /** Read the file from the Emulator that tells us what Snapshot file was chosen.
+     * If successful, this will set {@link mySelectedSnapshot}.
+     *
+     * @param fileToRead The temp file that the Emulator used to pass us the information
+     */
+    private void readEmulatorSnapshotSelection(@NotNull File fileToRead) {
+      try (final FileInputStream inputStream = new FileInputStream(fileToRead);
+           final InputStreamReader streamReader = new InputStreamReader(inputStream);
+           final BufferedReader reader = new BufferedReader(streamReader)
+      ) {
+        final String keyString = "selectedSnapshotFile=";
+        String inputLine;
+        while ((inputLine = reader.readLine()) != null) {
+          if (inputLine.startsWith(keyString)) {
+            String responseName = inputLine.substring(keyString.length());
+            if (!responseName.isEmpty()) {
+              mySelectedSnapshotFileName = responseName;
+              getModel().chosenSnapshotFile().set(mySelectedSnapshotFileName);
+            }
+            break;
+          }
+        }
+      }
+      catch (IOException ioEx) {
+        Logger.getInstance(ConfigureAvdOptionsStep.class)
+              .info("Could not read snapshot selection from emulator", ioEx);
+        // Ignore
+      }
+    }
+
+    private void deleteTempFile(@Nullable File fileToDelete, @NotNull String errorString) {
+      if (fileToDelete == null) {
+        return;
+      }
+      try {
+        if (!fileToDelete.delete()) {
+          // Delete failed. Log and ignore.
+          Logger.getInstance(ConfigureAvdOptionsStep.class)
+                .warn(errorString + fileToDelete.getAbsolutePath());
+        }
+      }
+      catch (Exception deleteEx) {
+        Logger.getInstance(ConfigureAvdOptionsStep.class)
+              .warn(errorString + fileToDelete.getAbsolutePath(), deleteEx);
+      }
+    }
+  };
+
   private void bindComponents() {
     myBindings.bindTwoWay(new TextProperty(myAvdDisplayName), getModel().avdDisplayName());
     myBindings.bind(new TextProperty(myAvdId), new StringExpression(getModel().avdDisplayName()) {
@@ -560,8 +853,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     myBindings.bindTwoWay(new SelectedProperty(myDeviceFrameCheckbox), getModel().hasDeviceFrame());
     myBindings.bindTwoWay(new SelectedProperty(myColdBootRadioButton), getModel().useColdBoot());
+    myBindings.bindTwoWay(new SelectedProperty(myFastBootRadioButton), getModel().useFastBoot());
+    myBindings.bindTwoWay(new SelectedProperty(myChooseBootRadioButton), getModel().useChosenSnapshotBoot());
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(mySkinComboBox.getComboBox()), getModel().getAvdDeviceData().customSkinFile() /*myDisplaySkinFile*/);
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myChosenSnapshotComboBox), getModel().getAvdDeviceData().selectedSnapshotFile());
     myOrientationToggle.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
@@ -826,13 +1122,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     boolean showMultiCoreOption = isAdvancedPanel() && doesSystemImageSupportQemu2();
     myQemu2Panel.setVisible(showMultiCoreOption);
     if (showMultiCoreOption) {
-      boolean showCores = supportsMultipleCpuCores() && getModel().useQemu2().get() && AvdOptionsModel.MAX_NUMBER_OF_CORES > 1;
+      boolean showCores = supportsMultipleCpuCores() && getModel().useQemu2().get() && EmulatedProperties.MAX_NUMBER_OF_CORES > 1;
       if (useQemu2Changed) {
         if (showCores) {
           getModel().cpuCoreCount().setValue(mySelectedCoreCount);
         }
         else {
-          mySelectedCoreCount = getModel().cpuCoreCount().getValueOr(AvdOptionsModel.RECOMMENDED_NUMBER_OF_CORES);
+          mySelectedCoreCount = getModel().cpuCoreCount().getValueOr(EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES);
           getModel().cpuCoreCount().setValue(1);
         }
       }
@@ -856,7 +1152,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     Dimension dimension = getModel().getAvdDeviceData().getDeviceScreenDimension();
     String dimensionString = String.format(Locale.getDefault(), "%dx%d", dimension.width, dimension.height);
     AvdDeviceData deviceData = getModel().getAvdDeviceData();
-    String densityString = AvdScreenData.getScreenDensity(deviceData.isTv().get(),
+    String densityString = AvdScreenData.getScreenDensity(deviceData.deviceId().get(),
+                                                          deviceData.isTv().get(),
                                                           deviceData.screenDpi().get(),
                                                           dimension.height).getResourceValue();
     String result = Joiner.on(' ')
@@ -1062,11 +1359,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           else {
             myAvdConfigurationOptionHelpPanel.clearValues();
           }
-        }
-
-        if (component.getParent() instanceof JComponent) {
-          final JComponent parent = (JComponent)component.getParent();
-          parent.scrollRectToVisible(component.getBounds());
         }
       }
     }

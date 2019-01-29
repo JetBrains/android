@@ -16,13 +16,18 @@
 package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mockito;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 public final class CreateMultiRootResourceFileActionTest extends AndroidTestCase {
   private CreateMultiRootResourceFileAction myAction;
@@ -32,21 +37,26 @@ public final class CreateMultiRootResourceFileActionTest extends AndroidTestCase
   protected void setUp() throws Exception {
     super.setUp();
     myAction = Mockito.spy(new CreateMultiRootResourceFileAction("Layout", ResourceFolderType.LAYOUT));
-    myTestProjectSystem = new TestProjectSystem(getProject());
+    myTestProjectSystem = new TestProjectSystem(getProject(), Collections.emptyList());
     PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
                                        myTestProjectSystem, getTestRootDisposable());
   }
 
-  public void testGetAllowedTagNamesModuleDoesntDependOnConstaintLayout() {
-    myAction.getAllowedTagNames(myFacet);
-    assertEquals(SdkConstants.LINEAR_LAYOUT, myAction.getDefaultRootTag());
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    myAction = null;
   }
 
-  /*public void testGetAllowedTagNamesModuleDependsOnConstraintLayout() {
-    myTestProjectSystem.addDependency(GoogleMavenArtifactId.CONSTRAINT_LAYOUT, myFacet.getModule(), new GradleVersion(1, 1));
-    Mockito.when(myAction.getPossibleRoots(myFacet)).thenReturn(Arrays.asList(SdkConstants.LINEAR_LAYOUT, SdkConstants.CONSTRAINT_LAYOUT));
+  public void testGetDefaultRootTag_ModuleDoesntDependOnConstraintLayout() {
+    assertEquals(SdkConstants.LINEAR_LAYOUT, myAction.getDefaultRootTag(myFacet.getModule()));
+  }
 
-    myAction.getAllowedTagNames(myFacet);
-    assertEquals(SdkConstants.CONSTRAINT_LAYOUT, myAction.getDefaultRootTag());
-  }*/
+  public void testGetDefaultRootTag_ModuleDependsOnConstraintLayout() {
+    myTestProjectSystem.addDependency(GoogleMavenArtifactId.CONSTRAINT_LAYOUT, myFacet.getModule(), new GradleVersion(1, 1));
+    Mockito.when(myAction.getPossibleRoots(myFacet))
+      .thenReturn(Arrays.asList(SdkConstants.LINEAR_LAYOUT, SdkConstants.CONSTRAINT_LAYOUT.defaultName()));
+
+    assertEquals(SdkConstants.CONSTRAINT_LAYOUT.defaultName(), myAction.getDefaultRootTag(myFacet.getModule()));
+  }
 }

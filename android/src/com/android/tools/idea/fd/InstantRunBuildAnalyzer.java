@@ -17,10 +17,10 @@ package com.android.tools.idea.fd;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.ir.client.InstantRunArtifact;
 import com.android.tools.ir.client.InstantRunBuildInfo;
-import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.*;
@@ -118,7 +118,7 @@ public class InstantRunBuildAnalyzer {
         ImmutableList.Builder<LaunchTask> taskBuilder = new ImmutableList.Builder<>();
         // Deploy resources APK(s) for O and above
         if (myBuildInfo.hasOneOf(SPLIT)) {
-          taskBuilder.add(new SplitApkDeployTask(myProject, myContext, true));
+          taskBuilder.add(new SplitApkDeployTask(myProject, new SplitApkDeployTaskInstantRunContext(myContext), true));
           taskBuilder.add(new UpdateAppInfoTask(myProject, myContext));
         }
         // Deploy Code and Resources changes below O
@@ -127,7 +127,7 @@ public class InstantRunBuildAnalyzer {
         }
         return taskBuilder.add(updateStateTask).build();
       case SPLITAPK:
-        tasks.add(new SplitApkDeployTask(myProject, myContext));
+        tasks.add(new SplitApkDeployTask(myProject, new SplitApkDeployTaskInstantRunContext(myContext)));
         tasks.add(updateStateTask);
         return ImmutableList.copyOf(tasks);
       case FULLAPK:
@@ -137,7 +137,7 @@ public class InstantRunBuildAnalyzer {
         // https://code.google.com/p/android/issues/detail?id=232515
         // We don't know as yet how this happened, so we collect some information
         if (StatisticsUploadAssistant.isSendAllowed()) {
-          CrashReporter.getInstance().submit(getIrDebugSignals(deployType));
+          StudioCrashReporter.getInstance().submit(getIrDebugSignals(deployType));
         }
         throw new IllegalStateException(AndroidBundle.message("instant.run.build.error"));
     }

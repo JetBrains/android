@@ -15,29 +15,26 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.profilers.BorderlessTableCellRenderer;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerLayeredPane;
-import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.TimelineTable;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -49,29 +46,35 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.profilers.ProfilerLayout.*;
+import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
 
 /**
  * Displays network connection information of all threads.
  */
 final class ThreadsView {
-  private static final int STATE_HEIGHT = 15;
-  private static final int SELECTION_OUTLINE_PADDING = 3;
-  private static final int SELECTION_OUTLINE_BORDER = 2;
+  private static final int STATE_HEIGHT = JBUI.scale(15);
+  private static final int SELECTION_OUTLINE_PADDING = JBUI.scale(3);
+  private static final int SELECTION_OUTLINE_BORDER = JBUI.scale(2);
   private static final int ROW_HEIGHT = STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING);
 
+  private enum Column {
+    NAME,
+    TIMELINE
+  }
+
   @NotNull
-  private final HoverRowTable myThreadsTable;
+  private final JTable myThreadsTable;
 
   @NotNull
   private final AspectObserver myObserver;
 
   ThreadsView(@NotNull NetworkProfilerStageView stageView) {
     ThreadsTableModel model = new ThreadsTableModel(stageView.getStage().getHttpDataFetcher());
-    myThreadsTable = new HoverRowTable(model, ProfilerColors.DEFAULT_HOVER_COLOR);
+    myThreadsTable = TimelineTable.create(model, stageView.getTimeline(), Column.TIMELINE.ordinal());
     TimelineRenderer timelineRenderer = new TimelineRenderer(myThreadsTable, stageView.getStage());
-    myThreadsTable.getColumnModel().getColumn(0).setCellRenderer(new BorderlessTableCellRenderer());
-    myThreadsTable.getColumnModel().getColumn(1).setCellRenderer(timelineRenderer);
+
+    myThreadsTable.getColumnModel().getColumn(Column.NAME.ordinal()).setCellRenderer(new BorderlessTableCellRenderer());
+    myThreadsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setCellRenderer(timelineRenderer);
     myThreadsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myThreadsTable.setShowVerticalLines(true);
     myThreadsTable.setShowHorizontalLines(false);
@@ -84,15 +87,14 @@ final class ThreadsView {
     myThreadsTable.addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        myThreadsTable.getColumnModel().getColumn(0).setPreferredWidth((int)(myThreadsTable.getWidth() * 1.0 / 8));
-        myThreadsTable.getColumnModel().getColumn(1).setPreferredWidth((int)(myThreadsTable.getWidth() * 7.0 / 8));
+        myThreadsTable.getColumnModel().getColumn(Column.NAME.ordinal()).setPreferredWidth((int)(myThreadsTable.getWidth() * 1.0 / 8));
+        myThreadsTable.getColumnModel().getColumn(Column.TIMELINE.ordinal()).setPreferredWidth((int)(myThreadsTable.getWidth() * 7.0 / 8));
       }
     });
-    myThreadsTable.setTableHeaderBorder(TABLE_COLUMN_HEADER_BORDER);
 
     TableRowSorter<ThreadsTableModel> sorter = new TableRowSorter<>(model);
-    sorter.setComparator(0, Comparator.comparing(String::toString));
-    sorter.setComparator(1, Comparator.comparing((List<HttpData> data) -> data.get(0).getStartTimeUs()));
+    sorter.setComparator(Column.NAME.ordinal(), Comparator.comparing(String::toString));
+    sorter.setComparator(Column.TIMELINE.ordinal(), Comparator.comparing((List<HttpData> data) -> data.get(0).getStartTimeUs()));
     myThreadsTable.setRowSorter(sorter);
 
     myThreadsTable.addMouseListener(new MouseAdapter() {
@@ -107,14 +109,14 @@ final class ThreadsView {
       }
     });
 
-    TooltipView.install(myThreadsTable, stageView.getStage());
+    TooltipView.install(myThreadsTable, stageView);
 
     myObserver = new AspectObserver();
     stageView.getStage().getAspect().addDependency(myObserver)
-      .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> {
-        timelineRenderer.updateRows();
-        myThreadsTable.repaint();
-      });
+             .onChange(NetworkProfilerAspect.SELECTED_CONNECTION, () -> {
+               timelineRenderer.updateRows();
+               myThreadsTable.repaint();
+             });
   }
 
   @NotNull
@@ -132,7 +134,7 @@ final class ThreadsView {
       return null;
     }
 
-    if (column == 1) {
+    if (column == Column.TIMELINE.ordinal()) {
       Rectangle cellBounds = table.getCellRect(row, column, false);
       int modelIndex = table.convertRowIndexToModel(row);
       List<HttpData> dataList = (List<HttpData>)table.getModel().getValueAt(modelIndex, 1);
@@ -201,12 +203,12 @@ final class ThreadsView {
 
     @Override
     public String getColumnName(int column) {
-      return column == 0 ? "Initiating thread" : "Timeline";
+      return column == Column.NAME.ordinal() ? "Initiating thread" : "Timeline";
     }
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-      if (columnIndex == 0) {
+      if (columnIndex == Column.NAME.ordinal()) {
         return myThreads.get(rowIndex).get(0).getJavaThreads().get(0).getName();
       }
       else {
@@ -215,12 +217,13 @@ final class ThreadsView {
     }
   }
 
-  private static final class TimelineRenderer implements TableCellRenderer, TableModelListener {
+  private static final class TimelineRenderer extends TimelineTable.CellRenderer implements TableModelListener {
     @NotNull private final JTable myTable;
     @NotNull private final List<JComponent> myConnectionsInfo;
     @NotNull private final NetworkProfilerStage myStage;
 
     TimelineRenderer(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
+      super(stage.getStudioProfilers().getTimeline());
       myTable = table;
       myConnectionsInfo = new ArrayList<>();
       myStage = stage;
@@ -241,38 +244,10 @@ final class ThreadsView {
       }
     }
 
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      JPanel panel = new JBPanel(new TabularLayout("*", "*"));
-
-      if (row == 0) {
-        // Show timeline labels in front of the chart components
-        AxisComponent axisLabels = createAxis();
-        axisLabels.setMarkerLengths(0, 0);
-        panel.add(axisLabels, new TabularLayout.Constraint(0, 0));
-      }
-
-      panel.add(myConnectionsInfo.get(table.convertRowIndexToModel(row)), new TabularLayout.Constraint(0, 0));
-      // Show timeline lines behind chart components
-      AxisComponent axisTicks = createAxis();
-      axisTicks.setMarkerLengths(myTable.getRowHeight(), 0);
-      axisTicks.setShowLabels(false);
-      panel.add(axisTicks, new TabularLayout.Constraint(0, 0));
-      return panel;
-    }
-
     @NotNull
-    private AxisComponent createAxis() {
-      ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
-      AxisComponentModel model = new AxisComponentModel(timeline.getSelectionRange(), new TimeAxisFormatter(1, 5, 1));
-      model.setClampToMajorTicks(false);
-      model.setGlobalRange(timeline.getDataRange());
-
-      AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
-      axis.setShowAxisLine(false);
-      axis.setMarkerColor(ProfilerColors.NETWORK_TABLE_AXIS);
-      model.update(1);
-      return axis;
+    @Override
+    protected Component getTableCellRendererComponent(boolean isSelected, int row) {
+      return myConnectionsInfo.get(myTable.convertRowIndexToModel(row));
     }
   }
 
@@ -292,7 +267,7 @@ final class ThreadsView {
       myStage = stage;
       myDataList = data;
       myRange = stage.getStudioProfilers().getTimeline().getSelectionRange();
-      setFont(AdtUiUtils.DEFAULT_FONT);
+      setFont(ProfilerFonts.SMALL_FONT);
       setForeground(Color.BLACK);
       setBackground(ProfilerColors.DEFAULT_BACKGROUND);
       myTable = table;
@@ -368,22 +343,22 @@ final class ThreadsView {
   }
 
   private final static class TooltipView extends MouseAdapter {
-    @NotNull private final NetworkProfilerStage myStage;
     @NotNull private final JTable myTable;
+    @NotNull private final Range myRange;
 
     @NotNull private final TooltipComponent myTooltipComponent;
     @NotNull private final JPanel myContent;
 
-    private TooltipView(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
+    private TooltipView(@NotNull JTable table, @NotNull NetworkProfilerStageView stageView) {
       myTable = table;
-      myStage = stage;
+      myRange = stageView.getStage().getStudioProfilers().getTimeline().getSelectionRange();
 
       myContent = new JPanel(new TabularLayout("*", "*"));
       myContent.setBorder(TOOLTIP_BORDER);
       myContent.setBackground(ProfilerColors.TOOLTIP_BACKGROUND);
-      myContent.setFont(myContent.getFont().deriveFont(TOOLTIP_FONT_SIZE));
+      myContent.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
 
-      myTooltipComponent = new TooltipComponent(myContent, table, ProfilerLayeredPane.class);
+      myTooltipComponent = new TooltipComponent.Builder(myContent, table, stageView.getProfilersView().getComponent()).build();
       myTooltipComponent.registerListenersOn(table);
       myTooltipComponent.setVisible(false);
     }
@@ -391,8 +366,7 @@ final class ThreadsView {
     @Override
     public void mouseMoved(MouseEvent e) {
       myTooltipComponent.setVisible(false);
-      Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
-      HttpData data = findHttpDataUnderCursor(myTable, selection, e);
+      HttpData data = findHttpDataUnderCursor(myTable, myRange, e);
       if (data != null) {
         showTooltip(data);
       }
@@ -406,8 +380,8 @@ final class ThreadsView {
 
       myContent.removeAll();
       addToContent(newTooltipLabel(urlName));
-      JLabel durationLabel = newTooltipLabel(TimeAxisFormatter.DEFAULT.getFormattedDuration(duration));
-      durationLabel.setForeground(ProfilerColors.TOOLTIP_TIME_COLOR);
+      JLabel durationLabel = newTooltipLabel(TimeFormatter.getSingleUnitDurationString(duration));
+      durationLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
       addToContent(durationLabel);
 
       if (data.getJavaThreads().size() > 1) {
@@ -427,29 +401,29 @@ final class ThreadsView {
           JLabel label = newTooltipLabel(data.getJavaThreads().get(i).getName());
           addToContent(label);
           if (i == data.getJavaThreads().size() - 1) {
-            label.setBorder(new EmptyBorder(5, 0, 5, 0));
+            label.setBorder(JBUI.Borders.empty(5, 0));
           }
         }
       }
     }
 
     private void addToContent(@NotNull JComponent component) {
-      component.setBorder(new EmptyBorder(5, 0, 0, 0));
+      component.setBorder(JBUI.Borders.emptyTop(5));
       myContent.add(component, new TabularLayout.Constraint(myContent.getComponentCount(), 0));
     }
 
     private static JLabel newTooltipLabel(String text) {
       JLabel label = new JLabel(text);
       label.setForeground(ProfilerColors.TOOLTIP_TEXT);
-      label.setFont(label.getFont().deriveFont(TOOLTIP_FONT_SIZE));
+      label.setFont(ProfilerFonts.TOOLTIP_BODY_FONT);
       return label;
     }
 
     /**
      * Construct our tooltip view and attach it to the target table.
      */
-    public static void install(@NotNull JTable table, @NotNull NetworkProfilerStage stage) {
-      table.addMouseMotionListener(new TooltipView(table, stage));
+    public static void install(@NotNull JTable table, @NotNull NetworkProfilerStageView stageView) {
+      table.addMouseMotionListener(new TooltipView(table, stageView));
     }
   }
 }

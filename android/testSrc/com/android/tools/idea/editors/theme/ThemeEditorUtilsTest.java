@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.SdkConstants;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
-import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -34,10 +36,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
-import org.apache.commons.io.FileUtils;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -47,11 +45,11 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class ThemeEditorUtilsTest extends AndroidTestCase {
-
   private String sdkPlatformPath;
   private static final Pattern OPERATION_PATTERN = Pattern.compile("\\$\\$([A-Z_]+)\\{\\{(.*?)\\}\\}");
 
@@ -75,7 +73,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
       }
       else if (operation.equals("MAKE_SYSTEM_DEPENDENT_PATH")) {
         value = PathUtil.toSystemDependentName(value);
-        // escape all the backslashes so they don't get treated as backreferences by the regex engine later
+        // Escape all the backslashes so they don't get treated as back references by the regex engine later.
         if (File.separatorChar == '\\') {
           value = value.replace("\\", "\\\\");
         }
@@ -120,7 +118,7 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
 
     for (EditedStyleItem item : values) {
       String doc = ThemeEditorUtils.generateToolTipText(item.getSelectedValue(), myModule, configuration);
-      compareWithGoldenFile(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + item.getName() + ".ans");
+      compareWithGoldenFile(doc, myFixture.getTestDataPath() + "/themeEditor/tooltipDocAns/" + item.getAttrName() + ".ans");
     }
   }
 
@@ -139,10 +137,10 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     assertEquals(7, values.size());
     for (EditedStyleItem item : values) {
       String displayHtml = ThemeEditorUtils.getDisplayHtml(item);
-      if ("myDeprecated".equals(item.getName())) {
+      if ("myDeprecated".equals(item.getAttrName())) {
         assertEquals("<html><body><strike>myDeprecated</strike></body></html>", displayHtml);
       } else {
-        assertEquals(item.getName(), displayHtml);
+        assertEquals(item.getAttrName(), displayHtml);
       }
     }
   }
@@ -156,9 +154,9 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values/styles.xml");
     myFixture.copyFileToProject("themeEditor/apiTestBefore/stylesApi-v19.xml", "res/values-v19/styles.xml");
 
-    LocalResourceRepository repository = AppResourceRepository.getOrCreateInstance(myModule);
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myModule);
     assertNotNull(repository);
-    List<ResourceItem> resources = repository.getResourceItem(ResourceType.STYLE, "AppTheme");
+    List<ResourceItem> resources = repository.getResources(RES_AUTO, ResourceType.STYLE, "AppTheme");
     assertNotNull(resources);
     assertFalse(resources.isEmpty());
     final XmlTag sourceXml = LocalResourceRepository.getItemTag(getProject(), resources.get(0));
@@ -183,9 +181,9 @@ public class ThemeEditorUtilsTest extends AndroidTestCase {
     myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-en-night/styles.xml");
     myFixture.copyFileToProject("themeEditor/styles_1.xml", "res/values-v19/styles.xml");
 
-    LocalResourceRepository repository = AppResourceRepository.getOrCreateInstance(myModule);
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myModule);
     assertNotNull(repository);
-    final List<ResourceItem> styleItems = repository.getResourceItem(ResourceType.STYLE, "AppTheme");
+    final List<ResourceItem> styleItems = repository.getResources(RES_AUTO, ResourceType.STYLE, "AppTheme");
     assertNotNull(styleItems);
     assertEquals(2, styleItems.size());
 

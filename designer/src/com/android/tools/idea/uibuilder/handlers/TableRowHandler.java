@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ResizeHandler;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
@@ -52,16 +52,5 @@ public class TableRowHandler extends LinearLayoutHandler {
     // Overridden to inhibit the setting of layout_width/layout_height since
     // the table row will enforce match_parent and wrap_content for width and height
     // respectively.
-  }
-
-  @Nullable
-  @Override
-  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
-                                           @NotNull NlComponent component,
-                                           @Nullable SegmentType horizontalEdgeType,
-                                           @Nullable SegmentType verticalEdgeType) {
-    // No resizing in TableRows; the width is *always* match_parent and the height is
-    // *always* wrap_content.
-    return null;
   }
 }

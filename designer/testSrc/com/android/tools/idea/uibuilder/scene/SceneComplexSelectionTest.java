@@ -34,7 +34,7 @@ public class SceneComplexSelectionTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .id("@id/root")
                                    .withBounds(0, 0, 1000, 1000)
                                    .width("1000dp")

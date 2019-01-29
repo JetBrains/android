@@ -18,40 +18,56 @@ package com.android.tools.idea.common.scene.draw;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import java.awt.*;
 
 /**
  * Generic Drawing of a selection Lasso
  */
 public class DrawLasso extends DrawRegion {
-  public static final int NORMAL = 0;
-  public static final int OVER = 1;
-  private static final int GAP = 16;
+
+  // TODO: Fixed the mouse position of SceneContext when using Design + Blueprint mode so we can get rid of these two properties.
+  @SwingCoordinate private int myMouseX;
+  @SwingCoordinate private int myMouseY;
+  private boolean myShowSize;
 
   public DrawLasso(String s) {
     super(s);
   }
 
-  public DrawLasso(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
+  public DrawLasso(@SwingCoordinate int x,
+                   @SwingCoordinate int y,
+                   @SwingCoordinate int width,
+                   @SwingCoordinate int height,
+                   @SwingCoordinate int mouseX,
+                   @SwingCoordinate int mouseY,
+                   boolean showSize) {
     super(x, y, width, height);
+    myMouseX = mouseX;
+    myMouseY = mouseY;
+    myShowSize = showSize;
+  }
+
+  @Override
+  protected int parse(String[] sp, int c) {
+    myMouseX = Integer.parseInt(sp[c++]);
+    myMouseY = Integer.parseInt(sp[c++]);
+    myShowSize = Boolean.parseBoolean(sp[c++]);
+    return c;
+  }
+
+  @Override
+  public String serialize() {
+    return super.serialize() + "," + myMouseX + "," + myMouseY + "," + myShowSize;
   }
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
+    int dpWidth = (int)(sceneContext.pxToDp(width) / sceneContext.getScale());
+    int dpHeight = (int)(sceneContext.pxToDp(height) / sceneContext.getScale());
     ColorSet colorSet = sceneContext.getColorSet();
-    Color background = colorSet.getFrames();
-    g.setColor(background);
-    String valueWidth = String.valueOf((int)(sceneContext.pxToDp(width) / sceneContext.getScale()));
-    DrawConnectionUtils.drawHorizontalMarginIndicator(g, valueWidth, false, x, x + width, y - GAP);
-    String valueHeight = String.valueOf((int)(sceneContext.pxToDp(height) / sceneContext.getScale()));
-    DrawConnectionUtils.drawVerticalMarginIndicator(g, valueHeight, false, x - GAP, y, y + height);
-    Stroke stroke = g.getStroke();
-    g.setStroke(DrawConnectionUtils.sDashedStroke);
-    g.drawRect(x, y, width, height);
-    g.setStroke(stroke);
+    DrawLassoUtil.drawLasso(g, colorSet, x, y, width, height, myMouseX, myMouseY, dpWidth, dpHeight, myShowSize);
   }
 
   public static void add(DisplayList list,
@@ -59,11 +75,16 @@ public class DrawLasso extends DrawRegion {
                          @AndroidDpCoordinate float left,
                          @AndroidDpCoordinate float top,
                          @AndroidDpCoordinate float right,
-                         @AndroidDpCoordinate float bottom) {
+                         @AndroidDpCoordinate float bottom,
+                         @AndroidDpCoordinate float mouseX,
+                         @AndroidDpCoordinate float mouseY,
+                         boolean showSize) {
     int l = transform.getSwingXDip(left);
     int t = transform.getSwingYDip(top);
     int w = transform.getSwingDimensionDip(right - left);
     int h = transform.getSwingDimensionDip(bottom - top);
-    list.add(new DrawLasso(l, t, w, h));
+    int swingMouseX = transform.getSwingXDip(mouseX);
+    int swingMouseY = transform.getSwingYDip(mouseY);
+    list.add(new DrawLasso(l, t, w, h, swingMouseX, swingMouseY, showSize));
   }
 }

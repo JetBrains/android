@@ -68,7 +68,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
 
   private void clickLink(String errorHtml, int i) {
     List<String> link = grabHTMLLinks(errorHtml);
-    myHtmlLinkManager.handleUrl(link.get(i), myAndroidFacet.getModule(), null, null, null);
+    myHtmlLinkManager.handleUrl(link.get(i), myAndroidFacet.getModule(), null, null, null, null);
   }
 
   public static List<String> grabHTMLLinks(String html) {

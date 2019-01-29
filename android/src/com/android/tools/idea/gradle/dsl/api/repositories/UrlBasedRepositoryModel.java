@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.api.repositories;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleDefaultValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 public interface UrlBasedRepositoryModel extends RepositoryModel {
-
   @NotNull
-  GradleDefaultValue<String> url();
+  ResolvedPropertyModel url();
 }

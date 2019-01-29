@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
-import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.application.Topics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
@@ -29,11 +30,14 @@ import com.intellij.execution.junit.JUnitConfigurationProducer;
 import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,19 +52,18 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.ui.AppUIUtil;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Arrays;
 
-import static com.android.SdkConstants.EXT_JAR;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.IdeActions.*;
 import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.io.FileUtilRt.getExtension;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
@@ -103,9 +106,40 @@ public class AndroidStudioInitializer implements Runnable {
    * sets up collection of Android Studio specific analytics.
    */
   private static void setupAnalytics() {
-    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
+//    UsageStatisticsPersistenceComponent.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
+
+    // If the user hasn't opted in, we will ask IJ to check if the user has
+    // provided a decision on the statistics consent. If the user hasn't made a
+    // choice, a modal dialog will be shown asking for a decision
+    // before the regular IDE ui components are shown.
+    if (!AnalyticsSettings.getOptedIn()) {
+      Application application = ApplicationManager.getApplication();
+      // If we're running in a test or headless mode, do not show the dialog
+      // as it would block the test & IDE from proceeding.
+      // NOTE: in this case the metrics logic will be left in the opted-out state
+      // and no metrics are ever sent.
+      if (!application.isUnitTestMode() && !application.isHeadlessEnvironment() &&
+        !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
+        AppUIUtil.showConsentsAgreementIfNeed();
+      }
+    }
+
     ApplicationInfo application = ApplicationInfo.getInstance();
-    UsageTracker.getInstance().setVersion(application.getStrictVersion());
+    UsageTracker.setVersion(application.getStrictVersion());
+    UsageTracker.setIdeBrand(getIdeBrand());
+    if (ApplicationManager.getApplication().isInternal()) {
+      UsageTracker.setIdeaIsInternal(true);
+    }
+    UsageTracker.initialize(JobScheduler.getScheduler());
+    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
+  }
+
+  private static AndroidStudioEvent.IdeBrand getIdeBrand() {
+    // The ASwB plugin name depends on the bundling scheme, in development builds it is "Android Studio with Blaze", but in release
+    // builds, it is just "Blaze"
+    return Arrays.stream(PluginManagerCore.getPlugins()).anyMatch(plugin -> plugin.isBundled() && plugin.getName().contains("Blaze"))
+      ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE
+      : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO;
   }
 
   private static void checkInstallation() {
@@ -127,17 +161,9 @@ public class AndroidStudioInitializer implements Runnable {
 
     // Look for signs that the installation is corrupt due to improper updates (typically unzipping on top of previous install)
     // which doesn't delete files that have been removed or renamed
-    String cause = null;
-    File[] children = notNullize(androidPluginLibFolderPath.listFiles());
-    if (hasMoreThanOneBuilderModelFile(children)) {
-      cause = "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)";
-    }
-    else if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
-      cause = "(Found plugins/android-designer which should not be present.)";
-    }
-    if (cause != null) {
+    if (new File(studioHomePath, join("plugins", "android-designer")).exists()) {
       String msg = "Your Android Studio installation is corrupt and will not work properly.\n" +
-                   cause + "\n" +
+                   "(Found plugins/android-designer which should not be present.)\n" +
                    "This usually happens if Android Studio is extracted into an existing older version.\n\n" +
                    "Please reinstall (and make sure the new installation directory is empty first.)";
       String title = "Corrupt Installation";
@@ -146,22 +172,6 @@ public class AndroidStudioInitializer implements Runnable {
         ApplicationManagerEx.getApplicationEx().exit();
       }
     }
-  }
-
-  @VisibleForTesting
-  static boolean hasMoreThanOneBuilderModelFile(@NotNull File[] libraryFiles) {
-    int builderModelFileCount = 0;
-
-    for (File file : libraryFiles) {
-      String fileName = file.getName();
-      if (fileName.startsWith("builder-model-") && EXT_JAR.equals(getExtension(fileName))) {
-        if (++builderModelFileCount > 1) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 
   // Remove popup actions that we don't use

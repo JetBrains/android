@@ -21,6 +21,7 @@ import com.android.tools.idea.explorer.fs.DeviceState;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.EmptyRunnable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.hamcrest.core.IsInstanceOf;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TestRule;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -53,15 +55,15 @@ public class AdbDeviceFileSystemTest {
   public ExpectedException thrown = ExpectedException.none();
 
   @ClassRule
-  public static DebugLoggerFactoryRule ourLoggerFactoryRule = new DebugLoggerFactoryRule();
+  public static final TestRule ourLoggerFactoryRule = new DebugLoggerFactoryRule();
 
   @Before
   public void setUp() throws Exception {
     myParentDisposable = Disposer.newDisposable();
-    myCallbackExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("EDT simulation thread",
-                                                 PooledThreadExecutor.INSTANCE,
-                                                 1,
-                                                 myParentDisposable);
+    myCallbackExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("EDT Simulation Thread",
+                                                                              PooledThreadExecutor.INSTANCE,
+                                                                              1,
+                                                                              myParentDisposable);
     ExecutorService taskExecutor = PooledThreadExecutor.INSTANCE;
     myMockDevice = new MockDdmlibDevice();
     Function<Void, File> adbRuntimeError = aVoid -> {
@@ -99,13 +101,14 @@ public class AdbDeviceFileSystemTest {
     try {
       future.get(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
       throw new AssertionError("Future should have failed with an exception");
-    } catch (ExecutionException e) {
+    }
+    catch (ExecutionException e) {
       return e.getCause();
     }
   }
 
   @Test
-  public void test_FileSystem_Has_DeviceName() throws Exception {
+  public void test_FileSystem_Has_DeviceName() {
     // Prepare
     assert myFileSystem != null;
     assert myMockDevice != null;
@@ -117,7 +120,7 @@ public class AdbDeviceFileSystemTest {
   }
 
   @Test
-  public void test_FileSystem_Is_Device() throws Exception {
+  public void test_FileSystem_Is_Device() {
     // Prepare
     assert myFileSystem != null;
     assert myMockDevice != null;
@@ -129,13 +132,16 @@ public class AdbDeviceFileSystemTest {
   }
 
   @Test
-  public void test_FileSystem_Exposes_DeviceState() throws Exception {
+  public void test_FileSystem_Exposes_DeviceState() {
     // Prepare
     assert myFileSystem != null;
     assert myMockDevice != null;
     TestDevices.addNexus7Api23Commands(myMockDevice.getShellCommands());
 
     // Act/Assert
+    myMockDevice.setState(null);
+    assertThat(myFileSystem.getDeviceState()).isEqualTo(DeviceState.DISCONNECTED);
+
     myMockDevice.setState(IDevice.DeviceState.BOOTLOADER);
     assertThat(myFileSystem.getDeviceState()).isEqualTo(DeviceState.BOOTLOADER);
 
@@ -280,9 +286,9 @@ public class AdbDeviceFileSystemTest {
     // Assert
     assertThat(result).isNotNull();
     DeviceFileEntry app = result.stream()
-      .filter(x -> Objects.equals(x.getName(), "com.example.rpaquay.myapplication-2"))
-      .findFirst()
-      .orElse(null);
+                                .filter(entry -> entry.getName().equals("com.example.rpaquay.myapplication-2"))
+                                .findFirst()
+                                .orElse(null);
     assertThat(app).isNotNull();
 
     // Act

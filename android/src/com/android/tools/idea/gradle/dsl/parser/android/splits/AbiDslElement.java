@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.android.splits;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,21 +26,22 @@ public class AbiDslElement extends GradleDslBlockElement {
   @NonNls public static final String ABI_BLOCK_NAME = "abi";
 
   public AbiDslElement(@NotNull GradleDslElement parent) {
-    super(parent, ABI_BLOCK_NAME);
+    super(parent, GradleNameElement.create(ABI_BLOCK_NAME));
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    String property = element.getName();
     if (property.equals("include") || property.equals("exclude")) {
       addToParsedExpressionList(property, element);
       return;
     }
 
     if (property.equals("reset") && element instanceof GradleDslMethodCall) {
-      addParsedResettingElement("reset", element, "include");
+      addParsedResettingElement(element, "include");
       return;
     }
 
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

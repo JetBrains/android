@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.CaptureNodeHRenderer;
+import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
@@ -65,15 +65,15 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
   protected void populateUi(@NotNull JPanel panel) {
     CaptureNode artNode = parseArtTraceAndGetHNode();
     myArtRange.set(artNode.getStart(), artNode.getEnd());
-    myArtChart = new HTreeChart<>(null, myArtRange, HTreeChart.Orientation.TOP_DOWN);
-    myArtChart.setHRenderer(new CaptureNodeHRenderer());
-    myArtChart.setHTree(artNode);
+    myArtChart = new HTreeChart.Builder<>(artNode, myArtRange, new CaptureNodeHRenderer())
+      .setOrientation(HTreeChart.Orientation.TOP_DOWN)
+      .build();
 
     CaptureNode simpleperfNode = parseSimpleperfTraceAndGetHNode();
     mySimpleperfRange.set(simpleperfNode.getStart(), simpleperfNode.getEnd());
-    mySimpleperfChart = new HTreeChart<>(null,mySimpleperfRange, HTreeChart.Orientation.TOP_DOWN);
-    mySimpleperfChart.setHRenderer(new CaptureNodeHRenderer());
-    mySimpleperfChart.setHTree(simpleperfNode);
+    mySimpleperfChart = new HTreeChart.Builder<>(simpleperfNode, mySimpleperfRange, new CaptureNodeHRenderer())
+      .setOrientation(HTreeChart.Orientation.TOP_DOWN)
+      .build();
 
     panel.setLayout(new GridLayout(2, 1));
     panel.add(myArtChart);
@@ -92,6 +92,7 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
                                                    CpuProfiler.CpuProfilerType profilerType) {
     File file = TestUtils.getWorkspaceFile(TEST_RESOURCE_DIR + traceFile);
     TraceParser parser;
+    int traceId = 20;
     if (profilerType == CpuProfiler.CpuProfilerType.ART) {
       parser = new ArtTraceParser();
     }
@@ -102,7 +103,7 @@ public class CaptureNodeModelRendererVisualTest extends VisualTest {
       throw new IllegalArgumentException("There is no parser available for profiler type " + profilerType);
     }
     try {
-      parser.parse(file);
+      parser.parse(file, traceId);
     }
     catch (IOException e) {
       e.printStackTrace();

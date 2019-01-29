@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class NlPropertyOrderingTest extends PropertyTestCase {
   public void testGrouping() {
@@ -39,7 +40,7 @@ public class NlPropertyOrderingTest extends PropertyTestCase {
                     "  <TextView />" +
                     "</RelativeLayout>";
     NlComponent component = getFirstComponent(source);
-    NlPropertiesManager manager = mock(NlPropertiesManager.class);
+    NlPropertiesManager manager = getPropertyManager();
 
     Table<String, String, NlPropertyItem> properties =
       NlProperties.getInstance().getProperties(myFacet, manager, ImmutableList.of(component));
@@ -71,7 +72,7 @@ public class NlPropertyOrderingTest extends PropertyTestCase {
                     "</RelativeLayout>";
 
     NlComponent component = getFirstComponent(source);
-    NlPropertiesManager manager = mock(NlPropertiesManager.class);
+    NlPropertiesManager manager = getPropertyManager();
 
     Table<String, String, NlPropertyItem> properties =
       NlProperties.getInstance().getProperties(myFacet, manager, ImmutableList.of(component));
@@ -87,6 +88,13 @@ public class NlPropertyOrderingTest extends PropertyTestCase {
     assertEquals("Padding attributes group is not the fifth item", "Padding", items.get(4).getName());
     assertTrue("TextView group not within the top 10 items", findItemIndex(items, "TextView") < 10);
     assertTrue("Modified attribute text not in the top 10 items", findItemIndex(items, "text") < 10);
+  }
+
+  @NotNull
+  private NlPropertiesManager getPropertyManager() {
+    NlPropertiesManager manager = mock(NlPropertiesManager.class);
+    when(manager.getFacet()).thenReturn(myFacet);
+    return manager;
   }
 
   private NlComponent getFirstComponent(@NotNull String source) {

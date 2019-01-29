@@ -16,10 +16,10 @@
 package com.android.tools.idea.tests.gui.manifest;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MergedManifestFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.junit.Ignore;
@@ -33,14 +33,14 @@ import java.io.IOException;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.*;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ManifestEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void testManifestGoToSource() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
     IdeFrameFixture projectFrame = guiTest.ideFrame();
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/AndroidManifest.xml");
@@ -160,15 +160,6 @@ public class ManifestEditorTest {
 
     // row 22 is the first row of the intent-filter element generated from the nav-graph element
     mergedManifestFixture.getTree().clickRow(22);
-
-    mergedManifestFixture.clickLinkText("main mobile_navigation.xml navigation file");
-    assertThat(editor.getCurrentFileName()).isEqualTo("mobile_navigation.xml");
-
-    editor.open("app/src/main/AndroidManifest.xml");
-    editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
-
-    // row 23 is a sub-element of the intent-filter element generated from the nav-graph element
-    mergedManifestFixture.getTree().clickRow(23);
 
     mergedManifestFixture.clickLinkText("main mobile_navigation.xml navigation file");
     assertThat(editor.getCurrentFileName()).isEqualTo("mobile_navigation.xml");

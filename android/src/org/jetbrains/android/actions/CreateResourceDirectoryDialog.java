@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -26,6 +26,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBLabel;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 
 /**
@@ -94,10 +96,19 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
   }
 
   @Nullable
+  @VisibleForTesting
   @Override
-  protected ValidationInfo doValidate() {
-    if (myDirectoryNameTextField.getText().equals(SdkConstants.FD_RES_LAYOUT)) {
-      return new ValidationInfo("Enter or select a qualifier", myDirectoryNameTextField);
+  public ValidationInfo doValidate() {
+    PsiDirectory directory = getResourceDirectory(myDataContext);
+
+    if (directory == null) {
+      return null;
+    }
+
+    PsiFileSystemItem subdirectory = directory.findSubdirectory(myDirectoryNameTextField.getText());
+
+    if (subdirectory != null) {
+      return new ValidationInfo(subdirectory.getVirtualFile().getPresentableUrl() + " already exists. Use a different qualifier.");
     }
 
     return null;
@@ -135,6 +146,11 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
     else {
       return myDirectoryNameTextField;
     }
+  }
+
+  @VisibleForTesting
+  JTextComponent getDirectoryNameTextField() {
+    return myDirectoryNameTextField;
   }
 
   @Override

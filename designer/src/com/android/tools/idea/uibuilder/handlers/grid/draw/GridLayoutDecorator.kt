@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid.draw
 
+import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
@@ -30,7 +31,7 @@ import java.awt.Graphics2D
 open class GridLayoutDecorator : SceneDecorator() {
 
   override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
-    with(getGridBarriers(sceneContext, component)) {
+    with(getGridBarriers(component)) {
       columns.forEach { x -> if (x in left ..right) list.add(DrawLineCommand(x, top, x, bottom)) }
       rows.forEach { y -> if (y in top ..bottom) list.add(DrawLineCommand(left, y, right, y)) }
     }
@@ -39,14 +40,23 @@ open class GridLayoutDecorator : SceneDecorator() {
   }
 }
 
-internal class DrawLineCommand(val x1: Int, val y1: Int, val x2: Int, val y2: Int) : DrawCommand {
+private class DrawLineCommand(@AndroidDpCoordinate val x1: Int,
+                              @AndroidDpCoordinate val y1: Int,
+                              @AndroidDpCoordinate val x2: Int,
+                              @AndroidDpCoordinate val y2: Int)
+  : DrawCommand {
 
   override fun getLevel() = DrawCommand.CLIP_LEVEL
 
   override fun paint(g: Graphics2D, sceneContext: SceneContext) {
+    val swingX1 = sceneContext.getSwingXDip(x1.toFloat())
+    val swingY1 = sceneContext.getSwingYDip(y1.toFloat())
+    val swingX2 = sceneContext.getSwingXDip(x2.toFloat())
+    val swingY2 = sceneContext.getSwingYDip(y2.toFloat())
     g.color = sceneContext.colorSet.constraints
-    g.drawLine(x1, y1, x2, y2)
+    g.drawLine(swingX1, swingY1, swingX2, swingY2)
   }
 
+  // TODO: fix this serialize
   override fun serialize(): String = "com.android.tools.idea.uibuilder.handlers.grid.draw.DrawLineCommand: ($x1, $y1) - ($x2, $y2)"
 }

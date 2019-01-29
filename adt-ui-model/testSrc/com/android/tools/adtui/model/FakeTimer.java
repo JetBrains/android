@@ -25,6 +25,7 @@ public final class FakeTimer extends StopwatchTimer {
   public static long ONE_SECOND_IN_NS = TimeUnit.SECONDS.toNanos(1);
 
   private boolean myRunning;
+  private long myCurrentTimeNs;
 
   @Override
   public void start() {
@@ -39,6 +40,15 @@ public final class FakeTimer extends StopwatchTimer {
   @Override
   public void stop() {
     myRunning = false;
+  }
+
+  @Override
+  public long getCurrentTimeNs() {
+    return myCurrentTimeNs;
+  }
+
+  public void setCurrentTimeNs(long currentTimeNs) {
+    myCurrentTimeNs = currentTimeNs;
   }
 
   public boolean step() {

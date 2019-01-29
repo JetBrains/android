@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -43,10 +45,12 @@ public class ViewBinder<P, M, V> {
     myBuilders.put(clazz, builder);
   }
 
+  @NotNull
   public V build(P parentView, M model) {
     Class<?> clazz = model.getClass();
     // By construction the function cast is valid as we know that when we added
     // it to the map, the types were checked at compile time.
+    //noinspection unchecked,SuspiciousMethodCalls
     BiFunction<P, M, V> builder = (BiFunction<P, M, V>)myBuilders.get(clazz);
     return builder.apply(parentView, model);
   }

@@ -16,8 +16,9 @@
 package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.resources.ResourceUrl;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
@@ -30,6 +31,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -45,36 +47,36 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
   private final static String DEPRECATED = "deprecated";
 
   private final ConfiguredThemeEditorStyle mySourceTheme;
-  private final ConfiguredElement<ItemResourceValue> mySelectedValue;
+  private final ConfiguredElement<StyleItemResourceValue> mySelectedValue;
   /** List of possible values (excluding the currently selected one) indexed by the configuration */
-  private final Collection<ConfiguredElement<ItemResourceValue>> myNonSelectedValues;
+  private final Collection<ConfiguredElement<StyleItemResourceValue>> myNonSelectedValues;
   private final String myAttrGroup;
 
   /**
    * Constructs a new {@code EditedStyleItem} with the selected value by the current configuration plus all the values
    * that exist in the project but are not selected.
    */
-  public EditedStyleItem(@NotNull ConfiguredElement<ItemResourceValue> selectedValue,
-                         @NotNull Iterable<ConfiguredElement<ItemResourceValue>> nonSelectedValues,
+  public EditedStyleItem(@NotNull ConfiguredElement<StyleItemResourceValue> selectedValue,
+                         @NotNull Iterable<ConfiguredElement<StyleItemResourceValue>> nonSelectedValues,
                          @NotNull ConfiguredThemeEditorStyle sourceTheme) {
     mySourceTheme = sourceTheme;
     myNonSelectedValues = ImmutableList.copyOf(nonSelectedValues);
     mySelectedValue = selectedValue;
 
     AttributeDefinition attrDef = ResolutionUtils.getAttributeDefinition(sourceTheme.getConfiguration(), mySelectedValue.myValue);
-    String attrGroup = (attrDef == null) ? null : attrDef.getAttrGroup();
+    String attrGroup = (attrDef == null) ? null : attrDef.getGroupName();
     myAttrGroup = (attrGroup == null) ? "Other non-theme attributes." : attrGroup;
   }
 
   /**
    * Constructs a new {@code EditedStyleItem} that only contains a default value.
    */
-  public EditedStyleItem(@NotNull ConfiguredElement<ItemResourceValue> selectedValue,
+  public EditedStyleItem(@NotNull ConfiguredElement<StyleItemResourceValue> selectedValue,
                          @NotNull ConfiguredThemeEditorStyle sourceTheme) {
-    this(selectedValue, Collections.<ConfiguredElement<ItemResourceValue>>emptyList(), sourceTheme);
+    this(selectedValue, Collections.emptyList(), sourceTheme);
   }
 
-  public ItemResourceValue getSelectedValue() {
+  public StyleItemResourceValue getSelectedValue() {
     return mySelectedValue.myValue;
   }
 
@@ -89,12 +91,13 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
   }
 
   @NotNull
-  public String getName() {
-    return getSelectedValue().getName();
+  public String getAttrName() {
+    return getSelectedValue().getAttr().getName();
   }
 
-  public boolean isFrameworkAttr() {
-    return getSelectedValue().isFrameworkAttr();
+  @Nullable
+  public ResourceReference getAttrReference() {
+    return getSelectedValue().getAttr();
   }
 
   @NotNull
@@ -113,20 +116,20 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
   }
 
   @NotNull
-  public ConfiguredElement<ItemResourceValue> getSelectedItemResourceValue() {
+  public ConfiguredElement<StyleItemResourceValue> getSelectedItemResourceValue() {
     return mySelectedValue;
   }
 
   @NotNull
-  public Collection<ConfiguredElement<ItemResourceValue>> getAllConfiguredItems() {
-    return ImmutableList.<ConfiguredElement<ItemResourceValue>>builder()
+  public Collection<ConfiguredElement<StyleItemResourceValue>> getAllConfiguredItems() {
+    return ImmutableList.<ConfiguredElement<StyleItemResourceValue>>builder()
       .add(mySelectedValue)
       .addAll(getNonSelectedItemResourceValues())
       .build();
   }
 
   @NotNull
-  public Collection<ConfiguredElement<ItemResourceValue>> getNonSelectedItemResourceValues() {
+  public Collection<ConfiguredElement<StyleItemResourceValue>> getNonSelectedItemResourceValues() {
     return myNonSelectedValues;
   }
 
@@ -134,18 +137,19 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
    * Returns whether this attribute value points to an attr reference.
    */
   public boolean isAttr() {
-    ResourceUrl url = ResourceUrl.parse(getSelectedValue().getRawXmlValue(), getSelectedValue().isFramework());
-    return url != null && url.type == ResourceType.ATTR;
+    ResourceReference reference = getSelectedValue().getReference();
+    return reference != null && reference.getResourceType() == ResourceType.ATTR;
   }
 
   @Override
   public String toString() {
     StringBuilder output = new StringBuilder(
-      String.format("[%1$s] %2$s = %3$s (%4$s)", mySourceTheme, getName(), getValue(), mySelectedValue.myFolderConfiguration));
+      String.format("[%1$s] %2$s = %3$s (%4$s)", mySourceTheme, getAttrName(), getValue(), mySelectedValue.myFolderConfiguration));
 
-    for (ConfiguredElement<ItemResourceValue> item : myNonSelectedValues) {
+    for (ConfiguredElement<StyleItemResourceValue> item : myNonSelectedValues) {
       output.append('\n')
-        .append(String.format("   %1$s = %2$s (%3$s)", item.myValue.getName(), item.myValue.getValue(), item.getConfiguration()));
+        // TODO: namespaces
+        .append(String.format("   %1$s = %2$s (%3$s)", item.myValue.getAttrName(), item.myValue.getValue(), item.getConfiguration()));
     }
 
     return output.toString();
@@ -153,7 +157,7 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
 
   @NotNull
   public String getQualifiedName() {
-    return ResolutionUtils.getQualifiedItemName(getSelectedValue());
+    return ResolutionUtils.getQualifiedItemAttrName(getSelectedValue());
   }
 
   public String getAttrPropertyName() {
@@ -169,14 +173,16 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
 
   public boolean isDeprecated() {
     AttributeDefinition def = ResolutionUtils.getAttributeDefinition(mySourceTheme.getConfiguration(), getSelectedValue());
-    String doc = (def == null) ? null : def.getDocValue(null);
+    String doc = (def == null) ? null : def.getDescription(null);
     return (doc != null && StringUtil.containsIgnoreCase(doc, DEPRECATED));
   }
 
   public boolean isPublicAttribute() {
-    if (!getSelectedValue().isFrameworkAttr()) {
+    ResourceReference attr = getSelectedValue().getAttr();
+    if (attr == null || attr.getNamespace() != ResourceNamespace.ANDROID) {
       return true;
     }
+
     Configuration configuration = mySourceTheme.getConfiguration();
     IAndroidTarget target = configuration.getRealTarget();
     if (target == null) {
@@ -190,11 +196,11 @@ public class EditedStyleItem implements Comparable<EditedStyleItem> {
       return false;
     }
 
-    return androidTargetData.isResourcePublic(ResourceType.ATTR.getName(), getName());
+    return androidTargetData.isResourcePublic(ResourceType.ATTR.getName(), getAttrName());
   }
 
   @Override
   public int compareTo(EditedStyleItem that) {
-    return getName().compareTo(that.getName());
+    return getAttrName().compareTo(that.getAttrName());
   }
 }

@@ -106,6 +106,13 @@ public class AndroidLibraryStub implements AndroidLibrary {
     return myJarFile;
   }
 
+  @Override
+  @NotNull
+  public File getCompileJarFile() {
+    // Use the same jar file for now, we can use a different jar file later
+    return myJarFile;
+  }
+
   public void addLocalJar(@NotNull File localJar) {
     myLocalJars.add(localJar);
   }
@@ -126,6 +133,12 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @NotNull
   public File getResFolder() {
     return new File(getFolder(), SdkConstants.FD_RES);
+  }
+
+  @Override
+  @Nullable
+  public File getResStaticLibrary() {
+    return new File(getFolder(), "res.apk");
   }
 
   @Override

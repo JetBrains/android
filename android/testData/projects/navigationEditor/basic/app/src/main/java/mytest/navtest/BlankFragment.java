@@ -1,6 +1,6 @@
 package mytest.navtest;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 
 public class BlankFragment extends Fragment {
 }

@@ -96,7 +96,8 @@ public final class StackFrameParser {
   public CodeLocation toCodeLocation() {
     String className = getClassName();
     if (className == null) {
-      throw new IllegalStateException("Trying to create CodeLocation from an incomplete StackFrameParser");
+      throw new IllegalStateException(
+        String.format("Trying to create CodeLocation from an incomplete StackFrameParser. Line contents: '%s'", myLine));
     }
 
     return new CodeLocation.Builder(className).

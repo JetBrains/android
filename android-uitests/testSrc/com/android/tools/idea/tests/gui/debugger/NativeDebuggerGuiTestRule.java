@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -31,6 +32,10 @@ public class NativeDebuggerGuiTestRule extends GuiTestRule {
   /** Environment variable containing the full path to an NDK install */
   private static final String TEST_NDK_PATH_ENV = "ANDROID_NDK_HOME";
   private static final String TEST_DATA_DIR_PATH = PathManager.getHomePath() + "/../adt/idea/android-uitests/testData/debugger/";
+
+  public NativeDebuggerGuiTestRule() {
+    withTimeout(5, TimeUnit.MINUTES);
+  }
 
   @Override
   @NotNull

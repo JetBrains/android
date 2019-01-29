@@ -30,7 +30,7 @@ public class TestClassNameInputDialogFixture extends IdeaDialogFixture<TestClass
   @NotNull
   public static TestClassNameInputDialogFixture find(@NotNull Robot robot) {
     return new TestClassNameInputDialogFixture(
-      robot, find(robot, TestClassNameInputDialog.class, Matchers.byTitle(JDialog.class, "Pick a test class name for your test")));
+      robot, find(robot, TestClassNameInputDialog.class, Matchers.byTitle(JDialog.class, "Specify a test class for your test")));
   }
 
   private TestClassNameInputDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<TestClassNameInputDialog> dialogAndWrapper) {

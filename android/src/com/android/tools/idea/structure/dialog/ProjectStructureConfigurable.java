@@ -15,8 +15,17 @@
  */
 package com.android.tools.idea.structure.dialog;
 
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable;
+import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent;
+import com.android.tools.idea.stats.UsageTrackerUtils;
+import com.android.tools.idea.stats.AnonymizerUtil;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.PSDEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -30,11 +39,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.MasterDetailsComponent;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
+import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.ui.navigation.BackAction;
 import com.intellij.ui.navigation.ForwardAction;
@@ -51,14 +65,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.EventListener;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.ui.navigation.Place.goFurther;
 import static com.intellij.util.ui.UIUtil.*;
 
 public class ProjectStructureConfigurable implements SearchableConfigurable, Place.Navigator, Configurable.NoMargin, Configurable.NoScroll {
   public static final DataKey<ProjectStructureConfigurable> KEY = DataKey.create("ProjectStructureConfiguration");
-  @NonNls private static final String CATEGORY = "category";
-  @NonNls private static final String CATEGORY_NAME = "categoryName";
+  @NonNls public static final String CATEGORY = "category";
+  @NonNls public static final String CATEGORY_NAME = "categoryName";
 
   @NonNls private static final String LAST_EDITED_PROPERTY = "project.structure.last.edited";
   @NonNls private static final String PROPORTION_PROPERTY = "project.structure.proportion";
@@ -67,7 +84,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
   @NotNull private final Project myProject;
   @NotNull private final IdeSdksConfigurable mySdksConfigurable;
   @NotNull private final Wrapper myDetails = new Wrapper();
-  @NotNull private final List<Configurable> myConfigurables = Lists.newArrayList();
+  @NotNull private final Map<Configurable, JComponent> myConfigurables = Maps.newLinkedHashMap();
   @NotNull private final UIState myUiState = new UIState();
 
   private History myHistory = new History(this);
@@ -76,18 +93,22 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
   private SidePanel mySidePanel;
   private JPanel myNotificationPanel;
   private JComponent myToolbarComponent;
-  private ConfigurationErrorsComponent myErrorsComponent;
+  private JBLabel myErrorsComponent;
   private JComponent myToFocus;
 
   private boolean myUiInitialized;
+  private boolean myShowing = false;
+
   private Configurable mySelectedConfigurable;
 
-  private final JLabel myEmptySelection = new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
-                                                     SwingConstants.CENTER);
+  private final JLabel myEmptySelection =
+    new JLabel("<html><body><center>Select a setting to view or edit its details here</center></body></html>",
+               SwingConstants.CENTER);
   private final EventDispatcher<ProjectStructureChangeListener> myChangeEventDispatcher =
     EventDispatcher.create(ProjectStructureChangeListener.class);
 
   private MyDisposable myDisposable = new MyDisposable();
+  private long myOpenTimeMs;
 
   @NotNull
   public static ProjectStructureConfigurable getInstance(@NotNull Project project) {
@@ -160,13 +181,35 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
     }
 
     if (toSelect != null) {
-      detailsContent = toSelect.createComponent();
+      if (toSelect instanceof CrossModuleUiStateComponent) {
+        ((CrossModuleUiStateComponent)toSelect).restoreUiState();
+      }
+      detailsContent = myConfigurables.get(toSelect);
+      if (detailsContent == null) {
+        detailsContent = toSelect.createComponent();
+        myConfigurables.put(toSelect, detailsContent);
+      }
       myDetails.setContent(detailsContent);
     }
 
     mySelectedConfigurable = toSelect;
     if (mySelectedConfigurable != null) {
       myUiState.lastEditedConfigurable = mySelectedConfigurable.getDisplayName();
+
+        PSDEvent.Builder psdEvent =
+          PSDEvent
+            .newBuilder()
+            .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002);
+        if (mySelectedConfigurable instanceof TrackedConfigurable) {
+          ((TrackedConfigurable)mySelectedConfigurable).applyTo(psdEvent);
+        UsageTracker.log(UsageTrackerUtils.withProjectId(
+          AndroidStudioEvent
+            .newBuilder()
+            .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+            .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_LEFT_NAV_CLICK)
+            .setPsdEvent(psdEvent),
+          myProject));
+      }
     }
 
     if (toSelect instanceof MasterDetailsComponent) {
@@ -215,7 +258,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
   @Nullable
   private Configurable findConfigurable(@NotNull String displayName) {
-    for (Configurable configurable : myConfigurables) {
+    for (Configurable configurable : myConfigurables.keySet()) {
       if (displayName.equals(configurable.getDisplayName())) {
         return configurable;
       }
@@ -259,8 +302,8 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
   @Override
   @Nls
-  public String getDisplayName () {
-      return ProjectBundle.message("project.settings.display.name");
+  public String getDisplayName() {
+    return ProjectBundle.message("project.settings.display.name");
   }
 
   @Override
@@ -304,7 +347,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
     mySplitter.setSecondComponent(myDetails);
 
     component.add(mySplitter, BorderLayout.CENTER);
-    myErrorsComponent = new ConfigurationErrorsComponent(myProject);
+    myErrorsComponent = new JBLabel(); // TODO(solodkyy): Configure for (multi-line?) HTML.
     component.add(myErrorsComponent, BorderLayout.SOUTH);
 
     myUiInitialized = true;
@@ -341,7 +384,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
   }
 
   private void addConfigurable(@NotNull Configurable configurable) {
-    myConfigurables.add(configurable);
+    myConfigurables.put(configurable, null);
     if (configurable instanceof Place.Navigator) {
       Place.Navigator navigator = (Place.Navigator)configurable;
       navigator.setHistory(myHistory);
@@ -358,7 +401,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
   @Nullable
   public <T extends Configurable> T findConfigurable(@NotNull Class<T> type) {
-    for (Configurable configurable : myConfigurables) {
+    for (Configurable configurable : myConfigurables.keySet()) {
       if (type.isInstance(configurable)) {
         return type.cast(configurable);
       }
@@ -373,7 +416,7 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
   @Override
   public boolean isModified() {
-    for (Configurable configurable : myConfigurables) {
+    for (Configurable configurable : myConfigurables.keySet()) {
       if (configurable.isModified()) {
         return true;
       }
@@ -383,8 +426,20 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
   @Override
   public void apply() throws ConfigurationException {
+    long duration = System.currentTimeMillis() - myOpenTimeMs;
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
+      AndroidStudioEvent
+        .newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+        .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_SAVE)
+        .setPsdEvent(
+          PSDEvent
+            .newBuilder()
+            .setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)
+            .setDurationMs(duration)
+        ), myProject));
     boolean applied = false;
-    for (Configurable configurable : myConfigurables) {
+    for (Configurable configurable : myConfigurables.keySet()) {
       if (configurable.isModified()) {
         configurable.apply();
         applied = true;
@@ -402,20 +457,21 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
       mySdksConfigurable.reset();
 
       Configurable toSelect = null;
-      for (Configurable each : myConfigurables) {
+      for (Configurable each : myConfigurables.keySet()) {
         if (myUiState.lastEditedConfigurable != null && myUiState.lastEditedConfigurable.equals(each.getDisplayName())) {
           toSelect = each;
         }
         if (each instanceof MasterDetailsComponent) {
           ((MasterDetailsComponent)each).setHistory(myHistory);
         }
+        each.disposeUIResources();
         each.reset();
       }
 
       myHistory.clear();
 
       if (toSelect == null && !myConfigurables.isEmpty()) {
-        toSelect = myConfigurables.get(0);
+        toSelect = myConfigurables.keySet().stream().findFirst().orElse(null);
       }
 
       removeSelected();
@@ -436,21 +492,22 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
     if (!myUiInitialized) {
       return;
     }
+    try {
+      PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
+      propertiesComponent.setValue(LAST_EDITED_PROPERTY, myUiState.lastEditedConfigurable);
+      propertiesComponent.setValue(PROPORTION_PROPERTY, String.valueOf(myUiState.proportion));
+      propertiesComponent.setValue(SIDE_PROPORTION_PROPERTY, String.valueOf(myUiState.sideProportion));
 
-    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
-    propertiesComponent.setValue(LAST_EDITED_PROPERTY, myUiState.lastEditedConfigurable);
-    propertiesComponent.setValue(PROPORTION_PROPERTY, String.valueOf(myUiState.proportion));
-    propertiesComponent.setValue(SIDE_PROPORTION_PROPERTY, String.valueOf(myUiState.sideProportion));
+      myUiState.proportion = mySplitter.getProportion();
+      saveSideProportion();
+      myConfigurables.keySet().forEach(Configurable::disposeUIResources);
 
-    myUiState.proportion = mySplitter.getProportion();
-    saveSideProportion();
-    myConfigurables.forEach(Configurable::disposeUIResources);
-    myConfigurables.clear();
-
-    Disposer.dispose(myErrorsComponent);
-    Disposer.dispose(myDisposable);
-
-    myUiInitialized = false;
+      Disposer.dispose(myDisposable);
+    }
+    finally {
+      myConfigurables.clear();
+      myUiInitialized = false;
+    }
   }
 
   @Nullable
@@ -505,5 +562,52 @@ public class ProjectStructureConfigurable implements SearchableConfigurable, Pla
 
   public interface ProjectStructureChangeListener extends EventListener {
     void projectStructureChanged();
+  }
+
+  public void showPlace(@Nullable Place place) {
+    // TODO(IDEA-196602):  Pressing Ctrl+Alt+S or Ctrl+Alt+Shift+S for a little longer shows tens of dialogs. Remove when fixed.
+    if (myShowing) return;
+    if (GradleSyncState.getInstance(myProject).isSyncInProgress()) {
+      IdeFrame ideFrame = WindowManager.getInstance().getIdeFrame(myProject);
+      if (ideFrame != null) {
+        StatusBarEx statusBar = (StatusBarEx)ideFrame.getStatusBar();
+        statusBar.notifyProgressByBalloon(MessageType.WARNING, "Project Structure is unavailable while sync is in progress.", null, null);
+      }
+      return;
+    }
+    AtomicBoolean needsSync = new AtomicBoolean();
+    ProjectStructureChangeListener changeListener = () -> needsSync.set(true);
+    add(changeListener);
+    try {
+      myOpenTimeMs = System.currentTimeMillis();
+        UsageTracker.log(UsageTrackerUtils.withProjectId(
+          AndroidStudioEvent
+            .newBuilder()
+            .setCategory(AndroidStudioEvent.EventCategory.PROJECT_STRUCTURE_DIALOG)
+            .setKind(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_OPEN)
+            .setPsdEvent(PSDEvent.newBuilder().setGeneration(PSDEvent.PSDGeneration.PROJECT_STRUCTURE_DIALOG_GENERATION_002)),
+          myProject));
+      myShowing = true;
+      try {
+      showDialog(() -> {
+        if (place != null) {
+          navigateTo(place, true);
+        }
+      });
+      }
+      finally {
+        myShowing = false;
+      }
+    }
+    finally {
+      remove(changeListener);
+    }
+    if (needsSync.get()) {
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_PROJECT_MODIFIED);
+    }
+  }
+
+  public void show() {
+    showPlace(null);
   }
 }

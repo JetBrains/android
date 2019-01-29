@@ -19,12 +19,13 @@ import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.model.NlDependencyManager;
+import com.android.tools.idea.res.FloatResources;
+import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +36,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.VALUE_N_DP;
-import static com.android.tools.idea.res.ResourceHelper.parseFloatAttribute;
+import static com.android.tools.idea.res.FloatResources.parseFloatAttribute;
 import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
 /**
@@ -58,9 +59,9 @@ public abstract class ViewEditor {
   public static Integer resolveDimensionPixelSize(@NotNull RenderResources resources, @NotNull String value,
                                                   @NotNull Configuration configuration) {
     String resValue = resolveStringValue(resources, value);
-    ResourceHelper.TypedValue out = new ResourceHelper.TypedValue();
+    FloatResources.TypedValue out = new FloatResources.TypedValue();
     if (parseFloatAttribute(resValue, out, true)) {
-      return ResourceHelper.TypedValue.complexToDimensionPixelSize(out.data, configuration);
+      return FloatResources.TypedValue.complexToDimensionPixelSize(out.data, configuration);
     }
     return null;
   }
@@ -154,7 +155,17 @@ public abstract class ViewEditor {
   }
 
   @Nullable
-  public abstract String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types);
+  public final String displayResourceInput(@NotNull EnumSet<ResourceType> types, boolean includeSampleData) {
+    return displayResourceInput("", types, includeSampleData);
+  }
+
+  @Nullable
+  public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types) {
+    return displayResourceInput(title, types, false);
+  }
+
+  @Nullable
+  public abstract String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types, boolean includeSampleData);
 
   /**
    * Open a dialog to pick a class among classes derived from a specified set of super classes.
@@ -201,4 +212,12 @@ public abstract class ViewEditor {
    */
   @NotNull
   public abstract NlDependencyManager getDependencyManager();
+
+
+  public abstract void openResourceFile(@NotNull String resourceId);
+
+  /**
+   * Returns true if the current module depends on AppCompat.
+   */
+  public abstract boolean moduleDependsOnAppCompat();
 }

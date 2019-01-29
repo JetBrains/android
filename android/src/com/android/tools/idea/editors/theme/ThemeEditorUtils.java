@@ -19,15 +19,14 @@ import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
-import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.actions.OverrideResourceAction;
@@ -43,6 +42,7 @@ import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.res.*;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.utils.ImmutableCollectors;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.*;
@@ -65,20 +65,16 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -92,7 +88,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
 
 /**
  * Utility class for static methods which are used in different classes of theme editor
@@ -103,9 +103,6 @@ public class ThemeEditorUtils {
   private static final Cache<String, String> ourTooltipCache =
     CacheBuilder.newBuilder().weakValues().maximumSize(30) // To be able to cache roughly one screen of attributes
       .build();
-  private static final Set<String> DEFAULT_THEMES = ImmutableSet.of("Theme.AppCompat.NoActionBar", "Theme.AppCompat.Light.NoActionBar");
-  private static final Set<String> DEFAULT_THEMES_FALLBACK =
-    ImmutableSet.of("Theme.Material.NoActionBar", "Theme.Material.Light.NoActionBar");
 
   private static final String[] CUSTOM_WIDGETS_JAR_PATHS = {
     // Bundled path
@@ -122,10 +119,10 @@ public class ThemeEditorUtils {
   }
 
   @NotNull
-  public static String generateToolTipText(@NotNull final ItemResourceValue resValue,
+  public static String generateToolTipText(@NotNull final StyleItemResourceValue resValue,
                                            @NotNull final Module module,
                                            @NotNull final Configuration configuration) {
-    final LocalResourceRepository repository = AppResourceRepository.getOrCreateInstance(module);
+    final LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(module);
     if (repository == null) {
       return "";
     }
@@ -138,7 +135,7 @@ public class ThemeEditorUtils {
     }
 
     ResourceUrl url = ResourceUrl
-      .parse(ResolutionUtils.getResourceUrlFromQualifiedName(ResolutionUtils.getQualifiedItemName(resValue), SdkConstants.TAG_ATTR));
+      .parse(ResolutionUtils.getResourceUrlFromQualifiedName(ResolutionUtils.getQualifiedItemAttrName(resValue), SdkConstants.TAG_ATTR));
     assert url != null;
     String tooltipContents = AndroidJavaDocRenderer.render(module, configuration, url);
     assert tooltipContents != null;
@@ -174,16 +171,16 @@ public class ThemeEditorUtils {
   }
 
   /**
-   * Finds an ItemResourceValue for a given name in a theme inheritance tree
+   * Finds an StyleItemResourceValue for a given name in a theme inheritance tree
    */
   @Nullable/*if there is not an item with that name*/
-  public static ItemResourceValue resolveItemFromParents(@NotNull final ConfiguredThemeEditorStyle theme,
-                                                         @NotNull String name,
-                                                         boolean isFrameworkAttr) {
+  public static StyleItemResourceValue resolveItemFromParents(@NotNull ConfiguredThemeEditorStyle theme,
+                                                              @NotNull String name,
+                                                              boolean isFrameworkAttr) {
     ConfiguredThemeEditorStyle currentTheme = theme;
 
-    for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
-      ItemResourceValue item = currentTheme.getItem(name, isFrameworkAttr);
+    for (int i = 0; (i < MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
+      StyleItemResourceValue item = currentTheme.getItem(name, isFrameworkAttr);
       if (item != null) {
         return item;
       }
@@ -192,7 +189,7 @@ public class ThemeEditorUtils {
     return null;
   }
 
-  @Nullable
+  @NotNull
   public static Object extractRealValue(@NotNull final EditedStyleItem item, @NotNull final Class<?> desiredClass) {
     String value = item.getValue();
     if (desiredClass == Boolean.class && ("true".equals(value) || "false".equals(value))) {
@@ -217,49 +214,45 @@ public class ThemeEditorUtils {
   }
 
   @NotNull
-  private static ImmutableCollection<ConfiguredThemeEditorStyle> findThemes(@NotNull Collection<ConfiguredThemeEditorStyle> themes,
-                                                                            final @NotNull Set<String> names) {
-    return ImmutableSet.copyOf(
-      themes.stream().filter(theme -> theme != null && names.contains(theme.getName())).collect(Collectors.toList()));
+  private static ImmutableList<ConfiguredThemeEditorStyle> findThemes(@NotNull Collection<ConfiguredThemeEditorStyle> themes,
+                                                                      @NotNull ThemeResolver themeResolver) {
+    List<ResourceReference> recommendedThemes = themeResolver.getRecommendedThemes();
+    // Make sure the order of returned list is same as recommendedThemes.
+    Map<ResourceReference, ConfiguredThemeEditorStyle> candidates = themes.stream()
+        .collect(Collectors.toMap(ConfiguredThemeEditorStyle::getStyleReference, Function.identity()));
+    return recommendedThemes.stream()
+        .map(ref -> candidates.get(ref))
+        .filter(theme -> theme != null)
+        .collect(ImmutableCollectors.toImmutableList());
   }
 
   @NotNull
-  public static ImmutableList<Module> findAndroidModules(@NotNull Project project) {
-    final ModuleManager manager = ModuleManager.getInstance(project);
+  public static Stream<Module> findAndroidModules(@NotNull Project project) {
+    ModuleManager manager = ModuleManager.getInstance(project);
 
-    final ImmutableList.Builder<Module> builder = ImmutableList.builder();
-    for (Module module : manager.getModules()) {
-      final AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        builder.add(module);
-      }
-    }
-
-    return builder.build();
+    return Arrays.stream(manager.getModules())
+          .filter(module -> AndroidFacet.getInstance(module) != null);
   }
 
   @NotNull
   public static ImmutableList<String> getDefaultThemeNames(@NotNull ThemeResolver themeResolver) {
-    Collection<ConfiguredThemeEditorStyle> readOnlyLibThemes = themeResolver.getExternalLibraryThemes();
+    ImmutableList<ConfiguredThemeEditorStyle> readOnlyFrameworkThemes = themeResolver.getFrameworkThemes();
+    ImmutableList<ConfiguredThemeEditorStyle> readOnlyLibThemes = themeResolver.getExternalLibraryThemes();
 
-    Collection<ConfiguredThemeEditorStyle> foundThemes = new HashSet<>();
-    foundThemes.addAll(findThemes(readOnlyLibThemes, DEFAULT_THEMES));
+    ImmutableList<ConfiguredThemeEditorStyle> readOnlyLibAndFrameworkThemes =
+      Stream.concat(readOnlyFrameworkThemes.stream(), readOnlyLibThemes.stream()).collect(ImmutableCollectors.toImmutableList());
 
-    if (foundThemes.isEmpty()) {
-      Collection<ConfiguredThemeEditorStyle> readOnlyFrameworkThemes = themeResolver.getFrameworkThemes();
-      foundThemes = new HashSet<>();
-      foundThemes.addAll(findThemes(readOnlyFrameworkThemes, DEFAULT_THEMES_FALLBACK));
-
-      if (foundThemes.isEmpty()) {
-        foundThemes.addAll(readOnlyLibThemes);
-        foundThemes.addAll(readOnlyFrameworkThemes);
-      }
+    ImmutableList<ConfiguredThemeEditorStyle> foundThemes = findThemes(readOnlyLibAndFrameworkThemes, themeResolver);
+    if (!foundThemes.isEmpty()) {
+      return foundThemes.stream().map(ConfiguredThemeEditorStyle::getQualifiedName).collect(ImmutableCollectors.toImmutableList());
     }
-    Set<String> temporarySet = Sets.newTreeSet(String.CASE_INSENSITIVE_ORDER);
-    for (ConfiguredThemeEditorStyle theme : foundThemes) {
-      temporarySet.add(theme.getQualifiedName());
+    else {
+      // If cannot find default theme, display all framework themes sorted alphabetically.
+      return readOnlyFrameworkThemes.stream()
+        .map(ConfiguredThemeEditorStyle::getQualifiedName)
+        .sorted(String.CASE_INSENSITIVE_ORDER)
+        .collect(ImmutableCollectors.toImmutableList());
     }
-    return ImmutableList.copyOf(temporarySet);
   }
 
   public static int getMinApiLevel(@NotNull Module module) {
@@ -409,7 +402,7 @@ public class ThemeEditorUtils {
     }
     Project project = module.getProject();
     @SuppressWarnings("deprecation")
-    VirtualFile resourceDir = facet.getPrimaryResourceDir();
+    VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
     if (resourceDir == null) {
       AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", module.getName()));
       return null;
@@ -432,7 +425,7 @@ public class ThemeEditorUtils {
    */
   public static boolean isAppCompatTheme(@NotNull ConfiguredThemeEditorStyle configuredThemeEditorStyle) {
     ConfiguredThemeEditorStyle currentTheme = configuredThemeEditorStyle;
-    for (int i = 0; (i < ResourceResolver.MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
+    for (int i = 0; (i < MAX_RESOURCE_INDIRECTION) && currentTheme != null; i++) {
       // for loop ensures that we don't run into cyclic theme inheritance.
       //TODO: This check is not enough. User themes could also start with "Theme.AppCompat" and not be AppCompat
       if (currentTheme.getName().startsWith("Theme.AppCompat") && currentTheme.getSourceModule() == null) {
@@ -547,7 +540,7 @@ public class ThemeEditorUtils {
     for (File dir : resDirectories) {
       VirtualFile virtualFile = fileSystem.findFileByIoFile(dir);
       if (virtualFile != null) {
-        folders.add(ResourceFolderRegistry.get(facet, virtualFile));
+        folders.add(ResourceFolderRegistry.getInstance(facet.getModule().getProject()).get(facet, virtualFile));
       }
     }
 
@@ -560,7 +553,7 @@ public class ThemeEditorUtils {
    */
   public static JBColor getGoodContrastPreviewBackground(@NotNull ConfiguredThemeEditorStyle theme,
                                                          @NotNull ResourceResolver resourceResolver) {
-    ItemResourceValue themeColorBackgroundItem = resolveItemFromParents(theme, "colorBackground", true);
+    StyleItemResourceValue themeColorBackgroundItem = resolveItemFromParents(theme, "colorBackground", true);
     ResourceValue backgroundResourceValue = resourceResolver.resolveResValue(themeColorBackgroundItem);
     if (backgroundResourceValue != null) {
       String colorBackgroundValue = backgroundResourceValue.getValue();
@@ -653,13 +646,12 @@ public class ThemeEditorUtils {
       if (!isSelected) {
         return;
       }
-      for (String simpleThemeName : resources.getItemsOfType(ResourceType.STYLE)) {
+      for (String simpleThemeName : resources.getResources(ResourceNamespace.TODO(), ResourceType.STYLE).keySet()) {
         String themeStyleResourceUrl = SdkConstants.STYLE_RESOURCE_PREFIX + simpleThemeName;
-        List<ResourceItem> themeItems = resources.getResourceItem(ResourceType.STYLE, simpleThemeName);
-        assert themeItems != null;
+        List<ResourceItem> themeItems = resources.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, simpleThemeName);
         for (ResourceItem themeItem : themeItems) {
           ResourceResolver resolver = resolverCache.getResourceResolver(target, themeStyleResourceUrl, themeItem.getConfiguration());
-          ResourceValue themeItemResourceValue = themeItem.getResourceValue(false);
+          ResourceValue themeItemResourceValue = themeItem.getResourceValue();
           assert themeItemResourceValue != null;
           if (resolver.isTheme(themeItemResourceValue, cache)) {
             themeNamesSet.add(simpleThemeName);
@@ -677,9 +669,9 @@ public class ThemeEditorUtils {
   @NotNull
   public static ChooseResourceDialog getResourceDialog(@NotNull EditedStyleItem item,
                                                        @NotNull ThemeEditorContext context,
-                                                       EnumSet<ResourceType> allowedTypes) {
+                                                       @NotNull EnumSet<ResourceType> allowedTypes) {
     Module module = context.getModuleForResources();
-    ItemResourceValue itemSelectedValue = item.getSelectedValue();
+    StyleItemResourceValue itemSelectedValue = item.getSelectedValue();
 
     String value = itemSelectedValue.getValue();
     boolean isFrameworkValue = itemSelectedValue.isFramework();
@@ -719,16 +711,16 @@ public class ThemeEditorUtils {
    * @param initialName a name that result should be based on (that might not be vacant)
    */
   @NotNull
-  private static String getDefaultResourceName(@NotNull ThemeEditorContext context, final @NotNull String initialName) {
+  private static String getDefaultResourceName(@NotNull ThemeEditorContext context, @NotNull String initialName) {
     if (context.getCurrentTheme() == null || !context.getCurrentTheme().isReadOnly()) {
       // If the currently selected theme is not read-only, then the expected
       // behaviour of color picker would be to edit the existing resource.
       return initialName;
     }
 
-    final ResourceResolver resolver = context.getResourceResolver();
+    ResourceResolver resolver = context.getResourceResolver();
     assert resolver != null;
-    final ResourceValue value = resolver.findResValue(SdkConstants.COLOR_RESOURCE_PREFIX + initialName, false);
+    ResourceValue value = resolver.findResValue(SdkConstants.COLOR_RESOURCE_PREFIX + initialName, false);
 
     // Value doesn't exist, safe to use initial guess
     if (value == null) {

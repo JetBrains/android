@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding;
 
 import com.android.SdkConstants;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -25,7 +26,6 @@ import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.impl.light.LightMethod;
-import com.intellij.psi.impl.light.LightModifierList;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.util.CachedValue;
@@ -47,12 +47,12 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
   private final AndroidFacet myFacet;
   private CachedValue<PsiMethod[]> myMethodCache;
   private PsiFile myContainingFile;
-  private final PsiModifierList myPsiModifierList;
+  private final DataBindingMode myMode;
 
   public LightGeneratedComponentClass(@NotNull PsiManager psiManager, final AndroidFacet facet) {
-    super(psiManager);
+    super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC));
+    myMode = ModuleDataBinding.getInstance(facet).getDataBindingMode();
     myFacet = facet;
-    myPsiModifierList = new LightModifierList(myManager, getLanguage(), PsiModifier.PUBLIC);
     myMethodCache =
       CachedValuesManager.getManager(facet.getModule().getProject()).createCachedValue(
         () -> {
@@ -61,7 +61,7 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
           Map<String, Set<String>> instanceAdapterClasses = Maps.newHashMap();
           JavaPsiFacade facade = JavaPsiFacade.getInstance(myFacet.getModule().getProject());
           PsiClass aClass = facade
-            .findClass(SdkConstants.BINDING_ADAPTER_ANNOTATION, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
+            .findClass(myMode.bindingAdapter, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
           if (aClass == null) {
             return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, myManager.getModificationTracker().getJavaStructureModificationTracker());
           }
@@ -114,16 +114,13 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
           return CachedValueProvider.Result.create(result, myManager.getModificationTracker().getJavaStructureModificationTracker());
         }
       , false);
+
+    setModuleInfo(facet.getModule(), false);
   }
 
   @Override
   public boolean isInterface() {
     return true;
-  }
-
-  @Override
-  public PsiModifierList getModifierList() {
-    return myPsiModifierList;
   }
 
   @Override
@@ -138,15 +135,10 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
     return new LightMethod(PsiManager.getInstance(project), method, this);
   }
 
-  @Override
-  public String toString() {
-    return "DATA binding component class";
-  }
-
   @Nullable
   @Override
   public String getQualifiedName() {
-    return SdkConstants.CLASS_DATA_BINDING_COMPONENT;
+    return myMode.dataBindingComponent;
   }
 
   @Override
@@ -193,7 +185,7 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
         result.add(method);
       }
     }
-    return result.isEmpty() ? PsiMethod.EMPTY_ARRAY : result.toArray(new PsiMethod[result.size()]);
+    return result.isEmpty() ? PsiMethod.EMPTY_ARRAY : result.toArray(PsiMethod.EMPTY_ARRAY);
   }
 
   @Nullable
@@ -202,7 +194,7 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase implemen
     if (myContainingFile == null) {
       myContainingFile = PsiFileFactory.getInstance(myFacet.getModule().getProject()).createFileFromText(
         SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT + ".java", JavaLanguage.INSTANCE,
-        "package android.databinding;\n"
+        "package " + myMode.packageName + ";\n"
         + "public interface DataBindingComponent {}"
       , false, true, true, myFacet.getModule().getProject().getBaseDir());
 

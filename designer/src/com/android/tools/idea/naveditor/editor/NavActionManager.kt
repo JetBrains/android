@@ -15,107 +15,211 @@
  */
 package com.android.tools.idea.naveditor.editor
 
-import com.android.annotations.VisibleForTesting
-import com.android.resources.ResourceFolderType
+import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.idea.common.actions.ActivateComponentAction
+import com.android.tools.idea.common.actions.GotoComponentAction
+import com.android.tools.idea.common.actions.ZoomInAction
+import com.android.tools.idea.common.actions.ZoomOutAction
+import com.android.tools.idea.common.actions.ZoomToFitAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.surface.ZoomShortcut
+import com.android.tools.idea.naveditor.actions.ActivateSelectionAction
+import com.android.tools.idea.naveditor.actions.AddActionToolbarAction
+import com.android.tools.idea.naveditor.actions.AddGlobalAction
+import com.android.tools.idea.naveditor.actions.AddToExistingGraphAction
+import com.android.tools.idea.naveditor.actions.AddToNewGraphAction
+import com.android.tools.idea.naveditor.actions.AutoArrangeAction
+import com.android.tools.idea.naveditor.actions.DeepLinkToolbarAction
+import com.android.tools.idea.naveditor.actions.EditExistingAction
+import com.android.tools.idea.naveditor.actions.NestedGraphToolbarAction
+import com.android.tools.idea.naveditor.actions.ReturnToSourceAction
+import com.android.tools.idea.naveditor.actions.SelectAllAction
+import com.android.tools.idea.naveditor.actions.SelectNextAction
+import com.android.tools.idea.naveditor.actions.SelectPreviousAction
+import com.android.tools.idea.naveditor.actions.StartDestinationAction
+import com.android.tools.idea.naveditor.actions.StartDestinationToolbarAction
+import com.android.tools.idea.naveditor.actions.ToDestinationAction
+import com.android.tools.idea.naveditor.actions.ToSelfAction
+import com.android.tools.idea.naveditor.model.isAction
+import com.android.tools.idea.naveditor.model.isDestination
+import com.android.tools.idea.naveditor.model.isNavigation
+import com.android.tools.idea.naveditor.model.supportsActions
+import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.searches.ClassInheritorsSearch
-import com.intellij.psi.xml.XmlFile
-import com.intellij.util.ResourceUtil
-import icons.AndroidIcons
-import org.jetbrains.android.AndroidGotoRelatedProvider
-import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.resourceManagers.LocalResourceManager
-import java.awt.Image
-import java.awt.Toolkit
-import java.util.*
+import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.util.SystemInfo
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import javax.swing.JComponent
+import javax.swing.KeyStroke
 
 /**
  * Provides and handles actions in the navigation editor
  */
-class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
+// Open for testing only
+open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesignSurface>(surface) {
+  private val gotoComponentAction: AnAction = GotoComponentAction(surface)
+  private val autoArrangeAction: AnAction = AutoArrangeAction(surface)
+  private val zoomInAction: AnAction = ZoomShortcut.ZOOM_IN.registerForAction(ZoomInAction(surface), surface, surface)
+  private val zoomOutAction: AnAction = ZoomShortcut.ZOOM_OUT.registerForAction(ZoomOutAction(surface), surface, surface)
+  private val zoomToFitAction: AnAction = ZoomShortcut.ZOOM_FIT.registerForAction(ZoomToFitAction(surface), surface, surface)
+  private val selectNextAction: AnAction = SelectNextAction(surface)
+  private val selectPreviousAction: AnAction = SelectPreviousAction(surface)
+  private val selectAllAction: AnAction = SelectAllAction(surface)
+  private val addToNewGraphAction: AnAction = AddToNewGraphAction(surface)
+  private val nestedGraphToolbarAction: AnAction = NestedGraphToolbarAction(surface)
+  private val startDestinationToolbarAction: AnAction = StartDestinationToolbarAction(surface)
+  private val deepLinkToolbarAction: AnAction = DeepLinkToolbarAction(surface)
+  private val addActionToolbarAction: AnAction = AddActionToolbarAction(surface)
+  private val activateSelectionAction: AnAction = ActivateSelectionAction(surface)
 
-  override fun registerActionsShortcuts(component: JComponent) {
-    // TODO
+  // Open for testing only
+  open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }
+
+  override fun registerActionsShortcuts(component: JComponent, parentDisposable: Disposable?) {
+    registerAction(gotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component, parentDisposable)
+    registerAction(selectNextAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), mySurface, parentDisposable)
+    registerAction(selectPreviousAction, KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK), mySurface, parentDisposable)
+    registerAction(selectAllAction, IdeActions.ACTION_SELECT_ALL, component, parentDisposable)
+    registerAction(activateSelectionAction, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), component, parentDisposable)
+
+    val keyEvent = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
+    registerAction(addToNewGraphAction, KeyStroke.getKeyStroke(KeyEvent.VK_G, keyEvent), mySurface, parentDisposable)
+    addToNewGraphAction.registerCustomShortcutSet(KeyEvent.VK_G, AdtUiUtils.getActionMask(), mySurface)
   }
 
-  override fun createPopupMenu(actionManager: com.intellij.openapi.actionSystem.ActionManager,
-                               leafComponent: NlComponent?): DefaultActionGroup {
-    // TODO
-    return DefaultActionGroup()
-  }
+  override fun createPopupMenu(
+    actionManager: com.intellij.openapi.actionSystem.ActionManager,
+    leafComponent: NlComponent?
+  ): DefaultActionGroup {
+    val group = DefaultActionGroup()
 
-  override fun addActions(group: DefaultActionGroup,
-                          component: NlComponent?,
-                          parent: NlComponent?,
-                          newSelection: List<NlComponent>,
-                          toolbar: Boolean) {
-    group.add(CreateDestinationMenu(mySurface))
-    group.add(AddExistingDestinationMenu(mySurface, destinations))
-  }
-
-  @VisibleForTesting
-  val destinations: List<Destination>
-    get() {
-      val model = mySurface.model!!
-      val classToDestination = LinkedHashMap<PsiClass, Destination>()
-      val module = model.module
-      val schema = mySurface.schema
-
-      val scope = GlobalSearchScope.moduleWithDependenciesScope(module)
-      val project = model.project
-      val parent = mySurface.currentNavigation
-      for (superClassName in NavigationSchema.DESTINATION_SUPERCLASS_TO_TYPE.keys) {
-        val psiSuperClass = JavaPsiFacade.getInstance(project).findClass(superClassName, GlobalSearchScope.allScope(project)) ?: continue
-        val tag = schema.getTagForComponentSuperclass(superClassName) ?: continue
-        val query = ClassInheritorsSearch.search(psiSuperClass, scope, true)
-        for (psiClass in query) {
-          val destination = Destination.RegularDestination(parent, tag, null, psiClass.name, psiClass.qualifiedName)
-          classToDestination.put(psiClass, destination)
-        }
-      }
-
-      val resourceManager = LocalResourceManager.getInstance(module)
-      if (resourceManager != null) {
-        for (resourceFile in resourceManager.findResourceFiles(ResourceFolderType.LAYOUT)) {
-          if (resourceFile !is XmlFile) {
-            continue
-          }
-          // TODO: refactor AndroidGotoRelatedProvider so this can be done more cleanly
-          val itemComputable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(resourceFile, model.facet)
-          for (item in itemComputable?.compute() ?: continue) {
-            val element = item.element as? PsiClass ?: continue
-            val tag = schema.findTagForComponent(element) ?: continue
-            val destination =
-                Destination.RegularDestination(parent, tag, null, element.name, element.qualifiedName, layoutFile = resourceFile)
-            classToDestination.put(element, destination)
-          }
-        }
-      }
-      val result = classToDestination.values.toMutableList()
-
-      for (navPsi in resourceManager!!.findResourceFiles(ResourceFolderType.NAVIGATION)) {
-        if (mySurface.model!!.file == navPsi) {
-          continue
-        }
-        if (navPsi is XmlFile) {
-          result.add(Destination.IncludeDestination(navPsi.name, parent))
-        }
-      }
-
-      return result
+    if (leafComponent == null) {
+      return group
     }
 
-}
+    when {
+      mySurface.selectionModel.selection.count() > 1 -> addMultiSelectionGroup(group, actionManager)
+      leafComponent == mySurface.currentNavigation -> addSurfaceGroup(group)
+      leafComponent.isDestination -> addDestinationGroup(group, leafComponent, actionManager)
+      leafComponent.isAction -> addActionGroup(group, leafComponent, actionManager)
+    }
 
-// TODO: replace with an appropriate dynamically-determined icon
-@VisibleForTesting
-@JvmField
-val ACTIVITY_IMAGE: Image = Toolkit.getDefaultToolkit().getImage(
-    ResourceUtil.getResource(AndroidIcons::class.java, "/icons/naveditor", "basic-activity.png"))
+    return group
+  }
+
+  private fun addMultiSelectionGroup(group: DefaultActionGroup, actionManager: com.intellij.openapi.actionSystem.ActionManager) {
+    group.add(createNestedGraphGroup(mySurface.selectionModel.selection))
+
+    group.addSeparator()
+    addCutCopyPasteDeleteGroup(group, actionManager)
+  }
+
+  private fun addCutCopyPasteDeleteGroup(group: DefaultActionGroup,
+                                         actionManager: com.intellij.openapi.actionSystem.ActionManager) {
+    group.add(actionManager.getAction(IdeActions.ACTION_CUT))
+    group.add(actionManager.getAction(IdeActions.ACTION_COPY))
+    group.add(actionManager.getAction(IdeActions.ACTION_PASTE))
+    group.add(actionManager.getAction(IdeActions.ACTION_DELETE))
+  }
+
+  private fun addSurfaceGroup(group: DefaultActionGroup) {
+    group.add(selectAllAction)
+
+    group.addSeparator()
+    group.add(autoArrangeAction)
+
+    group.addSeparator()
+    group.add(zoomInAction)
+    group.add(zoomOutAction)
+    group.add(zoomToFitAction)
+
+    group.addSeparator()
+    group.add(gotoComponentAction)
+  }
+
+  private fun addDestinationGroup(
+    group: DefaultActionGroup,
+    component: NlComponent,
+    actionManager: com.intellij.openapi.actionSystem.ActionManager
+  ) {
+    val activateComponentAction = ActivateComponentAction(if (component.isNavigation) "Open" else "Edit", mySurface, component)
+    group.add(activateComponentAction)
+
+    group.addSeparator()
+    group.add(createAddActionGroup(component))
+    group.add(createNestedGraphGroup(listOf(component)))
+    group.add(StartDestinationAction(component))
+
+    group.addSeparator()
+    addCutCopyPasteDeleteGroup(group, actionManager)
+
+    group.addSeparator()
+    group.add(gotoComponentAction)
+  }
+
+  private fun addActionGroup(
+    group: DefaultActionGroup,
+    component: NlComponent,
+    actionManager: com.intellij.openapi.actionSystem.ActionManager
+  ) {
+    val parent = component.parent ?: throw IllegalStateException()
+    group.add(EditExistingAction(mySurface, parent, component))
+
+    group.addSeparator()
+    addCutCopyPasteDeleteGroup(group, actionManager)
+  }
+
+  private fun createAddActionGroup(component: NlComponent): DefaultActionGroup {
+    val group = DefaultActionGroup("Add Action", true)
+
+    if (component.supportsActions) {
+      group.add(ToDestinationAction(mySurface, component))
+      group.add(ToSelfAction(mySurface, component))
+      group.add(ReturnToSourceAction(mySurface, component))
+      group.add(AddGlobalAction(mySurface, component))
+    }
+
+    return group
+  }
+
+  private fun createNestedGraphGroup(components: List<NlComponent>): DefaultActionGroup {
+    // TODO: Add shortcut
+    val group = DefaultActionGroup("Move to Nested Graph", true)
+    val currentNavigation = mySurface.currentNavigation
+    group.add(addToNewGraphAction)
+
+    val subnavs = currentNavigation.children.filter { it.isNavigation && !components.contains(it) }
+    if (!subnavs.isEmpty()) {
+      group.addSeparator()
+      for (graph in subnavs) {
+        group.add(AddToExistingGraphAction(mySurface, graph.uiName, graph))
+      }
+    }
+
+    return group
+  }
+
+  override fun addActions(
+    group: DefaultActionGroup,
+    component: NlComponent?,
+    newSelection: List<NlComponent>,
+    toolbar: Boolean
+  ) {
+    // This is called whenever the selection changes, but since our contents are static they can be cached.
+    group.add(addDestinationMenu)
+    group.add(nestedGraphToolbarAction)
+
+    group.addSeparator()
+    group.add(startDestinationToolbarAction)
+    group.add(deepLinkToolbarAction)
+    group.add(addActionToolbarAction)
+
+    group.addSeparator()
+    group.add(autoArrangeAction)
+  }
+}

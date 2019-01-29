@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.configurations;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
 public class OrientationMenuActionTest extends AndroidTestCase {
   private static final String FILE_ARROW = " \u2192 ";
@@ -77,7 +78,8 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     action.createCustomComponent(presentation); // To force updateActions to be called...
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
-    checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class, "Landscape" + FILE_ARROW + "land/layout1.xml");
+    checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class,
+                "Landscape" + FILE_ARROW + FileUtil.join("land", "layout1.xml"));
     checkAction(actions[2], Separator.class, null);
     checkAction(actions[3], ActionGroup.class, "UI Mode");
     checkAction(actions[4], Separator.class, null);
@@ -99,7 +101,8 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     action.createCustomComponent(presentation); // To force updateActions to be called...
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
-    checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class, "Landscape" + FILE_ARROW + "land/layout1.xml");
+    checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class,
+                "Landscape" + FILE_ARROW + FileUtil.join("land", "layout1.xml"));
     checkAction(actions[2], Separator.class, null);
     checkAction(actions[3], ActionGroup.class, "UI Mode");
     checkAction(actions[4], Separator.class, null);

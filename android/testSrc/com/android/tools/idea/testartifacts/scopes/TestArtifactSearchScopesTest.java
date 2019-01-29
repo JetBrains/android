@@ -38,7 +38,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
 
-import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.getModuleId;
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.android.utils.FileUtils.join;
@@ -138,7 +138,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     appendToFile(virtualToIoFile(buildFile), "\n\ndependencies { compile 'com.google.code.gson:gson:2.2.4' }\n");
 
     CountDownLatch latch = new CountDownLatch(1);
-    GradleSyncListener postSetupListener = new GradleSyncListener.Adapter() {
+    GradleSyncListener postSetupListener = new GradleSyncListener() {
       @Override
       public void syncSucceeded(@NotNull Project project) {
         latch.countDown();
@@ -179,6 +179,19 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertTrue(scopes.getUnitTestSourceScope().accept(file));
     assertFalse(scopes.getAndroidTestExcludeScope().accept(file));
     assertFalse(scopes.getUnitTestExcludeScope().accept(file));
+  }
+
+  public void testResolvedScopeForTestOnlyModuleProject() throws Exception {
+    loadProject(TEST_ONLY_MODULE);
+    Module testModule = getModule("test");
+    TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.get(testModule);
+    assertNotNull(testArtifactSearchScopes);
+
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myFixture.getProject());
+    Library junit = libraryTable.getLibraryByName(JUNIT);
+    assertNotNull(junit);
+    FileRootSearchScope androidTestExcludeScope = testArtifactSearchScopes.getAndroidTestExcludeScope();
+    assertScopeContainsLibrary(androidTestExcludeScope, junit, false);
   }
 
   @NotNull
@@ -226,7 +239,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     scopes.resolveDependencies();
 
     String projectFolder = getProject().getBasePath();
-    String moduleId = getModuleId(projectFolder, ":lib");
+    String moduleId = createUniqueModuleId(projectFolder, ":lib");
     ImmutableCollection<ModuleDependency> moduleDependencies = scopes.getMainDependencies().onModules();
     assertThat(moduleDependencies).contains(new ModuleDependency(moduleId, COMPILE, libModule));
 
@@ -245,7 +258,7 @@ public class TestArtifactSearchScopesTest extends AndroidGradleTestCase {
     assertThat(moduleDependencies).isEmpty();
 
     moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(getModuleId(projectFolder, ":test-util"), TEST, testUtilModule));
+    assertThat(moduleDependencies).contains(new ModuleDependency(createUniqueModuleId(projectFolder, ":test-util"), TEST, testUtilModule));
 
     moduleDependencies = scopes.getAndroidTestDependencies().onModules();
     assertThat(moduleDependencies).isEmpty();

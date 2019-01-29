@@ -20,10 +20,10 @@ import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.AndroidVersion.VersionCodes;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.lint.checks.FontDetector;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -41,6 +41,7 @@ import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +51,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.res2.ValueXmlHelper.escapeResourceString;
+import static com.android.ide.common.resources.ValueXmlHelper.escapeResourceString;
 
 /**
  * Create a font file for a new downloadable font.
@@ -81,7 +82,7 @@ public class FontFamilyCreator {
   }
 
   @NotNull
-  public String createFontFamily(@NotNull FontDetail font, @NotNull String fontName, boolean downloadable) throws IOException {
+  public String createFontFamily(@NotNull FontDetail font, @NotNull String fontName, boolean downloadable) {
     Project project = myFacet.getModule().getProject();
     TransactionGuard.submitTransaction(project, () -> new WriteCommandAction.Simple(project, "Create new font file") {
       @Override
@@ -125,7 +126,7 @@ public class FontFamilyCreator {
   @NotNull
   private VirtualFile getResourceFolder(@NotNull ResourceFolderType folderType) throws IOException {
     @SuppressWarnings("deprecation")
-    VirtualFile resourceDirectory = myFacet.getPrimaryResourceDir();
+    VirtualFile resourceDirectory = ResourceFolderManager.getInstance(myFacet).getPrimaryFolder();
 
     if (resourceDirectory == null) {
       throw new IOException("PrimaryResourceDirectory is null");
@@ -163,7 +164,7 @@ public class FontFamilyCreator {
     FontProvider provider = family.getProvider();
     AndroidModuleInfo info = AndroidModuleInfo.getInstance(myFacet);
     AndroidVersion minSdkVersion = info.getMinSdkVersion();
-    if (minSdkVersion.getApiLevel() > VersionCodes.O_MR1) {
+    if (minSdkVersion.getApiLevel() >= FontDetector.FUTURE_API_VERSION_WHERE_DOWNLOADABLE_FONTS_WORK_IN_FRAMEWORK) {
       return String.format(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
         "<font-family xmlns:android=\"http://schemas.android.com/apk/res/android\"%n" +

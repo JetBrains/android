@@ -24,12 +24,11 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class ProfilerLayeredPaneTest {
   @Test
-  public void setCursorOnProfilerLayeredPane() throws Exception {
+  public void setCursorOnProfilerLayeredPane() {
     JButton button = new JButton();
     JPanel panel = new JPanel();
     panel.add(button);
-    ProfilerLayeredPane layeredPane = new ProfilerLayeredPane();
-    layeredPane.add(panel);
+    ProfilerLayeredPane layeredPane = new ProfilerLayeredPane(panel);
     Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     Container cursorSettingContainer = ProfilerLayeredPane.setCursorOnProfilerLayeredPane(
       button, cursor);
@@ -38,7 +37,7 @@ public class ProfilerLayeredPaneTest {
   }
 
   @Test
-  public void setCursorOnProfilerLayeredPaneNotFound() throws Exception {
+  public void setCursorOnProfilerLayeredPaneNotFound() {
     JButton button = new JButton();
     JPanel panel = new JPanel();
     panel.add(button);

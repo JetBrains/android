@@ -16,26 +16,23 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.awt.*;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Objects;
 
-@Ignore("b/66680171")
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public final class NavigationViewTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
@@ -58,13 +55,14 @@ public final class NavigationViewTest {
 
   @Test
   public void doubleClickHeaderLayout() {
-    myLayoutEditor.getSurface().doubleClick(new Point(230, 170));
+    myLayoutEditor.getSurface().doubleClick(200, 200); // Android coordinates inside the navigation drawer header
     waitUntilEditorCurrentFileEquals(FileSystems.getDefault().getPath("app", "src", "main", "res", "layout", "nav_header_main.xml"));
   }
 
+
   @Test
   public void doubleClickMenu() {
-    myLayoutEditor.getSurface().doubleClick(new Point(150, 410));
+    myLayoutEditor.getSurface().doubleClick(200, 600); //Android coordinates insitde the navigation drawer menu
     waitUntilEditorCurrentFileEquals(FileSystems.getDefault().getPath("app", "src", "main", "res", "menu", "activity_main_drawer.xml"));
   }
 

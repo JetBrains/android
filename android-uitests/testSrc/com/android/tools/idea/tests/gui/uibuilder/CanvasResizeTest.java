@@ -16,8 +16,8 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,14 +25,16 @@ import org.junit.runner.RunWith;
 /**
  * UI tests for the canvas resizing interaction
  */
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class CanvasResizeTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void resizeAndSnap() throws Exception {
-    guiTest.importSimpleApplication()
+    guiTest
+      .importSimpleLocalApplication()
+      .closeProjectPanel()
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)

@@ -17,15 +17,18 @@ package com.android.tools.idea.common.model;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.rendering.AttributeSnapshot;
-import com.android.tools.idea.rendering.TagSnapshot;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.handlers.relative.DependencyGraph;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.model.AttributesHelperKt;
 import com.android.tools.idea.uibuilder.model.QualifiedName;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
@@ -37,6 +40,8 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -60,6 +65,7 @@ public class NlComponent implements NlAttributesHolder {
   @Nullable private XmlModelComponentMixin myMixin;
 
   private final List<NlComponent> children = Lists.newArrayList();
+  @Nullable private List<NlComponent> cachedChildrenCopy = null;
   private NlComponent myParent;
   @NotNull private final NlModel myModel;
   //TODO(b/70264883): remove this reference to XmlTag to avoid problems with invalid Psi elements
@@ -70,7 +76,7 @@ public class NlComponent implements NlAttributesHolder {
   private final HashMap<Object, Object> myClientProperties = new HashMap<>();
   private final ListenerCollection<ChangeListener> myListeners = ListenerCollection.createWithDirectExecutor();
   private final ChangeEvent myChangeEvent = new ChangeEvent(this);
-  private DependencyGraph myCachedDependencyGraph;
+  private NlComponentDelegate myDelegate;
 
   /**
    * Current open attributes transaction or null if none is open
@@ -101,6 +107,15 @@ public class NlComponent implements NlAttributesHolder {
     myTagName = tag.getName();
   }
 
+  @Nullable
+  public NlComponentDelegate getDelegate() {
+    return myDelegate;
+  }
+
+  public void setDelegate(@Nullable NlComponentDelegate delegate) {
+    myDelegate = delegate;
+  }
+
   public void setMixin(@NotNull XmlModelComponentMixin mixin) {
     assert myMixin == null;
     myMixin = mixin;
@@ -127,6 +142,11 @@ public class NlComponent implements NlAttributesHolder {
       tag = application.runReadAction((Computable<XmlTag>)myTagPointer::getElement);
     }
     return tag != null ? tag : myTag;
+  }
+
+  @NotNull
+  public SmartPsiElementPointer<XmlTag> getTagPointer() {
+    return myTagPointer;
   }
 
   @NotNull
@@ -173,12 +193,15 @@ public class NlComponent implements NlAttributesHolder {
     if (component == this) {
       throw new IllegalArgumentException();
     }
-    int index = before != null ? children.indexOf(before) : -1;
-    if (index != -1) {
-      children.add(index, component);
-    }
-    else {
-      children.add(component);
+    synchronized (children) {
+      cachedChildrenCopy = null;
+      int index = before != null ? children.indexOf(before) : -1;
+      if (index != -1) {
+        children.add(index, component);
+      }
+      else {
+        children.add(component);
+      }
     }
     component.setParent(this);
   }
@@ -187,16 +210,25 @@ public class NlComponent implements NlAttributesHolder {
     if (component == this) {
       throw new IllegalArgumentException();
     }
-    children.remove(component);
+    if (myDelegate != null) {
+      myDelegate.willRemoveChild(component);
+    }
+    synchronized (children) {
+      cachedChildrenCopy = null;
+      children.remove(component);
+    }
     component.setParent(null);
   }
 
   public void setChildren(@Nullable List<NlComponent> components) {
-    children.clear();
-    if (components == null) {
-      return;
+    synchronized (children) {
+      cachedChildrenCopy = null;
+      children.clear();
+      if (components == null) {
+        return;
+      }
+      children.addAll(components);
     }
-    children.addAll(components);
     for (NlComponent component : components) {
       if (component == this) {
         throw new IllegalArgumentException();
@@ -207,15 +239,23 @@ public class NlComponent implements NlAttributesHolder {
 
   @NotNull
   public List<NlComponent> getChildren() {
-    return ImmutableList.copyOf(children);
+    List<NlComponent> childrenCopy = cachedChildrenCopy;
+    if (childrenCopy == null) {
+      synchronized (children) {
+        childrenCopy = ImmutableList.copyOf(children);
+        cachedChildrenCopy = childrenCopy;
+      }
+    }
+    return childrenCopy;
   }
 
   public int getChildCount() {
-    return children.size();
+    return getChildren().size();
   }
 
   @Nullable
   public NlComponent getChild(int index) {
+    List<NlComponent> children = getChildren();
     return index >= 0 && index < children.size() ? children.get(index) : null;
   }
 
@@ -224,19 +264,6 @@ public class NlComponent implements NlAttributesHolder {
     return Stream.concat(
       Stream.of(this),
       getChildren().stream().flatMap(NlComponent::flatten));
-  }
-
-  /**
-   * Returns the {@link DependencyGraph} for the given relative layout widget
-   *
-   * @return a {@link DependencyGraph} for the layout
-   */
-  @NotNull
-  public DependencyGraph getDependencyGraph() {
-    if (myCachedDependencyGraph == null || myCachedDependencyGraph.isStale(this)) {
-      myCachedDependencyGraph = new DependencyGraph(this);
-    }
-    return myCachedDependencyGraph;
   }
 
   @Nullable
@@ -307,6 +334,12 @@ public class NlComponent implements NlAttributesHolder {
     return stripId(id);
   }
 
+  public void clearTransaction() {
+    if (myCurrentTransaction != null) {
+      myCurrentTransaction.finishTransaction();
+    }
+  }
+
   @Nullable
   public static String stripId(@Nullable String id) {
     if (id != null) {
@@ -347,6 +380,10 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Override
   public void setAttribute(@Nullable String namespace, @NotNull String attribute, @Nullable String value) {
+    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
+      myDelegate.setAttribute(this, namespace, attribute, value);
+      return;
+    }
     XmlTag tag = getTag();
     if (!tag.isValid()) {
       // This could happen when trying to set an attribute in a component that has been already deleted
@@ -389,6 +426,9 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Nullable
   public String getLiveAttribute(@Nullable String namespace, @NotNull String attribute) {
+    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
+      return myDelegate.getAttribute(this, namespace, attribute);
+    }
     if (myCurrentTransaction != null) {
       return myCurrentTransaction.getAttribute(namespace, attribute);
     }
@@ -398,6 +438,13 @@ public class NlComponent implements NlAttributesHolder {
   @Override
   @Nullable
   public String getAttribute(@Nullable String namespace, @NotNull String attribute) {
+    if (myDelegate != null && myDelegate.handlesAttribute(this, namespace, attribute)) {
+      return myDelegate.getAttribute(this, namespace, attribute);
+    }
+    return getAttributeImpl(namespace, attribute);
+  }
+
+  public String getAttributeImpl(@Nullable String namespace, @NotNull String attribute) {
     if (mySnapshot != null) {
       return mySnapshot.getAttribute(attribute, namespace);
     }
@@ -427,6 +474,19 @@ public class NlComponent implements NlAttributesHolder {
 
   @NotNull
   public List<AttributeSnapshot> getAttributes() {
+    if (myDelegate != null && myDelegate.handlesAttributes(this)) {
+      List<AttributeSnapshot> attributes = myDelegate.getAttributes(this);
+      if (attributes != null) {
+        return attributes;
+      } else {
+        return Collections.emptyList();
+      }
+    }
+    return getAttributesImpl();
+  }
+
+  @NotNull
+  public List<AttributeSnapshot> getAttributesImpl() {
     if (mySnapshot != null) {
       return mySnapshot.attributes;
     }
@@ -610,6 +670,21 @@ public class NlComponent implements NlAttributesHolder {
     return newId;
   }
 
+  public void incrementId(@NotNull Set<String> ids) {
+    String id = getId();
+    if (id == null || id.isEmpty()) {
+      ids.add(assignId(ids));
+    }
+    else {
+      // Regex to get the base name of a component id, where the basename of
+      // "component123" is "component"
+      String baseName = id.replaceAll("[0-9]*$", "");
+      if (baseName != null && !baseName.isEmpty()) {
+        ids.add(assignId(baseName, ids));
+      }
+    }
+  }
+
   @NotNull
   public static String generateId(@NotNull String baseName, @NotNull Set<String> ids, ResourceFolderType type, Module module) {
     String idValue = StringUtil.decapitalize(baseName.substring(baseName.lastIndexOf('.') + 1));
@@ -646,6 +721,191 @@ public class NlComponent implements NlAttributesHolder {
     return null;
   }
 
+  public boolean canAddTo(NlComponent receiver) {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      return mixin.canAddTo(receiver);
+    }
+    return true;
+  }
+
+  public void moveTo(@NotNull NlComponent receiver, @Nullable NlComponent before, @NotNull InsertType type, @NotNull Set<String> ids,
+                     @Nullable DesignSurface surface) {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      mixin.beforeMove(type, receiver, ids);
+    }
+    NlComponent oldParent = getParent();
+    addTags(receiver, before, type);
+    if (mixin != null) {
+      mixin.afterMove(type, oldParent, receiver, surface);
+    }
+  }
+
+  public void addTags(@NotNull NlComponent receiver, @Nullable NlComponent before, @NotNull InsertType type) {
+    NlComponent parent = getParent();
+    if (parent != null) {
+      parent.removeChild(this);
+    }
+    receiver.addChild(this, before);
+    if (receiver.getTag() != getTag()) {
+      transferNamespaces(receiver);
+      XmlTag prev = getTag();
+      if (before != null) {
+        setTag((XmlTag)receiver.getTag().addBefore(getTag(), before.getTag()));
+      }
+      else {
+        setTag(receiver.getTag().addSubTag(getTag(), false));
+      }
+      if (type.isMove()) {
+        prev.delete();
+      }
+    }
+  }
+
+  public void postCreateFromTransferrable(@NotNull DnDTransferComponent dndComponent) {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      mixin.postCreateFromTransferrable(dndComponent);
+    }
+  }
+
+  public boolean postCreate(@Nullable DesignSurface surface, @NotNull InsertType insertType) {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      return mixin.postCreate(surface, insertType);
+    }
+    return true;
+  }
+
+  /**
+   * Given a tag on the current component which is not yet part of the current
+   * document and a receiver component where the tag is going to be added:
+   * <ul>
+   *   <li>look up any namespaces defined on the receiver or its parents</li>
+   *   <li>look up any namespaces defined on the current new tag</li>
+   * </ul>
+   * and transfer all those namespace declarations to the current document
+   */
+  private void transferNamespaces(@NotNull NlComponent receiver) {
+    XmlTag rootTag = getDocumentRoot();
+    XmlTag tag = receiver.getTag();
+    while (tag != null && tag != rootTag) {
+      if (!tag.getLocalNamespaceDeclarations().isEmpty()) {
+        // This is done to cleanup after a manual change of the Xml file.
+        // See b/78318923
+        receiver.transferLocalNamespaces();
+      }
+
+      receiver = receiver.getParent();
+      tag = receiver != null ? receiver.getTag() : null;
+    }
+    transferLocalNamespaces();
+  }
+
+  /**
+   * Given a tag on the current component:
+   * <ul>
+   *   <li>transfer any namespaces to the rootTag of the current document</li>
+   *   <li>update all attribute prefixes for namespaces to match those in the rootTag</li>
+   * </ul>
+   */
+  private void transferLocalNamespaces() {
+    XmlTag rootTag = getDocumentRoot();
+    if (rootTag == this) {
+      return;
+    }
+    // Transfer namespace attributes to the root tag
+    Map<String, String> prefixToNamespace = rootTag.getLocalNamespaceDeclarations();
+    Map<String, String> namespaceToPrefix = Maps.newHashMap();
+    for (Map.Entry<String, String> entry : prefixToNamespace.entrySet()) {
+      namespaceToPrefix.put(entry.getValue(), entry.getKey());
+    }
+    Map<String, String> oldPrefixToPrefix = Maps.newHashMap();
+
+    for (Map.Entry<String, String> entry : getTag().getLocalNamespaceDeclarations().entrySet()) {
+      String namespace = entry.getValue();
+      String prefix = entry.getKey();
+      String currentPrefix = namespaceToPrefix.get(namespace);
+      if (currentPrefix == null) {
+        // The namespace isn't used in the document. Import it.
+        XmlFile file = getModel().getFile();
+        String newPrefix = AndroidResourceUtil.ensureNamespaceImported(file, namespace, prefix);
+        if (!prefix.equals(newPrefix)) {
+          // We imported the namespace, but the prefix used in the new document isn't available
+          // so we need to update all attribute references to the new name
+          oldPrefixToPrefix.put(prefix, newPrefix);
+          namespaceToPrefix.put(namespace, newPrefix);
+        }
+      }
+      else if (!prefix.equals(currentPrefix)) {
+        // The namespace is already imported, but using a different prefix. We need
+        // to switch the prefixes.
+        oldPrefixToPrefix.put(prefix, currentPrefix);
+      }
+    }
+
+    if (!oldPrefixToPrefix.isEmpty()) {
+      updatePrefixes(getTag(), oldPrefixToPrefix);
+    }
+
+    removeNamespaceAttributes();
+  }
+
+  @NotNull
+  private XmlTag getDocumentRoot() {
+    XmlFile file = getModel().getFile();
+    XmlDocument xmlDocument = file.getDocument();
+    assert xmlDocument != null;
+    XmlTag rootTag = xmlDocument.getRootTag();
+    assert rootTag != null;
+    return rootTag;
+  }
+
+  /**
+   * Recursively update all attributes such that XML attributes with prefixes in the {@code oldPrefixToPrefix} key set
+   * are replaced with the corresponding values
+   */
+  private static void updatePrefixes(@NotNull XmlTag tag, @NotNull Map<String, String> oldPrefixToPrefix) {
+    for (XmlAttribute attribute : tag.getAttributes()) {
+      String prefix = attribute.getNamespacePrefix();
+      if (!prefix.isEmpty()) {
+        if (prefix.equals(XMLNS)) {
+          String newPrefix = oldPrefixToPrefix.get(attribute.getLocalName());
+          if (newPrefix != null) {
+            attribute.setName(XMLNS_PREFIX + newPrefix);
+          }
+        }
+        else {
+          String newPrefix = oldPrefixToPrefix.get(prefix);
+          if (newPrefix != null) {
+            attribute.setName(newPrefix + ':' + attribute.getLocalName());
+          }
+        }
+      }
+    }
+
+    for (XmlTag child : tag.getSubTags()) {
+      updatePrefixes(child, oldPrefixToPrefix);
+    }
+  }
+
+  private void removeNamespaceAttributes() {
+    for (XmlAttribute attribute : getTag().getAttributes()) {
+      if (attribute.getName().startsWith(XMLNS_PREFIX)) {
+        attribute.delete();
+      }
+    }
+  }
+
+  public Set<String> getDependencies() {
+    XmlModelComponentMixin mixin = getMixin();
+    if (mixin != null) {
+      return mixin.getDependencies();
+    }
+    return ImmutableSet.of();
+  }
+
   public abstract static class XmlModelComponentMixin {
     private final NlComponent myComponent;
 
@@ -672,5 +932,26 @@ public class NlComponent implements NlAttributesHolder {
     public String getTooltipText() {
       return null;
     }
+
+    public boolean canAddTo(@NotNull NlComponent receiver) {
+      return true;
+    }
+
+    public Set<String> getDependencies() {
+      return ImmutableSet.of();
+    }
+
+    public void beforeMove(@NotNull InsertType insertType, @NotNull NlComponent receiver, @NotNull Set<String> ids) {}
+
+    public void afterMove(@NotNull InsertType insertType,
+                          @Nullable NlComponent previousParent,
+                          @NotNull NlComponent receiver,
+                          @Nullable DesignSurface surface) {}
+
+    public boolean postCreate(@Nullable DesignSurface surface, @NotNull InsertType insertType) {
+      return true;
+    }
+
+    public void postCreateFromTransferrable(DnDTransferComponent dndComponent) {}
   }
 }

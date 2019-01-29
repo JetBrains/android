@@ -17,32 +17,73 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipView;
+import com.intellij.util.ui.JBUI;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static com.android.tools.profilers.ProfilerFonts.TOOLTIP_BODY_FONT;
+
 class CpuUsageTooltipView extends ProfilerTooltipView {
   @NotNull private final CpuUsageTooltip myTooltip;
+  @NotNull private final CpuProfilerStageView myView;
+  @NotNull private final JLabel mySelectionLabel;
 
   CpuUsageTooltipView(@NotNull CpuProfilerStageView view, @NotNull CpuUsageTooltip tooltip) {
-    super(view.getTimeline(), "CPU");
+    super(view.getTimeline());
     myTooltip = tooltip;
+    myView = view;
+    mySelectionLabel = new JLabel();
+  }
+
+  @Override
+  protected void updateTooltip() {
+    boolean canSelect = myView.getStage().getSelectionModel().canSelectRange(myView.getTimeline().getTooltipRange());
+    if (canSelect) {
+      List<SeriesData<CpuTraceInfo>>
+        traceSeries =
+        myView.getStage().getTraceDurations().getSeries().getDataSeries().getDataForXRange(myView.getTimeline().getTooltipRange());
+      if (traceSeries.isEmpty()) {
+        return;
+      }
+      SeriesData<CpuTraceInfo> trace = traceSeries.get(0);
+      String name =
+        ProfilingTechnology.fromTypeAndMode(trace.value.getProfilerType(), trace.value.getTraceInfo().getProfilerMode()).getName();
+      mySelectionLabel.setText(name);
+    }
+    else {
+      mySelectionLabel.setText("Selection Unavailable");
+    }
   }
 
   @NotNull
   @Override
   protected JComponent createTooltip() {
+    JPanel panel = new JPanel(new TabularLayout("*", "*,Fit"));
+    JPanel detailsPanel = new JPanel(new TabularLayout("*", "Fit,Fit-"));
     CpuProfilerStage.CpuStageLegends legends = myTooltip.getLegends();
 
     LegendComponent legend =
       new LegendComponent.Builder(legends).setVerticalPadding(0).setOrientation(LegendComponent.Orientation.VERTICAL).build();
-    legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    legend.setForeground(ProfilerColors.TOOLTIP_TEXT);
     legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE_CAPTURED));
     legend.configure(legends.getOthersLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_OTHER_USAGE_CAPTURED));
     legend.configure(legends.getThreadsLegend(),
                      new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.THREADS_COUNT_CAPTURED));
-    return legend;
+    panel.add(legend, new TabularLayout.Constraint(0, 0));
+    // Build detail panel.
+    JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+    separator.setBorder(JBUI.Borders.empty(8, 0));
+    detailsPanel.add(separator, new TabularLayout.Constraint(0, 0));
+    mySelectionLabel.setFont(TOOLTIP_BODY_FONT);
+    mySelectionLabel.setForeground(ProfilerColors.TOOLTIP_LOW_CONTRAST);
+    detailsPanel.add(mySelectionLabel, new TabularLayout.Constraint(1, 0));
+    panel.add(detailsPanel, new TabularLayout.Constraint(1, 0));
+    return panel;
   }
 }

@@ -28,6 +28,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.TimeUnit;
 
 public class AndroidDeepLinkLaunchTask implements LaunchTask {
+
+  private static final String ID = "LAUNCH_DEEP_LINK";
+
   @NotNull private final String myDeepLink;
   @NotNull StartActivityFlagsProvider myStartActivityFlagsProvider;
 
@@ -51,7 +54,7 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
   @Override
   public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     printer.stdout("Launching deeplink: " + myDeepLink + ".\n");
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.APP_INDEXING)
                                    .setKind(EventKind.APP_INDEXING_DEEP_LINK_LAUNCHED));
     // Enable AppIndexing API log
@@ -63,12 +66,24 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
   }
 
   @NotNull
+  @Override
+  public String getId() {
+    return ID;
+  }
+
+  @NotNull
   public static String getLaunchDeepLinkCommand(@NotNull String deepLink,
                                                 @NotNull String extraFlags) {
     return "am start" +
            " -a android.intent.action.VIEW" +
            " -c android.intent.category.BROWSABLE" +
-           " -d " + deepLink +
+           " -d " + singleQuoteShell(deepLink) +
            (extraFlags.isEmpty() ? "" : " " + extraFlags);
   }
+
+  @NotNull
+  private static String singleQuoteShell(@NotNull String literal) {
+    return "'" + literal.replace("'", "'\\''") + "'";
+  }
+
 }

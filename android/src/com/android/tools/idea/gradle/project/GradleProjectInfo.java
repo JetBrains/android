@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildCo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.ng.nosyncbuilder.misc.NewProjectExtraInfo;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.ImmutableList;
@@ -43,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
@@ -55,11 +55,12 @@ public class GradleProjectInfo {
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myProjectInfo;
   @NotNull private final ProjectFileIndex myProjectFileIndex;
-  @NotNull private final AtomicReference<String> myProjectCreationErrorRef = new AtomicReference<>();
 
   private volatile boolean myNewProject;
+  @Nullable private NewProjectExtraInfo myExtraInfo;
   private volatile boolean myImportedProject;
   private final ProjectFacetManager myFacetManager;
+  private volatile boolean mySkipStartupActivity;
 
   @NotNull
   public static GradleProjectInfo getInstance(@NotNull Project project) {
@@ -81,21 +82,29 @@ public class GradleProjectInfo {
     myNewProject = newProject;
   }
 
+  public boolean isSkipStartupActivity() {
+    return mySkipStartupActivity;
+  }
+
+  public void setSkipStartupActivity(boolean skipStartupActivity) {
+    mySkipStartupActivity = skipStartupActivity;
+  }
+
+  @Nullable
+  public NewProjectExtraInfo getExtraInfo() {
+    return myExtraInfo;
+  }
+
+  public void setExtraInfo(@Nullable NewProjectExtraInfo extraInfo) {
+    myExtraInfo = extraInfo;
+  }
+
   public boolean isImportedProject() {
     return myImportedProject;
   }
 
   public void setImportedProject(boolean importedProject) {
     myImportedProject = importedProject;
-  }
-
-  @Nullable
-  public String getProjectCreationError() {
-    return myProjectCreationErrorRef.get();
-  }
-
-  public void setProjectCreationError(@Nullable String error) {
-    myProjectCreationErrorRef.set(error);
   }
 
   /**
@@ -117,10 +126,12 @@ public class GradleProjectInfo {
    */
   public boolean isBuildWithGradle() {
     return ReadAction.compute(() -> {
+      if (myProject.isDisposed()) {
+        return false;
+      }
       if (myFacetManager.hasFacets(GradleFacet.getFacetTypeId())) {
         return true;
       }
-
       // See https://code.google.com/p/android/issues/detail?id=203384
       // This could be a project without modules. Check that at least it synced with Gradle.
       if (GradleSyncState.getInstance(myProject).getSummary().getSyncTimestamp() != -1L) {
@@ -128,6 +139,14 @@ public class GradleProjectInfo {
       }
       return hasTopLevelGradleBuildFile();
     });
+  }
+
+  /**
+   * Indicates whether the project has Gradle facets.
+   * e.g. this is used to check if an opened Gradle project has already been imported or not yet.
+   */
+  public boolean hasGradleFacets() {
+      return myFacetManager.hasFacets(GradleFacet.getFacetTypeId());
   }
 
   /**

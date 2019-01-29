@@ -77,8 +77,8 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
       // package rename refactoring
       AndroidFacet facet = AndroidFacet.getInstance(getElement());
       if (facet != null) {
-        AndroidModel androidModel = facet.getAndroidModel();
-        if (androidModel != null && androidModel.overridesManifestPackage() || facet.isLibraryProject()) {
+        AndroidModel androidModel = facet.getConfiguration().getModel();
+        if (androidModel != null && androidModel.overridesManifestPackage() || facet.getConfiguration().isLibraryProject()) {
           return new PsiPackageReference(this, range, index);
         }
       }

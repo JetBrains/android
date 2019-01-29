@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
+import com.android.tools.idea.editors.strings.table.FrozenColumnTableListener;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.ui.JBMenuItem;
@@ -22,12 +24,9 @@ import com.intellij.openapi.ui.JBPopupMenu;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.table.JTableHeader;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
-final class RemoveLocaleMouseListener extends MouseAdapter {
+final class RemoveLocaleMouseListener implements FrozenColumnTableListener {
   private final StringResourceViewPanel myPanel;
 
   RemoveLocaleMouseListener(@NotNull StringResourceViewPanel panel) {
@@ -35,30 +34,8 @@ final class RemoveLocaleMouseListener extends MouseAdapter {
   }
 
   @Override
-  public void mousePressed(@NotNull MouseEvent event) {
-    showRemoveLocalePopupMenu(event);
-  }
-
-  @Override
-  public void mouseReleased(@NotNull MouseEvent event) {
-    showRemoveLocalePopupMenu(event);
-  }
-
-  private void showRemoveLocalePopupMenu(@NotNull MouseEvent event) {
-    if (!event.isPopupTrigger()) {
-      return;
-    }
-
-    JTableHeader header = (JTableHeader)event.getSource();
-    Point point = event.getPoint();
-    int column = header.columnAtPoint(point);
-
-    if (column == -1) {
-      return;
-    }
-
-    JTable table = header.getTable();
-    Locale locale = ((StringResourceTableModel)table.getModel()).getLocale(table.convertColumnIndexToModel(column));
+  public void headerPopupTriggered(@NotNull FrozenColumnTableEvent event) {
+    Locale locale = ((StringResourceTableModel)event.getSource().getModel()).getLocale(event.getModelColumnIndex());
 
     if (locale == null) {
       return;
@@ -75,6 +52,8 @@ final class RemoveLocaleMouseListener extends MouseAdapter {
     JPopupMenu menu = new JBPopupMenu();
 
     menu.add(item);
-    menu.show(header, point.x, point.y);
+
+    Point point = event.getPoint();
+    menu.show(event.getSubcomponent(), point.x, point.y);
   }
 }

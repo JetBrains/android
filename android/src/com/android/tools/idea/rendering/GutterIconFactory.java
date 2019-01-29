@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.DOT_XML;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.ImageUtils;
@@ -31,21 +33,21 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import static com.android.SdkConstants.DOT_XML;
 
 /**
  * Static utilities for generating scaled-down {@link Icon} instances from image resources to display in the gutter.
@@ -63,7 +65,7 @@ public class GutterIconFactory {
    * that the XML file does not contain any unresolved references (otherwise, this method returns null).
    */
   @Nullable
-  public static Icon createIcon(@NotNull String path, @Nullable ResourceResolver resolver, int maxWidth, int maxHeight) {
+  public static Icon createIcon(@NotNull String path, @Nullable RenderResources resolver, int maxWidth, int maxHeight) {
     if (path.endsWith(DOT_XML)) {
       return createXmlIcon(path, resolver, maxWidth);
     }
@@ -95,10 +97,10 @@ public class GutterIconFactory {
 
 
   @Nullable
-  private static Icon createXmlIcon(@NotNull String path, @Nullable ResourceResolver resolver, int maxWidth) {
+  private static Icon createXmlIcon(@NotNull String path, @Nullable RenderResources resolver, int maxWidth) {
     try {
       VdPreview.TargetSize imageTargetSize =
-        VdPreview.TargetSize.createSizeFromWidth(isRetinaEnabled() ? ImageUtils.RETINA_SCALE * maxWidth : maxWidth);
+        VdPreview.TargetSize.createFromMaxDimension(isRetinaEnabled() ? ImageUtils.RETINA_SCALE * maxWidth : maxWidth);
 
       String xml = getXmlContent(path);
       // See if this drawable is a vector; we can't render other drawables yet.
@@ -120,15 +122,13 @@ public class GutterIconFactory {
         if (builder.length() > 0) {
           LOG.warn("Problems rendering " + path + ": " + builder);
         }
-        if (image != null) {
-          if (isRetinaEnabled()) {
-            RetinaImageIcon retinaIcon = getRetinaIcon(image);
-            if (retinaIcon != null) {
-              return retinaIcon;
-            }
+        if (isRetinaEnabled()) {
+          RetinaImageIcon retinaIcon = getRetinaIcon(image);
+          if (retinaIcon != null) {
+            return retinaIcon;
           }
-          return new ImageIcon(image);
         }
+        return new ImageIcon(image);
       }
     }
     catch (Throwable e) {
@@ -156,7 +156,7 @@ public class GutterIconFactory {
    * be resolved, the value of that attribute remains unchanged.
    */
   @VisibleForTesting
-  static void replaceResourceReferences(@NonNull Node node, @NonNull ResourceResolver resolver) {
+  static void replaceResourceReferences(@NonNull Node node, @NonNull RenderResources resolver) {
     if (node.getNodeType() == Node.ELEMENT_NODE) {
       Element element = (Element)node;
       NamedNodeMap attributes = element.getAttributes();

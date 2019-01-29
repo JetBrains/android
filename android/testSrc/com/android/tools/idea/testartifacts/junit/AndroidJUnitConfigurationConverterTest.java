@@ -19,7 +19,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.conversion.ConversionProcessor;
 import com.intellij.conversion.RunManagerSettings;
-import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -37,28 +37,13 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link AndroidJUnitConfigurationConverter}.
  */
-public class AndroidJUnitConfigurationConverterTest extends LightPlatformTestCase {
-  private IdeComponents myIdeComponents;
+public class AndroidJUnitConfigurationConverterTest extends PlatformTestCase {
   private IdeInfo mockIdeInfo;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myIdeComponents = new IdeComponents(getProject());
-    mockIdeInfo = myIdeComponents.mockService(IdeInfo.class);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    catch (Throwable e) {
-      addSuppressedException(e);
-    }
-    finally {
-      super.tearDown();
-    }
+    mockIdeInfo = new IdeComponents(myProject).mockApplicationService(IdeInfo.class);
   }
 
   public void testConfigurationsAreConvertedInStudio() throws Exception {

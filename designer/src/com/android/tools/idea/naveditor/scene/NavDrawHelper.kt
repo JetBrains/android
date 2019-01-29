@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.naveditor.scene
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
-import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.google.common.collect.ImmutableMap
-import java.awt.Color
+import com.android.tools.idea.common.scene.draw.HQ_RENDERING_HINTS
+import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.naveditor.model.NavCoordinate
+import com.intellij.util.ui.JBUI
 import java.awt.Font
 import java.awt.Graphics2D
-import java.awt.RenderingHints
+import java.awt.geom.Rectangle2D
+import java.awt.geom.RoundRectangle2D
 
-private const val DEFAULT_FONT_NAME = "Default"
-private const val DEFAULT_FONT_SIZE = 12
+@VisibleForTesting
+const val DEFAULT_FONT_NAME = "Default"
+private val DEFAULT_FONT_SIZE = JBUI.scale(12)
 
 const val DRAW_BACKGROUND_LEVEL = 0
 const val DRAW_FRAME_LEVEL = DRAW_BACKGROUND_LEVEL + 1
@@ -37,76 +38,82 @@ const val DRAW_ACTION_LEVEL = DRAW_FRAME_LEVEL + 1
 const val DRAW_SCREEN_LABEL_LEVEL = DRAW_ACTION_LEVEL + 1
 const val DRAW_ICON_LEVEL = DRAW_SCREEN_LABEL_LEVEL + 1
 const val DRAW_NAV_SCREEN_LEVEL = DRAW_ICON_LEVEL + 1
-const val DRAW_ACTION_HANDLE_BACKGROUND_LEVEL = DRAW_NAV_SCREEN_LEVEL + 1
+const val DRAW_ACTIVITY_BORDER_LEVEL = DRAW_ICON_LEVEL + 1
+const val DRAW_ACTION_HANDLE_BACKGROUND_LEVEL = DRAW_ACTIVITY_BORDER_LEVEL + 1
 const val DRAW_ACTION_HANDLE_LEVEL = DRAW_ACTION_HANDLE_BACKGROUND_LEVEL + 1
 const val DRAW_ACTION_HANDLE_DRAG_LEVEL = DRAW_ACTION_HANDLE_LEVEL + 1
 
-private val HQ_RENDERING_HITS = ImmutableMap.of(
-    RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
-    RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
-    RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR
-)
+@JvmField
+@NavCoordinate
+val INNER_RADIUS_SMALL = JBUI.scale(5f)
+@JvmField
+@NavCoordinate
+val INNER_RADIUS_LARGE = JBUI.scale(8f)
+@JvmField
+@NavCoordinate
+val OUTER_RADIUS_SMALL = JBUI.scale(7f)
+@JvmField
+@NavCoordinate
+val OUTER_RADIUS_LARGE = JBUI.scale(11f)
 
-fun frameColor(context: SceneContext, component: SceneComponent): Color {
-  val colorSet = context.colorSet
+@JvmField
+@NavCoordinate
+val FRAGMENT_BORDER_SPACING = JBUI.scale(2f)
+@JvmField
+@NavCoordinate
+val ACTION_HANDLE_OFFSET = FRAGMENT_BORDER_SPACING.toInt() + JBUI.scale(2)
 
-  return when (component.drawState) {
-    SceneComponent.DrawState.SELECTED -> colorSet.selectedFrames
-    SceneComponent.DrawState.HOVER, SceneComponent.DrawState.DRAG -> colorSet.highlightedFrames
-    else -> colorSet.frames
-  }
-}
+@NavCoordinate
+val HEADER_ICON_SIZE = JBUI.scale(14f)
+@NavCoordinate
+val HEADER_TEXT_PADDING = JBUI.scale(2f)
+@NavCoordinate
+val HEADER_PADDING = JBUI.scale(8f)
 
-fun textColor(context: SceneContext, component: SceneComponent): Color {
-  val colorSet = context.colorSet
+@JvmField
+@NavCoordinate
+val HEADER_HEIGHT = HEADER_ICON_SIZE + HEADER_PADDING
+@NavCoordinate
+val HEADER_TEXT_HEIGHT = HEADER_ICON_SIZE - 2 * HEADER_TEXT_PADDING
 
-  return if (component.isSelected) {
-    colorSet.selectedText
-  }
-  else {
-    colorSet.text
-  }
-}
-
-fun actionColor(context: SceneContext, component: SceneComponent): Color {
-  val colorSet = context.colorSet as NavColorSet
-
-  return when {
-    component.isSelected -> colorSet.selectedActions
-    component.drawState == SceneComponent.DrawState.HOVER -> colorSet.highlightedActions
-    else -> colorSet.actions
-  }
-}
-
-@SwingCoordinate
-fun strokeThickness(context: SceneContext, component: SceneComponent, @AndroidCoordinate borderThickness: Int): Int {
-  return when (component.drawState) {
-    SceneComponent.DrawState.SELECTED, SceneComponent.DrawState.HOVER, SceneComponent.DrawState.DRAG
-    -> Coordinates.getSwingDimension(context, borderThickness)
-    else -> 1
-  }
+fun regularFont(context: SceneContext, style: Int): Font {
+  val size = context.getSwingDimension(DEFAULT_FONT_SIZE)
+  return Font(DEFAULT_FONT_NAME, style, size)
 }
 
 fun scaledFont(context: SceneContext, style: Int): Font {
   val scale = context.scale
-  val size = (scale * (2.0 - scale)) * DEFAULT_FONT_SIZE // keep font size slightly larger at smaller scales
+  val size = (scale * (2.0 - Math.min(scale, 1.0))) * DEFAULT_FONT_SIZE // keep font size slightly larger at smaller scales
 
   return Font(DEFAULT_FONT_NAME, style, size.toInt())
 }
 
-fun createDrawCommand(list: DisplayList, component: SceneComponent): DrawCommand {
-  var level = DrawCommand.COMPONENT_LEVEL
-
-  if (component.isDragging) {
-    level = DrawCommand.TOP_LEVEL
-  }
-  else if (component.flatten().anyMatch { it.isSelected }) {
-    level = DrawCommand.COMPONENT_SELECTED_LEVEL
-  }
-
-  return list.getCommand(level)
+fun setRenderingHints(g: Graphics2D) {
+  g.setRenderingHints(HQ_RENDERING_HINTS)
 }
 
-fun setRenderingHints(g: Graphics2D) {
-  g.setRenderingHints(HQ_RENDERING_HITS)
+fun convertToRoundRect(view: SceneView, @SwingCoordinate rectangle: Rectangle2D.Float, @NavCoordinate arcSize: Float)
+  : RoundRectangle2D.Float {
+  val roundRect = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, 0f, 0f)
+
+  Coordinates.getSwingDimension(view, arcSize).let {
+    roundRect.arcwidth = it
+    roundRect.archeight = it
+  }
+
+  return roundRect
+}
+
+fun growRectangle(rectangle: Rectangle2D.Float, growX: Float, growY: Float) {
+  rectangle.x -= growX
+  rectangle.y -= growY
+  rectangle.width += 2 * growX
+  rectangle.height += 2 * growY
+}
+
+fun growRectangle(rectangle: RoundRectangle2D.Float, growX: Float, growY: Float) {
+  rectangle.x -= growX
+  rectangle.y -= growY
+  rectangle.width += 2 * growX
+  rectangle.height += 2 * growY
 }

@@ -9,6 +9,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.util.PropertiesFiles;
 import com.android.utils.Pair;
 import com.android.utils.SdkUtils;
@@ -35,10 +36,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
-import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.gradle.eclipse.GradleImport.*;
 import static com.android.tools.idea.gradle.eclipse.ImportSummary.*;
-import static com.android.tools.idea.testing.AndroidGradleTests.updateGradleVersions;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertAbout;
@@ -3331,7 +3330,7 @@ public class GradleImportTest extends AndroidTestCase {
 
   protected static void updateGradle(File projectRoot) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
-    File path = getWorkspaceFile("tools/external/gradle/gradle-" + GRADLE_LATEST_VERSION + "-bin.zip");
+    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
   }
@@ -3370,7 +3369,7 @@ public class GradleImportTest extends AndroidTestCase {
     args.add("assembleDebug");
     GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(args);
     removeJcenter(new File(base, "build.gradle"));
-    updateGradleVersions(base);
+    AndroidGradleTests.updateGradleVersions(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
     cmdLine.withEnvironment("ANDROID_SDK_HOME", AndroidLocation.getFolder());

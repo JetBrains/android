@@ -71,15 +71,16 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static org.fest.reflect.core.Reflection.method;
-import static org.fest.util.Strings.quote;
 import static org.junit.Assert.*;
 
 /**
@@ -104,6 +105,14 @@ public class EditorFixture {
   EditorFixture(Robot robot, IdeFrameFixture frame) {
     this.robot = robot;
     myFrame = frame;
+  }
+
+  /**
+   * Returns the {@link IdeFrameFixture} containing this editor.
+   */
+  @NotNull
+  public IdeFrameFixture frame() {
+    return myFrame;
   }
 
   /** Returns the selected file with most recent focused editor, or {@code null} if there are no selected files. */
@@ -179,7 +188,8 @@ public class EditorFixture {
    * @param text the text to type at the current editor position
    */
   public EditorFixture enterText(@NotNull final String text) {
-    robot.enterText(text, getFocusedEditor());
+    getFocusedEditor();
+    robot.enterText(text);
     return this;
   }
 
@@ -242,16 +252,6 @@ public class EditorFixture {
     robot.moveMouse(selectTarget.component, selectTarget.endPoint);
     robot.releaseMouseButtons();
 
-    // Input events are sent through the X server, which means the events are sent
-    // back to the IDE asynchronously. We should wait for the cursor position to be updated
-    Wait.seconds(1)
-      .expecting("text caret position to be at the end of the matched group")
-      .until(() -> GuiQuery.getNonNull(() ->
-          end == FileEditorManager.getInstance(myFrame.getProject())
-            .getSelectedTextEditor()
-            .getCaretModel()
-            .getOffset()
-      ));
     return this;
   }
 
@@ -341,6 +341,10 @@ public class EditorFixture {
    * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
+    return open(file, tab, Wait.seconds(10));
+  }
+
+  public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab, @NotNull Wait waitForFileOpen) {
     robot.waitForIdle(); // Make sure there are no pending open requests
 
     EdtTestUtil.runInEdtAndWait(
@@ -358,7 +362,7 @@ public class EditorFixture {
 
     selectEditorTab(tab);
 
-    Wait.seconds(10).expecting("file " + quote(file.getPath()) + " to be opened and loaded").until(() -> {
+    waitForFileOpen.expecting("file '" + file.getPath() + "' to be opened and loaded").until(() -> {
       if (!file.equals(getCurrentFile())) {
         return false;
       }
@@ -395,9 +399,13 @@ public class EditorFixture {
    * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab) {
+    return open(relativePath, tab, Wait.seconds(10));
+  }
+
+  public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab, @NotNull Wait waitForFileOpen) {
     assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
     VirtualFile file = myFrame.findFileByRelativePath(relativePath, true);
-    return open(file, tab);
+    return open(file, tab, waitForFileOpen);
   }
 
   @NotNull
@@ -471,7 +479,13 @@ public class EditorFixture {
 
   @NotNull
   public EditorFixture checkNoNotification() {
-    checkState(robot.finder().findAll(Matchers.byType(EditorNotificationPanel.class)).isEmpty());
+    Collection<EditorNotificationPanel> notificationPanels = robot.finder().findAll(Matchers.byType(EditorNotificationPanel.class));
+    if (!notificationPanels.isEmpty()) {
+      String notifications = notificationPanels.stream()
+        .map(p -> p.getIntentionAction().getText())
+        .collect(Collectors.joining(", "));
+      throw new AssertionError("unwanted notifications: " + notifications);
+    }
     return this;
   }
 
@@ -572,6 +586,9 @@ public class EditorFixture {
       selectEditorTab(Tab.DESIGN);
     }
 
+    // Wait for the editor to do any initializations
+    robot.waitForIdle();
+
     return GuiQuery.getNonNull(
       () -> {
         FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
@@ -611,10 +628,14 @@ public class EditorFixture {
       () -> NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm().getSurface().isShowing());
   }
 
+  public boolean isPreviewVisible() {
+    return NlPreviewManager.getInstance(myFrame.getProject()).isPreviewVisible();
+  }
+
   public boolean isPreviewShowing(@NotNull String fileName) {
     return GuiQuery.getNonNull(() -> {
       NlPreviewForm preview = NlPreviewManager.getInstance(myFrame.getProject()).getPreviewForm();
-      return preview.getSurface().isShowing() && getCurrentFileName().equals(preview.getFile().getName());
+      return preview.getSurface().isShowing() && getCurrentFileName().equals(preview.getFileName());
     });
   }
 
@@ -635,7 +656,7 @@ public class EditorFixture {
         checkState(editors.length > 0, "no selected editors");
         FileEditor selected = editors[0];
         checkState(selected instanceof StringResourceEditor, "not a %s: %s", StringResourceEditor.class.getSimpleName(), selected);
-        return new TranslationsEditorFixture(robot);
+        return new TranslationsEditorFixture(robot, (StringResourceEditor)selected);
       });
   }
 
@@ -750,6 +771,7 @@ public class EditorFixture {
     SPLIT_VERTICALLY("SplitVertically"),
     TOGGLE_LINE_BREAKPOINT("ToggleLineBreakpoint"),
     UNDO("$Undo"),
+    CLOSE_ALL("CloseAllEditors"),
     ;
 
     /** The {@code id} of an action mapped to a keyboard shortcut in, for example, {@code $default.xml}. */

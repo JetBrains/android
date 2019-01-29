@@ -28,6 +28,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.util.PsiNavigateUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+import java.awt.event.InputEvent;
+
 /**
  * Action which navigates to the primary selected XML element
  */
@@ -41,6 +44,10 @@ public class GotoComponentAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
+    if (e.getInputEvent().getModifiers() == (InputEvent.BUTTON1_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) {
+      // We don't want to navigation on ctrl-click
+      return;
+    }
     SelectionModel selectionModel = mySurface.getSelectionModel();
     NlComponent primary = selectionModel.getPrimary();
     PsiElement psiElement = null;

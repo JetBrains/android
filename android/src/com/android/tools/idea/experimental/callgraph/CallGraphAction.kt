@@ -120,7 +120,7 @@ open class ContextualCallPathBrowser(
       PopupHandler.installPopupHandler(tree, group, ActionPlaces.CALL_HIERARCHY_VIEW_POPUP, ActionManager.getInstance())
       baseOnThisMethodAction
           .registerCustomShortcutSet(ActionManager.getInstance().getAction(IdeActions.ACTION_CALL_HIERARCHY).shortcutSet, tree)
-      typeToTreeMap.put(kind, tree)
+      typeToTreeMap[kind] = tree
     }
   }
 

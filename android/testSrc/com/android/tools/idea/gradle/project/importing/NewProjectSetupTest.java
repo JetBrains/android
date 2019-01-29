@@ -16,26 +16,31 @@
 package com.android.tools.idea.gradle.project.importing;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectType;
 import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 import static com.intellij.pom.java.LanguageLevel.JDK_1_6;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link NewProjectSetup}.
  */
 public class NewProjectSetupTest extends IdeaTestCase {
+  @Mock TopLevelModuleFactory myTopLevelModuleFactory;
+
   private NewProjectSetup myNewProjectSetup;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
+
     Project project = getProject();
     LanguageLevelProjectExtension.getInstance(project).setLanguageLevel(JDK_1_6);
 
@@ -45,11 +50,11 @@ public class NewProjectSetupTest extends IdeaTestCase {
 
     ProjectTypeService.setProjectType(project, null);
 
-    myNewProjectSetup = new NewProjectSetup();
+    myNewProjectSetup = new NewProjectSetup(myTopLevelModuleFactory);
   }
 
   public void testPrepareProjectForImportWithLanguageLevel() {
-    myNewProjectSetup.prepareProjectForImport(getProject(), JDK_1_8);
+    myNewProjectSetup.prepareProjectForImport(getProject(), JDK_1_8, true);
 
     verifyLanguageLevel(JDK_1_8);
     verifyCompilerOutputUrl();
@@ -57,7 +62,7 @@ public class NewProjectSetupTest extends IdeaTestCase {
   }
 
   public void testPrepareProjectForImportWithoutLanguageLevel() {
-    myNewProjectSetup.prepareProjectForImport(getProject(), null);
+    myNewProjectSetup.prepareProjectForImport(getProject(), null, true);
 
     verifyLanguageLevel(JDK_1_6);
     verifyCompilerOutputUrl();

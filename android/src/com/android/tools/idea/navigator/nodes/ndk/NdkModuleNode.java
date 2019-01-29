@@ -15,11 +15,19 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk;
 
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.intellij.openapi.util.text.StringUtil.trimEnd;
+import static com.intellij.openapi.util.text.StringUtil.trimStart;
+
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
+import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
+import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.ide.projectView.PresentationData;
@@ -28,17 +36,14 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
-import static com.intellij.openapi.util.text.StringUtil.trimEnd;
-import static com.intellij.openapi.util.text.StringUtil.trimStart;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NdkModuleNode extends AndroidViewModuleNode {
   public NdkModuleNode(@NotNull Project project, @NotNull Module value, @NotNull ViewSettings settings) {
@@ -69,17 +74,17 @@ public class NdkModuleNode extends AndroidViewModuleNode {
     NativeAndroidProject nativeAndroidProject = ndkModel.getAndroidProject();
     Collection<String> sourceFileExtensions = nativeAndroidProject.getFileExtensions().keySet();
 
-    NdkModuleModel.NdkVariant variant = ndkModel.getSelectedVariant();
+    NdkVariant variant = ndkModel.getSelectedVariant();
     Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
     for (NativeArtifact artifact : variant.getArtifacts()) {
       String artifactOutputFileName = artifact.getOutputFile().getName();
       nativeLibraries.put(artifactOutputFileName, artifact);
     }
-
-    if (nativeLibraries.keySet().size() == 1) {
-      return NdkLibraryNode.getSourceFolderNodes(project, nativeLibraries.values(), settings, sourceFileExtensions);
+    if (!ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
+      if (nativeLibraries.keySet().size() == 1) {
+        return NdkLibraryNode.getSourceFolderNodes(project, nativeLibraries.values(), settings, sourceFileExtensions);
+      }
     }
-
     List<AbstractTreeNode> children = new ArrayList<>();
     for (String name : nativeLibraries.keySet()) {
       String nativeLibraryType = "";
@@ -94,9 +99,23 @@ public class NdkModuleNode extends AndroidViewModuleNode {
         }
       }
       nativeLibraryName = trimStart(nativeLibraryName, "lib");
-      NdkLibraryNode node = new NdkLibraryNode(project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(name), settings,
-                                               sourceFileExtensions);
-      children.add(node);
+      if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
+        LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+        VirtualFile buildFileFolder = fileSystem.findFileByIoFile(ndkModel.getRootDirPath());
+        NdkLibraryEnhancedHeadersNode node =
+          new NdkLibraryEnhancedHeadersNode(buildFileFolder, project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(name),
+                                            new NativeIncludes(ndkModel::findSettings, nativeLibraries.get(name)), settings,
+                                            sourceFileExtensions);
+        children.add(node);
+      }
+      else {
+        NdkLibraryNode node =
+          new NdkLibraryNode(project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(name), settings, sourceFileExtensions);
+        children.add(node);
+      }
+    }
+    if (children.size() == 1) {
+      return children.get(0).getChildren();
     }
     return children;
   }
@@ -131,7 +150,29 @@ public class NdkModuleNode extends AndroidViewModuleNode {
   public void update(@NotNull PresentationData presentation) {
     super.update(presentation);
     Module module = getValue();
-    if (module != null)
+    if (module != null) {
       presentation.setIcon(getModuleIcon(module));
+    }
+  }
+
+  public static boolean containedInIncludeFolders(@NotNull NdkModuleModel model, @NotNull VirtualFile file) {
+    if (!LexicalIncludePaths.hasHeaderExtension(file.getName())) {
+      return false;
+    }
+
+    NdkVariant variant = model.getSelectedVariant();
+    Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
+    for (NativeArtifact artifact : variant.getArtifacts()) {
+      String artifactOutputFileName = artifact.getOutputFile().getName();
+      nativeLibraries.put(artifactOutputFileName, artifact);
+    }
+
+    for (String name : nativeLibraries.keySet()) {
+      if (NdkLibraryEnhancedHeadersNode
+        .containedInIncludeFolders(new NativeIncludes(model::findSettings, nativeLibraries.get(name)), file)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

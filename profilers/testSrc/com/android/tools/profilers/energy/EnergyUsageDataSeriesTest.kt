@@ -14,14 +14,13 @@
 package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse.EnergySample
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySample
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.ArrayList
 import java.util.concurrent.TimeUnit.SECONDS
 
 class EnergyUsageDataSeriesTest {

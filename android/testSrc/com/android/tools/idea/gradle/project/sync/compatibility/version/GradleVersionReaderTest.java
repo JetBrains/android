@@ -48,16 +48,6 @@ public class GradleVersionReaderTest extends AndroidGradleTestCase {
     myIdeComponents = new IdeComponents(getProject());
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
   public void testAppliesToWithGradleModule() throws Exception {
     loadSimpleApplication();
 
@@ -77,7 +67,7 @@ public class GradleVersionReaderTest extends AndroidGradleTestCase {
 
     Module appModule = myModules.getAppModule();
 
-    GradleVersions gradleVersions = myIdeComponents.mockService(GradleVersions.class);
+    GradleVersions gradleVersions = myIdeComponents.mockApplicationService(GradleVersions.class);
 
     Project project = getProject();
     GradleVersion gradleVersion = GradleVersion.parse("2.14.1");

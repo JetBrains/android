@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.xml.XmlBuilder;
-import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.api.XmlType;
+import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -36,13 +36,21 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
   public List<String> getInspectorProperties() {
     return ImmutableList.of(
       ATTR_SRC,
+      ATTR_STYLE,
       ATTR_BACKGROUND_TINT,
+      ATTR_BACKGROUND_TINT_MODE,
       ATTR_RIPPLE_COLOR,
       ATTR_TINT,
       ATTR_FAB_SIZE,
-      ATTR_LAYOUT_ANCHOR,
-      ATTR_LAYOUT_ANCHOR_GRAVITY,
-      ATTR_ELEVATION);
+      ATTR_FAB_CUSTOM_SIZE,
+      ATTR_ELEVATION,
+      ATTR_HOVERED_FOCUSED_TRANSLATION_Z,
+      ATTR_PRESSED_TRANSLATION_Z,
+      ATTR_BORDER_WIDTH,
+      ATTR_COMPAT_PADDING,
+      ATTR_MAX_IMAGE_SIZE,
+      ATTR_SHOW_MOTION_SPEC,
+      ATTR_HIDE_MOTION_SPEC);
   }
 
   @Override
@@ -93,11 +101,11 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
       component = parent;
       parent = component.getParent();
     }
-    if (!component.getTagName().equals(COORDINATOR_LAYOUT)) {
+    if (!COORDINATOR_LAYOUT.isEquals(component.getTagName())) {
       return null;
     }
     for (NlComponent child : component.getChildren()) {
-      if (child.getTagName().equals(APP_BAR_LAYOUT)) {
+      if (APP_BAR_LAYOUT.isEquals(child.getTagName())) {
         return child;
       }
     }

@@ -48,9 +48,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   private JButton myRemoveQualifierButton;
   private JPanel myQualifierOptionsPanel;
 
-  private final Map<String, MyQualifierEditor> myEditors = new HashMap<String, MyQualifierEditor>();
+  private final Map<String, MyQualifierEditor> myEditors = new HashMap<>();
 
-  private final FolderConfiguration myAvailableQualifiersConfig = new FolderConfiguration();
+  private final FolderConfiguration myAvailableQualifiersConfig = FolderConfiguration.createDefault();
   private final FolderConfiguration myChosenQualifiersConfig = new FolderConfiguration();
   private FolderConfiguration myActualQualifiersConfig = new FolderConfiguration();
   private JBList myChosenQualifiersList;
@@ -73,8 +73,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     super(new BorderLayout());
 
     createUIComponents();
-
-    createDefaultConfig(myAvailableQualifiersConfig);
 
     myChosenQualifiersConfig.reset();
 
@@ -260,7 +258,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   @Nullable
-  private static Icon getResourceIcon(ResourceQualifier qualifier) {
+  public static Icon getResourceIcon(ResourceQualifier qualifier) {
     return ourIcons.get(qualifier.getName());
   }
 
@@ -274,10 +272,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         editor.reset(qualifier);
       }
     }
-  }
-
-  protected void createDefaultConfig(FolderConfiguration config) {
-    config.createDefault();
   }
 
   public abstract void applyEditors();
@@ -364,7 +358,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         result.add(qualifier);
       }
     }
-    return result.toArray(new ResourceQualifier[result.size()]);
+    return result.toArray(new ResourceQualifier[0]);
   }
 
   public FolderConfiguration getConfiguration() {
@@ -1253,10 +1247,12 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         ListModel languageModel = myLanguageList.getModel();
         ListModel regionModel = myRegionList.getModel();
 
-        for (int i = 0, n = languageModel.getSize(); i < n; i++) {
-          if (language.equals(languageModel.getElementAt(i))) {
-            myLanguageList.setSelectedIndex(i);
-            break;
+        if (language != null) {
+          for (int i = 0, n = languageModel.getSize(); i < n; i++) {
+            if (language.equals(languageModel.getElementAt(i))) {
+              myLanguageList.setSelectedIndex(i);
+              break;
+            }
           }
         }
         if (region != null) {

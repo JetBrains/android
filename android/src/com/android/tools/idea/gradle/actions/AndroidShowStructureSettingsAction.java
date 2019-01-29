@@ -18,20 +18,14 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
-import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable.ProjectStructureChangeListener;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 
 /**
  * Displays the "Project Structure" dialog.
@@ -65,17 +59,10 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
 
   private static void showAndroidProjectStructure(@NotNull Project project) {
     if (StudioFlags.NEW_PSD_ENABLED.get()) {
-      ProjectStructureConfigurable projectStructure = ProjectStructureConfigurable.getInstance(project);
-      AtomicBoolean needsSync = new AtomicBoolean();
-      ProjectStructureChangeListener changeListener = () -> needsSync.set(true);
-      projectStructure.add(changeListener);
-      projectStructure.showDialog();
-      projectStructure.remove(changeListener);
-      if (needsSync.get()) {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PROJECT_MODIFIED);
-      }
-      return;
+      ProjectStructureConfigurable.getInstance(project).show();
     }
-    AndroidProjectStructureConfigurable.getInstance(project).showDialog();
+    else {
+      AndroidProjectStructureConfigurable.getInstance(project).showDialog();
+    }
   }
 }

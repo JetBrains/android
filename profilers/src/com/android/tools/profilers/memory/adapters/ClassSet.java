@@ -15,13 +15,13 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.filter.Filter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -55,18 +55,19 @@ public class ClassSet extends ClassifierSet {
   }
 
   @Override
-  protected void applyFilter(@Nullable Pattern filter, boolean hasMatchedAncestor, boolean filterChanged) {
+  protected void applyFilter(@NotNull Filter filter, boolean hasMatchedAncestor, boolean filterChanged) {
     if (!filterChanged && !myNeedsRefiltering) {
       return;
     }
     myIsMatched = matches(filter);
+    myFilterMatchCount = myIsMatched ? 1 : 0;
     myIsFiltered = filter != null && !myIsMatched && !hasMatchedAncestor;
     myNeedsRefiltering = false;
   }
 
   @Override
-  protected boolean matches(Pattern filter) {
-    return filter != null && filter.matcher(myClassEntry.getClassName()).matches();
+  protected boolean matches(@NotNull Filter filter) {
+    return filter.matches(myClassEntry.getClassName());
   }
 
   private static final class ClassClassifier extends Classifier {

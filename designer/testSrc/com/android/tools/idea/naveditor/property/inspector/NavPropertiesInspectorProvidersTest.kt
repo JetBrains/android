@@ -27,6 +27,7 @@ import com.android.tools.idea.naveditor.property.TYPE_EDITOR_PROPERTY_LABEL
 import com.android.tools.idea.naveditor.property.editors.ChildDestinationsEditor
 import com.android.tools.idea.naveditor.property.editors.SourceGraphEditor
 import com.android.tools.idea.naveditor.property.editors.VisibleDestinationsEditor
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
 
@@ -41,7 +42,7 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
       navigation("root") {
         include("navigation")
         fragment("f1") {
-          action("a1", destination = "f3")
+          action("a1", destination = "f2")
         }
         fragment("f2")
         navigation("subnav") {
@@ -52,6 +53,11 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     }
 
     propertiesManager = NavPropertiesManager(myFacet, model.surface)
+  }
+
+  override fun tearDown() {
+    Disposer.dispose(propertiesManager)
+    super.tearDown()
   }
 
   fun testFragmentInspector() {
@@ -112,16 +118,18 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     val typeProperty = SimpleProperty(TYPE_EDITOR_PROPERTY_LABEL, a1Only)
     val idProperty = SimpleProperty(ATTR_ID, a1Only)
     val singleTopProperty = SimpleProperty(ATTR_SINGLE_TOP, a1Only)
-    val documentProperty = SimpleProperty(ATTR_DOCUMENT, a1Only)
-    val clearTaskProperty = SimpleProperty(ATTR_CLEAR_TASK, a1Only)
     val destinationProperty = SimpleProperty(NavigationSchema.ATTR_DESTINATION, a1Only)
     val popToProperty = SimpleProperty(NavigationSchema.ATTR_POP_UP_TO, a1Only)
     val popToInclusiveProperty = SimpleProperty(NavigationSchema.ATTR_POP_UP_TO_INCLUSIVE, a1Only)
+    val enterAnimProperty = SimpleProperty(NavigationSchema.ATTR_ENTER_ANIM, a1Only)
+    val exitAnimProperty = SimpleProperty(NavigationSchema.ATTR_EXIT_ANIM, a1Only)
+    val popEnterAnimProperty = SimpleProperty(NavigationSchema.ATTR_POP_ENTER_ANIM, a1Only)
+    val popExitAnimProperty = SimpleProperty(NavigationSchema.ATTR_POP_EXIT_ANIM, a1Only)
     // TODO: add more properties once they're fully supported
 
     val properties =
-        listOf(typeProperty, idProperty, destinationProperty, clearTaskProperty, singleTopProperty, documentProperty, popToProperty,
-            popToInclusiveProperty, dummyProperty)
+        listOf(typeProperty, idProperty, destinationProperty, singleTopProperty, popToProperty,
+            popToInclusiveProperty, enterAnimProperty, exitAnimProperty, popEnterAnimProperty, popExitAnimProperty, dummyProperty)
             .associateBy { it.name }
 
     val inspectorProvider = NavMainPropertiesInspectorProvider()
@@ -132,6 +140,12 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     assertInstanceOf(inspector.editors.first { it.property == typeProperty }, NonEditableEditor::class.java)
     assertInstanceOf(inspector.editors.first { it.property == destinationProperty }, VisibleDestinationsEditor::class.java)
 
+    val transitionsInspectorProvider = NavActionTransitionInspectorProvider()
+    assertTrue(transitionsInspectorProvider.isApplicable(a1Only, properties, propertiesManager))
+    val transitionsInspector = transitionsInspectorProvider.createCustomInspector(a1Only, properties, propertiesManager)
+    assertSameElements(transitionsInspector.editors.map { it.property },
+                       listOf(enterAnimProperty, exitAnimProperty, popEnterAnimProperty, popExitAnimProperty))
+
     val popInspectorProvider = NavActionPopInspectorProvider()
     assertTrue(popInspectorProvider.isApplicable(a1Only, properties, propertiesManager))
     val popInspector = popInspectorProvider.createCustomInspector(a1Only, properties, propertiesManager)
@@ -140,7 +154,7 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     val launchOptionsInspectorProvider = NavActionLaunchOptionsInspectorProvider()
     assertTrue(launchOptionsInspectorProvider.isApplicable(a1Only, properties, propertiesManager))
     val launchOptionsInspector = launchOptionsInspectorProvider.createCustomInspector(a1Only, properties, propertiesManager)
-    assertSameElements(launchOptionsInspector.editors.map { it.property }, listOf(documentProperty, singleTopProperty, clearTaskProperty))
+    assertSameElements(launchOptionsInspector.editors.map { it.property }, listOf(singleTopProperty))
   }
 
   fun testRootNavigationInspector() {
@@ -153,7 +167,7 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     val idProperty = SimpleProperty(ATTR_ID, root)
     val nameProperty = SimpleProperty(ATTR_NAME, root)
     val labelProperty = SimpleProperty(ATTR_LABEL, root)
-    val startDestinationProperty = SimpleProperty(NavigationSchema.ATTR_START_DESTINATION, root)
+    val startDestinationProperty = SimpleProperty(ATTR_START_DESTINATION, root)
 
     val properties = listOf(typeProperty, idProperty, nameProperty, labelProperty, startDestinationProperty, dummyProperty)
         .associateBy { it.name }
@@ -177,7 +191,7 @@ class NavPropertiesInspectorProvidersTest : NavTestCase() {
     val idProperty = SimpleProperty(ATTR_ID, root)
     val nameProperty = SimpleProperty(ATTR_NAME, root)
     val labelProperty = SimpleProperty(ATTR_LABEL, root)
-    val startDestinationProperty = SimpleProperty(NavigationSchema.ATTR_START_DESTINATION, root)
+    val startDestinationProperty = SimpleProperty(ATTR_START_DESTINATION, root)
 
     val properties = listOf(typeProperty, idProperty, nameProperty, labelProperty, startDestinationProperty, dummyProperty)
         .associateBy { it.name }

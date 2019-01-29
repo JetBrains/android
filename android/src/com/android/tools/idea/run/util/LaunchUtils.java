@@ -59,10 +59,7 @@ public class LaunchUtils {
       return true;
     }
 
-    Boolean isDebuggable = AndroidModuleInfo.getInstance(facet).isDebuggable();
-    if (isDebuggable == null || isDebuggable) {
-      return true;
-    }
+    if (canDebugApp(facet)) return true;
 
     String buildType = device.getProperty(IDevice.PROP_BUILD_TYPE);
     if ("userdebug".equals(buildType) || "eng".equals(buildType)) {
@@ -70,6 +67,11 @@ public class LaunchUtils {
     }
 
     return false;
+  }
+
+  public static boolean canDebugApp(@NotNull AndroidFacet facet) {
+    Boolean isDebuggable = AndroidModuleInfo.getInstance(facet).isDebuggable();
+    return (isDebuggable == null || isDebuggable);
   }
 
   /**

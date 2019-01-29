@@ -16,11 +16,12 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.android.builder.model.ClassField;
+import com.android.projectmodel.DynamicResourceValue;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.DynamicResourceValueRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
@@ -31,12 +32,13 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 
 public class StringResourceDataTest extends AndroidTestCase {
   private VirtualFile resourceDirectory;
@@ -52,19 +54,15 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   private void setUpData() {
-    ClassField field = Mockito.mock(ClassField.class);
-
-    Mockito.when(field.getType()).thenReturn("string");
-    Mockito.when(field.getName()).thenReturn("dynamic_key1");
-    Mockito.when(field.getValue()).thenReturn("L\\'Étranger");
+    DynamicResourceValue field = new DynamicResourceValue(ResourceType.STRING, "L\'Étranger");
 
     DynamicResourceValueRepository dynamicResourceValueRepository =
-      DynamicResourceValueRepository.createForTest(myFacet, null, Collections.singletonMap("dynamic_key1", field));
+      DynamicResourceValueRepository.createForTest(myFacet, RES_AUTO, Collections.singletonMap("dynamic_key1", field));
 
     Disposer.register(myFacet, dynamicResourceValueRepository);
 
     LocalResourceRepository parent =
-      ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory), null, dynamicResourceValueRepository);
+      ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory), RES_AUTO, dynamicResourceValueRepository);
 
     data = StringResourceRepository.create(parent).getData(myFacet);
   }

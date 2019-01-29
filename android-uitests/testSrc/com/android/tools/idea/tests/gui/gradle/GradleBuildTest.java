@@ -17,10 +17,10 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SelectSdkDialogFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +33,7 @@ import static junit.framework.Assert.assertEquals;
 import static org.junit.Assume.assumeTrue;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GradleBuildTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

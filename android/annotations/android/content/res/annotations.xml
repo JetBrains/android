@@ -1,5 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="android.content.res.AssetManager android.content.res.AssetFileDescriptor openFd(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager android.content.res.AssetFileDescriptor openFd(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager android.content.res.AssetFileDescriptor openNonAssetFd(int, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager android.content.res.AssetFileDescriptor openNonAssetFd(int, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager android.content.res.AssetFileDescriptor openNonAssetFd(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager android.content.res.AssetFileDescriptor openNonAssetFd(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager android.content.res.XmlResourceParser openXmlResourceParser(int, java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager android.content.res.XmlResourceParser openXmlResourceParser(int, java.lang.String) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager android.content.res.XmlResourceParser openXmlResourceParser(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager android.content.res.XmlResourceParser openXmlResourceParser(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager java.io.InputStream open(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager java.io.InputStream open(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager java.io.InputStream open(java.lang.String, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager java.io.InputStream open(java.lang.String, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager java.lang.String[] list(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.res.AssetManager java.lang.String[] list(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager.AssetInputStream int read(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.res.AssetManager.AssetInputStream int read(byte[], int, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.res.ColorStateList ColorStateList(int[][], int[]) 1">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -88,13 +142,13 @@
     <annotation name="android.support.annotation.RawRes" />
   </item>
   <item name="android.content.res.Resources android.content.res.ColorStateList getColorStateList(int)">
-    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources android.content.res.ColorStateList getColorStateList(int) 0">
     <annotation name="android.support.annotation.ColorRes" />
   </item>
   <item name="android.content.res.Resources android.content.res.ColorStateList getColorStateList(int, android.content.res.Resources.Theme)">
-    <annotation name="android.support.annotation.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources android.content.res.ColorStateList getColorStateList(int, android.content.res.Resources.Theme) 0">
     <annotation name="android.support.annotation.ColorRes" />
@@ -111,12 +165,21 @@
   <item name="android.content.res.Resources android.content.res.TypedArray obtainTypedArray(int) 0">
     <annotation name="android.support.annotation.ArrayRes" />
   </item>
+  <item name="android.content.res.Resources android.content.res.XmlResourceParser getAnimation(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.res.Resources android.content.res.XmlResourceParser getAnimation(int) 0">
     <annotation name="android.support.annotation.AnimatorRes" />
     <annotation name="android.support.annotation.AnimRes" />
   </item>
+  <item name="android.content.res.Resources android.content.res.XmlResourceParser getLayout(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.res.Resources android.content.res.XmlResourceParser getLayout(int) 0">
     <annotation name="android.support.annotation.LayoutRes" />
+  </item>
+  <item name="android.content.res.Resources android.content.res.XmlResourceParser getXml(int)">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources android.content.res.XmlResourceParser getXml(int) 0">
     <annotation name="android.support.annotation.XmlRes" />
@@ -139,8 +202,14 @@
   <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawable(int, android.content.res.Resources.Theme) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawableForDensity(int, int)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawableForDensity(int, int) 0">
     <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawableForDensity(int, int, android.content.res.Resources.Theme)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawableForDensity(int, int, android.content.res.Resources.Theme) 0">
     <annotation name="android.support.annotation.DrawableRes" />
@@ -196,8 +265,14 @@
   <item name="android.content.res.Resources int[] getIntArray(int) 0">
     <annotation name="android.support.annotation.ArrayRes" />
   </item>
+  <item name="android.content.res.Resources java.io.InputStream openRawResource(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.content.res.Resources java.io.InputStream openRawResource(int) 0">
     <annotation name="android.support.annotation.RawRes" />
+  </item>
+  <item name="android.content.res.Resources java.io.InputStream openRawResource(int, android.util.TypedValue)">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources java.io.InputStream openRawResource(int, android.util.TypedValue) 0">
     <annotation name="android.support.annotation.RawRes" />

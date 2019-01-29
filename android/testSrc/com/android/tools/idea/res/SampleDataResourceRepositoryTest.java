@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.rendering.api.*;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -34,31 +37,54 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+import static com.google.common.truth.Truth.assertThat;
+
 public class SampleDataResourceRepositoryTest extends AndroidTestCase {
+  AndroidModuleSystem myModuleSystem;
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    myModuleSystem = ProjectSystemUtil.getModuleSystem(myModule);
+  }
 
-    StudioFlags.NELE_SAMPLE_DATA.override(true);
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      SampleDataResourceItem.invalidateCache();
+    } finally {
+      super.tearDown();
+    }
   }
 
   @NotNull
-  private static List<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo) {
-    return repo.getMap(null, ResourceType.SAMPLE_DATA, true).values().stream()
-      .filter(item -> item.getNamespace() == null)
-      .collect(Collectors.toList());
+  private static Collection<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo) {
+    return repo.getMap(RES_AUTO, ResourceType.SAMPLE_DATA, true).values();
   }
 
   @Nullable
   private static List<ResourceItem> onlyProjectSources(@NotNull SampleDataResourceRepository repo, @NotNull String resName) {
-    return repo.getMap(null, ResourceType.SAMPLE_DATA, true).get(resName).stream()
-      .filter(item -> item.getNamespace() == null)
-      .collect(Collectors.toList());
+    return repo.getMap(RES_AUTO, ResourceType.SAMPLE_DATA, true).get(resName);
+  }
+
+  public void testGetInstance() {
+    SampleDataResourceRepository repository = SampleDataResourceRepository.getInstance(myFacet);
+    // We should return a cached instance of the resource repository..
+    assertThat(SampleDataResourceRepository.getInstance(myFacet)).isSameAs(repository);
+
+    // ..until we dispose of the existing repository, at which point another call to
+    // getInstance() should give us a newly-constructed repository and not the disposed one.
+    Disposer.dispose(repository);
+    assertThat(SampleDataResourceRepository.getInstance(myFacet)).isNotSameAs(repository);
   }
 
   public void testDataLoad() {
@@ -72,7 +98,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
                                "Insert image here 2\n");
     myFixture.addFileToProject("sampledata/images/image3.png",
                                "Insert image here 3\n");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
     assertEquals(2, onlyProjectSources(repo).size());
     assertEquals(1, onlyProjectSources(repo, "strings").size());
@@ -146,15 +172,17 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
     // Check that we wrap around
     assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
+    ResourceReference reference = new ResourceReference(RES_AUTO, ResourceType.SAMPLE_DATA, "strings");
+    assertEquals("string2", resolver.getResolvedResource(reference).getValue());
     assertEquals("1", resolver.findResValue("@sample/ints", false).getValue());
     assertTrue(imagePaths.contains(resolver.findResValue("@sample/images", false).getValue()));
 
     // Check reference resolution
     assertEquals("Hello 1", resolver.resolveResValue(
-      new ResourceValue(ResourceUrl.create(null, ResourceType.STRING, "test"), "@sample/refs")).getValue());
+        new ResourceValueImpl(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
     // @string/invalid does not exist so the sample data will just return the unresolved reference
     assertEquals("@string/invalid", resolver.resolveResValue(
-      new ResourceValue(ResourceUrl.create(null, ResourceType.STRING, "test"), "@sample/refs")).getValue());
+        new ResourceValueImpl(RES_AUTO, ResourceType.STRING, "test", "@sample/refs")).getValue());
 
     // Check indexing (all calls should return the same)
     assertEquals("Name2", resolver.findResValue("@sample/users.json/users/name[1]", false).getValue());
@@ -162,32 +190,67 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
 
 
     assertNull(resolver.findResValue("@sample/invalid", false));
+
+    ResourceReference elementRef = new ResourceReference(RES_AUTO, ResourceType.SAMPLE_DATA, "strings[1]");
+    assertNotNull(resolver.getResolvedResource(elementRef));
   }
 
-  public void testSampleDataFileInvalidation() throws IOException {
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
-
+  public void testSampleDataFileInvalidation_addAndDeleteFile() throws IOException {
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
     assertTrue(onlyProjectSources(repo).isEmpty());
 
-    myFixture.addFileToProject("sampledata/strings",
+    PsiFile strings = myFixture.addFileToProject("sampledata/strings",
                                "string1\n" +
                                "string2\n" +
                                "string3\n");
     assertEquals(1, onlyProjectSources(repo).size());
     assertEquals(1, onlyProjectSources(repo, "strings").size());
 
-    myFixture.addFileToProject("sampledata/strings2",
-                               "string1\n");
-    assertEquals(2, onlyProjectSources(repo).size());
+    WriteAction.runAndWait(() -> strings.getVirtualFile().delete(null));
+    assertTrue(onlyProjectSources(repo).isEmpty());
+  }
 
-    VirtualFile sampleDir = SampleDataResourceRepository.getSampleDataDir(myFacet, false);
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      try {
-        sampleDir.delete(null);
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
+  public void testSampleDataFileInvalidation_deleteSampleDataDirectory() throws IOException {
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+
+    myFixture.addFileToProject("sampledata/strings", "string1\n");
+    VirtualFile sampleDir = toVirtualFile(myModuleSystem.getSampleDataDirectory());
+    assertEquals(1, onlyProjectSources(repo).size());
+
+    WriteAction.runAndWait(() -> sampleDir.delete(null));
+    assertTrue(onlyProjectSources(repo).isEmpty());
+  }
+
+  public void testSampleDataFileInvalidation_moveFiles() throws IOException {
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+
+    VirtualFile sampleDir = toVirtualFile(
+      WriteAction.computeAndWait(() -> myModuleSystem.getOrCreateSampleDataDirectory())
+    );
+    PsiFile stringsOutside = myFixture.addFileToProject("strings", "string1\n");
+
+    // move strings into sample data directory
+    WriteAction.runAndWait(() -> stringsOutside.getVirtualFile().move(null, sampleDir));
+    assertEquals(1, onlyProjectSources(repo).size());
+
+    // move strings out of sample data directory
+    VirtualFile stringsInside = sampleDir.findChild(stringsOutside.getName());
+    WriteAction.runAndWait(() -> stringsInside.move(null, sampleDir.getParent()));
+    assertTrue(onlyProjectSources(repo).isEmpty());
+  }
+
+  public void testSampleDataFileInvalidation_moveSampleDataDirectory() throws IOException {
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+
+    VirtualFile sampleDir = toVirtualFile(
+      WriteAction.computeAndWait(() -> myModuleSystem.getOrCreateSampleDataDirectory())
+    );
+    myFixture.addFileToProject("sampledata/strings", "string1\n");
+    assertEquals(1, onlyProjectSources(repo).size());
+
+    WriteAction.runAndWait(() -> {
+      VirtualFile newParent = sampleDir.getParent().createChildDirectory(null, "somewhere_else");
+      sampleDir.move(null, newParent);
     });
     assertTrue(onlyProjectSources(repo).isEmpty());
   }
@@ -218,7 +281,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
                                "      \"name\": \"Name1\",\n" +
                                "      \"surname\": \"Surname1\"\n" +
                                "    },\n");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(3, onlyProjectSources(repo).size());
@@ -231,7 +294,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
                                "Name1,Surname1\n" +
                                "Name2,Surname2\n" +
                                "Name3,Surname3,555-00000");
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(3, onlyProjectSources(repo).size());
@@ -253,7 +316,7 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout.getVirtualFile());
     ResourceResolver resolver = configuration.getResourceResolver();
     assertEquals("string1", resolver.findResValue("@sample/strings", false).getValue());
-    assertEquals("string2",resolver.findResValue("@sample/strings", false).getValue());
+    assertEquals("string2", resolver.findResValue("@sample/strings", false).getValue());
     ApplicationManager.getApplication().runWriteAction(() -> {
       try {
         sampleDataFile.getVirtualFile().setBinaryContent(("new1\n" +
@@ -272,15 +335,49 @@ public class SampleDataResourceRepositoryTest extends AndroidTestCase {
     //assertEquals("new3", resolver.findResValue("@sample/strings", false).getValue());
   }
 
+  public void testImageResources() {
+    myFixture.addFileToProject("sampledata/images/image1.png", "\n");
+    myFixture.addFileToProject("sampledata/images/image2.png", "\n");
+    myFixture.addFileToProject("sampledata/images/image3.png", "\n");
+
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(myFacet);
+    Collection<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.SAMPLE_DATA).values();
+    assertSize(1, items);
+    SampleDataResourceItem item = (SampleDataResourceItem)Iterables.getOnlyElement(items);
+    assertEquals("images", item.getName());
+    assertEquals(SampleDataResourceItem.ContentType.IMAGE, item.getContentType());
+    SampleDataResourceValue value = (SampleDataResourceValue)item.getResourceValue();
+    List<String> fileNames = value.getValueAsLines().stream()
+         .map(file -> new File(file).getName())
+         .collect(Collectors.toList());
+    assertContainsElements(fileNames, "image1.png", "image2.png", "image3.png");
+  }
+
+  public void testSubsetSampleData() {
+    @Language("XML")
+    String layoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                        "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                        "    android:layout_width=\"match_parent\"\n" +
+                        "    android:layout_height=\"match_parent\" />";
+
+    PsiFile layout = myFixture.addFileToProject("res/layout/layout.xml", layoutText);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout.getVirtualFile());
+    ResourceResolver resolver = configuration.getResourceResolver();
+    ResourceValue sampledLorem =
+        new ResourceValueImpl(ResourceNamespace.TOOLS, ResourceType.SAMPLE_DATA, "lorem_data", "@sample/lorem[4:10]");
+    assertEquals("Lorem ipsum dolor sit amet.", resolver.dereference(sampledLorem).getValue());
+    assertEquals("Lorem ipsum dolor sit amet, consectetur.", resolver.dereference(sampledLorem).getValue());
+  }
+
   // Temporarily disabled to debug the failed leak test
   public void ignorePredefinedSources() {
     // No project sources defined so only predefined sources should be available
-    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
+    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
 
     assertFalse(repo.getMap(null, ResourceType.SAMPLE_DATA, false).isEmpty());
 
     // Check that none of the items are empty or fail
     assertFalse(repo.getMap(null, ResourceType.SAMPLE_DATA, false).values().stream()
-      .anyMatch(item -> item.getValueText().isEmpty()));
+        .anyMatch(item -> item.getResourceValue().getValue().isEmpty()));
   }
 }

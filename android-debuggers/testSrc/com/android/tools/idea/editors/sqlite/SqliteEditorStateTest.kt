@@ -55,6 +55,18 @@ class SqliteEditorStateTest : UsefulTestCase() {
   }
 
   @Throws(Exception::class)
+  fun testReadNullState() {
+    // Prepare
+
+    // Act
+    val state = SqliteEditorState.readState(null)
+
+    // Assert
+    assertThat(state.deviceFileId.deviceId).isEqualTo(DeviceFileId.UNKNOWN.deviceId)
+    assertThat(state.deviceFileId.devicePath).isEqualTo(DeviceFileId.UNKNOWN.devicePath)
+  }
+
+  @Throws(Exception::class)
   fun testEqualsAndHashCode() {
     // Prepare
     val fileId1 = DeviceFileId("device", "/path/to/file")

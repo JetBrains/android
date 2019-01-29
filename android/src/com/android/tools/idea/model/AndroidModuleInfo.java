@@ -23,6 +23,7 @@ import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
@@ -43,7 +44,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   public static AndroidModuleInfo getInstance(@NotNull AndroidFacet facet) {
     AndroidModuleInfo androidModuleInfo = facet.getUserData(KEY);
     if (androidModuleInfo == null) {
-      if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
         // If this is an AIA app module the info about the app module is actually held in the base split module. Try to set up a
         // redirection to the AndroidModuleInfo of the base split.
         Module baseFeature = findBaseFeature(facet);
@@ -66,6 +67,11 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     return facet != null ? getInstance(facet) : null;
   }
 
+  @TestOnly
+  public static void setInstanceForTest(@NotNull AndroidFacet facet, @Nullable AndroidModuleInfo androidModuleInfo) {
+    facet.putUserData(KEY, androidModuleInfo);
+  }
+
   private AndroidModuleInfo(@NotNull AndroidFacet facet) {
     super(facet);
   }
@@ -84,7 +90,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   @Nullable
   public String getPackage() {
     AndroidFacet facet = getFacet();
-    AndroidModel androidModel = facet.getAndroidModel();
+    AndroidModel androidModel = facet.getConfiguration().getModel();
     if (androidModel != null) {
       return androidModel.getApplicationId();
     }
@@ -102,7 +108,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   @NotNull
   public AndroidVersion getRuntimeMinSdkVersion() {
     AndroidFacet facet = getFacet();
-    AndroidModel androidModel = facet.getAndroidModel();
+    AndroidModel androidModel = facet.getConfiguration().getModel();
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getRuntimeMinSdkVersion();
       if (minSdkVersion != null) {
@@ -117,7 +123,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   @NotNull
   public AndroidVersion getMinSdkVersion() {
     AndroidFacet facet = getFacet();
-    AndroidModel androidModel = facet.getAndroidModel();
+    AndroidModel androidModel = facet.getConfiguration().getModel();
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
       if (minSdkVersion != null) {
@@ -132,7 +138,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   @NotNull
   public AndroidVersion getTargetSdkVersion() {
     AndroidFacet facet = getFacet();
-    AndroidModel androidModel = facet.getAndroidModel();
+    AndroidModel androidModel = facet.getConfiguration().getModel();
     if (androidModel != null) {
       AndroidVersion targetSdkVersion = androidModel.getTargetSdkVersion();
       if (targetSdkVersion != null) {
@@ -163,7 +169,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   @Nullable
   public Boolean isDebuggable() {
     AndroidFacet facet = getFacet();
-    AndroidModel androidModel = facet.getAndroidModel();
+    AndroidModel androidModel = facet.getConfiguration().getModel();
     if (androidModel != null) {
       Boolean debuggable = androidModel.isDebuggable();
       if (debuggable != null) {

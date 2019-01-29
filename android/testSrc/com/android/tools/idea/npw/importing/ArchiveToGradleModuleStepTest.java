@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.npw.importing;
 
+import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.observable.TestInvokeStrategy;
@@ -49,7 +50,7 @@ public class ArchiveToGradleModuleStepTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    myModel = new ArchiveToGradleModuleModel(getProject());
+    myModel = new ArchiveToGradleModuleModel(getProject(), new ProjectSyncInvoker.DefaultProjectSyncInvoker());
     ArchiveToGradleModuleStep step = new ArchiveToGradleModuleStep(myModel);
     Disposer.register(getTestRootDisposable(), myModel);
     Disposer.register(getTestRootDisposable(), step);

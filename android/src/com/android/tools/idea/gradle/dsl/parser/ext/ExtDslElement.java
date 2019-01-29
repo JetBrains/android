@@ -17,9 +17,15 @@ package com.android.tools.idea.gradle.dsl.parser.ext;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.google.common.collect.ImmutableMap;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the extra user-defined properties defined in the Gradle file.
@@ -31,8 +37,8 @@ import org.jetbrains.annotations.Nullable;
 public final class ExtDslElement extends GradleDslBlockElement {
   @NonNls public static final String EXT_BLOCK_NAME = "ext";
 
-  public ExtDslElement(@Nullable GradleDslElement parent) {
-    super(parent, EXT_BLOCK_NAME);
+  public ExtDslElement(@NotNull GradleDslElement parent) {
+    super(parent, GradleNameElement.create(EXT_BLOCK_NAME));
   }
 
   /*
@@ -50,9 +56,44 @@ public final class ExtDslElement extends GradleDslBlockElement {
 
   @Override
   @NotNull
-  public GradleDslElement setNewElement(@NotNull String property, @NotNull GradleDslElement element) {
-    GradleDslElement newElement = super.setNewElement(property, element);
+  public GradleDslElement setNewElement(@NotNull GradleDslElement element) {
+    GradleDslElement newElement = super.setNewElement(element);
     newElement.setUseAssignment(true);
     return newElement;
+  }
+
+  @Override
+  public void setPsiElement(@Nullable PsiElement psiElement) {
+    // This makes sure the the PsiElement for the ExtDslElement is the first one declared in the file.
+    // This allows all new ext elements to be added to the first ext block so to be more likely to be in scope for using fields.
+    if (getPsiElement() == null || psiElement == null) {
+      super.setPsiElement(psiElement);
+    }
+  }
+
+  /**
+   * For the ExtModel we need to also include properties that are already defined in the block,
+   * rather than just variables.
+   */
+  @Override
+  @NotNull
+  public List<GradleDslElement> getContainedElements(boolean includeProperties) {
+    return super.getContainedElements(true);
+  }
+
+  /**
+   * For the ExtModel we need to also include properties that are already defined in the block,
+   * rather than just variables.
+   */
+  @Override
+  @NotNull
+  public Map<String, GradleDslElement> getInScopeElements() {
+    if (myParent == null) {
+      return ImmutableMap.of();
+    }
+    Map<String, GradleDslElement> parentResults = myParent.getInScopeElements();
+    // Add my properties as well.
+    parentResults.putAll(getElements());
+    return parentResults;
   }
 }

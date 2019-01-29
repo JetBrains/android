@@ -15,8 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.SdkConstants;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_STYLE;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
+
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
@@ -26,8 +36,12 @@ import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.property.PropertiesPanel;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
+import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorPanel;
-import com.android.util.PropertiesMap;
+import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.Table;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -35,33 +49,46 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-import sun.awt.CausedFocusEvent;
-
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.table.TableRowSorter;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.AWTEvent;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.KeyboardFocusManager;
+import java.awt.Rectangle;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.tools.idea.uibuilder.property.ToggleXmlPropertyEditor.NL_XML_PROPERTY_EDITOR;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.RowFilter;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.table.TableRowSorter;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
+import sun.awt.CausedFocusEvent;
 
 public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> implements ViewAllPropertiesAction.Model {
   static final String PROPERTY_MODE = "properties.mode";
@@ -85,6 +112,9 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   @NotNull
   private PropertiesViewMode myPropertiesViewMode;
   private Runnable myRestoreToolWindowCallback;
+
+  private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.EAST_PANEL, false);
+
 
   public NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager) {
     this(propertiesManager, new NlPTable(new PTableModel()), null);
@@ -127,6 +157,9 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
 
     myCardLayout = new JBCardLayout();
     myCardPanel = new JPanel(myCardLayout);
+
+    myCardPanel.add(PropertiesViewMode.ACCESSORY.name(), myAccessoryPanel);
+
     JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myInspectorPanel,
                                                                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -137,6 +170,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     tableScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
     tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
     myCardPanel.add(PropertiesViewMode.TABLE.name(), tableScrollPane);
+
     myPropertiesViewMode = getPropertiesViewModeInitially();
     myCardLayout.show(myCardPanel, myPropertiesViewMode.name());
     myComponents = Collections.emptyList();
@@ -212,14 +246,13 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     if (myTable.isCellEditable(0, 1)) {
       myTable.editCellAt(0, 1);
       myTable.transferFocus();
-      event.consume();
     }
     else {
       myModel.expand(myTable.convertRowIndexToModel(0));
       myTable.requestFocus();
       myTable.setRowSelectionInterval(0, 0);
-      event.consume();
     }
+    event.consume();
   }
 
   public void activatePropertySheet() {
@@ -250,8 +283,8 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
 
   @NotNull
   private static List<NlPropertyItem> extractPropertiesForTable(@NotNull Table<String, String, NlPropertyItem> properties) {
-    Map<String, NlPropertyItem> androidProperties = properties.row(SdkConstants.ANDROID_URI);
-    Map<String, NlPropertyItem> autoProperties = properties.row(SdkConstants.AUTO_URI);
+    Map<String, NlPropertyItem> androidProperties = properties.row(ANDROID_URI);
+    Map<String, NlPropertyItem> autoProperties = properties.row(AUTO_URI);
     Map<String, NlPropertyItem> designProperties = properties.row(TOOLS_URI);
     Map<String, NlPropertyItem> bareProperties = properties.row("");
 
@@ -282,29 +315,59 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     });
   }
 
-  private void updateDefaultProperties(@NotNull PropertiesManager propertiesManager) {
+  private void updateDefaultProperties(@NotNull PropertiesManager<?> propertiesManager) {
     if (myComponents.isEmpty() || myProperties.isEmpty()) {
       return;
     }
-    PropertiesMap defaultValues = propertiesManager.getDefaultProperties(myComponents);
-    if (defaultValues.isEmpty()) {
+    Map<ResourceReference, ResourceValue> defaultValues = propertiesManager.getDefaultProperties(myComponents);
+    String style = propertiesManager.getDefaultStyle(myComponents);
+    if (style == null && defaultValues.isEmpty()) {
       return;
     }
     for (NlPropertyItem property : myProperties) {
-      property.setDefaultValue(getDefaultProperty(defaultValues, property));
+      // TODO: Change the API of RenderResult.getDefaultStyles to return ResourceValues instead of Strings.
+      if (property.getName().equals(ATTR_STYLE) && StringUtil.isEmpty(property.getNamespace()) && !StringUtil.isEmpty(style)) {
+        style = style.startsWith("android:") ? "?android:attr/" + StringUtil.trimStart(style, "android:") : "?attr/" + style;
+        property.setDefaultValue(style);
+      }
+      else {
+        property.setDefaultValue(getDefaultProperty(defaultValues, property));
+      }
     }
   }
 
   @Nullable
-  private static PropertiesMap.Property getDefaultProperty(@NotNull PropertiesMap defaultValues, @NotNull NlProperty property) {
-    if (SdkConstants.ANDROID_URI.equals(property.getNamespace())) {
-      PropertiesMap.Property defaultValue = defaultValues.get(SdkConstants.PREFIX_ANDROID + property.getName());
-      if (defaultValue != null) {
-        return defaultValue;
-      }
-      return defaultValues.get(SdkConstants.ANDROID_PREFIX + property.getName());
+  private String getDefaultProperty(@NotNull Map<ResourceReference, ResourceValue> defaultValues, @NotNull NlProperty property) {
+    String namespaceUri = property.getNamespace();
+    if (namespaceUri == null) {
+      return null;
     }
-    return defaultValues.get(property.getName());
+    ResourceNamespace namespace = ResourceNamespace.fromNamespaceUri(namespaceUri);
+    if (namespace == null) {
+      return null;
+    }
+    XmlTag tag = property.getTag();
+    if (tag == null || !tag.isValid()) {
+      return null;
+    }
+    ResourceValue value = defaultValues.get(ResourceReference.attr(namespace, property.getName()));
+    if (value == null) {
+      return null;
+    }
+    ResourceNamespace.Resolver resolver = ResourceHelper.getNamespaceResolver(tag);
+    ResourceNamespace defaultNamespace = ResourceRepositoryManager.getOrCreateInstance(myPropertiesManager.getFacet()).getNamespace();
+    if (value.getResourceType() == ResourceType.STYLE_ITEM) {
+      ResourceReference reference = value.getReference();
+      if (reference == null) {
+        return null;
+      }
+      ResourceUrl url = reference.getRelativeResourceUrl(defaultNamespace, resolver);
+      return (url.type != ResourceType.ATTR) ?
+             url.toString() : ResourceUrl.createThemeReference(url.namespace, url.type, url.name).toString();
+    }
+    else {
+      return value.asReference().getRelativeResourceUrl(defaultNamespace, resolver).toString();
+    }
   }
 
   @NotNull
@@ -333,8 +396,12 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
   }
 
   @Override
-  public boolean isAllPropertiesPanelVisible() {
+  public boolean isAllPropertiesPanelMode() {
     return myPropertiesViewMode == PropertiesViewMode.TABLE;
+  }
+
+  public void setToolContext(@Nullable DesignSurface surface) {
+    myAccessoryPanel.setSurface((NlDesignSurface) surface);
   }
 
   @Override
@@ -343,10 +410,24 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     setAllPropertiesPanelVisibleInternal(viewAllProperties, next::requestFocus);
   }
 
+  @Override
+  public boolean isAccessoryPanelVisible() {
+    return myPropertiesViewMode == PropertiesViewMode.ACCESSORY;
+  }
+
   private void setAllPropertiesPanelVisibleInternal(boolean viewAllProperties, @Nullable Runnable onDone) {
     myPropertiesViewMode = viewAllProperties ? PropertiesViewMode.TABLE : PropertiesViewMode.INSPECTOR;
     myCardLayout.swipe(myCardPanel, myPropertiesViewMode.name(), JBCardLayout.SwipeDirection.AUTO, onDone);
     PropertiesComponent.getInstance().setValue(PROPERTY_MODE, myPropertiesViewMode.name());
+  }
+
+  public void showAccessoryPanel(boolean show) {
+    if (!show && myPropertiesViewMode != PropertiesViewMode.ACCESSORY) {
+      return;
+    }
+    myPropertiesViewMode = show ? PropertiesViewMode.ACCESSORY : PropertiesViewMode.INSPECTOR;
+    Component next = show ? myAccessoryPanel : myInspectorPanel;
+    myCardLayout.swipe(myCardPanel, myPropertiesViewMode.name(), JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
   }
 
   @NotNull
@@ -382,7 +463,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
       // Set focus on the editor of preferred property
       myInspectorPanel.activatePreferredEditor(propertyName, afterload);
     };
-    if (!isAllPropertiesPanelVisible()) {
+    if (!isAllPropertiesPanelMode()) {
       selectEditor.run();
     }
     else {
@@ -518,7 +599,8 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
 
   public enum PropertiesViewMode {
     TABLE,
-    INSPECTOR
+    INSPECTOR,
+    ACCESSORY
   }
 
   @VisibleForTesting

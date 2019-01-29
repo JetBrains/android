@@ -21,11 +21,9 @@ import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -40,9 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCase {
   public static final String ID = "fakeId";
 
-  @Mock Module module;
   @Mock AndroidSessionInfo info;
-  @Mock AndroidFacet facet;
   @Mock Executor executor;
   private AndroidRunConfigurationBase myRunConfig;
 
@@ -50,7 +46,7 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myRunConfig = new AndroidTestRunConfiguration(getProject(), mock(ConfigurationFactory.class), false);
+    myRunConfig = new AndroidRunConfigurationMock(getProject(), mock(ConfigurationFactory.class), false);
   }
 
   // canInstantRunTests
@@ -60,7 +56,7 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
     devices.add(mock(AndroidDevice.class));
     devices.add(mock(AndroidDevice.class));
 
-    assertEquals(CANNOT_BUILD_FOR_MULTIPLE_DEVICES, myRunConfig.canInstantRun(module, devices));
+    assertEquals(CANNOT_BUILD_FOR_MULTIPLE_DEVICES, myRunConfig.canInstantRun(myModule, devices));
   }
 
   public void testApiTooLow() {
@@ -68,7 +64,7 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
     AndroidDevice device = mock(AndroidDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(MIN_IR_API_VERSION - 1));
     devices.add(device);
-    assertEquals(API_TOO_LOW_FOR_INSTANT_RUN, myRunConfig.canInstantRun(module, devices));
+    assertEquals(API_TOO_LOW_FOR_INSTANT_RUN, myRunConfig.canInstantRun(myModule, devices));
   }
 
   // prepareInstantRunSession tests
@@ -77,7 +73,7 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
     when(executor.getId()).thenReturn(ID);
 
     Messages.setTestDialog(message -> Messages.NO);
-    assertNull(myRunConfig.prepareInstantRunSession(info, executor, facet, getProject(), null, false));
+    assertNull(myRunConfig.prepareInstantRunSession(info, executor, myFacet, getProject(), null, false));
   }
 
   public void testPrepareInstantRunSession_Kill() {
@@ -87,7 +83,7 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
 
     Messages.setTestDialog(message -> Messages.YES);
     AndroidRunConfigurationBase.PrepareSessionResult result =
-      myRunConfig.prepareInstantRunSession(info, executor, facet, getProject(), null, false);
+      myRunConfig.prepareInstantRunSession(info, executor, myFacet, getProject(), null, false);
 
     assertNotNull(result);
     assertNull(result.futures);
@@ -114,7 +110,7 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
 
     // Act
     AndroidRunConfigurationBase.PrepareSessionResult result =
-      myRunConfig.prepareInstantRunSession(info, executor, facet, getProject(), deviceFutures, true);
+      myRunConfig.prepareInstantRunSession(info, executor, myFacet, getProject(), deviceFutures, true);
 
     // Verify
     assertNotNull(result);
@@ -145,7 +141,7 @@ public class AndroidRunConfigurationBaseCanInstantRunTest extends AndroidTestCas
 
     // Act
     AndroidRunConfigurationBase.PrepareSessionResult result =
-      myRunConfig.prepareInstantRunSession(info, executor, facet, getProject(), deviceFutures, true);
+      myRunConfig.prepareInstantRunSession(info, executor, myFacet, getProject(), deviceFutures, true);
 
     // Verify
     assertNotNull(result);

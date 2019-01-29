@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.ProfilerTooltip;
@@ -35,8 +36,9 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
   @NotNull private final CpuProfilerStage myStage;
 
   @Nullable private String myThreadName;
-  @Nullable private ThreadStateDataSeries mySeries;
+  @Nullable private DataSeries<CpuProfilerStage.ThreadState> mySeries;
   @Nullable private CpuProfilerStage.ThreadState myThreadState;
+  private long myDurationUs;
 
   CpuThreadsTooltip(@NotNull CpuProfilerStage stage) {
     myStage = stage;
@@ -51,6 +53,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
 
   private void updateThreadState() {
     myThreadState = null;
+    myDurationUs = 0;
     if (mySeries == null) {
       changed(Aspect.THREAD_STATE);
       return;
@@ -73,11 +76,20 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
     if (threadStateIndex < 0) {
       threadStateIndex = -threadStateIndex - 2;
     }
-    myThreadState = threadStateIndex < 0 ? null : series.get(threadStateIndex).value;
+    if (threadStateIndex >= 0) {
+      SeriesData<CpuProfilerStage.ThreadState> currentState = series.get(threadStateIndex);
+      myThreadState = currentState.value;
+      // If the state is not the last of the list, calculate the duration from the difference between the current and the next timestamps
+      // TODO(b/80240220): Calculate the duration of the last state, unless it's in progress.
+      if (threadStateIndex < series.size() - 1) {
+        myDurationUs = series.get(threadStateIndex + 1).x - currentState.x;
+      }
+    }
+
     changed(Aspect.THREAD_STATE);
   }
 
-  void setThread(@Nullable String threadName, @Nullable ThreadStateDataSeries stateSeries) {
+  void setThread(@Nullable String threadName, @Nullable DataSeries<CpuProfilerStage.ThreadState> stateSeries) {
     myThreadName = threadName;
     mySeries = stateSeries;
     updateThreadState();
@@ -91,5 +103,9 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
   @Nullable
   CpuProfilerStage.ThreadState getThreadState() {
     return myThreadState;
+  }
+
+  public long getDurationUs() {
+    return myDurationUs;
   }
 }

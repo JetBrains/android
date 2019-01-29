@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -54,8 +55,8 @@ public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
   }
 
   public void testGetMaxJavaLangLevel() {
-    expect(myAndroidModel1.getDataBindingEnabled()).andStubReturn(false);
-    expect(myAndroidModel2.getDataBindingEnabled()).andStubReturn(false);
+    expect(myAndroidModel1.getDataBindingMode()).andStubReturn(DataBindingMode.NONE);
+    expect(myAndroidModel2.getDataBindingMode()).andStubReturn(DataBindingMode.NONE);
 
     expect(myAndroidModel1.getJavaLanguageLevel()).andStubReturn(LanguageLevel.JDK_1_6);
     expect(myAndroidModel2.getJavaLanguageLevel()).andStubReturn(LanguageLevel.JDK_1_7);
@@ -72,8 +73,8 @@ public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
   }
 
   public void testGetMaxJavaLangLevel2() {
-    expect(myAndroidModel1.getDataBindingEnabled()).andStubReturn(false);
-    expect(myAndroidModel2.getDataBindingEnabled()).andStubReturn(false);
+    expect(myAndroidModel1.getDataBindingMode()).andStubReturn(DataBindingMode.NONE);
+    expect(myAndroidModel2.getDataBindingMode()).andStubReturn(DataBindingMode.NONE);
 
     expect(myAndroidModel1.getJavaLanguageLevel()).andStubReturn(LanguageLevel.JDK_1_7);
     expect(myAndroidModel2.getJavaLanguageLevel()).andStubReturn(LanguageLevel.JDK_1_6);
@@ -90,8 +91,8 @@ public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
   }
 
   public void testGetMaxJavaLangLevel3() {
-    expect(myAndroidModel1.getDataBindingEnabled()).andStubReturn(false);
-    expect(myAndroidModel2.getDataBindingEnabled()).andStubReturn(false);
+    expect(myAndroidModel1.getDataBindingMode()).andStubReturn(DataBindingMode.NONE);
+    expect(myAndroidModel2.getDataBindingMode()).andStubReturn(DataBindingMode.NONE);
 
     expect(myAndroidModel1.getJavaLanguageLevel()).andStubReturn(LanguageLevel.JDK_1_7);
     expect(myAndroidModel2.getJavaLanguageLevel()).andStubReturn(LanguageLevel.JDK_1_7);
@@ -108,8 +109,8 @@ public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
   }
 
   public void testGetMaxJavaLangLevel4() {
-    expect(myAndroidModel1.getDataBindingEnabled()).andStubReturn(false);
-    expect(myAndroidModel2.getDataBindingEnabled()).andStubReturn(false);
+    expect(myAndroidModel1.getDataBindingMode()).andStubReturn(DataBindingMode.NONE);
+    expect(myAndroidModel2.getDataBindingMode()).andStubReturn(DataBindingMode.NONE);
 
     expect(myAndroidModel1.getJavaLanguageLevel()).andStubReturn(LanguageLevel.JDK_1_6);
     expect(myAndroidModel2.getJavaLanguageLevel()).andStubReturn(LanguageLevel.JDK_1_6);
@@ -139,6 +140,6 @@ public class PostProjectBuildTasksExecutorTest extends IdeaTestCase {
   private static void addAndroidModelToFacet(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-    facet.setAndroidModel(androidModel);
+    facet.getConfiguration().setModel(androidModel);
   }
 }

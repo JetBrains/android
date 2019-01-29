@@ -189,10 +189,13 @@
     <item tag="MultiAutoCompleteTextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
     <item tag="CheckedTextView" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
     <item tag="android.support.design.widget.TextInputLayout" suggested="true" meta="material"/>
+    <item tag="com.google.android.material.textfield.TextInputLayout" suggested="true" meta="material"/>
   </group>
   <group name="Buttons">
     <item tag="Button" suggested="true" materialReference="https://material.io/guidelines/components/buttons.html"/>
     <item tag="ImageButton" suggested="true"/>
+    <item tag="com.google.android.material.chip.ChipGroup" suggested="true"  meta="material" info="new-m2"/>
+    <item tag="com.google.android.material.chip.Chip" suggested="true" meta="material" info="new-m2"/>
     <item tag="CheckBox" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
     <item tag="RadioGroup" materialReference="https://material.io/guidelines/selection-controls.html#selection-controls-radio-button"/>
     <item tag="RadioButton" suggested="true" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
@@ -200,6 +203,8 @@
     <item tag="Switch" suggested="true"
           materialReference="https://material.io/guidelines/components/selection-controls.html#selection-controls-switch"/>
     <item tag="android.support.design.widget.FloatingActionButton" suggested="true" meta="material"
+          materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
+    <item tag="com.google.android.material.floatingactionbutton.FloatingActionButton" suggested="true" meta="material"
           materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
   </group>
   <group name="Widgets">
@@ -294,6 +299,8 @@
   <group name="Layouts">
     <item tag="android.support.constraint.ConstraintLayout" suggested="true"
           materialReference="https://material.io/guidelines/layout/principles.html"/>
+    <item tag="androidx.constraintlayout.widget.ConstraintLayout" suggested="true"
+          materialReference="https://material.io/guidelines/layout/principles.html"/>
     <item tag="android.support.constraint.Guideline"
           title="Guideline (horizontal)"
           suggested="true"
@@ -307,14 +314,41 @@
           ]]>
       </xml>
     </item>
+    <item tag="androidx.constraintlayout.widget.Guideline"
+          title="Guideline (horizontal)"
+          suggested="true"
+          icon="StudioIcons.LayoutEditor.Toolbar.HORIZONTAL_GUIDE">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.widget.Guideline
+              android:orientation="horizontal"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
     <item tag="android.support.constraint.Guideline"
           title="Guideline (vertical)"
           suggested="true"
           id="VerticalGuideline"
           icon="StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE">
-    <xml>
+      <xml>
         <![CDATA[
             <android.support.constraint.Guideline
+              android:orientation="vertical"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content" />
+          ]]>
+      </xml>
+    </item>
+    <item tag="androidx.constraintlayout.widget.Guideline"
+          title="Guideline (vertical)"
+          suggested="true"
+          id="VerticalGuideline2"
+          icon="StudioIcons.LayoutEditor.Toolbar.VERTICAL_GUIDE">
+      <xml>
+        <![CDATA[
+            <androidx.constraintlayout.widget.Guideline
               android:orientation="vertical"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content" />
@@ -363,23 +397,48 @@
   <group name="Containers">
     <item tag="Spinner"/>
     <item tag="android.support.v7.widget.RecyclerView" suggested="true" materialReference="https://material.io/guidelines/components/lists.html"/>
+    <item tag="androidx.recyclerview.widget.RecyclerView" suggested="true" materialReference="https://material.io/guidelines/components/lists.html"/>
     <item tag="ScrollView"/>
     <item tag="HorizontalScrollView" suggested="true"/>
+
     <item tag="android.support.v4.widget.NestedScrollView" suggested="true"/>
+    <item tag="androidx.core.widget.NestedScrollView" suggested="true"/>
     <item tag="android.support.v4.view.ViewPager"/>
+    <item tag="androidx.viewpager.widget.ViewPager"/>
     <item tag="android.support.v7.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
-    <item tag="android.support.v4.view.ViewPager" id="Tabs" title="Tabs"/>
-    <item tag="android.support.design.widget.AppBarLayout" suggested="true"/>
-    <item tag="android.support.design.widget.NavigationView" suggested="true"/>
-    <item tag="android.support.design.widget.BottomNavigationView" suggested="true"/>
+    <item tag="androidx.cardview.widget.CardView" suggested="true" materialReference="https://material.io/guidelines/components/cards.html"/>
+    <item tag="android.support.design.widget.AppBarLayout" suggested="true" meta="material"/>
+    <item tag="com.google.android.material.appbar.AppBarLayout" suggested="true" meta="material"/>
+    <item tag="com.google.android.material.bottomappbar.BottomAppBar" suggested="true" meta="material" info="new-m2"/>
+    <item tag="android.support.design.widget.NavigationView" suggested="true" meta="material"/>
+    <item tag="com.google.android.material.navigation.NavigationView" suggested="true" meta="material"/>
+    <item tag="android.support.design.widget.BottomNavigationView" suggested="true" meta="material"/>
+    <item tag="com.google.android.material.bottomnavigation.BottomNavigationView" suggested="true" meta="material"/>
     <item tag="android.support.v7.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
+    <item tag="androidx.appcompat.widget.Toolbar" suggested="true" materialReference="https://material.io/guidelines/components/toolbars.html"/>
     <item tag="android.support.design.widget.TabLayout" suggested="true" meta="material"
+          materialReference="https://material.io/guidelines/components/tabs.html"/>
+    <item tag="com.google.android.material.tabs.TabLayout" suggested="true" meta="material"
           materialReference="https://material.io/guidelines/components/tabs.html"/>
     <item tag="android.support.design.widget.TabItem" meta="material"
           materialReference="https://material.io/guidelines/components/tabs.html"/>
+    <item tag="com.google.android.material.tabs.TabItem" meta="material"
+          materialReference="https://material.io/guidelines/components/tabs.html"/>
+
     <item tag="ViewStub"/>
     <item tag="include"/>
     <item tag="fragment"/>
+    <item tag="fragment" title="NavHostFragment" suggested="true" id="NavHostFragment"
+          icon="StudioIcons.LayoutEditor.Palette.NAV_HOST_FRAGMENT">
+    <xml>
+        <![CDATA[
+            <fragment
+              android:name="androidx.navigation.fragment.NavHostFragment"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"/>
+          ]]>
+      </xml>
+    </item>
     <item tag="view"/>
     <item tag="requestFocus"/>
   </group>
@@ -389,6 +448,7 @@
   </group>
   <group name="Legacy">
     <item tag="android.support.v7.widget.GridLayout" materialReference="https://material.io/guidelines/components/grid-lists.html"/>
+    <item tag="androidx.gridlayout.widget.GridLayout" materialReference="https://material.io/guidelines/components/grid-lists.html"/>
     <item tag="ListView"/>
     <item tag="TabHost"/>
     <item tag="RelativeLayout"/>

@@ -111,7 +111,10 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     myDevice = deviceOptional.get();
 
     // Add process handlers for the fake device associated with our test application's application id
-    AndroidProcessHandler processHandler = new AndroidProcessHandler(TEST_APP_ID);
+    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder()
+      .setApplicationId(TEST_APP_ID)
+      .build();
+
     processHandler.addTargetDevice(myDevice);
     myConsolePrinter = new ProcessHandlerConsolePrinter(processHandler);
     myLaunchStatus = new ProcessHandlerLaunchStatus(processHandler);

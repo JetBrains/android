@@ -15,32 +15,52 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ArtifactDependencyModel extends DependencyModel {
   @NotNull
-  GradleNotNullValue<String> compactNotation();
+  String compactNotation();
 
   @NotNull
-  GradleNotNullValue<String> name();
+  ResolvedPropertyModel name();
 
   @NotNull
-  GradleNullableValue<String> group();
+  ResolvedPropertyModel group();
 
   @NotNull
-  GradleNullableValue<String> version();
-
-  void setVersion(@NotNull String version);
+  ResolvedPropertyModel version();
 
   @NotNull
-  GradleNullableValue<String> classifier();
+  ResolvedPropertyModel classifier();
 
   @NotNull
-  GradleNullableValue<String> extension();
+  ResolvedPropertyModel extension();
+
+  /**
+   * @return the model representing this entire dependency, this will be either a MAP_TYPE model for map form dependencies. Or
+   * a STRING_TYPE model for compact notation.
+   * Note: In teh case where this is of STRING_TYPE, the return value of {@link GradlePropertyModel#isModified()} will be shared between
+   * all models returned by this class. I.e if you modify the version, this model along will models for name, group, classifier and
+   * extension will all be modified.
+   */
+  @NotNull
+  ResolvedPropertyModel completeModel();
 
   @Nullable
   DependencyConfigurationModel configuration();
+
+  /**
+   * Makes any change to this model through name/group/version/classifier/extension work on the result property by first resolving any
+   * references. Note: This does not affect completeModel() or compactNotation(), this also has no effect on dependencies declared as maps.
+   * These always set through variables.
+   */
+  void enableSetThrough();
+
+  /**
+   * Makes any change to this model through name/group/version/classifier/extension work on the property even if this overwrites variables.
+   */
+  void disableSetThrough();
 }

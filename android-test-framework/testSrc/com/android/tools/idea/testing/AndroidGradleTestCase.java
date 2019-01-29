@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -73,11 +74,11 @@ import java.util.concurrent.CountDownLatch;
 
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getSdk;
-import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE_3DOT0;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_PRE30;
+import static com.android.utils.TraceUtils.getCurrentStack;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
@@ -195,6 +196,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   @Override
   protected void tearDown() throws Exception {
+    myModules = null;
+    myAndroidFacet = null;
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
       if (myFixture != null) {
@@ -212,7 +215,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
           try {
             myFixture.tearDown();
           }
-          catch (Exception e) {
+          catch (Throwable e) {
             LOG.warn("Failed to tear down " + myFixture.getClass().getSimpleName(), e);
           }
           myFixture = null;
@@ -251,7 +254,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void loadSimpleApplication_pre3dot0() throws Exception {
-    loadProject(SIMPLE_APPLICATION_PRE_3DOT0);
+    loadProject(SIMPLE_APPLICATION_PRE30);
   }
 
   protected void loadProject(@NotNull String relativePath) throws Exception {
@@ -296,7 +299,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       // then try and find a non-lib facet
       for (Module module : modules) {
         AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet != null && androidFacet.isAppProject()) {
+        if (androidFacet != null && androidFacet.getConfiguration().isAppProject()) {
           myAndroidFacet = androidFacet;
           break;
         }
@@ -321,28 +324,39 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
     }
-    assertTrue(root.getPath(), root.exists());
-
-    File build = new File(root, FN_BUILD_GRADLE);
-    File settings = new File(root, FN_SETTINGS_GRADLE);
-    assertTrue("Couldn't find build.gradle or settings.gradle in " + root.getPath(), build.exists() || settings.exists());
 
     // Sync the model
     Project project = myFixture.getProject();
     File projectRoot = virtualToIoFile(project.getBaseDir());
-    copyDir(root, projectRoot);
+    prepareProjectForImport(root, projectRoot);
+    return projectRoot;
+  }
+
+  @NotNull
+  protected File prepareProjectForImport(@NotNull File srcRoot, @NotNull File projectRoot) throws IOException {
+    assertTrue(srcRoot.getPath(), srcRoot.exists());
+
+    File settings = new File(srcRoot, FN_SETTINGS_GRADLE);
+    File build = new File(srcRoot, FN_BUILD_GRADLE);
+    File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
+    File ktsBuild = new File(srcRoot, FN_BUILD_GRADLE_KTS);
+    assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
+               settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
+
+
+    copyDir(srcRoot, projectRoot);
 
     // We need the wrapper for import to succeed
     createGradleWrapper(projectRoot);
 
     // Override settings just for tests (e.g. sdk.dir)
-    updateLocalProperties();
+    updateLocalProperties(projectRoot);
 
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
     updateVersionAndDependencies(projectRoot);
 
     // Refresh project dir to have files under of the project.getBaseDir() visible to VFS
-    synchronizeTempDirVfs(project.getBaseDir());
+    synchronizeTempDirVfs(getProject().getBaseDir());
     return projectRoot;
   }
 
@@ -389,8 +403,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     return result;
   }
 
-  private void updateLocalProperties() throws IOException {
-    LocalProperties localProperties = new LocalProperties(getProject());
+  private void updateLocalProperties(@NotNull File projectRoot) throws IOException {
+    LocalProperties localProperties = new LocalProperties(projectRoot);
     File sdkPath = findSdkPath();
     assertAbout(file()).that(sdkPath).named("Android SDK path").isDirectory();
     localProperties.setAndroidSdkPath(sdkPath.getPath());
@@ -403,7 +417,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   protected void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
-    File path = getWorkspaceFile("tools/external/gradle/gradle-" + gradleVersion + "-bin.zip");
+    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(gradleVersion);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
   }
@@ -488,10 +502,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   private static void checkStatus(@NotNull SyncListener syncListener) {
     if (!syncListener.success) {
-      String cause = syncListener.failureMessage;
-      if (isEmpty(cause)) {
-        cause = "<Unknown>";
-      }
+      String cause =
+        !syncListener.isSyncFinished() ? "<Timed out>" : isEmpty(syncListener.failureMessage) ? "<Unknown>" : syncListener.failureMessage;
       fail(cause);
     }
   }
@@ -569,12 +581,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }.execute().getResultObject();
   }
 
-  public static class SyncListener extends GradleSyncListener.Adapter {
+  public static class SyncListener implements GradleSyncListener {
     @NotNull private final CountDownLatch myLatch;
 
     boolean syncSkipped;
     boolean success;
-    String failureMessage;
+    @Nullable String failureMessage;
 
     SyncListener() {
       myLatch = new CountDownLatch(1);
@@ -594,7 +606,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-      failureMessage = errorMessage;
+      failureMessage = !errorMessage.isEmpty() ? errorMessage : "No errorMessage at:\n" + getCurrentStack();
       myLatch.countDown();
     }
 
@@ -604,6 +616,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     public boolean isSyncSkipped() {
       return syncSkipped;
+    }
+
+    public boolean isSyncFinished() {
+      return success || failureMessage != null;
     }
   }
 }

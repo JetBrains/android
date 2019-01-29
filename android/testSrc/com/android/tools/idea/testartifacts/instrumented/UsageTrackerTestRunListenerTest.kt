@@ -15,45 +15,52 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
+import com.android.builder.model.TestOptions
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
 import com.android.testutils.VirtualTimeScheduler
-import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.stubs.FileStructure
 import com.android.tools.idea.gradle.stubs.android.AndroidArtifactStub
 import com.android.tools.idea.stats.AnonymizerUtil
+import com.android.tools.idea.stats.UsageTrackerTestRunListener
+import com.android.tools.idea.stats.toProtoValue
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
-import org.junit.Test
+import com.intellij.testFramework.PlatformTestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import kotlin.test.assertNotEquals
 
-class UsageTrackerTestRunListenerTest {
+class UsageTrackerTestRunListenerTest : PlatformTestCase() {
   private val serial = "my serial"
 
   private fun checkLoggedEvent(instrumentationOutput: String, block: (AndroidStudioEvent) -> Unit) {
-    val tracker = TestUsageTracker(AnalyticsSettings(), VirtualTimeScheduler())
-    val listener = UsageTrackerTestRunListener(
+    val tracker = TestUsageTracker(VirtualTimeScheduler())
+    UsageTracker.setWriterForTest(tracker)
+    try {
+      val listener = UsageTrackerTestRunListener(
         AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
         mock(IDevice::class.java)!!.also {
           `when`(it.serialNumber).thenReturn(serial)
-        },
-        tracker
-    )
+        }
+      )
 
-    InstrumentationResultParser(UsageTrackerTestRunListener::class.qualifiedName, listener).run {
-      processNewLines(instrumentationOutput.lines().toTypedArray())
-      done()
+      InstrumentationResultParser(UsageTrackerTestRunListener::class.qualifiedName, listener).run {
+        processNewLines(instrumentationOutput.lines().toTypedArray())
+        done()
+      }
+
+      block.invoke(tracker.usages.single().studioEvent)
+    } finally {
+      UsageTracker.cleanAfterTesting()
     }
-
-    block.invoke(tracker.usages.single().studioEvent)
   }
 
-  @Test
-  fun normalRun() {
+  fun testNormalRun() {
     checkLoggedEvent("""
         INSTRUMENTATION_STATUS: numtests=2
         INSTRUMENTATION_STATUS: stream=
@@ -96,6 +103,7 @@ class UsageTrackerTestRunListenerTest {
     ) { event ->
       assertThat(event.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
       assertThat(event.deviceInfo.anonymizedSerialNumber).isEqualTo(AnonymizerUtil.anonymizeUtf8(serial))
+      assertThat(event.hasProductDetails()).isTrue()
       assertThat(event.testRun).isEqualTo(TestRun.newBuilder().run {
         numberOfTestsExecuted = 2
         testExecution = TestRun.TestExecution.HOST
@@ -107,8 +115,7 @@ class UsageTrackerTestRunListenerTest {
     }
   }
 
-  @Test
-  fun instrumentationFailed() {
+  fun testInstrumentationFailed() {
     checkLoggedEvent("""
         android.util.AndroidException: INSTRUMENTATION_FAILED: com.example.bendowski.androidplayground.test/android.support.test.runner.AndroidJUnitRunner
                 at com.android.commands.am.Instrument.run(Instrument.java:410)
@@ -132,6 +139,12 @@ class UsageTrackerTestRunListenerTest {
         testLibraries = TestLibraries.getDefaultInstance()
         build()
       })
+    }
+  }
+
+  fun testExecutionMapping() {
+    for (execution in TestOptions.Execution.values()) {
+      assertNotEquals(TestRun.TestExecution.UNKNOWN_TEST_EXECUTION, execution.toProtoValue())
     }
   }
 }

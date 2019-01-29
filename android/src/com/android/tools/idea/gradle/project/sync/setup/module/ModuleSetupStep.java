@@ -22,10 +22,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class ModuleSetupStep<T> {
+  protected boolean myShouldTerminateSetup = false;
+
   public final void setUpModule(@NotNull ModuleSetupContext context, @Nullable T gradleModel) {
     if (gradleModel == null) {
       return;
     }
+
+    // Reset state
+    myShouldTerminateSetup = false;
+
     doSetUpModule(context, gradleModel);
   }
 
@@ -38,4 +44,9 @@ public abstract class ModuleSetupStep<T> {
   public boolean invokeOnSkippedSync() {
     return false;
   }
+
+  /**
+   * @return whether or not to terminate the setup of a module once this step has run.
+   */
+  public boolean shouldTerminateSetup() { return myShouldTerminateSetup; }
 }

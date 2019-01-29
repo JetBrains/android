@@ -15,20 +15,23 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.math.BigDecimal;
 
 /**
  * Represents a GradleExpression that has a value that can be set/reset. This class stores a tentative value. Subclasses should
  * use {@link #getCurrentElement()} to get the currently tentative or set element or {@link #reset()} return to the previously saved state.
  */
-public abstract class GradleDslSettableExpression extends GradleDslExpression {
+public abstract class GradleDslSettableExpression extends GradleDslSimpleExpression {
   @Nullable private PsiElement myUnsavedValue;
 
   protected GradleDslSettableExpression(@Nullable GradleDslElement parent,
                                         @Nullable PsiElement psiElement,
-                                        @NotNull String name,
+                                        @NotNull GradleNameElement name,
                                         @Nullable PsiElement expression) {
     super(parent, psiElement, name, expression);
   }
@@ -40,17 +43,40 @@ public abstract class GradleDslSettableExpression extends GradleDslExpression {
 
   @Override
   public void reset() {
+    if (myUnsavedValue != null) {
+      // Make sure dependencies are correctly setup to the old value.
+      setupDependencies(myExpression);
+    }
     myUnsavedValue = null;
     // Resetting setModified is done by GradleDslElement#resetState.
+    super.reset();
   }
 
   @Nullable
-  protected PsiElement getCurrentElement() {
+  public PsiElement getCurrentElement() {
     return myUnsavedValue != null ? myUnsavedValue : myExpression;
+  }
+
+  @Override
+  public void resolve() {
+    setupDependencies(getCurrentElement());
   }
 
   protected void setUnsavedValue(@Nullable PsiElement element) {
     myUnsavedValue = element;
-    setModified(true);
+    resolve();
+    setModified();
+    reorder();
+  }
+
+  protected void checkForValidValue(@NotNull Object value) {
+    if (!(value instanceof String ||
+          value instanceof Integer ||
+          value instanceof Boolean ||
+          value instanceof RawText ||
+          value instanceof BigDecimal)) {
+      throw new IllegalArgumentException(
+        "Can't set a property value with: " + value.getClass() + " type must be one of [Boolean, Integer, String, ReferenceTo]");
+    }
   }
 }

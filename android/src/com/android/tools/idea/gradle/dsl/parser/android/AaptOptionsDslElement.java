@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,28 +26,21 @@ public class AaptOptionsDslElement extends GradleDslBlockElement {
   @NonNls public static final String AAPT_OPTIONS_BLOCK_NAME = "aaptOptions";
 
   public AaptOptionsDslElement(@NotNull GradleDslElement parent) {
-    super(parent, AAPT_OPTIONS_BLOCK_NAME);
+    super(parent, GradleNameElement.create(AAPT_OPTIONS_BLOCK_NAME));
   }
 
   @Override
-  public void setParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (property.equals("ignoreAssetsPattern")) {
-      super.addParsedElement("ignoreAssets", element);
-      return;
-    }
-    super.addParsedElement(property, element);
+  public void setParsedElement(@NotNull GradleDslElement element) {
+    super.addParsedElement(element);
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
-    if (element instanceof GradleDslExpression && (property.equals("additionalParameters") || property.equals("noCompress"))) {
-      addAsParsedDslExpressionList(property, (GradleDslExpression)element);
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element instanceof GradleDslSimpleExpression &&
+        (element.getName().equals("additionalParameters") || element.getName().equals("noCompress"))) {
+      addAsParsedDslExpressionList((GradleDslSimpleExpression)element);
       return;
     }
-    if (property.equals("ignoreAssetsPattern")) {
-      super.addParsedElement("ignoreAssets", element);
-      return;
-    }
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

@@ -18,41 +18,21 @@ package com.android.tools.idea.gradle.dsl.parser.dependencies;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class DependenciesDslElement extends GradleDslBlockElement {
   @NonNls public static final String DEPENDENCIES_BLOCK_NAME = "dependencies";
 
-  public DependenciesDslElement(@Nullable GradleDslElement parent) {
-    super(parent, DEPENDENCIES_BLOCK_NAME);
+  public DependenciesDslElement(@NotNull GradleDslElement parent) {
+    super(parent, GradleNameElement.create(DEPENDENCIES_BLOCK_NAME));
   }
 
   @Override
-  public void addParsedElement(@NotNull String configurationName, @NotNull GradleDslElement dependency) {
+  public void addParsedElement(@NotNull GradleDslElement dependency) {
     // Treat all expressions and expression maps as dependencies
-    if (dependency instanceof GradleDslExpression || dependency instanceof GradleDslExpressionMap) {
-      GradleDslElementList elementList = getOrCreateParsedElement(configurationName);
-      elementList.addParsedElement(dependency);
+    if (dependency instanceof GradleDslSimpleExpression ||
+        dependency instanceof GradleDslExpressionMap ||
+        dependency instanceof GradleDslExpressionList) {
+      super.addParsedElement(dependency);
     }
-    else if (dependency instanceof GradleDslExpressionList) {
-      GradleDslElementList elementList = getOrCreateParsedElement(configurationName);
-      for (GradleDslExpression expression : ((GradleDslExpressionList)dependency).getExpressions()) {
-        GradleDslClosure dependencyClosureElement = dependency.getClosureElement();
-        if (expression.getClosureElement() == null && dependencyClosureElement != null) {
-          expression.setParsedClosureElement(dependencyClosureElement);
-        }
-        elementList.addParsedElement(expression);
-      }
-    }
-  }
-
-  @NotNull
-  private GradleDslElementList getOrCreateParsedElement(@NotNull String configurationName) {
-    GradleDslElementList elementList = getPropertyElement(configurationName, GradleDslElementList.class);
-    if (elementList == null) {
-      elementList = new GradleDslElementList(this, configurationName);
-      super.addParsedElement(configurationName, elementList);
-    }
-    return elementList;
   }
 }

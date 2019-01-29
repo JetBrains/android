@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -61,6 +62,11 @@ public abstract class BaseTarget implements Target {
   }
 
   @Override
+  public boolean isMouseHovered() {
+    return mIsOver;
+  }
+
+  @Override
   @AndroidDpCoordinate
   public float getCenterX() {
     return myLeft + (myRight - myLeft) / 2;
@@ -90,16 +96,23 @@ public abstract class BaseTarget implements Target {
    */
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
-    if (!myComponent.getScene().allowsTarget(this)) {
-      return;
+    if (isHittable()) {
+      picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
+                     transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
     }
-    picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
-                   transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
+  }
+
+  /**
+   * @return True if this {@link Target} is hittable, false otherwise.
+   */
+  protected boolean isHittable() {
+    return getComponent().getScene().getFilterType() == Scene.FilterType.ALL;
   }
 
   @Override
+  @Nullable
   public String getToolTipText() {
-    return myComponent.getNlComponent().getTooltipText();
+    return null;
   }
 
   /**

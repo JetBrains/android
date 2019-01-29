@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A {@link SceneDecoratorFactory} for layout editor components.
@@ -37,10 +38,12 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
   private static final NlSceneFrameFactory FRAME_FRACTORY = new NlSceneFrameFactory();
 
   private static Map<String, Constructor<? extends SceneDecorator>> ourConstructorMap = new HashMap<>();
+  private static Map<String, SceneDecorator> ourSceneMap = new HashMap<>();
 
   static {
     try {
-      ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT, ConstraintLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT.oldName(), ConstraintLayoutDecorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT.newName(), ConstraintLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.PROGRESS_BAR, ProgressBarDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.BUTTON, ButtonDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.TEXT_VIEW, TextViewDecorator.class.getConstructor());
@@ -51,7 +54,8 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
       ourConstructorMap.put(SdkConstants.SWITCH, SwitchDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.LINEAR_LAYOUT, LinearLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.GRID_LAYOUT, GridLayoutDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.CLASS_GRID_LAYOUT_V7, GridLayoutV7Decorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.CLASS_GRID_LAYOUT_V7.oldName(), GridLayoutV7Decorator.class.getConstructor());
+      ourConstructorMap.put(SdkConstants.CLASS_GRID_LAYOUT_V7.newName(), GridLayoutV7Decorator.class.getConstructor());
       ourConstructorMap.put(SdkConstants.RELATIVE_LAYOUT, RelativeLayoutDecorator.class.getConstructor());
     }
     catch (NoSuchMethodException e) {
@@ -83,8 +87,18 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
   }
 
   @NotNull
-  @Override
-  protected Map<String, Constructor<? extends SceneDecorator>> getConstructorMap() {
-    return ourConstructorMap;
+  private static Optional<SceneDecorator> get(@NotNull String key) {
+    if (ourConstructorMap.containsKey(key)) {
+      if (!ourSceneMap.containsKey(key)) {
+        try {
+          ourSceneMap.put(key, ourConstructorMap.get(key).newInstance());
+        }
+        catch (Exception e) {
+          ourSceneMap.put(key, null);
+        }
+      }
+      return Optional.of(ourSceneMap.get(key));
+    }
+    return Optional.empty();
   }
 }

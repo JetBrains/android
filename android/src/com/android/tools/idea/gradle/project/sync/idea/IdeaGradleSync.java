@@ -19,45 +19,49 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.sync.GradleSync;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.*;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
-import com.intellij.build.DefaultBuildDescriptor;
-import com.intellij.build.SyncViewManager;
-import com.intellij.build.events.impl.StartBuildEventImpl;
+import com.google.common.collect.ImmutableList;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.projectImport.ProjectOpenProcessor;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectOpenProcessor;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver;
+import org.jetbrains.plugins.gradle.service.project.wizard.GradleJavaProjectOpenProcessor;
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.registerAsNewProject;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.createProjectSetupFromCacheTaskWithStartMessage;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalRootProjectPath;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshProject;
 import static java.lang.System.currentTimeMillis;
 
@@ -104,15 +108,11 @@ public class IdeaGradleSync implements GradleSync {
 
           setSkipAndroidPluginUpgrade(request, setupRequest);
 
-          // Create a task for the Build View, this is needed to hang any found issue to it.
-          ExternalSystemTaskId taskId = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject);
-          String workingDir = toCanonicalPath(getBaseDirPath(myProject).getPath());
-          DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(taskId, "Project setup", workingDir, currentTimeMillis());
-          SyncViewManager syncManager = ServiceManager.getService(myProject, SyncViewManager.class);
-          syncManager.onEvent(new StartBuildEventImpl(buildDescriptor, "reading from cache..."));
-          myProject.putUserData(LAST_SYNC_TASK_ID_KEY, taskId);
+          // Create a new taskId when using cache
+          ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);
+
           ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener, true /* sync skipped */);
-          setUpTask.onSuccess(cache);
+          setUpTask.onSuccess(taskId, cache);
           return;
         }
       }
@@ -131,8 +131,9 @@ public class IdeaGradleSync implements GradleSync {
       GradleSettings gradleSettings = GradleSettings.getInstance(myProject);
       Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
       if (projectsSettings.isEmpty()) {
-        GradleProjectOpenProcessor projectOpenProcessor = ProjectOpenProcessor.EXTENSION_POINT_NAME.findExtensionOrFail(GradleProjectOpenProcessor.class);
-        if (myProject.getBasePath() != null && projectOpenProcessor.canOpenProject(myProject.getBaseDir())) {
+        GradleJavaProjectOpenProcessor gradleProjectOpenProcessor =
+          Extensions.findExtension(ProjectOpenProcessor.EXTENSION_POINT_NAME, GradleJavaProjectOpenProcessor.class);
+        if (myProject.getBasePath() != null && gradleProjectOpenProcessor.canOpenProject(myProject.getBaseDir())) {
           GradleProjectSettings projectSettings = new GradleProjectSettings();
           String externalProjectPath = toCanonicalPath(myProject.getBasePath());
           projectSettings.setExternalProjectPath(externalProjectPath);
@@ -182,5 +183,52 @@ public class IdeaGradleSync implements GradleSync {
     if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.skipAndroidPluginUpgrade) {
       setupRequest.skipAndroidPluginUpgrade = true;
     }
+  }
+
+  @Override
+  @NotNull
+  public List<GradleModuleModels> fetchGradleModels(@NotNull ProgressIndicator indicator) {
+    GradleExecutionSettings settings = getGradleExecutionSettings(myProject);
+    ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, myProject);
+    String projectPath = myProject.getBasePath();
+    assert projectPath != null;
+
+    GradleProjectResolver projectResolver = new GradleProjectResolver();
+    DataNode<ProjectData> projectDataNode = projectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
+
+    ImmutableList.Builder<GradleModuleModels> builder = ImmutableList.builder();
+
+    if (projectDataNode != null) {
+      Collection<DataNode<ModuleData>> moduleNodes = findAll(projectDataNode, MODULE);
+      for (DataNode<ModuleData> moduleNode : moduleNodes) {
+        DataNode<GradleModuleModel> gradleModelNode = find(moduleNode, GRADLE_MODULE_MODEL);
+        if (gradleModelNode != null) {
+          PsdModuleModels moduleModules = new PsdModuleModels(moduleNode.getData().getExternalName());
+          moduleModules.addModel(GradleModuleModel.class, gradleModelNode.getData());
+
+          DataNode<AndroidModuleModel> androidModelNode = find(moduleNode, ANDROID_MODEL);
+          if (androidModelNode != null) {
+            moduleModules.addModel(AndroidModuleModel.class, androidModelNode.getData());
+
+            DataNode<NdkModuleModel> ndkModelNode = find(moduleNode, NDK_MODEL);
+            if (ndkModelNode != null) {
+              moduleModules.addModel(NdkModuleModel.class, ndkModelNode.getData());
+            }
+
+            builder.add(moduleModules);
+            continue;
+          }
+
+          DataNode<JavaModuleModel> javaModelNode = find(moduleNode, JAVA_MODULE_MODEL);
+          if (javaModelNode != null) {
+            moduleModules.addModel(JavaModuleModel.class, javaModelNode.getData());
+
+            builder.add(moduleModules);
+          }
+        }
+      }
+    }
+
+    return builder.build();
   }
 }

@@ -19,12 +19,10 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.android.tools.idea.ui.GuiTestingService;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +37,6 @@ import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.builder.model.AndroidProject.GENERATION_COMPONENT;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.ide.common.repository.MavenRepositories.getHighestInstalledVersion;
-import static com.android.tools.idea.gradle.dsl.api.values.GradleValue.getValues;
 
 public abstract class AndroidPluginGeneration {
   public static final AndroidPluginGeneration ORIGINAL = new AndroidPluginGeneration() {
@@ -179,7 +176,7 @@ public abstract class AndroidPluginGeneration {
     // Now look at the applied plugins in the build.gradle file.
     GradleBuildModel buildModel = GradleBuildModel.get(module);
     if (buildModel != null) {
-      List<String> appliedPlugins = getValues(buildModel.appliedPlugins());
+      List<String> appliedPlugins = PluginModel.extractNames(buildModel.plugins());
       for (AndroidPluginGeneration generation : ourValues) {
         if (appliedPlugins.contains(generation.getApplicationPluginId()) || appliedPlugins.contains(generation.getLibraryPluginId())) {
           return generation;
@@ -205,19 +202,11 @@ public abstract class AndroidPluginGeneration {
       .max(COMPARE_PLUS_HIGHER);
 
     if (!highestValueCoordinate.isPresent()) {
-      if (IdeInfo.getInstance().isAndroidStudio() && !GuiTestingService.getInstance().isGuiTestingMode() &&
-          !ApplicationManager.getApplication().isInternal() &&
-          !ApplicationManager.getApplication().isUnitTestMode()) {
-        // In a release build, Android Studio must find the latest version in its offline repo(s).
-        throw new IllegalStateException("Gradle plugin missing from the offline Maven repo");
-      }
-      else {
-        // In all other scenarios we will not throw an exception, but use the last known version from SdkConstants.
-        // TODO: revisit this when tests are running with the latest (source) build.
-        String version = generation.getRecommendedVersion();
-        getLog().info("'" + artifactId + "' plugin missing from the offline Maven repo, will use default " + version);
-        return version;
-      }
+      // If there is no embedded repo, then use the last known version from SdkConstants
+      // TODO: revisit this when tests are running with the latest (source) build.
+      String version = generation.getRecommendedVersion();
+      getLog().info("'" + artifactId + "' plugin missing from the offline Maven repo, will use default " + version);
+      return version;
     }
 
     return highestValueCoordinate.get().getRevision();

@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.testutils.VirtualTimeScheduler;
-import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.NullUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
@@ -31,6 +30,7 @@ import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
@@ -73,7 +74,7 @@ import static junit.framework.Assert.assertTrue;
  * for all future runs of GradleSyncGuiPerfTest.  In fact, this is the recommended configuration.
  */
 @RunIn(TestGroup.SYNC_PERFORMANCE_SETUP)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GradleSyncGuiPerfSetupTest {
 
   @Rule public final GuiTestRule guiTest = new GradleSyncGuiPerfSetupTestRule().withTimeout(30, TimeUnit.MINUTES);
@@ -87,7 +88,7 @@ public class GradleSyncGuiPerfSetupTest {
   @Test
   @RunIn(TestGroup.SYNC_PERFORMANCE_SETUP)
   public void syncPerfTest() throws IOException, NullPointerException {
-    UsageTracker.setInstanceForTest(new NullUsageTracker(new AnalyticsSettings(), new VirtualTimeScheduler()));
+    UsageTracker.setWriterForTest(NullUsageTracker.INSTANCE);
     guiTest.importProjectAndWaitForProjectSyncToFinish("android-studio-gradle-test");
     guiTest.ideFrame().requestProjectSync().waitForGradleProjectSyncToFinish(Wait.seconds(10 * 60));
     guiTest.ideFrame().invokeProjectMake(Wait.seconds(30 * 60));
@@ -161,7 +162,7 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
   private static void updateBuildFile(@NotNull File projectRoot) throws IOException {
     File buildFile = new File(projectRoot, "build.gradle");
     String contents = Files.toString(buildFile, Charsets.UTF_8);
-    contents = contents.replaceAll("jcenter\\(\\)", AndroidGradleTests.getLocalRepositories() +
+    contents = contents.replaceAll("jcenter\\(\\)", AndroidGradleTests.getLocalRepositoriesForGroovy() +
                                                     "\n" +
                                                     " maven { url \"" + getWorkspaceFile("./prebuilts/maven_repo/android/") + "\" }\n");
     contents = contents.replaceAll("classpath 'com\\.android\\.tools\\.build:gradle:\\d+.\\d+.\\d+'",
@@ -273,9 +274,14 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
   }
 
   private static void updateAndroidAptConfiguration(@NotNull File projectRoot) throws IOException {
-    List<Path> allBuildFiles =
-      find(projectRoot.toPath(), Integer.MAX_VALUE, (path, attrs) -> path.getFileName().toString().equals("build.gradle"))
-        .filter(p -> !PathUtils.toSystemIndependentPath(p).endsWith("gradle/SourceTemplate/app/build.gradle")).collect(Collectors.toList());
+    List<Path> allBuildFiles;
+    try (Stream<Path> stream = find(projectRoot.toPath(), Integer.MAX_VALUE,
+                                    (path, attrs) -> path.getFileName().toString().equals("build.gradle"))) {
+      allBuildFiles = stream
+        .filter(p -> !PathUtils.toSystemIndependentPath(p).endsWith("gradle/SourceTemplate/app/build.gradle"))
+        .collect(Collectors.toList());
+    }
+
     modifyBuildFiles(allBuildFiles);
   }
 
@@ -322,7 +328,7 @@ class GradleSyncGuiPerfSetupTestRule extends GuiTestRule {
 
   protected static void createGradleWrapper(@NotNull File projectRoot) throws IOException {
     GradleWrapper wrapper = GradleWrapper.create(projectRoot);
-    File path = getWorkspaceFile("tools/external/gradle/gradle-" + GRADLE_LATEST_VERSION + "-bin.zip");
+    File path = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionFile(GRADLE_LATEST_VERSION);
     assertAbout(file()).that(path).named("Gradle distribution path").isFile();
     wrapper.updateDistributionUrl(path);
   }

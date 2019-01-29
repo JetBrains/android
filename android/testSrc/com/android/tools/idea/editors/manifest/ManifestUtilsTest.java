@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.XmlNode;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.PositionXmlParser;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.xml.XMLLanguage;
@@ -37,12 +37,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.android.SdkConstants.ANDROID_URI;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ManifestUtilsTest extends AndroidTestCase {
 
@@ -64,7 +64,7 @@ public class ManifestUtilsTest extends AndroidTestCase {
     assert root != null;
 
     Document document = PositionXmlParser.parse(overlay.getText());
-    activity = LintUtils.getChildren(LintUtils.getChildren(document.getDocumentElement()).get(0)).get(0);
+    activity = Lint.getChildren(Lint.getChildren(document.getDocumentElement()).get(0)).get(0);
 
     name = activity.getAttributeNodeNS(ANDROID_URI, "name");
     label = activity.getAttributeNodeNS(ANDROID_URI, "label");

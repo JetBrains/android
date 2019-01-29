@@ -15,19 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import static com.intellij.util.ui.JBUI.scale;
+
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.BaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -38,7 +42,7 @@ import java.util.List;
 public abstract class ResizeBaseTarget extends BaseTarget {
 
   protected final Type myType;
-  protected final int mySize = 2;
+  protected final int mySize = scale(2);
 
   @AndroidDpCoordinate protected int myStartX1;
   @AndroidDpCoordinate protected int myStartY1;
@@ -186,14 +190,40 @@ public abstract class ResizeBaseTarget extends BaseTarget {
 
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    if (!myComponent.getScene().allowsTarget(this)) {
-      return;
+    if (isHittable()) {
+      DrawResize.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
     }
-
-    DrawResize.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
   }
 
-  protected abstract void updateAttributes(@NotNull AttributesTransaction attributes,
+  @Override
+  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+    if (isHittable()) {
+      picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
+                     transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
+    }
+  }
+
+  @Override
+  protected boolean isHittable() {
+    SceneComponent component = getComponent();
+    if (component.getScene().getSelection().size() > 1) {
+      // Disable resize target when selecting multiple components.
+      return false;
+    }
+    if (component.isSelected()) {
+      if (component.canShowBaseline()) {
+        return true;
+      }
+      return !component.isDragging();
+    }
+    Scene.FilterType filterType = component.getScene().getFilterType();
+    if (filterType == Scene.FilterType.RESIZE || filterType == Scene.FilterType.ALL) {
+      return true;
+    }
+    return false;
+  }
+
+  protected abstract void updateAttributes(@NotNull NlAttributesHolder attributes,
                                            @AndroidDpCoordinate int x,
                                            @AndroidDpCoordinate int y);
 
@@ -216,7 +246,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     NlComponent component = myComponent.getAuthoritativeNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     updateAttributes(attributes, x, y);
@@ -225,13 +255,11 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     NlComponent component = myComponent.getAuthoritativeNlComponent();
-    AttributesTransaction attributes = component.startAttributeTransaction();
-    updateAttributes(attributes, x, y);
-    attributes.apply();
-
-    NlWriteCommandAction.run(component, "Resize " + StringUtil.getShortName(component.getTagName()), attributes::commit);
+    ComponentModification modification = new ComponentModification(component, "Resize " + StringUtil.getShortName(component.getTagName()));
+    updateAttributes(modification, x, y);
+    modification.commit();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 

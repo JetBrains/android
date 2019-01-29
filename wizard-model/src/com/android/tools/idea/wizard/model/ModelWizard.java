@@ -119,9 +119,9 @@ public final class ModelWizard implements Disposable {
     // At this point, we're ready to go! Try to start the wizard, proceeding into the first step
     // if we can.
 
-    Facade facade = new Facade();
-    for (ModelWizardStep step : mySteps) {
-      step.onWizardStarting(facade);
+    for (int i = 0; i < mySteps.size(); i++) {
+      ModelWizardStep step = mySteps.get(i);
+      step.onWizardStarting(new Facade(i));
     }
 
     boolean atLeastOneVisibleStep = false;
@@ -579,6 +579,16 @@ public final class ModelWizard implements Disposable {
    */
   public final class Facade {
 
+    private final int myAllowedIndex;
+
+    /**
+     * Each facade passed to a step will only work when the step is actually active. This prevents
+     * steps from using their facade to modify their parent wizard while another step is in focus.
+     */
+    public Facade(int allowedIndex) {
+      myAllowedIndex = allowedIndex;
+    }
+
     /**
      * Update the properties driving next, back, and last page behavior. This is often handled
      * automatically, but a step may modify a model that will cause a later step to skip itself,
@@ -586,9 +596,12 @@ public final class ModelWizard implements Disposable {
      * to manually trigger the update.
      */
     public void updateNavigationProperties() {
-      if (myCurrIndex < 0) {
-        return; // Protects against user calling this method in ModelWizardStep#onWizardStarting
+      if (myAllowedIndex != myCurrIndex) {
+        // Protects against user calling this method in ModelWizardStep#onWizardStarting or while
+        // another step has focus.
+        return;
       }
+
       ModelWizard.this.updateNavigationProperties();
     }
 
@@ -613,6 +626,10 @@ public final class ModelWizard implements Disposable {
         throw new IllegalStateException("Attempting to goForward before the wizard has even started");
       }
 
+      if (myAllowedIndex != myCurrIndex) {
+        throw new IllegalStateException("Step which isn't active is attempting to goForward");
+      }
+
       return ModelWizard.this.goForward();
     }
 
@@ -632,6 +649,11 @@ public final class ModelWizard implements Disposable {
         // Protects against user calling this method directly in ModelWizardStep#onWizardStarting
         throw new IllegalStateException("Attempting to cancel before the wizard has even started");
       }
+
+      if (myAllowedIndex != myCurrIndex) {
+        throw new IllegalStateException("Step which isn't active is attempting to cancel");
+      }
+
       ModelWizard.this.cancel();
     }
   }

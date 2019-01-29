@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.openapi.project.Project;
 import java.awt.image.BufferedImage;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.ExecutionException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Generates icons for the vector drawable.
@@ -32,16 +34,17 @@ public class VectorIconGenerator extends IconGenerator {
   /**
    * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
    *
+   * @param project the Android project
    * @param minSdkVersion the minimal supported Android SDK version
    */
-  public VectorIconGenerator(int minSdkVersion) {
-    super(minSdkVersion);
+  public VectorIconGenerator(@NotNull Project project, int minSdkVersion) {
+    super(project, minSdkVersion, new GraphicGeneratorContext(40, null));
   }
 
   @Override
   @NotNull
   public VectorIconOptions createOptions(boolean forPreview) {
-    VectorIconOptions options = new VectorIconOptions();
+    VectorIconOptions options = new VectorIconOptions(forPreview);
     BaseAsset asset = sourceAsset().getValueOrNull();
     if (asset != null) {
       options.sourceImageFuture = asset.toImage();
@@ -55,16 +58,39 @@ public class VectorIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public BufferedImage generate(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public BufferedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
 
     BufferedImage image = getTrimmedAndPaddedImage(options);
     if (image == null) {
-      image = AssetStudioUtils.createDummyImage();
+      image = PLACEHOLDER_IMAGE;
     }
     return image;
+  }
+
+
+  @Nullable
+  private static BufferedImage getTrimmedAndPaddedImage(@NotNull Options options) {
+    if (options.sourceImageFuture == null) {
+      return null;
+    }
+    try {
+      BufferedImage image = options.sourceImageFuture.get();
+      if (image != null) {
+        if (options.isTrimmed) {
+          image = AssetStudioUtils.trim(image);
+        }
+        if (options.paddingPercent != 0) {
+          image = AssetStudioUtils.pad(image, options.paddingPercent);
+        }
+      }
+      return image;
+    }
+    catch (InterruptedException | ExecutionException e) {
+      return null;
+    }
   }
 
   @Override
@@ -76,12 +102,13 @@ public class VectorIconGenerator extends IconGenerator {
       return Collections.emptySet();
     }
     String xmlContent = result.getXmlContent();
-    GeneratedIcon icon = new GeneratedXmlResource(name, Paths.get(getIconPath(options, name)), IconCategory.XML_RESOURCE, xmlContent);
+    GeneratedIcon icon = new GeneratedXmlResource(name, new PathString(getIconPath(options, name)), IconCategory.XML_RESOURCE, xmlContent);
     return Collections.singleton(icon);
   }
 
   public static class VectorIconOptions extends Options {
-    public VectorIconOptions() {
+    public VectorIconOptions(boolean forPreview) {
+      super(forPreview);
       iconFolderKind = IconFolderKind.DRAWABLE_NO_DPI;
     }
   }

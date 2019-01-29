@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -99,6 +101,8 @@ public class AndroidDependenciesCache {
                                                     boolean androidLibrariesOnly,
                                                     List<AndroidFacet> result,
                                                     Set<AndroidFacet> visited) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    boolean isDynamicFeature = facet != null && facet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE;
     final OrderEntry[] entries = ModuleRootManager.getInstance(module).getOrderEntries();
     // loop in the inverse order to resolve dependencies on the libraries, so that if a library
     // is required by two higher level libraries it can be inserted in the correct place
@@ -115,7 +119,7 @@ public class AndroidDependenciesCache {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
             if (depFacet != null &&
-                !(androidLibrariesOnly && depFacet.isAppProject()) &&
+                !(androidLibrariesOnly && depFacet.getConfiguration().isAppProject() && !isDynamicFeature) &&
                 visited.add(depFacet)) {
               final List<WeakReference<AndroidFacet>> cachedDepDeps =
                 getInstance(depModule).getListRef(androidLibrariesOnly).get();

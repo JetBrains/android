@@ -16,10 +16,9 @@
 
 package org.jetbrains.android.intentions;
 
-import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.lint.detector.api.ResourceEvaluator;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
@@ -57,6 +56,7 @@ import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -70,6 +70,7 @@ import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.STRING_RES_ANNOTATION;
+import static com.intellij.codeInsight.AnnotationUtil.CHECK_EXTERNAL;
 import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 public class AndroidAddStringResourceAction extends AbstractIntentionAction implements HighPriorityAction {
@@ -199,7 +200,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     if (resName != null && ApplicationManager.getApplication().isUnitTestMode()) {
       String fileName = AndroidResourceUtil.getDefaultResourceFileName(type);
       assert fileName != null;
-      VirtualFile resourceDir = facet.getPrimaryResourceDir();
+      VirtualFile resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
       assert resourceDir != null;
       AndroidResourceUtil.createValueResource(project, resourceDir, resName, type, fileName,
                                               Collections.singletonList(ResourceFolderType.VALUES.getName()), value);
@@ -290,7 +291,8 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
             break;
           }
           else {
-            if (!AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION, false, false)) {
+            if (!AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION.oldName(), CHECK_EXTERNAL) &&
+                AnnotationUtil.isAnnotated(otherParameter, STRING_RES_ANNOTATION.newName(), CHECK_EXTERNAL)) {
               found = false;
               break;
             }
@@ -335,10 +337,12 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
                                                   final ResourceType resType) {
     final boolean extendsContext = getContainingInheritorOf(element, CLASS_CONTEXT) != null;
     final boolean extendsFragment =
-      getContainingInheritorOf(element, CLASS_FRAGMENT) != null || getContainingInheritorOf(element, CLASS_V4_FRAGMENT) != null;
+      getContainingInheritorOf(element, CLASS_FRAGMENT) != null ||
+      getContainingInheritorOf(element, CLASS_V4_FRAGMENT.oldName()) != null ||
+      getContainingInheritorOf(element, CLASS_V4_FRAGMENT.newName()) != null;
 
     final String rJavaFieldName = AndroidResourceUtil.getRJavaFieldName(resName);
-    final String field = aPackage + ".R." + resType + '.' + rJavaFieldName;
+    final String field = aPackage + ".R." + resType.getName() + '.' + rJavaFieldName;
     final String methodName = getGetterNameForResourceType(resType, element);
     assert methodName != null;
     final TemplateImpl template;
@@ -418,7 +422,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     if (resourceType == ResourceType.DIMEN) {
       // Choose between getDimensionPixelSize and getDimension based on whether we're needing an int or a float
       PsiType targetType = computeTargetType(element);
-      if (targetType != null && PsiType.INT.equals(targetType)) {
+      if (PsiType.INT.equals(targetType)) {
         return "getDimensionPixelSize";
       }
       return "getDimension";
@@ -437,7 +441,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
           PsiMethod resolved = call.resolveMethod();
           if (resolved != null) {
             PsiParameterList parameterList = resolved.getParameterList();
-            if (index >= 0 && index < parameterList.getParametersCount()) {
+            if (index < parameterList.getParametersCount()) {
               PsiParameter psiParameter = parameterList.getParameters()[index];
               return psiParameter.getType();
             }
@@ -478,11 +482,11 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       if (vars == null || vars.length == 0) {
         return null;
       }
-      final Set<LookupElement> set = new LinkedHashSet<LookupElement>();
+      final Set<LookupElement> set = new LinkedHashSet<>();
       for (PsiElement var : vars) {
         JavaTemplateUtil.addElementLookupItem(set, var);
       }
-      LookupElement[] elements = set.toArray(new LookupElement[set.size()]);
+      LookupElement[] elements = set.toArray(LookupElement.EMPTY_ARRAY);
       if (elements.length == 0) {
         return elements;
       }

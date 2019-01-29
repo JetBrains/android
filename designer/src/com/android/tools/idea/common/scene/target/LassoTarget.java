@@ -20,11 +20,13 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawLasso;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -38,6 +40,40 @@ public class LassoTarget extends BaseTarget {
   @AndroidDpCoordinate private float myLastX;
   @AndroidDpCoordinate private float myLastY;
   private boolean myShowRect;
+  private final boolean mySelectWhileDragging;
+  private final boolean myShowMargins;
+  private final HashSet<SceneComponent> myIntersectingComponents = new HashSet<>();
+  private boolean myHasChanged;
+  private boolean myHasDragged;
+
+  public LassoTarget() {
+    this(false, true);
+  }
+
+  public LassoTarget(boolean selectWhileDragging, boolean showMargins) {
+    mySelectWhileDragging = selectWhileDragging;
+    myShowMargins = showMargins;
+  }
+
+  public boolean getSelectWhileDragging() {
+    return mySelectWhileDragging;
+  }
+
+  public boolean getHasChanged()  {
+    return myHasChanged;
+  }
+
+  public void clearHasChanged() {
+    myHasChanged = false;
+  }
+
+  public boolean getHasDragged()  {
+    return myHasDragged;
+  }
+
+  public HashSet<SceneComponent> getIntersectingComponents() {
+    return myIntersectingComponents;
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -73,7 +109,7 @@ public class LassoTarget extends BaseTarget {
       float x2 = Math.max(myOriginX, myLastX);
       float y1 = Math.min(myOriginY, myLastY);
       float y2 = Math.max(myOriginY, myLastY);
-      DrawLasso.add(list, sceneContext, x1, y1, x2, y2);
+      DrawLasso.add(list, sceneContext, x1, y1, x2, y2, myLastX, myLastY, myShowMargins);
     }
   }
 
@@ -81,6 +117,12 @@ public class LassoTarget extends BaseTarget {
   /////////////////////////////////////////////////////////////////////////////
   //region Mouse Handling
   /////////////////////////////////////////////////////////////////////////////
+
+
+  @Override
+  protected boolean isHittable() {
+    return !myComponent.isSelected() || !myComponent.isDragging();
+  }
 
   @Override
   public int getPreferenceLevel() {
@@ -93,18 +135,23 @@ public class LassoTarget extends BaseTarget {
     myOriginY = y;
     myLastX = x;
     myLastY = y;
+    myIntersectingComponents.clear();
+    myHasChanged = false;
+    myHasDragged = false;
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     myLastX = x;
     myLastY = y;
     myShowRect = true;
+    myHasDragged = true;
+    fillSelectedComponents();
     myComponent.getScene().needsRebuildList();
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
     myShowRect = false;
     myComponent.getScene().needsRebuildList();
   }
@@ -114,7 +161,7 @@ public class LassoTarget extends BaseTarget {
    *
    * @param components
    */
-  public void fillSelectedComponents(ArrayList<SceneComponent> components) {
+  private void fillSelectedComponents() {
     int count = myComponent.getChildCount();
     float x1 = Math.min(myOriginX, myLastX);
     float x2 = Math.max(myOriginX, myLastX);
@@ -123,14 +170,36 @@ public class LassoTarget extends BaseTarget {
     if ((int) (x2 - x1) == 0 && (int) (y2 - y1) == 0) {
       return;
     }
-    components.clear();
+
     Rectangle bounds = new Rectangle((int) x1, (int) y1, (int) (x2 - x1), (int) (y2 - y1));
+
     for (int i = 0; i < count; i++) {
       SceneComponent component = myComponent.getChild(i);
-      if (component.intersects(bounds)) {
-        components.add(component);
+
+      boolean intersects = component.intersects(bounds);
+      boolean contains = myIntersectingComponents.contains(component);
+      if (intersects == contains) {
+        continue;
+      }
+
+      myHasChanged = true;
+
+      if (contains) {
+        myIntersectingComponents.remove(component);
+      }
+      else {
+        myIntersectingComponents.add(component);
       }
     }
+  }
+
+  @Nullable
+  @Override
+  public List<SceneComponent> newSelection() {
+    if (getHasDragged()) {
+      return ImmutableList.copyOf(getIntersectingComponents());
+    }
+    return null;
   }
 
   //endregion

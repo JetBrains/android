@@ -8,7 +8,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 
 import static com.android.tools.lint.checks.VersionChecks.SDK_INT;
-import static com.android.tools.lint.detector.api.LintUtils.skipParentheses;
+import static com.android.tools.lint.detector.api.Lint.skipParentheses;
 
 /**
  * Utility methods for checking whether a given element is surrounded (or preceded!) by

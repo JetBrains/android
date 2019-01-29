@@ -17,7 +17,10 @@
 
 package com.android.tools.idea.util
 
+import com.android.SdkConstants
 import com.android.annotations.VisibleForTesting
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.support.AndroidxName
 import com.android.tools.idea.projectsystem.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -25,6 +28,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
+import org.jetbrains.annotations.TestOnly
+
+@TestOnly
+var DEPENDENCY_MANAGEMENT_TEST_ASSUME_USER_WILL_ACCEPT_DEPENDENCIES = true
 
 /**
  * Returns true iff the dependency with [artifactId] is transitively available to this [module].
@@ -36,7 +43,9 @@ import com.intellij.openapi.util.text.StringUtil
  */
 fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
   try {
-    return project.getProjectSystem().getModuleSystem(this).getResolvedVersion(artifactId) != null
+    // TODO this artifact to coordinate translation is temporary and will be removed when GradleCoordinates are swapped in for GoogleMavenArtifactId.
+    val coordinate = GradleCoordinate(artifactId.mavenGroupId, artifactId.mavenArtifactId, "+")
+    return getModuleSystem().getResolvedDependency(coordinate) != null
   }
   catch (e: DependencyManagementException) {
     Logger.getInstance(this.javaClass.name).warn(e.message)
@@ -45,7 +54,32 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
 }
 
 /**
- * Add artifacts with given artifact ids as dependencies; this method will show a dialog prompting the user for confirmation if
+ * Returns whether this module depends on the new support library artifacts (androidx).
+ */
+fun Module.dependsOnAndroidx(): Boolean =
+  GoogleMavenArtifactId.values()
+    .filter { it.mavenGroupId.startsWith(SdkConstants.ANDROIDX_PKG) }
+    .any { dependsOn(it) }
+
+/**
+ * Returns whether this module depends on the old support library artifacts (com.android.support).
+ */
+fun Module.dependsOnOldSupportLib(): Boolean =
+  GoogleMavenArtifactId.values()
+    .filter { it.mavenGroupId.startsWith(SdkConstants.SUPPORT_LIB_GROUP_ID) }
+    .any { dependsOn(it) }
+
+fun Module?.mapAndroidxName(name: AndroidxName): String {
+  val dependsOnAndroidx = this?.dependsOnAndroidx() ?: return name.defaultName()
+  return if (dependsOnAndroidx) name.newName() else name.oldName()
+}
+
+fun Module.dependsOnAppCompat(): Boolean =
+  this.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7) || this.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
+
+/**
+ * Add maven projects as dependencies for this module. The maven group and artifact IDs are taken from given [GradleCoordinate]s and the
+ * coordinates' version information are disregarded. This method will show a dialog prompting the user for confirmation if
  * [promptUserBeforeAdding] is set to true and return with no-op if user chooses to not add the dependencies. If any of the dependencies
  * are added successfully and [requestSync] is set to true, this method will request a sync to make sure the artifacts are resolved.
  * In this case, the sync will happen asynchronously and this method will not wait for it to finish before returning.
@@ -55,61 +89,55 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
  * @return list of artifacts that were not successfully added. i.e. If the returned list is empty, then all were added successfully.
  */
 @JvmOverloads
-fun Module.addDependencies(artifactIds: List<GoogleMavenArtifactId>, promptUserBeforeAdding: Boolean, requestSync: Boolean = true,
-                           includePreview: Boolean = false)
-    : List<GoogleMavenArtifactId> {
+fun Module.addDependencies(coordinates: List<GradleCoordinate>, promptUserBeforeAdding: Boolean, requestSync: Boolean = true)
+  : List<GradleCoordinate> {
 
-  if (artifactIds.isEmpty()) {
+  if (coordinates.isEmpty()) {
     return listOf()
   }
 
-  val distinctArtifactIds = artifactIds.distinct()
-
-  if (promptUserBeforeAdding && !userWantsToAdd(project, distinctArtifactIds)) {
-    return distinctArtifactIds
-  }
-
   val moduleSystem = getModuleSystem()
-  val artifactsNotAdded = mutableListOf<GoogleMavenArtifactId>()
-  val platformSupportLibVersion: GoogleMavenArtifactVersion? by lazy {
-    GoogleMavenArtifactId.values()
-        .filter { it.isPlatformSupportLibrary }
-        .mapNotNull { moduleSystem.getDeclaredVersion(it) }
-        .firstOrNull()
-  }
+  val distinctCoordinates = coordinates.distinctBy { Pair(it.groupId, it.artifactId) }
+  val unavailableDependencies: MutableList<GradleCoordinate> = mutableListOf()
+  val versionedDependencies: MutableList<GradleCoordinate> = mutableListOf()
 
-  for (id in distinctArtifactIds) {
-    try {
-      if (id.isPlatformSupportLibrary) {
-        moduleSystem.addDependencyWithoutSync(id, platformSupportLibVersion)
-      }
-      else {
-        moduleSystem.addDependencyWithoutSync(id, null, includePreview)
-      }
+  // Separate the list of deps into a list of versioned coordinates and a list of unavailable coordinates.
+  distinctCoordinates.forEach {
+    val versionedCoordinate = moduleSystem.getLatestCompatibleDependency(it.groupId ?: "", it.artifactId ?: "")
+
+    if (versionedCoordinate == null) {
+      unavailableDependencies.add(it)
     }
-    catch (e: DependencyManagementException) {
-      Logger.getInstance(this.javaClass.name).warn(e.message)
-      artifactsNotAdded.add(id)
+    else {
+      versionedDependencies.add(versionedCoordinate)
     }
   }
 
-  if (requestSync && distinctArtifactIds.size != artifactsNotAdded.size) {
-    project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
-  }
+  if (versionedDependencies.isNotEmpty()) {
+    if (promptUserBeforeAdding && !userWantsToAdd(project, distinctCoordinates)) {
+      return distinctCoordinates
+    }
 
-  return artifactsNotAdded
+    versionedDependencies.forEach(moduleSystem::registerDependency)
+
+    if (requestSync) {
+      project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
+    }
+
+  }
+  return unavailableDependencies
 }
 
-private fun userWantsToAdd(project: Project, artifactIds: List<GoogleMavenArtifactId>): Boolean {
+fun userWantsToAdd(project: Project, coordinates: List<GradleCoordinate>): Boolean {
   if (ApplicationManager.getApplication().isUnitTestMode) {
-    return true
+    return DEPENDENCY_MANAGEMENT_TEST_ASSUME_USER_WILL_ACCEPT_DEPENDENCIES
   }
-  return Messages.OK == Messages.showOkCancelDialog(project, createAddDependencyMessage(artifactIds), "Add Project Dependency", Messages.getErrorIcon())
+  return Messages.OK == Messages.showOkCancelDialog(project, createAddDependencyMessage(coordinates), "Add Project Dependency", Messages.getErrorIcon())
 }
 
 @VisibleForTesting
-fun createAddDependencyMessage(artifactIds: List<GoogleMavenArtifactId>): String {
-  val libraryNames = artifactIds.joinToString(", ") { it.toString() }
-  return "This operation requires the ${StringUtil.pluralize("library", artifactIds.size)} $libraryNames. \n\n" +
-      "Would you like to add ${StringUtil.pluralize("this", artifactIds.size)} now?"
+fun createAddDependencyMessage(coordinates: List<GradleCoordinate>): String {
+  val libraryNames = coordinates.joinToString(", ") { it.toString() }
+  return "This operation requires the ${StringUtil.pluralize("library", coordinates.size)} $libraryNames. \n\n" +
+      "Would you like to add ${StringUtil.pluralize("this", coordinates.size)} now?"
 }

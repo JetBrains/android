@@ -44,6 +44,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public abstract class NlAbstractWindowManager extends LightToolWindowManager {
+
   private ToolWindowType myPreviousWindowType;
   private ToolWindowAnchor myPreviousWindowAnchor;
   /** The design surface the tool window is attached to, if any */
@@ -111,7 +112,7 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
       return editor.getSurface();
     } else if (designer instanceof NlPreviewForm) {
       NlPreviewForm form = (NlPreviewForm)designer;
-      return form.getFile() != null ? form.getSurface() : null;
+      return form.hasFile() ? form.getSurface() : null;
     }
 
     // Unexpected facade

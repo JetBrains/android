@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.common.editor;
 
-import com.android.tools.idea.common.model.Coordinates;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ShortcutSet;
+import java.awt.Component;
+import java.awt.event.MouseEvent;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseEvent;
 
 /**
  * Provides and handles actions for an {@link NlEditor}.
@@ -41,39 +43,60 @@ public abstract class ActionManager<S extends DesignSurface> {
     mySurface = surface;
   }
 
-  public abstract void registerActionsShortcuts(@NotNull JComponent component);
+  /**
+   * Register keyboard shortcuts onto the provided component.
+   *
+   * @param component        The component onto which shortcut should be registered.
+   * @param parentDisposable A disposable used to unregister the actions. If the parameter is null but
+   *                         component is a {@link Disposable}, component will be used as the parent disposable.
+   */
+  public abstract void registerActionsShortcuts(@NotNull JComponent component,
+                                                @Nullable Disposable parentDisposable);
 
-  protected static void registerAction(@NotNull AnAction action, @NonNls String actionId, @NotNull JComponent component) {
-    action.registerCustomShortcutSet(
-      com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionId).getShortcutSet(),
-      component
+  protected void registerAction(@NotNull AnAction action,
+                                @NonNls String actionId,
+                                @NotNull JComponent component,
+                                @Nullable Disposable parentDisposable) {
+    registerAction(action,
+                   com.intellij.openapi.actionSystem.ActionManager.getInstance().getAction(actionId).getShortcutSet(),
+                   component,
+                   parentDisposable
     );
   }
 
+  protected void registerAction(@NotNull AnAction action,
+                                @NotNull KeyStroke keyStroke,
+                                @NotNull JComponent component,
+                                @Nullable Disposable parentDisposable) {
+    registerAction(action, new CustomShortcutSet(keyStroke), component, parentDisposable);
+  }
+
+  protected void registerAction(@NotNull AnAction action,
+                                @NotNull ShortcutSet shortcutSet,
+                                @NotNull JComponent component,
+                                @Nullable Disposable parentDisposable) {
+    Disposable disposable;
+    if (parentDisposable != null) {
+      disposable = parentDisposable;
+    }
+    else if (component instanceof Disposable) {
+      disposable = (Disposable)component;
+    }
+    else {
+      disposable = mySurface;
+    }
+    action.registerCustomShortcutSet(shortcutSet, component, disposable);
+  }
+
   @NotNull
-  public JComponent createToolbar(@NotNull NlModel model) {
+  public JComponent createToolbar() {
     ActionsToolbar actionsToolbar = createActionsToolbar();
-    actionsToolbar.setModel(model);
     return actionsToolbar.getToolbarComponent();
   }
 
   @NotNull
   protected ActionsToolbar createActionsToolbar() {
     return new ActionsToolbar(mySurface, mySurface);
-  }
-
-  public void showPopup(@NotNull MouseEvent event) {
-    NlComponent component = null;
-    int x = event.getX();
-    int y = event.getY();
-    SceneView sceneView = mySurface.getSceneView(x, y);
-    if (sceneView == null) {
-      sceneView = mySurface.getCurrentSceneView();
-    }
-    if (sceneView != null) {
-      component = Coordinates.findComponent(sceneView, x, y);
-    }
-    showPopup(event, component);
   }
 
   public void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
@@ -85,10 +108,11 @@ public abstract class ActionManager<S extends DesignSurface> {
     popupMenu.getComponent().show(invoker, event.getX(), event.getY());
   }
 
+  @VisibleForTesting
   @NotNull
-  abstract protected DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
+  public abstract DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
                                                         @Nullable NlComponent leafComponent);
 
-  public abstract void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,
-                                  @NotNull java.util.List<NlComponent> newSelection, boolean toolbar);
+  public abstract void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component,
+                                  @NotNull List<NlComponent> newSelection, boolean toolbar);
 }

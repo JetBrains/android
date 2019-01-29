@@ -15,6 +15,16 @@
  */
     apply plugin: 'com.android.application'
 
+ext {
+    myVariable = "26.1.0"
+    variable1 = "1.3"
+    anotherVariable = "3.0.1"
+    varInt = 1
+    varBool = true
+    varRefString = variable1
+    varProGuardFiles = ['proguard-rules.txt', 'proguard-rules2.txt']
+}
+
 android {
     compileSdkVersion 19
     buildToolsVersion "19.1.0"
@@ -30,12 +40,16 @@ android {
 
     defaultConfig {
         applicationId "com.example.psd.sample.app.default"
+        applicationIdSuffix "defaultSuffix"
         testApplicationId "com.example.psd.sample.app.default.test"
         maxSdkVersion 26
         minSdkVersion 9
         targetSdkVersion(19)
         versionCode 1
         versionName "1.0"
+        versionNameSuffix "vns"
+        manifestPlaceholders = [aa: "aaa", bb: "bbb", "cc": true]
+        testFunctionalTest false
     }
     buildTypes {
         release {
@@ -46,7 +60,11 @@ android {
             minifyEnabled false
             renderscriptOptimLevel 2
             signingConfig signingConfigs.myConfig
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt', 'proguard-rules2.txt'
+        }
+        specialRelease {
+            matchingFallbacks = ['release', 'debug']
+            versionNameSuffix "vnsSpecial"
         }
     }
     flavorDimensions 'foo', 'bar'
@@ -64,14 +82,30 @@ android {
             targetSdkVersion(20)
             versionCode 2
             versionName "2.0"
+            versionNameSuffix "vnsFoo"
+            testInstrumentationRunnerArguments = ["a": "AAA", "b": "BBB", c: 'CCC']
+            testHandleProfiling varBool
+            testFunctionalTest rootProject.ext.rootBool
         }
         bar {
             dimension "bar"
+            applicationIdSuffix "barSuffix"
+        }
+        otherBar {
+            dimension "bar"
+            matchingFallbacks = ["bar"]
+            resConfig "en"
+            resConfigs "hdpi", "xhdpi"
         }
     }
 }
 
+ext {
+    moreVariable = "1234"
+    mapVariable = ["a" : '"double" quotes', "b" : "'single' quotes"]
+}
+
 dependencies {
-    api 'com.android.support:appcompat-v7:26.1.0'
+    api 'com.android.support:appcompat-v7:+'
     api fileTree(dir: 'libs', include: ['*.jar'])
 }

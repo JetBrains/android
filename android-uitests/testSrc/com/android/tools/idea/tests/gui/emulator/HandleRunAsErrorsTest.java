@@ -16,25 +16,26 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class HandleRunAsErrorsTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
   @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
 
   private static final String BEFORE = "setContentView(R.layout.activity_main);";
@@ -72,7 +73,7 @@ public class HandleRunAsErrorsTest {
    *   1. Application should run successfully without any errors.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/38376451
+  @RunIn(TestGroup.QA_UNRELIABLE) // b/77635374, fast
   @Test
   public void testHandleRunAsErrors() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
@@ -113,7 +114,7 @@ public class HandleRunAsErrorsTest {
     ExecutionToolWindowFixture.ContentFixture contentFixture = runToolWindowFixture
         .findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(LAUNCH_APP_PATTERN), 20);
-    contentFixture.waitForOutput(new PatternTextMatcher(INSTALL_APP_PATTERN), 20);
+    contentFixture.waitForOutput(new PatternTextMatcher(INSTALL_APP_PATTERN), 60);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_CONNECTED_PATTERN), 120);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.npw.project;
 
+import com.android.ide.common.sdk.LoadStatus;
+import com.android.repository.api.UpdatablePackage;
 import com.android.tools.idea.npw.ChooseApiLevelDialog;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.module.FormFactorApiComboBox;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.observable.BindingsManager;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.OptionalProperty;
+import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.stats.DistributionService;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
@@ -32,149 +39,135 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
-import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.util.List;
 
-import static com.android.tools.idea.npw.FormFactor.MOBILE;
+import java.util.Collection;
+import java.util.Collections;
+
+import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-/**
- * Collection of controls for selecting whether a form factor should be selected, what the minimum api version should be, and
- * optionally some other info.
- */
-final class FormFactorSdkControls {
-  private final Disposable myDisposable;
-  private final FormFactor myFormFactor;
+public class FormFactorSdkControls implements Disposable {
+  private final BindingsManager myBindings = new BindingsManager();
+  private final ListenerManager myListeners = new ListenerManager();
+  private final AndroidVersionsInfo myAndroidVersionsInfo = new AndroidVersionsInfo();
 
-  private FormFactorApiComboBox myMinSdkCombobox;
-  private JBLabel myHelpMeChooseLabel;
-  private HyperlinkLabel myHelpMeChooseLink;
-  private JPanel myRootPanel;
-  private JLabel myNotAvailableLabel;
+  private LoadStatus mySdkDataLoadingStatus;
+  private LoadStatus myStatsDataLoadingStatus;
+
   private JPanel myStatsPanel;
-  private JPanel myLoadingStatsPanel;
-  private JBLabel myStatsLoadFailedLabel;
-  private JCheckBox myInclusionCheckBox;
-  private JCheckBox myInstantAppCheckbox;
+  private JBLabel myApiPercentIcon;
+  private JBLabel myApiPercentLabel;
+  private HyperlinkLabel myLearnMoreLink;
+  private JPanel myLoadingDataPanel;
+  private AsyncProcessIcon myLoadingDataIcon;
+  private JLabel myLoadingDataLabel;
+  private FormFactorApiComboBox myMinSdkCombobox;
+  private JPanel myRoot;
 
-  /**
-   * Creates a new FormFactorSdkControls.
-   * Before displaying, you must call {@link #init} to populate content and set up listeners.
-   *
-   * @param disposable The parent Disposable for this component.
-   * @param formFactor The FormFactor these controls govern.
-   */
-  FormFactorSdkControls(@NotNull Disposable disposable, @NotNull FormFactor formFactor) {
-    myDisposable = disposable;
-    myFormFactor = formFactor;
-    myInclusionCheckBox.setText(formFactor.toString());
-    myHelpMeChooseLabel.setText(getApiHelpText(0, ""));
-    myHelpMeChooseLink.setHyperlinkText(message("android.wizard.module.help.choose"));
-    // Only show SDK selector for base form factors.
-    if (myFormFactor.baseFormFactor != null) {
-      myMinSdkCombobox.setVisible(false);
-    }
+  public void init(OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo, Disposable parentDisposable) {
+    Disposer.register(parentDisposable, this);
 
-    if (!myFormFactor.equals(MOBILE)) {
-      myStatsPanel.setVisible(false);
-    }
+    myBindings.bind(androidSdkInfo, new SelectedItemProperty<>(myMinSdkCombobox));
+    myListeners.receive(androidSdkInfo, value ->
+      value.ifPresent(item -> myApiPercentLabel.setText(getApiHelpText(item.getMinApiLevel())))
+    );
 
-    myMinSdkCombobox.setName(myFormFactor.id + ".minSdk");
-    myInstantAppCheckbox.setName(myFormFactor.id + ".instantApp");
-    myInstantAppCheckbox.setVisible((myFormFactor.equals(MOBILE)));
-    myStatsLoadFailedLabel.setForeground(JBColor.GRAY);
-  }
+    myLoadingDataLabel.setForeground(JBColor.GRAY);
+    myApiPercentIcon.setIcon(AllIcons.General.BalloonInformation);
 
-  /**
-   * @param state           The ScopedStateStore in which to store our selections
-   * @param downloadSuccess A Runnable that will be run if any valid items were found for this form factor.
-   * @param downloadFailed  A Runnable that will be run if no valid items were found for this form factor.
-   */
-  public void init(@NotNull List<AndroidVersionsInfo.VersionItem> items) {
-    myHelpMeChooseLink.addHyperlinkListener(new HyperlinkAdapter() {
+    myLearnMoreLink.setHyperlinkText(message("android.wizard.module.help.choose"));
+    myLearnMoreLink.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
         int minApiLevel = ((AndroidVersionsInfo.VersionItem)myMinSdkCombobox.getSelectedItem()).getMinApiLevel();
         ChooseApiLevelDialog chooseApiLevelDialog = new ChooseApiLevelDialog(null, minApiLevel);
-        Disposer.register(myDisposable, chooseApiLevelDialog.getDisposable());
+        Disposer.register(FormFactorSdkControls.this, chooseApiLevelDialog.getDisposable());
+        if (!chooseApiLevelDialog.showAndGet()) {
+          return;
+        }
 
-        if (chooseApiLevelDialog.showAndGet()) {
-          int selectedApiLevel = chooseApiLevelDialog.getSelectedApiLevel();
-          for (AndroidVersionsInfo.VersionItem item : items) {
-            if (item.getMinApiLevel() == selectedApiLevel) {
-              myMinSdkCombobox.setSelectedItem(item);
-              break;
-            }
+        int selectedApiLevel = chooseApiLevelDialog.getSelectedApiLevel();
+        for (int i = 0; i < myMinSdkCombobox.getItemCount(); i++) {
+          AndroidVersionsInfo.VersionItem item = myMinSdkCombobox.getItemAt(i);
+          if (item.getMinApiLevel() == selectedApiLevel) {
+            myMinSdkCombobox.setSelectedItem(item);
+            break;
           }
         }
       }
     });
+  }
 
-    if (myStatsPanel.isVisible()) {
-      myMinSdkCombobox.addItemListener(itemEvent -> {
-        if (itemEvent.getStateChange() == ItemEvent.SELECTED && itemEvent.getItem() != null) {
-          AndroidVersionsInfo.VersionItem selectedItem = (AndroidVersionsInfo.VersionItem)itemEvent.getItem();
-          String referenceString = getApiHelpText(selectedItem.getMinApiLevel(), selectedItem.getMinApiLevelStr());
+  @NotNull
+  public JPanel getRoot() {
+    return myRoot;
+  }
 
-          ApplicationManager.getApplication().invokeLater(() -> myHelpMeChooseLabel.setText(referenceString));
-        }
-      });
-    }
+  public void showStatsPanel(boolean show) {
+    myStatsPanel.setVisible(show);
+  }
 
-    myMinSdkCombobox.init(myFormFactor, items);
+  public void startDataLoading(FormFactor formFactor, int minSdk) {
+    myApiPercentLabel.setText(getApiHelpText(minSdk)); //TODO: What? Should we only care about what item is selected on the combo?
 
-    boolean itemsFound = !items.isEmpty();
-    myInclusionCheckBox.setEnabled(itemsFound);
-    myMinSdkCombobox.setEnabled(itemsFound);
-    myNotAvailableLabel.setVisible(!itemsFound);
+    mySdkDataLoadingStatus = LoadStatus.LOADING;
+    myStatsDataLoadingStatus = myStatsPanel.isVisible() ? LoadStatus.LOADING : LoadStatus.LOADED;
+    updateLoadingProgress();
+
+    myAndroidVersionsInfo.load();
+    myAndroidVersionsInfo.loadTargetVersions(formFactor, minSdk, items -> {
+      myMinSdkCombobox.init(formFactor, items);
+      mySdkDataLoadingStatus = LoadStatus.LOADED;
+      updateLoadingProgress();
+    });
 
     if (myStatsPanel.isVisible()) {
       DistributionService.getInstance().refresh(
         () -> ApplicationManager.getApplication().invokeLater(() -> {
-          ((CardLayout)myStatsPanel.getLayout()).show(myStatsPanel, "stats");
+          myStatsDataLoadingStatus = LoadStatus.LOADED;
+          updateLoadingProgress();
         }),
         () -> ApplicationManager.getApplication().invokeLater(() -> {
-          ((CardLayout)myStatsPanel.getLayout()).show(myStatsPanel, "stats");
-          myStatsLoadFailedLabel.setVisible(true);
+          myStatsDataLoadingStatus = LoadStatus.FAILED;
+          updateLoadingProgress();
         }));
     }
   }
 
-  public JComponent getComponent() {
-    return myRootPanel;
+  public Collection<? extends UpdatablePackage> getSdkInstallPackageList() {
+    AndroidVersionsInfo.VersionItem androidVersion = (AndroidVersionsInfo.VersionItem) myMinSdkCombobox.getSelectedItem();
+    return myAndroidVersionsInfo.loadInstallPackageList(Collections.singletonList(androidVersion));
   }
 
-  @NotNull
-  JComboBox<AndroidVersionsInfo.VersionItem> getMinSdkCombobox() {
-    return myMinSdkCombobox;
-  }
-
-  @NotNull
-  JCheckBox getInclusionCheckBox() {
-    return myInclusionCheckBox;
-  }
-
-  @NotNull
-  JCheckBox getInstantAppCheckbox() {
-    return myInstantAppCheckbox;
-  }
-
-  private static String getApiHelpText(int selectedApi, @NotNull String selectedApiName) {
-    double percentage = DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100;
-    String percentageStr = percentage < 1 ?
-                           "&lt; 1%" :
-                           String.format("approximately <b>" + (percentage >= 10 ? "%.3g%%" : "%.2g%%") + "</b>", percentage);
-    return String.format("<html>By targeting <b>API %1$s and later</b>, your app will run on %2$s of devices.</html>",
-                         selectedApiName, percentageStr);
+  @Override
+  public void dispose() {
+    myBindings.releaseAll();
+    myListeners.releaseAll();
   }
 
   private void createUIComponents() {
-    myLoadingStatsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    AsyncProcessIcon refreshIcon = new AsyncProcessIcon(message("android.wizard.module.help.loading"));
-    JLabel refreshingLabel = new JLabel(message("android.wizard.module.help.refreshing"));
-    refreshingLabel.setForeground(JBColor.GRAY);
-    myLoadingStatsPanel.add(refreshIcon);
-    myLoadingStatsPanel.add(refreshingLabel);
+    myLoadingDataIcon = new AsyncProcessIcon(message("android.wizard.module.help.loading"));
+  }
+
+  private void updateLoadingProgress() {
+    myLoadingDataPanel.setVisible(mySdkDataLoadingStatus != LoadStatus.LOADED || myStatsDataLoadingStatus != LoadStatus.LOADED);
+    myLoadingDataIcon.setVisible(mySdkDataLoadingStatus == LoadStatus.LOADING || myStatsDataLoadingStatus == LoadStatus.LOADING);
+
+    if (mySdkDataLoadingStatus == LoadStatus.LOADING) {
+      myLoadingDataLabel.setText(message("android.wizard.project.loading.sdks"));
+    }
+    else if (myStatsDataLoadingStatus == LoadStatus.LOADING) {
+      myLoadingDataLabel.setText(message("android.wizard.module.help.refreshing"));
+    }
+    else if (myStatsDataLoadingStatus == LoadStatus.FAILED) {
+      myLoadingDataLabel.setText(message("android.wizard.project.loading.stats.fail"));
+    }
+  }
+
+  private static String getApiHelpText(int selectedApi) {
+    double percentage = DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100;
+    String percentageStr = percentage < 1 ? "<b>&lt; 1%</b>" :
+                           format("approximately <b>" + (percentage >= 10 ? "%.3g%%" : "%.2g%%") + "</b>", percentage);
+    return format("<html>Your app will run on %1$s of devices.</html>", percentageStr);
   }
 }

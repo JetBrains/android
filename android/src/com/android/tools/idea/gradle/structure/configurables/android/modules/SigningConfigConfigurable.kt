@@ -16,26 +16,27 @@
 package com.android.tools.idea.gradle.structure.configurables.android.modules
 
 import com.android.tools.idea.gradle.structure.configurables.android.ChildModelConfigurable
+import com.android.tools.idea.gradle.structure.configurables.ui.PropertiesUiModel
 import com.android.tools.idea.gradle.structure.configurables.ui.modules.SigningConfigConfigPanel
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.uiProperty
 import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
-import com.android.tools.idea.gradle.structure.model.meta.PropertiesUiModel
-import com.android.tools.idea.gradle.structure.model.meta.uiProperty
-import javax.swing.JComponent
 
-class SigningConfigConfigurable(private val signingConfig: PsSigningConfig) : ChildModelConfigurable<PsSigningConfig>(signingConfig) {
+class SigningConfigConfigurable(private val signingConfig: PsSigningConfig)
+  : ChildModelConfigurable<PsSigningConfig, SigningConfigConfigPanel>(
+  signingConfig) {
   override fun getBannerSlogan() = "Signing Config '${signingConfig.name}'"
 
-  override fun createOptionsPanel(): JComponent = SigningConfigConfigPanel(signingConfig).component
+  override fun createPanel(): SigningConfigConfigPanel = SigningConfigConfigPanel(signingConfig)
 }
 
 fun signingConfigPropertiesModel() =
-    PropertiesUiModel(
-        listOf(
-            uiProperty(PsSigningConfig.SigningConfigDescriptors.storeFile, ::SimplePropertyEditor),
-            uiProperty(PsSigningConfig.SigningConfigDescriptors.storePassword, ::SimplePropertyEditor),
-// TODO(b/70501607): uiProperty(PsSigningConfig.SigningConfigDescriptors.storeType, ::SimplePropertyEditor),
-            uiProperty(PsSigningConfig.SigningConfigDescriptors.keyAlias, ::SimplePropertyEditor)
-// TODO(b/70501607): uiProperty(PsSigningConfig.SigningConfigDescriptors.keyPassword, ::SimplePropertyEditor)
-        ))
+  PropertiesUiModel(
+    listOf(
+      uiProperty(PsSigningConfig.SigningConfigDescriptors.storeFile, ::simplePropertyEditor),
+      uiProperty(PsSigningConfig.SigningConfigDescriptors.storePassword, ::simplePropertyEditor),
+// TODO(b/70501607): uiProperty(PsSigningConfig.SigningConfigDescriptors.storeType, ::simplePropertyEditor),
+      uiProperty(PsSigningConfig.SigningConfigDescriptors.keyAlias, ::simplePropertyEditor),
+      uiProperty(PsSigningConfig.SigningConfigDescriptors.keyPassword, ::simplePropertyEditor)
+    ))
 

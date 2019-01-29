@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
-import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.io.TestFileUtils;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.Maps;
 import org.jetbrains.android.AndroidTestCase;
 import org.w3c.dom.Node;
 
@@ -34,7 +33,7 @@ import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
+import java.util.Collections;
 
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.SdkConstants.PREFIX_THEME_REF;
@@ -164,17 +163,15 @@ public class GutterIconFactoryTest extends AndroidTestCase {
   }
 
   private static ResourceResolver createResourceResolver() {
-    final Map<ResourceType, ResourceValueMap> projectResources = Maps.newHashMap();
-    final ResourceValueMap resourceValueMap = ResourceValueMap.create();
-
-    projectResources.put(ResourceType.COLOR, resourceValueMap);
-
-    return ResourceResolver.create(projectResources, Maps.newHashMap(), "", false);
+    return ResourceResolver.create(Collections.singletonMap(ResourceNamespace.RES_AUTO,
+                                                            Collections.singletonMap(ResourceType.COLOR,
+                                                                                     ResourceValueMap.create())),
+                                   null);
   }
 
   private static void addColor(ResourceResolver resolver, String colorName, String colorValue) {
     ResourceValueMap resourceValueMap = resolver.getProjectResources().get(ResourceType.COLOR);
 
-    resourceValueMap.put(colorName, new ResourceValue(ResourceUrl.create(null, ResourceType.COLOR, colorName), colorValue));
+    resourceValueMap.put(colorName, new ResourceValueImpl(ResourceNamespace.TODO(), ResourceType.COLOR, colorName, colorValue));
   }
 }

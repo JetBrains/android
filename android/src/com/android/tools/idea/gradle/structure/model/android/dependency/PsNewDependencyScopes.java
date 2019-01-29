@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsBuildType;
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor;
 import com.android.tools.idea.gradle.structure.model.android.PsVariant;
 import com.google.common.collect.Lists;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -42,7 +43,7 @@ public class PsNewDependencyScopes {
     PsVariant variant = artifact.getParent();
     if (myBuildTypes.contains(variant.getBuildType())) {
       List<PsProductFlavor> productFlavors = Lists.newArrayList();
-      variant.forEachProductFlavor(productFlavors::add);
+      variant.forEachProductFlavor(e -> { productFlavors.add(e); return Unit.INSTANCE; });
 
       if (myProductFlavors.containsAll(productFlavors)) {
         String resolvedName = artifact.getResolvedName();

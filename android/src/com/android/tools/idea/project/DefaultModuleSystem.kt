@@ -1,0 +1,150 @@
+/*
+ * Copyright (C) 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.project
+
+import com.android.SdkConstants
+import com.android.SdkConstants.FD_RES
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY
+import com.android.SdkConstants.FN_RESOURCE_TEXT
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.projectmodel.ExternalLibrary
+import com.android.projectmodel.Library
+import com.android.tools.idea.model.MergedManifest
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.CapabilityNotSupported
+import com.android.tools.idea.projectsystem.CapabilityStatus
+import com.android.tools.idea.projectsystem.ClassFileFinder
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
+import com.android.tools.idea.util.toPathString
+import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
+import com.google.common.collect.ImmutableList
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.LibraryOrderEntry
+import com.intellij.openapi.roots.ModuleOrderEntry
+import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.vfs.VirtualFile
+import org.jetbrains.android.facet.AndroidFacet
+
+class DefaultModuleSystem(val module: Module) :
+  AndroidModuleSystem,
+  ClassFileFinder by ModuleBasedClassFileFinder(module),
+  SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
+
+  override fun registerDependency(coordinate: GradleCoordinate) {}
+
+  override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? = null
+
+  override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
+    // TODO(b/79883422): Replace the following code with the correct logic for detecting .aar dependencies.
+    // The following if / else if chain maintains previous support for supportlib and appcompat until
+    // we can determine it's safe to take away.
+    if (SdkConstants.SUPPORT_LIB_ARTIFACT == "${coordinate.groupId}:${coordinate.artifactId}") {
+      val entries = ModuleRootManager.getInstance(module).orderEntries
+      for (orderEntry in entries) {
+        if (orderEntry is LibraryOrderEntry) {
+          val classes = orderEntry.getRootFiles(OrderRootType.CLASSES)
+          for (file in classes) {
+            if (file.name == "android-support-v4.jar") {
+              return GoogleMavenArtifactId.SUPPORT_V4.getCoordinate("+")
+            }
+          }
+        }
+      }
+    }
+    else if (SdkConstants.APPCOMPAT_LIB_ARTIFACT == "${coordinate.groupId}:${coordinate.artifactId}") {
+      val entries = ModuleRootManager.getInstance(module).orderEntries
+      for (orderEntry in entries) {
+        if (orderEntry is ModuleOrderEntry) {
+          val moduleForEntry = orderEntry.module
+          if (moduleForEntry == null || moduleForEntry == module) {
+            continue
+          }
+          AndroidFacet.getInstance(moduleForEntry) ?: continue
+          val manifestInfo = MergedManifest.get(moduleForEntry)
+          if ("android.support.v7.appcompat" == manifestInfo.`package`) {
+            return GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
+          }
+        }
+      }
+    }
+
+    return null
+  }
+
+  // We don't offer maven artifact support for JPS projects because there aren't any use cases that requires this feature.
+  // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.
+  override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? = null
+
+  override fun getResolvedDependentLibraries(): Collection<Library> {
+    val libraries = mutableListOf<Library>()
+
+    ModuleRootManager.getInstance(module)
+      .orderEntries()
+      .librariesOnly()
+      .recursively()
+      .forEachLibrary { library ->
+        // Typically, a library xml looks like the following:
+        //     <CLASSES>
+        //      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/appcompat-v7-27.1.1.aar/e2434af65905ee37277d482d7d20865d/res" />
+        //      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/appcompat-v7-27.1.1.aar/e2434af65905ee37277d482d7d20865d/jars/classes.jar!/" />
+        //    </CLASSES>
+        val roots = library.getFiles(OrderRootType.CLASSES)
+
+        // all libraries are assumed to have a non-empty name
+        val classesJar = roots.firstOrNull { it.name == SdkConstants.FN_CLASSES_JAR }?.toPathString()
+        val libraryName = library.name ?: return@forEachLibrary true
+
+        // For testing purposes we create libraries with a res.apk root (legacy projects don't have those). Recognize them here and
+        // create ExternalLibrary as necessary.
+        val resFolderRoot = roots.firstOrNull { it.name == FD_RES }?.toPathString()
+        val resApkRoot = roots.firstOrNull { it.name == FN_RESOURCE_STATIC_LIBRARY }?.toPathString()
+        val (resFolder, resApk) = when {
+          resApkRoot != null -> Pair(resApkRoot.parentOrRoot.resolve(FD_RES), resApkRoot)
+          resFolderRoot != null -> Pair(resFolderRoot, resFolderRoot.parentOrRoot.resolve(FN_RESOURCE_STATIC_LIBRARY))
+          else -> return@forEachLibrary true
+        }
+
+        libraries.add(ExternalLibrary(
+          address = libraryName,
+          manifestFile = resFolder.parentOrRoot.resolve(FN_ANDROID_MANIFEST_XML),
+          classJars = if (classesJar == null) emptyList() else listOf(classesJar),
+          resFolder = resFolder,
+          symbolFile = resFolder.parentOrRoot.resolve(FN_RESOURCE_TEXT),
+          resApkFile = resApk
+        ))
+
+        true // continue processing.
+      }
+
+    return ImmutableList.copyOf(libraries)
+  }
+
+  override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
+    return emptyList()
+  }
+
+  override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
+    return CapabilityNotSupported()
+  }
+
+  override fun getInstantRunSupport(): CapabilityStatus {
+    return CapabilityNotSupported()
+  }
+}

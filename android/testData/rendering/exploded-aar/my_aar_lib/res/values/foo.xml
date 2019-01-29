@@ -29,7 +29,7 @@
         <attr name="app_attr1" />
         <attr name="app_attr2" />
         <attr name="app_attr3" />
-        <attr name="android:framework_attr1" />
-        <attr name="android:framework_attr2" />
+        <attr name="android:colorForeground" />
+        <attr name="android:icon" />
     </declare-styleable>
 </resources>

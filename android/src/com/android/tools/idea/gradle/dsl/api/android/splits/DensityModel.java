@@ -15,80 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.splits;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public interface DensityModel {
+public interface DensityModel extends BaseSplitOptionsModel {
   @NotNull
-  GradleNullableValue<Boolean> auto();
+  ResolvedPropertyModel auto();
 
   @NotNull
-  DensityModel setAuto(boolean auto);
-
-  @NotNull
-  DensityModel removeAuto();
-
-  @Nullable
-  List<GradleNotNullValue<String>> compatibleScreens();
-
-  @NotNull
-  DensityModel addCompatibleScreen(@NotNull String compatibleScreen);
-
-  @NotNull
-  DensityModel removeCompatibleScreen(@NotNull String compatibleScreen);
-
-  @NotNull
-  DensityModel removeAllCompatibleScreens();
-
-  @NotNull
-  DensityModel replaceCompatibleScreen(@NotNull String oldCompatibleScreen, @NotNull String newCompatibleScreen);
-
-  @NotNull
-  GradleNullableValue<Boolean> enable();
-
-  @NotNull
-  DensityModel setEnable(boolean enable);
-
-  @NotNull
-  DensityModel removeEnable();
-
-  @Nullable
-  List<GradleNotNullValue<String>> exclude();
-
-  @NotNull
-  DensityModel addExclude(@NotNull String exclude);
-
-  @NotNull
-  DensityModel removeExclude(@NotNull String exclude);
-
-  @NotNull
-  DensityModel removeAllExclude();
-
-  @NotNull
-  DensityModel replaceExclude(@NotNull String oldExclude, @NotNull String newExclude);
-
-  @Nullable
-  List<GradleNotNullValue<String>> include();
-
-  @NotNull
-  DensityModel addInclude(@NotNull String include);
-
-  @NotNull
-  DensityModel removeInclude(@NotNull String include);
-
-  @NotNull
-  DensityModel removeAllInclude();
-
-  @NotNull
-  DensityModel replaceInclude(@NotNull String oldInclude, @NotNull String newInclude);
-
-  @NotNull
-  DensityModel addReset();
-
-  @NotNull
-  DensityModel removeReset();
+  ResolvedPropertyModel compatibleScreens();
 }

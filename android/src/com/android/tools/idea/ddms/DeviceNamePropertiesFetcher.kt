@@ -18,9 +18,7 @@ package com.android.tools.idea.ddms
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrent.EdtExecutor
-import com.android.tools.idea.projectsystem.addCallback
-import com.android.tools.idea.projectsystem.listenInPoolThread
-import com.android.tools.idea.projectsystem.whenAllComplete
+import com.android.tools.idea.projectsystem.*
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
@@ -28,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.util.concurrent.Callable
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Future
 
 /**

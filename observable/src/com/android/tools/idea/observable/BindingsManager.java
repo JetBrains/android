@@ -18,10 +18,9 @@ package com.android.tools.idea.observable;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Iterator;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Class which manages associations between source and destination values, updating the destination

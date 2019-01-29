@@ -16,11 +16,11 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.android.ide.common.res2.AbstractResourceRepository;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
@@ -30,10 +30,12 @@ import org.jetbrains.android.AndroidTestCase;
 
 import java.util.Collections;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+
 public final class StringsWriteUtilsTest extends AndroidTestCase {
   private Project myProject;
   private VirtualFile myResourceDirectory;
-  private AbstractResourceRepository myResourceRepository;
+  private ResourceRepository myResourceRepository;
 
   @Override
   protected void setUp() throws Exception {
@@ -41,7 +43,7 @@ public final class StringsWriteUtilsTest extends AndroidTestCase {
 
     myProject = myFacet.getModule().getProject();
     myResourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    myResourceRepository = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(myResourceDirectory));
+    myResourceRepository = ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(myResourceDirectory));
   }
 
   @Override
@@ -82,7 +84,7 @@ public final class StringsWriteUtilsTest extends AndroidTestCase {
   }
 
   private ResourceItem getResourceItem(String name, Locale locale) {
-    Iterable<ResourceItem> items = myResourceRepository.getResourceItem(ResourceType.STRING, name);
+    Iterable<ResourceItem> items = myResourceRepository.getResources(RES_AUTO, ResourceType.STRING, name);
 
     if (items != null) {
       for (ResourceItem item : items) {

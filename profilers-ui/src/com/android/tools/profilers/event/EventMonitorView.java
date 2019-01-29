@@ -16,7 +16,11 @@
 package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.event.SimpleEventType;
+import com.android.tools.adtui.eventrenderer.EventIconRenderer;
+import com.android.tools.adtui.eventrenderer.KeyboardEventRenderer;
+import com.android.tools.adtui.eventrenderer.EventRenderer;
+import com.android.tools.adtui.eventrenderer.TouchEventRenderer;
+import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.profilers.ProfilerMonitorTooltip;
 import com.android.tools.profilers.ProfilerMonitorView;
 import com.android.tools.profilers.Stage;
@@ -32,17 +36,17 @@ import java.util.function.Supplier;
 
 public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
-  private static final Map<SimpleEventType, SimpleEventRenderer<SimpleEventType>> RENDERERS;
+  private static final Map<UserEvent, EventRenderer<UserEvent>> RENDERERS;
 
   static {
     RENDERERS = new HashMap<>();
-    RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer<>());
-    RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer<>("/icons/events/rotate-event.png"));
-    RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer<>());
+    RENDERERS.put(UserEvent.TOUCH, new TouchEventRenderer<>());
+    RENDERERS.put(UserEvent.ROTATION, new EventIconRenderer<>("/icons/events/rotate-event.png"));
+    RENDERERS.put(UserEvent.KEYBOARD, new KeyboardEventRenderer<>());
   }
 
-  private SimpleEventComponent<SimpleEventType> myEventComponent;
-  private StackedEventComponent myActivityComponent;
+  private EventComponent<UserEvent> myUserEventComponent;
+  private ActivityComponent myActivityComponent;
 
   public EventMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EventMonitor monitor) {
     super(monitor);
@@ -54,10 +58,10 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
     // in the super class, or we may initialize them via a call from the stage. Doing a check so we don't
     // create more objects than needed in production code.
     if (myActivityComponent == null) {
-      myActivityComponent = new StackedEventComponent(getMonitor().getActivityEvents());
+      myActivityComponent = new ActivityComponent(getMonitor().getActivityEvents(), getMonitor().getFragmentEvents());
     }
-    if (myEventComponent == null) {
-      myEventComponent = new SimpleEventComponent<>(getMonitor().getSimpleEvents(), RENDERERS);
+    if (myUserEventComponent == null) {
+      myUserEventComponent = new EventComponent<>(getMonitor().getUserEvents(), RENDERERS);
     }
   }
 
@@ -69,15 +73,14 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
   @Override
   public void registerTooltip(@NotNull RangeTooltipComponent tooltip, Stage stage) {
-    registerComponent(myEventComponent, () -> new EventSimpleEventTooltip(getMonitor()), tooltip, stage);
-    registerComponent(myActivityComponent, () -> new EventActivityTooltip(getMonitor()), tooltip, stage);
+    registerComponent(myUserEventComponent, () -> new UserEventTooltip(getMonitor()), tooltip, stage);
+    registerComponent(myActivityComponent, () -> new LifecycleTooltip(getMonitor()), tooltip, stage);
   }
 
   private void registerComponent(JComponent component,
                                  Supplier<ProfilerMonitorTooltip<EventMonitor>> tooltip,
                                  RangeTooltipComponent tooltipComponent,
                                  Stage stage) {
-    tooltipComponent.registerListenersOn(component);
     component.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseEntered(MouseEvent e) {
@@ -95,13 +98,14 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
         stage.setTooltip(null);
       }
     });
+    tooltipComponent.registerListenersOn(component);
   }
 
   @Override
   protected void populateUi(JPanel container) {
     initializeComponents();
     container.setLayout(new TabularLayout("*", "*,*"));
-    container.add(myEventComponent, new TabularLayout.Constraint(0, 0));
+    container.add(myUserEventComponent, new TabularLayout.Constraint(0, 0));
     container.add(myActivityComponent, new TabularLayout.Constraint(1, 0));
   }
 }

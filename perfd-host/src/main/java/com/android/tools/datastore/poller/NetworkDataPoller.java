@@ -19,6 +19,7 @@ import com.android.tools.datastore.database.NetworkTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler.*;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import org.jetbrains.annotations.NotNull;
 
 // TODO: Implement a storage container that can read/write data to disk
 public class NetworkDataPoller extends PollRunner {
@@ -31,22 +32,19 @@ public class NetworkDataPoller extends PollRunner {
   private NetworkTable myNetworkTable;
   NetworkServiceGrpc.NetworkServiceBlockingStub myPollingService;
 
-  public NetworkDataPoller(Common.Session session,
-                           NetworkTable table,
-                           NetworkServiceGrpc.NetworkServiceBlockingStub pollingService) {
+  public NetworkDataPoller(@NotNull Common.Session session,
+                           @NotNull NetworkTable table,
+                           @NotNull NetworkServiceGrpc.NetworkServiceBlockingStub pollingService) {
     super(POLLING_DELAY_NS);
     mySession = session;
     myNetworkTable = table;
-    mySession = session;
     myPollingService = pollingService;
   }
 
   @Override
   public void poll() {
-    NetworkDataRequest.Builder dataRequestBuilder = NetworkDataRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTimestamp(myDataRequestStartTimestampNs)
-      .setEndTimestamp(Long.MAX_VALUE)
+    NetworkDataRequest.Builder dataRequestBuilder = NetworkDataRequest
+      .newBuilder().setSession(mySession).setStartTimestamp(myDataRequestStartTimestampNs).setEndTimestamp(Long.MAX_VALUE)
       .setType(NetworkDataRequest.Type.ALL);
     NetworkDataResponse response = myPollingService.getData(dataRequestBuilder.build());
 
@@ -58,18 +56,15 @@ public class NetworkDataPoller extends PollRunner {
   }
 
   private void pollHttpRange() {
-    HttpRangeRequest.Builder requestBuilder = HttpRangeRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTimestamp(myHttpRangeRequestStartTimeNs)
-      .setEndTimestamp(Long.MAX_VALUE);
+    HttpRangeRequest.Builder requestBuilder = HttpRangeRequest
+      .newBuilder().setSession(mySession).setStartTimestamp(myHttpRangeRequestStartTimeNs).setEndTimestamp(Long.MAX_VALUE);
     HttpRangeResponse httpRange = myPollingService.getHttpRange(requestBuilder.build());
 
     for (HttpConnectionData connection : httpRange.getDataList()) {
       myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, connection.getStartTimestamp() + 1);
       myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, connection.getEndTimestamp() + 1);
-      HttpDetailsResponse initialData = myNetworkTable.getHttpDetailsResponseById(connection.getConnId(),
-                                                                                  mySession,
-                                                                                  HttpDetailsRequest.Type.REQUEST);
+      HttpDetailsResponse initialData = myNetworkTable.getHttpDetailsResponseById(
+        connection.getConnId(), mySession, HttpDetailsRequest.Type.REQUEST);
 
       HttpDetailsResponse request = initialData;
       HttpDetailsResponse requestBody =
@@ -93,10 +88,8 @@ public class NetworkDataPoller extends PollRunner {
   }
 
   private HttpDetailsResponse pollHttpDetails(long id, HttpDetailsRequest.Type type) {
-    HttpDetailsRequest request = HttpDetailsRequest.newBuilder()
-      .setConnId(id)
-      .setType(type)
-      .build();
+    HttpDetailsRequest request = HttpDetailsRequest
+      .newBuilder().setConnId(id).setType(type).build();
     return myPollingService.getHttpDetails(request);
   }
 }

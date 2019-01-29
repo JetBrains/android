@@ -19,6 +19,9 @@ package trebuchet.model.base
 interface Slice {
     val startTime: Double
     val endTime: Double
+    // CpuTime is the time this slice was scheduled on a core.
+    // It is not the total time eg (endTime - startTime).
+    val cpuTime: Double
     val name: String
     val didNotFinish: Boolean
 

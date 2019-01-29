@@ -15,21 +15,61 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.Range;
+import static com.android.tools.profilers.memory.adapters.CaptureObject.DEFAULT_HEAP_ID;
+
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocatedClass;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.BatchAllocationSample;
+import com.android.tools.profiler.proto.MemoryProfiler.BatchJNIGlobalRefEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalReferenceEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeBacktrace;
+import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
+import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.memory.adapters.CaptureObject.DEFAULT_HEAP_ID;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
@@ -57,10 +97,35 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   // Difference between object tag and JNI reference value.
   private static final long JNI_REF_BASE = 0x50000000;
 
-  private static final List<Long> NATIVE_ADDRESSES = Arrays.asList(0xBAADF00Dl, 0xCAFEBABEl, 0xDABBAD00l, 0xDEADBEEFl);
+  private static final Long NATIVE_ADDRESSES_BASE = 0xBAADF00Dl;
+  private static final List<String> NATIVE_FUNCTION_NAMES = Arrays.asList(
+    "NativeNamespace::Foo::FooMethodA(string, int)",
+    "NativeNamespace::Bar::BarMethodA(string, int)",
+    "NativeNamespace::Foo::FooMethodB(string, int)",
+    "NativeNamespace::Bar::BarMethodB(string, int)"
+  );
 
+  private static final List<String> NATIVE_SOURCE_FILE = Arrays.asList(
+    "/a/path/to/sources/foo.cc",
+    "/a/path/to/sources/bar.cc",
+    "/a/path/to/sources/foo.h",
+    "/a/path/to/sources/bar.h"
+  );
 
-  @NotNull private Range myLastRequestedDataRange = new Range(0, 0);
+  private static final List<String> NATIVE_MODULE_NAMES = Arrays.asList(
+    "/data/app/com.example.sum-000==/lib/arm64/libfoo.so",
+    "/data/app/com.example.sum-000==/lib/arm/libbar.so",
+    "/data/app/com.example.sum-000==/lib/x86/libfoo.so",
+    "/data/app/com.example.sum-000==/lib/x86_64/libbar.so"
+  );
+
+  private static final String SYSTEM_NATIVE_MODULE = "/system/lib64/libnativewindow.so";
+
+  /**
+   * By default assume we have all data available in tests - we go by [start time, end time) so we minus 1 from Long.MAX_VALUE.
+   */
+  private static final long DEFAULT_LATEST_ALLOCATION_TIME = Long.MAX_VALUE - 1;
+
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
   private TriggerHeapDumpResponse.Status myExplicitHeapDumpStatus = null;
@@ -73,6 +138,12 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
   private int myTrackAllocationCount;
   private Common.Session mySession;
+  private int mySamplingRate = 1;
+
+  /**
+   * Stores the return value for {@link #getLatestAllocationTime(LatestAllocationTimeRequest, StreamObserver)}.
+   */
+  private long myLatestAllocationTime = DEFAULT_LATEST_ALLOCATION_TIME;
 
   @Override
   public void startMonitoringApp(MemoryStartRequest request,
@@ -111,11 +182,28 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
+  public void importLegacyAllocations(ImportLegacyAllocationsRequest request,
+                                      StreamObserver<ImportLegacyAllocationsResponse> response) {
+    myExplicitAllocationsInfo = request.getInfo();
+    myAllocationEventsBuilder = request.getAllocations().toBuilder();
+    myAllocationContextBuilder = request.getContexts().toBuilder();
+    myMemoryData = MemoryData.newBuilder().addAllocationsInfo(request.getInfo()).build();
+    response.onNext(ImportLegacyAllocationsResponse.newBuilder().setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build());
+    response.onCompleted();
+  }
+
+  @Override
   public void getData(MemoryRequest request, StreamObserver<MemoryData> response) {
     response.onNext(myMemoryData != null ? myMemoryData
                                          : MemoryData.newBuilder().setEndTimestamp(request.getStartTime() + 1).build());
-    myLastRequestedDataRange.set(request.getStartTime(), request.getEndTime());
     response.onCompleted();
+  }
+
+  @Override
+  public void getJvmtiData(MemoryRequest request, StreamObserver<MemoryData> responseObserver) {
+    responseObserver
+      .onNext(myMemoryData != null ? myMemoryData : MemoryData.newBuilder().setEndTimestamp(request.getStartTime() + 1).build());
+    responseObserver.onCompleted();
   }
 
   @Override
@@ -153,6 +241,21 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
+  public void importHeapDump(ImportHeapDumpRequest request, StreamObserver<ImportHeapDumpResponse> responseObserver) {
+    ImportHeapDumpResponse.Builder responseBuilder = ImportHeapDumpResponse.newBuilder();
+    myExplicitDumpDataStatus = DumpDataResponse.Status.SUCCESS;
+    myExplicitHeapDumpInfo =
+      HeapDumpInfo.newBuilder()
+        .setSuccess(true)
+        .build();
+    myHeapDumpInfoBuilder.addInfos(myExplicitHeapDumpInfo);
+    myExplicitSnapshotBuffer = request.getData().toByteArray();
+    responseBuilder.setStatus(ImportHeapDumpResponse.Status.SUCCESS);
+    responseObserver.onNext(responseBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void triggerHeapDump(TriggerHeapDumpRequest request,
                               StreamObserver<TriggerHeapDumpResponse> responseObserver) {
     TriggerHeapDumpResponse.Builder builder = TriggerHeapDumpResponse.newBuilder();
@@ -169,8 +272,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void getLatestAllocationTime(LatestAllocationTimeRequest request,
                                       StreamObserver<LatestAllocationTimeResponse> responseObserver) {
-    // Assume we have all data available in tests - we go by [start time, end time) so we minus 1 from Long.MAX_VALUE
-    responseObserver.onNext(LatestAllocationTimeResponse.newBuilder().setTimestamp(Long.MAX_VALUE - 1).build());
+    responseObserver.onNext(LatestAllocationTimeResponse.newBuilder().setTimestamp(myLatestAllocationTime).build());
     responseObserver.onCompleted();
   }
 
@@ -247,14 +349,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return sampleBuilder.build();
   }
 
-  private static NativeBacktrace createBacktrace(long seed) {
-    NativeBacktrace.Builder result = NativeBacktrace.newBuilder();
-    for (long address : NATIVE_ADDRESSES) {
-      result.addAddresses(address + seed);
-    }
-    return result.build();
-  }
-
   @Override
   public void getJNIGlobalRefsEvents(JNIGlobalRefsEventsRequest request,
                                      StreamObserver<BatchJNIGlobalRefEvent> responseObserver) {
@@ -287,6 +381,41 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       }
     }
     result.setTimestamp(allocationSample.getTimestamp());
+    responseObserver.onNext(result.build());
+    responseObserver.onCompleted();
+  }
+
+  private static NativeBacktrace createBacktrace(int objTag) {
+    NativeBacktrace.Builder result = NativeBacktrace.newBuilder();
+    result.addAddresses(NATIVE_ADDRESSES_BASE + objTag);
+    result.addAddresses(NATIVE_ADDRESSES_BASE + objTag + 1);
+    return result.build();
+  }
+
+  @Override
+  public void resolveNativeBacktrace(ResolveNativeBacktraceRequest request,
+                                     StreamObserver<NativeCallStack> responseObserver) {
+    NativeCallStack.Builder result = NativeCallStack.newBuilder();
+    for (long addr : request.getBacktrace().getAddressesList()) {
+      int index = (int)(addr - NATIVE_ADDRESSES_BASE) % ALLOC_CONTEXT_NUM;
+      result.addFramesBuilder()
+        .setModuleName(NATIVE_MODULE_NAMES.get(index))
+        .setSymbolName(NATIVE_FUNCTION_NAMES.get(index))
+        .setFileName(NATIVE_SOURCE_FILE.get(index))
+        .setAddress(addr)
+        .setLineNumber(index + 100)
+        .setModuleOffset(addr);
+    }
+
+    /* Add an extra frame from a system module to check that such frames are ignored */
+    result.addFramesBuilder()
+      .setModuleName(SYSTEM_NATIVE_MODULE)
+      .setSymbolName("system_symbol_name()")
+      .setFileName("/path/android.cc")
+      .setAddress(NATIVE_ADDRESSES_BASE)
+      .setLineNumber(1)
+      .setModuleOffset(NATIVE_ADDRESSES_BASE);
+
     responseObserver.onNext(result.build());
     responseObserver.onCompleted();
   }
@@ -347,6 +476,14 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
       .setClassName(CONTEXT_CLASS_NAMES.get(id))
       .setMethodName(CONTEXT_METHOD_NAMES.get(id));
     responseObserver.onNext(methodBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void setAllocationSamplingRate(MemoryProfiler.SetAllocationSamplingRateRequest request,
+                                        StreamObserver<MemoryProfiler.SetAllocationSamplingRateResponse> responseObserver) {
+    mySamplingRate = request.getSamplingRate().getSamplingNumInterval();
+    responseObserver.onNext(MemoryProfiler.SetAllocationSamplingRateResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
 
@@ -419,8 +556,19 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return myTrackAllocationCount;
   }
 
-  @NotNull
-  public Range getLastRequestedDataRange() {
-    return myLastRequestedDataRange;
+  public void resetTrackAllocationCount() {
+    myTrackAllocationCount = 0;
+  }
+
+  public int getSamplingRate() {
+    return mySamplingRate;
+  }
+
+  public void setLatestAllocationTime(long latestAllocationTime) {
+    myLatestAllocationTime = latestAllocationTime;
+  }
+
+  public void resetLatestAllocationTime() {
+    setLatestAllocationTime(DEFAULT_LATEST_ALLOCATION_TIME);
   }
 }

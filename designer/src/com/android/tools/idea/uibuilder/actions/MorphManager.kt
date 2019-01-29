@@ -18,9 +18,10 @@ package com.android.tools.idea.uibuilder.actions
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.isOrHasSuperclass
+import com.android.tools.idea.util.mapAndroidxName
 
 /**
- *
+ * This class returns suggestion of possible conversion for a given [NlComponent]
  */
 class MorphManager {
 
@@ -28,10 +29,11 @@ class MorphManager {
     fun getMorphSuggestion(component: NlComponent): MutableList<String> {
       val suggestions: MutableList<String>
       if (component.isOrHasSuperclass(SdkConstants.CLASS_VIEWGROUP)) {
+        val module = component.model.module
         suggestions = mutableListOf(
-            SdkConstants.CONSTRAINT_LAYOUT,
+            module.mapAndroidxName(SdkConstants.CONSTRAINT_LAYOUT),
             SdkConstants.LINEAR_LAYOUT,
-            SdkConstants.COORDINATOR_LAYOUT,
+            module.mapAndroidxName(SdkConstants.COORDINATOR_LAYOUT),
             SdkConstants.RELATIVE_LAYOUT,
             SdkConstants.FRAME_LAYOUT)
       }
@@ -49,7 +51,7 @@ class MorphManager {
       // Ensure that the component for which we get the suggestion is the first one in the list
       val currentComponentIndex = suggestions.indexOf(component.tagName)
       if (currentComponentIndex > 1) {
-        val current = suggestions.get(currentComponentIndex)
+        val current = suggestions[currentComponentIndex]
         suggestions.removeAt(currentComponentIndex)
         suggestions.add(0, current)
       }

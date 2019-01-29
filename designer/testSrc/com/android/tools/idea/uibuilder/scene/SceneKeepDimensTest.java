@@ -16,9 +16,10 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.Density;
-import com.android.tools.idea.common.SyncNlModel;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.configurations.Configuration;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,8 @@ import org.mockito.Mockito;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.ide.common.rendering.api.ResourceNamespace.Resolver.EMPTY_RESOLVER;
 import static org.mockito.Mockito.when;
 
 /**
@@ -37,7 +40,7 @@ public class SceneKeepDimensTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .id("@id/root")
                                    .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
@@ -85,15 +88,13 @@ public class SceneKeepDimensTest extends SceneTest {
   }
 
   private void setFakeResource(String dimension, String value) {
+    ResourceValue resourceValue = new ResourceValueImpl(ResourceUrl.parse(dimension).resolve(RES_AUTO, EMPTY_RESOLVER), value);
+    ResourceResolver resolver = ResourceResolver.withValues(resourceValue);
+
     Configuration configuration = Mockito.mock(Configuration.class);
-    ResourceResolver resolver = Mockito.mock(ResourceResolver.class);
-    ResourceValue resourceValue = Mockito.mock(ResourceValue.class);
     when(configuration.getResourceResolver()).thenReturn(resolver);
     when(configuration.getDensity()).thenReturn(Density.XHIGH);
-    when(resolver.findResValue(dimension, false)).thenReturn(resourceValue);
-    when(resolver.resolveResValue(resourceValue)).thenReturn(resourceValue);
-    when(resourceValue.getValue()).thenReturn(value);
-    ((SyncNlModel)myModel).setConfiguration(configuration);
+    myModel.setConfiguration(configuration);
   }
 
   public void testKeepDimensionLeft() {

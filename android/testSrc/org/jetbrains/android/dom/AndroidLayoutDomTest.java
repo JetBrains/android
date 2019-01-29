@@ -1,7 +1,9 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.ModuleDataBinding;
+import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -148,6 +150,10 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestCompletionVariantsContains("tools_sample_completion.xml", "@tools:sample/full_names", "@tools:sample/lorem");
   }
 
+  public void testToolsSampleHighlighting() throws Throwable {
+    doTestHighlighting(getTestName(true) + ".xml");
+  }
+
   // "-1" is not a valid tools:targetApi value
   public void testTargetApiErrorMessage1() throws Throwable {
     doTestHighlighting("tools_targetapi_error1.xml");
@@ -214,6 +220,12 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting("layoutAttrs1.xml");
   }
 
+  public void testCheckLayoutAttrs1_appStyleable() throws Throwable {
+    // Having a styleable in res-auto that references a framework attr may cause AttributeDefinitions to be wrong. See b/111547198.
+    copyFileToProject("layoutAttrs1_styleable.xml", "res/values/styleable.xml");
+    doTestHighlighting("layoutAttrs1.xml");
+  }
+
   public void testCheckLayoutAttrs2() throws Throwable {
     doTestHighlighting("layoutAttrs2.xml");
   }
@@ -255,6 +267,15 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     "    </declare-styleable>\n" +
     "</resources>";
 
+  @Language("JAVA")
+  String myLayoutManager =
+    "package p1.p2;\n" +
+    "\n" +
+    "import android.support.v7.widget.LinearLayoutManager;\n" +
+    "\n" +
+    "class MyLayoutManager extends LinearLayoutManager {\n" +
+    "}";
+
   public void testLayoutManagerAttribute() throws Throwable {
     // RecyclerView has a "layoutManager" attribute that should give completions that extend
     // the RecyclerView.LayoutManager class.
@@ -265,19 +286,30 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
                              "android.support.v7.widget.LinearLayoutManager");
   }
 
+  public void testLayoutManagerAttributeHighlighting() throws Throwable {
+    // Check the highlighting of the "layoutManager" attribute values for a RecyclerView.
+    myFixture.addClass(recyclerView);
+    myFixture.addClass(myLayoutManager);
+    myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs);
+    doTestHighlighting("recycler_view_1.xml");
+  }
+
   public void testDataBindingHighlighting1() throws Throwable {
-    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
+    // TODO test w/ X
+    ModuleDataBinding.getInstance(myFacet).setMode(DataBindingMode.SUPPORT);
     copyFileToProject("DataBindingHighlighting1.java", "src/p1/p2/DataBindingHighlighting1.java");
     doTestHighlighting("databinding_highlighting1.xml");
   }
 
   public void testDataBindingHighlighting2() throws Throwable {
-    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
+    // TODO test w/ X
+    ModuleDataBinding.getInstance(myFacet).setMode(DataBindingMode.SUPPORT);
     doTestHighlighting("databinding_highlighting2.xml");
   }
 
   public void testDataBindingHighlighting3() throws Throwable {
-    ModuleDataBinding.getInstance(myFacet).setEnabled(true);
+    // TODO test w/ X
+    ModuleDataBinding.getInstance(myFacet).setMode(DataBindingMode.SUPPORT);
     copyFileToProject("DataBindingHighlighting3.java", "src/p1/p2/DataBindingHighlighting3.java");
     doTestHighlighting("databinding_highlighting3.xml");
   }
@@ -443,7 +475,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testCustomAttributeNameCompletion5() throws Throwable {
-    myFacet.setProjectType(PROJECT_TYPE_LIBRARY);
+    myFacet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
     toTestCompletion("can5.xml", "can5_after.xml");
   }
@@ -788,6 +820,10 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestCompletion();
   }
 
+  public void testMerge3() throws Throwable {
+    doTestHighlighting();
+  }
+
   public void testFragmentHighlighting() throws Throwable {
     copyFileToProject("MyFragmentActivity.java", "src/p1/p2/MyFragmentActivity.java");
     doTestHighlighting(getTestName(true) + ".xml");
@@ -936,7 +972,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestHighlighting();
   }
 
-  // See http://b.android.com/230153
+  // b/78423832
   public void ignore_testOnClickHighlighting6() throws Throwable {
     // Like testOnClickHighlighting5, but instead of having the activity be found
     // due to a setContentView call, it's declared explicitly with a tools:context
@@ -1169,7 +1205,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
   }
 
   public void testNamespaceCompletion() throws Throwable {
-    doTestNamespaceCompletion(true, true, true, false);
+    doTestNamespaceCompletion();
   }
 
   public void testDimenUnitsCompletion1() throws Exception {
@@ -1298,9 +1334,16 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     doTestSpellcheckerQuickFixes();
   }
 
-  public void testAarDependency() throws Throwable {
-    PsiTestUtil.addLibrary(myModule, "maven_aar_dependency", getTestDataPath() + "/" + myTestFolder + "/myaar", "classes.jar", "res");
+  public void testAarDependencyCompletion() throws Throwable {
+    // See org.jetbrains.android.facet.ResourceFolderManager#isAarDependency
+    PsiTestUtil.addLibrary(myModule, "myapklib.aar", getTestDataPath() + "/" + myTestFolder + "/myaar", "classes.jar", "res");
     doTestCompletion();
+  }
+
+  public void testAarDependencyHighlightingNamespaced() throws Throwable {
+    enableNamespacing("myapp");
+    ResourcesTestsUtil.addBinaryAarDependency(myModule);
+    doTestHighlighting();
   }
 
   public void testUnknownDataBindingAttribute() throws Throwable {

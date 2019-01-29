@@ -17,9 +17,9 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.tools.idea.logcat.AndroidLogcatFormatter;
 import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.logcat.AndroidLogcatUtils;
-import com.google.common.base.Strings;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,7 +50,7 @@ public abstract class ApplicationLogListener implements AndroidLogcatService.Log
       message = formatLogLine(line);
     }
     else {
-      message = Strings.repeat(" ", formatLogLine(line).indexOf(line.getMessage())) + line.getMessage();
+      message = AndroidLogcatFormatter.CONTINUATION_INDENT + line.getMessage();
     }
 
     Key key = AndroidLogcatUtils.getProcessOutputType(myActiveHeader.getLogLevel());

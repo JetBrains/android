@@ -104,6 +104,8 @@ public class DependenciesExtractorTest extends IdeaTestCase {
   public void testExtractFromAndroidLibraryWithLocalJar() {
     String rootDirPath = myAndroidProject.getRootDir().getPath();
     File libJar = new File(rootDirPath, join("bundle_aar", "androidLibrary.jar"));
+    File libCompileJar = new File(rootDirPath, join("api.jar"));
+
     File resFolder = new File(rootDirPath, join("bundle_aar", "res"));
     File localJar = new File(rootDirPath, "local.jar");
 
@@ -112,6 +114,12 @@ public class DependenciesExtractorTest extends IdeaTestCase {
       @NotNull
       public String getJarFile() {
         return libJar.getPath();
+      }
+
+      @Override
+      @NotNull
+      public String getCompileJarFile() {
+        return libCompileJar.getPath();
       }
 
       @Override
@@ -142,11 +150,11 @@ public class DependenciesExtractorTest extends IdeaTestCase {
 
     LibraryDependency dependency = dependencies.get(0);
     assertNotNull(dependency);
-    assertEquals("Gradle: com.android.support:support-core-ui-25.3.1", dependency.getName());
+    assertEquals("Gradle: com.android.support:support-core-ui:25.3.1@aar", dependency.getName());
 
     File[] binaryPaths = dependency.getBinaryPaths();
     assertThat(binaryPaths).hasLength(3);
-    assertThat(binaryPaths).asList().containsAllOf(localJar, libJar, resFolder);
+    assertThat(binaryPaths).asList().containsAllOf(localJar, libCompileJar, resFolder);
   }
 
   public void testExtractFromModuleDependency() {

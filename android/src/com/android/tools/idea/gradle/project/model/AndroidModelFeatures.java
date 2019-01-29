@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,8 +32,9 @@ public class AndroidModelFeatures {
   private final boolean myPostBuildSyncSupported;
   // Should current module export its module/library dependencies.
   private final boolean myExportDependencies;
+  private final boolean myVfsRefreshRequired;
+  private final boolean mySingleVariantSyncSupported;
 
-  @VisibleForTesting
   public AndroidModelFeatures(@Nullable GradleVersion modelVersion) {
     myModelVersion = modelVersion;
     myIssueReportingSupported = modelVersionIsAtLeast("1.1.0");
@@ -51,11 +51,17 @@ public class AndroidModelFeatures {
       myLayoutRenderingIssuePresent = false;
       myPostBuildSyncSupported = false;
     }
+    boolean isPre3dot0Version = !modelVersionIsAtLeast("3.0.0");
     // Dependencies exported should be true if android plugin version is less than 3.0.
     // Although with IdeDependencies, each module manages their own list of dependencies, this list is not
     // complete for pre-3.0 plugins, where java library dependencies of dependent module are always empty.
     // See b/64521930.
-    myExportDependencies = !modelVersionIsAtLeast("3.0.0");
+    myExportDependencies = isPre3dot0Version;
+    // With pre-3.0 AGP, AARs are exploded AFTER Gradle Sync, and IDE does not know when these files becomes available,
+    // which causes "unresolved symbol" problem. Refresh file system to make IDE pick up exploded AARs.
+    // It is not needed with AGP 3.0+, because AARs are exploded DURING Gradle Sync with 3.0+.
+    myVfsRefreshRequired = isPre3dot0Version;
+    mySingleVariantSyncSupported = modelVersionIsAtLeast("3.3.0");
   }
 
   private boolean modelVersionIsAtLeast(@NotNull String revision) {
@@ -96,5 +102,13 @@ public class AndroidModelFeatures {
 
   public boolean shouldExportDependencies() {
     return myExportDependencies;
+  }
+
+  public boolean isVfsRefreshAfterBuildRequired() {
+    return myVfsRefreshRequired;
+  }
+
+  public boolean isSingleVariantSyncSupported() {
+    return mySingleVariantSyncSupported;
   }
 }

@@ -154,7 +154,7 @@ public class FavoritesInspectorProviderTest extends PropertyTestCase {
                                eq(elevationEditor.getComponent()));
     JLabel elevationLabel = elevationEditor.getLabel();
     assertThat(elevationLabel).isNotNull();
-    assertThat(elevationLabel.getIcon()).isSameAs(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
+    assertThat(elevationLabel.getIcon()).isSameAs(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE);
   }
 
   @NotNull

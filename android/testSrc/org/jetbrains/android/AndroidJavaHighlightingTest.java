@@ -16,7 +16,7 @@ public class AndroidJavaHighlightingTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "InjectResource.java", "src/p1/p2/InjectResource.java");
     myFixture.copyFileToProject(BASE_PATH + "SomeAnnotation.java", "src/p1/p2/SomeAnnotation.java");
     myFixture.copyFileToProject(BASE_PATH + "R1.java", "src/p1/p2/R1.java");
-    myFixture.copyFileToProject("R.java", "src/p1/p2/R.java");
+    copyRJavaToGeneratedSources();
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/MyActivity.java");
     myFixture.configureFromExistingVirtualFile(f);
     myFixture.checkHighlighting(true, false, true);

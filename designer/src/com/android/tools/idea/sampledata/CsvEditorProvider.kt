@@ -16,17 +16,15 @@
 package com.android.tools.idea.sampledata
 
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.res.SampleDataResourceRepository
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiPlainTextFile
-import org.jetbrains.android.facet.AndroidFacet
 
 const val SAMPLE_DATA_CSV_EDITOR_ID: String = "sample-data-csv-editor"
 
@@ -35,12 +33,12 @@ class CsvEditorProvider : FileEditorProvider, DumbAware {
    * FileEditorProvider ID for the CSV sample data editor
    */
   override fun accept(project: Project, virtualFile: VirtualFile): Boolean {
-    if (!StudioFlags.NELE_SAMPLE_DATA.get()) return false
-
     val psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile)
+
     if (psiFile is PsiPlainTextFile && "csv" == virtualFile.extension?.toLowerCase()) {
-      val sampleDataDirectory = AndroidFacet.getInstance(psiFile)?.let { SampleDataResourceRepository.getSampleDataDir(it, false) }
-      return sampleDataDirectory?.let { VfsUtilCore.isAncestor(sampleDataDirectory, virtualFile, true) } == true
+      val sampleDataDirectory = AndroidPsiUtils.getModuleSafely(psiFile)?.getModuleSystem()?.getSampleDataDirectory()
+      return sampleDataDirectory != null
+             && virtualFile.toPathString().let { it.startsWith(sampleDataDirectory) && it != sampleDataDirectory }
     }
 
     return false

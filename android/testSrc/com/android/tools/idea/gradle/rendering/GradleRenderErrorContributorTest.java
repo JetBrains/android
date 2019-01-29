@@ -51,13 +51,13 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myDependenciesFactory = new IdeDependenciesFactory();
-    IdeComponents.replaceService(myProject, GradleProjectInfo.class, mock(GradleProjectInfo.class));
+    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, mock(GradleProjectInfo.class));
     when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(true);
 
     setUpAndroidFacetWithGradleModelWithIssue();
 
     RenderResult result = createResultWithBrokenClass();
-    myRenderErrorModel = RenderErrorModelFactory.createErrorModel(result, null);
+    myRenderErrorModel = RenderErrorModelFactory.createErrorModel(null, result, null);
 
     // For the isApplicable tests.
     myProvider = new GradleRenderErrorContributor.GradleProvider();
@@ -118,7 +118,7 @@ public class GradleRenderErrorContributorTest extends IdeaTestCase {
 
     AndroidModuleModel model =
       new AndroidModuleModel(androidProject.getName(), root, androidProject, "debug", myDependenciesFactory);
-    facet.setAndroidModel(model);
+    facet.getConfiguration().setModel(model);
     model = AndroidModuleModel.get(myModule);
 
     assertThat(model).isNotNull();

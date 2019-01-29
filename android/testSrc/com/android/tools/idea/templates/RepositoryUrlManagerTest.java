@@ -326,6 +326,19 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     assertEquals("com.android.support:appcompat-v7:22.0.0-alpha1", result.get(0).toString());
   }
 
+  public void testResolveDynamicSdkDepsFuture() {
+    // Regression test for b/74180487
+    String revision = myRepositoryUrlManager.getLibraryRevision(GoogleMavenArtifactId.RECYCLERVIEW_V7.getMavenGroupId(),
+                                                                GoogleMavenArtifactId.RECYCLERVIEW_V7.getMavenArtifactId(),
+                                                                version -> {
+                                                                  return version.getMajor() == 200; // future version
+                                                                },
+                                                                false,
+                                                                TestUtils.getSdk(),
+                                                                FileOpUtils.create());
+    assertNull(revision);
+  }
+
   public void testResolveDynamicSdkDependenciesWithSupportVersionFromFilter() {
     Multimap<String, GradleCoordinate> dependencies = HashMultimap.create();
     dependencies.put("com.android.support:appcompat-v7", GradleCoordinate.parseCoordinateString("com.android.support:appcompat-v7:+"));

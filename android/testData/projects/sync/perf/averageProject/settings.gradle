@@ -1,0 +1,3 @@
+rootProject.name = 'averageProject'
+
+include 'androidAppModule0','androidAppModule1','androidAppModule2','module0'

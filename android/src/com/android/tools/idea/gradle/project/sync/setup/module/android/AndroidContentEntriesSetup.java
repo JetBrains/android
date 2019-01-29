@@ -22,6 +22,8 @@ import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ContentEntriesSetup;
+import com.android.tools.idea.gradle.util.GeneratedSourceFolders;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import org.jetbrains.annotations.NotNull;
@@ -31,16 +33,13 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.FD_GENERATED;
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
 import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
 
 class AndroidContentEntriesSetup extends ContentEntriesSetup {
-
   static class Factory {
     @NotNull
     AndroidContentEntriesSetup create(@NotNull AndroidModuleModel androidModel,
@@ -51,6 +50,7 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
   }
 
   @NotNull private final AndroidModuleModel myAndroidModel;
+  @NotNull private final GeneratedSourceFolders myGeneratedSourceFolders;
 
   // Native sources from AndroidGradleModel needs to be added only when NativeAndroidGradleModel is not present.
   private final boolean myHasNativeModel;
@@ -61,6 +61,7 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
     super(moduleModel);
     myAndroidModel = androidModel;
     myHasNativeModel = hasNativeModel;
+    myGeneratedSourceFolders = new GeneratedSourceFolders();
   }
 
   @Override
@@ -118,13 +119,7 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
 
     GradleVersion modelVersion = myAndroidModel.getModelVersion();
     if (artifact instanceof AndroidArtifact || (modelVersion != null && modelVersion.compareIgnoringQualifiers("1.2") >= 0)) {
-      // getGeneratedSourceFolders used to be in AndroidArtifact only.
-      Collection<File> generatedSourceFolders = artifact.getGeneratedSourceFolders();
-
-      //noinspection ConstantConditions - this returned null in 1.2
-      if (generatedSourceFolders != null) {
-        addSourceFolders(generatedSourceFolders, contentEntries, sourceType, true);
-      }
+      addSourceFolders(GradleUtil.getGeneratedSourceFoldersToUse(artifact, myAndroidModel), contentEntries, sourceType, true);
     }
 
     if (artifact instanceof AndroidArtifact) {
@@ -180,16 +175,11 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
                                 @NotNull JpsModuleSourceRootType type,
                                 boolean generated) {
     for (File folderPath : folderPaths) {
-      if (generated && !isGeneratedAtCorrectLocation(folderPath)) {
+      if (generated && !myGeneratedSourceFolders.isFolderGeneratedInCorrectLocation(folderPath, getAndroidProject())) {
         myAndroidModel.registerExtraGeneratedSourceFolder(folderPath);
       }
       addSourceFolder(folderPath, contentEntries, type, generated);
     }
-  }
-
-  private boolean isGeneratedAtCorrectLocation(@NotNull File folderPath) {
-    File generatedFolderPath = new File(getAndroidProject().getBuildFolder(), FD_GENERATED);
-    return isAncestor(generatedFolderPath, folderPath, false);
   }
 
   private void addExcludedOutputFolders(@NotNull List<ContentEntry> contentEntries) {

@@ -18,7 +18,7 @@ package org.jetbrains.android.spellchecker;
 import com.android.SdkConstants;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.client.api.DefaultConfiguration;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.lint.detector.api.Lint;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
@@ -130,6 +130,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         // way that AAPT would. But first, filter out common scenarios handled by super.getTokenizer before returning
         // the TEXT_TOKENIZER:
         PsiFile file = element.getContainingFile();
+        //noinspection InstanceofIncompatibleInterface
         if (file == null || file.getLanguage() instanceof TemplateLanguage) {
           return EMPTY_TOKENIZER;
         }
@@ -218,7 +219,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         AndroidFacet facet = AndroidFacet.getInstance(file);
         VirtualFile virtualFile = file.getVirtualFile();
         if (facet != null && facet.requiresAndroidModel() && virtualFile != null) {
-          AndroidModel androidModel = facet.getAndroidModel();
+          AndroidModel androidModel = facet.getConfiguration().getModel();
           if (androidModel != null && androidModel.isGenerated(virtualFile)) {
             return false;
           }
@@ -230,7 +231,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
       }
       PsiDirectory dir = file.getParent();
       if (dir != null) {
-        String locale = LintUtils.getLocaleAndRegion(dir.getName());
+        String locale = Lint.getLocaleAndRegion(dir.getName());
         if (locale == null) {
           locale = getToolsLocale(file);
         }
@@ -268,7 +269,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
       AndroidResourceReferenceBase reference = findResourceReference(element);
 
       if (reference != null) {
-        if (reference.getResourceValue().getNamespace() == null) {
+        if (reference.getResourceValue().getPackage() == null) {
           consumer.consumeToken(element, true, TextSplitter.getInstance());
         }
         return;

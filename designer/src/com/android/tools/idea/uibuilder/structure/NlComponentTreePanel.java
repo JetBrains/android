@@ -34,7 +34,7 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolContent<DesignSurface> {
@@ -44,7 +44,10 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
   public NlComponentTreePanel(@NotNull Project project) {
     super(new BorderLayout());
     myTree = new NlComponentTree(project, null);
-    JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    JScrollPane pane =
+      ScrollPaneFactory.createScrollPane(myTree,
+                                         VERTICAL_SCROLLBAR_AS_NEEDED,
+                                         HORIZONTAL_SCROLLBAR_NEVER);
     pane.setBorder(null);
     myNavigationComponent = new BackNavigationComponent();
     add(myNavigationComponent, BorderLayout.NORTH);
@@ -55,6 +58,7 @@ public class NlComponentTreePanel extends AdtSecondaryPanel implements ToolConte
 
   @Override
   public void dispose() {
+    myNavigationComponent.setDesignSurface(null);
   }
 
   @Override

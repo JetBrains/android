@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.AndroidProject;
+import com.android.builder.model.SyncIssue;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaLibrary;
 import com.android.java.model.JavaProject;
@@ -37,6 +38,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
+import static java.util.Arrays.asList;
 
 /**
  * Factory class to create JavaModuleModel instance from JavaProject returned by Java Library plugin.
@@ -56,32 +59,42 @@ public class JavaModuleModelFactory {
   public JavaModuleModel create(@NotNull File moduleFolderPath, @NotNull GradleProject gradleProject, @NotNull ArtifactModel jarAarModel) {
     Collection<JavaModuleContentRoot> contentRoots = getContentRoots(moduleFolderPath, gradleProject);
     return new JavaModuleModel(jarAarModel.getName(), contentRoots, Collections.emptyList() /* Java module dependencies */,
-                               Collections.emptyList() /* Jar library dependencies */, jarAarModel.getArtifactsByConfiguration(),
-                               null /* compiler output */, gradleProject.getBuildDirectory(), null /* Java language level */,
-                               isBuildable(gradleProject), false /* regular Java module */);
+                               Collections.emptyList() /* Jar library dependencies */, Collections.emptyList() /* Sync Issues */,
+                               jarAarModel.getArtifactsByConfiguration(), null /* compiler output */, gradleProject.getBuildDirectory(),
+                               null /* Java language level */, isBuildable(gradleProject), false /* regular Java module */);
   }
 
   @NotNull
   private static Collection<JavaModuleContentRoot> getContentRoots(@NotNull File moduleFolderPath, @NotNull GradleProject gradleProject) {
-    // Exclude directory came from idea plugin, Java Library Plugin doesn't return this information.
-    // Manually add build directory.
-    Collection<File> excludeFolderPaths = Collections.singletonList(gradleProject.getBuildDirectory());
     JavaModuleContentRoot contentRoot = new JavaModuleContentRoot(moduleFolderPath,
                                                                   Collections.emptyList() /* source folders */,
                                                                   Collections.emptyList() /* generated source folders */,
                                                                   Collections.emptyList() /* resource folders */,
                                                                   Collections.emptyList() /* test folders */,
                                                                   Collections.emptyList() /* generated test folders */,
-                                                                  Collections.emptyList() /* test resource folders */, excludeFolderPaths);
+                                                                  Collections.emptyList() /* test resource folders */,
+                                                                  getExcludedFolders(gradleProject));
     return Collections.singleton(contentRoot);
   }
 
   @NotNull
-  public JavaModuleModel create(@NotNull GradleProject gradleProject, @NotNull AndroidProject androidProject) {
+  private static Collection<File> getExcludedFolders(@NotNull GradleProject gradleProject) {
+    // Exclude directory came from idea plugin, Java Library Plugin doesn't return this information.
+    // Add build directory, and .build directory, which are the default excluded directories by idea plugin, see
+    // https://docs.gradle.org/current/dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:excludeDirs
+    return asList(gradleProject.getBuildDirectory(),
+                  new File(gradleProject.getProjectDirectory(), ".gradle"));
+  }
+
+  @NotNull
+  public JavaModuleModel create(@NotNull GradleProject gradleProject,
+                                @NotNull AndroidProject androidProject,
+                                @NotNull Collection<SyncIssue> syncIssues) {
     String sourceCompatibility = androidProject.getJavaCompileOptions().getSourceCompatibility();
     return new JavaModuleModel(androidProject.getName(), Collections.emptyList() /* content roots */,
                                Collections.emptyList() /* Java module dependencies */,
                                Collections.emptyList() /* Jar library dependencies */,
+                               syncIssues,
                                Collections.emptyMap() /* artifacts by configuration */, new IdeaCompilerOutputImpl(),
                                gradleProject.getBuildDirectory(), sourceCompatibility, false /* not buildable */,
                                true /* Android project without variants */);
@@ -93,9 +106,9 @@ public class JavaModuleModelFactory {
     String projectName = javaProject.getName();
     Collection<JavaModuleContentRoot> contentRoots = getContentRoots(moduleFolderPath, javaProject, gradleProject);
     return new JavaModuleModel(projectName, contentRoots, dependencies.first, dependencies.second,
-                               Collections.emptyMap() /* artifacts by configuration */, getCompilerOutput(javaProject),
-                               gradleProject.getBuildDirectory(), javaProject.getJavaLanguageLevel(), isBuildable(gradleProject),
-                               false /* regular Java module */);
+                               Collections.emptyList() /* Sync Issues */, Collections.emptyMap() /* artifacts by configuration */,
+                               getCompilerOutput(javaProject), gradleProject.getBuildDirectory(), javaProject.getJavaLanguageLevel(),
+                               isBuildable(gradleProject), false /* regular Java module */);
   }
 
   @NotNull
@@ -135,7 +148,9 @@ public class JavaModuleModelFactory {
                                 @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
                                 @NotNull Collection<JarLibraryDependency> jarLibraryDependencies) {
     if (javaLibrary.getProject() != null) {
-      javaModuleDependencies.add(new JavaModuleDependency(javaLibrary.getName(), scope, false));
+      assert javaLibrary.getBuildId() != null;
+      String moduleId = createUniqueModuleId(javaLibrary.getBuildId(), javaLibrary.getProject());
+      javaModuleDependencies.add(new JavaModuleDependency(javaLibrary.getName(), moduleId, scope, false));
     }
     else {
       JarLibraryDependency jarLibraryDependency = myNewJarLibraryDependencyFactory.create(javaLibrary, scope);
@@ -153,10 +168,16 @@ public class JavaModuleModelFactory {
     SourceSet mainSourceSet = sourceSets.getMainSourceSet();
     SourceSet testSourceSet = sourceSets.getTestSourceSet();
     if (mainSourceSet != null && testSourceSet != null) {
-      compilerOutput.setMainClassesDir(mainSourceSet.getClassesOutputDirectory());
+      Iterator<File> classesOutputIterator = mainSourceSet.getClassesOutputDirectories().iterator();
+      if (classesOutputIterator.hasNext()) {
+        compilerOutput.setMainClassesDir(classesOutputIterator.next());
+      }
       compilerOutput.setMainResourcesDir(mainSourceSet.getResourcesOutputDirectory());
 
-      compilerOutput.setTestClassesDir(testSourceSet.getClassesOutputDirectory());
+      Iterator<File> testClassesOutputIterator = testSourceSet.getClassesOutputDirectories().iterator();
+      if (testClassesOutputIterator.hasNext()) {
+        compilerOutput.setTestClassesDir(testClassesOutputIterator.next());
+      }
       compilerOutput.setTestResourcesDir(testSourceSet.getResourcesOutputDirectory());
     }
     return compilerOutput;
@@ -183,17 +204,13 @@ public class JavaModuleModelFactory {
       }
     }
 
-    // Exclude directory came from idea plugin, Java Library Plugin doesn't return this information.
-    // Manually add build directory.
-    Collection<File> excludeFolderPaths = new ArrayList<>();
-    excludeFolderPaths.add(gradleProject.getBuildDirectory());
-
     // Generated sources and generated test sources come from idea plugin, leave them empty for now.
     JavaModuleContentRoot contentRoot = new JavaModuleContentRoot(moduleFolderPath, sourceFolderPaths,
                                                                   Collections.emptyList() /* generated source folders */,
                                                                   resourceFolderPaths, testFolderPaths,
                                                                   Collections.emptyList() /* test generated source folders */,
-                                                                  testResourceFolderPaths, excludeFolderPaths);
+                                                                  testResourceFolderPaths,
+                                                                  getExcludedFolders(gradleProject));
     return Collections.singleton(contentRoot);
   }
 

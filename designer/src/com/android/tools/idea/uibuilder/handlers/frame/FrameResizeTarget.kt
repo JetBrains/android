@@ -16,14 +16,14 @@
 package com.android.tools.idea.uibuilder.handlers.frame
 
 import com.android.tools.idea.common.model.AndroidDpCoordinate
-import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget
 
 import com.android.SdkConstants.*
+import com.android.tools.idea.common.model.NlAttributesHolder
 
 open class FrameResizeTarget(type: Type) : ResizeWithSnapBaseTarget(type) {
 
-  override fun updateAttributes(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+  override fun updateAttributes(attributes: NlAttributesHolder, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
     when (myType) {
       Type.LEFT, Type.RIGHT -> updateWidth(attributes, getNewWidth(x))
       Type.TOP, Type.BOTTOM -> updateHeight(attributes, getNewHeight(y))
@@ -34,9 +34,9 @@ open class FrameResizeTarget(type: Type) : ResizeWithSnapBaseTarget(type) {
     }
   }
 
-  private fun updateWidth(attributes: AttributesTransaction, width: String) =
+  private fun updateWidth(attributes: NlAttributesHolder, width: String) =
       attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, width)
 
-  private fun updateHeight(attributes: AttributesTransaction, height: String) =
+  private fun updateHeight(attributes: NlAttributesHolder, height: String) =
       attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, height)
 }

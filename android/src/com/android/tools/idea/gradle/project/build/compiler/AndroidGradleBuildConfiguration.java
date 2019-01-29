@@ -28,7 +28,6 @@ import java.util.List;
 
 @State(name = "AndroidGradleBuildConfiguration", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
-  public boolean USE_CONFIGURATION_ON_DEMAND = true;
   public boolean USE_EXPERIMENTAL_FASTER_BUILD = true;
   public boolean SYNC_PROJECT_BEFORE_BUILD;
   public String COMMAND_LINE_OPTIONS = "";

@@ -15,9 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public interface GradleSync {
   void sync(@NotNull GradleSyncInvoker.Request request, @Nullable GradleSyncListener listener);
+
+  @NotNull
+  List<GradleModuleModels> fetchGradleModels(@NotNull ProgressIndicator indicator);
 }

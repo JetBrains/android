@@ -18,10 +18,9 @@ package com.android.tools.idea.uibuilder.mockup.editor.creators;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.MockupCoordinate;
 import com.android.tools.idea.uibuilder.mockup.MockupFileHelper;
@@ -31,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,7 +117,7 @@ public abstract class WidgetCreator {
       Logger.getInstance(FloatingActionButtonCreator.class).error("The color name can't be empty. Aborting color resource creation");
       return;
     }
-    VirtualFile primaryResourceDir = model.getFacet().getPrimaryResourceDir();
+    VirtualFile primaryResourceDir = ResourceFolderManager.getInstance(model.getFacet()).getPrimaryFolder();
     FolderConfiguration configForFolder = FolderConfiguration.getConfigForFolder(ResourceFolderType.VALUES.getName());
     if (primaryResourceDir != null && configForFolder != null) {
       AndroidResourceUtil.createValueResource(
@@ -195,7 +195,7 @@ public abstract class WidgetCreator {
     }
     transaction.commit();
     myModel.addComponents(Collections.singletonList(myComponent), myMockup.getComponent(), null, InsertType.CREATE_PREVIEW,
-                          ViewEditorImpl.getOrCreate(myScreenView));
+                          myScreenView.getSurface());
     return myComponent;
   }
 

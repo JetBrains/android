@@ -15,20 +15,25 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor
 
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.structure.DestinationList
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Computable
 import org.fest.swing.core.Robot
-import org.fest.swing.fixture.JLabelFixture
 import org.fest.swing.fixture.JListFixture
 
-class DestinationListFixture(private val robot: Robot, private val list: DestinationList) :
-    JListFixture(robot, list.myList) {
+class DestinationListFixture(robot: Robot, private val list: DestinationList) :
+  JListFixture(robot, list.myList) {
 
-  fun clickBack(): DestinationListFixture {
-    JLabelFixture(robot, list.myBackLabel).click()
-    return this
-  }
+  val selectedComponents: List<NlComponent>
+    get() = list.myList.selectedValuesList
+
+  val components: List<NlComponent>
+    get() = ApplicationManager.getApplication().runReadAction(Computable {
+      (0 until list.myList.model.size).map { list.myList.model.getElementAt(it) }
+    })
 
   companion object {
     fun create(robot: Robot): DestinationListFixture {

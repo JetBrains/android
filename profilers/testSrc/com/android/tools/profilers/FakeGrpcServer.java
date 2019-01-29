@@ -36,16 +36,20 @@ public class FakeGrpcServer extends FakeGrpcChannel {
    */
   private static Map<Long, Integer> ourProfiledProcesses = new HashMap<>(7);
 
-  public FakeGrpcServer(String name, BindableService service) {
+  public FakeGrpcServer(String name, BindableService service, BindableService cpuService) {
     super(name, service,
           new EventService(),
           new MemoryService(),
           new NetworkService(),
-          new CpuService(),
+          cpuService,
           new EnergyService());
     // TODO the current static map keeps around values from previous tests. We should refactor this properly so this doesn't have to be
     // a static.
     ourProfiledProcesses.clear();
+  }
+
+  public FakeGrpcServer(String name, BindableService service) {
+    this(name, service, new CpuService());
   }
 
   /**
@@ -55,13 +59,13 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     return ourProfiledProcesses.keySet().size();
   }
 
-  private synchronized static void addProfileredProcess(Common.Session session) {
+  private synchronized static void addProfiledProcess(Common.Session session) {
     long sessionId = session.getSessionId();
     int profilerCount = ourProfiledProcesses.getOrDefault(sessionId, 0);
     ourProfiledProcesses.put(sessionId, profilerCount + 1);
   }
 
-  private synchronized static void removeProfileredProcess(Common.Session session) {
+  private synchronized static void removeProfiledProcess(Common.Session session) {
     long sessionId = session.getSessionId();
     Integer profilerCount = ourProfiledProcesses.get(sessionId);
     if (profilerCount != null) {
@@ -79,14 +83,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(EventStartRequest request, StreamObserver<EventStartResponse> response) {
       response.onNext(EventStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession());
+      addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(EventStopRequest request, StreamObserver<EventStopResponse> response) {
       response.onNext(EventStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession());
+      removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -107,19 +111,32 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> response) {
       response.onNext(MemoryStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession());
+      addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> response) {
       response.onNext(MemoryStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession());
+      removeProfiledProcess(request.getSession());
     }
 
     @Override
     public void getData(MemoryRequest request, StreamObserver<MemoryData> response) {
       response.onNext(MemoryData.getDefaultInstance());
+      response.onCompleted();
+    }
+
+    @Override
+    public void getJvmtiData(MemoryRequest request, StreamObserver<MemoryData> response) {
+      response.onNext(MemoryData.getDefaultInstance());
+      response.onCompleted();
+    }
+
+    @Override
+    public void listHeapDumpInfos(ListDumpInfosRequest request,
+                                  StreamObserver<ListHeapDumpInfosResponse> response) {
+      response.onNext(ListHeapDumpInfosResponse.getDefaultInstance());
       response.onCompleted();
     }
   }
@@ -129,14 +146,14 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     public void startMonitoringApp(NetworkStartRequest request, StreamObserver<NetworkStartResponse> response) {
       response.onNext(NetworkStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession());
+      addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(NetworkStopRequest request, StreamObserver<NetworkStopResponse> response) {
       response.onNext(NetworkStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession());
+      removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -146,19 +163,35 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     }
   }
 
-  private static class CpuService extends CpuServiceGrpc.CpuServiceImplBase {
+  public static class CpuService extends CpuServiceGrpc.CpuServiceImplBase {
+    private boolean myIsBeingProfiled = false;
+    private boolean myIsStartupProfiling = false;
+    private long myProfilingStartTimestamp = 0;
+
+    public void setStartupProfiling(boolean isStartupProfiling) {
+      myIsStartupProfiling = isStartupProfiling;
+      if (isStartupProfiling) {
+        // if startup profiling is true, it means that an app is being profiled
+        myIsBeingProfiled = true;
+      }
+    }
+
+    public void setProfilingStartTimestamp(long timestamp) {
+      myProfilingStartTimestamp = timestamp;
+    }
+
     @Override
     public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> response) {
       response.onNext(CpuStartResponse.getDefaultInstance());
       response.onCompleted();
-      addProfileredProcess(request.getSession());
+      addProfiledProcess(request.getSession());
     }
 
     @Override
     public void stopMonitoringApp(CpuStopRequest request, StreamObserver<CpuStopResponse> response) {
       response.onNext(CpuStopResponse.getDefaultInstance());
       response.onCompleted();
-      removeProfileredProcess(request.getSession());
+      removeProfiledProcess(request.getSession());
     }
 
     @Override
@@ -182,15 +215,47 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     @Override
     public void checkAppProfilingState(ProfilingStateRequest request,
                                        StreamObserver<ProfilingStateResponse> response) {
-      response.onNext(ProfilingStateResponse.getDefaultInstance());
+      response.onNext(
+        ProfilingStateResponse.newBuilder()
+          .setBeingProfiled(myIsBeingProfiled)
+          .setIsStartupProfiling(myIsStartupProfiling)
+          .setStartTimestamp(myProfilingStartTimestamp).build());
       response.onCompleted();
     }
   }
 
   private static class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase {
     @Override
-    public void getData(EnergyProfiler.EnergyDataRequest request, StreamObserver<EnergyProfiler.EnergyDataResponse> response) {
-      response.onNext(EnergyProfiler.EnergyDataResponse.getDefaultInstance());
+    public void startMonitoringApp(EnergyProfiler.EnergyStartRequest request,
+                                   StreamObserver<EnergyProfiler.EnergyStartResponse> response) {
+      response.onNext(EnergyProfiler.EnergyStartResponse.getDefaultInstance());
+      response.onCompleted();
+      addProfiledProcess(request.getSession());
+    }
+
+    @Override
+    public void stopMonitoringApp(EnergyProfiler.EnergyStopRequest request,
+                                  StreamObserver<EnergyProfiler.EnergyStopResponse> response) {
+      response.onNext(EnergyProfiler.EnergyStopResponse.getDefaultInstance());
+      response.onCompleted();
+      removeProfiledProcess(request.getSession());
+    }
+
+    @Override
+    public void getSamples(EnergyProfiler.EnergyRequest request, StreamObserver<EnergyProfiler.EnergySamplesResponse> response) {
+      response.onNext(EnergyProfiler.EnergySamplesResponse.getDefaultInstance());
+      response.onCompleted();
+    }
+
+    @Override
+    public void getEvents(EnergyProfiler.EnergyRequest request, StreamObserver<EnergyProfiler.EnergyEventsResponse> response) {
+      response.onNext(EnergyProfiler.EnergyEventsResponse.getDefaultInstance());
+      response.onCompleted();
+    }
+
+    @Override
+    public void getEventGroup(EnergyProfiler.EnergyEventGroupRequest request, StreamObserver<EnergyProfiler.EnergyEventsResponse> response) {
+      response.onNext(EnergyProfiler.EnergyEventsResponse.getDefaultInstance());
       response.onCompleted();
     }
   }

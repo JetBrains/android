@@ -102,6 +102,11 @@ public interface Target {
   void setMouseHovered(boolean over);
 
   /**
+   * @return Whether the mouse is hovering over this target.
+   */
+  boolean isMouseHovered();
+
+  /**
    * Can be used by the target to expand its bounds
    *
    * @param expand true to expand
@@ -122,12 +127,11 @@ public interface Target {
 
   /**
    * Implement this method to react to mouse drag events
-   *
-   * @param x              X coordinate of the mouse in DP
+   *  @param x              X coordinate of the mouse in DP
    * @param y              Y coordinate of the mouse in DP
    * @param closestTargets Closest target from the mouse if there is one
    */
-  default void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  default void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
   }
 
   /**
@@ -137,7 +141,7 @@ public interface Target {
    * @param y              Y coordinate of the mouse in DP
    * @param closestTargets Closest target from the mouse if there is one
    */
-  default void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+  default void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
   }
 
   SceneComponent getComponent();
@@ -152,6 +156,15 @@ public interface Target {
 
   default boolean canChangeSelection() {
     return true;
+  }
+
+  /**
+   * Returns the list of components to be selected after mouse release, or {@code null} if the default (the clicked component)
+   * should be used.
+   */
+  @Nullable
+  default List<SceneComponent> newSelection() {
+    return null;
   }
 
   /**

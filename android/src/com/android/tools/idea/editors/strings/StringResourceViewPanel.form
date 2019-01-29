@@ -5,26 +5,8 @@
     <constraints>
       <xy x="20" y="20" width="715" height="505"/>
     </constraints>
-    <properties>
-      <name value="translationsEditor"/>
-    </properties>
     <border type="none"/>
     <children>
-      <scrollpane id="9b388" class="com.intellij.ui.components.JBScrollPane">
-        <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties/>
-        <border type="none"/>
-        <children>
-          <component id="dccf6" class="com.android.tools.idea.editors.strings.table.StringResourceTable" binding="myTable" custom-create="true">
-            <constraints/>
-            <properties>
-              <name value="table"/>
-            </properties>
-          </component>
-        </children>
-      </scrollpane>
       <grid id="8af34" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="5" left="5" bottom="5" right="5"/>
         <constraints>

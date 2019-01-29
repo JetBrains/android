@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ChooseOptionsForNewFileStepFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.ChooseOptionsForNewFileStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,7 +36,7 @@ import static org.junit.Assert.assertEquals;
  * Tests that the defaults are populated correctly in Instant App Activities
  */
 @RunIn(TestGroup.PROJECT_WIZARD)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class InstantAppActivityDefaultsTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
@@ -47,10 +47,21 @@ public class InstantAppActivityDefaultsTest {
   public void before() {
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
     propertiesComponent.setValue(SAVED_COMPANY_DOMAIN, TEST_DOMAIN);
+    SdkReplacer.replaceSdkLocationAndActivate(null, true);
   }
+
+  @After
+  public void after() {
+    SdkReplacer.putBack();
+  }
+
 
   @Test
   public void testDefaultUrlParamsPopulated() {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      return; // On the new NPW design, Instant Apps are created with default options. This test no longer applies.
+    }
+
     ChooseOptionsForNewFileStepFixture<NewProjectWizardFixture> templateSettingsFixture = guiTest.welcomeFrame()
       .createNewProject()
       .getConfigureAndroidProjectStep()

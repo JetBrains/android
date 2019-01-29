@@ -17,16 +17,17 @@ package com.android.tools.idea.common.model;
 
 import com.android.resources.Density;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.configurations.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 
 public class Coordinates {
 
@@ -38,7 +39,16 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingX(@NotNull SceneView view, @AndroidCoordinate int androidX) {
-    return view.getX() + view.getContentTranslationX() + (int)(view.getScale() * androidX);
+    return view.getX() + view.getContentTranslationX() + (int)Math.round(view.getScale() * androidX);
+  }
+
+  /**
+   * Returns the Swing x coordinate relative to {@link DesignSurface#getLayeredPane()}
+   * of the given x coordinate in the Android screen coordinate system
+   */
+  @SwingCoordinate
+  public static float getSwingX(@NotNull SceneView view, @AndroidCoordinate float androidX) {
+    return view.getX() + view.getContentTranslationX() + (float)view.getScale() * androidX;
   }
 
   /**
@@ -47,7 +57,16 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingY(@NotNull SceneView view, @AndroidCoordinate int androidY) {
-    return view.getY() + view.getContentTranslationY() + (int)(view.getScale() * androidY);
+    return view.getY() + view.getContentTranslationY() + (int)Math.round(view.getScale() * androidY);
+  }
+
+  /**
+   * Returns the Swing x coordinate relative to  {@link DesignSurface#getLayeredPane()}
+   * of the given x coordinate in the Android screen coordinate system
+   */
+  @SwingCoordinate
+  public static float getSwingY(@NotNull SceneView view, @AndroidCoordinate float androidY) {
+    return view.getY() + view.getContentTranslationY() + (float)view.getScale() * androidY;
   }
 
   /**
@@ -56,7 +75,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingDimension(@NotNull SceneView view, @AndroidCoordinate int androidDimension) {
-    return (int)(view.getScale() * androidDimension);
+    return (int)Math.round(view.getScale() * androidDimension);
   }
 
   /**
@@ -65,7 +84,7 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingDimension(@NotNull DesignSurface surface, @AndroidCoordinate int androidDimension) {
-    return (int)(surface.getScale() * androidDimension);
+    return (int)Math.round(surface.getScale() * androidDimension);
   }
 
   /**
@@ -74,7 +93,16 @@ public class Coordinates {
    */
   @SwingCoordinate
   public static int getSwingDimension(@NotNull SceneContext sceneContext, @AndroidCoordinate int androidDimension) {
-    return (int)(sceneContext.getScale() * androidDimension);
+    return (int)Math.round(sceneContext.getScale() * androidDimension);
+  }
+
+  /**
+   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system
+   */
+  @SwingCoordinate
+  public static float getSwingDimension(@NotNull SceneView view, @AndroidCoordinate float androidDimension) {
+    return (float)view.getScale() * androidDimension;
   }
 
   // DPI
@@ -125,8 +153,26 @@ public class Coordinates {
    * system) of the given x coordinate in the Android screen coordinate system in Dip
    */
   @SwingCoordinate
+  public static float getSwingXDip(@NotNull SceneView view, @AndroidDpCoordinate float androidDpX) {
+    return getSwingX(view, view.getSceneScalingFactor() * androidDpX);
+  }
+
+  /**
+   * Returns the Swing x coordinate (in the {@link DesignSurface} coordinate
+   * system) of the given x coordinate in the Android screen coordinate system in Dip
+   */
+  @SwingCoordinate
   public static int getSwingYDip(@NotNull SceneView view, @AndroidDpCoordinate int androidDpY) {
     return getSwingY(view, dpToPx(view.getSurface(), androidDpY));
+  }
+
+  /**
+   * Returns the Swing x coordinate (in the {@link DesignSurface} coordinate
+   * system) of the given x coordinate in the Android screen coordinate system in Dip
+   */
+  @SwingCoordinate
+  public static float getSwingYDip(@NotNull SceneView view, @AndroidDpCoordinate float androidDpX) {
+    return getSwingY(view, view.getSceneScalingFactor() * androidDpX);
   }
 
   /**
@@ -143,9 +189,8 @@ public class Coordinates {
    * system) of the given dimension in the Android screen coordinate system in Dip
    */
   @SwingCoordinate
-  public static Rectangle getSwingRectDip(@NotNull SceneContext context, @NotNull @AndroidDpCoordinate Rectangle rect) {
-    return new Rectangle(context.getSwingXDip(rect.x), context.getSwingYDip(rect.y),
-                         context.getSwingDimensionDip(rect.width), context.getSwingDimensionDip(rect.height));
+  public static float getSwingDimensionDip(@NotNull SceneView view, @AndroidDpCoordinate float androidDpDimension) {
+    return getSwingDimension(view, view.getSceneScalingFactor() * androidDpDimension);
   }
 
   /**
@@ -156,6 +201,30 @@ public class Coordinates {
   public static Rectangle getSwingRectDip(@NotNull SceneView view, @NotNull @AndroidDpCoordinate Rectangle rect) {
     return new Rectangle(getSwingXDip(view, rect.x), getSwingYDip(view, rect.y),
                          getSwingDimensionDip(view, rect.width), getSwingDimensionDip(view, rect.height));
+  }
+
+  /**
+   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system in Dip
+   */
+  @SwingCoordinate
+  public static Rectangle2D.Float getSwingRectDip(@NotNull SceneView view, @NotNull @AndroidDpCoordinate Rectangle2D.Float rect) {
+    return new Rectangle2D.Float(getSwingXDip(view, rect.x),
+                                      getSwingYDip(view, rect.y),
+                                      getSwingDimensionDip(view, rect.width),
+                                      getSwingDimensionDip(view, rect.height));
+  }
+
+  /**
+   * Returns the Swing dimension (in the {@link DesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system in Dip
+   */
+  @SwingCoordinate
+  public static Rectangle2D.Float getSwingRectDip(@NotNull SceneContext context, @NotNull @AndroidDpCoordinate Rectangle2D.Float rect) {
+    return new Rectangle2D.Float(context.getSwingXDip(rect.x),
+                                 context.getSwingYDip(rect.y),
+                                 context.getSwingDimensionDip(rect.width),
+                                 context.getSwingDimensionDip(rect.height));
   }
 
   /**
@@ -184,7 +253,7 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidX(@NotNull SceneView view, @SwingCoordinate int swingX) {
-    return (int)((swingX - view.getX() - view.getContentTranslationX()) / view.getScale());
+    return (int)Math.round((swingX - view.getX() - view.getContentTranslationX()) / view.getScale());
   }
 
   /**
@@ -202,14 +271,14 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidY(@NotNull SceneView view, @SwingCoordinate int swingY) {
-    return (int)((swingY - view.getY() - view.getContentTranslationY()) / view.getScale());
+    return (int)Math.round((swingY - view.getY() - view.getContentTranslationY()) / view.getScale());
   }
 
   /**
    * Returns the Android y coordinate for the given Swing y coordinate (in
    * the {@link DesignSurface} coordinate system.)
    */
-  @AndroidCoordinate
+  @AndroidDpCoordinate
   public static int getAndroidYDip(@NotNull SceneView view, @SwingCoordinate int swingY) {
     return pxToDp(view, getAndroidY(view, swingY));
   }
@@ -229,7 +298,7 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidDimension(@NotNull SceneView view, @SwingCoordinate int swingDimension) {
-    return (int)(swingDimension / view.getScale());
+    return (int)Math.round(swingDimension / view.getScale());
   }
 
   /**
@@ -238,14 +307,14 @@ public class Coordinates {
    */
   @AndroidCoordinate
   public static int getAndroidDimension(@NotNull DesignSurface surface, @SwingCoordinate int swingDimension) {
-    return (int)(swingDimension / surface.getScale());
+    return (int)Math.round(swingDimension / surface.getScale());
   }
 
   /**
    * Returns the Android dimension for the given Swing dimension coordinate (in
    * the {@link DesignSurface} coordinate system.)
    */
-  @AndroidCoordinate
+  @AndroidDpCoordinate
   public static int getAndroidDimensionDip(@NotNull SceneView view, @SwingCoordinate int swingDimension) {
     return pxToDp(view, getAndroidDimension(view, swingDimension));
   }
@@ -254,7 +323,7 @@ public class Coordinates {
    * Returns the Android dimension for the given Swing dimension coordinate (in
    * the {@link DesignSurface} coordinate system.)
    */
-  @AndroidCoordinate
+  @AndroidDpCoordinate
   public static int getAndroidDimensionDip(@NotNull DesignSurface surface, @SwingCoordinate int swingDimension) {
     return pxToDp(surface, getAndroidDimension(surface, swingDimension));
   }
@@ -270,8 +339,11 @@ public class Coordinates {
   public static NlComponent findComponent(@NotNull SceneView view,
                                           @SwingCoordinate int swingX,
                                           @SwingCoordinate int swingY) {
-    SceneComponent sceneComponent =
-      view.getScene().findComponent(SceneContext.get(view), getAndroidXDip(view, swingX), getAndroidYDip(view, swingY));
+    SceneContext sceneContext = SceneContext.get(view);
+    @AndroidDpCoordinate int x = getAndroidXDip(view, swingX);
+    @AndroidDpCoordinate int y = getAndroidYDip(view, swingY);
+
+    SceneComponent sceneComponent = view.getScene().findComponent(sceneContext, x, y);
     return sceneComponent != null ? sceneComponent.getNlComponent() : null;
   }
 

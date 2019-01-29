@@ -52,6 +52,6 @@ public class TabItemHandler extends ViewHandler {
   @Override
   public boolean acceptsParent(@NotNull NlComponent layout,
                                @NotNull NlComponent newChild) {
-    return layout.getTagName().equals(TAB_LAYOUT);
+    return TAB_LAYOUT.isEquals(layout.getTagName());
   }
 }

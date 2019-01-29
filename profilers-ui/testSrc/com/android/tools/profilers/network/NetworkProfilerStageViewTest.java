@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
@@ -23,8 +24,10 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.cpu.FakeCpuService;
+import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.memory.FakeMemoryService;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
@@ -37,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
 import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 
@@ -66,31 +70,36 @@ public class NetworkProfilerStageViewTest {
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("NetworkProfilerStageViewTestChannel", myProfilerService, myNetworkService);
+    new FakeGrpcChannel("NetworkProfilerStageViewTestChannel", myProfilerService, myNetworkService,
+                        new FakeEventService(), new FakeMemoryService(), new FakeCpuService());
 
   private FakeTimer myTimer;
 
   @Before
   public void setUp() {
     myTimer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
-    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
+    // TODO b/76100366 temporarily disable the sessions panel as the spliiter's divider can interfere with the mouse events targeting over
+    // the LineChart.
+    ideProfilerServices.enableSessionsView(false);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), ideProfilerServices, myTimer);
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
-
+    profilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
     // constructed. If the StudioMonitorStageView is constructed as well, grpc exceptions will be thrown due to lack of various services
     // in the channel, and the tick loop would not complete properly to set the process and agent status.
     profilers.setStage(new NetworkProfilerStage(profilers));
     // Initialize the view after the stage, otherwise it will create the views for the monitoring stage.
     myView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
-    JPanel viewComponent = myView.getComponent();
+    JLayeredPane viewComponent = myView.getComponent();
     viewComponent.setSize(new Dimension(600, 200));
     myFakeUi = new FakeUi(viewComponent);
     profilers.getTimeline().getViewRange().set(0, 60);
   }
 
   @Test
-  public void draggingSelectionOpensConnectionsViewAndPressingEscapeClosesIt() throws Exception {
+  public void draggingSelectionOpensConnectionsViewAndPressingEscapeClosesIt() {
     NetworkProfilerStageView stageView = (NetworkProfilerStageView)myView.getStageView();
 
     TreeWalker stageWalker = new TreeWalker(stageView.getComponent());
@@ -143,6 +152,14 @@ public class NetworkProfilerStageViewTest {
     assertThat(infoPanel.isVisible()).isTrue();
     myFakeUi.mouse.drag(start.x, start.y, 40 * microSecondToX, 0);
     assertThat(infoPanel.isVisible()).isTrue();
+  }
+
+  @Test
+  public void testTooltipComponentIsFirstChild() {
+    NetworkProfilerStageView stageView = (NetworkProfilerStageView)myView.getStageView();
+    TreeWalker treeWalker = new TreeWalker(stageView.getComponent());
+    Component tooltipComponent = treeWalker.descendantStream().filter(c -> c instanceof RangeTooltipComponent).findFirst().get();
+    assertThat(tooltipComponent.getParent().getComponent(0)).isEqualTo(tooltipComponent);
   }
 
   private static NetworkProfilerData createSpeedData(long time, long sent, long received) {

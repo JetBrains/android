@@ -59,12 +59,18 @@ public abstract class InspectorProviders<PropMgr extends PropertiesManager<PropM
   }
 
   @Override
-  public void lookAndFeelChanged(@NotNull LafManager source) {
-    // Clear all caches with UI elements:
-    getProviders().forEach(InspectorProvider::resetCache);
+  public void lookAndFeelChanged(LafManager source) {
+    resetCache();
 
     // Force a recreate of all UI elements by causing a new selection notification:
     myPropertiesManager.updateSelection();
+  }
+
+  /**
+   * Clear all caches with UI elements
+   */
+  public void resetCache() {
+    getProviders().forEach(InspectorProvider::resetCache);
   }
 
   @Override

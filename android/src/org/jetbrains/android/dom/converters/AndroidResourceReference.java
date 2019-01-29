@@ -16,9 +16,9 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.SdkConstants;
+import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -31,7 +31,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
@@ -43,9 +42,9 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
 
   public AndroidResourceReference(@NotNull GenericDomValue<ResourceValue> value,
                                   @NotNull AndroidFacet facet,
-                                  @NotNull ResourceValue resourceValue,
-                                  @Nullable TextRange range) {
-    super(value, range, resourceValue, facet);
+                                  @NotNull ResourceValue resourceValue) {
+    // Range is calculated in calculateDefaultRangeInElement.
+    super(value, null, resourceValue, facet);
     myValue = value;
   }
 
@@ -84,7 +83,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
 
       final String newResName;
       // Does renamed resource point to a file?
-      ResourceFolderType folderType = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.get(resType);
+      ResourceFolderType folderType = FolderTypeRelationship.getNonValuesRelatedFolder(resType);
       if (folderType != null && newElementName.contains(".")) {
         // If it does, we need to chop off its extension when inserting the new value.
         newResName = AndroidCommonUtils.getResourceName(resType.getName(), newElementName);
@@ -95,7 +94,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
       ResourceValue newValue = ResourceValue.parse(newResName, true, true, false);
       if (newValue == null || newValue.getPrefix() == '\0') {
         // Note: We're using value.getResourceType(), not resType.getName() here, because we want the "+" in the new name
-        newValue = ResourceValue.referenceTo(value.getPrefix(), value.getNamespace(), value.getResourceType(), newResName);
+        newValue = ResourceValue.referenceTo(value.getPrefix(), value.getPackage(), value.getResourceType(), newResName);
       }
 
       myValue.setValue(newValue);

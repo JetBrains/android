@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.project;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
+import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
+import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
+import static com.android.tools.idea.run.util.LaunchUtils.isWatchFaceApp;
+
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.TargetSelectionMode;
@@ -24,17 +31,10 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
-import static com.android.tools.idea.run.AndroidRunConfiguration.DO_NOTHING;
-import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
-import static com.android.tools.idea.run.util.LaunchUtils.isWatchFaceApp;
 
 public class AndroidRunConfigurations {
   @NotNull
@@ -44,7 +44,8 @@ public class AndroidRunConfigurations {
 
   public void createRunConfiguration(@NotNull AndroidFacet facet) {
     Module module = facet.getModule();
-    List<RunConfiguration> configurations = RunManager.getInstance(module.getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance());
+    List<RunConfiguration> configurations =
+      RunManager.getInstance(module.getProject()).getConfigurationsList(AndroidRunConfigurationType.getInstance());
     for (RunConfiguration configuration : configurations) {
       if (configuration instanceof AndroidRunConfiguration &&
           ((AndroidRunConfiguration)configuration).getConfigurationModule().getModule() == module) {
@@ -52,7 +53,10 @@ public class AndroidRunConfigurations {
         return;
       }
     }
-    addRunConfiguration(facet, TargetSelectionMode.SHOW_DIALOG);
+
+    addRunConfiguration(facet, StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_VISIBLE.get()
+                               ? TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX
+                               : TargetSelectionMode.SHOW_DIALOG);
   }
 
   public void addRunConfiguration(@NotNull AndroidFacet facet, @Nullable TargetSelectionMode targetSelectionMode) {
@@ -62,7 +66,7 @@ public class AndroidRunConfigurations {
     AndroidRunConfiguration configuration = (AndroidRunConfiguration)settings.getConfiguration();
     configuration.setModule(module);
 
-    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+    if (facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
       configuration.setLaunchUrl(getDefaultInstantAppUrl(facet));
     }
     else if (isWatchFaceApp(facet)) {
@@ -79,7 +83,7 @@ public class AndroidRunConfigurations {
       configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
     TransactionGuard.submitTransaction(module.getProject(), () -> {
-      runManager.addConfiguration(settings, false);
+      runManager.addConfiguration(settings);
       runManager.setSelectedConfiguration(settings);
     });
   }

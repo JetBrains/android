@@ -49,7 +49,7 @@ public class AndroidImportFilter extends ImportFilter {
       // Inner classes of the R class should *always* use fully qualified imports, but make sure this really does
       // look like an R inner class by making sure it is exactly <something>.R.<resourceType>, e.g.
       //  foo.bar.R.string and foo.bar.R.layout, but not my.weird.R.pkg
-      return classQualifiedName.startsWith(CLASS_R) || ResourceType.getEnum(classQualifiedName.substring(index + 1)) != null;
+      return classQualifiedName.startsWith(CLASS_R) || ResourceType.fromClassName(classQualifiedName.substring(index + 1)) != null;
     }
 
     return false;

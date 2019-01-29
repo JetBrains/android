@@ -16,11 +16,19 @@
 package com.android.tools.idea.instantapp;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.checks.AndroidPatternMatcher;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.TreeMultimap;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -28,11 +36,10 @@ import org.w3c.dom.Node;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_LITERAL;
-import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_PREFIX;
-import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_SIMPLE_GLOB;
+import static com.android.tools.lint.checks.AndroidPatternMatcher.*;
 import static com.android.xml.AndroidManifest.NODE_DATA;
 import static com.android.xml.AndroidManifest.NODE_INTENT;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -41,13 +48,15 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public final class InstantAppUrlFinder {
 
   @NotNull private final Collection<Element> myActivities;
+  @NotNull private final AttributesResolver myResolver;
 
-  public InstantAppUrlFinder(@NotNull MergedManifest manifest) {
-    this(manifest.getActivities());
+  public InstantAppUrlFinder(@NotNull Module module) {
+    this(new AttributesResolver(module), MergedManifest.get(module).getActivities());
   }
 
   @VisibleForTesting
-  InstantAppUrlFinder(@NotNull Collection<Element> activities) {
+  InstantAppUrlFinder(@NotNull AttributesResolver resolver, @NotNull Collection<Element> activities) {
+    myResolver = resolver;
     myActivities = activities;
   }
 
@@ -61,7 +70,7 @@ public final class InstantAppUrlFinder {
     for (Element activity : myActivities) {
       Node node = activity.getFirstChild();
       while (node != null) {
-        InstantAppIntentFilterWrapper wrapper = InstantAppIntentFilterWrapper.of(node);
+        InstantAppIntentFilterWrapper wrapper = new InstantAppIntentFilterWrapper(myResolver, node);
         UrlData urlData = wrapper.getUrlData();
         if (urlData.isValid()) {
           allUrls.put(wrapper.getOrder(), urlData.getUrl());
@@ -91,7 +100,7 @@ public final class InstantAppUrlFinder {
     for (Element activity : myActivities) {
       Node node = activity.getFirstChild();
       while (node != null) {
-        InstantAppIntentFilterWrapper wrapper = InstantAppIntentFilterWrapper.of(node);
+        InstantAppIntentFilterWrapper wrapper = new InstantAppIntentFilterWrapper(myResolver, node);
         if (wrapper.matchesUrl(url)) {
           return true;
         }
@@ -103,16 +112,12 @@ public final class InstantAppUrlFinder {
 
   @VisibleForTesting
   static class InstantAppIntentFilterWrapper {
+    @NotNull AttributesResolver myResolver;
     @Nullable/*No valid element*/ private final Element myElement;
     private final int myOrder;
 
-    private InstantAppIntentFilterWrapper(@Nullable Element element, int order) {
-      myElement = element;
-      myOrder = order;
-    }
-
-    @NotNull
-    static InstantAppIntentFilterWrapper of(@NotNull Node node) {
+    @VisibleForTesting
+    InstantAppIntentFilterWrapper(@NotNull AttributesResolver resolver, @NotNull Node node) {
       Element element;
       int order;
       try {
@@ -123,7 +128,9 @@ public final class InstantAppUrlFinder {
         element = null;
         order = -1;
       }
-      return new InstantAppIntentFilterWrapper(element, order);
+      myElement = element;
+      myOrder = order;
+      myResolver = resolver;
     }
 
     @NotNull
@@ -153,7 +160,7 @@ public final class InstantAppUrlFinder {
 
     @NotNull
     UrlData getUrlData() {
-      UrlData urlData = new UrlData();
+      UrlData urlData = new UrlData(myResolver);
 
       if (myElement != null) {
         Node node = myElement.getFirstChild();
@@ -176,6 +183,8 @@ public final class InstantAppUrlFinder {
 
   @VisibleForTesting
   static class UrlData {
+    @NotNull private AttributesResolver myResolver;
+
     @NotNull private final Collection<String> mySchemes = new HashSet<>();
     @NotNull private final Collection<String> myHosts = new HashSet<>();
     @NotNull private final Collection<String> myPaths = new HashSet<>();
@@ -183,6 +192,11 @@ public final class InstantAppUrlFinder {
     @NotNull private final Collection<String> myPathPatterns = new HashSet<>();
     // Documentation here: https://developer.android.com/guide/topics/manifest/data-element.html
     // port and mimeType should be ignored.
+
+    @VisibleForTesting
+    UrlData(@NotNull AttributesResolver resolver) {
+      myResolver = resolver;
+    }
 
     @VisibleForTesting
     // Test only
@@ -198,11 +212,11 @@ public final class InstantAppUrlFinder {
     void addFromNode(@NotNull Node node) {
       if (node.getNodeType() == Node.ELEMENT_NODE && NODE_DATA.equals(node.getNodeName())) {
         Element element = (Element)node;
-        addTo(mySchemes, element.getAttributeNS(ANDROID_URI, "scheme"));
-        addTo(myHosts, element.getAttributeNS(ANDROID_URI, "host"));
-        addTo(myPaths, element.getAttributeNS(ANDROID_URI, "path"));
-        addTo(myPathPrefixes, element.getAttributeNS(ANDROID_URI, "pathPrefix"));
-        addTo(myPathPatterns, element.getAttributeNS(ANDROID_URI, "pathPattern"));
+        addTo(mySchemes, myResolver.resolveResource("scheme", element.getAttributeNS(ANDROID_URI, "scheme")));
+        addTo(myHosts, myResolver.resolveResource("host", element.getAttributeNS(ANDROID_URI, "host")));
+        addTo(myPaths, myResolver.resolveResource("path", element.getAttributeNS(ANDROID_URI, "path")));
+        addTo(myPathPrefixes, myResolver.resolveResource("pathPrefix", element.getAttributeNS(ANDROID_URI, "pathPrefix")));
+        addTo(myPathPatterns, myResolver.resolveResource("pathPattern", element.getAttributeNS(ANDROID_URI, "pathPattern")));
       }
     }
 
@@ -299,6 +313,30 @@ public final class InstantAppUrlFinder {
       }
 
       return url.isEmpty() || url.compareTo("/") == 0;
+    }
+  }
+
+  @VisibleForTesting
+  static class AttributesResolver {
+    @Nullable private final ResourceResolver myResourceResolver;
+
+    private AttributesResolver(@NotNull Module module) {
+      List<VirtualFile> manifestFiles = MergedManifest.get(module).getManifestFiles();
+      myResourceResolver = manifestFiles == null || manifestFiles.isEmpty()
+                           ? null
+                           : ConfigurationManager.getOrCreateInstance(module).getConfiguration(manifestFiles.get(0)).getResourceResolver();
+    }
+
+    @Nullable
+    String resolveResource(@NotNull String name, @Nullable String value) {
+      if (myResourceResolver == null) {
+        return value;
+      }
+
+      ResourceValue resolvedResource = myResourceResolver.resolveResValue(
+        new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, name, value));
+
+      return resolvedResource == null ? value : resolvedResource.getValue();
     }
   }
 }

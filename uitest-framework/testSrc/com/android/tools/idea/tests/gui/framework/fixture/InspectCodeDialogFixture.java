@@ -40,6 +40,10 @@ public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
   public InspectionsFixture clickOk() {
     GuiTests.findAndClickOkButton(this);
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
+
+    // Wait for processing project usages to finish as running in background.
+    GuiTests.waitForBackgroundTasks(robot());
+
     return InspectionsFixture.find(myIdeFrameFixture);
   }
 }

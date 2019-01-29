@@ -17,18 +17,27 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.prefs.AndroidLocation;
 import com.android.repository.Revision;
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.impl.meta.TypeDetails;
+import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
+import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.FileOpFileWrapper;
+import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.IdDisplay;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.MockLog;
 import com.android.utils.NullLogger;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -42,7 +51,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
   private static final File ANDROID_HOME = new File("/android-home");
 
-  private AndroidSdkHandler mAndroidSdkHandler;
   private AvdManager mAvdManager;
   private AvdManagerConnection mAvdManagerConnection;
   private File mAvdFolder;
@@ -58,22 +66,22 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     recordGoogleApisSysImg23(mFileOp);
     recordEmulatorVersion_23_4_5(mFileOp);
 
-    mAndroidSdkHandler =
+    AndroidSdkHandler androidSdkHandler =
       new AndroidSdkHandler(new File("/sdk"), ANDROID_HOME, mFileOp);
 
     mAvdManager =
       AvdManager.getInstance(
-        mAndroidSdkHandler,
+        androidSdkHandler,
         new File(ANDROID_HOME, AndroidLocation.FOLDER_AVD),
         new NullLogger());
 
     mAvdFolder =
       AvdInfo.getDefaultAvdFolder(mAvdManager, getName(), mFileOp, false);
 
-    mSystemImage = mAndroidSdkHandler.getSystemImageManager(
+    mSystemImage = androidSdkHandler.getSystemImageManager(
       new FakeProgressIndicator()).getImages().iterator().next();
 
-    mAvdManagerConnection = new AvdManagerConnection(mAndroidSdkHandler);
+    mAvdManagerConnection = new AvdManagerConnection(androidSdkHandler);
   }
 
   public void testWipeAvd() throws Exception {
@@ -122,7 +130,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
                mFileOp.exists(userData));
   }
 
-  public void testEmulatorVersionIsAtLeast() throws Exception {
+  public void testEmulatorVersionIsAtLeast() {
     // The emulator was created with version 23.4.5
     assertTrue(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(22, 9, 9)));
     assertTrue(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 1, 9)));
@@ -260,6 +268,141 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     recordEmulatorHardwareProperties(mFileOp);
     assertEquals("800M", mAvdManagerConnection.getSdCardSizeFromHardwareProperties());
     assertEquals("2G", mAvdManagerConnection.getInternalStorageSizeFromHardwareProperties());
+  }
+
+  public void testDoesSystemImageSupportQemu2() {
+    final String AVD_LOCATION = "/avd";
+    final String SDK_LOCATION = "/sdk";
+    MockFileOp fileOp = new MockFileOp();
+    RepositoryPackages packages = new RepositoryPackages();
+
+    // QEMU-1 image
+    String q1Path = "system-images;android-q1;google_apis;x86";
+    FakePackage.FakeLocalPackage q1Package = new FakePackage.FakeLocalPackage(q1Path);
+    DetailsTypes.SysImgDetailsType q1Details =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    q1Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    q1Package.setTypeDetails((TypeDetails)q1Details);
+    fileOp.recordExistingFile(new File(q1Package.getLocation(), SystemImageManager.SYS_IMG_NAME));
+
+    // QEMU-2 image
+    String q2Path = "system-images;android-q2;google_apis;x86";
+    FakePackage.FakeLocalPackage q2Package = new FakePackage.FakeLocalPackage(q2Path);
+    DetailsTypes.SysImgDetailsType q2Details =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    q2Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    q2Package.setTypeDetails((TypeDetails)q2Details);
+    fileOp.recordExistingFile(new File(q2Package.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    // Add a file that indicates QEMU-2 support
+    mFileOp.recordExistingFile(q2Package.getLocation().getPath() + "/kernel-ranchu");
+
+    // QEMU-2-64 image
+    String q2_64Path = "system-images;android-q2-64;google_apis;x86";
+    FakePackage.FakeLocalPackage q2_64Package = new FakePackage.FakeLocalPackage(q2_64Path);
+    DetailsTypes.SysImgDetailsType q2_64Details =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    q2_64Details.setTag(IdDisplay.create("google_apis", "Google APIs"));
+    q2_64Package.setTypeDetails((TypeDetails)q2_64Details);
+    fileOp.recordExistingFile(new File(q2_64Package.getLocation(), SystemImageManager.SYS_IMG_NAME));
+    // Add a file that indicates QEMU-2 support
+    mFileOp.recordExistingFile(q2_64Package.getLocation().getPath() + "/kernel-ranchu-64");
+
+    packages.setLocalPkgInfos(ImmutableList.of(q1Package, q2Package, q2_64Package));
+    FakeRepoManager mgr = new FakeRepoManager(new File(SDK_LOCATION), packages);
+
+    AndroidSdkHandler sdkHandler =
+      new AndroidSdkHandler(new File(SDK_LOCATION), new File(AVD_LOCATION), fileOp, mgr);
+
+    FakeProgressIndicator progress = new FakeProgressIndicator();
+    SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
+
+    ISystemImage q1Image = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(q1Path, progress).getLocation());
+    ISystemImage q2Image = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(q2Path, progress).getLocation());
+    ISystemImage q2_64Image = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(q2_64Path, progress).getLocation());
+
+    SystemImageDescription q1ImageDescr = new SystemImageDescription(q1Image);
+    SystemImageDescription q2ImageDescr = new SystemImageDescription(q2Image);
+    SystemImageDescription q2_64ImageDescr = new SystemImageDescription(q2_64Image);
+
+    assertFalse("Should not support QEMU2",
+                AvdManagerConnection.doesSystemImageSupportQemu2(q1ImageDescr, mFileOp));
+    assertTrue("Should support QEMU2",
+               AvdManagerConnection.doesSystemImageSupportQemu2(q2ImageDescr, mFileOp));
+    assertTrue("Should support QEMU2",
+               AvdManagerConnection.doesSystemImageSupportQemu2(q2_64ImageDescr, mFileOp));
+  }
+
+  public void testStartAvdSkinned() throws Exception {
+    // Note: This only tests a small part of startAvd(). We are not set up
+    //       here to actually launch an Emulator instance.
+
+    MockLog log = new MockLog();
+
+    // Create an AVD with a skin
+    String skinnyAvdName = "skinnyAvd";
+    final File skinnyAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, skinnyAvdName, mFileOp, false);
+    File skinFolder = new File(ANDROID_HOME, "skinFolder");
+    mFileOp.mkdirs(skinFolder);
+
+    AvdInfo skinnyAvd = mAvdManager.createAvd(
+      skinnyAvdFolder,
+      skinnyAvdName,
+      mSystemImage,
+      skinFolder,
+      "skinName",
+      null,
+      null,
+      null,
+      false,
+      false,
+      true,
+      false,
+      log);
+
+    try {
+      mAvdManagerConnection.startAvd(null, skinnyAvd);
+      fail("Expected RuntimeException but no exception was thrown");
+    }
+    catch (RuntimeException runtimeEx) {
+      assertTrue("Expected 'No emulator installed' exception", runtimeEx.getMessage().contains("No emulator installed"));
+    }
+  }
+
+  public void testStartAvdSkinless() throws Exception {
+    // Note: This only tests a small part of startAvd(). We are not set up
+    //       here to actually launch an Emulator instance.
+
+    MockLog log = new MockLog();
+
+    // Create an AVD without a skin
+    String skinlessAvdName = "skinlessAvd";
+    final File skinlessAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, skinlessAvdName, mFileOp, false);
+
+    AvdInfo skinlessAvd = mAvdManager.createAvd(
+      skinlessAvdFolder,
+      skinlessAvdName,
+      mSystemImage,
+      null,
+      null,
+      null,
+      null,
+      null,
+      false,
+      false,
+      true,
+      false,
+      log);
+
+    try {
+      mAvdManagerConnection.startAvd(null, skinlessAvd);
+      fail("Expected RuntimeException but no exception was thrown");
+    }
+    catch (RuntimeException runtimeEx) {
+      assertTrue("Expected 'No emulator installed' exception", runtimeEx.getMessage().contains("No emulator installed"));
+    }
   }
 
 

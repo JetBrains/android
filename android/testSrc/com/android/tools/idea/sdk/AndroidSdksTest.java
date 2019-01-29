@@ -20,6 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.generated.common.v1.LibraryType;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -72,10 +73,8 @@ public class AndroidSdksTest extends IdeaTestCase {
 
     mySdkPath = getSdk();
 
-    String jdkHomePath = Jdks.getJdkHomePath(null);
-    if (jdkHomePath != null) {
-      VfsRootAccess.allowRootAccess(getTestRootDisposable(), jdkHomePath);
-    }
+    Sdks.allowAccessToSdk(getTestRootDisposable());
+
     Jdks jdks = Jdks.getInstance();
     myJdk = jdks.chooseOrCreateJavaSdk();
     assertNotNull(myJdk);

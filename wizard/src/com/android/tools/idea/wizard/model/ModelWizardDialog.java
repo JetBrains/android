@@ -138,9 +138,11 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
 
   @Override
   protected void doHelpAction() {
-    // This should never be called unless myHelpUrl is non-null (see createActions)
-    assert myHelpUrl != null;
-    BrowserUtil.browse(myHelpUrl);
+    if (getHelpAction().isEnabled()) {
+      // This should never be called unless myHelpUrl is non-null (see createActions)
+      assert myHelpUrl != null;
+      BrowserUtil.browse(myHelpUrl);
+    }
   }
 
   @Override
@@ -179,6 +181,8 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     PreviousAction prevAction = new PreviousAction();
     FinishAction finishAction = new FinishAction();
     CancelAction cancelAction = new CancelAction(myCancellationPolicy);
+    getHelpAction().setEnabled(myHelpUrl != null);
+
     if (myHelpUrl == null) {
       if (SystemInfo.isMac) {
         return new Action[]{cancelAction, prevAction, nextAction, finishAction};

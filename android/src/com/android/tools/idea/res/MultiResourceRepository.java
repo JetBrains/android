@@ -15,26 +15,23 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.ResourceNamespaces;
-import com.android.ide.common.res2.ResourceTable;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
+import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.util.containers.SmartHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The  is a super class for several of the other repositories; it’s not really used on its own. Its only purpose is to be able to combine
@@ -47,6 +44,8 @@ import java.util.Set;
 public abstract class MultiResourceRepository extends LocalResourceRepository {
   @GuardedBy("ITEM_MAP_LOCK")
   private List<? extends LocalResourceRepository> myChildren;
+  @GuardedBy("ITEM_MAP_LOCK")
+  private final Multimap<ResourceNamespace, LocalResourceRepository> myRepositoriesByNamespace = HashMultimap.create();
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long[] myModificationCounts;
@@ -55,29 +54,22 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   private ResourceTable myFullTable;
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private Set<String> myCachedNamespaces;
-
-  @GuardedBy("ITEM_MAP_LOCK")
   private final ResourceTable myCachedMaps = new ResourceTable();
 
   @GuardedBy("ITEM_MAP_LOCK")
-  private final Map<ResourceType, Boolean> myCachedHasResourcesOfType = Maps.newEnumMap(ResourceType.class);
-
-  @GuardedBy("ITEM_MAP_LOCK")
-  private Map<String, DataBindingInfo> myDataBindingResourceFiles = Maps.newHashMap();
+  private Map<String, DataBindingInfo> myDataBindingResourceFiles = new HashMap<>();
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
 
-  MultiResourceRepository(@NotNull String displayName, @NotNull List<? extends LocalResourceRepository> children) {
+  MultiResourceRepository(@NotNull String displayName) {
     super(displayName);
-    setChildren(children);
   }
 
   protected void setChildren(@NotNull List<? extends LocalResourceRepository> children) {
     synchronized (ITEM_MAP_LOCK) {
       if (myChildren != null) {
-        for (int i = myChildren.size() - 1; i >= 0; i--) {
+        for (int i = myChildren.size(); --i >= 0;) {
           LocalResourceRepository resources = myChildren.get(i);
           resources.removeParent(this);
         }
@@ -91,22 +83,55 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         LocalResourceRepository child = children.get(0);
         child.setModificationCount(getModificationCount());
       }
-      for (int i = myChildren.size() - 1; i >= 0; i--) {
+      for (int i = myChildren.size(); --i >= 0;) {
         LocalResourceRepository resources = myChildren.get(i);
         resources.addParent(this);
         myModificationCounts[i] = resources.getModificationCount();
       }
       myFullTable = null;
       myCachedMaps.clear();
-      myCachedHasResourcesOfType.clear();
+
+      myRepositoriesByNamespace.clear();
+      populateNamespaceMap(this, myRepositoriesByNamespace);
     }
 
     invalidateParentCaches();
   }
 
-  public List<? extends LocalResourceRepository> getChildren() {
+  @GuardedBy("ITEM_MAP_LOCK")
+  private static void populateNamespaceMap(@NotNull LocalResourceRepository repository,
+                                           @NotNull Multimap<ResourceNamespace, LocalResourceRepository> result) {
+    if (repository instanceof SingleNamespaceResourceRepository) {
+      ResourceNamespace namespace = ((SingleNamespaceResourceRepository)repository).getNamespace();
+      result.put(namespace, repository);
+    }
+    else if (repository instanceof MultiResourceRepository) {
+      for (LocalResourceRepository child : ((MultiResourceRepository)repository).myChildren) {
+        populateNamespaceMap(child, result);
+      }
+    }
+  }
+
+  @NotNull
+  public final List<LocalResourceRepository> getChildren() {
     synchronized (ITEM_MAP_LOCK) {
-      return ImmutableList.copyOf(myChildren);
+      return myChildren == null ? Collections.emptyList() : ImmutableList.copyOf(myChildren);
+    }
+  }
+
+  /**
+   * Returns resource repositories for the given namespace. Each of the returned repositories is guaranteed to implement
+   * the {@link SingleNamespaceResourceRepository} interface. In case of nested single-namespace repositories only the outermost
+   * repositories are returned. Collectively the returned repositories are guaranteed to contain all resources in the given namespace
+   * contained in this repository.
+   *
+   * @param namespace the namespace to return resource repositories for
+   * @return a list of namespaces for the given namespace
+   */
+  @NotNull
+  public final List<LocalResourceRepository> getRepositoriesForNamespace(@NotNull ResourceNamespace namespace) {
+    synchronized (ITEM_MAP_LOCK) {
+      return ImmutableList.copyOf(myRepositoriesByNamespace.get(namespace));
     }
   }
 
@@ -117,9 +142,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         return myChildren.get(0).getModificationCount();
       }
 
-      // See if any of the delegates have changed
+      // See if any of the delegates have changed.
       boolean changed = false;
-      for (int i = myChildren.size() - 1; i >= 0; i--) {
+      for (int i = myChildren.size(); --i >= 0;) {
         LocalResourceRepository resources = myChildren.get(i);
         long rev = resources.getModificationCount();
         if (rev != myModificationCounts[i]) {
@@ -150,15 +175,15 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Map<String, DataBindingInfo> getDataBindingResourceFiles() {
     synchronized (ITEM_MAP_LOCK) {
       long modificationCount = getModificationCount();
       if (myDataBindingResourceFilesModificationCount == modificationCount) {
         return myDataBindingResourceFiles;
       }
-      Map<String, DataBindingInfo> selected = Maps.newHashMap();
+      Map<String, DataBindingInfo> selected = new HashMap<>();
       for (LocalResourceRepository child : myChildren) {
         Map<String, DataBindingInfo> childFiles = child.getDataBindingResourceFiles();
         if (childFiles != null) {
@@ -171,38 +196,25 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
   }
 
-  @NotNull
   @Override
-  public synchronized Set<String> getNamespaces() {
+  @NotNull
+  public Set<ResourceNamespace> getNamespaces() {
     synchronized (ITEM_MAP_LOCK) {
-      if (myCachedNamespaces == null) {
-        if (myChildren.size() == 1) {
-          myCachedNamespaces = myChildren.get(0).getNamespaces();
-        } else {
-          myCachedNamespaces = new SmartHashSet<>();
-          for (LocalResourceRepository child : myChildren) {
-            for (String namespace : child.getNamespaces()) {
-              myCachedNamespaces.add(ResourceNamespaces.normalizeNamespace(namespace));
-            }
-          }
-        }
-      }
-
-      return myCachedNamespaces;
+      return ImmutableSet.copyOf(myRepositoriesByNamespace.keySet());
     }
   }
 
-  @NonNull
+  @NotNull
   @Override
   protected ResourceTable getFullTable() {
     synchronized (ITEM_MAP_LOCK) {
       if (myFullTable == null) {
         if (myChildren.size() == 1) {
-          myFullTable = myChildren.get(0).getItems();
+          myFullTable = myChildren.get(0).getFullTablePackageAccessible();
         }
         else {
           myFullTable = new ResourceTable();
-          for (String namespace : getNamespaces()) {
+          for (ResourceNamespace namespace : getNamespaces()) {
             for (ResourceType type : ResourceType.values()) {
               ListMultimap<String, ResourceItem> map = getMap(namespace, type, false);
               if (map != null) {
@@ -217,10 +229,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
   }
 
-  @Nullable
   @Override
-  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace,
-                                                      @NonNull ResourceType type,
+  @Nullable
+  protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace,
+                                                      @NotNull ResourceType type,
                                                       boolean create) {
     synchronized (ITEM_MAP_LOCK) {
       // Should I assert !create here? If we try to manipulate the cache it won't work right...
@@ -234,13 +246,13 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         if (child instanceof MultiResourceRepository) {
           return ((MultiResourceRepository)child).getMap(namespace, type);
         }
-        return child.getItems().get(namespace, type);
+        return child.getFullTablePackageAccessible().get(namespace, type);
       }
 
       map = ArrayListMultimap.create();
-      Set<LocalResourceRepository> visited = Sets.newHashSet();
+      Set<LocalResourceRepository> visited = new HashSet<>();
       SetMultimap<String, String> seenQualifiers = HashMultimap.create();
-      // Merge all items of the given type
+      // Merge all items of the given type.
       merge(visited, namespace, type, seenQualifiers, map);
 
       myCachedMaps.put(namespace, type, map);
@@ -251,44 +263,38 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @Override
   protected void doMerge(@NotNull Set<LocalResourceRepository> visited,
-                         @Nullable String namespace,
+                         @NotNull ResourceNamespace namespace,
                          @NotNull ResourceType type,
                          @NotNull SetMultimap<String, String> seenQualifiers,
                          @NotNull ListMultimap<String, ResourceItem> result) {
     synchronized (ITEM_MAP_LOCK) {
-      for (int i = myChildren.size() - 1; i >= 0; i--) {
+      for (int i = myChildren.size(); --i >= 0;) {
         myChildren.get(i).merge(visited, namespace, type, seenQualifiers, result);
       }
     }
   }
 
   @Override
-  public boolean hasResourcesOfType(@NotNull ResourceType type) {
+  public boolean hasResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     synchronized (ITEM_MAP_LOCK) {
       if (myChildren.size() == 1) {
-        return myChildren.get(0).hasResourcesOfType(type);
+        return myChildren.get(0).hasResources(namespace, type);
       }
 
-      Boolean cachedResult = myCachedHasResourcesOfType.get(type);
-      if (cachedResult != null) {
-        return cachedResult;
-      }
-
-      Set<LocalResourceRepository> visited = Sets.newHashSet();
-      boolean result = computeHasResourcesOfType(type, visited);
-      myCachedHasResourcesOfType.put(type, result);
-      return result;
-    }
-  }
-
-  @Override
-  protected boolean computeHasResourcesOfType(@NotNull ResourceType type, @NotNull Set<LocalResourceRepository> visited) {
-    synchronized (ITEM_MAP_LOCK) {
-      if (!visited.add(this)) {
+      if (this instanceof SingleNamespaceResourceRepository) {
+        if (namespace.equals(((SingleNamespaceResourceRepository)this).getNamespace())) {
+          for (LocalResourceRepository child : myChildren) {
+            if (child.hasResources(namespace, type)) {
+              return true;
+            }
+          }
+        }
         return false;
       }
-      for (LocalResourceRepository child : myChildren) {
-        if (child.computeHasResourcesOfType(type, visited)) {
+
+      Collection<LocalResourceRepository> repositories = myRepositoriesByNamespace.get(namespace);
+      for (LocalResourceRepository repository : repositories) {
+        if (repository.hasResources(namespace, type)) {
           return true;
         }
       }
@@ -299,7 +305,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   @Override
   public void dispose() {
     synchronized (ITEM_MAP_LOCK) {
-      for (int i = myChildren.size() - 1; i >= 0; i--) {
+      for (int i = myChildren.size(); --i >= 0;) {
         LocalResourceRepository resources = myChildren.get(i);
         resources.removeParent(this);
         Disposer.dispose(resources);
@@ -314,9 +320,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     synchronized (ITEM_MAP_LOCK) {
       assert myChildren.contains(repository) : repository;
 
-      myCachedNamespaces = null;
       myCachedMaps.clear();
-      myCachedHasResourcesOfType.clear();
       myFullTable = null;
       setModificationCount(ourModificationCounter.incrementAndGet());
 
@@ -328,17 +332,13 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
    * Notifies this delegating repository that the given dependent repository has invalidated
    * resources of the given types in the given namespace.
    */
-  public void invalidateCache(@NotNull LocalResourceRepository repository, @Nullable String namespace, @NotNull ResourceType... types) {
+  public void invalidateCache(@NotNull LocalResourceRepository repository, @NotNull ResourceNamespace namespace,
+                              @NotNull ResourceType... types) {
     synchronized (ITEM_MAP_LOCK) {
       assert myChildren.contains(repository) : repository;
 
       for (ResourceType type : types) {
-        myCachedNamespaces = null;
         myCachedMaps.remove(namespace, type);
-
-        if (ResourceNamespaces.isDefaultNamespace(namespace)) {
-          myCachedHasResourcesOfType.remove(type);
-        }
       }
 
       myFullTable = null;
@@ -350,10 +350,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   @Override
   @VisibleForTesting
-  public boolean isScanPending(@NonNull PsiFile psiFile) {
+  public boolean isScanPending(@NotNull PsiFile psiFile) {
     synchronized (ITEM_MAP_LOCK) {
       assert ApplicationManager.getApplication().isUnitTestMode();
-      for (int i = myChildren.size() - 1; i >= 0; i--) {
+      for (int i = myChildren.size(); --i >= 0;) {
         LocalResourceRepository resources = myChildren.get(i);
         if (resources.isScanPending(psiFile)) {
           return true;
@@ -373,15 +373,24 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     }
   }
 
-  @NotNull
   @Override
+  @NotNull
   protected Set<VirtualFile> computeResourceDirs() {
     synchronized (ITEM_MAP_LOCK) {
-      Set<VirtualFile> result = Sets.newHashSet();
+      Set<VirtualFile> result = new HashSet<>();
       for (LocalResourceRepository resourceRepository : myChildren) {
         result.addAll(resourceRepository.computeResourceDirs());
       }
       return result;
+    }
+  }
+
+  @Override
+  public void getLeafResourceRepositories(@NotNull Collection<SingleNamespaceResourceRepository> result) {
+    synchronized (ITEM_MAP_LOCK) {
+      for (ResourceRepository child : myChildren) {
+        child.getLeafResourceRepositories(result);
+      }
     }
   }
 }

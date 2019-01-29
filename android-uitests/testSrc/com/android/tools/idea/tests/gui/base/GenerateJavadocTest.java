@@ -16,22 +16,19 @@
 package com.android.tools.idea.tests.gui.base;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.JavadocDialogFixture;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
 
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class GenerateJavadocTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
@@ -58,15 +55,10 @@ public class GenerateJavadocTest {
   public void generateJavadoc() throws Exception {
     guiTest.importSimpleApplication()
       .openFromMenu(JavadocDialogFixture::find, "Tools", "Generate JavaDoc...")
-      .enterOutputDirectory(javadocDirectory())
+      .enterOutputDirectory(guiTest.getProjectPath("javadoc").getAbsolutePath())
       .deselectOpenInBrowser()
       .clickOk()
       .waitForExecutionToFinish();
-    assertAbout(file()).that(new File(javadocDirectory(), "index.html")).isFile();
-  }
-
-  @NotNull
-  private String javadocDirectory() {
-    return new File(guiTest.getProjectPath(), "javadoc").getAbsolutePath();
+    assertAbout(file()).that(guiTest.getProjectPath("javadoc/index.html")).isFile();
   }
 }

@@ -60,7 +60,7 @@ public class ModuleDisposerTest extends IdeaTestCase {
       }
     });
 
-    IdeComponents.replaceService(myProject, GradleSyncState.class, mySyncState);
+    new IdeComponents(myProject).replaceProjectService(GradleSyncState.class, mySyncState);
 
     myModuleDisposer = new ModuleDisposer(myIdeInfo);
   }

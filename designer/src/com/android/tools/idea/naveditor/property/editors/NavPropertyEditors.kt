@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
-import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.NlComponentEditor
 import com.android.tools.idea.common.property.editors.NonEditableEditor
@@ -25,7 +25,7 @@ import com.android.tools.idea.naveditor.property.inspector.SimpleProperty
 import com.android.tools.idea.uibuilder.property.editors.NlBooleanEditor
 import com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.dom.attrs.AttributeFormat
+import com.android.ide.common.rendering.api.AttributeFormat
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.dom.navigation.NavigationSchema.*
 
@@ -34,24 +34,25 @@ class NavPropertyEditors : PropertyEditors() {
   override fun resetCachedEditors() {}
 
   override fun create(property: NlProperty): NlComponentEditor {
+    val project = property.model.project
     when (property.name) {
-      TYPE_EDITOR_PROPERTY_LABEL -> return NonEditableEditor()
+      TYPE_EDITOR_PROPERTY_LABEL -> return NonEditableEditor(project)
       NavigationSchema.ATTR_DESTINATION -> return VisibleDestinationsEditor()
       ATTR_START_DESTINATION -> return ChildDestinationsEditor()
       ATTR_NAME -> return DestinationClassEditor()
       ATTR_POP_UP_TO -> return AllDestinationsEditor()
       ATTR_GRAPH -> return SourceGraphEditor()
-      ATTR_ENTER_ANIM, ATTR_EXIT_ANIM -> return AnimationEditor()
+      ATTR_ENTER_ANIM, ATTR_EXIT_ANIM, ATTR_POP_ENTER_ANIM, ATTR_POP_EXIT_ANIM -> return AnimationEditor()
     }
-    if (property.definition?.formats?.contains(AttributeFormat.Boolean) == true) {
+    if (property.definition?.formats?.contains(AttributeFormat.BOOLEAN) == true) {
       return NlBooleanEditor.createForInspector(DEFAULT_LISTENER)
     }
     if (property is SimpleProperty) {
       // SimpleProperty doesn't allow editing
-      return NonEditableEditor()
+      return NonEditableEditor(project)
     }
     // TODO: handle other types
-    return TextEditor(property.model.project, DEFAULT_LISTENER)
+    return TextEditor(project, true, DEFAULT_LISTENER)
   }
 
   companion object Factory {

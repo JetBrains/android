@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.dom;
 
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
+import com.android.support.AndroidxName;
 import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -29,11 +32,9 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
@@ -45,28 +46,38 @@ import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
-import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
  * @author Eugene.Kudelevsky
  */
 @SuppressWarnings({"EnumSwitchStatementWhichMissesCases"})
 public class AndroidDomUtil {
+  private static final AndroidxName RECYCLER_VIEW_LAYOUT_MANAGER_NAME =
+      AndroidxName.of("android.support.v7.widget.", "RecyclerView.LayoutManager");
+  private static final AndroidxName RECYCLER_VIEW_PACKAGE_NAME =
+    AndroidxName.of("android.support.v7.widget.");
+  private static final String[] RECYCLER_VIEW_LAYOUT_MANAGER_NAMES =
+    {RECYCLER_VIEW_LAYOUT_MANAGER_NAME.oldName(), RECYCLER_VIEW_LAYOUT_MANAGER_NAME.newName()};
+  private static final String[] RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES =
+    {RECYCLER_VIEW_PACKAGE_NAME.oldName(), RECYCLER_VIEW_PACKAGE_NAME.newName()};
+
   public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
   // TODO: Make SPECIAL_RESOURCE_TYPES into an ImmutableMultimap
   private static final Multimap<String, ResourceType> SPECIAL_RESOURCE_TYPES = ArrayListMultimap.create();
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-  private static final PackageClassConverter RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER =
-    new PackageClassConverter(false, true, CLASS_RECYCLER_VIEW_LAYOUT_MANAGER);
+  private static final PackageClassConverter RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER = new PackageClassConverter.Builder()
+    .useManifestBasePackage(true)
+    .withExtraBasePackages(RECYCLER_VIEW_LAYOUT_MANAGER_BASE_PACKAGES)
+    .completeLibraryClasses(true)
+    .withExtendClassNames(RECYCLER_VIEW_LAYOUT_MANAGER_NAMES)
+    .build();
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
@@ -75,7 +86,9 @@ public class AndroidDomUtil {
   // Used to provide completion for values of android:fontFamily attribute
   // https://android.googlesource.com/platform/frameworks/base/+/android-6.0.0_r5/data/fonts/fonts.xml
   public static final List<String> AVAILABLE_FAMILIES = ImmutableList
-    .of("sans-serif", "sans-serif-condensed", "serif", "monospace", "serif-monospace", "casual", "cursive", "sans-serif-smallcaps");
+      .of("sans-serif", "sans-serif-thin", "sans-serif-light", "sans-serif-medium", "sans-serif-black",
+          "sans-serif-condensed", "sans-serif-condensed-light", "sans-serif-condensed-medium",
+          "serif", "monospace", "serif-monospace", "casual", "cursive", "sans-serif-smallcaps");
 
   static {
     // This section adds additional resource type registrations where the attrs metadata is lacking. For
@@ -85,17 +98,18 @@ public class AndroidDomUtil {
     addSpecialResourceType(ResourceType.DRAWABLE, ATTR_ICON, ATTR_SRC);
     addSpecialResourceType(ResourceType.COLOR, ATTR_SRC);
     addSpecialResourceType(ResourceType.STYLE, ATTR_THEME, ATTR_STYLE);
-    addSpecialResourceType(ResourceType.ANIM, "animation");
+    addSpecialResourceType(ResourceType.ANIM, "animation", ATTR_SHOW_MOTION_SPEC, ATTR_HIDE_MOTION_SPEC);
     addSpecialResourceType(ResourceType.ID, ATTR_ID, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ABOVE,
                            ATTR_LAYOUT_BELOW, ATTR_LAYOUT_ALIGN_BASELINE, ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_TOP,
                            ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_BOTTOM, ATTR_LAYOUT_ALIGN_START, ATTR_LAYOUT_ALIGN_END,
                            ATTR_LAYOUT_TO_START_OF, ATTR_LAYOUT_TO_END_OF, ATTR_CHECKED_BUTTON, ATTR_ACCESSIBILITY_TRAVERSAL_BEFORE,
-                           ATTR_ACCESSIBILITY_TRAVERSAL_AFTER, ATTR_LABEL_FOR,
+                           ATTR_ACCESSIBILITY_TRAVERSAL_AFTER, ATTR_LABEL_FOR, ATTR_CHECKED_CHIP,
                            ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF, ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
                            ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
                            ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
     addSpecialResourceType(ResourceType.LAYOUT, ATTR_LISTITEM, ATTR_LAYOUT);
     addSpecialResourceType(ResourceType.FONT, ATTR_FONT_FAMILY);
+    addSpecialResourceType(ResourceType.MENU, ATTR_MENU);
 
     // Nav editor
     addSpecialResourceType(ResourceType.ID, NavigationSchema.ATTR_DESTINATION);
@@ -107,18 +121,18 @@ public class AndroidDomUtil {
   @Nullable
   public static ResourceType getResourceType(@NotNull AttributeFormat format) {
     switch (format) {
-      case Color:
+      case COLOR:
         return ResourceType.COLOR;
-      case Dimension:
+      case DIMENSION:
         return ResourceType.DIMEN;
-      case String:
+      case STRING:
         return ResourceType.STRING;
-      case Float:
-      case Integer:
+      case FLOAT:
+      case INTEGER:
         return ResourceType.INTEGER;
-      case Fraction:
+      case FRACTION:
         return ResourceType.FRACTION;
-      case Boolean:
+      case BOOLEAN:
         return ResourceType.BOOL;
       default:
         return null;
@@ -128,13 +142,13 @@ public class AndroidDomUtil {
   @Nullable
   public static ResolvingConverter<String> getStringConverter(@NotNull AttributeFormat format, @NotNull String[] values) {
     switch (format) {
-      case Enum:
+      case ENUM:
         return new StaticEnumConverter(values);
-      case Boolean:
+      case BOOLEAN:
         return BOOLEAN_CONVERTER;
-      case Integer:
+      case INTEGER:
         return IntegerConverter.INSTANCE;
-      case Dimension:
+      case DIMENSION:
         return DimensionConverter.INSTANCE;
       default:
         return null;
@@ -148,7 +162,7 @@ public class AndroidDomUtil {
     Set<ResourceType> resourceTypes = EnumSet.noneOf(ResourceType.class);
     Set<AttributeFormat> formats = attr.getFormats();
     for (AttributeFormat format : formats) {
-      if (format == AttributeFormat.Reference) {
+      if (format == AttributeFormat.REFERENCE) {
         containsReference = true;
       }
       else {
@@ -168,11 +182,11 @@ public class AndroidDomUtil {
         resourceTypes.add(ResourceType.MIPMAP);
       }
       if (resourceTypes.isEmpty()) {
-        resourceTypes.addAll(AndroidResourceUtil.REFERRABLE_RESOURCE_TYPES);
+        resourceTypes.addAll(ResourceType.REFERENCEABLE_TYPES);
       }
     }
     if (!resourceTypes.isEmpty()) {
-      final ResourceReferenceConverter converter = new ResourceReferenceConverter(resourceTypes, attr);
+      ResourceReferenceConverter converter = new ResourceReferenceConverter(resourceTypes, attr);
       converter.setAllowLiterals(containsNotReference);
       return converter;
     }
@@ -185,13 +199,13 @@ public class AndroidDomUtil {
       return null;
     }
 
-    final XmlTag xmlTag = context.getXmlTag();
+    XmlTag xmlTag = context.getXmlTag();
     if (xmlTag == null) {
       return null;
     }
 
-    final String localName = attrName.getLocalName();
-    final String tagName = xmlTag.getName();
+    String localName = attrName.getLocalName();
+    String tagName = xmlTag.getName();
 
     if (NS_RESOURCES.equals(attrName.getNamespaceKey())) {
       // Framework attributes:
@@ -214,7 +228,7 @@ public class AndroidDomUtil {
     else {
       // TODO: This should be duplicated to handle the similar classes from the new support packages
       // RecyclerView:
-      if (localName.equals(ATTR_LAYOUT_MANAGER) && tagName.equals(RECYCLER_VIEW)) {
+      if (localName.equals(ATTR_LAYOUT_MANAGER) && RECYCLER_VIEW.isEquals(tagName)) {
         return RECYCLER_VIEW_LAYOUT_MANAGER_CONVERTER;
       }
     }
@@ -242,12 +256,12 @@ public class AndroidDomUtil {
         containsUnsupportedFormats = true;
       }
     }
-    if (formats.contains(AttributeFormat.Flag)) {
+    if (formats.contains(AttributeFormat.FLAGS)) {
       return new FlagConverter(compositeBuilder.build(), values);
     }
 
     ResourceReferenceConverter resConverter = getResourceReferenceConverter(attr);
-    if (resConverter == null && formats.contains(AttributeFormat.Enum)) {
+    if (resConverter == null && formats.contains(AttributeFormat.ENUM)) {
       resConverter = new ResourceReferenceConverter(EnumSet.of(ResourceType.INTEGER), attr);
       resConverter.setQuiet(true);
     }
@@ -295,67 +309,71 @@ public class AndroidDomUtil {
   }
 
   @Nullable
-  public static Activity getActivityDomElementByClass(@NotNull List<Activity> activities, PsiClass c) {
-    for (Activity activity : activities) {
-      PsiClass activityClass = activity.getActivityClass().getValue();
-      if (c.getManager().areElementsEquivalent(c, activityClass)) {
-        return activity;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull AndroidFacet facet, @NotNull XmlAttribute attribute) {
     String localName = attribute.getLocalName();
-    String namespace = attribute.getNamespace();
-    boolean isFramework = namespace.equals(ANDROID_URI);
-    if (!isFramework && TOOLS_URI.equals(namespace)) {
-      // Treat tools namespace attributes as aliases for Android namespaces: see https://developer.android.com/studio/write/tool-attributes.html#design-time_view_attributes
-      isFramework = true;
 
-      // However, there are some attributes with other meanings: https://developer.android.com/studio/write/tool-attributes.html
-      // Filter some of these out such that they are not treated as the (unrelated but identically named) platform attributes
-      AttributeDefinition toolsAttr = TOOLS_ATTRIBUTE_DEFINITIONS.getAttrDefByName(localName);
-      if (toolsAttr != null) {
-        return toolsAttr;
+    ResourceNamespace namespace = null;
+    String namespaceUri = attribute.getNamespace();
+    if (!namespaceUri.isEmpty()) {
+      namespace = ResourceNamespace.fromNamespaceUri(namespaceUri);
+      if (namespace == null) {
+        return null;
       }
     }
 
-    AttributeDefinition definition = null;
-    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(isFramework ? SYSTEM_RESOURCE_PACKAGE : null);
-    if (manager != null) {
-      AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
-      if (attrDefs != null) {
-        definition = attrDefs.getAttrDefByName(localName);
-      }
-    }
+    if (namespace != null) {
+      if (namespace.equals(ResourceNamespace.TOOLS)) {
+        // Treat tools namespaceUri attributes as aliases for Android namespaces:
+        // see https://developer.android.com/studio/write/tool-attributes.html#design-time_view_attributes
+        namespace = ResourceNamespace.ANDROID;
 
-    if (definition == null) {
-      Module module = facet.getModule();
-      DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
-      if (dataBindingComponent != null) {
-        Set<String> bindingAttributes = dataBindingComponent.getBindingAdapterAttributes(module).collect(Collectors.toSet());
-        if (bindingAttributes.contains(attribute.getName())) {
-          definition = new AttributeDefinition(localName);
+        // However, there are some attributes with other meanings: https://developer.android.com/studio/write/tool-attributes.html
+        // Filter some of these out such that they are not treated as the (unrelated but identically named) platform attributes
+        AttributeDefinition toolsAttr =
+            TOOLS_ATTRIBUTE_DEFINITIONS.getAttrDefinition(ResourceReference.attr(ResourceNamespace.TOOLS, localName));
+        if (toolsAttr != null) {
+          return toolsAttr;
+        }
+      }
+
+      ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(null);
+      if (manager != null) {
+        AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
+        if (attrDefs != null) {
+          AttributeDefinition definition = attrDefs.getAttrDefinition(ResourceReference.attr(namespace, localName));
+          if (definition != null) {
+            return definition;
+          }
         }
       }
     }
 
-    return definition;
+    Module module = facet.getModule();
+    DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
+    if (dataBindingComponent != null) {
+      String attributeName = attribute.getName();
+      if (dataBindingComponent.getBindingAdapterAttributes(module).anyMatch(name -> name.equals(attributeName))) {
+        if (namespace == null) {
+          namespace = ResourceNamespace.RES_AUTO;
+        }
+        return new AttributeDefinition(namespace, localName);
+      }
+    }
+
+    return null;
   }
 
   @NotNull
   public static Collection<String> removeUnambiguousNames(@NotNull Map<String, PsiClass> viewClassMap) {
-    final Map<String, String> class2Name = new HashMap<>();
+    Map<String, String> class2Name = new HashMap<>();
 
     for (String tagName : viewClassMap.keySet()) {
-      final PsiClass viewClass = viewClassMap.get(tagName);
+      PsiClass viewClass = viewClassMap.get(tagName);
       if (!AndroidUtils.isAbstract(viewClass)) {
-        final String qName = viewClass.getQualifiedName();
-        final String prevTagName = class2Name.get(qName);
+        String qName = viewClass.getQualifiedName();
+        String prevTagName = class2Name.get(qName);
 
-        if (prevTagName == null || tagName.indexOf('.') == -1) {
+        if (prevTagName == null || tagName.indexOf('.') < 0) {
           class2Name.put(qName, tagName);
         }
       }
@@ -370,12 +388,12 @@ public class AndroidDomUtil {
       return null;
     }
 
-    final ResourceValue resValue = attribute.getValue();
-    if (resValue == null || (localOnly && resValue.getNamespace() != null)) {
+    ResourceValue resValue = attribute.getValue();
+    if (resValue == null || (localOnly && resValue.getPackage() != null)) {
       return null;
     }
 
-    final XmlAttributeValue value = attribute.getXmlAttributeValue();
+    XmlAttributeValue value = attribute.getXmlAttributeValue();
     if (value == null) {
       return null;
     }
@@ -390,32 +408,32 @@ public class AndroidDomUtil {
 
   @Nullable
   public static AndroidAttributeValue<PsiClass> findComponentDeclarationInManifest(@NotNull PsiClass aClass) {
-    final AndroidFacet facet = AndroidFacet.getInstance(aClass);
+    AndroidFacet facet = AndroidFacet.getInstance(aClass);
     if (facet == null) {
       return null;
     }
 
-    final boolean isActivity = isInheritor(aClass, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-    final boolean isService = isInheritor(aClass, AndroidUtils.SERVICE_CLASS_NAME);
-    final boolean isReceiver = isInheritor(aClass, AndroidUtils.RECEIVER_CLASS_NAME);
-    final boolean isProvider = isInheritor(aClass, AndroidUtils.PROVIDER_CLASS_NAME);
+    boolean isActivity = isInheritor(aClass, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
+    boolean isService = isInheritor(aClass, AndroidUtils.SERVICE_CLASS_NAME);
+    boolean isReceiver = isInheritor(aClass, AndroidUtils.RECEIVER_CLASS_NAME);
+    boolean isProvider = isInheritor(aClass, AndroidUtils.PROVIDER_CLASS_NAME);
 
     if (!isActivity && !isService && !isReceiver && !isProvider) {
       return null;
     }
-    final Manifest manifest = facet.getManifest();
+    Manifest manifest = facet.getManifest();
     if (manifest == null) {
       return null;
     }
 
-    final Application application = manifest.getApplication();
+    Application application = manifest.getApplication();
     if (application == null) {
       return null;
     }
 
     if (isActivity) {
       for (Activity activity : application.getActivities()) {
-        final AndroidAttributeValue<PsiClass> activityClass = activity.getActivityClass();
+        AndroidAttributeValue<PsiClass> activityClass = activity.getActivityClass();
         if (activityClass.getValue() == aClass) {
           return activityClass;
         }
@@ -423,7 +441,7 @@ public class AndroidDomUtil {
     }
     else if (isService) {
       for (Service service : application.getServices()) {
-        final AndroidAttributeValue<PsiClass> serviceClass = service.getServiceClass();
+        AndroidAttributeValue<PsiClass> serviceClass = service.getServiceClass();
         if (serviceClass.getValue() == aClass) {
           return serviceClass;
         }
@@ -431,7 +449,7 @@ public class AndroidDomUtil {
     }
     else if (isReceiver) {
       for (Receiver receiver : application.getReceivers()) {
-        final AndroidAttributeValue<PsiClass> receiverClass = receiver.getReceiverClass();
+        AndroidAttributeValue<PsiClass> receiverClass = receiver.getReceiverClass();
         if (receiverClass.getValue() == aClass) {
           return receiverClass;
         }
@@ -439,7 +457,7 @@ public class AndroidDomUtil {
     }
     else {
       for (Provider provider : application.getProviders()) {
-        final AndroidAttributeValue<PsiClass> providerClass = provider.getProviderClass();
+        AndroidAttributeValue<PsiClass> providerClass = provider.getProviderClass();
         if (providerClass.getValue() == aClass) {
           return providerClass;
         }
@@ -449,8 +467,8 @@ public class AndroidDomUtil {
   }
 
   public static boolean isInheritor(@NotNull PsiClass aClass, @NotNull String baseClassQName) {
-    final Project project = aClass.getProject();
-    final PsiClass baseClass = JavaPsiFacade.getInstance(project).findClass(baseClassQName, aClass.getResolveScope());
+    Project project = aClass.getProject();
+    PsiClass baseClass = JavaPsiFacade.getInstance(project).findClass(baseClassQName, aClass.getResolveScope());
     return baseClass != null && aClass.isInheritor(baseClass, true);
   }
 }

@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.startup;
 
-import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.fd.actions.HotswapAction;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
-import com.android.tools.idea.gradle.actions.RefreshProjectAction;
 import com.android.tools.idea.npw.PathValidationResult;
 import com.android.tools.idea.npw.PathValidationResult.WritableCheckMode;
+import com.android.tools.idea.run.ApplyChangesAction;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
@@ -35,6 +37,7 @@ import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.actions.TemplateProjectStructureAction;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
@@ -49,46 +52,39 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
-import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.util.messages.MessageBusConnection;
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
+import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.Properties;
+import java.util.Objects;
 
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.npw.PathValidationResult.validateLocation;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
 import static com.android.tools.idea.startup.Actions.*;
-import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.actionSystem.Anchor.AFTER;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
-/** Performs Gradle-specific IDE initialization */
+/**
+ * Performs Gradle-specific IDE initialization
+ */
 public class GradleSpecificInitializer implements Runnable {
 
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
 
-  // Paths relative to the IDE installation folder where the Android SDK may be present.
-  @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
-  private static final String[] ANDROID_SDK_RELATIVE_PATHS =
-    {ANDROID_SDK_FOLDER_NAME, File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME};
+  // Id for TemplateProjectSettingsGroup
+  @NotNull public static final String TEMPLATE_PROJECT_SETTINGS_GROUP_ID = "TemplateProjectSettingsGroup";
 
   @Override
   public void run() {
@@ -96,6 +92,8 @@ public class GradleSpecificInitializer implements Runnable {
     setUpInstantRunActions();
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
+    // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
+    replaceAction(TEMPLATE_PROJECT_SETTINGS_GROUP_ID, new AndroidTemplateProjectSettingsGroup());
     setUpGradleViewToolbarActions();
     checkInstallPath();
 
@@ -117,16 +115,7 @@ public class GradleSpecificInitializer implements Runnable {
       checkAndSetAndroidSdkSources();
     }
 
-    // The Gradle plugin takes care of shutting down daemons in GradleCleanupService
-    //registerAppClosing();
-
-    // Always reset the Default scheme to match Android standards
-    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
-    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
-    if (scheme != null) {
-      CodeStyleSettings settings = scheme.getCodeStyleSettings();
-      AndroidCodeStyleSettingsModifier.modify(settings);
-    }
+    modifyCodeStyleSettings();
   }
 
   /**
@@ -152,7 +141,7 @@ public class GradleSpecificInitializer implements Runnable {
   }
 
   private static void setUpGradleViewToolbarActions() {
-    replaceAction("ExternalSystem.RefreshAllProjects", new RefreshProjectAction());
+    hideAction("ExternalSystem.RefreshAllProjects");
     hideAction("ExternalSystem.SelectProjectDataToImport");
   }
 
@@ -178,7 +167,13 @@ public class GradleSpecificInitializer implements Runnable {
     ActionManager actionManager = ActionManager.getInstance();
     AnAction runnerActions = actionManager.getAction(IdeActions.GROUP_RUNNER_ACTIONS);
     if (runnerActions instanceof DefaultActionGroup) {
-      ((DefaultActionGroup)runnerActions).add(new HotswapAction(), new Constraints(Anchor.AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
+      AnAction action;
+      if (StudioFlags.JVMTI_REFRESH.get()) {
+        action = new ApplyChangesAction();
+      } else {
+        action = new HotswapAction();
+      }
+      ((DefaultActionGroup)runnerActions).add(action, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
     }
   }
 
@@ -201,12 +196,14 @@ public class GradleSpecificInitializer implements Runnable {
       getFromVcsAction.getTemplatePresentation().setText("Check out project from Version Control");
     }
 
-    AnAction configureIdeaAction = actionManager.getAction(IdeActions.GROUP_WELCOME_SCREEN_CONFIGURE);
+    AnAction configureIdeaAction = actionManager.getAction("WelcomeScreen.Configure.IDEA");
     if (configureIdeaAction instanceof DefaultActionGroup) {
       DefaultActionGroup settingsGroup = (DefaultActionGroup)configureIdeaAction;
-      for (AnAction child : settingsGroup.getChildren(null)) {
+      AnAction[] children = settingsGroup.getChildren(null);
+      if (children.length == 1) {
+        AnAction child = children[0];
         if (child instanceof TemplateProjectStructureAction) {
-          settingsGroup.replaceAction(child, new AndroidTemplateProjectStructureAction());
+          settingsGroup.replaceAction(child, new AndroidTemplateProjectSettingsGroup());
         }
       }
     }
@@ -230,7 +227,8 @@ public class GradleSpecificInitializer implements Runnable {
         parent.remove(action);
         parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Move Module to Group"),
                    new Constraints(AFTER, "OpenModuleSettings"));
-      } else if (action instanceof MarkRootGroup) {
+      }
+      else if (action instanceof MarkRootGroup) {
         parent.remove(action);
         parent.add(new AndroidActionGroupRemover((ActionGroup)action, "Mark Directory As"),
                    new Constraints(AFTER, "OpenModuleSettings"));
@@ -260,13 +258,13 @@ public class GradleSpecificInitializer implements Runnable {
       @Override
       public void appStarting(Project project) {
         app.invokeLater(() -> {
-          Notification notification = getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
+          Notification notification =
+            getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
           notification.setImportant(true);
           Notifications.Bus.notify(notification);
         });
       }
     });
-
   }
 
   private static NotificationGroup getNotificationGroup() {
@@ -375,82 +373,23 @@ public class GradleSpecificInitializer implements Runnable {
 
   @Nullable
   private static File getAndroidSdkPath() {
-    String studioHome = PathManager.getHomePath();
-    if (isEmpty(studioHome)) {
-      LOG.info("Unable to find Studio home directory");
-    }
-    else {
-      LOG.info(String.format("Found Studio home directory at: '%1$s'", studioHome));
-      for (String path : ANDROID_SDK_RELATIVE_PATHS) {
-        File dir = new File(studioHome, path);
-        String absolutePath = toCanonicalPath(dir.getAbsolutePath());
-        LOG.info(String.format("Looking for Android SDK at '%1$s'", absolutePath));
-        if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath)) {
-          LOG.info(String.format("Found Android SDK at '%1$s'", absolutePath));
-          return new File(absolutePath);
-        }
-      }
-    }
-    LOG.info("Unable to locate SDK within the Android studio installation.");
-
-    String androidHomeValue = System.getenv(SdkConstants.ANDROID_HOME_ENV);
-    String msg = String.format("Checking if ANDROID_HOME is set: '%1$s' is '%2$s'", SdkConstants.ANDROID_HOME_ENV, androidHomeValue);
-    LOG.info(msg);
-
-    if (!isEmpty(androidHomeValue) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
-      LOG.info("Using Android SDK specified by the environment variable.");
-      return toSystemDependentPath(androidHomeValue);
-    }
-
-    String toolsPreferencePath = AndroidLocation.getFolderWithoutWrites();
-    String sdkPath = getLastSdkPathUsedByAndroidTools(toolsPreferencePath);
-    if (!isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
-      msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
-    } else {
-      msg = "Unable to locate last SDK used by Android tools";
-    }
-    LOG.info(msg);
-    return toSystemDependentPath(sdkPath);
+    return AndroidSdkInitializer.findOrGetAndroidSdkPath();
   }
 
-  /**
-   * Returns the value for property 'lastSdkPath' as stored in the properties file at $HOME/.android/ddms.cfg, or {@code null} if the file
-   * or property doesn't exist.
-   *
-   * This is only useful in a scenario where existing users of ADT/Eclipse get Studio, but without the bundle.
-   */
-  @Nullable
-  private static String getLastSdkPathUsedByAndroidTools(@Nullable String path) {
-    if (path == null) {
-      return null;
-    }
-    File file = new File(path, "ddms.cfg");
-    if (!file.exists()) {
-      return null;
-    }
-    try {
-      Properties properties = getProperties(file);
-      return properties.getProperty("lastSdkPath");
-    } catch (IOException e) {
-      return null;
-    }
-  }
+  @VisibleForTesting
+  static void modifyCodeStyleSettings() {
+    CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
+    CodeStyleScheme scheme = schemes.getDefaultScheme();
 
-  // Registers a callback that gets notified when the IDE is closing.
-  private static void registerAppClosing() {
-    Application app = ApplicationManager.getApplication();
-    MessageBusConnection connection = app.getMessageBus().connect(app);
-    connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
-      @Override
-      public void appClosing() {
-        try {
-          DefaultGradleConnector.close();
-        }
-        catch (RuntimeException e) {
-          LOG.info("Failed to stop Gradle daemons during IDE shutdown", e);
-        }
-      }
-    });
+    if (scheme != null) {
+      AndroidCodeStyleSettingsModifier.modify(scheme.getCodeStyleSettings());
+    }
+
+    CommonCodeStyleSettings settings = schemes.getCurrentScheme().getCodeStyleSettings().getCommonSettings(XMLLanguage.INSTANCE);
+
+    if (Objects.equals(settings.getArrangementSettings(), AndroidXmlPredefinedCodeStyle.createVersion1Settings())) {
+      settings.setArrangementSettings(AndroidXmlPredefinedCodeStyle.createVersion2Settings());
+    }
   }
 
   private static void checkAndSetAndroidSdkSources() {

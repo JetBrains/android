@@ -19,9 +19,10 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.api.android.sourceSets.SourceDirectoryModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -51,12 +52,13 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
                                             "  }\n" +
                                             "}";
 
+  @Test
   public void testSourceDirectoryEntries() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
     verifySourceDirectoryEntries(getGradleBuildModel(), 1, 2);
   }
 
-
+  @Test
   public void testSourceDirectoryEntriesAddAndReset() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -68,14 +70,14 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
     SourceDirectoryModel java = sourceSet.java();
-    java.addSrcDir("javaSource3");
-    java.addInclude("javaInclude3");
-    java.addExclude("javaExclude3");
+    java.srcDirs().addListValue().setValue("javaSource3");
+    java.includes().addListValue().setValue("javaInclude3");
+    java.excludes().addListValue().setValue("javaExclude3");
 
     SourceDirectoryModel jni = sourceSet.jni();
-    jni.addSrcDir("jniSource3");
-    jni.addInclude("jniInclude3");
-    jni.addExclude("jniExclude3");
+    jni.srcDirs().addListValue().setValue("jniSource3");
+    jni.includes().addListValue().setValue("jniInclude3");
+    jni.excludes().addListValue().setValue("jniExclude3");
 
     verifySourceDirectoryEntries(buildModel, 1, 2, 3);
 
@@ -83,6 +85,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 2);
   }
 
+  @Test
   public void testSourceDirectoryEntriesAddAndApply() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -94,14 +97,14 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
     SourceDirectoryModel java = sourceSet.java();
-    java.addSrcDir("javaSource3");
-    java.addInclude("javaInclude3");
-    java.addExclude("javaExclude3");
+    java.srcDirs().addListValue().setValue("javaSource3");
+    java.includes().addListValue().setValue("javaInclude3");
+    java.excludes().addListValue().setValue("javaExclude3");
 
     SourceDirectoryModel jni = sourceSet.jni();
-    jni.addSrcDir("jniSource3");
-    jni.addInclude("jniInclude3");
-    jni.addExclude("jniExclude3");
+    jni.srcDirs().addListValue().setValue("jniSource3");
+    jni.includes().addListValue().setValue("jniInclude3");
+    jni.excludes().addListValue().setValue("jniExclude3");
 
     verifySourceDirectoryEntries(buildModel, 1, 2, 3);
 
@@ -109,6 +112,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 2, 3);
   }
 
+  @Test
   public void testSourceDirectoryEntriesRemoveAndReset() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -120,14 +124,14 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
     SourceDirectoryModel java = sourceSet.java();
-    java.removeSrcDir("javaSource2");
-    java.removeInclude("javaInclude2");
-    java.removeExclude("javaExclude2");
+    java.srcDirs().getListValue("javaSource2").delete();
+    java.includes().getListValue("javaInclude2").delete();
+    java.excludes().getListValue("javaExclude2").delete();
 
     SourceDirectoryModel jni = sourceSet.jni();
-    jni.removeSrcDir("jniSource2");
-    jni.removeInclude("jniInclude2");
-    jni.removeExclude("jniExclude2");
+    jni.srcDirs().getListValue("jniSource2").delete();
+    jni.includes().getListValue("jniInclude2").delete();
+    jni.excludes().getListValue("jniExclude2").delete();
 
     verifySourceDirectoryEntries(buildModel, 1);
 
@@ -135,6 +139,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 2);
   }
 
+  @Test
   public void testSourceDirectoryEntriesRemoveAndApply() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -146,14 +151,14 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
     SourceDirectoryModel java = sourceSet.java();
-    java.removeSrcDir("javaSource2");
-    java.removeInclude("javaInclude2");
-    java.removeExclude("javaExclude2");
+    java.srcDirs().getListValue("javaSource2").delete();
+    java.includes().getListValue("javaInclude2").delete();
+    java.excludes().getListValue("javaExclude2").delete();
 
     SourceDirectoryModel jni = sourceSet.jni();
-    jni.removeSrcDir("jniSource2");
-    jni.removeInclude("jniInclude2");
-    jni.removeExclude("jniExclude2");
+    jni.srcDirs().getListValue("jniSource2").delete();
+    jni.includes().getListValue("jniInclude2").delete();
+    jni.excludes().getListValue("jniExclude2").delete();
 
     verifySourceDirectoryEntries(buildModel, 1);
 
@@ -161,6 +166,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1);
   }
 
+  @Test
   public void testSourceDirectoryEntriesRemoveAllAndReset() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -172,14 +178,14 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
     SourceDirectoryModel java = sourceSet.java();
-    java.removeAllSrcDirs();
-    java.removeAllIncludes();
-    java.removeAllExcludes();
+    java.srcDirs().delete();
+    java.includes().delete();
+    java.excludes().delete();
 
     SourceDirectoryModel jni = sourceSet.jni();
-    jni.removeAllSrcDirs();
-    jni.removeAllIncludes();
-    jni.removeAllExcludes();
+    jni.srcDirs().delete();
+    jni.includes().delete();
+    jni.excludes().delete();
 
     verifySourceDirectoryEntries(buildModel);
 
@@ -187,6 +193,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 2);
   }
 
+  @Test
   public void testSourceDirectoryEntriesRemoveAllAndApply() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -198,14 +205,14 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
     SourceDirectoryModel java = sourceSet.java();
-    java.removeAllSrcDirs();
-    java.removeAllIncludes();
-    java.removeAllExcludes();
+    java.srcDirs().delete();
+    java.includes().delete();
+    java.excludes().delete();
 
     SourceDirectoryModel jni = sourceSet.jni();
-    jni.removeAllSrcDirs();
-    jni.removeAllIncludes();
-    jni.removeAllExcludes();
+    jni.srcDirs().delete();
+    jni.includes().delete();
+    jni.excludes().delete();
 
     verifySourceDirectoryEntries(buildModel);
 
@@ -216,6 +223,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     assertEmpty(android.sourceSets());
   }
 
+  @Test
   public void testSourceDirectoryEntriesReplaceAndReset() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -227,14 +235,14 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
     SourceDirectoryModel java = sourceSet.java();
-    java.replaceSrcDir("javaSource2", "javaSource3");
-    java.replaceInclude("javaInclude2", "javaInclude3");
-    java.replaceExclude("javaExclude2", "javaExclude3");
+    java.srcDirs().getListValue("javaSource2").setValue("javaSource3");
+    java.includes().getListValue("javaInclude2").setValue("javaInclude3");
+    java.excludes().getListValue("javaExclude2").setValue("javaExclude3");
 
     SourceDirectoryModel jni = sourceSet.jni();
-    jni.replaceSrcDir("jniSource2", "jniSource3");
-    jni.replaceInclude("jniInclude2", "jniInclude3");
-    jni.replaceExclude("jniExclude2", "jniExclude3");
+    jni.srcDirs().getListValue("jniSource2").setValue("jniSource3");
+    jni.includes().getListValue("jniInclude2").setValue("jniInclude3");
+    jni.excludes().getListValue("jniExclude2").setValue("jniExclude3");
 
     verifySourceDirectoryEntries(buildModel, 1, 3);
 
@@ -242,6 +250,7 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     verifySourceDirectoryEntries(buildModel, 1, 2);
   }
 
+  @Test
   public void testSourceDirectoryEntriesReplaceAndApply() throws Exception {
     writeToBuildFile(GRADLE_TEXT);
 
@@ -253,19 +262,19 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
     SourceSetModel sourceSet = android.sourceSets().get(0);
 
     SourceDirectoryModel java = sourceSet.java();
-    java.replaceSrcDir("javaSource1", "javaSource0");
-    java.replaceInclude("javaInclude1", "javaInclude0");
-    java.replaceExclude("javaExclude1", "javaExclude0");
+    java.srcDirs().getListValue("javaSource2").setValue("javaSource3");
+    java.includes().getListValue("javaInclude2").setValue("javaInclude3");
+    java.excludes().getListValue("javaExclude2").setValue("javaExclude3");
 
     SourceDirectoryModel jni = sourceSet.jni();
-    jni.replaceSrcDir("jniSource1", "jniSource0");
-    jni.replaceInclude("jniInclude1", "jniInclude0");
-    jni.replaceExclude("jniExclude1", "jniExclude0");
+    jni.srcDirs().getListValue("jniSource2").setValue("jniSource3");
+    jni.includes().getListValue("jniInclude2").setValue("jniInclude3");
+    jni.excludes().getListValue("jniExclude2").setValue("jniExclude3");
 
-    verifySourceDirectoryEntries(buildModel, 0, 2);
+    verifySourceDirectoryEntries(buildModel, 1, 3);
 
     applyChangesAndReparse(buildModel);
-    verifySourceDirectoryEntries(buildModel, 0, 2);
+    verifySourceDirectoryEntries(buildModel, 1, 3);
   }
 
   private static void verifySourceDirectoryEntries(@NotNull GradleBuildModel buildModel, int... entrySuffixes) {
@@ -283,30 +292,30 @@ public class SourceDirectoryModelTest extends GradleFileModelTestCase {
 
   private static void verifySourceDirectory(@NotNull SourceDirectoryModel sourceDirectory, @NotNull String name, int... entrySuffixes) {
     assertEquals("name", name, sourceDirectory.name());
-    List<GradleNotNullValue<String>> srcDirs = sourceDirectory.srcDirs();
-    List<GradleNotNullValue<String>> includes = sourceDirectory.includes();
-    List<GradleNotNullValue<String>> excludes = sourceDirectory.excludes();
+    ResolvedPropertyModel srcDirs = sourceDirectory.srcDirs();
+    ResolvedPropertyModel includes = sourceDirectory.includes();
+    ResolvedPropertyModel excludes = sourceDirectory.excludes();
 
     if (entrySuffixes.length == 0) {
-      assertNull(srcDirs);
-      assertNull(includes);
-      assertNull(excludes);
+      assertMissingProperty(srcDirs);
+      assertMissingProperty(includes);
+      assertMissingProperty(excludes);
       return;
     }
 
-    assertNotNull(srcDirs);
-    assertNotNull(includes);
-    assertNotNull(excludes);
+    assertNotNull(srcDirs.toList());
+    assertNotNull(includes.toList());
+    assertNotNull(excludes.toList());
 
-    assertSize(entrySuffixes.length, srcDirs);
-    assertSize(entrySuffixes.length, includes);
-    assertSize(entrySuffixes.length, excludes);
+    assertSize(entrySuffixes.length, srcDirs.toList());
+    assertSize(entrySuffixes.length, includes.toList());
+    assertSize(entrySuffixes.length, excludes.toList());
 
     int i = 0;
     for (int entry : entrySuffixes) {
-      assertEquals("srcDirs", name + "Source" + entry, srcDirs.get(i));
-      assertEquals("includes", name + "Include" + entry, includes.get(i));
-      assertEquals("excludes", name + "Exclude" + entry, excludes.get(i));
+      assertEquals("srcDirs", name + "Source" + entry, srcDirs.toList().get(i));
+      assertEquals("includes", name + "Include" + entry, includes.toList().get(i));
+      assertEquals("excludes", name + "Exclude" + entry, excludes.toList().get(i));
       i++;
     }
   }

@@ -10,6 +10,9 @@
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.APPWIDGET_SERVICE" />
     </annotation>
+    <annotation name="android.support.annotation.RequiresFeature">
+      <val name="value" val="&quot;android.software.app_widgets&quot;" />
+    </annotation>
   </item>
   <item name="android.appwidget.AppWidgetManager ACTION_APPWIDGET_DELETED">
     <annotation name="android.support.annotation.BroadcastBehavior">
@@ -70,11 +73,32 @@
   <item name="android.appwidget.AppWidgetManager java.util.List&lt;android.appwidget.AppWidgetProviderInfo&gt; getInstalledProvidersForProfile(android.os.UserHandle) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.appwidget.AppWidgetManager void updateAppWidgetProviderInfo(android.content.ComponentName, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.appwidget.AppWidgetProviderInfo android.graphics.drawable.Drawable loadIcon(android.content.Context, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.appwidget.AppWidgetProviderInfo android.graphics.drawable.Drawable loadPreviewImage(android.content.Context, int) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.appwidget.AppWidgetProviderInfo resizeMode">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.appwidget.AppWidgetProviderInfo.RESIZE_HORIZONTAL, android.appwidget.AppWidgetProviderInfo.RESIZE_VERTICAL}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.appwidget.AppWidgetProviderInfo widgetCategory">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN, android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD, android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_SEARCHBOX}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.appwidget.AppWidgetProviderInfo widgetFeatures">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.appwidget.AppWidgetProviderInfo.WIDGET_FEATURE_RECONFIGURABLE, android.appwidget.AppWidgetProviderInfo.WIDGET_FEATURE_HIDE_FROM_PICKER}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
 </root>
 

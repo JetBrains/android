@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
-import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.junit.AbstractAllInDirectoryConfigurationProducer;
-import com.intellij.execution.junit.JUnitConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.isFromContext;
 import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.shouldUseAndroidJUnitConfigurations;
 
 /**
@@ -45,10 +42,5 @@ final class TestDirectoryAndroidConfigurationProducer extends AbstractAllInDirec
   public boolean shouldReplace(@NotNull ConfigurationFromContext self, @NotNull ConfigurationFromContext other) {
     return super.isPreferredConfiguration(self, other)
            && shouldUseAndroidJUnitConfigurations(self, other);
-  }
-
-  @Override
-  public boolean isConfigurationFromContext(JUnitConfiguration unitConfiguration, ConfigurationContext context) {
-    return isFromContext(unitConfiguration, context, getConfigurationFactory());
   }
 }

@@ -33,7 +33,6 @@ import static org.mockito.Mockito.when;
  * Tests for {@link JdkPreSyncCheck}.
  */
 public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
-  private IdeComponents myIdeComponents;
   private IdeSdks myMockIdeSdks;
 
   private JdkPreSyncCheck myJdkPreSyncCheck;
@@ -43,26 +42,14 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    myIdeComponents = new IdeComponents(getProject());
-
     loadSimpleApplication();
 
-    myMockIdeSdks = myIdeComponents.mockService(IdeSdks.class);
+    myMockIdeSdks = new IdeComponents(getProject()).mockApplicationService(IdeSdks.class);
     assertSame(myMockIdeSdks, IdeSdks.getInstance());
 
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     myJdkPreSyncCheck = new JdkPreSyncCheck();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testDoCheckCanSyncWithNullJdk() throws Exception {
@@ -85,14 +72,15 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
   private void verifyCheckFailure(@NotNull PreSyncCheckResult result) {
     assertFalse(result.isSuccess());
 
-    String expectedText = "Please use JDK 8 or newer.";
-    assertEquals(expectedText, result.getFailureCause());
+    String expectedText = "Could not run JVM from the selected JDK.\n" +
+                          "Please ensure JDK installation is valid and compatible with the current OS ";
+    assertThat(result.getFailureCause()).startsWith(expectedText);
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
     assertThat(message.getText()).hasLength(1);
     assertEquals(SyncMessage.DEFAULT_GROUP, message.getGroup());
 
-    assertAbout(syncMessage()).that(message).hasMessageLine(expectedText, 0);
+    assertAbout(syncMessage()).that(message).hasMessageLineStartingWith(expectedText, 0);
   }
 }

@@ -15,62 +15,41 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.tools.adtui.TableUtils;
-import com.android.tools.adtui.ui.FixedColumnTable;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.rendering.Locale;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Maps;
-import com.intellij.ide.PasteProvider;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.DataProvider;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.ide.CopyPasteManager;
-import com.intellij.ui.TableSpeedSearch;
+import com.intellij.util.ui.JBUI;
+import java.awt.event.KeyEvent;
+import java.util.List;
+import java.util.OptionalInt;
+import java.util.stream.IntStream;
+import javax.swing.KeyStroke;
+import javax.swing.SortOrder;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import javax.swing.table.*;
-import java.awt.datatransfer.Transferable;
-import java.awt.event.KeyEvent;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalInt;
-import java.util.stream.IntStream;
+public final class StringResourceTable extends FrozenColumnTable {
+  private final TableCellRenderer myLocaleRenderer;
 
-public final class StringResourceTable extends FixedColumnTable implements DataProvider, PasteProvider {
   @Nullable
   private StringResourceTableColumnFilter myColumnFilter;
 
   private boolean myColumnPreferredWidthsSet;
 
   public StringResourceTable() {
-    super(new StringResourceTableModel());
+    super(new StringResourceTableModel(), 4);
 
-    InputMap inputMap = getInputMap(WHEN_FOCUSED);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "delete");
-
-    setAutoResizeMode(AUTO_RESIZE_OFF);
-    setCellSelectionEnabled(true);
     setDefaultEditor(String.class, new StringTableCellEditor());
     setDefaultRenderer(String.class, new StringsCellRenderer());
-    setFixedColumnCount(2);
     setRowSorter(new ThreeStateTableRowSorter<>(getModel()));
-    new TableSpeedSearch(this);
-  }
 
-  @NotNull
-  @Override
-  protected JTableHeader createDefaultTableHeader() {
-    JTableHeader header = new JBTableHeader();
+    putInInputMap(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "delete");
+    putInInputMap(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
 
-    header.setName("tableHeader");
-    header.setReorderingAllowed(false);
-
-    return header;
+    myLocaleRenderer = new LocaleRenderer(getDefaultTableHeaderRenderer());
   }
 
   @Nullable
@@ -98,35 +77,8 @@ public final class StringResourceTable extends FixedColumnTable implements DataP
   }
 
   @Override
-  public void createDefaultColumnsFromModel() {
-    addColumns(removeAllColumns());
-  }
-
-  @NotNull
-  private Map<String, TableColumn> removeAllColumns() {
-    Map<String, TableColumn> map = Maps.newHashMapWithExpectedSize(getTotalColumnCount());
-
-    while (getTotalColumnCount() != 0) {
-      TableColumn column = getColumn(0);
-      removeColumn(column);
-      map.put((String)column.getHeaderValue(), column);
-    }
-
-    return map;
-  }
-
-  private void addColumns(@NotNull Map<String, TableColumn> map) {
-    StringResourceTableModel model = getModel();
-    TableCellRenderer renderer = tableHeader == null ? null : new LocaleRenderer(tableHeader.getDefaultRenderer());
-
-    IntStream.range(0, model.getColumnCount())
-      .filter(this::includeColumn)
-      .mapToObj(column -> getColumn(map, column, renderer))
-      .forEach(this::addColumn);
-  }
-
-  private boolean includeColumn(int column) {
-    if (column < StringResourceTableModel.FIXED_COLUMN_COUNT) {
+  boolean includeColumn(int modelColumnIndex) {
+    if (modelColumnIndex < StringResourceTableModel.FIXED_COLUMN_COUNT) {
       return true;
     }
 
@@ -134,51 +86,32 @@ public final class StringResourceTable extends FixedColumnTable implements DataP
       return true;
     }
 
-    Locale locale = getModel().getLocale(column);
+    Locale locale = getModel().getLocale(modelColumnIndex);
     assert locale != null;
 
     return myColumnFilter.include(locale);
   }
 
   @NotNull
-  private TableColumn getColumn(@NotNull Map<String, TableColumn> map, int column, @Nullable TableCellRenderer renderer) {
-    TableColumn tableColumn = map.get(dataModel.getColumnName(column));
+  @Override
+  TableColumn createColumn(int modelColumnIndex) {
+    TableColumn column = new TableColumn(modelColumnIndex);
 
-    if (tableColumn == null) {
-      tableColumn = new TableColumn(column);
-
-      if (column >= StringResourceTableModel.FIXED_COLUMN_COUNT && renderer != null) {
-        tableColumn.setHeaderRenderer(renderer);
-      }
-    }
-    else {
-      tableColumn.setModelIndex(column);
+    if (modelColumnIndex >= StringResourceTableModel.FIXED_COLUMN_COUNT) {
+      column.setHeaderRenderer(myLocaleRenderer);
     }
 
-    return tableColumn;
-  }
-
-  public int getSelectedRowModelIndex() {
-    return convertRowIndexToModel(getSelectedRow());
+    return column;
   }
 
   @NotNull
-  public int[] getSelectedRowModelIndices() {
-    return Arrays.stream(getSelectedRows())
-      .map(this::convertRowIndexToModel)
-      .toArray();
-  }
-
-  public int getSelectedColumnModelIndex() {
-    return convertColumnIndexToModel(getSelectedColumn());
-  }
-
   @Override
   public TableRowSorter<StringResourceTableModel> getRowSorter() {
     //noinspection unchecked
     return (TableRowSorter<StringResourceTableModel>)super.getRowSorter();
   }
 
+  @NotNull
   @Override
   public StringResourceTableModel getModel() {
     return (StringResourceTableModel)super.getModel();
@@ -187,94 +120,64 @@ public final class StringResourceTable extends FixedColumnTable implements DataP
   @Override
   public void setModel(@NotNull TableModel model) {
     super.setModel(model);
-    TableRowSorter<StringResourceTableModel> sorter = getRowSorter();
-    if (sorter != null) { // can be null when called from constructor
-      sorter.setModel(getModel());
-    }
-
-    if (tableHeader == null) {
-      return;
-    }
+    getRowSorter().setModel((StringResourceTableModel)model);
 
     if (myColumnPreferredWidthsSet) {
       return;
     }
 
-    OptionalInt optionalWidth = getKeyColumnPreferredWidth();
-
-    if (optionalWidth.isPresent()) {
-      getColumn(StringResourceTableModel.KEY_COLUMN).setPreferredWidth(optionalWidth.getAsInt());
-    }
-
-    optionalWidth = getDefaultValueAndLocaleColumnPreferredWidths();
-
-    if (optionalWidth.isPresent()) {
-      int width = optionalWidth.getAsInt();
-
-      IntStream.range(convertColumnIndexToView(StringResourceTableModel.DEFAULT_VALUE_COLUMN), getColumnCount())
-        .mapToObj(columnModel::getColumn)
-        .forEach(column -> column.setPreferredWidth(width));
-    }
+    IntStream.range(0, getColumnCount())
+             .forEach(viewColumnIndex -> getColumn(viewColumnIndex).setPreferredWidth(getPreferredColumnWidth(viewColumnIndex)));
 
     myColumnPreferredWidthsSet = true;
   }
 
-  @NotNull
-  @VisibleForTesting
-  public OptionalInt getKeyColumnPreferredWidth() {
-    return IntStream.range(0, getModel().getRowCount())
-      .map(row -> getPreferredWidth(getCellRendererAtModel(row, StringResourceTableModel.KEY_COLUMN),
-                                    getModel().getValueAt(row, StringResourceTableModel.KEY_COLUMN), row,
-                                    StringResourceTableModel.KEY_COLUMN))
-      .max();
+  private int getPreferredColumnWidth(int viewColumnIndex) {
+    int headerWidth = getPreferredHeaderWidth(viewColumnIndex);
+
+    OptionalInt optionalMaxCellWidth = IntStream.range(0, getRowCount())
+                                                .map(viewRowIndex -> getPreferredCellWidth(viewRowIndex, viewColumnIndex))
+                                                .max();
+
+    int minColumnWidth = JBUI.scale(20);
+    int columnWidth = Math.max(headerWidth, optionalMaxCellWidth.orElse(minColumnWidth));
+
+    if (columnWidth < minColumnWidth) {
+      return minColumnWidth;
+    }
+
+    int maxColumnWidth = JBUI.scale(200);
+
+    if (columnWidth > maxColumnWidth) {
+      return maxColumnWidth;
+    }
+
+    return columnWidth;
   }
 
-  @NotNull
-  @VisibleForTesting
-  public OptionalInt getDefaultValueAndLocaleColumnPreferredWidths() {
-    return IntStream.range(convertColumnIndexToView(StringResourceTableModel.DEFAULT_VALUE_COLUMN), getColumnCount())
-      .map(column -> getPreferredWidth(getHeaderRenderer(column), getColumnName(column), -1, column))
-      .max();
+  private int getPreferredHeaderWidth(int viewColumnIndex) {
+    TableCellRenderer renderer = getColumn(viewColumnIndex).getHeaderRenderer();
+
+    if (renderer == null) {
+      renderer = getDefaultTableHeaderRenderer();
+    }
+
+    return getPreferredWidth(renderer, getColumnName(viewColumnIndex), -1, viewColumnIndex);
   }
 
-  @NotNull
-  private TableCellRenderer getHeaderRenderer(int column) {
-    TableCellRenderer renderer = columnModel.getColumn(column).getHeaderRenderer();
-    return renderer == null ? tableHeader.getDefaultRenderer() : renderer;
+  private int getPreferredCellWidth(int viewRowIndex, int viewColumnIndex) {
+    TableCellRenderer renderer = getCellRenderer(viewRowIndex, viewColumnIndex);
+    return getPreferredWidth(renderer, getValueAt(viewRowIndex, viewColumnIndex), viewRowIndex, viewColumnIndex);
   }
 
-  private int getPreferredWidth(@NotNull TableCellRenderer renderer, @NotNull Object value, int row, int column) {
-    return renderer.getTableCellRendererComponent(this, value, false, false, row, column).getPreferredSize().width + 2;
-  }
-
-  @Nullable
   @Override
-  public Object getData(@NotNull String dataId) {
-    return dataId.equals(PlatformDataKeys.PASTE_PROVIDER.getName()) ? this : null;
-  }
-
-  @Override
-  public boolean isPastePossible(@NotNull DataContext dataContext) {
+  boolean isPastePossible() {
     if (getSelectedRowCount() != 1 || getSelectedColumnCount() != 1) {
       return false;
     }
     else {
       int column = getSelectedColumn();
       return column != StringResourceTableModel.KEY_COLUMN && column != StringResourceTableModel.UNTRANSLATABLE_COLUMN;
-    }
-  }
-
-  @Override
-  public boolean isPasteEnabled(@NotNull DataContext dataContext) {
-    return isPastePossible(dataContext);
-  }
-
-  @Override
-  public void performPaste(@NotNull DataContext dataContext) {
-    Transferable transferable = CopyPasteManager.getInstance().getContents();
-
-    if (transferable != null) {
-      TableUtils.paste(this, transferable);
     }
   }
 

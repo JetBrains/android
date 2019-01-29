@@ -22,20 +22,12 @@ import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessListUI;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.stacktrace.*;
-import com.intellij.openapi.components.BaseComponent;
-import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.util.UserDataHolderBase;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ArrayUtil;
-import com.intellij.util.messages.MessageBus;
-import org.jetbrains.annotations.NonNls;
+import com.intellij.openapi.util.EmptyRunnable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.picocontainer.PicoContainer;
 
 import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
@@ -61,16 +53,26 @@ public class IntelliJStackTraceViewTest {
     line -> new StackFrameParser(line).toCodeLocation())
     .collect(Collectors.toList());
 
-  private final Project myProject = ProjectStub.getInstance();
-
   private IntelliJStackTraceView myStackView;
+
+  public static StackTraceModel createStackTraceModel() {
+    return new StackTraceModel(new FakeCodeNavigator(new FakeFeatureTracker()));
+  }
+
+  public static IntelliJStackTraceView createStackTraceView(Project project, StackTraceModel model) {
+    return new IntelliJStackTraceView(project, model, (p, location) -> new FakeCodeElement(location));
+  }
 
   @Before
   public void before() {
-    StackTraceModel model = new StackTraceModel(new FakeCodeNavigator(new FakeFeatureTracker()));
-    myStackView = new IntelliJStackTraceView(myProject, model, (project, location) -> new FakeCodeElement(location));
-    myStackView.getComponent().setSize(100, 400); // Arbitrary size just so we can click on it
-    myStackView.getListView().setUI(new HeadlessListUI());
+    // Arbitrary size just so we can click on it
+    StackTraceModel model = createStackTraceModel();
+    IntelliJStackTraceView view = createStackTraceView(ProjectStub.getInstance(), model);
+    view.getComponent().setLocation(0, 0);
+    view.getComponent().setSize(100, 400);
+    view.getListView().setUI(new HeadlessListUI());
+
+    myStackView = view;
   }
 
   @Test
@@ -87,6 +89,21 @@ public class IntelliJStackTraceViewTest {
     assertThat(negativeTest3).isNotEqualTo(positiveTest);
     assertThat(negativeTest2).isNotEqualTo(negativeTest1);
     assertThat(negativeTest3).isNotEqualTo(negativeTest1);
+  }
+
+  @Test
+  public void nativeEqualityTest() {
+    CodeLocation loc = new CodeLocation.Builder("type").setMethodName("method").setNativeModuleName("module1")
+      .setMethodParameters(Arrays.asList("int", "std::string &"))
+      .setFileName("file").setLineNumber(1).setNativeCode(true).build();
+    CodeLocation positive = new CodeLocation.Builder(loc).build();
+    assertThat(loc).isEqualTo(positive);
+
+    CodeLocation negativeTest1 = new CodeLocation.Builder(positive).setNativeCode(false).build();
+    assertThat(loc).isNotEqualTo(negativeTest1);
+
+    CodeLocation negativeTest2 = new CodeLocation.Builder(positive).setNativeModuleName("module2").build();
+    assertThat(loc).isNotEqualTo(negativeTest2);
   }
 
   @Test
@@ -129,6 +146,7 @@ public class IntelliJStackTraceViewTest {
     assertThat(list.getSelectedValue()).isNull();
   }
 
+  @Ignore("b/110185274")
   @Test
   public void doubleClickingStackViewNavigatesToSelectedElement() throws InvocationTargetException, InterruptedException {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
@@ -145,12 +163,14 @@ public class IntelliJStackTraceViewTest {
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.doubleClick(5, 5); // First row
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
     assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
     assertThat(invocationCount[0]).isEqualTo(1);
   }
 
+  @Ignore("b/110185274")
   @Test
-  public void rightClickingStackTraceView() {
+  public void rightClickingStackTraceView() throws InvocationTargetException, InterruptedException {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
     AspectObserver observer = new AspectObserver();
     final int[] invocationCount = {0};
@@ -165,9 +185,11 @@ public class IntelliJStackTraceViewTest {
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.click(5, 5, FakeMouse.Button.RIGHT); // First row
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
     assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
   }
 
+  @Ignore("b/110185274")
   @Test
   public void pressingEnterOnStackViewNavigatesToSelectedElement() throws Exception {
     FakeUi fakeUi = new FakeUi(myStackView.getComponent());
@@ -184,156 +206,13 @@ public class IntelliJStackTraceViewTest {
     assertThat(myStackView.getModel().getCodeLocations().size()).isEqualTo(CODE_LOCATIONS.size());
 
     fakeUi.mouse.click(5, 5); // First row
+    SwingUtilities.invokeAndWait(EmptyRunnable.INSTANCE);
     assertThat(list.getSelectedValue()).isInstanceOf(FakeCodeElement.class);
     assertThat(invocationCount[0]).isEqualTo(0);
 
     fakeUi.keyboard.setFocus(list);
     fakeUi.keyboard.press(FakeKeyboard.Key.ENTER);
     assertThat(invocationCount[0]).isEqualTo(1);
-  }
-
-  /**
-   * Copy of {@link DummyProject}.
-   */
-  private static class ProjectStub extends UserDataHolderBase implements Project {
-    private static class ProjectStubHolder {
-      private static final ProjectStub ourInstance = new ProjectStub();
-    }
-
-    @NotNull
-    public static Project getInstance() {
-      return ProjectStubHolder.ourInstance;
-    }
-
-    private ProjectStub() {
-    }
-
-    @Override
-    public VirtualFile getProjectFile() {
-      return null;
-    }
-
-    @Override
-    @NotNull
-    public String getName() {
-      return "";
-    }
-
-    @Override
-    @Nullable
-    @NonNls
-    public String getPresentableUrl() {
-      return null;
-    }
-
-    @Override
-    @NotNull
-    @NonNls
-    public String getLocationHash() {
-      return "dummy";
-    }
-
-    @Override
-    @Nullable
-    public String getProjectFilePath() {
-      return null;
-    }
-
-    @Override
-    public VirtualFile getWorkspaceFile() {
-      return null;
-    }
-
-    @Override
-    @Nullable
-    public VirtualFile getBaseDir() {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public String getBasePath() {
-      return null;
-    }
-
-    @Override
-    public void save() {
-    }
-
-    @Override
-    public BaseComponent getComponent(@NotNull String name) {
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public <T> T getComponent(@NotNull Class<T> interfaceClass) {
-      return null;
-    }
-
-    @Override
-    public boolean hasComponent(@NotNull Class interfaceClass) {
-      return false;
-    }
-
-    @Override
-    @NotNull
-    public <T> T[] getComponents(@NotNull Class<T> baseClass) {
-      return (T[])ArrayUtil.EMPTY_OBJECT_ARRAY;
-    }
-
-    @Override
-    @NotNull
-    public PicoContainer getPicoContainer() {
-      throw new UnsupportedOperationException("getPicoContainer is not implement in : " + getClass());
-    }
-
-    @Override
-    public <T> T getComponent(@NotNull Class<T> interfaceClass, T defaultImplementation) {
-      return null;
-    }
-
-    @Override
-    public boolean isDisposed() {
-      return false;
-    }
-
-    @Override
-    @NotNull
-    public Condition getDisposed() {
-      return o -> isDisposed();
-    }
-
-    @Override
-    public boolean isOpen() {
-      return false;
-    }
-
-    @Override
-    public boolean isInitialized() {
-      return false;
-    }
-
-    @Override
-    public boolean isDefault() {
-      return false;
-    }
-
-    @NotNull
-    @Override
-    public MessageBus getMessageBus() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void dispose() {
-    }
-
-    @NotNull
-    @Override
-    public <T> T[] getExtensions(@NotNull final ExtensionPointName<T> extensionPointName) {
-      throw new UnsupportedOperationException("getExtensions()");
-    }
   }
 
   private static class FakeCodeElement implements CodeElement {

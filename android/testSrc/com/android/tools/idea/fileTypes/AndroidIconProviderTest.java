@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.fileTypes;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.FlagManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -26,12 +28,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class AndroidIconProviderTest extends AndroidTestCase {
-  public void testFlagIcons() {
-    VirtualFile vFile = myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
-    PsiFile file = PsiManager.getInstance(getProject()).findFile(vFile);
-    assertNotNull(file);
+  public void testFlagIcons() throws Exception {
+    copyRJavaToGeneratedSources();
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      checkIcon("gen/p1/p2/R.java", null);
+    }
 
-    checkIcon("gen/p1/p2/R.java", null);
     checkIcon("res/wrong/path.xml", null);
     checkIcon("res/layout/file.xml", null);
     checkIcon("res/layout-land/file.xml", null);
@@ -41,9 +43,10 @@ public class AndroidIconProviderTest extends AndroidTestCase {
     checkIcon("res/values-en-rGB/strings.xml", "GB");
   }
 
-  private void checkIcon(@NotNull String path, @Nullable String region) {
+  private void checkIcon(@NotNull String path, @Nullable String region) throws Exception {
     AndroidIconProvider provider = new AndroidIconProvider();
-    VirtualFile file = myFixture.copyFileToProject("R.java", path); // file content does not matter
+    VirtualFile file = myFixture.getTempDirFixture().createFile(path);
+    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes()));
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     int flags = 0;

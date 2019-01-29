@@ -47,7 +47,7 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
 
   @NotNull
   private EditConfigurationsDialogFixture clickDebugger() {
-    findAndClickLabelWhenEnabled(this, "Debugger");
+    findAndClickLabel(this, "Debugger");
     return this;
   }
 

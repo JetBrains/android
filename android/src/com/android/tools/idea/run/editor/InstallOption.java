@@ -22,6 +22,7 @@ import javax.swing.*;
 
 public enum InstallOption {
   DEFAULT_APK("Default APK"),
+  APK_FROM_BUNDLE("APK from app bundle"),
   CUSTOM_ARTIFACT("Custom Artifact"),
   NOTHING("Nothing");
 

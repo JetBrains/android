@@ -18,10 +18,13 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.projectsystem.*;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
@@ -63,6 +66,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -119,7 +123,7 @@ public class HtmlLinkManager {
   }
 
   public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
-                        @Nullable RenderResult result) {
+                        @Nullable RenderResult result, @Nullable EditorDesignSurface surface) {
     if (url.startsWith("http:") || url.startsWith("https:")) {
       BrowserLauncher.getInstance().browse(url, null, module == null ? null : module.getProject());
     }
@@ -176,7 +180,7 @@ public class HtmlLinkManager {
     }
     else if (url.equals(URL_ACTION_IGNORE_FRAGMENTS)) {
       assert result != null;
-      handleIgnoreFragments(url, result);
+      handleIgnoreFragments(url, surface);
     }
     else if (url.startsWith(URL_EDIT_ATTRIBUTE)) {
       assert result != null;
@@ -192,7 +196,7 @@ public class HtmlLinkManager {
     }
     else if (url.startsWith(URL_DISABLE_SANDBOX)) {
       assert module != null;
-      handleDisableSandboxUrl(module, result);
+      handleDisableSandboxUrl(module, surface);
     }
     else if (url.startsWith(URL_RUNNABLE)) {
       Runnable linkRunnable = getLinkRunnable(url);
@@ -202,7 +206,7 @@ public class HtmlLinkManager {
     }
     else if (url.startsWith(URL_ADD_DEPENDENCY) && module != null) {
       assert module.getModuleFile() != null;
-      handleAddDependency(url, ProjectSystemUtil.getModuleSystem(module));
+      handleAddDependency(url, module);
       ProjectSystemUtil.getSyncManager(module.getProject())
         .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
     }
@@ -213,13 +217,13 @@ public class HtmlLinkManager {
       }
     }
     else if (url.startsWith(URL_REFRESH_RENDER)) {
-      handleRefreshRenderUrl(result);
+      handleRefreshRenderUrl(surface);
     }
     else if (url.startsWith(URL_CLEAR_CACHE_AND_NOTIFY)) {
       // This does the same as URL_REFRESH_RENDERER with the only difference of displaying a notification afterwards. The reason to have
       // handler is that we have different entry points for the action, one of which is "Clear cache". The user probably expects a result
       // of clicking that link that has something to do with the cache being cleared.
-      handleRefreshRenderUrl(result);
+      handleRefreshRenderUrl(surface);
       showNotification("Cache cleared");
     }
     else {
@@ -491,11 +495,24 @@ public class HtmlLinkManager {
                 importList.add(factory.createImportStatement(attributeSetClass));
               }
             }
-            PsiMethod constructor = factory.createMethodFromText(
+
+            PsiMethod constructor1arg = factory.createMethodFromText(
+              "public " + className + "(Context context) {\n" +
+              "  this(context, null);\n" +
+              "}\n", targetClass);
+            targetClass.add(constructor1arg);
+
+            PsiMethod constructor2args = factory.createMethodFromText(
+              "public " + className + "(Context context, AttributeSet attrs) {\n" +
+              "  this(context, attrs, 0);\n" +
+              "}\n", targetClass);
+            targetClass.add(constructor2args);
+
+            PsiMethod constructor3args = factory.createMethodFromText(
               "public " + className + "(Context context, AttributeSet attrs, int defStyle) {\n" +
               "  super(context, attrs, defStyle);\n" +
               "}\n", targetClass);
-            targetClass.add(constructor);
+            targetClass.add(constructor3args);
 
             // Format class
             CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(manager.getProject());
@@ -667,7 +684,8 @@ public class HtmlLinkManager {
     assert url.startsWith(URL_ASSIGN_FRAGMENT_URL) : url;
 
     Predicate<PsiClass> psiFilter = ChooseClassDialog.getUserDefinedPublicAndUnrestrictedFilter();
-    String className = ChooseClassDialog.openDialog(module, "Fragments", null, psiFilter, CLASS_FRAGMENT, CLASS_V4_FRAGMENT);
+    String className = ChooseClassDialog
+      .openDialog(module, "Fragments", null, psiFilter, CLASS_FRAGMENT, CLASS_V4_FRAGMENT.oldName(), CLASS_V4_FRAGMENT.newName());
     if (className == null) {
       return;
     }
@@ -680,7 +698,7 @@ public class HtmlLinkManager {
       id = null;
     }
     else {
-      id = LintUtils.stripIdPrefix(url.substring(start));
+      id = Lint.stripIdPrefix(url.substring(start));
     }
 
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Assign Fragment", file) {
@@ -694,7 +712,7 @@ public class HtmlLinkManager {
 
           if (id != null) {
             String tagId = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
-            if (tagId == null || !tagId.endsWith(id) || !id.equals(LintUtils.stripIdPrefix(tagId))) {
+            if (tagId == null || !tagId.endsWith(id) || !id.equals(Lint.stripIdPrefix(tagId))) {
               continue;
             }
           }
@@ -799,10 +817,10 @@ public class HtmlLinkManager {
     return URL_ACTION_IGNORE_FRAGMENTS;
   }
 
-  private static void handleIgnoreFragments(@NotNull String url, @NotNull RenderResult result) {
+  private static void handleIgnoreFragments(@NotNull String url, @Nullable EditorDesignSurface surface) {
     assert url.equals(URL_ACTION_IGNORE_FRAGMENTS);
     RenderLogger.ignoreFragments();
-    requestRender(result);
+    requestRender(surface);
   }
 
   public String createEditAttributeUrl(String attribute, String value) {
@@ -884,9 +902,9 @@ public class HtmlLinkManager {
     return URL_DISABLE_SANDBOX;
   }
 
-  private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable RenderResult result) {
+  private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable EditorDesignSurface surface) {
     RenderSecurityManager.sEnabled = false;
-    requestRender(result);
+    requestRender(surface);
 
     Messages.showInfoMessage(module.getProject(),
                              "The custom view rendering sandbox was disabled for this session.\n\n" +
@@ -904,28 +922,16 @@ public class HtmlLinkManager {
     return URL_CLEAR_CACHE_AND_NOTIFY;
   }
 
-  private static void handleRefreshRenderUrl(@Nullable RenderResult result) {
-    if (result != null) {
-      RenderTask renderTask = result.getRenderTask();
-      if (renderTask != null) {
-        EditorDesignSurface surface = renderTask.getDesignSurface();
-        if (surface != null) {
-          RefreshRenderAction.clearCache(surface.getConfiguration());
-        }
+  private static void handleRefreshRenderUrl(@Nullable EditorDesignSurface surface) {
+      if (surface != null) {
+        RefreshRenderAction.clearCache(surface.getConfiguration());
       }
-    }
   }
 
-  private static void requestRender(@Nullable RenderResult result) {
-    if (result != null) {
-      RenderTask renderTask = result.getRenderTask();
-      if (renderTask != null) {
-        EditorDesignSurface surface = renderTask.getDesignSurface();
-        if (surface != null) {
-          surface.forceUserRequestedRefresh();
-        }
+  private static void requestRender(@Nullable EditorDesignSurface surface) {
+      if (surface != null) {
+        surface.forceUserRequestedRefresh();
       }
-    }
   }
 
   public String createAddDependencyUrl(GoogleMavenArtifactId artifactId) {
@@ -933,7 +939,7 @@ public class HtmlLinkManager {
   }
 
   @VisibleForTesting
-  static void handleAddDependency(@NotNull String url, @NotNull final AndroidModuleSystem moduleSystem) {
+  static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
     assert url.startsWith(URL_ADD_DEPENDENCY) : url;
     String coordinateStr = url.substring(URL_ADD_DEPENDENCY.length());
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateStr + ":+");
@@ -941,18 +947,10 @@ public class HtmlLinkManager {
       Logger.getInstance(HtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
       return;
     }
-
-    GoogleMavenArtifactId artifactId = GoogleMavenArtifactId.forCoordinate(coordinate);
-    if (artifactId == null) {
-      Logger.getInstance(HtmlLinkManager.class).warn("Invalid coordinate " + coordinate);
+    if (DependencyManagementUtil.addDependencies(module, Collections.singletonList(coordinate), false, false)
+                                .isEmpty()) {
       return;
     }
-
-    try {
-      moduleSystem.addDependencyWithoutSync(artifactId, null, false);
-    }
-    catch (DependencyManagementException e) {
-      Logger.getInstance(HtmlLinkManager.class).warn(e.getMessage());
-    }
+    Logger.getInstance(HtmlLinkManager.class).warn("Could not add dependency " + coordinate);
   }
 }

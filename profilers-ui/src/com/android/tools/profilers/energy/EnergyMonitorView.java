@@ -19,22 +19,43 @@ import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.ProfilerMonitorView;
-import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.*;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBEmptyBorder;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
+  private static final String ENERGY_PROFILER_URL = "https://developer.android.com/studio/profile/energy-profiler";
+
+  /**
+   * Energy data buckets' interval time, data unit is same as x axis which is micro seconds.
+   */
+  public static final double CHART_INTERVAL_US = TimeUnit.MILLISECONDS.toMicros(200);
 
   public EnergyMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EnergyMonitor monitor) {
     super(monitor);
+  }
+
+  @Override
+  protected void populateDisabledView(JPanel container) {
+    container.setLayout(new TabularLayout("*,Fit-,*", "*,Fit-,Fit-,*"));
+    JLabel disabledMessage = new JLabel("Energy profiler unavailable");
+    disabledMessage.setFont(ProfilerFonts.H2_FONT);
+    disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
+    disabledMessage.setBorder(new JBEmptyBorder(0, 0, 6, 0));
+    container.add(disabledMessage, new TabularLayout.Constraint(1, 0, 3));
+    HyperlinkLabel detailedMessage = new HyperlinkLabel();
+    detailedMessage.setFont(ProfilerFonts.STANDARD_FONT);
+    detailedMessage.setHyperlinkTarget(ENERGY_PROFILER_URL);
+    detailedMessage.setHyperlinkText("Supported only on devices running Android 8.0 (API level 26) and higher. ", "Learn More", "");
+    container.add(detailedMessage, new TabularLayout.Constraint(2, 1));
   }
 
   @Override
@@ -51,8 +72,8 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
     axisPanel.setOpaque(false);
     final AxisComponent leftAxis = new AxisComponent(getMonitor().getAxis(), AxisComponent.AxisOrientation.RIGHT);
     leftAxis.setShowAxisLine(false);
-    leftAxis.setShowMax(true);
-    leftAxis.setShowUnitAtMax(true);
+    leftAxis.setShowMax(false);
+    leftAxis.setShowUnitAtMax(false);
     leftAxis.setHideTickAtMin(true);
     leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
@@ -66,7 +87,10 @@ public class EnergyMonitorView extends ProfilerMonitorView<EnergyMonitor> {
     lineChart.setMaxLineColor(ProfilerColors.MONITOR_MAX_LINE);
     lineChart.setMaxLineMargin(40);
     lineChart.setFillEndGap(true);
-    LineConfig config = new LineConfig(ProfilerColors.ENERGY_USAGE).setFilled(true).setLegendIconType(LegendConfig.IconType.NONE);
+    LineConfig config = new LineConfig(ProfilerColors.ENERGY_USAGE)
+      .setFilled(true)
+      .setLegendIconType(LegendConfig.IconType.NONE)
+      .setDataBucketInterval(CHART_INTERVAL_US);
     lineChart.configure(getMonitor().getUsage().getUsageDataSeries(), config);
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);

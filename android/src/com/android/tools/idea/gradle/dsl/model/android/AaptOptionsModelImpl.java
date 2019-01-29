@@ -16,15 +16,12 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class AaptOptionsModelImpl extends GradleDslBlockModel implements AaptOptionsModel {
   @NonNls private static final String ADDITIONAL_PARAMETERS = "additionalParameters";
@@ -32,157 +29,58 @@ public class AaptOptionsModelImpl extends GradleDslBlockModel implements AaptOpt
   @NonNls private static final String CRUNCHER_PROCESSES = "cruncherProcesses";
   @NonNls private static final String FAIL_ON_MISSING_CONFIG_ENTRY = "failOnMissingConfigEntry";
   @NonNls private static final String IGNORE_ASSETS = "ignoreAssets";
+  @NonNls private static final String IGNORE_ASSETS_PATTERN = "ignoreAssetsPattern";
   @NonNls private static final String NO_COMPRESS = "noCompress";
+  @NonNls private static final String NAMESPACED = "namespaced";
 
   public AaptOptionsModelImpl(@NotNull AaptOptionsDslElement dslElement) {
     super(dslElement);
   }
 
   @Override
-  @Nullable
-  public List<GradleNotNullValue<String>> additionalParameters() {
-    return myDslElement.getListProperty(ADDITIONAL_PARAMETERS, String.class);
+  @NotNull
+  public ResolvedPropertyModel additionalParameters() {
+    return GradlePropertyModelBuilder.create(myDslElement, ADDITIONAL_PARAMETERS).asMethod(true).buildResolved();
   }
 
   @Override
   @NotNull
-  public AaptOptionsModel addAdditionalParameter(@NotNull String additionalParameter) {
-    myDslElement.addToNewLiteralList(ADDITIONAL_PARAMETERS, additionalParameter);
-    return this;
+  public ResolvedPropertyModel ignoreAssets() {
+    if (myDslElement.getPropertyElementsByName(IGNORE_ASSETS_PATTERN).isEmpty()) {
+      return GradlePropertyModelBuilder.create(myDslElement, IGNORE_ASSETS).asMethod(true).buildResolved();
+    }
+    else {
+      return GradlePropertyModelBuilder.create(myDslElement, IGNORE_ASSETS_PATTERN).asMethod(true).buildResolved();
+    }
   }
 
   @Override
   @NotNull
-  public AaptOptionsModel removeAdditionalParameter(@NotNull String additionalParameter) {
-    myDslElement.removeFromExpressionList(ADDITIONAL_PARAMETERS, additionalParameter);
-    return this;
+  public ResolvedPropertyModel failOnMissingConfigEntry() {
+    return GradlePropertyModelBuilder.create(myDslElement, FAIL_ON_MISSING_CONFIG_ENTRY).asMethod(true).buildResolved();
   }
 
   @Override
   @NotNull
-  public AaptOptionsModel removeAllAdditionalParameters() {
-    myDslElement.removeProperty(ADDITIONAL_PARAMETERS);
-    return this;
+  public ResolvedPropertyModel cruncherProcesses() {
+    return GradlePropertyModelBuilder.create(myDslElement, CRUNCHER_PROCESSES).asMethod(true).buildResolved();
   }
 
   @Override
   @NotNull
-  public AaptOptionsModel replaceAdditionalParameter(@NotNull String oldAdditionalParameter, @NotNull String newAdditionalParameter) {
-    myDslElement.replaceInExpressionList(ADDITIONAL_PARAMETERS, oldAdditionalParameter, newAdditionalParameter);
-    return this;
+  public ResolvedPropertyModel cruncherEnabled() {
+    return GradlePropertyModelBuilder.create(myDslElement, CRUNCHER_ENABLED).asMethod(true).buildResolved();
   }
 
   @Override
   @NotNull
-  public GradleNullableValue<String> ignoreAssets() {
-    return myDslElement.getLiteralProperty(IGNORE_ASSETS, String.class);
+  public ResolvedPropertyModel noCompress() {
+    return GradlePropertyModelBuilder.create(myDslElement, NO_COMPRESS).asMethod(true).buildResolved();
   }
 
-  @Override
   @NotNull
-  public AaptOptionsModel setIgnoreAssets(@NotNull String ignoreAssets) {
-    myDslElement.setNewLiteral(IGNORE_ASSETS, ignoreAssets);
-    return this;
-  }
-
   @Override
-  @NotNull
-  public AaptOptionsModel removeIgnoreAssets() {
-    myDslElement.removeProperty(IGNORE_ASSETS);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public GradleNullableValue<Boolean> failOnMissingConfigEntry() {
-    return myDslElement.getLiteralProperty(FAIL_ON_MISSING_CONFIG_ENTRY, Boolean.class);
-  }
-
-  @Override
-  @NotNull
-  public AaptOptionsModel setFailOnMissingConfigEntry(boolean failOnMissingConfigEntry) {
-    myDslElement.setNewLiteral(FAIL_ON_MISSING_CONFIG_ENTRY, failOnMissingConfigEntry);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public AaptOptionsModel removeFailOnMissingConfigEntry() {
-    myDslElement.removeProperty(FAIL_ON_MISSING_CONFIG_ENTRY);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public GradleNullableValue<Integer> cruncherProcesses() {
-    return myDslElement.getLiteralProperty(CRUNCHER_PROCESSES, Integer.class);
-  }
-
-  @Override
-  @NotNull
-  public AaptOptionsModel setCruncherProcesses(int cruncherProcesses) {
-    myDslElement.setNewLiteral(CRUNCHER_PROCESSES, cruncherProcesses);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public AaptOptionsModel removeCruncherProcesses() {
-    myDslElement.removeProperty(CRUNCHER_PROCESSES);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public GradleNullableValue<Boolean> cruncherEnabled() {
-    return myDslElement.getLiteralProperty(CRUNCHER_ENABLED, Boolean.class);
-  }
-
-  @Override
-  @NotNull
-  public AaptOptionsModel setCruncherEnabled(boolean cruncherEnabled) {
-    myDslElement.setNewLiteral(CRUNCHER_ENABLED, cruncherEnabled);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public AaptOptionsModel removeCruncherEnabled() {
-    myDslElement.removeProperty(CRUNCHER_ENABLED);
-    return this;
-  }
-
-  @Override
-  @Nullable
-  public List<GradleNotNullValue<String>> noCompress() {
-    return myDslElement.getListProperty(NO_COMPRESS, String.class);
-  }
-
-  @Override
-  @NotNull
-  public AaptOptionsModel addNoCompress(@NotNull String noCompress) {
-    myDslElement.addToNewLiteralList(NO_COMPRESS, noCompress);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public AaptOptionsModel removeNoCompress(@NotNull String noCompress) {
-    myDslElement.removeFromExpressionList(NO_COMPRESS, noCompress);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public AaptOptionsModel removeAllNoCompress() {
-    myDslElement.removeProperty(NO_COMPRESS);
-    return this;
-  }
-
-  @Override
-  @NotNull
-  public AaptOptionsModel replaceNoCompress(@NotNull String oldNoCompress, @NotNull String newNoCompress) {
-    myDslElement.replaceInExpressionList(NO_COMPRESS, oldNoCompress, newNoCompress);
-    return this;
+  public ResolvedPropertyModel namespaced() {
+    return GradlePropertyModelBuilder.create(myDslElement, NAMESPACED).asMethod(true).buildResolved();
   }
 }

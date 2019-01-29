@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.instantapp.SdkReplacer;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,18 +33,31 @@ import static com.android.tools.idea.npw.FormFactor.*;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.PROJECT_WIZARD)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NewProjectMultiModuleTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
   public void createAllModule() {
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      return; // On the new NPW design, there is no way to create multi-modules. This test no longer applies
+    }
+
     create(false, MOBILE, WEAR, TV, CAR, THINGS);
   }
 
   @Test
   public void createAllModuleWithIApp() {
-    create(true, MOBILE, WEAR, TV, CAR, THINGS);
+    if (StudioFlags.NPW_DYNAMIC_APPS.get()) {
+      return; // On the new NPW design, there is no way to create multi-modules. This test no longer applies
+    }
+    try {
+      SdkReplacer.replaceSdkLocationAndActivate(null, true);
+      create(true, MOBILE, WEAR, TV, CAR, THINGS);
+    }
+    finally {
+      SdkReplacer.putBack();
+    }
 
     EditorFixture editor = guiTest.ideFrame().getEditor();
     String appBuildGradle = editor.open("app/build.gradle").getCurrentFileContents();
@@ -63,6 +77,7 @@ public class NewProjectMultiModuleTest {
       .createNewProject();
 
     newProjectWizard.getConfigureAndroidProjectStep()
+      .setCppSupport(false) // The setting is saved and restored by NewProjectModel, so can't be presumed disabled.
       .enterApplicationName("TestApp")
       .enterCompanyDomain("my.test.domain")
       .enterPackageName("my.test");
@@ -86,6 +101,6 @@ public class NewProjectMultiModuleTest {
     }
 
     newProjectWizard.clickFinish();
-    guiTest.ideFrame().waitForGradleImportProjectSync();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
   }
 }

@@ -15,58 +15,38 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.truth.Truth.assertThat;
 
 @RunIn(TestGroup.PROJECT_SUPPORT)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class BuildTypesTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
-  /**
-   * Verifies addition of new build types
-   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TT ID: 532c9d6c-18eb-49ea-99b0-be64dbecd5e1
-   * <pre>
-   *   Test Steps:
-   *   1. Open the project structure dialog
-   *   2. Select a module
-   *   3. Click the Build Types tab
-   *   4. Create new Build Type and name it newBuildType
-   *   5. Set properties debuggable and version Name Suffix to valid values
-   *   Verification:
-   *   1. Open the build.gradle file for that module and verify
-   *   entries for build types to contain new build type added.
-   *   2. Verify the properties in the file match the values
-   *   set in the project structure flavor dialog
-   * </pre>
-   */
-  @RunIn(TestGroup.SANITY)
-  @Test
-  public void addNewBuildType() throws Exception {
-    String gradleFileContents = guiTest.importSimpleLocalApplication()
-      .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
-      .selectConfigurable("app")
-      .selectBuildTypesTab()
-      .setName("newBuildType")
-      .setDebuggable("true")
-      .setVersionNameSuffix("suffix")
-      .clickOk()
-      .getEditor()
-      .open("/app/build.gradle")
-      .getCurrentFileContents();
-    assertThat(gradleFileContents)
-      .containsMatch("newBuildType \\{\\n[\\s]*debuggable true\\n[\\s]*versionNameSuffix 'suffix'\\n[\\s]*\\}");
+  @Before
+  public void setUp() {
+    StudioFlags.NEW_PSD_ENABLED.override(false);
   }
+
+  @After
+  public void tearDown() {
+    StudioFlags.NEW_PSD_ENABLED.clearOverride();
+  }
+
 
   /**
    * Verifies that an existing build type can be updated.
@@ -82,7 +62,7 @@ public class BuildTypesTest {
    *   1. Build type selection in gradle build file is updated with the changes.
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void editBuildType() throws Exception {
     String gradleFileContents = guiTest.importSimpleLocalApplication()

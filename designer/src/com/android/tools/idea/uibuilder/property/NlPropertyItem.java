@@ -17,6 +17,9 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -30,9 +33,9 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.renderer.NlAttributeRenderer;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
-import com.android.util.PropertiesMap;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -40,13 +43,16 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import org.jetbrains.android.dom.attrs.StyleableDefinition;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -69,7 +75,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Nullable
   private final String myNamespace;
   @Nullable
-  private PropertiesMap.Property myDefaultValue;
+  private String myDefaultValue;
   @NotNull
   private StarState myStarState;
 
@@ -77,7 +83,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
                                       @Nullable AttributeDefinition attributeDefinition,
                                       @NotNull List<NlComponent> components,
                                       @NotNull PropertiesManager propertiesManager) {
-    if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.Flag)) {
+    if (attributeDefinition != null && attributeDefinition.getFormats().contains(AttributeFormat.FLAGS)) {
       return new NlFlagPropertyItem(name, attributeDefinition, components, propertiesManager);
     }
     else if (name.getLocalName().equals(SdkConstants.ATTR_ID)) {
@@ -88,14 +94,18 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     }
   }
 
+  public static boolean isDefinitionAcceptable(@NotNull XmlName name, @Nullable AttributeDefinition attributeDefinition) {
+    return attributeDefinition != null ||
+           ATTRS_WITHOUT_DEFINITIONS.contains(name.getLocalName()) ||
+           SdkConstants.TOOLS_URI.equals(name.getNamespaceKey());
+  }
+
   protected NlPropertyItem(@NotNull XmlName name,
                            @Nullable AttributeDefinition attributeDefinition,
                            @NotNull List<NlComponent> components,
                            @NotNull PropertiesManager propertiesManager) {
     assert !components.isEmpty();
-    if (attributeDefinition == null &&
-        !ATTRS_WITHOUT_DEFINITIONS.contains(name.getLocalName()) &&
-        !SdkConstants.TOOLS_URI.equals(name.getNamespaceKey())) {
+    if (!isDefinitionAcceptable(name, attributeDefinition)) {
       throw new IllegalArgumentException("Missing attribute definition for " + name.getLocalName());
     }
 
@@ -166,7 +176,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return myNamespace;
   }
 
-  public void setDefaultValue(@Nullable PropertiesMap.Property defaultValue) {
+  public void setDefaultValue(@Nullable String defaultValue) {
     myDefaultValue = defaultValue;
   }
 
@@ -204,17 +214,14 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     if (myDefaultValue == null) {
       return false;
     }
-    return value.equals(myDefaultValue.resource);
+    return value.equals(myDefaultValue);
   }
 
   @Override
   @Nullable
   public String resolveValue(@Nullable String value) {
     if (myDefaultValue != null && isDefaultValue(value)) {
-      if (myDefaultValue.value == null) {
-        myDefaultValue = new PropertiesMap.Property(myDefaultValue.resource, resolveValueUsingResolver(myDefaultValue.resource));
-      }
-      return myDefaultValue.value;
+      value = myDefaultValue;
     }
     return value != null ? resolveValueUsingResolver(value) : null;
   }
@@ -334,10 +341,14 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   public void setValue(@Nullable Object value) {
     String strValue = value == null ? null : value.toString();
-    if (StringUtil.isEmpty(strValue) || isDefaultValue(strValue)) {
+    if (StringUtil.isEmpty(strValue) || (isDefaultValue(strValue) && !isBooleanEditor())) {
       strValue = null;
     }
     setValueIgnoreDefaultValue(strValue, null);
+  }
+
+  private boolean isBooleanEditor() {
+    return myDefinition != null && myDefinition.getFormats().contains(AttributeFormat.BOOLEAN);
   }
 
   protected void setValueIgnoreDefaultValue(@Nullable String attrValue, @Nullable Runnable valueUpdated) {
@@ -346,12 +357,14 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     if (getModel().getProject().isDisposed()) {
       return;
     }
+
+    String attrValueWithUnit = attrValue != null ? Quantity.addUnit(this, attrValue) : null;
     String oldValue = getValue();
     String componentName = myComponents.size() == 1 ? myComponents.get(0).getTagName() : "Multiple";
 
-    NlWriteCommandAction.run(myComponents, "Set " + componentName + '.' + myName + " to " + attrValue, () -> {
-      myComponents.forEach(component -> component.setAttribute(myNamespace, myName, attrValue));
-      myPropertiesManager.propertyChanged(this, oldValue, attrValue);
+    NlWriteCommandAction.run(myComponents, "Set " + componentName + '.' + myName + " to " + attrValueWithUnit, () -> {
+      myComponents.forEach(component -> component.setAttribute(myNamespace, myName, attrValueWithUnit));
+      myPropertiesManager.propertyChanged(this, oldValue, attrValueWithUnit);
 
       if (valueUpdated == null) {
         return;
@@ -363,9 +376,17 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     myPropertiesManager.logPropertyChange(this);
   }
 
-  @NotNull
-  public List<String> getParentStylables() {
-    return myDefinition == null ? Collections.emptyList() : myDefinition.getParentStyleables();
+  boolean isThemeAttribute() {
+    AndroidFacet facet = myPropertiesManager.getFacet();
+    FrameworkResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getFrameworkResourceManager();
+    if (resourceManager != null) {
+      AttributeDefinitions definitions = resourceManager.getAttributeDefinitions();
+      StyleableDefinition theme = definitions.getStyleableDefinition(ResourceReference.styleable(ResourceNamespace.ANDROID, "Theme"));
+      if (theme != null) {
+        return theme.getAttributes().contains(myDefinition);
+      }
+    }
+    return false;
   }
 
   @Override
@@ -391,7 +412,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     sb.append(namespaceToPrefix(myNamespace));
     sb.append(myName);
     if (myDefinition != null) {
-      String value = myDefinition.getDocValue(null);
+      String value = myDefinition.getDescription(null);
 
       if (value != null) {
         sb.append(": ");

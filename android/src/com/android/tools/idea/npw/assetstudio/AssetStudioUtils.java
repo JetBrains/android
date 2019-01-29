@@ -15,22 +15,25 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.util.AssetUtil;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
-import com.android.tools.idea.res.AppResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
-
-import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Utility methods helpful for working with and generating Android assets.
@@ -39,11 +42,12 @@ public final class AssetStudioUtils {
   /**
    * Scales the given rectangle by the given scale factor.
    *
-   * @param rect        the rectangle to scale
+   * @param rect the rectangle to scale
    * @param scaleFactor the factor to scale by
    * @return the scaled rectangle
    */
-  public static Rectangle scaleRectangle(Rectangle rect, double scaleFactor) {
+  @NotNull
+  public static Rectangle scaleRectangle(@NotNull Rectangle rect, double scaleFactor) {
     return new Rectangle(
         roundToInt(rect.x * scaleFactor),
         roundToInt(rect.y * scaleFactor),
@@ -54,18 +58,31 @@ public final class AssetStudioUtils {
   /**
    * Scales the given rectangle by the given scale factor preserving the location of its center.
    *
-   * @param rect        the rectangle to scale
+   * @param rect the rectangle to scale
    * @param scaleFactor the factor to scale by
    * @return the scaled rectangle
    */
-  public static Rectangle scaleRectangleAroundCenter(Rectangle rect, double scaleFactor) {
+  @NotNull
+  public static Rectangle scaleRectangleAroundCenter(@NotNull Rectangle rect, double scaleFactor) {
     int width = roundToInt(rect.width * scaleFactor);
     int height = roundToInt(rect.height * scaleFactor);
     return new Rectangle(
         roundToInt(rect.x * scaleFactor - (width - rect.width) / 2.),
-        roundToInt(rect.y * scaleFactor - (width - rect.width) / 2.),
+        roundToInt(rect.y * scaleFactor - (height - rect.height) / 2.),
         width,
         height);
+  }
+
+  /**
+   * Scales the given {@link Dimension} vector by the given scale factor.
+   *
+   * @param dim the vector to scale
+   * @param scaleFactor the factor to scale by
+   * @return the scaled vector
+   */
+  @NotNull
+  public static Dimension scaleDimension(@NotNull Dimension dim, double scaleFactor) {
+    return new Dimension(roundToInt(dim.width * scaleFactor), roundToInt(dim.height * scaleFactor));
   }
 
   /**
@@ -140,8 +157,9 @@ public final class AssetStudioUtils {
    * Returns true if a resource with the same name is already found at a location implied by the
    * input parameters.
    */
-  public static boolean resourceExists(@NotNull AndroidModuleTemplate paths, @NotNull ResourceFolderType resourceType, @NotNull String name) {
-    File resDir = paths.getResDirectory();
+  public static boolean resourceExists(@NotNull AndroidModuleTemplate paths, @NotNull ResourceFolderType resourceType,
+                                       @NotNull String name) {
+    File resDir = Iterables.getFirst(paths.getResDirectories(), null);
     if (resDir == null) {
       return false;
     }
@@ -183,8 +201,8 @@ public final class AssetStudioUtils {
    * fallback if information about the current paths is not known.
    */
   public static boolean resourceExists(@NotNull AndroidFacet facet, @NotNull ResourceType resourceType, @NotNull String name) {
-    AppResourceRepository repository = AppResourceRepository.getOrCreateInstance(facet);
-    return repository.hasResourceItem(resourceType, name);
+    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(facet);
+    return repository.hasResources(ResourceNamespace.TODO(), resourceType, name);
   }
 
   /**

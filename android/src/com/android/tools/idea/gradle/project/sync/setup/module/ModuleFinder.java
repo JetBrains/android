@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
+import com.android.builder.model.level2.Library;
+import com.android.tools.idea.gradle.project.sync.Modules;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +29,12 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class ModuleFinder {
   @NotNull public static final ModuleFinder EMPTY = new ModuleFinder();
@@ -39,7 +46,7 @@ public class ModuleFinder {
   @NotNull private final Map<String, Module> myModulesByGradlePath = new HashMap<>();
   @NotNull private final Map<String, Module> myModulesByModuleId = new HashMap<>();
   // Map from module folder to project folder for included modules, this will be used to construct projectId for included modules.
-  @NotNull private final Map<String, String> myIncludedProjectFolderByModuleFolder = new HashMap<>();
+  @NotNull private final Map<String, File> myIncludedProjectFolderByModuleFolder = new HashMap<>();
 
   private ModuleFinder() {
   }
@@ -64,42 +71,30 @@ public class ModuleFinder {
 
     for (BuildParticipant participant : compositeBuild.getCompositeParticipants()) {
       for (String modulePath : participant.getProjects()) {
-        myIncludedProjectFolderByModuleFolder.put(modulePath, participant.getRootPath());
+        String path = nullToEmpty(participant.getRootPath());
+        myIncludedProjectFolderByModuleFolder.put(modulePath, new File(path));
       }
     }
   }
 
   public void addModule(@NotNull Module module, @NotNull String gradlePath) {
     myModulesByGradlePath.put(gradlePath, module);
-    String projectFolder = getProjectFolder(module);
-    if (projectFolder != null) {
-      myModulesByModuleId.put(getModuleId(projectFolder, gradlePath), module);
+    File folderPath = getProjectRootFolder(module);
+    if (folderPath != null) {
+      myModulesByModuleId.put(createUniqueModuleId(folderPath, gradlePath), module);
     }
   }
 
   @Nullable
-  private String getProjectFolder(@NotNull Module module) {
+  private File getProjectRootFolder(@NotNull Module module) {
     File moduleFolder = findModuleRootFolderPath(module);
     if (moduleFolder != null) {
-      String modulePath = moduleFolder.getPath();
+      String modulePath = toCanonicalPath(moduleFolder.getPath());
       if (myIncludedProjectFolderByModuleFolder.containsKey(modulePath)) {
         return myIncludedProjectFolderByModuleFolder.get(modulePath);
       }
     }
-    return module.getProject().getBasePath();
-  }
-
-  /**
-   * This method creates a unique string identifier for a module, the value is project id plus Gradle path.
-   * For example: "/path/to/project1:lib", or "/path/to/project1:lib1".
-   *
-   * @param projectFolder path to project root folder.
-   * @param gradlePath    gradle path of a module.
-   * @return a unique identifier for a module, i.e. project folder + gradle path.
-   */
-  @NotNull
-  public static String getModuleId(@NotNull String projectFolder, @NotNull String gradlePath) {
-    return projectFolder + gradlePath;
+    return getBaseDirPath(module.getProject());
   }
 
   /**
@@ -115,11 +110,11 @@ public class ModuleFinder {
   }
 
   /**
-   * This method finds module based on module id, as returned by {@link #getModuleId(String, String)}.
+   * This method finds module based on module id, as returned by {@link Modules#createUniqueModuleId(File, String)}.
    * Use this method for AGP 3.1 and higher.
    * Use {@link #findModuleByGradlePath(String)} for pre-3.1 AGP.
    *
-   * @param moduleId module id as returned by {@link #getModuleId(String, String)}.
+   * @param moduleId the module id.
    * @return the module with given module id.
    */
   @Nullable
@@ -128,12 +123,36 @@ public class ModuleFinder {
   }
 
   /**
+   * Find module based on a Library for module dependency.
+   *
+   * @param library the library for module dependency.
+   * @return the module for module dependency library.
+   */
+  @Nullable
+  public Module findModuleFromLibrary(@NotNull Library library) {
+    if (library.getType() != Library.LIBRARY_MODULE) {
+      return null;
+    }
+    String gradlePath = library.getProjectPath();
+    if (isNotEmpty(gradlePath)) {
+      Module module = null;
+      String projectFolderPath = library.getBuildId();
+      if (isNotEmpty(projectFolderPath)) {
+        String moduleId = createUniqueModuleId(projectFolderPath, gradlePath);
+        module = myModulesByModuleId.get(moduleId);
+      }
+      return module != null ? module : myModulesByGradlePath.get(gradlePath);
+    }
+    return null;
+  }
+
+  /**
    * @return {@code true} if the given module comes from composite build.
    */
   public boolean isCompositeBuild(@NotNull Module module) {
     File moduleFolder = findModuleRootFolderPath(module);
     if (moduleFolder != null) {
-      return myIncludedProjectFolderByModuleFolder.containsKey(moduleFolder.getPath());
+      return myIncludedProjectFolderByModuleFolder.containsKey(toCanonicalPath(moduleFolder.getPath()));
     }
     return false;
   }

@@ -32,7 +32,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_PROJECT_LOC
 /**
  * Helper class that tracks the Wizard Template and the Template Values
  */
-class TestTemplateWizardState {
+public class TestTemplateWizardState {
   private final Map<String, Object> myTemplateValues = new HashMap<>();
   Template myTemplate;
 

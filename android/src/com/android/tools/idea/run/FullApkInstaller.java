@@ -72,8 +72,10 @@ public class FullApkInstaller {
     RetryingInstaller.Installer installer = new ApkInstaller(myPrinter, remotePath, pmInstallOptions);
     RetryingInstaller retryingInstaller = new RetryingInstaller(myProject, device, installer, packageName, myPrinter, launchStatus);
 
-    boolean installed = retryingInstaller.install();
-    if (installed) {
+    RetryingInstallerResult installResult = retryingInstaller.install();
+    if (installResult.isSuccess()) {
+      myPrinter.stdout(String.format("APK installed in %s",
+                                     StringUtil.formatDuration(installResult.getLastInstallDuration().toMillis())));
       try {
         myInstalledApkCache.setInstalled(device, localFile, packageName);
       }
@@ -82,7 +84,7 @@ public class FullApkInstaller {
         Logger.getInstance(FullApkInstaller.class).info("Exception while caching installation state: ", e);
       }
     }
-    return installed;
+    return installResult.isSuccess();
   }
 
   @VisibleForTesting

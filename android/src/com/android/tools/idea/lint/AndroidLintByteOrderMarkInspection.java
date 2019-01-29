@@ -34,7 +34,7 @@ public class AndroidLintByteOrderMarkInspection extends AndroidLintInspectionBas
   @Override
   public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
     return new AndroidLintQuickFix[]{
-      new DefaultLintQuickFix("Remove byte order marks") {
+      new DefaultLintQuickFix("Remove byte order marks", true) {
         @Override
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,

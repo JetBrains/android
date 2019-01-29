@@ -1,0 +1,3 @@
+0000000000009228|Spanish<NewRef(_JNIEnv*, _jobject*, _jobject*)::$_0>::Seis()|C:/Users/ezemtsov/AndroidStudioProjects/JniRefDemo/app/src/main/cpp/Spanish.h|30
+00000000000099d8|Latin<ReleaseRef(_JNIEnv*, _jobject*, long)::$_1>::IX()|C:/Users/ezemtsov/AndroidStudioProjects/JniRefDemo/app/src/main/cpp/Latin.h|43
+0000000000009a20|__gnu_cxx::new_allocator<JNINativeMethod>::new_allocator()|C:/Users/ezemtsov/AppData/Local/Android/Sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/ext/new_allocator.h|79

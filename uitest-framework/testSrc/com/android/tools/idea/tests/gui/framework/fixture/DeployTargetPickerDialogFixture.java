@@ -27,7 +27,10 @@ import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JListItemFixture;
 import org.fest.swing.timing.Wait;
+import org.fest.swing.util.StringTextMatcher;
+import org.fest.swing.util.TextMatcher;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +38,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
@@ -58,7 +62,7 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
       protected boolean isMatching(@NotNull AnimatedIcon component) {
         return component.isRunning();
       }
-    }, 10);
+    }, 30);
     return new DeployTargetPickerDialogFixture(robot, (JDialog)dialog);
   }
 
@@ -76,20 +80,40 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
     String item =
       jList.getCellRenderer().getListCellRendererComponent(jList, jList.getModel().getElementAt(index), index, true, true).toString();
     // Ignore everything after the parenthesis (typically includes stuff like API level and ABI)
-    return item.split("\\(", 2)[0].trim();
+    return removeParenthesisFrom(item);
   };
+
+  // TODO the functionality provided by this method should be handled elsewhere. See http://b/74463797 for more information
+  private static String removeParenthesisFrom(String text) {
+    return text.split("\\(", 2)[0].trim();
+  }
 
   /**
    *  Selects a device whose entry in the devices list is {@code text}. Any characters after the first parenthesis are ignored.
    */
   @NotNull
   public DeployTargetPickerDialogFixture selectDevice(String text) {
+    String nameToSearchFor = removeParenthesisFrom(text);
+    return selectDevice(new StringTextMatcher(nameToSearchFor));
+  }
+
+  @NotNull
+  public DeployTargetPickerDialogFixture selectDevice(TextMatcher matcher) {
     JBList deviceList = robot().finder().findByType(target(), JBList.class);
     JListFixture jListFixture = new JListFixture(robot(), deviceList);
     jListFixture.replaceCellReader(DEVICE_PICKER_CELL_READER);
-    Wait.seconds(5).expecting(String.format("Deployment Target list to contain %s", text))
-      .until(() -> Arrays.asList(jListFixture.contents()).contains(text));
-    jListFixture.selectItem(text);
+    Wait.seconds(5).expecting("Deployment Target list to contain a pattern")
+      .until(() ->
+        Arrays.stream(jListFixture.contents())
+          .anyMatch((stringItem) -> matcher.isMatching(stringItem))
+      );
+    for (int index = 0; index < jListFixture.contents().length; index++) {
+      JListItemFixture itemFixture = jListFixture.item(index);
+      if (matcher.isMatching(itemFixture.value())) {
+        itemFixture.select();
+        break;
+      }
+    }
     return this;
   }
 

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.dependencies;
 
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings;
@@ -25,15 +27,10 @@ import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidDependency;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDependency;
-import com.google.common.collect.Lists;
+import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.ui.ColumnInfo;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.function.Consumer;
-
-import static com.android.tools.idea.gradle.structure.model.PsDependency.TextType.PLAIN_TEXT;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -41,43 +38,43 @@ import static org.mockito.Mockito.when;
  * Tests for {@link AbstractDeclaredDependenciesTableModel}.
  */
 public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
-  private boolean myOriginalShowGroupId;
   private PsLibraryAndroidDependency myLibraryDependency;
+  private PsUISettings myUISettings;
 
   private AbstractDeclaredDependenciesTableModel<PsAndroidDependency> myTableModel;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myOriginalShowGroupId = PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID;
     myLibraryDependency = mock(PsLibraryAndroidDependency.class);
+    myUISettings = new PsUISettings();
 
-    List<PsAndroidDependency> dependencies = Lists.newArrayList();
-    dependencies.add(myLibraryDependency);
-    PsAndroidModuleStub module = new PsAndroidModuleStub(dependencies);
-    myTableModel = new AbstractDeclaredDependenciesTableModel<PsAndroidDependency>(module, mock(PsContext.class)) {};
-  }
+    PsProject project = mock(PsProject.class);
+    when(project.getName()).thenReturn("Project");
+    Module resolvedModel = mock(Module.class);
+    when(resolvedModel.getName()).thenReturn("resolvedModelName");
+    GradleBuildModel parsedModel = mock(GradleBuildModel.class);
+    when(parsedModel.ext()).thenReturn(mock(ExtModel.class));
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = myOriginalShowGroupId;
-    }
-    finally {
-      //noinspection ThrowFromFinallyBlock
-      super.tearDown();
-    }
+    IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
+    when(androidProject.getName()).thenReturn("name");
+    AndroidModuleModel androidModuleModel = mock(AndroidModuleModel.class);
+    when(androidModuleModel.getAndroidProject()).thenReturn(androidProject);
+    PsAndroidModule module = new PsAndroidModule(project, ":name");
+    module.init("name", null, androidModuleModel, parsedModel);
+    PsContext context = mock(PsContext.class);
+    when(context.getUiSettings()).thenReturn(myUISettings);
+    myTableModel = new AbstractDeclaredDependenciesTableModel<PsAndroidDependency>(module, context) {};
   }
 
   public void testShowArtifactDependencySpec() {
-    PsArtifactDependencySpec spec = new PsArtifactDependencySpec("appcompat-v7", "com.android.support", "23.1.0");
-    when(myLibraryDependency.getResolvedSpec()).thenReturn(spec);
-    when(myLibraryDependency.getDeclaredSpec()).thenReturn(spec);
-    when(myLibraryDependency.toText(PLAIN_TEXT)).thenReturn("com.android.support:appcompat-v7:23.1.0");
+    PsArtifactDependencySpec spec = PsArtifactDependencySpec.Companion.create("com.android.support", "appcompat-v7", "23.1.0");
+    when(myLibraryDependency.getSpec()).thenReturn(spec);
+    when(myLibraryDependency.toText()).thenReturn("com.android.support:appcompat-v7:23.1.0");
 
     ColumnInfo[] columnInfos = myTableModel.getColumnInfos();
 
-    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
+    myUISettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID = true;
 
     //noinspection unchecked
     ColumnInfo<PsAndroidDependency, String> specColumnInfo = columnInfos[0];
@@ -87,7 +84,7 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
     String text = renderer.getText();
     assertEquals("com.android.support:appcompat-v7:23.1.0", text);
 
-    PsUISettings.getInstance().DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
+    myUISettings.DECLARED_DEPENDENCIES_SHOW_GROUP_ID = false;
 
     text = renderer.getText();
     assertEquals("appcompat-v7:23.1.0", text);
@@ -101,19 +98,5 @@ public class AbstractDeclaredDependenciesTableModelTest extends IdeaTestCase {
     ColumnInfo<PsAndroidDependency, String> scopeColumnInfo = columnInfos[1];
     String columnText = scopeColumnInfo.valueOf(myLibraryDependency);
     assertEquals("compile", columnText);
-  }
-
-  private class PsAndroidModuleStub extends PsAndroidModule {
-    @NotNull private final List<PsAndroidDependency> myDeclaredDependencies;
-
-    PsAndroidModuleStub(@NotNull List<PsAndroidDependency> declaredDependencies) {
-      super(new PsProject(myProject), myModule, "", mock(AndroidModuleModel.class), mock(GradleBuildModel.class));
-      myDeclaredDependencies = declaredDependencies;
-    }
-
-    @Override
-    public void forEachDeclaredDependency(@NotNull Consumer<PsAndroidDependency> consumer) {
-      myDeclaredDependencies.forEach(consumer);
-    }
   }
 }

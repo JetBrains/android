@@ -34,10 +34,9 @@ import com.android.tools.idea.uibuilder.handlers.leanback.DetailsFragmentHandler
 import com.android.tools.idea.uibuilder.handlers.leanback.PlaybackOverlayFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.SearchFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.preference.*;
 import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandler;
-import com.android.tools.idea.uibuilder.handlers.relative.RelativeLayoutHandlerKt;
-import com.android.tools.idea.uibuilder.handlers.transition.TransitionLayoutHandler;
 import com.android.tools.idea.uibuilder.menu.GroupHandler;
 import com.android.tools.idea.uibuilder.menu.MenuHandler;
 import com.android.tools.idea.uibuilder.menu.MenuViewHandlerManager;
@@ -124,9 +123,17 @@ public class ViewHandlerManager implements ProjectComponent {
         }
 
         return new ItemHandler();
+
       case VIEW_MERGE:
         String parentTag = component.getAttribute(TOOLS_URI, ATTR_PARENT_TAG);
-        return getHandler(parentTag == null ? tag : parentTag);
+        if (parentTag != null) {
+          ViewHandler groupHandler = getHandler(parentTag);
+          if (groupHandler instanceof ViewGroupHandler) {
+            return new MergeDelegateHandler((ViewGroupHandler)groupHandler);
+          }
+        }
+        return getHandler(VIEW_MERGE);
+
       default:
         return getHandler(tag);
     }
@@ -227,58 +234,33 @@ public class ViewHandlerManager implements ProjectComponent {
       case GRID_VIEW:
       case VIEW_GROUP:
         return new ViewGroupHandler();
-      case ACTION_MENU_VIEW:
-        return new ActionMenuViewHandler();
       case ADAPTER_VIEW:
       case STACK_VIEW:
         return new AdapterViewHandler();
       case AD_VIEW:
         return new AdViewHandler();
-      case APP_BAR_LAYOUT:
-        return new AppBarLayoutHandler();
       case AUTO_COMPLETE_TEXT_VIEW:
         return new AutoCompleteTextViewHandler();
-      case BOTTOM_NAVIGATION_VIEW:
-        return new BottomNavigationViewHandler();
-      case BROWSE_FRAGMENT:
-        return new BrowseFragmentHandler();
+      case BOTTOM_APP_BAR:
+        return new BottomAppBarHandler();
       case BUTTON:
+      case MATERIAL_BUTTON:
         return new ButtonHandler();
-      case CARD_VIEW:
-        return new CardViewHandler();
       case CHECKED_TEXT_VIEW:
         return new CheckedTextViewHandler();
       case CHECK_BOX:
       case RADIO_BUTTON:
         return new CheckBoxHandler();
+      case CHIP:
+        return new ChipHandler();
+      case CHIP_GROUP:
+        return new ChipGroupHandler();
       case CHRONOMETER:
         return new ChronometerHandler();
-      case CLASS_CONSTRAINT_LAYOUT_BARRIER:
-        return new ConstraintLayoutBarrierHandler();
-      case CLASS_CONSTRAINT_LAYOUT_CHAIN:
-        return new ConstraintLayoutChainHandler();
-      case CLASS_CONSTRAINT_LAYOUT_HELPER:
-        return new ConstraintHelperHandler();
-      case CLASS_CONSTRAINT_LAYOUT_LAYER:
-        return new ConstraintLayoutLayerHandler();
-      case CONSTRAINT_LAYOUT_GUIDELINE:
-        return new ConstraintLayoutGuidelineHandler();
-      case COLLAPSING_TOOLBAR_LAYOUT:
-        return new CollapsingToolbarLayoutHandler();
-      case CONSTRAINT_LAYOUT:
-        return new ConstraintLayoutHandler();
-      case TRANSITION_LAYOUT:
-        return new TransitionLayoutHandler();
-      case COORDINATOR_LAYOUT:
-        return new CoordinatorLayoutHandler();
-      case DETAILS_FRAGMENT:
-        return new DetailsFragmentHandler();
       case DIALER_FILTER:
       case FQCN_RELATIVE_LAYOUT:
       case RELATIVE_LAYOUT:
-        return StudioFlags.NELE_TARGET_RELATIVE.get() ? new RelativeLayoutHandlerKt() : new RelativeLayoutHandler();
-      case DRAWER_LAYOUT:
-        return new DrawerLayoutHandler();
+        return new RelativeLayoutHandler();
       case EDIT_TEXT:
         return new EditTextHandler();
       case EXPANDABLE_LIST_VIEW:
@@ -291,8 +273,6 @@ public class ViewHandlerManager implements ProjectComponent {
         else {
           return NONE;
         }
-      case FLOATING_ACTION_BUTTON:
-        return new FloatingActionButtonHandler();
       case FQCN_LINEAR_LAYOUT:
       case LINEAR_LAYOUT:
       case SEARCH_VIEW:
@@ -306,8 +286,6 @@ public class ViewHandlerManager implements ProjectComponent {
         return new FrameLayoutHandler();
       case GRID_LAYOUT:
         return new GridLayoutHandler();
-      case GRID_LAYOUT_V7:
-        return new GridLayoutV7Handler();
       case HORIZONTAL_SCROLL_VIEW:
         return new HorizontalScrollViewHandler();
       case IMAGE_BUTTON:
@@ -322,12 +300,6 @@ public class ViewHandlerManager implements ProjectComponent {
       case MULTI_AUTO_COMPLETE_TEXT_VIEW:
       case TEXT_VIEW:
         return TEXT_HANDLER;
-      case NAVIGATION_VIEW:
-        return new NavigationViewHandler();
-      case NESTED_SCROLL_VIEW:
-        return new NestedScrollViewHandler();
-      case PLAYBACK_OVERLAY_FRAGMENT:
-        return new PlaybackOverlayFragmentHandler();
       case PROGRESS_BAR:
         return new ProgressBarHandler();
       case PreferenceTags.CHECK_BOX_PREFERENCE:
@@ -348,18 +320,12 @@ public class ViewHandlerManager implements ProjectComponent {
         return new SwitchPreferenceHandler();
       case RATING_BAR:
         return new RatingBarHandler();
-      case RECYCLER_VIEW:
-        return new RecyclerViewHandler();
       case REQUEST_FOCUS:
         return new RequestFocusHandler();
       case SCROLL_VIEW:
         return new ScrollViewHandler();
-      case SEARCH_FRAGMENT:
-        return new SearchFragmentHandler();
       case SEEK_BAR:
         return new SeekBarHandler();
-      case SNACKBAR:
-        return STANDARD_HANDLER;
       case SPACE:
         return new SpaceHandler();
       case SPINNER:
@@ -370,32 +336,24 @@ public class ViewHandlerManager implements ProjectComponent {
         return NO_PREVIEW_HANDLER;
       case SWITCH:
         return new SwitchHandler();
-      case TABLE_CONSTRAINT_LAYOUT:
-        return new ConstraintLayoutHandler();
       case TABLE_LAYOUT:
         return new TableLayoutHandler();
       case TABLE_ROW:
         return new TableRowHandler();
       case TAB_HOST:
         return new TabHostHandler();
-      case TAB_ITEM:
-        return new TabItemHandler();
-      case TAB_LAYOUT:
-        return new TabLayoutHandler();
       case TAG_GROUP:
         return new GroupHandler();
+      case TAG_LAYOUT:
+        return new LayoutHandler();
       case TAG_MENU:
         return new MenuHandler();
       case TAG_SELECTOR:
         return new SelectorHandler();
       case TEXT_CLOCK:
         return STANDARD_HANDLER;
-      case TEXT_INPUT_LAYOUT:
-        return new TextInputLayoutHandler();
       case TOGGLE_BUTTON:
         return new ToggleButtonHandler();
-      case TOOLBAR_V7:
-        return new ToolbarHandler();
       case VIEW:
         return STANDARD_HANDLER;
       case VIEW_FRAGMENT:
@@ -404,8 +362,6 @@ public class ViewHandlerManager implements ProjectComponent {
         return new IncludeHandler();
       case VIEW_MERGE:
         return new MergeHandler();
-      case VIEW_PAGER:
-        return new ViewPagerHandler();
       case VIEW_STUB:
         return new ViewStubHandler();
       case VIEW_TAG:
@@ -413,6 +369,100 @@ public class ViewHandlerManager implements ProjectComponent {
       case ZOOM_BUTTON:
         return new ZoomButtonHandler();
     }
+
+    if (ACTION_MENU_VIEW.isEquals(viewTag)) {
+      return new ActionMenuViewHandler();
+    }
+    else if (APP_BAR_LAYOUT.isEquals(viewTag)) {
+      return new AppBarLayoutHandler();
+    }
+    else if (BOTTOM_NAVIGATION_VIEW.isEquals(viewTag)) {
+      return new BottomNavigationViewHandler();
+    }
+    else if (BROWSE_FRAGMENT.isEquals(viewTag)) {
+      return new BrowseFragmentHandler();
+    }
+    else if (CARD_VIEW.isEquals(viewTag)) {
+      return new CardViewHandler();
+    }
+    else if (CLASS_CONSTRAINT_LAYOUT_BARRIER.isEquals(viewTag)) {
+      return new ConstraintLayoutBarrierHandler();
+    }
+    else if (CLASS_CONSTRAINT_LAYOUT_CHAIN.isEquals(viewTag)) {
+      return new ConstraintLayoutChainHandler();
+    }
+    else if (CLASS_CONSTRAINT_LAYOUT_HELPER.isEquals(viewTag)) {
+      return new ConstraintHelperHandler();
+    }
+    else if (CLASS_CONSTRAINT_LAYOUT_LAYER.isEquals(viewTag)) {
+      return new ConstraintLayoutLayerHandler();
+    }
+    else if (COLLAPSING_TOOLBAR_LAYOUT.isEquals(viewTag)) {
+      return new CollapsingToolbarLayoutHandler();
+    }
+    else if (CONSTRAINT_LAYOUT_GUIDELINE.isEquals(viewTag)) {
+      return new ConstraintLayoutGuidelineHandler();
+    }
+    else if (CONSTRAINT_LAYOUT.isEquals(viewTag)) {
+      return new ConstraintLayoutHandler();
+    }
+    else if (COORDINATOR_LAYOUT.isEquals(viewTag)) {
+      return new CoordinatorLayoutHandler();
+    }
+    else if (DETAILS_FRAGMENT.isEquals(viewTag)) {
+      return new DetailsFragmentHandler();
+    }
+    else if (DRAWER_LAYOUT.isEquals(viewTag)) {
+      return new DrawerLayoutHandler();
+    }
+    else if (FLOATING_ACTION_BUTTON.isEquals(viewTag)) {
+      return new FloatingActionButtonHandler();
+    }
+    else if (GRID_LAYOUT_V7.isEquals(viewTag)) {
+      return new GridLayoutV7Handler();
+    }
+    else if (MOTION_LAYOUT.isEquals(viewTag)) {
+      if (StudioFlags.NELE_MOTION_LAYOUT_EDITOR.get()) {
+        return new MotionLayoutHandler();
+      }
+    }
+    else if (NAVIGATION_VIEW.isEquals(viewTag)) {
+      return new NavigationViewHandler();
+    }
+    else if (NESTED_SCROLL_VIEW.isEquals(viewTag)) {
+      return new NestedScrollViewHandler();
+    }
+    else if (PLAYBACK_OVERLAY_FRAGMENT.isEquals(viewTag)) {
+      return new PlaybackOverlayFragmentHandler();
+    }
+    else if (RECYCLER_VIEW.isEquals(viewTag)) {
+      return new RecyclerViewHandler();
+    }
+    else if (SEARCH_FRAGMENT.isEquals(viewTag)) {
+      return new SearchFragmentHandler();
+    }
+    else if (SNACKBAR.isEquals(viewTag)) {
+      return STANDARD_HANDLER;
+    }
+    if (TAB_ITEM.isEquals(viewTag)) {
+      return new TabItemHandler();
+    }
+    else if (TAB_LAYOUT.isEquals(viewTag)) {
+      return new TabLayoutHandler();
+    }
+    else if (TABLE_CONSTRAINT_LAYOUT.isEquals(viewTag)) {
+      return new ConstraintLayoutHandler();
+    }
+    else if (TEXT_INPUT_LAYOUT.isEquals(viewTag)) {
+      return new TextInputLayoutHandler();
+    }
+    else if (TOOLBAR_V7.isEquals(viewTag)) {
+      return new ToolbarHandler();
+    }
+    else if (VIEW_PAGER.isEquals(viewTag)) {
+      return new ViewPagerHandler();
+    }
+
     return null;
   }
 
@@ -512,18 +562,21 @@ public class ViewHandlerManager implements ProjectComponent {
   /**
    * Get the popup menu view actions for the given handler.
    * <p>
-   * This method will call {@link ViewHandler#addPopupMenuActions(List)} (String, List)}
+   * This method will call {@link ViewHandler#addPopupMenuActions(NlComponent, List)} (String, List)}
    * but will cache results across invocations.
    *
+   *
+   * @param component the component clicked on
    * @param handler the handler to look up actions for
    * @return the associated view actions.
    */
-  public List<ViewAction> getPopupMenuActions(@NotNull ViewHandler handler) {
+  public List<ViewAction> getPopupMenuActions(@NotNull NlComponent component, @NotNull ViewHandler handler) {
     List<ViewAction> actions = myMenuActions.get(handler);
     if (actions == null) {
       actions = Lists.newArrayList();
-      handler.addPopupMenuActions(actions);
-      myMenuActions.put(handler, actions);
+      if (handler.addPopupMenuActions(component, actions)) {
+        myMenuActions.put(handler, actions);
+      }
     }
     return actions;
   }

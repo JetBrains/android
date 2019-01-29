@@ -36,7 +36,7 @@ public class SyncAndroidSdkDialogFixture extends IdeaDialogFixture<DialogWrapper
   }
 
   public void clickNo() {
-    GuiTests.findAndClickButtonWhenEnabled(this, "No");
+    GuiTests.findAndClickButton(this, "No");
     waitUntilNotShowing(); // Mac dialogs have an animation, wait until it hides
   }
 }

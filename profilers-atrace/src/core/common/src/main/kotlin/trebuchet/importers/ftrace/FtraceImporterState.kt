@@ -19,6 +19,7 @@ package trebuchet.importers.ftrace
 import trebuchet.collections.SparseArray
 import trebuchet.importers.ImportFeedback
 import trebuchet.model.InvalidId
+import trebuchet.model.fragments.CpuModelFragment
 import trebuchet.model.fragments.ModelFragment
 import trebuchet.model.fragments.ProcessModelFragment
 import trebuchet.model.fragments.ThreadModelFragment
@@ -26,6 +27,7 @@ import trebuchet.util.StringCache
 
 class FtraceImporterState(feedback: ImportFeedback) {
     private val pidMap = SparseArray<ThreadModelFragment>(50)
+    private val cpuMap = SparseArray<CpuModelFragment>(6)
     private val handlers = FunctionRegistry.create()
     val modelFragment = ModelFragment()
     val stringCache = StringCache()
@@ -57,7 +59,7 @@ class FtraceImporterState(feedback: ImportFeedback) {
         return thread
     }
 
-    fun processFor(tgid: Int, name: String? = null): ProcessModelFragment {
+    private fun processFor(tgid: Int, name: String? = null): ProcessModelFragment {
         val thread = pidMap[tgid] ?: createProcess(tgid, name)
         thread.process.hint(tgid, name)
         return thread.process
@@ -95,4 +97,14 @@ class FtraceImporterState(feedback: ImportFeedback) {
     }
 
     fun threadFor(line: FtraceLine) = threadFor(line.pid, line.tgid, line.task)
+
+    fun cpuFor(cid: Int): CpuModelFragment {
+        var cpu = cpuMap[cid]
+        if (cpu == null) {
+            cpu = CpuModelFragment(cid)
+            modelFragment.cpus.add(cpu)
+        }
+        cpuMap.put(cid, cpu)
+        return cpuMap[cid]!!
+    }
 }

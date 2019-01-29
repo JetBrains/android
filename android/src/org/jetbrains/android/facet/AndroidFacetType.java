@@ -20,7 +20,7 @@ import com.intellij.facet.FacetType;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
-import icons.AndroidIcons;
+import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,6 +61,6 @@ public class AndroidFacetType extends FacetType<AndroidFacet, AndroidFacetConfig
 
   @Override
   public Icon getIcon() {
-    return AndroidIcons.AndroidModule;
+    return StudioIcons.Shell.Filetree.ANDROID_PROJECT;
   }
 }

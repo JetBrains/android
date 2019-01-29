@@ -30,7 +30,6 @@ import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactVersion;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -79,7 +78,7 @@ public class RepositoryUrlManager {
   /**
    * Constant full revision for "anything available"
    */
-  public static final String REVISION_ANY = "0.0.+";
+  public static final String REVISION_ANY = "+";
 
   private static final Ordering<GradleCoordinate> GRADLE_COORDINATE_ORDERING = Ordering.from(COMPARE_PLUS_LOWER);
 
@@ -96,7 +95,7 @@ public class RepositoryUrlManager {
   }
 
   @VisibleForTesting
-  RepositoryUrlManager(GoogleMavenRepository repository, boolean forceRepositoryChecks) {
+  public RepositoryUrlManager(GoogleMavenRepository repository, boolean forceRepositoryChecks) {
     myForceRepositoryChecksInTests = forceRepositoryChecks;
     myGoogleMavenRepository = repository;
   }
@@ -507,7 +506,8 @@ public class RepositoryUrlManager {
         if (revision.endsWith("+")) {
           revision = revision.length() > 1 ? revision.substring(0, revision.length() - 1) : null;
           boolean includePreviews = false;
-          if (ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId())) {
+          if (ImportModule.SUPPORT_GROUP_ID.equals(highest.getGroupId()) ||
+              ImportModule.CORE_KTX_GROUP_ID.equals(highest.getGroupId())) {
             if (revision == null) {
               revision = supportFilter;
             }
@@ -551,8 +551,8 @@ public class RepositoryUrlManager {
     for (GoogleMavenArtifactId artifactId : GoogleMavenArtifactId.values()) {
       // Note: Only the old style support library have version dependencies, so explicitly check the group ID:
       if (artifactId.isPlatformSupportLibrary() && artifactId.getMavenGroupId().equals(ImportModule.SUPPORT_GROUP_ID)) {
-        GoogleMavenArtifactVersion artifactVersion = moduleSystem.getResolvedVersion(artifactId);
-        GradleVersion version = artifactVersion != null ? artifactVersion.getMavenVersion() : null;
+        GradleCoordinate coordinate = moduleSystem.getResolvedDependency(artifactId.getCoordinate("+"));
+        GradleVersion version = coordinate != null ? coordinate.getVersion() : null;
         if (version != null) {
           if (highest == null || version.compareTo(highest) > 0) {
             highest = version;
@@ -573,6 +573,43 @@ public class RepositoryUrlManager {
     String raw = highest.toString();
     if (highest.isPreview() || highest.isSnapshot() || !raw.endsWith("+")) {
       return version -> version.equals(found);
+    }
+    String prefix = raw.substring(0, raw.length() - 1);
+    return version -> version.toString().startsWith(prefix);
+  }
+
+
+  @Nullable
+  public GradleVersion findHighestAndroidxSupportVersion(@Nullable Module module) {
+    if (module == null) {
+      return null;
+    }
+    // Take from the resolved versions
+    GradleVersion highest = null;
+    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
+    for (GoogleMavenArtifactId artifactId : GoogleMavenArtifactId.values()) {
+      // Only consider Androidx
+      if (artifactId.isAndroidxPlatformLibrary()) {
+        GradleCoordinate coordinate = moduleSystem.getResolvedDependency(artifactId.getCoordinate("+"));
+        GradleVersion version = coordinate != null ? coordinate.getVersion() : null;
+        if (version != null) {
+          if (highest == null || version.compareTo(highest) > 0) {
+            highest = version;
+          }
+        }
+      }
+    }
+    return highest;
+  }
+
+  @Nullable
+  public Predicate<GradleVersion> findExistingAndroidxSupportVersionFilter(@Nullable GradleVersion highest) {
+    if (highest == null) {
+      return null;
+    }
+    String raw = highest.toString();
+    if (highest.isPreview() || highest.isSnapshot() || !raw.endsWith("+")) {
+      return version -> version.equals(highest);
     }
     String prefix = raw.substring(0, raw.length() - 1);
     return version -> version.toString().startsWith(prefix);

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -24,7 +25,6 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,9 +52,9 @@ public class ModuleModelDataServiceTest extends IdeaTestCase {
     Collection<DataNode<NdkModuleModel>> toImport = new ArrayList<>();
     Project project = getProject();
 
-    ProjectData projectData = mock(ProjectData.class);
-    when(projectData.getOwner()).thenReturn(GradleConstants.SYSTEM_ID);
-    myDataService.importData(toImport, projectData, project, myModelsProvider);
+    ProjectData projectDataMock = mock(ProjectData.class);
+    when(projectDataMock.getOwner()).thenReturn(GradleUtil.GRADLE_SYSTEM_ID);
+    myDataService.importData(toImport, projectDataMock, project, myModelsProvider);
 
     assertTrue(myDataService.onModelsNotFoundInvoked);
     assertFalse(myDataService.importDataInvoked);

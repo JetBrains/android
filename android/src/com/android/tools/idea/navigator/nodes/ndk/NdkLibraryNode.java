@@ -17,7 +17,6 @@ package com.android.tools.idea.navigator.nodes.ndk;
 
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
-import com.android.builder.model.NativeFolder;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -39,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
@@ -60,6 +60,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
                         @NotNull ViewSettings settings,
                         @NotNull Collection<String> sourceFileExtensions) {
     super(project, artifacts, settings);
+    assert !ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get();
     myNativeLibraryName = nativeLibraryName;
     myNativeLibraryType = nativeLibraryType;
     mySourceFileExtensions = sourceFileExtensions;
@@ -117,13 +118,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
   @NotNull
   private static List<VirtualFile> getSourceFolders(@NotNull NativeArtifact artifact) {
     List<File> sourceFolders = new ArrayList<>();
-    for (File headerRoot : artifact.getExportedHeaders()) {
-      sourceFolders.add(headerRoot);
-    }
-    for (NativeFolder sourceFolder : artifact.getSourceFolders()) {
-      sourceFolders.add(sourceFolder.getFolderPath());
-    }
-
+    sourceFolders.addAll(artifact.getExportedHeaders());
     return convertToVirtualFiles(sourceFolders);
   }
 
@@ -341,7 +336,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
         }
       }
     }
-    return folders.toArray(new PsiDirectory[folders.size()]);
+    return folders.toArray(PsiDirectory.EMPTY_ARRAY);
   }
 
   @NotNull

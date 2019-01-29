@@ -45,7 +45,7 @@ public class CaptureTypeNode extends SimpleNode {
   @NotNull
   @Override
   public SimpleNode[] getChildren() {
-    return myCaptureNodes.toArray(new SimpleNode[myCaptureNodes.size()]);
+    return myCaptureNodes.toArray(new SimpleNode[0]);
   }
 
   public void addCapture(CaptureNode captureNode) {

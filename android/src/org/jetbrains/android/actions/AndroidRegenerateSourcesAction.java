@@ -96,7 +96,7 @@ public class AndroidRegenerateSourcesAction extends AnAction {
       }
     }
     if (!modulesToProcess.isEmpty()) {
-      generate(project, modulesToProcess.toArray(new Module[modulesToProcess.size()]));
+      generate(project, modulesToProcess.toArray(Module.EMPTY_ARRAY));
     }
   }
 

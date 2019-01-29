@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 public class KillTask implements LaunchTask {
+  private static final String ID = "KILL_TASK";
   private final Project myProject;
   private final InstantRunContext myContext;
 
@@ -60,5 +61,11 @@ public class KillTask implements LaunchTask {
       e.printStackTrace();
       return false;
     }
+  }
+
+  @NotNull
+  @Override
+  public String getId() {
+    return ID;
   }
 }

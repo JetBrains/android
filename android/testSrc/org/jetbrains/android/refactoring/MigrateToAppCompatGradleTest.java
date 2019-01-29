@@ -23,11 +23,19 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDocumentManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
+import java.util.function.BiFunction;
 
+import static com.android.tools.idea.testing.TestProjectPaths.ANDROIDX_SIMPLE;
 import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COMPAT;
 
 /**
@@ -37,8 +45,13 @@ import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COM
 public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
 
   public void testMigrationRefactoring() throws Exception {
+    Ref<GoogleMavenArtifactId> ref = new Ref<>();
     loadProject(MIGRATE_TO_APP_COMPAT);
-    runProcessor();
+    runProcessor((artifact, version) -> {
+      ref.set(artifact);
+      return MigrateToAppCompatProcessor.DEFAULT_MIGRATION_FACTORY.apply(artifact, version);
+    });
+    assertFalse(ref.get().isAndroidxLibrary());
 
     GradleVersion version = GradleUtil.getAndroidGradleModelVersionInUse(getProject());
     String configName = GradleUtil.mapConfigurationName("implementation", version, false);
@@ -237,8 +250,48 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
     assertEquals(expected, result);
   }
 
-  private void runProcessor() {
-    new MigrateToAppCompatProcessor(getProject()).run();
+  /**
+   * Regression test for b/80091217
+   * Ignored until the androidx artifacts are merged
+   */
+  public void testMigrateOnAndroidXProject() throws Exception {
+    Ref<GoogleMavenArtifactId> ref = new Ref<>();
+    loadProject(ANDROIDX_SIMPLE);
+    runProcessor((artifact, version) -> {
+      ref.set(artifact);
+      return MigrateToAppCompatProcessor.DEFAULT_MIGRATION_FACTORY.apply(artifact, version);
+    });
+
+    assertTrue(ref.get().isAndroidxLibrary());
+  }
+
+  /**
+   * Regression test for b/112313451
+   * Test that a project with AndroidX dependencies uses the AndroidX classes.
+   */
+  public void testMigrateOnAndroidXProject2() throws Exception {
+    final String mainActivityPath = "app/src/main/java/com/example/google/androidx/MainActivity.kt";
+
+    loadProject(ANDROIDX_SIMPLE);
+    VirtualFile mainActivityFile = myFixture.getProject().getBaseDir().findFileByRelativePath(mainActivityPath);
+    String mainActivityKt = getTextForFile(mainActivityPath);
+    mainActivityKt = mainActivityKt.replaceAll("import androidx.appcompat.app.AppCompatActivity",
+                              "import android.app.Activity");
+    String finalMainActivityKt = mainActivityKt.replaceAll("AppCompatActivity",
+                              "Activity");
+    WriteAction.run(() -> {
+      myFixture.openFileInEditor(mainActivityFile);
+      Document document = myFixture.getEditor().getDocument();
+      document.setText(finalMainActivityKt);
+      PsiDocumentManager.getInstance(getProject()).commitDocument(document);
+    });
+    runProcessor(MigrateToAppCompatProcessor.DEFAULT_MIGRATION_FACTORY);
+    mainActivityKt = getTextForFile(mainActivityPath);
+    assertFalse(mainActivityKt.contains("import android.app.Activity"));
+  }
+
+  private void runProcessor(@NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> factory) {
+    new MigrateToAppCompatProcessor(getProject(), factory).run();
   }
 
   private static String getAppCompatGradleCoordinate() {

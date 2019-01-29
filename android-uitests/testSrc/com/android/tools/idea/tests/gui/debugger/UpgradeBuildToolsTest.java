@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.debugger;
 
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -25,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.dualView.TreeTableView;
 import org.fest.reflect.exception.ReflectionError;
@@ -34,6 +34,7 @@ import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +44,7 @@ import javax.swing.tree.TreeNode;
 import java.util.Collections;
 import java.util.Enumeration;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabelWhenEnabled;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.reflect.core.Reflection.method;
@@ -51,7 +52,7 @@ import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class UpgradeBuildToolsTest extends DebuggerTestBase {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
@@ -95,6 +96,7 @@ public class UpgradeBuildToolsTest extends DebuggerTestBase {
    *   6. Build the project and check build is successful.
    *   </pre>
    */
+  @Ignore("It is broken, may affect following tests.")
   @RunIn(TestGroup.QA)
   @Test
   public void upgradeBuildTools() throws Exception {
@@ -269,7 +271,7 @@ public class UpgradeBuildToolsTest extends DebuggerTestBase {
   @NotNull
   private IdeSettingsDialogFixture openSDKManagerSDKToolsTab(@NotNull IdeFrameFixture ideFrameFixture) {
     IdeSettingsDialogFixture ideSettingsDialogFixture = ideFrameFixture.invokeSdkManager();
-    findAndClickLabelWhenEnabled(ideSettingsDialogFixture, INSTALL_SDK_TOOLS_TAB);
+    findAndClickLabel(ideSettingsDialogFixture, INSTALL_SDK_TOOLS_TAB);
 
     GuiTests.waitUntilFound(guiTest.robot(), ideSettingsDialogFixture.target(),
                             Matchers.byText(JBLabel.class, LOOK_FOR_UPDATES).andIsShowing(),

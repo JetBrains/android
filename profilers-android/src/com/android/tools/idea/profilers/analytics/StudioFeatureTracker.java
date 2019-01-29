@@ -17,19 +17,35 @@ package com.android.tools.idea.profilers.analytics;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.energy.EnergyDuration;
+import com.android.tools.profilers.energy.EnergyProfilerStage;
+import com.android.tools.profilers.memory.HprofSessionArtifact;
+import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.network.NetworkProfilerStage;
+import com.android.tools.profilers.sessions.SessionArtifact;
+import com.android.tools.profilers.sessions.SessionItem;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.*;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public final class StudioFeatureTracker implements FeatureTracker {
 
@@ -39,6 +55,13 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Nullable
   private Common.Process myActiveProcess;
 
+  @NotNull
+  private Project myTrackingProject;
+
+  public StudioFeatureTracker(@NotNull Project trackingProject) {
+    myTrackingProject = trackingProject;
+  }
+
   private final ImmutableMap<Class<? extends Stage>, AndroidProfilerEvent.Stage> STAGE_MAP =
     ImmutableMap.<Class<? extends Stage>, AndroidProfilerEvent.Stage>builder()
       .put(NullMonitorStage.class, AndroidProfilerEvent.Stage.NULL_STAGE)
@@ -46,7 +69,29 @@ public final class StudioFeatureTracker implements FeatureTracker {
       .put(CpuProfilerStage.class, AndroidProfilerEvent.Stage.CPU_STAGE)
       .put(MemoryProfilerStage.class, AndroidProfilerEvent.Stage.MEMORY_STAGE)
       .put(NetworkProfilerStage.class, AndroidProfilerEvent.Stage.NETWORK_STAGE)
+      .put(EnergyProfilerStage.class, AndroidProfilerEvent.Stage.ENERGY_STAGE)
       .build();
+
+  private final ImmutableMap<Common.SessionMetaData.SessionType, ProfilerSessionCreationMetaData.SessionType> SESSION_TYPE_MAP =
+    ImmutableMap.of(
+      Common.SessionMetaData.SessionType.FULL, ProfilerSessionCreationMetaData.SessionType.FULL_SESSION,
+      Common.SessionMetaData.SessionType.MEMORY_CAPTURE, ProfilerSessionCreationMetaData.SessionType.MEMORY_CAPTURE,
+      Common.SessionMetaData.SessionType.CPU_CAPTURE, ProfilerSessionCreationMetaData.SessionType.CPU_CAPTURE
+    );
+
+  private final ImmutableMap<SessionsManager.SessionCreationSource, ProfilerSessionCreationMetaData.CreationSource>
+    SESSION_CREATION_SOURCE_MAP =
+    ImmutableMap.of(
+      SessionsManager.SessionCreationSource.MANUAL, ProfilerSessionCreationMetaData.CreationSource.MANUAL
+    );
+
+  private final ImmutableMap<Class<? extends SessionArtifact>, ProfilerSessionSelectionMetaData.ArtifactType> SESSION_ARTIFACT_MAP =
+    ImmutableMap.of(
+      SessionItem.class, ProfilerSessionSelectionMetaData.ArtifactType.ARTIFACT_SESSION,
+      HprofSessionArtifact.class, ProfilerSessionSelectionMetaData.ArtifactType.ARTIFACT_HPROF,
+      CpuCaptureSessionArtifact.class, ProfilerSessionSelectionMetaData.ArtifactType.ARTIFACT_CPU_CAPTURE,
+      LegacyAllocationsSessionArtifact.class, ProfilerSessionSelectionMetaData.ArtifactType.ARTIFACT_LEGACY_ALLOCATIONS
+    );
 
   @NotNull
   private AndroidProfilerEvent.Stage myCurrStage = AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
@@ -89,6 +134,39 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackCreateSession(Common.SessionMetaData.SessionType sessionType, SessionsManager.SessionCreationSource sourceType) {
+    ProfilerSessionCreationMetaData.Builder builder = ProfilerSessionCreationMetaData.newBuilder()
+      .setCreatedType(SESSION_TYPE_MAP.getOrDefault(sessionType, ProfilerSessionCreationMetaData.SessionType.UNKNOWN_SESSION))
+      .setCreationSource(
+        SESSION_CREATION_SOURCE_MAP.getOrDefault(sourceType, ProfilerSessionCreationMetaData.CreationSource.UNKNOWN_SOURCE));
+    newTracker(AndroidProfilerEvent.Type.SESSION_CREATED).setSessionCreationMetadata(builder.build()).track();
+  }
+
+  @Override
+  public void trackStopSession() {
+    track(AndroidProfilerEvent.Type.SESSION_STOPPED);
+  }
+
+  @Override
+  public void trackSessionsPanelStateChanged(boolean isExpanded) {
+    track(isExpanded ? AndroidProfilerEvent.Type.SESSION_UI_EXPANDED : AndroidProfilerEvent.Type.SESSION_UI_COLLAPSED);
+  }
+
+  @Override
+  public void trackSessionsPanelResized() {
+    track(AndroidProfilerEvent.Type.SESSION_UI_RESIZED);
+  }
+
+  @Override
+  public void trackSessionArtifactSelected(@NotNull SessionArtifact artifact, boolean isSessionLive) {
+    ProfilerSessionSelectionMetaData.Builder builder = ProfilerSessionSelectionMetaData.newBuilder()
+      .setSelectedType(
+        SESSION_ARTIFACT_MAP.getOrDefault(artifact.getClass(), ProfilerSessionSelectionMetaData.ArtifactType.UNKNOWN_ARTIFACT_TYPE))
+      .setIsSessionAlive(isSessionLive);
+    newTracker(AndroidProfilerEvent.Type.SESSION_ARTIFACT_SELECTED).setSessionSelectionMetadata(builder.build()).track();
+  }
+
+  @Override
   public void trackGoBack() {
     track(AndroidProfilerEvent.Type.GO_BACK);
   }
@@ -124,6 +202,21 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectCpuKernelElement() {
+    track(AndroidProfilerEvent.Type.KERNEL_VIEW_CLICKED);
+  }
+
+  @Override
+  public void trackToggleCpuKernelHideablePanel() {
+    track(AndroidProfilerEvent.Type.KERNEL_VIEW_TOGGLED);
+  }
+
+  @Override
+  public void trackToggleCpuThreadsHideablePanel() {
+    track(AndroidProfilerEvent.Type.THREADS_VIEW_TOGGLED);
+  }
+
+  @Override
   public void trackSelectRange() {
     // We set the device when tracking range selection because we need to distinguish selections made on pre-O and post-O devices.
     newTracker(AndroidProfilerEvent.Type.SELECT_RANGE).setDevice(myActiveDevice).track();
@@ -132,6 +225,43 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackCaptureTrace(@NotNull com.android.tools.profilers.cpu.CpuCaptureMetadata cpuCaptureMetadata) {
     newTracker(AndroidProfilerEvent.Type.CAPTURE_TRACE).setDevice(myActiveDevice).setCpuCaptureMetadata(cpuCaptureMetadata).track();
+  }
+
+  @Override
+  public void trackImportTrace(@NotNull CpuProfiler.CpuProfilerType profilerType, boolean success) {
+    CpuImportTraceMetadata.Builder metadata = CpuImportTraceMetadata.newBuilder();
+    metadata.setImportStatus(success ? CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS
+                                     : CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE);
+    switch (profilerType) {
+      case ART:
+        metadata.setTechnology(CpuImportTraceMetadata.Technology.ART_TECHNOLOGY);
+        break;
+      case SIMPLEPERF:
+        metadata.setTechnology(CpuImportTraceMetadata.Technology.SIMPLEPERF_TECHNOLOGY);
+        break;
+      case ATRACE:
+        metadata.setTechnology(CpuImportTraceMetadata.Technology.ATRACE_TECHNOLOGY);
+        break;
+      default:
+        metadata.setTechnology(CpuImportTraceMetadata.Technology.UNKNOWN_TECHNOLOGY);
+        break;
+    }
+    newTracker(AndroidProfilerEvent.Type.CPU_IMPORT_TRACE).setDevice(myActiveDevice).setCpuImportTraceMetadata(metadata.build()).track();
+  }
+
+  @Override
+  public void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration) {
+    newTracker(AndroidProfilerEvent.Type.CPU_STARTUP_PROFILING).setDevice(myActiveDevice).setCpuStartupProfilingConfiguration(configuration)
+                                                               .track();
+  }
+
+  @Override
+  public void trackCpuApiTracing(boolean sampling, boolean pathProvided, int bufferSize, int flags, int intervalUs) {
+    CpuApiTracingMetadata metadata =
+      CpuApiTracingMetadata.newBuilder().setUseSampling(sampling).setArgTracePath(pathProvided).setArgBufferSize(bufferSize)
+                           .setArgFlags(flags).setArgIntervalUs(intervalUs).build();
+    newTracker(AndroidProfilerEvent.Type.CPU_API_TRACING).setDevice(myActiveDevice).setCpuApiTracingMetadata(metadata)
+                                                         .track();
   }
 
   @Override
@@ -200,6 +330,32 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectMemoryHeap(@NotNull String heapName) {
+    AndroidProfilerEvent.MemoryHeap heapType;
+    switch (heapName) {
+      case CaptureObject.DEFAULT_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.DEFAULT_HEAP;
+        break;
+      case CaptureObject.APP_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.APP_HEAP;
+        break;
+      case CaptureObject.IMAGE_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.IMAGE_HEAP;
+        break;
+      case CaptureObject.ZYGOTE_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.ZYGOTE_HEAP;
+        break;
+      case CaptureObject.JNI_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.JNI_HEAP;
+        break;
+      default:
+        getLogger().error("Attempt to report selection of unknown heap name: " + heapName);
+        return;
+    }
+    newTracker(AndroidProfilerEvent.Type.SELECT_MEMORY_HEAP).setMemoryHeapId(heapType).track();
+  }
+
+  @Override
   public void trackSelectNetworkRequest() {
     track(AndroidProfilerEvent.Type.SELECT_CONNECTION);
   }
@@ -255,6 +411,16 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectEnergyRange(@NotNull com.android.tools.profilers.analytics.energy.EnergyRangeMetadata rangeMetadata) {
+    newTracker(AndroidProfilerEvent.Type.SELECT_ENERGY_RANGE).setEnergyRangeMetadata(rangeMetadata).track();
+  }
+
+  @Override
+  public void trackSelectEnergyEvent(@NotNull com.android.tools.profilers.analytics.energy.EnergyEventMetadata eventMetadata) {
+    newTracker(AndroidProfilerEvent.Type.SELECT_ENERGY_EVENT).setEnergyEventMetadata(eventMetadata).track();
+  }
+
+  @Override
   public void trackFilterMetadata(@NotNull com.android.tools.profilers.analytics.FilterMetadata filterMetadata) {
     newTracker(AndroidProfilerEvent.Type.FILTER).setFilterMetadata(filterMetadata).track();
   }
@@ -264,7 +430,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
    */
   @NotNull
   private Tracker newTracker(AndroidProfilerEvent.Type eventType) {
-    return new Tracker(eventType, myCurrStage);
+    return new Tracker(myTrackingProject, eventType, myCurrStage);
   }
 
   /**
@@ -279,13 +445,26 @@ public final class StudioFeatureTracker implements FeatureTracker {
   private static final class Tracker {
     @NotNull private final AndroidProfilerEvent.Type myEventType;
     @NotNull private final AndroidProfilerEvent.Stage myCurrStage;
+    @NotNull private final Project myTrackingProject;
     @Nullable private Common.Device myDevice;
     @Nullable private com.android.tools.profilers.cpu.CpuCaptureMetadata myCpuCaptureMetadata;
+    @Nullable private CpuImportTraceMetadata myCpuImportTraceMetadata;
     @Nullable private com.android.tools.profilers.analytics.FilterMetadata myFeatureMetadata;
+    @Nullable private CpuApiTracingMetadata myCpuApiTracingMetadata;
+    @Nullable private com.android.tools.profilers.analytics.energy.EnergyRangeMetadata myEnergyRangeMetadata;
+    @Nullable private com.android.tools.profilers.analytics.energy.EnergyEventMetadata myEnergyEventMetadata;
+    @Nullable private ProfilerSessionCreationMetaData mySessionCreationMetadata;
+    @Nullable private ProfilerSessionSelectionMetaData mySessionArtifactMetadata;
+    @Nullable private ProfilingConfiguration myCpuStartupProfilingConfiguration;
 
-    Tracker(@NotNull AndroidProfilerEvent.Type eventType, @NotNull AndroidProfilerEvent.Stage stage) {
+    private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
+
+    public Tracker(@NotNull Project trackingProject,
+                   @NotNull AndroidProfilerEvent.Type eventType,
+                   @NotNull AndroidProfilerEvent.Stage stage) {
       myEventType = eventType;
       myCurrStage = stage;
+      myTrackingProject = trackingProject;
     }
 
     @NotNull
@@ -301,18 +480,97 @@ public final class StudioFeatureTracker implements FeatureTracker {
     }
 
     @NotNull
+    public Tracker setCpuImportTraceMetadata(CpuImportTraceMetadata cpuImportTraceMetadata) {
+      myCpuImportTraceMetadata = cpuImportTraceMetadata;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setCpuStartupProfilingConfiguration(@Nullable ProfilingConfiguration configuration) {
+      myCpuStartupProfilingConfiguration = configuration;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setCpuApiTracingMetadata(@Nullable CpuApiTracingMetadata metadata) {
+      myCpuApiTracingMetadata = metadata;
+      return this;
+    }
+
+    @NotNull
     public Tracker setFilterMetadata(@Nullable com.android.tools.profilers.analytics.FilterMetadata filterMetadata) {
       myFeatureMetadata = filterMetadata;
       return this;
     }
 
+    @NotNull
+    public Tracker setEnergyRangeMetadata(@Nullable com.android.tools.profilers.analytics.energy.EnergyRangeMetadata energyRangeMetadata) {
+      myEnergyRangeMetadata = energyRangeMetadata;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setEnergyEventMetadata(@Nullable com.android.tools.profilers.analytics.energy.EnergyEventMetadata energyEventMetadata) {
+      myEnergyEventMetadata = energyEventMetadata;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setMemoryHeapId(AndroidProfilerEvent.MemoryHeap heap) {
+      myMemoryHeap = heap;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setSessionCreationMetadata(ProfilerSessionCreationMetaData metadata) {
+      mySessionCreationMetadata = metadata;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setSessionSelectionMetadata(ProfilerSessionSelectionMetaData metadata) {
+      mySessionArtifactMetadata = metadata;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
+
       populateCpuCaptureMetadata(profilerEvent);
       populateFilterMetadata(profilerEvent);
+      populateEnergyRangeMetadata(profilerEvent);
+      populateEnergyEventMetadata(profilerEvent);
+
+      switch (myEventType) {
+        case SELECT_MEMORY_HEAP:
+          profilerEvent.setMemoryHeap(myMemoryHeap);
+          break;
+        case SESSION_CREATED:
+          profilerEvent.setSessionStartMetadata(mySessionCreationMetadata);
+          break;
+        case SESSION_ARTIFACT_SELECTED:
+          profilerEvent.setSessionArtifactMetadata(mySessionArtifactMetadata);
+          break;
+        case CPU_API_TRACING:
+          profilerEvent.setCpuApiTracingMetadata(myCpuApiTracingMetadata);
+          break;
+        case CPU_STARTUP_PROFILING:
+          profilerEvent.setCpuStartupProfilingMetadata(CpuStartupProfilingMetadata
+                                                         .newBuilder()
+                                                         .setProfilingConfig(
+                                                           toStatsCpuProfilingConfig(myCpuStartupProfilingConfiguration)));
+          break;
+        case CPU_IMPORT_TRACE:
+          assert myCpuImportTraceMetadata != null;
+          profilerEvent.setCpuImportTraceMetadata(myCpuImportTraceMetadata);
+          break;
+        default:
+          break;
+      }
+
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
-        .setAndroidProfilerEvent(profilerEvent);
+                                                           .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
+                                                           .setAndroidProfilerEvent(profilerEvent);
 
       if (myDevice != null) {
         event.setDeviceInfo(
@@ -325,7 +583,46 @@ public final class StudioFeatureTracker implements FeatureTracker {
             .build());
       }
 
-      UsageTracker.getInstance().log(event);
+      UsageTracker.log(UsageTrackerUtils.withProjectId(event, myTrackingProject));
+    }
+
+    private void populateEnergyRangeMetadata(@NotNull AndroidProfilerEvent.Builder profilerEvent) {
+      if (myEnergyRangeMetadata == null) {
+        return;
+      }
+
+      EnergyRangeMetadata.Builder builder = EnergyRangeMetadata.newBuilder();
+      myEnergyRangeMetadata.getEventCounts().forEach(eventCount -> {
+        builder.addEventCounts(EnergyEventCount.newBuilder()
+                                               .setType(toEnergyType(eventCount.getKind()))
+                                               .setCount(eventCount.getCount())
+                                               .build());
+      });
+
+      profilerEvent.setEnergyRangeMetadata(builder.build());
+    }
+
+    private void populateEnergyEventMetadata(@NotNull AndroidProfilerEvent.Builder profilerEvent) {
+      if (myEnergyEventMetadata == null || myEnergyEventMetadata.getSubevents().isEmpty()) {
+        return;
+      }
+
+      EnergyEventMetadata.Builder builder = EnergyEventMetadata.newBuilder();
+
+      List<EnergyProfiler.EnergyEvent> subevents = myEnergyEventMetadata.getSubevents();
+      EnergyProfiler.EnergyEvent firstEvent = subevents.get(0);
+      builder.setType(toEnergyType(firstEvent));
+
+      EnergyEvent.Subtype eventSubtype = toEnergySubtype(firstEvent);
+      if (eventSubtype != null) {
+        builder.setSubtype(eventSubtype);
+      }
+
+      for (EnergyProfiler.EnergyEvent event : subevents) {
+        builder.addSubevents(toEnergySubevent(event));
+      }
+
+      profilerEvent.setEnergyEventMetadata(builder);
     }
 
     private void populateFilterMetadata(AndroidProfilerEvent.Builder profilerEvent) {
@@ -394,42 +691,123 @@ public final class StudioFeatureTracker implements FeatureTracker {
             break;
         }
 
-        ProfilingConfiguration config = myCpuCaptureMetadata.getProfilingConfiguration();
-        CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder()
-          .setSampleInterval(config.getProfilingSamplingIntervalUs())
-          .setSizeLimit(config.getProfilingBufferSizeInMb());
-
-        switch (config.getProfilerType()) {
-          case ART:
-            cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
-            break;
-          case SIMPLEPERF:
-            cpuConfigInfo.setType(CpuProfilingConfig.Type.SIMPLE_PERF);
-            break;
-          case ATRACE:
-            // TODO: Setup config for ATRACE, this needs logs access.
-            //cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
-            break;
-          case UNSPECIFIED_PROFILER:
-          case UNRECOGNIZED:
-            break;
+        captureMetadata.setProfilingConfig(toStatsCpuProfilingConfig(myCpuCaptureMetadata.getProfilingConfiguration()));
+        if (myCpuCaptureMetadata.getProfilingConfiguration().getProfilerType() == CpuProfiler.CpuProfilerType.ART) {
+          captureMetadata.setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC);
         }
-
-        switch (config.getMode()) {
-          case SAMPLED:
-            cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
-            break;
-          case INSTRUMENTED:
-            cpuConfigInfo.setMode(CpuProfilingConfig.Mode.INSTRUMENTED);
-            break;
-          case UNSTATED:
-          case UNRECOGNIZED:
-            break;
-        }
-        captureMetadata.setProfilingConfig(cpuConfigInfo.build());
-
         profilerEvent.setCpuCaptureMetadata(captureMetadata);
       }
     }
+
+    /**
+     * Converts the given {@link ProfilingConfiguration} to the representation in analytics, i.e to {@link CpuProfilingConfig}.
+     */
+    @NotNull
+    private CpuProfilingConfig toStatsCpuProfilingConfig(@NotNull ProfilingConfiguration config) {
+      CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder()
+                                                                   .setSampleInterval(config.getProfilingSamplingIntervalUs())
+                                                                   .setSizeLimit(config.getProfilingBufferSizeInMb());
+
+      switch (config.getProfilerType()) {
+        case ART:
+          cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
+          break;
+        case SIMPLEPERF:
+          cpuConfigInfo.setType(CpuProfilingConfig.Type.SIMPLE_PERF);
+          break;
+        case ATRACE:
+          cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
+          break;
+        case UNSPECIFIED_PROFILER:
+        case UNRECOGNIZED:
+          break;
+      }
+
+      switch (config.getMode()) {
+        case SAMPLED:
+          cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
+          break;
+        case INSTRUMENTED:
+          cpuConfigInfo.setMode(CpuProfilingConfig.Mode.INSTRUMENTED);
+          break;
+        case UNSPECIFIED_MODE:
+        case UNRECOGNIZED:
+          break;
+      }
+
+      return cpuConfigInfo.build();
+    }
+
+    @NotNull
+    private EnergyEvent.Type toEnergyType(@NotNull EnergyProfiler.EnergyEvent energyEvent) {
+      return toEnergyType(EnergyDuration.Kind.from(energyEvent));
+    }
+
+    @NotNull
+    private EnergyEvent.Type toEnergyType(@NotNull EnergyDuration.Kind energyKind) {
+      switch (energyKind) {
+        case WAKE_LOCK: return EnergyEvent.Type.WAKE_LOCK;
+        case ALARM: return EnergyEvent.Type.ALARM;
+        case JOB: return EnergyEvent.Type.JOB;
+        case LOCATION: return EnergyEvent.Type.LOCATION;
+        default: return EnergyEvent.Type.UNKNOWN_EVENT_TYPE;
+      }
+    }
+
+    /**
+     * Returns the subtype of the current event, if it has one, or {@code null} if none.
+     */
+    @Nullable
+    private EnergyEvent.Subtype toEnergySubtype(@NotNull EnergyProfiler.EnergyEvent energyEvent) {
+      if (energyEvent.getMetadataCase() == EnergyProfiler.EnergyEvent.MetadataCase.WAKE_LOCK_ACQUIRED) {
+        EnergyProfiler.WakeLockAcquired wakeLockAcquired = energyEvent.getWakeLockAcquired();
+        switch (wakeLockAcquired.getLevel()) {
+          case PARTIAL_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_PARTIAL;
+          case SCREEN_DIM_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_SCREEN_DIM;
+          case SCREEN_BRIGHT_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_SCREEN_BRIGHT;
+          case FULL_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_FULL;
+          case PROXIMITY_SCREEN_OFF_WAKE_LOCK: return EnergyEvent.Subtype.WAKE_LOCK_PROXIMITY_SCREEN_OFF;
+          // Default case should never happen unless framework adds a new wake lock type and we forget to handle it
+          default: return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
+        }
+      }
+      else if (energyEvent.getMetadataCase() == EnergyProfiler.EnergyEvent.MetadataCase.ALARM_SET) {
+        EnergyProfiler.AlarmSet alarmSet = energyEvent.getAlarmSet();
+        switch (alarmSet.getType()) {
+          case RTC: return EnergyEvent.Subtype.ALARM_RTC;
+          case RTC_WAKEUP: return EnergyEvent.Subtype.ALARM_RTC_WAKEUP;
+          case ELAPSED_REALTIME: return EnergyEvent.Subtype.ALARM_ELAPSED_REALTIME;
+          case ELAPSED_REALTIME_WAKEUP: return EnergyEvent.Subtype.ALARM_ELAPSED_REALTIME_WAKEUP;
+          // Default case should never happen unless framework adds a new alarm type and we forget to handle it
+          default: return EnergyEvent.Subtype.UNKNOWN_EVENT_SUBTYPE;
+        }
+      }
+
+      return null;
+    }
+
+    @NotNull
+    private EnergyEvent.Subevent toEnergySubevent(@NotNull EnergyProfiler.EnergyEvent energyEvent) {
+      switch (energyEvent.getMetadataCase()) {
+        case WAKE_LOCK_ACQUIRED: return EnergyEvent.Subevent.WAKE_LOCK_ACQUIRED;
+        case WAKE_LOCK_RELEASED: return EnergyEvent.Subevent.WAKE_LOCK_RELEASED;
+        case ALARM_SET: return EnergyEvent.Subevent.ALARM_SET;
+        case ALARM_CANCELLED: return EnergyEvent.Subevent.ALARM_CANCELLED;
+        case ALARM_FIRED: return EnergyEvent.Subevent.ALARM_FIRED;
+        case JOB_SCHEDULED: return EnergyEvent.Subevent.JOB_SCHEDULED;
+        case JOB_STARTED: return EnergyEvent.Subevent.JOB_STARTED;
+        case JOB_STOPPED: return EnergyEvent.Subevent.JOB_STOPPED;
+        case JOB_FINISHED: return EnergyEvent.Subevent.JOB_FINISHED;
+        case LOCATION_UPDATE_REQUESTED: return EnergyEvent.Subevent.LOCATION_UPDATE_REQUESTED;
+        case LOCATION_UPDATE_REMOVED: return EnergyEvent.Subevent.LOCATION_UPDATE_REMOVED;
+        case LOCATION_CHANGED: return EnergyEvent.Subevent.LOCATION_CHANGED;
+        default: return EnergyEvent.Subevent.UNKNOWN_ENERGY_SUBEVENT;
+      }
+    }
+
+  }
+
+  private final static Logger getLogger() {
+    return Logger.getInstance(StudioFeatureTracker.class);
   }
 }

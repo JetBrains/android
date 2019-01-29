@@ -17,13 +17,16 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.ui.AdtUiCursors;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
+import java.util.function.Consumer;
 
 /**
  * A component for performing/rendering selection.
@@ -35,22 +38,34 @@ public final class SelectionComponent extends AnimatedComponent {
 
   private static final Color DEFAULT_SELECTION_BORDER = new JBColor(new Color(0x4C0478DA, true), new Color(0x4C0478DA, true));
 
+  private static final Color DRAG_BAR_COLOR = new JBColor(new Color(0x260478DA, true), new Color(0x3374B7FF, true));
+
   private static final Color DEFAULT_HANDLE = new JBColor(0x696868, 0xD6D6D6);
 
   private static final int HANDLE_HEIGHT = 40;
+
+  private static final int DRAG_BAR_HEIGHT = 26;
 
   static final int HANDLE_WIDTH = 5;
 
   private static final double SELECTION_MOVE_PERCENT = 0.01;
 
+  /**
+   * The ratio of selection range to view range when making a single click.
+   * It is ignored when {@link #myIsPointSelectionReplaced} is false.
+   */
+  public static final double CLICK_RANGE_RATIO = 0.003;
+
   private int myMousePressed;
 
-  private enum Mode {
+  private int myMouseMovedX;
+
+  public enum Mode {
     /** The default mode: nothing is happening */
     NONE,
     /** User is currently creating / sizing a new selection. */
     CREATE,
-    /** User is moving a selection. */
+    /** User is over the drag bar, or moving a selection. */
     MOVE,
     /** User is adjusting the min. */
     ADJUST_MIN,
@@ -76,10 +91,25 @@ public final class SelectionComponent extends AnimatedComponent {
   @NotNull
   private final Range myViewRange;
 
+  /**
+   * Flag to tell the component to render the grab bar if the mouse is over the selection component.
+   */
+  private boolean myIsMouseOverComponent;
+
+  /**
+   * Whether point selection should be replaced by a small range.
+   */
+  private boolean myIsPointSelectionReplaced;
+
   public SelectionComponent(@NotNull SelectionModel model, @NotNull Range viewRange) {
+    this(model, viewRange, false);
+  }
+
+  public SelectionComponent(@NotNull SelectionModel model, @NotNull Range viewRange, boolean isPointSelectionReplaced) {
     myModel = model;
     myViewRange = viewRange;
     myMode = Mode.NONE;
+    myIsPointSelectionReplaced = isPointSelectionReplaced;
     setFocusable(true);
     initListeners();
 
@@ -91,29 +121,56 @@ public final class SelectionComponent extends AnimatedComponent {
     this.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
-        requestFocusInWindow();
-        myMode = getModeAtCurrentPosition(e.getX());
-        if (myMode == Mode.CREATE) {
-          myModel.beginUpdate();
-          double value = xToRange(e.getX());
-          myModel.set(value, value);
+        if (SwingUtilities.isLeftMouseButton(e)) {
+          // Always clear selection on double click.
+          if (e.getClickCount() == 2 && !e.isConsumed()) {
+            myModel.clear();
+            return;
+          }
+          requestFocusInWindow();
+          myMode = getModeAtCurrentPosition(e.getX(), e.getY());
+          if (myMode == Mode.CREATE) {
+            double value = xToRange(e.getX());
+            myModel.beginUpdate();
+            // We clear the selection model explicitly, to make sure the "set" call fires a
+            // selection creation event (instead of the model thinking we're modifying an existing
+            // selection).
+            myModel.clear();
+            myModel.set(value, value);
+          }
+          myMousePressed = e.getX();
+          updateCursor(myMode, myMousePressed);
         }
-        myMousePressed = e.getX();
-        updateCursor(myMode, myMousePressed);
       }
 
       @Override
       public void mouseReleased(MouseEvent e) {
-        if (myMode == Mode.CREATE) {
-          myModel.endUpdate();
+        if (SwingUtilities.isLeftMouseButton(e)) {
+          if (myIsPointSelectionReplaced && myModel.getSelectionRange().getLength() == 0) {
+            Range range = myModel.getSelectionRange();
+            double delta = myViewRange.getLength() * CLICK_RANGE_RATIO;
+            myModel.set(range.getMin() - delta, range.getMax() + delta);
+          }
+
+          if (myMode == Mode.CREATE) {
+            myModel.endUpdate();
+          }
+          myMode = getModeAtCurrentPosition(e.getX(), e.getY());
+          myMousePressed = -1;
+          updateCursor(myMode, myMousePressed);
+          opaqueRepaint();
         }
-        myMode = Mode.NONE;
-        opaqueRepaint();
       }
 
       @Override
       public void mouseExited(MouseEvent e) {
         setCursor(Cursor.getDefaultCursor());
+        myIsMouseOverComponent = false;
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        myIsMouseOverComponent = true;
       }
     });
     this.addMouseMotionListener(new MouseMotionAdapter() {
@@ -124,6 +181,7 @@ public final class SelectionComponent extends AnimatedComponent {
         double rangeDelta = current - pressed;
         double min = myModel.getSelectionRange().getMin();
         double max = myModel.getSelectionRange().getMax();
+        myMouseMovedX = e.getX();
         switch (myMode) {
           case ADJUST_MIN:
             if (min + rangeDelta > max) {
@@ -161,7 +219,12 @@ public final class SelectionComponent extends AnimatedComponent {
 
       @Override
       public void mouseMoved(MouseEvent e) {
-        updateCursor(getModeAtCurrentPosition(e.getX()), e.getX());
+        myMode = getModeAtCurrentPosition(e.getX(), e.getY());
+        updateCursor(myMode, e.getX());
+        myMouseMovedX = e.getX();
+        // Need to force a repaint when mouse is moving over the selection component to have the grab bar paint properly. If we don't
+        // do this the grab bar will only refresh under the tooltip and not along the entire capture area.
+        opaqueRepaint();
       }
     });
     addKeyListener(new KeyAdapter() {
@@ -206,6 +269,7 @@ public final class SelectionComponent extends AnimatedComponent {
     myModel.set(min + minDelta, max + maxDelta);
     myModel.endUpdate();
   }
+
   private double xToRange(int x) {
     Range range = myViewRange;
     return x / getSize().getWidth() * range.getLength() + range.getMin();
@@ -213,10 +277,14 @@ public final class SelectionComponent extends AnimatedComponent {
 
   private float rangeToX(double value, Dimension dim) {
     Range range = myViewRange;
-    return  (float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin())));
+    // Clamp the range to the edge of the screen. This prevents fill artifacts when zoomed in, and improves performance.
+    // If we do not clamp the selection to the screen then during painting java attempts to fill a rectangle several
+    // thousand pixels off screen in both directions. This results in lots of computation that isn't required as well as,
+    // lots of artifacts in the selection itself.
+    return  Math.min(Math.max((float)(dim.getWidth() * ((value - range.getMin()) / (range.getMax() - range.getMin()))), 0), dim.width);
   }
 
-  private Mode getModeAtCurrentPosition(int x) {
+  private Mode getModeAtCurrentPosition(int x, int y) {
     Dimension size = getSize();
     double startXPos = rangeToX(myModel.getSelectionRange().getMin(), size);
     double endXPos = rangeToX(myModel.getSelectionRange().getMax(), size);
@@ -226,7 +294,7 @@ public final class SelectionComponent extends AnimatedComponent {
     else if (endXPos < x && x < endXPos + HANDLE_WIDTH) {
       return Mode.ADJUST_MAX;
     }
-    else if (startXPos <= x && x <= endXPos) {
+    else if (startXPos <= x && x <= endXPos && y <= DRAG_BAR_HEIGHT) {
       return Mode.MOVE;
     }
     return Mode.CREATE;
@@ -241,10 +309,11 @@ public final class SelectionComponent extends AnimatedComponent {
         setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
         break;
       case MOVE:
-        setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+        setCursor(myMousePressed == -1 ? AdtUiCursors.GRAB : AdtUiCursors.GRABBING);
         break;
       case CREATE:
-        if (myMode == Mode.CREATE) {
+        double mouseRange = xToRange(newX);
+        if (myMode == Mode.CREATE && myModel.canSelectRange(new Range(mouseRange, mouseRange))) {
           // If already in CREATE mode, update cursor in case selection changed direction, e.g.
           // dragging max handle below min handle.
           if (myMousePressed < newX) {
@@ -264,18 +333,53 @@ public final class SelectionComponent extends AnimatedComponent {
     }
   }
 
+  /**
+   * This listens on the selection range finishes update changes. Because the selection model fires the selection aspect
+   * when the mouse is not released, cannot listen on the selection model side.
+   */
+  public void addSelectionUpdatedListener(final Consumer<Range> listener) {
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        if (SwingUtilities.isLeftMouseButton(e)) {
+          listener.accept(myModel.getSelectionRange());
+        }
+      }
+    });
+  }
+
+  @NotNull
+  public Mode getMode() {
+    return myMode;
+  }
+
+  /**
+   * @return true if the blue seek component from {@link RangeTooltipComponent} should be visible.
+   * @see {@link RangeTooltipComponent#myShowSeekComponent}
+   */
+  public boolean shouldShowSeekComponent() {
+    return myMode != Mode.MOVE && myMode != Mode.ADJUST_MIN && myMode != Mode.ADJUST_MAX;
+  }
+
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
-    if (myModel.getSelectionRange().isEmpty()) {
+    // Draws if the selection range is fully visible or partially visible; and hide if it is empty or not visible.
+    Range selectionRange = myModel.getSelectionRange();
+    if (selectionRange.isEmpty() || selectionRange.getMin() > myViewRange.getMax() || selectionRange.getMax() < myViewRange.getMin()) {
       return;
     }
-    float startXPos = rangeToX(myModel.getSelectionRange().getMin(), dim);
-    float endXPos = rangeToX(myModel.getSelectionRange().getMax(), dim);
+    float startXPos = rangeToX(selectionRange.getMin(), dim);
+    float endXPos = rangeToX(selectionRange.getMax(), dim);
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(DEFAULT_SELECTION_COLOR);
     Rectangle2D.Float rect = new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, dim.height);
     g.fill(rect);
+
+    if (myMouseMovedX > startXPos && myMouseMovedX < endXPos && myIsMouseOverComponent) {
+      g.setColor(DRAG_BAR_COLOR);
+      g.fill(new Rectangle2D.Float(startXPos, 0, endXPos - startXPos, DRAG_BAR_HEIGHT));
+    }
 
     // Draw vertical lines, one for each endsValue.
     g.setColor(DEFAULT_SELECTION_BORDER);
@@ -286,10 +390,8 @@ public final class SelectionComponent extends AnimatedComponent {
     path.lineTo(endXPos - 1, 0);
     g.draw(path);
 
-    if (myMode != Mode.CREATE) {
-      drawHandle(g, startXPos, dim.height, 1.0f);
-      drawHandle(g, endXPos, dim.height, -1.0f);
-    }
+    drawHandle(g, startXPos, dim.height, 1.0f);
+    drawHandle(g, endXPos, dim.height, -1.0f);
   }
 
   private void drawHandle(Graphics2D g, float x, float height, float direction) {

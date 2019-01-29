@@ -16,25 +16,26 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.ComponentProvider;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.TargetProvider;
-import com.android.tools.idea.common.scene.target.Target;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.model.NlDropEvent;
+import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.xml.XmlBuilder;
+import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.dnd.DropTargetDropEvent;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -42,7 +43,7 @@ import java.util.List;
  * Handler for views that are layout managers.
  */
 @SuppressWarnings("UnusedParameters")
-public class ViewGroupHandler extends ViewHandler implements TargetProvider {
+public class ViewGroupHandler extends ViewHandler {
   @Override
   @NotNull
   @Language("XML")
@@ -136,23 +137,6 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
     return null;
   }
 
-  /**
-   * Creates a new resize handler for the given resizable component child of the given layout
-   *
-   * @param editor             the associated IDE editor
-   * @param component          the component being resized
-   * @param horizontalEdgeType the horizontal (top or bottom) edge being resized, if any
-   * @param verticalEdgeType   the vertical (left or right) edge being resized, if any
-   * @return a new resize handler, or null if the layout does not allow the child to be resized or if the child is not resizable
-   */
-  @Nullable
-  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
-                                           @NotNull NlComponent component,
-                                           @Nullable SegmentType horizontalEdgeType,
-                                           @Nullable SegmentType verticalEdgeType) {
-    return null;
-  }
-
   @Nullable
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
     return null;
@@ -176,6 +160,12 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
                               @NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
+  }
+
+  public void onChildRemoved(@NotNull ViewEditor editor,
+                             @NotNull NlComponent layout,
+                             @NotNull NlComponent newChild,
+                             @NotNull InsertType insertType) {
   }
 
   @Override
@@ -207,18 +197,12 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
   }
 
   /**
-   * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
-   *
-   * @param sceneComponent The component we'll add the targets on
-   * @return The list of created target to add the the component. This list can be empty.
+   * Gives a chance to the handler to clean up the attributes of the component upon save
+   * @param component
+   * @param attributes
    */
-  @Override
-  @NotNull
-  public List<Target> createTargets(@NotNull SceneComponent sceneComponent) {
-    return new ArrayList<>();
-  }
-
-  public void cleanUpAttributes(@NotNull NlComponent child) {
+  public void cleanUpAttributes(@NotNull NlComponent component, @NotNull NlAttributesHolder attributes) {
+    // do nothing
   }
 
   /**
@@ -243,7 +227,7 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
    * Gives a chance to the ViewGroupHandler to handle drop on elements that are not ViewGroup.
    */
   public void performDrop(@NotNull NlModel model,
-                          @NotNull DropTargetDropEvent event,
+                          @NotNull NlDropEvent event,
                           @NotNull NlComponent receiver,
                           @NotNull List<NlComponent> dragged,
                           @Nullable NlComponent before,
@@ -270,5 +254,42 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
    */
   public Object getComponentTreeChild(@NotNull Object component, int i) {
     return ((NlComponent)component).getChild(i);
+  }
+
+  /**
+   * Returns true if this handler needs an accessory panel
+   * @return
+   */
+  public boolean needsAccessoryPanel(@NotNull AccessoryPanel.Type type) {
+    return false;
+  }
+
+  /**
+   * Returns a AccessoryPanelInterface used as an accessory panel
+   *
+   * @param surface
+   * @param type type of accessory panel
+   * @param parent The NLComponent that triggered the request.
+   * @return
+   */
+  @Nullable
+  public AccessoryPanelInterface createAccessoryPanel(@NotNull DesignSurface surface,
+                                                      @NotNull AccessoryPanel.Type type,
+                                                      @NotNull NlComponent parent,
+                                                      @NotNull AccessoryPanelVisibility callback) {
+    return null;
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return ImmutableList.of(new ViewGroupPlaceholder(component));
+  }
+
+  public interface AccessoryPanelVisibility {
+    void show(@NotNull AccessoryPanel.Type type, boolean show);
+  }
+
+  public NlComponentDelegate getNlComponentDelegate() {
+    return null;
   }
 }

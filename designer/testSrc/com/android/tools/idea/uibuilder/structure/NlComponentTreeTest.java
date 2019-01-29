@@ -15,6 +15,33 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
+import static com.android.SdkConstants.APP_BAR_LAYOUT;
+import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
+import static com.android.SdkConstants.ATTR_LAYOUT_START_TO_END_OF;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CHAIN;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_HELPER;
+import static com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW;
+import static com.android.SdkConstants.COLLAPSING_TOOLBAR_LAYOUT;
+import static com.android.SdkConstants.CONSTRAINT_BARRIER_END;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
+import static com.android.SdkConstants.COORDINATOR_LAYOUT;
+import static com.android.SdkConstants.IMAGE_VIEW;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.RELATIVE_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -25,6 +52,7 @@ import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -34,24 +62,18 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.mockito.Mock;
-
-import javax.swing.tree.TreePath;
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import java.util.concurrent.CompletableFuture;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.mockito.Mock;
 
 public class NlComponentTreeTest extends LayoutTestCase {
 
@@ -84,7 +106,13 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
       }
     };
-    mySurface = new NlDesignSurface(getProject(), false, myDisposable);
+    mySurface = new NlDesignSurface(getProject(), false, myDisposable) {
+      @Override
+      public CompletableFuture<Void> requestRender() {
+        // We do not need layoutlib renders for these tests
+        return CompletableFuture.completedFuture(null);
+      }
+    };
     mySurface.setModel(myModel);
     myTree = new NlComponentTree(getProject(), mySurface);
     registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
@@ -96,6 +124,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myButton = findFirst(BUTTON);
     myTextView = findFirst(TEXT_VIEW);
     myAbsoluteLayout = findFirst(ABSOLUTE_LAYOUT);
+    Disposer.register(myDisposable, myTree);
   }
 
   @NotNull
@@ -260,7 +289,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(myActionHandler.isPastePossible(myDataContext)).isTrue();
     myActionHandler.performPaste(myDataContext);
     assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <TextView>\n" +
+                                   "    <TextView>  [selected]\n" +
                                    "    <LinearLayout>  [expanded]\n" +
                                    "        <Button>\n" +
                                    "    <TextView>\n" +
@@ -279,8 +308,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(myActionHandler.isPastePossible(myDataContext)).isTrue();
     myActionHandler.performPaste(myDataContext);
     assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
-                                   "    <LinearLayout>  [expanded]  [selected]\n" +
-                                   "        <TextView>\n" +
+                                   "    <LinearLayout>  [expanded]\n" +
+                                   "        <TextView>  [selected]\n" +
                                    "        <Button>\n" +
                                    "    <TextView>\n" +
                                    "    <AbsoluteLayout>\n");
@@ -295,8 +324,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myActionHandler.performPaste(myDataContext);
     assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
                                    "    <LinearLayout>  [expanded]\n" +
-                                   "        <Button>  [selected]\n" +
-                                   "        <TextView>\n" +
+                                   "        <Button>\n" +
+                                   "        <TextView>  [selected]\n" +
                                    "    <TextView>\n" +
                                    "    <AbsoluteLayout>\n");
   }
@@ -319,17 +348,16 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                    "    <LinearLayout>  [expanded]\n" +
                                    "        <Button>\n" +
                                    "    <TextView>\n" +
-                                   "    <AbsoluteLayout>  [selected]\n" +
-                                   "        <TextView>\n" +
-                                   "        <Button>\n");
+                                   "    <AbsoluteLayout>  [expanded]\n" +
+                                   "        <TextView>  [selected]\n" +
+                                   "        <Button>  [selected]\n");
   }
 
 
   public void testDropOnChain() {
     myModel = createModelWithConstraintLayout();
     mySurface.setModel(myModel);
-    myTree = new NlComponentTree(getProject(), mySurface);
-    NlComponent chain = findFirst(CLASS_CONSTRAINT_LAYOUT_CHAIN);
+    NlComponent chain = findFirst(CLASS_CONSTRAINT_LAYOUT_CHAIN.defaultName());
     copy(myButton);
     mySurface.getSelectionModel().toggle(chain);
     assertThat(myActionHandler.isPasteEnabled(myDataContext)).isTrue();
@@ -339,8 +367,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                    "    <Button>\n" +
                                    "    <Button>\n" +
                                    "    <Button>\n" +
-                                   "    <android.support.constraint.Chain>  [selected]\n" +
-                                   "        <Button>\n");
+                                   "    <android.support.constraint.Chain>\n" +
+                                   "        <Button>  [selected]\n");
   }
 
   public void testCutRemovesComponents() {
@@ -474,19 +502,19 @@ public class NlComponentTreeTest extends LayoutTestCase {
   @NotNull
   private SyncNlModel createModelWithAppBar() {
     ModelBuilder builder = model("coordinator.xml",
-                                 component(COORDINATOR_LAYOUT)
+                                 component(COORDINATOR_LAYOUT.defaultName())
                                    .withBounds(0, 0, 1000, 1000)
                                    .matchParentWidth()
                                    .matchParentHeight()
                                    .children(
-                                     component(APP_BAR_LAYOUT)
+                                     component(APP_BAR_LAYOUT.defaultName())
                                        .withBounds(0, 0, 1000, 192).matchParentWidth().height("192dp").children(
-                                       component(COLLAPSING_TOOLBAR_LAYOUT).withBounds(0, 0, 1000, 192).matchParentHeight()
+                                       component(COLLAPSING_TOOLBAR_LAYOUT.defaultName()).withBounds(0, 0, 1000, 192).matchParentHeight()
                                          .matchParentWidth()
                                          .children(component(IMAGE_VIEW).withBounds(0, 0, 1000, 192).matchParentWidth().matchParentHeight(),
                                                    component("android.support.v7.widget.Toolbar").withBounds(0, 0, 1000, 18)
                                                      .height("?attr/actionBarSize").matchParentWidth())),
-                                     component(CLASS_NESTED_SCROLL_VIEW).withBounds(0, 192, 1000, 808).matchParentWidth()
+                                     component(CLASS_NESTED_SCROLL_VIEW.defaultName()).withBounds(0, 192, 1000, 808).matchParentWidth()
                                        .matchParentHeight().withAttribute(AUTO_URI, "layout_behavior",
                                                                           "android.support.design.widget.AppBarLayout$ScrollingViewBehavior")
                                        .children(component(TEXT_VIEW).withBounds(0, 192, 1000, 808).matchParentWidth().wrapContentHeight()
@@ -508,7 +536,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   @NotNull
   private SyncNlModel createModelWithConstraintLayout() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .withBounds(0, 0, 1000, 1000)
                                    .matchParentWidth()
                                    .matchParentHeight()
@@ -528,7 +556,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        .id("@+id/button1")
                                        .wrapContentWidth()
                                        .wrapContentHeight(),
-                                     component(CLASS_CONSTRAINT_LAYOUT_CHAIN)
+                                     component(CLASS_CONSTRAINT_LAYOUT_CHAIN.defaultName())
                                        .withBounds(0, 0, 200, 200)
                                        .id("@+id/chain")
                                        .wrapContentWidth()
@@ -548,7 +576,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertNull(myTree.getSelectionPaths());
     myModel = createModelWithBarriers();
     mySurface.setModel(myModel);
-    myTree = new NlComponentTree(getProject(), mySurface);
 
     // Check initial state
     myTree.expandRow(3);
@@ -592,10 +619,25 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(pathForRow5.getLastPathComponent()).isEqualTo("button2");
   }
 
+  public void testDeleteBarrier() {
+    assertNull(myTree.getSelectionPaths());
+    myModel = createModelWithBarriers();
+    mySurface.setModel(myModel);
+
+    // Check initial state
+    myTree.expandRow(3);
+    TreePath pathForRow4 = myTree.getPathForRow(4);
+    myTree.setSelectionPath(pathForRow4);
+
+    ((DeleteProvider)myTree.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName())).deleteElement(DataContext.EMPTY_CONTEXT);
+    String constraintReferences = myModel.find("barrier").getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
+    assertThat(constraintReferences).isEqualTo("button3");
+  }
+
   @NotNull
   private SyncNlModel createModelWithBarriers() {
     ModelBuilder builder = model("constraint.xml",
-                                 component(CONSTRAINT_LAYOUT)
+                                 component(CONSTRAINT_LAYOUT.defaultName())
                                    .withBounds(0, 0, 1000, 1000)
                                    .matchParentWidth()
                                    .matchParentHeight()
@@ -610,7 +652,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        .id("@+id/button3")
                                        .wrapContentWidth()
                                        .wrapContentHeight(),
-                                     component(CLASS_CONSTRAINT_LAYOUT_HELPER)
+                                     component(CLASS_CONSTRAINT_LAYOUT_HELPER.defaultName())
                                        .withBounds(0, 0, 200, 200)
                                        .id("@+id/barrier")
                                        .wrapContentWidth()

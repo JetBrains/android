@@ -18,10 +18,14 @@ package com.android.tools.idea.npw.project;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -34,13 +38,14 @@ public class NamedModuleTemplateTest {
   public void testToSourceProviderDirectories() {
     File javaDirectory = mock(File.class);
     File aidlDirectory = mock(File.class);
-    File resDirectory = mock(File.class);
+    List<File> resDirectories = ImmutableList.of(mock(File.class));
 
     AndroidModuleTemplate mockProjectPaths = new AndroidModuleTemplate() {
       @Nullable @Override public File getModuleRoot() { return null; }
       @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return javaDirectory; }
       @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
-      @Nullable @Override public File getResDirectory() { return resDirectory; }
+      @NotNull
+      @Override public List<File> getResDirectories() { return resDirectories; }
       @Nullable @Override public File getAidlDirectory(@Nullable String packageName) { return aidlDirectory; }
       @Nullable @Override public File getManifestDirectory() { return null; }
     };
@@ -50,7 +55,7 @@ public class NamedModuleTemplateTest {
 
     assertThat(sourceProvider.getJavaDirectories()).containsExactly(javaDirectory);
     assertThat(sourceProvider.getAidlDirectories()).containsExactly(aidlDirectory);
-    assertThat(sourceProvider.getResDirectories()).containsExactly(resDirectory);
+    assertThat(sourceProvider.getResDirectories()).containsExactlyElementsIn(resDirectories);
 
     assertThat(sourceProvider.getResourcesDirectories()).isEmpty();
     assertThat(sourceProvider.getRenderscriptDirectories()).isEmpty();
@@ -67,7 +72,7 @@ public class NamedModuleTemplateTest {
       @Nullable @Override public File getModuleRoot() { return null; }
       @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return null; }
       @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
-      @Nullable @Override public File getResDirectory() { return null; }
+      @NotNull @Override public List<File> getResDirectories() { return Collections.emptyList(); }
       @Nullable @Override public File getAidlDirectory(@Nullable String packageName) { return null; }
       @Nullable @Override public File getManifestDirectory() { return null; }
     };

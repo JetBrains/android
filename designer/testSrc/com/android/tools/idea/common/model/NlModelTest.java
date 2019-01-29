@@ -15,47 +15,67 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
+import static com.android.SdkConstants.BUTTON;
+import static com.android.SdkConstants.EDIT_TEXT;
+import static com.android.SdkConstants.FRAME_LAYOUT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.NS_RESOURCES;
+import static com.android.SdkConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.VALUE_VERTICAL;
+import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
+import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+
 import com.android.ide.common.rendering.api.MergeCookie;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.rendering.TagSnapshot;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
+import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.testFramework.PlatformTestUtil;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Model tests. This checks that when a model is updated, we correctly
@@ -119,6 +139,27 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
   }
 
+  public void testFindViewByPsi() {
+    ModelBuilder modelBuilder = createDefaultModelBuilder(true);
+    NlModel model = modelBuilder.build();
+    NlComponent component1 = model.find("myText1");
+    XmlAttribute attribute = component1.getTag().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
+
+    NlComponent component2 = model.findViewByPsi(attribute.getFirstChild());
+    assertThat(component1).isSameAs(component2);
+  }
+
+  public void testFindAttributeByPsi() {
+    ModelBuilder modelBuilder = createDefaultModelBuilder(true);
+    NlModel model = modelBuilder.build();
+    NlComponent component1 = model.find("myText1");
+    XmlAttribute attribute = component1.getTag().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
+
+    ResourceReference reference = model.findAttributeByPsi(attribute.getFirstChild());
+    assertThat(reference.getName()).isEqualTo(ATTR_LAYOUT_WIDTH);
+    assertThat(reference.getNamespace().getXmlNamespaceUri()).isEqualTo(ANDROID_URI);
+  }
+
   public void testRemoveLastChild() {
     ModelBuilder modelBuilder = createDefaultModelBuilder(false);
     NlModel model = modelBuilder.build();
@@ -168,7 +209,7 @@ public class NlModelTest extends LayoutTestCase {
     ModelBuilder modelBuilder = createDefaultModelBuilder(false);
     NlModel model = modelBuilder.build();
 
-assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
                  myTreeDumper.toTree(model.getComponents()));
@@ -340,6 +381,14 @@ assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}
   }
 
   public void testCreateComponentWithDependencyCheck() {
+    List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
+      .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
+      .addAll(PLATFORM_SUPPORT_LIBS)
+      .build();
+    TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
+    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+                                       projectSytem, getTestRootDisposable());
+
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
@@ -356,34 +405,31 @@ assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}
     NlComponent frameLayout = linearLayout.getChild(0);
     assertThat(frameLayout).isNotNull();
 
-    GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
-    List<GradleCoordinate> expectedDependencies =
-      Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
-    when(gradleDependencyManager.userWantToAddDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(true);
-    when(gradleDependencyManager.findMissingDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(expectedDependencies);
-    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), any())).thenReturn(true);
-    registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
     XmlTag recyclerViewTag =
-      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
+      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
 
     WriteCommandAction.runWriteCommandAction(
       model.getProject(), null, null,
-      () -> NlModelHelperKt.createComponent(model, new ViewEditorImpl(screen(model).getScreen()), recyclerViewTag, frameLayout, null, InsertType.CREATE
+      () -> model.createComponent(model.getSurface(), recyclerViewTag, frameLayout, null, InsertType.CREATE
       ),
       model.getFile());
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
-    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
-      .thenReturn(true);
 
-    verify(gradleDependencyManager, atLeastOnce()).addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
-
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-                 "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,100:200x70, instance=2}",
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x70, instance=2}",
                  myTreeDumper.toTree(model.getComponents()));
   }
 
   public void testAddComponentsWithDependencyCheck() {
+    List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
+      .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
+      .addAll(PLATFORM_SUPPORT_LIBS)
+      .build();
+    TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
+    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+                                       projectSytem, getTestRootDisposable());
+
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
@@ -400,30 +446,27 @@ assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}
     NlComponent frameLayout = linearLayout.getChild(0);
     assertThat(frameLayout).isNotNull();
 
-    GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
-    registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
-    List<GradleCoordinate> expectedDependencies =
-      Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
-    when(gradleDependencyManager.userWantToAddDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(true);
-    when(gradleDependencyManager.findMissingDependencies(eq(myModule), eq(expectedDependencies))).thenReturn(expectedDependencies);
-    when(gradleDependencyManager.addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
-      .thenReturn(true);
-
     XmlTag recyclerViewTag =
-      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
+      XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
     NlComponent recyclerView =
-      NlModelHelperKt.createComponent(model, new ViewEditorImpl(screen(model).getScreen()), recyclerViewTag, null, null, InsertType.CREATE);
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, new ViewEditorImpl(screen(model).getScreen()));
+      model.createComponent(model.getSurface(), recyclerViewTag, null, null, InsertType.CREATE);
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.CREATE, model.getSurface());
 
-    verify(gradleDependencyManager).addDependenciesAndSync(eq(myModule), eq(expectedDependencies), isNull(Runnable.class));
-
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-                 "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,100:200x70, instance=2}",
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x70, instance=2}",
                  myTreeDumper.toTree(model.getComponents()));
   }
 
   public void testAddComponentsNoDependencyCheckOnMove() {
+    List<GradleCoordinate> accessibleDependencies = new ImmutableList.Builder<GradleCoordinate>()
+      .addAll(NON_PLATFORM_SUPPORT_LAYOUT_LIBS)
+      .addAll(PLATFORM_SUPPORT_LIBS)
+      .build();
+    TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
+    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+                                       projectSytem, getTestRootDisposable());
+
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
@@ -433,7 +476,7 @@ assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}
           .withBounds(100, 100, 100, 100)
           .width("100dp")
           .height("100dp"),
-        component(RECYCLER_VIEW)
+        component(RECYCLER_VIEW.defaultName())
           .withBounds(100, 200, 100, 100)
           .width("100dp")
           .height("100dp")
@@ -447,13 +490,11 @@ assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}
     NlComponent recyclerView = linearLayout.getChild(1);
     assertThat(frameLayout).isNotNull();
 
-    GradleDependencyManager gradleDependencyManager = mock(GradleDependencyManager.class);
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO, new ViewEditorImpl(screen(model).getScreen()));
-    verifyZeroInteractions(gradleDependencyManager);
+    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO, model.getSurface());
 
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,100:768x1084, instance=0}\n" +
-                 "    NlComponent{tag=<FrameLayout>, bounds=[0,100:200x200, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,100:200x200, instance=2}",
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x200, instance=2}",
                  myTreeDumper.toTree(model.getComponents()));
   }
 
@@ -780,7 +821,6 @@ assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}
     // Regression test for b/37324684
     ModelBuilder modelBuilder = createDefaultModelBuilder(false);
     SyncNlModel model = modelBuilder.build();
-    SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager(model);
     XmlFile file = model.getFile();
     XmlTag oldTag = file.getRootTag();
 
@@ -804,6 +844,29 @@ assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}
       expectedModificationCount += 1;
       assertEquals(expectedModificationCount, model.getModificationCount());
     }
+  }
+
+  public void testNotUsingMaterial2Theme() {
+    ModelBuilder modelBuilder = createDefaultModelBuilder(false);
+    SyncNlModel model = modelBuilder.build();
+    assertFalse(model.usingMaterial2Theme());
+  }
+
+  public void testUsingMaterial2Theme() {
+    myFixture.addFileToProject("res/values/styles.xml",
+                               "<resources>\n" +
+                               "  <style name=\"Platform.MaterialComponents\" parent=\"Theme.Material\"/>\n" +
+                               "  <style name=\"Theme.MaterialComponents\" parent=\"Platform.MaterialComponents\"/>\n" +
+                               "</resources>\n");
+    ModelBuilder modelBuilder = createDefaultModelBuilder(false);
+    SyncNlModel model = modelBuilder.build();
+    model.getConfiguration().setTheme("Theme.MaterialComponents");
+    assertTrue(model.usingMaterial2Theme());
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    super.tearDown();
   }
 
   private ModelBuilder createDefaultModelBuilder(boolean includeIds) {

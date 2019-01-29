@@ -15,30 +15,58 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.util.PathString
+import com.android.projectmodel.Library
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.google.common.collect.HashMultimap
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElementFinder
+import com.intellij.psi.PsiPackage
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
 import java.nio.file.Path
+import java.util.concurrent.CountDownLatch
 
 /**
  * This implementation of AndroidProjectSystem is used during integration tests and includes methods
  * to stub project system functionalities.
  */
-class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
-  data class Artifact(val id: GoogleMavenArtifactId, val version: GoogleMavenArtifactVersion)
+class TestProjectSystem @JvmOverloads constructor(val project: Project,
+                                                  availableDependencies: List<GradleCoordinate> = listOf(),
+                                                  @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS)
+  : AndroidProjectSystem, AndroidProjectSystemProvider {
 
-  data class TestDependencyVersion(override val mavenVersion: GradleVersion?) : GoogleMavenArtifactVersion
+  private val dependenciesByModule: HashMultimap<Module, GradleCoordinate> = HashMultimap.create()
+  private val availablePreviewDependencies: List<GradleCoordinate>
+  private val availableStableDependencies: List<GradleCoordinate>
 
-  companion object {
-    val TEST_VERSION_LATEST = TestDependencyVersion(null)
+  init {
+    val sortedHighToLowDeps = availableDependencies.sortedWith(GradleCoordinate.COMPARE_PLUS_HIGHER).reversed()
+    val (previewDeps, stableDeps) = sortedHighToLowDeps.partition(GradleCoordinate::isPreview)
+    availablePreviewDependencies = previewDeps
+    availableStableDependencies = stableDeps
   }
 
-  private val dependenciesByModule: HashMultimap<Module, Artifact> = HashMultimap.create()
+  /**
+   * Adds the given artifact to the given module's list of dependencies.
+   */
+  fun addDependency(artifactId: GoogleMavenArtifactId, module: Module, mavenVersion: GradleVersion) {
+    val coordinate = artifactId.getCoordinate(mavenVersion.toString())
+    dependenciesByModule.put(module, coordinate)
+  }
+
+  /**
+   * @return the set of dependencies added to the given module.
+   */
+  fun getAddedDependencies(module: Module): Set<GradleCoordinate> = dependenciesByModule.get(module)
 
   override val id: String = "com.android.tools.idea.projectsystem.TestProjectSystem"
 
@@ -46,24 +74,27 @@ class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidPro
 
   override fun isApplicable(): Boolean = true
 
-  fun addDependency(artifactId: GoogleMavenArtifactId, module: Module, mavenVersion: GradleVersion) {
-    dependenciesByModule.put(module, Artifact(artifactId, TestDependencyVersion(mavenVersion)))
-  }
-
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
-      override fun addDependencyWithoutSync(artifactId: GoogleMavenArtifactId, version: GoogleMavenArtifactVersion?, includePreview: Boolean) {
-        val versionToAdd = version ?: TEST_VERSION_LATEST
-        dependenciesByModule.put(module, Artifact(artifactId, versionToAdd))
+      override fun getLatestCompatibleDependency(mavenGroupId: String, mavenArtifactId: String): GradleCoordinate? {
+        val wildcardCoordinate = GradleCoordinate(mavenGroupId, mavenArtifactId, "+")
+        return availableStableDependencies.firstOrNull { it.matches(wildcardCoordinate) }
+               ?: availablePreviewDependencies.firstOrNull { it.matches(wildcardCoordinate) }
       }
 
-      override fun getResolvedVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {
-        return dependenciesByModule[module].firstOrNull { it.id == artifactId }?.version
+      override fun getResolvedDependentLibraries(): Collection<Library> {
+        return emptySet()
       }
 
-      override fun getDeclaredVersion(artifactId: GoogleMavenArtifactId): GoogleMavenArtifactVersion? {
-        return dependenciesByModule[module].firstOrNull { it.id == artifactId }?.version
+      override fun registerDependency(coordinate: GradleCoordinate) {
+        dependenciesByModule.put(module, coordinate)
       }
+
+      override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
+        dependenciesByModule[module].firstOrNull { it.matches(coordinate) }
+
+      override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? =
+        dependenciesByModule[module].firstOrNull { it.matches(coordinate) }
 
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
         return emptyList()
@@ -76,22 +107,38 @@ class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidPro
       override fun getInstantRunSupport(): CapabilityStatus {
         return CapabilityNotSupported()
       }
+
+      override fun findClassFile(fqcn: String): VirtualFile? = null
+
+      override fun getOrCreateSampleDataDirectory(): PathString? = null
+
+      override fun getSampleDataDirectory(): PathString? = null
     }
   }
 
+  fun emulateSync(result: SyncResult) {
+    val latch = CountDownLatch(1)
+
+    AppUIUtil.invokeLaterIfProjectAlive(project) {
+      lastSyncResult = result
+      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(result)
+      latch.countDown()
+    }
+
+    latch.await()
+  }
+
   override fun getSyncManager(): ProjectSystemSyncManager = object : ProjectSystemSyncManager {
-    override fun syncProject(reason: ProjectSystemSyncManager.SyncReason, requireSourceGeneration: Boolean): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
-      AppUIUtil.invokeLaterIfProjectAlive(project, {
-        project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
-      })
-      return Futures.immediateFuture(ProjectSystemSyncManager.SyncResult.SUCCESS)
+    override fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
+      emulateSync(SyncResult.SUCCESS)
+      return Futures.immediateFuture(SyncResult.SUCCESS)
     }
 
     override fun isSyncInProgress() = false
 
-    override fun isSyncNeeded() = false
+    override fun isSyncNeeded() = !lastSyncResult.isSuccessful
 
-    override fun getLastSyncResult() = ProjectSystemSyncManager.SyncResult.SUCCESS
+    override fun getLastSyncResult() = lastSyncResult
   }
 
   override fun getDefaultApkFile(): VirtualFile? {
@@ -116,5 +163,19 @@ class TestProjectSystem(val project: Project) : AndroidProjectSystem, AndroidPro
 
   override fun mergeBuildFiles(dependencies: String, destinationContents: String, supportLibVersionFilter: String?): String {
     TODO("not implemented")
+  }
+
+  override fun getPsiElementFinders() = emptyList<PsiElementFinder>()
+
+  override fun getAugmentRClasses() = true
+
+  override fun getLightResourceClassService(): LightResourceClassService {
+    return object : LightResourceClassService {
+      override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope) = emptyList<PsiClass>()
+      override fun getLightRClassesAccessibleFromModule(module: Module, includeTests: Boolean) = emptyList<PsiClass>()
+      override fun getLightRClassesContainingModuleResources(module: Module) = emptyList<PsiClass>()
+      override fun findRClassPackage(qualifiedName: String): PsiPackage? = null
+      override fun getAllLightRClasses() = emptyList<PsiClass>()
+    }
   }
 }

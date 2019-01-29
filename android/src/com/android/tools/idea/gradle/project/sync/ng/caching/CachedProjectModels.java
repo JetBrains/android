@@ -22,11 +22,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.Future;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getCacheFolderRootPath;
@@ -34,7 +33,7 @@ import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 
 public class CachedProjectModels implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   public static class Factory {
     @NotNull
@@ -64,23 +63,33 @@ public class CachedProjectModels implements Serializable {
     }
   }
 
-  // Key: module's Gradle path.
-  private final Map<String, CachedModuleModels> myModelsByModulePath = new HashMap<>();
+  // Key: module name.
+  @NotNull private final Map<String, CachedModuleModels> myModelsByModuleName = new HashMap<>();
+  @NotNull private final List<BuildParticipant> myBuildParticipants = new ArrayList<>();
 
   @VisibleForTesting
   CachedProjectModels() {
   }
 
   @NotNull
-  public CachedModuleModels addModule(@NotNull Module module, @NotNull String gradlePath) {
-    CachedModuleModels cache = new CachedModuleModels(module, gradlePath);
-    myModelsByModulePath.put(gradlePath, cache);
+  public List<BuildParticipant> getBuildParticipants() {
+    return myBuildParticipants;
+  }
+
+  public void addBuildParticipant(@NotNull BuildParticipant buildParticipant) {
+    myBuildParticipants.add(buildParticipant);
+  }
+
+  @NotNull
+  public CachedModuleModels addModule(@NotNull Module module) {
+    CachedModuleModels cache = new CachedModuleModels(module);
+    myModelsByModuleName.put(module.getName(), cache);
     return cache;
   }
 
   @Nullable
-  public CachedModuleModels findCacheForModule(@NotNull String gradlePath) {
-    return myModelsByModulePath.get(gradlePath);
+  public CachedModuleModels findCacheForModule(@NotNull String moduleName) {
+    return myModelsByModuleName.get(moduleName);
   }
 
   @NotNull
@@ -89,9 +98,8 @@ public class CachedProjectModels implements Serializable {
     return saveToDisk(cacheFilePath);
   }
 
-  @VisibleForTesting
   @NotNull
-  static File getCacheFilePath(@NotNull Project project) {
+  public static File getCacheFilePath(@NotNull Project project) {
     return new File(getCacheFolderRootPath(project), "gradle_models.ser");
   }
 
@@ -118,6 +126,13 @@ public class CachedProjectModels implements Serializable {
     });
   }
 
+  public static void eraseDiskCache(@NotNull Project project) {
+    File cache = getCacheFilePath(project);
+    if (cache.exists()) {
+      cache.delete();
+    }
+  }
+
   @NotNull
   private static Logger getLog() {
     return Logger.getInstance(CachedProjectModels.class);
@@ -132,18 +147,20 @@ public class CachedProjectModels implements Serializable {
       return false;
     }
     CachedProjectModels cache = (CachedProjectModels)o;
-    return Objects.equals(myModelsByModulePath, cache.myModelsByModulePath);
+    return Objects.equals(myModelsByModuleName, cache.myModelsByModuleName)
+           && Objects.equals(myBuildParticipants, cache.myBuildParticipants);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myModelsByModulePath);
+    return Objects.hash(myModelsByModuleName, myBuildParticipants);
   }
 
   @Override
   public String toString() {
-    return "GradleProjectModelsCache{" +
-           "myModelsByModulePath=" + myModelsByModulePath +
+    return "CachedProjectModels{" +
+           "myModelsByModuleName=" + myModelsByModuleName +
+           "myBuildParticipants=" + myBuildParticipants +
            '}';
   }
 }

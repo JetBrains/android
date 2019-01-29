@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.common.base.Joiner;
@@ -153,12 +154,11 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
         GradleBuildModel buildModel = GradleBuildModel.get(module);
         if (buildModel != null) {
           DependenciesModel dependenciesModel = buildModel.dependencies();
-          if (dependenciesModel != null) {
-            for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
-              // TODO consider the case that dependency.path() is not started with :
-              if (oldModuleGradlePath.equals(dependency.path().value())) {
-                dependency.setPath(getNewPath(dependency.path().value(), inputString));
-              }
+          for (ModuleDependencyModel dependency : dependenciesModel.modules()) {
+            // TODO consider the case that dependency.path() is not started with :
+            ResolvedPropertyModel path = dependency.path();
+            if (oldModuleGradlePath.equals(path.forceString())) {
+              path.setValue(getNewPath(path.forceString(), inputString));
             }
           }
           if (buildModel.isModified()) {

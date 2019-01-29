@@ -22,31 +22,34 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.LightPlatformTestCase;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TestDialog;
+import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.xdebugger.XDebugSession;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.BuildMode.*;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link GradleBuildInvoker}.
  */
-public class GradleBuildInvokerTest extends LightPlatformTestCase {
+public class GradleBuildInvokerTest extends IdeaTestCase {
   @Mock private FileDocumentManager myFileDocumentManager;
   @Mock private GradleTasksExecutor myTasksExecutor;
+  @Mock private NativeDebugSessionFinder myDebugSessionFinder;
 
-  private IdeComponents myIdeComponents;
   private GradleTasksExecutorFactoryStub myTasksExecutorFactory;
   private Module[] myModules;
   private BuildSettings myBuildSettings;
@@ -61,58 +64,109 @@ public class GradleBuildInvokerTest extends LightPlatformTestCase {
     myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
     myModules = new Module[]{getModule()};
 
-    myIdeComponents = new IdeComponents(getProject());
-    myTaskFinder = myIdeComponents.mockService(GradleTaskFinder.class);
-    myBuildSettings = myIdeComponents.mockProjectService(BuildSettings.class);
+    IdeComponents ideComponents = new IdeComponents(myProject);
+    myTaskFinder = ideComponents.mockApplicationService(GradleTaskFinder.class);
+    myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
 
-    myBuildInvoker = new GradleBuildInvoker(getProject(), myFileDocumentManager, myTasksExecutorFactory);
+    myBuildInvoker = new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
-      myIdeComponents.restore();
-    }
-    catch (Throwable e) {
-      addSuppressedException(e);
+      Messages.setTestDialog(TestDialog.DEFAULT);
     }
     finally {
       super.tearDown();
+      myBuildSettings = null;
+      myBuildInvoker = null;
     }
   }
 
   public void testCleanUp() {
-    List<String> originalTasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    File projectPath = getBaseDirPath(getProject());
-    when(myTaskFinder.findTasksToExecute(projectPath, myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(originalTasks));
+    List<String> tasks = setUpTasksForSourceGeneration();
 
     myBuildInvoker.cleanProject();
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    assertThat(request.getGradleTasks()).containsExactly("clean", "sourceGenTask1", "sourceGenTask2");
+    List<String> expectedTasks = new ArrayList<>(tasks);
+    expectedTasks.add(0, "clean");
+    assertThat(request.getGradleTasks()).containsExactly(expectedTasks.toArray());
     assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
 
     verifyInteractionWithMocks(CLEAN);
   }
 
+  public void testCleanupWithNativeDebugSessionAndUserTerminatesSession() {
+    setUpTasksForSourceGeneration();
+
+    XDebugSession nativeDebugSession = mock(XDebugSession.class);
+    when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
+
+    Messages.setTestDialog(TestDialog.OK);
+
+    myBuildInvoker.cleanProject();
+
+    verify(nativeDebugSession).stop(); // expect that the session was stopped.
+  }
+
+  public void testCleanupWithNativeDebugSessionAndUserDoesNotTerminateSession() {
+    setUpTasksForSourceGeneration();
+
+    XDebugSession nativeDebugSession = mock(XDebugSession.class);
+    when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
+
+    Messages.setTestDialog(TestDialog.NO);
+
+    myBuildInvoker.cleanProject();
+
+    verify(nativeDebugSession, never()).stop(); // expect that the session was never stopped.
+  }
+
+  public void testCleanupWithNativeDebugSessionAndUserCancelsBuild() {
+    setUpTasksForSourceGeneration();
+
+    XDebugSession nativeDebugSession = mock(XDebugSession.class);
+    when(myDebugSessionFinder.findNativeDebugSession()).thenReturn(nativeDebugSession);
+
+    Messages.setTestDialog(new TestDialog() {
+      @Override
+      public int show(String message) {
+        return Messages.CANCEL;
+      }
+    });
+
+    myBuildInvoker.cleanProject();
+
+    verify(nativeDebugSession, never()).stop(); // expect that the session was never stopped.
+
+    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    assertNull(request); // Build was canceled, no request created.
+
+    // If build was canceled, none of these methods should have been invoked.
+    verify(myBuildSettings, never()).setBuildMode(any());
+    verify(myFileDocumentManager, never()).saveAllDocuments();
+    verify(myTasksExecutor, never()).queue();
+
+  }
+
   public void testCleanAndGenerateSources() {
-    List<String> originalTasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    File projectPath = getBaseDirPath(getProject());
-    when(myTaskFinder.findTasksToExecute(projectPath, myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(originalTasks));
+    List<String> tasks = setUpTasksForSourceGeneration();
 
     myBuildInvoker.cleanAndGenerateSources();
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    assertThat(request.getGradleTasks()).containsExactly("clean", "sourceGenTask1", "sourceGenTask2");
+
+    List<String> expectedTasks = new ArrayList<>(tasks);
+    expectedTasks.add(0, "clean");
+    assertThat(request.getGradleTasks()).containsExactly(expectedTasks.toArray());
     assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
 
     verifyInteractionWithMocks(SOURCE_GEN);
   }
 
   public void testGenerateSources() {
-    List<String> tasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
-    File projectPath = getBaseDirPath(getProject());
-    when(myTaskFinder.findTasksToExecute(projectPath, myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(tasks));
+    List<String> tasks = setUpTasksForSourceGeneration();
 
     myBuildInvoker.generateSources();
 
@@ -121,6 +175,14 @@ public class GradleBuildInvokerTest extends LightPlatformTestCase {
     assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
 
     verifyInteractionWithMocks(SOURCE_GEN);
+  }
+
+  @NotNull
+  private List<String> setUpTasksForSourceGeneration() {
+    List<String> tasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");
+    File projectPath = getBaseDirPath(getProject());
+    when(myTaskFinder.findTasksToExecute(projectPath, myModules, SOURCE_GEN, TestCompileType.NONE)).thenReturn(createTasksMap(tasks));
+    return tasks;
   }
 
   public void testCompileJava() {

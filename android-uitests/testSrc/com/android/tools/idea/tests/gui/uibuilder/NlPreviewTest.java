@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
@@ -25,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlPreviewFixture;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -42,12 +42,12 @@ import static org.junit.Assert.*;
 /**
  * UI test for the layout preview window
  */
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NlPreviewTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)  // Has not failed in 50 consecutive runs. Leave in Unreliable until dahlstrom@ wants it in reliable.
+  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testConfigurationMatching() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
@@ -56,16 +56,16 @@ public class NlPreviewTest {
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     NlPreviewFixture preview = editor.getLayoutPreview(true);
     preview.waitForRenderToFinish();
-    preview.getConfigToolbar().chooseDevice("Nexus 5");
+    preview.getConfigToolbar().chooseDevice("Pixel");
     preview.waitForRenderToFinish();
-    preview.getConfigToolbar().requireDevice("Nexus 5");
+    preview.getConfigToolbar().requireDevice("pixel"); // The id of Pixel is "pixel"
     VirtualFile file = editor.getCurrentFile();
     assertThat(file.getParent().getName()).isEqualTo("layout");
     preview.getConfigToolbar().requireOrientation("Portrait");
 
     preview.getConfigToolbar().chooseDevice("Nexus 7");
     preview.waitForRenderToFinish();
-    preview.getConfigToolbar().requireDevice("Nexus 7 2013");
+    preview.getConfigToolbar().requireDevice("Nexus 7 2013"); // The id of Nexus 7 is "Nexus 7 2013"
     assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-sw600dp");
 
     preview.getConfigToolbar().chooseDevice("Nexus 10");
@@ -81,7 +81,7 @@ public class NlPreviewTest {
 
     preview.getConfigToolbar().chooseDevice("Nexus 7");
     preview.waitForRenderToFinish();
-    preview.getConfigToolbar().chooseDevice("Nexus 4");
+    preview.getConfigToolbar().chooseDevice("Pixel");
     preview.waitForRenderToFinish();
     editor.open("app/src/main/res/layout-sw600dp/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
@@ -89,10 +89,9 @@ public class NlPreviewTest {
     preview.getConfigToolbar().requireDevice("Nexus 7 2013"); // because it's the most recently configured sw600-dp compatible device
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
-    preview.getConfigToolbar().requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
+    preview.getConfigToolbar().requireDevice("pixel"); // because it's the most recently configured small screen compatible device
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/71427797
   @Test
   public void editCustomView() throws Exception {
     // Opens the LayoutTest project, opens a layout with a custom view, checks
@@ -158,7 +157,6 @@ public class NlPreviewTest {
     assertFalse(preview.hasRenderErrors()); // but our build timestamp check this time will mask the out of date warning
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722 (failed 2 times in last 50 test runs)
   @Test
   public void testRenderingDynamicResources() throws Exception {
     // Opens a layout which contains dynamic resources (defined only in build.gradle)
@@ -274,7 +272,7 @@ public class NlPreviewTest {
       .waitForScreenMode(SceneMode.BLUEPRINT_ONLY);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722
+  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void testNavigation() throws Exception {
     // Open 2 different layout files in a horizontal split view (both editors visible).
@@ -336,7 +334,7 @@ public class NlPreviewTest {
     assertTrue(editor.isPreviewShowing("activity_my.xml"));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // Should be fixed with ag/3371722 (failed 1 time in last 50 runs)
+  @RunIn(TestGroup.UNRELIABLE)  // b/63923598
   @Test
   public void closeSplitLayoutShouldMovePreviewToCorrectFile() throws Exception {
     // Regression test for b/64199946
@@ -358,6 +356,25 @@ public class NlPreviewTest {
     Wait.seconds(3).expecting("preview to update")
       .until(() -> editor.getPreviewUpdateCount() > updateCountBeforeClose);
     assertTrue(editor.isPreviewShowing("ic_launcher.xml"));
+  }
+
+  @Test
+  public void closeAllFileShouldClosePreview() throws Exception {
+    // Regression test for b/73592522
+    EditorFixture editor = guiTest.importSimpleLocalApplication()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/java/google/simpleapplication/MyActivity.java", EditorFixture.Tab.EDITOR);
+
+    editor.getVisibleTextEditor("activity_my.xml").select();
+    editor.getLayoutPreview(true).waitForRenderToFinish();
+    Wait.seconds(3).expecting("preview to open").until(() -> editor.isPreviewVisible());
+
+    editor.invokeAction(EditorFixture.EditorAction.CLOSE_ALL);
+    Wait.seconds(3).expecting("preview to close").until(() -> !editor.isPreviewVisible());
+
+    assertNull(editor.getCurrentFile());
   }
 
   private static void navigateEditor(@NotNull EditorFixture editor,

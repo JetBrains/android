@@ -50,7 +50,7 @@ public class ResourceContent implements Function<OutputStream, Exception> {
    * Returns the base directory for the Sample Data directory contents
    */
   @Nullable
-  private static File getSampleDataBaseDir() {
+  public static File getSampleDataBaseDir() {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
 
     StringBuilder notFoundPaths = new StringBuilder();

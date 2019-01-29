@@ -15,27 +15,45 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.FakeCpuService;
+import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.network.FakeNetworkService;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static org.junit.Assert.assertEquals;
 
 public class AllocStatsDataSeriesTest {
 
   private final FakeMemoryService myService = new FakeMemoryService();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myService);
+  private final FakeProfilerService myProfilerService = new FakeProfilerService();
+
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myProfilerService, myService,
+                                                                   new FakeEventService(),
+                                                                   new FakeCpuService(),
+                                                                   new FakeNetworkService.Builder().build());
 
   @Test
-  public void testGetDataForXRange() throws Exception {
+  public void testGetDataForXRange() {
+    FakeTimer timer = new FakeTimer();
+    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
+    StudioProfilers studioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
+    timer.tick(TimeUnit.SECONDS.toNanos(1));
+
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(1)
       .addAllocStatsSamples(
@@ -48,7 +66,7 @@ public class AllocStatsDataSeriesTest {
     myService.setMemoryData(memoryData);
 
     AllocStatsDataSeries series =
-      new AllocStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
+      new AllocStatsDataSeries(studioProfilers, myGrpcChannel.getClient().getMemoryClient(),
                                sample -> (long)sample.getJavaAllocationCount());
     List<SeriesData<Long>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
@@ -57,7 +75,7 @@ public class AllocStatsDataSeriesTest {
     assertEquals(14, dataList.get(1).x);
     assertEquals(1500, dataList.get(1).value.longValue());
 
-    series = new AllocStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA,
+    series = new AllocStatsDataSeries(studioProfilers, myGrpcChannel.getClient().getMemoryClient(),
                                       sample -> (long)sample.getJavaFreeCount());
     dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());

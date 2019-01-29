@@ -15,12 +15,16 @@
  */
 package org.jetbrains.android.databinding;
 
+import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.psi.JavaPsiFacade;
+import org.jetbrains.android.facet.AndroidFacet;
 
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING_AND_SIMPLE_LIB;
 
@@ -35,13 +39,13 @@ public class DataBindingScopeTest extends AndroidGradleTestCase {
     GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
     GradleSyncState syncState = GradleSyncState.getInstance(getProject());
     assertFalse(syncState.isSyncNeeded().toBoolean());
-    assertTrue(ModuleDataBinding.getInstance(myAndroidFacet).isEnabled());
+    assertTrue(ModuleDataBinding.getInstance(myAndroidFacet).getDataBindingMode() == DataBindingMode.SUPPORT);
     assertTrue(myModules.hasModule("lib"));
     assertTrue(myModules.hasModule("lib2"));
     // app depends on lib depends on lib2
 
     // trigger initialization
-    ModuleResourceRepository.getOrCreateInstance(myAndroidFacet);
+    ResourceRepositoryManager.getModuleResources(myAndroidFacet);
 
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(getProject());
     String appBindingClassName = "com.android.example.appwithdatabinding.databinding.ActivityMainBinding";

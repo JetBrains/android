@@ -28,6 +28,8 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 
+import static com.google.common.base.CharMatcher.inRange;
+import static com.google.common.base.CharMatcher.is;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -37,7 +39,7 @@ public final class ModuleValidator implements Validator<String> {
   private @Nullable Project myProject; // May be null for new projects
   private @NotNull PathValidator myPathValidator;
   private @NotNull StringProperty myProjectPath;
-  private final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf("[/\\'");
+  private final CharMatcher ILLEGAL_CHARACTER_MATCHER = inRange('a', 'z').or(inRange('A', 'Z')).or(inRange('0', '9')).or(is('_')).negate();
 
   public ModuleValidator(@NotNull Project project) {
     this(new StringValueProperty(project.getBasePath()));

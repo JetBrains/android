@@ -20,24 +20,17 @@ import com.android.tools.idea.gradle.dsl.api.android.AaptOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import org.junit.Test;
+
+import static com.android.tools.idea.gradle.dsl.TestFileName.*;
 
 /**
  * Tests for {@link AaptOptionsModel}.
  */
 public class AaptOptionsModelTest extends GradleFileModelTestCase {
+  @Test
   public void testParseElementsOne() throws Exception {
-    String text = "android {\n" +
-                  "  aaptOptions {\n" +
-                  "    additionalParameters 'abcd'\n" +
-                  "    cruncherEnabled true\n" +
-                  "    cruncherProcesses 1\n" +
-                  "    failOnMissingConfigEntry false\n" +
-                  "    ignoreAssets 'efgh'\n" +
-                  "    noCompress 'a'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(AAPT_OPTIONS_PARSE_ELEMENTS_ONE);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -51,19 +44,9 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("noCompress", ImmutableList.of("a"), aaptOptions.noCompress());
   }
 
+  @Test
   public void testParseElementsTwo() throws Exception {
-    String text = "android {\n" +
-                  "  aaptOptions {\n" +
-                  "    additionalParameters 'abcd', 'efgh'\n" +
-                  "    cruncherEnabled false\n" +
-                  "    cruncherProcesses 2\n" +
-                  "    failOnMissingConfigEntry true\n" +
-                  "    ignoreAssetsPattern 'ijkl'\n" +
-                  "    noCompress 'a', 'b'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(AAPT_OPTIONS_PARSE_ELEMENTS_TWO);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -77,19 +60,9 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("noCompress", ImmutableList.of("a", "b"), aaptOptions.noCompress());
   }
 
+  @Test
   public void testEditElements() throws Exception {
-    String text = "android {\n" +
-                  "  aaptOptions {\n" +
-                  "    additionalParameters 'abcd', 'efgh'\n" +
-                  "    cruncherEnabled false\n" +
-                  "    cruncherProcesses 2\n" +
-                  "    failOnMissingConfigEntry true\n" +
-                  "    ignoreAssets 'ijkl'\n" +
-                  "    noCompress 'a', 'b'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(AAPT_OPTIONS_EDIT_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -103,13 +76,12 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("ignoreAssets", "ijkl", aaptOptions.ignoreAssets());
     assertEquals("noCompress", ImmutableList.of("a", "b"), aaptOptions.noCompress());
 
-    aaptOptions
-      .replaceAdditionalParameter("efgh", "xyz")
-      .setCruncherEnabled(true)
-      .setCruncherProcesses(3)
-      .setFailOnMissingConfigEntry(false)
-      .setIgnoreAssets("mnop")
-      .replaceNoCompress("b", "c");
+    aaptOptions.additionalParameters().getListValue("efgh").setValue("xyz");
+    aaptOptions.cruncherEnabled().setValue(true);
+    aaptOptions.cruncherProcesses().setValue(3);
+    aaptOptions.failOnMissingConfigEntry().setValue(false);
+    aaptOptions.ignoreAssets().setValue("mnop");
+    aaptOptions.noCompress().getListValue("b").setValue("c");
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -124,32 +96,50 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("noCompress", ImmutableList.of("a", "c"), aaptOptions.noCompress());
   }
 
-  public void testAddElements() throws Exception {
-    String text = "android {\n" +
-                  "  aaptOptions {\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+  @Test
+  public void testEditIgnoreAssetPattern() throws Exception {
+    writeToBuildFile(AAPT_OPTIONS_EDIT_IGNORE_ASSET_PATTERN);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     assertNotNull(android);
 
     AaptOptionsModel aaptOptions = android.aaptOptions();
-    assertNull("additionalParameters", aaptOptions.additionalParameters());
-    assertNull("cruncherEnabled", aaptOptions.cruncherEnabled());
-    assertNull("cruncherProcesses", aaptOptions.cruncherProcesses());
-    assertNull("failOnMissingConfigEntry", aaptOptions.failOnMissingConfigEntry());
-    assertNull("ignoreAssets", aaptOptions.ignoreAssets());
-    assertNull("noCompress", aaptOptions.noCompress());
+    assertEquals("additionalParameters", ImmutableList.of("abcd", "efgh"), aaptOptions.additionalParameters());
+    assertEquals("ignoreAssets", "ijkl", aaptOptions.ignoreAssets());
 
-    aaptOptions.addAdditionalParameter("abcd");
-    aaptOptions.setCruncherEnabled(true);
-    aaptOptions.setCruncherProcesses(1);
-    aaptOptions.setFailOnMissingConfigEntry(false);
-    aaptOptions.setIgnoreAssets("efgh");
-    aaptOptions.addNoCompress("a");
+    aaptOptions.ignoreAssets().setValue("mnop");
+
+    applyChangesAndReparse(buildModel);
+    android = buildModel.android();
+    assertNotNull(android);
+
+    aaptOptions = android.aaptOptions();
+    assertEquals("ignoreAssets", "mnop", aaptOptions.ignoreAssets());
+  }
+
+  @Test
+  public void testAddElements() throws Exception {
+    writeToBuildFile(AAPT_OPTIONS_ADD_ELEMENTS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    AaptOptionsModel aaptOptions = android.aaptOptions();
+    assertMissingProperty("additionalParameters", aaptOptions.additionalParameters());
+    assertMissingProperty("cruncherEnabled", aaptOptions.cruncherEnabled());
+    assertMissingProperty("cruncherProcesses", aaptOptions.cruncherProcesses());
+    assertMissingProperty("failOnMissingConfigEntry", aaptOptions.failOnMissingConfigEntry());
+    assertMissingProperty("ignoreAssets", aaptOptions.ignoreAssets());
+    assertMissingProperty("noCompress", aaptOptions.noCompress());
+
+    aaptOptions.additionalParameters().addListValue().setValue("abcd");
+    aaptOptions.cruncherEnabled().setValue(true);
+    aaptOptions.cruncherProcesses().setValue(1);
+    aaptOptions.failOnMissingConfigEntry().setValue(false);
+    aaptOptions.ignoreAssets().setValue("efgh");
+    aaptOptions.noCompress().addListValue().setValue("a");
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -164,19 +154,9 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("noCompress", ImmutableList.of("a"), aaptOptions.noCompress());
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
-    String text = "android {\n" +
-                  "  aaptOptions {\n" +
-                  "    additionalParameters 'abcd', 'efgh'\n" +
-                  "    cruncherEnabled true\n" +
-                  "    cruncherProcesses 1\n" +
-                  "    failOnMissingConfigEntry false\n" +
-                  "    ignoreAssets 'efgh'\n" +
-                  "    noCompress 'a'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(AAPT_OPTIONS_REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -191,13 +171,12 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("ignoreAssets", "efgh", aaptOptions.ignoreAssets());
     assertEquals("noCompress", ImmutableList.of("a"), aaptOptions.noCompress());
 
-    aaptOptions
-      .removeAllAdditionalParameters()
-      .removeCruncherEnabled()
-      .removeCruncherProcesses()
-      .removeFailOnMissingConfigEntry()
-      .removeIgnoreAssets()
-      .removeAllNoCompress();
+    aaptOptions.additionalParameters().delete();
+    aaptOptions.cruncherEnabled().delete();
+    aaptOptions.cruncherProcesses().delete();
+    aaptOptions.failOnMissingConfigEntry().delete();
+    aaptOptions.ignoreAssets().delete();
+    aaptOptions.noCompress().delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -205,23 +184,17 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
 
     aaptOptions = android.aaptOptions();
     checkForInValidPsiElement(aaptOptions, AaptOptionsModelImpl.class);
-    assertNull("additionalParameters", aaptOptions.additionalParameters());
-    assertNull("cruncherEnabled", aaptOptions.cruncherEnabled());
-    assertNull("cruncherProcesses", aaptOptions.cruncherProcesses());
-    assertNull("failOnMissingConfigEntry", aaptOptions.failOnMissingConfigEntry());
-    assertNull("ignoreAssets", aaptOptions.ignoreAssets());
-    assertNull("noCompress", aaptOptions.noCompress());
+    assertMissingProperty("additionalParameters", aaptOptions.additionalParameters());
+    assertMissingProperty("cruncherEnabled", aaptOptions.cruncherEnabled());
+    assertMissingProperty("cruncherProcesses", aaptOptions.cruncherProcesses());
+    assertMissingProperty("failOnMissingConfigEntry", aaptOptions.failOnMissingConfigEntry());
+    assertMissingProperty("ignoreAssets", aaptOptions.ignoreAssets());
+    assertMissingProperty("noCompress", aaptOptions.noCompress());
   }
 
+  @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
-    String text = "android {\n" +
-                  "  aaptOptions {\n" +
-                  "    additionalParameters 'abcd', 'efgh'\n" +
-                  "    noCompress 'a', 'b'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(AAPT_OPTIONS_REMOVE_ONE_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -231,8 +204,8 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("additionalParameters", ImmutableList.of("abcd", "efgh"), aaptOptions.additionalParameters());
     assertEquals("noCompress", ImmutableList.of("a", "b"), aaptOptions.noCompress());
 
-    aaptOptions.removeAdditionalParameter("abcd");
-    aaptOptions.removeNoCompress("b");
+    aaptOptions.additionalParameters().getListValue("abcd").delete();
+    aaptOptions.noCompress().getListValue("b").delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -243,15 +216,9 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("noCompress", ImmutableList.of("a"), aaptOptions.noCompress());
   }
 
+  @Test
   public void testRemoveOnlyElementInTheList() throws Exception {
-    String text = "android {\n" +
-                  "  aaptOptions {\n" +
-                  "    additionalParameters 'abcd'\n" +
-                  "    noCompress 'a'\n" +
-                  "  }\n" +
-                  "}";
-
-    writeToBuildFile(text);
+    writeToBuildFile(AAPT_OPTIONS_REMOVE_LAST_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -262,8 +229,8 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("additionalParameters", ImmutableList.of("abcd"), aaptOptions.additionalParameters());
     assertEquals("noCompress", ImmutableList.of("a"), aaptOptions.noCompress());
 
-    aaptOptions.removeAdditionalParameter("abcd");
-    aaptOptions.removeNoCompress("a");
+    aaptOptions.additionalParameters().getListValue("abcd").delete();
+    aaptOptions.noCompress().getListValue("a").delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -271,7 +238,7 @@ public class AaptOptionsModelTest extends GradleFileModelTestCase {
 
     aaptOptions = android.aaptOptions();
     checkForInValidPsiElement(aaptOptions, AaptOptionsModelImpl.class);
-    assertNull("additionalParameters", aaptOptions.additionalParameters());
-    assertNull("noCompress", aaptOptions.noCompress());
+    assertMissingProperty("additionalParameters", aaptOptions.additionalParameters());
+    assertMissingProperty("noCompress", aaptOptions.noCompress());
   }
 }

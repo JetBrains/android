@@ -19,13 +19,11 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.android.tools.datastore.poller.MemoryDataPoller;
+import com.android.tools.profilers.memory.LegacyAllocationConverter;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -80,10 +78,10 @@ public class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
           allocationConsumer.accept(null, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
         }
         else {
-          LegacyAllocationConverter converter = parseDump(data);
+          myConverter.parseDump(data);
           // timestamp of allocations is set to the end of allocation tracking
-          allocationConsumer
-            .accept(data, converter.getClassNames(), converter.getAllocationStacks(), converter.getAllocationEvents(startTime, endTime));
+          allocationConsumer.accept(
+            data, myConverter.getClassNames(), myConverter.getAllocationStacks(), myConverter.getAllocationEvents(startTime, endTime));
         }
       });
     }
@@ -104,21 +102,6 @@ public class StudioLegacyAllocationTracker implements LegacyAllocationTracker {
       }
     });
     myClient.requestAllocationDetails();
-  }
-
-  @NotNull
-  private LegacyAllocationConverter parseDump(@NotNull byte[] dumpData) {
-    myConverter.prepare();
-
-    AllocationInfo[] rawInfos = AllocationsParser.parse(ByteBuffer.wrap(dumpData));
-    for (AllocationInfo info : rawInfos) {
-      List<StackTraceElement> stackTraceElements = Arrays.asList(info.getStackTrace());
-      LegacyAllocationConverter.CallStack callStack = myConverter.addCallStack(stackTraceElements);
-      int classId = myConverter.addClassName(info.getAllocatedClass());
-      myConverter
-        .addAllocation(new LegacyAllocationConverter.Allocation(classId, info.getSize(), info.getThreadId(), callStack.hashCode()));
-    }
-    return myConverter;
   }
 
   @Nullable

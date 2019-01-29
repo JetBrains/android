@@ -70,8 +70,8 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
       requiredHardwareFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
     }
 
-    Set<String> supportedAbis = facet.getAndroidModel() instanceof AndroidModuleModel ?
-                                ((AndroidModuleModel)facet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+    Set<String> supportedAbis = facet.getConfiguration().getModel() instanceof AndroidModuleModel ?
+                                ((AndroidModuleModel)facet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
                                 null;
 
     return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), requiredHardwareFeatures, supportedAbis);

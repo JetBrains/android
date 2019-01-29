@@ -21,6 +21,8 @@ import com.android.tools.adtui.chart.linechart.LineChartReducer;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -57,7 +59,7 @@ public class LineChartReducerVisualTest extends VisualTest {
   private int mySampleSize = 10;
   private SelectionComponent mySelection;
   private LineChartModel myOptimizedLineChartModel;
-  private AxisComponentModel myXAxisModel;
+  private ResizingAxisComponentModel myXAxisModel;
 
   @Override
   protected List<Updatable> createModelList() {
@@ -80,7 +82,7 @@ public class LineChartReducerVisualTest extends VisualTest {
     myOptimizedLineChart = new LineChart(myOptimizedLineChartModel);
 
     myXAxisModel =
-      new AxisComponentModel(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, ""));
+      new ResizingAxisComponentModel.Builder(myViewXRange, new SingleUnitAxisFormatter(1, 5, 1, "")).build();
     myXAxis = new AxisComponent(myXAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     SelectionModel selection = new SelectionModel(mySelectionXRange);
     mySelection = new SelectionComponent(selection, myViewXRange);
@@ -93,7 +95,7 @@ public class LineChartReducerVisualTest extends VisualTest {
     myLineChart.configure(mySeries, new LineConfig(JBColor.BLUE));
     myOptimizedLineChart.configure(myOptimizedSeries, new LineConfig(JBColor.RED));
 
-    return Arrays.asList(myLineChartModel, myOptimizedLineChartModel, myXAxisModel);
+    return Arrays.asList(myLineChartModel, myOptimizedLineChartModel);
   }
 
   @Override

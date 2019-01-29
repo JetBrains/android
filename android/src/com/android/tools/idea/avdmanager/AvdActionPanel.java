@@ -89,7 +89,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
         action = new RepairAvdAction(this);
       }
       if (action != null) {
-        FocusableHyperlinkLabel repairAction = new FocusableHyperlinkLabel(action.getText(), action.getIcon());
+        FocusableHyperlinkLabel repairAction = new FocusableHyperlinkLabel(action.getText(), action.getIcon(), action.isEnabled());
         add(repairAction);
         repairAction.addHyperlinkListener(action);
         myVisibleComponents.add(repairAction);
@@ -239,6 +239,11 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
       if (icon != null) {
         myHighlightedIcon = ColoredIconGenerator.INSTANCE.generateWhiteIcon(myIcon);
       }
+    }
+
+    FocusableHyperlinkLabel(String text, Icon icon, boolean enabled) {
+      this(text, icon);
+      setEnabled(enabled);
     }
 
     @Override

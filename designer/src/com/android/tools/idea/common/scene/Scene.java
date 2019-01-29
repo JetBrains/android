@@ -15,56 +15,59 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.annotations.VisibleForTesting;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.*;
-import com.android.tools.idea.common.scene.target.ActionTarget;
-import com.android.tools.idea.common.scene.target.DragBaseTarget;
-import com.android.tools.idea.common.scene.target.LassoTarget;
-import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.naveditor.scene.targets.ActionHandleTarget;
-import com.android.tools.idea.naveditor.scene.targets.ScreenHeaderTarget;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
-import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorSnapTarget;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionListener;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.target.*;
+import com.android.tools.idea.common.scene.target.LassoTarget;
+import com.android.tools.idea.common.scene.target.MultiComponentTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderSettings;
+import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.JBUI;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.event.InputEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.awt.event.InputEvent;
-import java.util.*;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
-import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 
 /**
  * A Scene contains a hierarchy of SceneComponent representing the bounds
@@ -73,6 +76,7 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  * <p>
  * Methods in this class must be called in the dispatch thread.
  */
+@SuppressWarnings("ForLoopReplaceableByForEach")
 public class Scene implements SelectionListener, Disposable {
 
   @SwingCoordinate
@@ -95,33 +99,31 @@ public class Scene implements SelectionListener, Disposable {
 
   private int mNeedsLayout = NO_LAYOUT;
 
-  @AndroidDpCoordinate
-  protected int myPressedMouseX;
-  @AndroidDpCoordinate
-  protected int myPressedMouseY;
-
-  private int myLastMouseX;
-  private int myLastMouseY;
+  @AndroidDpCoordinate protected int myPressedMouseX;
+  @AndroidDpCoordinate protected int myPressedMouseY;
+  @AndroidDpCoordinate private int myLastMouseX;
+  @AndroidDpCoordinate private int myLastMouseY;
 
   @NotNull private final SceneHitListener myHoverListener;
   @NotNull private final SceneHitListener myHitListener;
   @NotNull private final SceneHitListener myFindListener;
   @NotNull private final SceneHitListener mySnapListener;
-  private Target myHitTarget = null;
+  @Nullable private Target myHitTarget = null;
   private Cursor myMouseCursor;
   private SceneComponent myHitComponent;
-  ArrayList<SceneComponent> myNewSelectedComponentsOnRelease = new ArrayList<>();
-  ArrayList<SceneComponent> myNewSelectedComponentsOnDown = new ArrayList<>();
+  List<SceneComponent> myNewSelectedComponentsOnRelease = new ArrayList<>();
+  List<SceneComponent> myNewSelectedComponentsOnDown = new ArrayList<>();
   private boolean myIsControlDown;
   private boolean myIsShiftDown;
   private boolean myIsAltDown;
-  private boolean myShowAllConstraints = false;
 
-  private enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
+  private boolean myIsLiveRenderingEnabled;
 
-  private FilterType myFilterTarget = FilterType.NONE;
+  public enum FilterType {ALL, ANCHOR, VERTICAL_ANCHOR, HORIZONTAL_ANCHOR, BASELINE_ANCHOR, NONE, RESIZE}
 
-  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface) {
+  @NotNull private FilterType myFilterType = FilterType.NONE;
+
+  public Scene(@NotNull SceneManager sceneManager, @NotNull DesignSurface surface, @NotNull RenderSettings renderSettings) {
     myDesignSurface = surface;
     mySceneManager = sceneManager;
 
@@ -131,6 +133,8 @@ public class Scene implements SelectionListener, Disposable {
     myFindListener = new SceneHitListener(selectionModel);
     mySnapListener = new SceneHitListener(selectionModel);
     selectionModel.addListener(this);
+
+    myIsLiveRenderingEnabled = renderSettings.getUseLiveRendering();
 
     Disposer.register(sceneManager, this);
   }
@@ -244,19 +248,6 @@ public class Scene implements SelectionListener, Disposable {
     return myMouseCursor;
   }
 
-  public boolean isAutoconnectOn() {
-    return PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
-  }
-
-  public boolean isShowAllConstraints() {
-    return myShowAllConstraints || PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.SHOW_CONSTRAINTS_PREF_KEY);
-  }
-
-  @VisibleForTesting
-  public void setShowAllConstraints(boolean showAllConstraints) {
-    myShowAllConstraints = showAllConstraints;
-  }
-
   /**
    * Update the current key modifiers state
    *
@@ -289,11 +280,13 @@ public class Scene implements SelectionListener, Disposable {
   /////////////////////////////////////////////////////////////////////////////
 
   /**
-   * Clear all constraints on a widget
+   * Clear all constraints on a scene
    */
-  public void clearAttributes() {
+  public void clearAllConstraints() {
     if (myRoot != null) {
-      myRoot.clearAttributes();
+      Stream.of(myRoot)
+        .flatMap(c -> c.getChildren().stream())
+        .forEach(c -> c.clearAttributes());
     }
     select(Collections.emptyList());
   }
@@ -428,13 +421,13 @@ public class Scene implements SelectionListener, Disposable {
   public void select(List<SceneComponent> components) {
     if (myDesignSurface != null) {
       ArrayList<NlComponent> nlComponents = new ArrayList<>();
-      if (myIsShiftDown) {
+      if (myIsShiftDown || myIsControlDown) {
         List<NlComponent> selection = myDesignSurface.getSelectionModel().getSelection();
         nlComponents.addAll(selection);
       }
       for (SceneComponent sceneComponent : components) {
         NlComponent nlComponent = sceneComponent.getNlComponent();
-        if (myIsShiftDown && nlComponents.contains(nlComponent)) {
+        if ((myIsShiftDown || myIsControlDown) && nlComponents.contains(nlComponent)) {
           // if shift is pressed and the component is already selected, remove it from the selection
           nlComponents.remove(nlComponent);
         }
@@ -444,83 +437,6 @@ public class Scene implements SelectionListener, Disposable {
       }
       myDesignSurface.getSelectionModel().setSelection(nlComponents);
     }
-  }
-
-  /**
-   * Decides which target type we should display
-   *
-   * @param target
-   * @return true if the target will be displayed
-   */
-  public boolean allowsTarget(Target target) {
-    // TODO: this should really be delegated to the handlers
-    SceneComponent component = target.getComponent();
-    if (component.isSelected()) {
-      boolean hasBaselineConnection = component.getAuthoritativeNlComponent().getAttribute(SHERPA_URI,
-                                                                                           ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
-      if (target instanceof AnchorTarget) {
-        AnchorTarget anchor = (AnchorTarget)target;
-        if (anchor.getType() == AnchorTarget.Type.BASELINE) {
-          // only show baseline anchor as needed
-          return component.canShowBaseline() || hasBaselineConnection;
-        }
-        else {
-          // if the baseline is showing, hide the rest of the anchors
-          return (!hasBaselineConnection && !component.canShowBaseline())
-                 || (hasBaselineConnection && anchor.isHorizontalAnchor());
-        }
-      }
-      // if the baseline shows, hide all the targets others than ActionTarget, ConstraintDragTarget and ResizeTarget
-      if (component.canShowBaseline()) {
-        return (target instanceof ActionTarget) ||
-               (target instanceof ConstraintDragTarget) ||
-               (target instanceof DragBaseTarget) ||
-               (target instanceof ResizeBaseTarget);
-      }
-      return !component.isDragging();
-    }
-    if (target instanceof CoordinatorSnapTarget) {
-      return true;
-    }
-    if (target instanceof AnchorTarget) {
-      AnchorTarget anchor = (AnchorTarget)target;
-      if (myFilterTarget == FilterType.BASELINE_ANCHOR) {
-        return anchor.getType() == AnchorTarget.Type.BASELINE;
-      }
-      if (myFilterTarget == FilterType.VERTICAL_ANCHOR
-          && anchor.isVerticalAnchor()) {
-        return true;
-      }
-      if (myFilterTarget == FilterType.HORIZONTAL_ANCHOR
-          && anchor.isHorizontalAnchor()) {
-        return true;
-      }
-      if (myFilterTarget == FilterType.ANCHOR) {
-        return true;
-      }
-    }
-    if (myFilterTarget == FilterType.RESIZE && target instanceof ResizeBaseTarget) {
-      return true;
-    }
-    if (target instanceof MultiComponentTarget) {
-      return true;
-    }
-    if (target instanceof DragBaseTarget) {
-      return true;
-    }
-    if (target instanceof LassoTarget) {
-      return true;
-    }
-    if (target instanceof GuidelineCycleTarget) {
-      return true;
-    }
-    if (target instanceof ActionTarget) {
-      return false;
-    }
-    if (myFilterTarget == FilterType.ALL) {
-      return true;
-    }
-    return false;
   }
 
   //endregion
@@ -543,6 +459,7 @@ public class Scene implements SelectionListener, Disposable {
     }
     repaint();
     Target closestTarget = myHoverListener.getClosestTarget();
+    String tooltip = null;
     if (myOverTarget != closestTarget) {
       if (myOverTarget != null) {
         myOverTarget.setMouseHovered(false);
@@ -551,12 +468,12 @@ public class Scene implements SelectionListener, Disposable {
       }
       if (closestTarget != null) {
         closestTarget.setMouseHovered(true);
-        transform.setToolTip(closestTarget.getToolTipText());
         myOverTarget = closestTarget;
         needsRebuildList();
       }
     }
     if (closestTarget != null) {
+      tooltip = closestTarget.getToolTipText();
       Target snapTarget = myHoverListener.getFilteredTarget(closestTarget);
       if (snapTarget != mySnapTarget) {
         if (mySnapTarget != null) {
@@ -566,13 +483,15 @@ public class Scene implements SelectionListener, Disposable {
         }
         if (snapTarget != null) {
           snapTarget.setMouseHovered(true);
-          transform.setToolTip(closestTarget.getToolTipText());
           mySnapTarget = closestTarget;
           needsRebuildList();
         }
       }
     }
     SceneComponent closestComponent = myHoverListener.getClosestComponent();
+    if (closestComponent != null && tooltip == null) {
+      tooltip = closestComponent.getNlComponent().getTooltipText();
+    }
     if (myCurrentComponent != closestComponent) {
       if (myCurrentComponent != null) {
         myCurrentComponent.setDrawState(SceneComponent.DrawState.NORMAL);
@@ -584,7 +503,7 @@ public class Scene implements SelectionListener, Disposable {
       }
       needsRebuildList();
     }
-
+    transform.setToolTip(tooltip);
     setCursor(transform, x, y);
   }
 
@@ -599,23 +518,13 @@ public class Scene implements SelectionListener, Disposable {
       return;
     }
 
-    SelectionModel selectionModel = myDesignSurface.getSelectionModel();
-
-    if (!selectionModel.isEmpty()) {
-      int max = Coordinates.getAndroidDimensionDip(myDesignSurface, PIXEL_RADIUS + PIXEL_MARGIN);
-      SelectionHandle handle = selectionModel.findHandle(x, y, max, getDesignSurface());
-      if (handle != null) {
-        myMouseCursor = handle.getCursor();
-        return;
-      }
-    }
     SceneComponent component = findComponent(transform, x, y);
     if (component != null && component.getParent() != null) {
       myMouseCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     }
   }
 
-  private void delegateMouseDownToSelection(int x, int y, SceneComponent currentComponent) {
+  private void delegateMouseDownToSelection(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, SceneComponent currentComponent) {
     // update other selected widgets
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {
@@ -635,7 +544,10 @@ public class Scene implements SelectionListener, Disposable {
     }
   }
 
-  private void delegateMouseDragToSelection(int x, int y, @Nullable Target closestTarget, SceneComponent currentComponent) {
+  private void delegateMouseDragToSelection(@AndroidDpCoordinate int x,
+                                            @AndroidDpCoordinate int y,
+                                            @Nullable Target closestTarget,
+                                            @NotNull SceneComponent currentComponent) {
     // update other selected widgets
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {
@@ -657,7 +569,10 @@ public class Scene implements SelectionListener, Disposable {
     }
   }
 
-  private void delegateMouseReleaseToSelection(int x, int y, @Nullable Target closestTarget, SceneComponent currentComponent) {
+  private void delegateMouseReleaseToSelection(@AndroidDpCoordinate int x,
+                                               @AndroidDpCoordinate int y,
+                                               @Nullable Target closestTarget,
+                                               @NotNull SceneComponent currentComponent) {
     // update other selected widgets
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {
@@ -686,7 +601,7 @@ public class Scene implements SelectionListener, Disposable {
     mNeedsLayout = NO_LAYOUT;
     myLastMouseX = x;
     myLastMouseY = y;
-    myFilterTarget = FilterType.NONE;
+    myFilterType = FilterType.NONE;
     if (myRoot == null) {
       return;
     }
@@ -695,18 +610,6 @@ public class Scene implements SelectionListener, Disposable {
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
-      if (myHitTarget instanceof AnchorTarget) {
-        AnchorTarget anchor = (AnchorTarget)myHitTarget;
-        if (anchor.isHorizontalAnchor()) {
-          myFilterTarget = FilterType.HORIZONTAL_ANCHOR;
-        }
-        else {
-          myFilterTarget = FilterType.VERTICAL_ANCHOR;
-        }
-        if (anchor.getType() == AnchorTarget.Type.BASELINE) {
-          myFilterTarget = FilterType.BASELINE_ANCHOR;
-        }
-      }
       myHitTarget.mouseDown(x, y);
       if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDownToSelection(x, y, myHitTarget.getComponent());
@@ -732,8 +635,27 @@ public class Scene implements SelectionListener, Disposable {
         return;
       }
 
+      LassoTarget lassoTarget = null;
+      if (myHitTarget instanceof LassoTarget) {
+        lassoTarget = (LassoTarget)myHitTarget;
+
+        if (lassoTarget.getSelectWhileDragging() && lassoTarget.getHasChanged()) {
+          myNewSelectedComponentsOnRelease.clear();
+          myNewSelectedComponentsOnRelease.addAll(lassoTarget.getIntersectingComponents());
+          select(myNewSelectedComponentsOnRelease);
+          lassoTarget.clearHasChanged();
+        }
+      }
+
       myHitListener.skipTarget(myHitTarget);
       myHitListener.find(transform, myRoot, x, y);
+      SceneComponent targetComponent = myHitTarget.getComponent();
+      if ((lassoTarget == null || lassoTarget.getIntersectingComponents().isEmpty())
+          && targetComponent != null && !inCurrentSelection(targetComponent)) {
+        myNewSelectedComponentsOnRelease.clear();
+        myNewSelectedComponentsOnRelease.add(targetComponent);
+        select(myNewSelectedComponentsOnRelease);
+      }
       myHitTarget.mouseDrag(x, y, myHitListener.myHitTargets);
       if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
@@ -757,17 +679,8 @@ public class Scene implements SelectionListener, Disposable {
         return;
       }
 
-      /*
-       * When asking for the layout status, we need to render under the following conditions:
-       *  - live render is enabled, and
-       *  - we are displaying the design surface
-       */
-      boolean renderOnLayout = StudioFlags.NELE_LIVE_RENDER.get();
-      renderOnLayout &= (myDesignSurface instanceof NlDesignSurface) &&
-                        ((NlDesignSurface)myDesignSurface).getSceneMode() != SceneMode.BLUEPRINT_ONLY;
-
-      if (renderOnLayout && manager instanceof LayoutlibSceneManager) {
-        ((LayoutlibSceneManager)manager).requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
+      if (myIsLiveRenderingEnabled) {
+        manager.requestLayoutAndRender(mNeedsLayout == ANIMATED_LAYOUT);
       }
       else {
         manager.layout(mNeedsLayout == ANIMATED_LAYOUT);
@@ -778,6 +691,7 @@ public class Scene implements SelectionListener, Disposable {
   public void mouseRelease(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
+    SceneComponent closestComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
       Target closest = myHitListener.getFilteredTarget(myHitTarget);
@@ -787,46 +701,19 @@ public class Scene implements SelectionListener, Disposable {
         delegateMouseReleaseToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
       }
     }
-    myFilterTarget = FilterType.NONE;
+    myFilterType = FilterType.NONE;
     myNewSelectedComponentsOnRelease.clear();
-    if (myHitComponent != null && myHitListener.getClosestComponent() == myHitComponent
-        && !myNewSelectedComponentsOnRelease.contains(myHitComponent)) {
+    if (myHitComponent != null && closestComponent == myHitComponent) {
       myNewSelectedComponentsOnRelease.add(myHitComponent);
     }
-    // TODO: Refactor this to use an override method instead of type checks
-    if (myHitTarget instanceof ActionTarget
-        || myHitTarget instanceof GuidelineTarget
-        || myHitTarget instanceof BarrierTarget
-        || myHitTarget instanceof ScreenHeaderTarget) {
-      // it will be outside the bounds of the component, so will likely have
-      // selected a different one...
-      myNewSelectedComponentsOnRelease.clear();
-      myNewSelectedComponentsOnRelease.add(myHitTarget.getComponent());
-    }
-    if (myHitTarget instanceof DragBaseTarget) {
-      DragBaseTarget dragTarget = (DragBaseTarget)myHitTarget;
-      if (dragTarget.hasChangedComponent()) {
-        myNewSelectedComponentsOnRelease.clear();
-        myNewSelectedComponentsOnRelease.add(dragTarget.getComponent());
-      }
-    }
-    if (myHitTarget instanceof LassoTarget) {
-      LassoTarget lassoTarget = (LassoTarget)myHitTarget;
-      lassoTarget.fillSelectedComponents(myNewSelectedComponentsOnRelease);
-    }
-    if (myHitTarget instanceof ActionHandleTarget) {
-      // TODO: Refactor this so explicit cast not required
-      SceneComponent closestComponent = myHitListener.getClosestComponent();
-      if (closestComponent != null && closestComponent != myRoot) {
-        ActionHandleTarget actionHandleTarget = (ActionHandleTarget)myHitTarget;
-        actionHandleTarget.createAction(closestComponent);
-      }
-    }
-    boolean canChangeSelection = true;
     if (myHitTarget != null) {
-      canChangeSelection = myHitTarget.canChangeSelection();
+      List<SceneComponent> changed = myHitTarget.newSelection();
+      if (changed != null) {
+        myNewSelectedComponentsOnRelease.clear();
+        myNewSelectedComponentsOnRelease.addAll(changed);
+      }
     }
-    if (canChangeSelection && !sameSelection()) {
+    if (!sameSelection() && (myHitTarget == null || myHitTarget.canChangeSelection())) {
       select(myNewSelectedComponentsOnRelease);
     }
     checkRequestLayoutStatus();
@@ -934,12 +821,35 @@ public class Scene implements SelectionListener, Disposable {
     return myFindListener.getClosestComponent();
   }
 
+  @Nullable
+  public Target findTarget(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    if (myRoot == null) {
+      return null;
+    }
+    myFindListener.find(transform, myRoot, x, y);
+    return myFindListener.getClosestTarget();
+  }
+
   public Collection<SceneComponent> getSceneComponents() {
     return mySceneComponents.values();
   }
 
   public void setRoot(SceneComponent root) {
     myRoot = root;
+  }
+
+  @NotNull
+  public FilterType getFilterType() {
+    return myFilterType;
+  }
+
+  public void setFilterType(@NotNull FilterType filterType) {
+    myFilterType = filterType;
+  }
+
+  @Nullable
+  public Target getInteractingTarget() {
+    return myHitTarget;
   }
 
   @Nullable
@@ -968,10 +878,14 @@ public class Scene implements SelectionListener, Disposable {
     }
     NlModel model = neleComponent.getModel();
     XmlFile xmlFile = model.getFile();
+    Module module = model.getModule();
+    RenderService renderService = RenderService.getInstance(module.getProject());
     AndroidFacet facet = model.getFacet();
-    RenderService renderService = RenderService.getInstance(facet);
-    RenderLogger logger = renderService.createLogger();
-    final RenderTask task = renderService.createTask(xmlFile, model.getConfiguration(), logger, null);
+    RenderLogger logger = renderService.createLogger(facet);
+    final RenderTask task = renderService.taskBuilder(facet, model.getConfiguration())
+                                         .withLogger(logger)
+                                         .withPsiFile(xmlFile)
+                                         .build();
     if (task == null) {
       return null;
     }
@@ -983,5 +897,44 @@ public class Scene implements SelectionListener, Disposable {
     viewInfo = RenderService.getSafeBounds(viewInfo);
     return new Dimension(Coordinates.pxToDp(getDesignSurface(), viewInfo.getRight() - viewInfo.getLeft()),
                          Coordinates.pxToDp(getDesignSurface(), viewInfo.getBottom() - viewInfo.getTop()));
+  }
+
+  /**
+   * Get the {@link Placeholder}s in the Scene without the ones belong to the {@param requester} and its children.
+   * @param requester the component which request {@link Placeholder}s
+   * @return list of the {@link Placeholder}s for requester
+   */
+  public List<Placeholder> getPlaceholders(@Nullable SceneComponent requester) {
+    ImmutableList.Builder<Placeholder> builder = new ImmutableList.Builder<>();
+    doGetPlaceholders(builder, myRoot, requester);
+    return builder.build();
+  }
+
+  public boolean isLiveRenderingEnabled() {
+    return myIsLiveRenderingEnabled;
+  }
+
+  public void setLiveRenderingEnabled(boolean enabled) {
+    myIsLiveRenderingEnabled = enabled;
+  }
+
+  private static void doGetPlaceholders(@NotNull ImmutableList.Builder<Placeholder> builder,
+                                        @NotNull SceneComponent component,
+                                        @Nullable SceneComponent requester) {
+    if (component == requester) {
+      return;
+    }
+    NlComponent nlComponent = component.getNlComponent();
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(nlComponent);
+    if (handler != null) {
+      builder.addAll(handler.getPlaceholders(component));
+    }
+    for (SceneComponent child : component.getChildren()) {
+      doGetPlaceholders(builder, child, requester);
+    }
+  }
+
+  public void setHitTarget(@Nullable Target hitTarget) {
+    myHitTarget = hitTarget;
   }
 }

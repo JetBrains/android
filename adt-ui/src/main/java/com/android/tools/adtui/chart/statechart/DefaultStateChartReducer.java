@@ -17,61 +17,61 @@ package com.android.tools.adtui.chart.statechart;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-import java.awt.geom.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.awt.geom.Rectangle2D;
+import java.util.*;
 
 /**
  * Implementation of {@link StateChartReducer} which combines all rectangles that are strictly inside a pixel into one rectangle
  * and as a value of the combined rectangle will be taken most occurred value (i.e with the biggest total width).
  */
-public class DefaultStateChartReducer<E extends Enum<E> > implements StateChartReducer<E> {
+public class DefaultStateChartReducer<T> implements StateChartReducer<T> {
   @Override
-  public void reduce(@NotNull List<Shape> rectangles,
-                     @NotNull List<E> values) {
+  public void reduce(@NotNull List<Rectangle2D.Float> rectangles, @NotNull List<T> values) {
     int index = 0, keepIndex = 0;
+    Map<T, Float> occurrenceWidth = new HashMap<>();
+
     while (index < rectangles.size()) {
-      Shape shape = rectangles.get(index);
-      E value = values.get(index);
-      Rectangle2D bounds = shape.getBounds2D();
+      T value = values.get(index);
+      Rectangle2D.Float rect = rectangles.get(index);
 
       // Crossing several pixels, let's just keep it
-      if (Math.floor(bounds.getMinX()) < Math.floor(bounds.getMaxX())) {
-        rectangles.set(keepIndex, shape);
+      if (Math.floor(rect.x) < Math.floor(rect.x + rect.width)) {
+        rectangles.set(keepIndex, rect);
         values.set(keepIndex, value);
         ++keepIndex;
         ++index;
         continue;
       }
+
+      occurrenceWidth.clear();
+
       // Whole rectangle is within the pixel
+      float pixelStart = (float)Math.floor(rect.x);
+      float pixelEnd = pixelStart + 1.0f;
 
-      int pixel = (int)(Math.floor(bounds.getMaxX()));
-
-      Map<E, Float> occurrenceWidth = new HashMap<>();
-      float minX = (float)bounds.getMinX(), maxX = Float.MIN_VALUE;
-      float minY = (float)bounds.getMinY(), maxY = (float)bounds.getMaxY();
+      float minX = rect.x;
+      float maxX = Float.MIN_VALUE;
+      float minY = rect.y;
+      float height = rect.height;
 
       while (index < rectangles.size()) {
-        shape = rectangles.get(index);
-        value = values.get(index);
-        bounds = shape.getBounds2D();
+        rect = rectangles.get(index);
 
-        if ((int)(Math.floor(bounds.getMinX())) != pixel || (int)(Math.floor(bounds.getMaxX())) != pixel) {
+        if (rect.x < pixelStart || rect.x > pixelEnd || rect.x + rect.width > pixelEnd) {
           // Crossed different pixel
           break;
         }
-        maxX = (float)bounds.getMaxX();
+        maxX = rect.x + rect.width;
 
+        value = values.get(index);
         Float width = occurrenceWidth.get(value);
-        occurrenceWidth.put(value, (width == null ? 0: width) + (float)bounds.getWidth());
+        occurrenceWidth.put(value, (width == null ? 0 : width) + rect.width);
         ++index;
       }
 
-      E mostOccurred = null;
+      T mostOccurred = null;
       float mostOccurredWidth = -1;
-      for (Map.Entry<E, Float> entry: occurrenceWidth.entrySet()) {
+      for (Map.Entry<T, Float> entry : occurrenceWidth.entrySet()) {
         if (entry.getValue() > mostOccurredWidth) {
           mostOccurredWidth = entry.getValue().floatValue();
           mostOccurred = entry.getKey();
@@ -82,7 +82,7 @@ public class DefaultStateChartReducer<E extends Enum<E> > implements StateChartR
         values.set(keepIndex, mostOccurred);
         // As width of the new rectangle smaller than 1px, arcWidth and arcHeight won't make any difference
         // thus, drawing "Rectangle2D" instead of "RoundRectangle2D"
-        rectangles.set(keepIndex, new Rectangle2D.Float(minX, minY, maxX - minX, maxY - minY));
+        rectangles.set(keepIndex, new Rectangle2D.Float(minX, minY, maxX - minX, height));
         ++keepIndex;
       }
     }

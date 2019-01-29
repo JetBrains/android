@@ -15,6 +15,11 @@
  */
 package com.android.tools.datastore.poller;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
@@ -23,19 +28,13 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.stub.StreamObserver;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class NetworkDataPollerTest extends DataStorePollerTest {
 
@@ -46,39 +45,32 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   private static final int CONNECTION_COUNT = 4;
   private static final int CONNECTION_ID = 1;
 
-  private static final NetworkProfiler.HttpRangeResponse HTTP_RANGE_RESPONSE = NetworkProfiler.HttpRangeResponse.newBuilder()
-    .addData(NetworkProfiler.HttpConnectionData.newBuilder()
-               .setConnId(CONNECTION_ID)
-               .setDownloadingTimestamp(BASE_TIME_NS)
-               .setEndTimestamp(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
-               .setStartTimestamp(BASE_TIME_NS)
-               .build())
+  private static final NetworkProfiler.HttpRangeResponse HTTP_RANGE_RESPONSE = NetworkProfiler.HttpRangeResponse
+    .newBuilder().addData(
+      NetworkProfiler.HttpConnectionData
+        .newBuilder()
+        .setConnId(CONNECTION_ID)
+        .setDownloadingTimestamp(BASE_TIME_NS)
+        .setEndTimestamp(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
+        .setStartTimestamp(BASE_TIME_NS).build())
     .build();
 
-  private static final NetworkProfiler.SpeedData NETWORK_SPEED_DATA = NetworkProfiler.SpeedData.newBuilder()
-    .setSent(SENT_VALUE)
-    .setReceived(RECEIVED_VALUE)
+  private static final NetworkProfiler.SpeedData NETWORK_SPEED_DATA = NetworkProfiler.SpeedData
+    .newBuilder().setSent(SENT_VALUE).setReceived(RECEIVED_VALUE).build();
+  private static final NetworkProfiler.ConnectionData NETWORK_CONNECTION_DATA = NetworkProfiler.ConnectionData
+    .newBuilder().setConnectionNumber(CONNECTION_COUNT).build();
+  private static final NetworkProfiler.ConnectivityData NETWORK_CONNECTIVITY_DATA = NetworkProfiler.ConnectivityData
+    .newBuilder()
+    .setNetworkType(NetworkProfiler.ConnectivityData.NetworkType.WIFI)
     .build();
-  private static final NetworkProfiler.ConnectionData NETWORK_CONNECTION_DATA = NetworkProfiler.ConnectionData.newBuilder()
-    .setConnectionNumber(CONNECTION_COUNT)
-    .build();
-  private static final NetworkProfiler.ConnectivityData NETWORK_CONNECTIVITY_DATA = NetworkProfiler.ConnectivityData.newBuilder()
-    .setRadioState(NetworkProfiler.ConnectivityData.RadioState.HIGH)
-    .setDefaultNetworkType(NetworkProfiler.ConnectivityData.NetworkType.WIFI)
-    .build();
-  private static final NetworkProfiler.NetworkDataResponse NETWORK_DATA_RESPONSE = NetworkProfiler.NetworkDataResponse.newBuilder()
-    .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-               .setEndTimestamp(BASE_TIME_NS)
-               .setConnectivityData(NETWORK_CONNECTIVITY_DATA)
-               .build())
-    .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-               .setEndTimestamp(BASE_TIME_NS)
-               .setSpeedData(NETWORK_SPEED_DATA)
-               .build())
-    .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-               .setEndTimestamp(DELAY_TIME_NS)
-               .setConnectionData(NETWORK_CONNECTION_DATA)
-               .build())
+  private static final NetworkProfiler.NetworkDataResponse NETWORK_DATA_RESPONSE = NetworkProfiler.NetworkDataResponse
+    .newBuilder()
+    .addData(
+      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(BASE_TIME_NS).setConnectivityData(NETWORK_CONNECTIVITY_DATA).build())
+    .addData(
+      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(BASE_TIME_NS).setSpeedData(NETWORK_SPEED_DATA).build())
+    .addData(
+      NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(DELAY_TIME_NS).setConnectionData(NETWORK_CONNECTION_DATA).build())
     .build();
 
   private DataStoreService myDataStoreService = mock(DataStoreService.class);
@@ -87,8 +79,7 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   private final FakeNetworkService myFakeNetworkService = new FakeNetworkService();
 
   public TestName myTestName = new TestName();
-  public TestGrpcService<FakeNetworkService> myService =
-    new TestGrpcService<>(NetworkDataPollerTest.class, myTestName, myNetworkService, myFakeNetworkService);
+  public TestGrpcService myService = new TestGrpcService(NetworkDataPollerTest.class, myTestName, myNetworkService, myFakeNetworkService);
 
   @Rule
   public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
@@ -118,32 +109,29 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetHttpDetailsRequest() {
-    NetworkProfiler.HttpDetailsResponse request = NetworkProfiler.HttpDetailsResponse.newBuilder()
-      .setRequest(NetworkProfiler.HttpDetailsResponse.Request.getDefaultInstance()).build();
+    NetworkProfiler.HttpDetailsResponse request = NetworkProfiler.HttpDetailsResponse
+      .newBuilder().setRequest(NetworkProfiler.HttpDetailsResponse.Request.getDefaultInstance()).build();
     getHttpDetails(NetworkProfiler.HttpDetailsRequest.Type.REQUEST, request);
   }
 
   @Test
   public void testGetHttpDetailsResponse() {
-    NetworkProfiler.HttpDetailsResponse response = NetworkProfiler.HttpDetailsResponse.newBuilder()
-      .setResponse(NetworkProfiler.HttpDetailsResponse.Response.getDefaultInstance()).build();
+    NetworkProfiler.HttpDetailsResponse response = NetworkProfiler.HttpDetailsResponse
+      .newBuilder().setResponse(NetworkProfiler.HttpDetailsResponse.Response.getDefaultInstance()).build();
     getHttpDetails(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE, response);
   }
 
   @Test
   public void testGetHttpDetailsBody() {
-    NetworkProfiler.HttpDetailsResponse body = NetworkProfiler.HttpDetailsResponse.newBuilder()
-      .setResponseBody(NetworkProfiler.HttpDetailsResponse.Body.getDefaultInstance()).build();
+    NetworkProfiler.HttpDetailsResponse body = NetworkProfiler.HttpDetailsResponse
+      .newBuilder().setResponseBody(NetworkProfiler.HttpDetailsResponse.Body.getDefaultInstance()).build();
     getHttpDetails(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY, body);
   }
 
   @Test
   public void testGetHttpRangeInvalidSession() {
-    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setSession(Common.Session.getDefaultInstance())
-      .setStartTimestamp(0)
-      .setEndTimestamp(Long.MAX_VALUE)
-      .build();
+    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest
+      .newBuilder().setSession(Common.Session.getDefaultInstance()).setStartTimestamp(0).setEndTimestamp(Long.MAX_VALUE).build();
 
     StreamObserver<NetworkProfiler.HttpRangeResponse> observer = mock(StreamObserver.class);
     myNetworkService.getHttpRange(request, observer);
@@ -152,11 +140,8 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetHttpRangeInRange() {
-    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(0)
-      .setEndTimestamp(Long.MAX_VALUE)
-      .build();
+    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest
+      .newBuilder().setSession(SESSION).setStartTimestamp(0).setEndTimestamp(Long.MAX_VALUE).build();
 
     StreamObserver<NetworkProfiler.HttpRangeResponse> observer = mock(StreamObserver.class);
     myNetworkService.getHttpRange(request, observer);
@@ -165,7 +150,8 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetHttpRangeOutOfRange_StartTimeAfterLastRequest() {
-    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
+    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest
+      .newBuilder()
       .setSession(SESSION)
       .setStartTimestamp(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
       .setEndTimestamp(Long.MAX_VALUE)
@@ -178,11 +164,8 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetHttpRangeOutOfRange_EndTimeBeforeFirstRequest() {
-    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setSession(SESSION)
-      .setStartTimestamp(Long.MIN_VALUE)
-      .setEndTimestamp(Long.MIN_VALUE + 1)
-      .build();
+    NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest
+      .newBuilder().setSession(SESSION).setStartTimestamp(Long.MIN_VALUE).setEndTimestamp(Long.MIN_VALUE + 1).build();
 
     StreamObserver<NetworkProfiler.HttpRangeResponse> observer = mock(StreamObserver.class);
     myNetworkService.getHttpRange(request, observer);
@@ -196,22 +179,20 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetDataSpeed() {
-    NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse.newBuilder()
-      .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-                 .setEndTimestamp(BASE_TIME_NS)
-                 .setSpeedData(NETWORK_SPEED_DATA)
-                 .build())
+    NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse
+      .newBuilder()
+      .addData(
+        NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(BASE_TIME_NS).setSpeedData(NETWORK_SPEED_DATA).build())
       .build();
     getData(NetworkProfiler.NetworkDataRequest.Type.SPEED, expected);
   }
 
   @Test
   public void testGetDataConnections() {
-    NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse.newBuilder()
-      .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-                 .setEndTimestamp(DELAY_TIME_NS)
-                 .setConnectionData(NETWORK_CONNECTION_DATA)
-                 .build())
+    NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse
+      .newBuilder()
+      .addData(
+        NetworkProfiler.NetworkProfilerData.newBuilder().setEndTimestamp(DELAY_TIME_NS).setConnectionData(NETWORK_CONNECTION_DATA).build())
       .build();
 
     getData(NetworkProfiler.NetworkDataRequest.Type.CONNECTIONS, expected);
@@ -219,11 +200,11 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetDataConnectivity() {
-    NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse.newBuilder()
-      .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-                 .setEndTimestamp(BASE_TIME_NS)
-                 .setConnectivityData(NETWORK_CONNECTIVITY_DATA)
-                 .build())
+    NetworkProfiler.NetworkDataResponse expected = NetworkProfiler.NetworkDataResponse
+      .newBuilder()
+      .addData(
+        NetworkProfiler.NetworkProfilerData
+          .newBuilder().setEndTimestamp(BASE_TIME_NS).setConnectivityData(NETWORK_CONNECTIVITY_DATA).build())
       .build();
 
     getData(NetworkProfiler.NetworkDataRequest.Type.CONNECTIVITY, expected);
@@ -231,7 +212,8 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetDataOutOfRange() {
-    NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
+    NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest
+      .newBuilder()
       .setSession(SESSION)
       .setStartTimestamp(BASE_TIME_NS + TimeUnit.SECONDS.toNanos(1))
       .setEndTimestamp(Long.MAX_VALUE)
@@ -244,7 +226,8 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   @Test
   public void testGetDataInvalidSession() {
-    NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
+    NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest
+      .newBuilder()
       .setSession(Common.Session.getDefaultInstance())
       .setStartTimestamp(0)
       .setEndTimestamp(Long.MAX_VALUE)
@@ -256,7 +239,8 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
   }
 
   private void getData(NetworkProfiler.NetworkDataRequest.Type type, NetworkProfiler.NetworkDataResponse expected) {
-    NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest.newBuilder()
+    NetworkProfiler.NetworkDataRequest request = NetworkProfiler.NetworkDataRequest
+      .newBuilder()
       .setSession(SESSION)
       .setStartTimestamp(0)
       .setEndTimestamp(Long.MAX_VALUE)
@@ -269,11 +253,8 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
 
   private void getHttpDetails(NetworkProfiler.HttpDetailsRequest.Type type,
                               NetworkProfiler.HttpDetailsResponse expectedResponse) {
-    NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
-      .setSession(SESSION)
-      .setConnId(CONNECTION_ID)
-      .setType(type)
-      .build();
+    NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest
+      .newBuilder().setSession(SESSION).setConnId(CONNECTION_ID).setType(type).build();
     StreamObserver<NetworkProfiler.HttpDetailsResponse> observer = mock(StreamObserver.class);
     myNetworkService.getHttpDetails(request, observer);
     validateResponse(observer, expectedResponse);

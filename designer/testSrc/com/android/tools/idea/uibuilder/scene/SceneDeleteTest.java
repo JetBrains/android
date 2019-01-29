@@ -44,7 +44,7 @@ public class SceneDeleteTest extends SceneTest {
                  "    app:layout_constraintLeft_toLeftOf=\"@+id/button\"\n" +
                  "    app:layout_constraintTop_toBottomOf=\"@+id/button\"\n" +
                  "    android:layout_marginTop=\"16dp\"/>");
-    myScene.clearAttributes();
+    myScene.clearAllConstraints();
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
                  "        android:id=\"@id/button\"\n" +
@@ -65,7 +65,7 @@ public class SceneDeleteTest extends SceneTest {
   @NotNull
   public ModelBuilder createModel() {
     return model("constraint.xml",
-                 component(CONSTRAINT_LAYOUT)
+                 component(CONSTRAINT_LAYOUT.defaultName())
                    .id("@id/root")
                    .withBounds(0, 0, 2000, 2000)
                    .width("1000dp")

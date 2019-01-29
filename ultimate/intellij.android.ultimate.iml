@@ -11,9 +11,10 @@
     <orderEntry type="module" module-name="intellij.java" />
     <orderEntry type="module" module-name="intellij.database" />
     <orderEntry type="module" module-name="intellij.database.impl" />
-    <orderEntry type="module" module-name="intellij.android" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="library" name="com.android.tools.ddms:ddmlib" level="project" />
   </component>
 </module>

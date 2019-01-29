@@ -34,6 +34,7 @@ import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltipView;
 import com.android.tools.profilers.network.NetworkMonitorView;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -74,7 +75,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     // Create a 2-row panel. First row, all monitors; second row, the timeline. This way, the
     // timeline will always be at the bottom, even if no monitors are found (e.g. when the phone is
     // disconnected).
-    JPanel topPanel = new JPanel(new TabularLayout("*", "*,Fit"));
+    JPanel topPanel = new JPanel(new TabularLayout("*", "*,Fit-"));
     topPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
     TabularLayout layout = new TabularLayout("*");
@@ -83,17 +84,17 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     ProfilerTimeline timeline = stage.getStudioProfilers().getTimeline();
 
     // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
-    getTooltipPanel().setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0));
+    getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
     RangeTooltipComponent
       tooltip = new RangeTooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(), getTooltipPanel(),
-                                          ProfilerLayeredPane.class);
+                                          getProfilersView().getComponent(), () -> true);
 
     getTooltipBinder().bind(NetworkMonitorTooltip.class, NetworkMonitorTooltipView::new);
     getTooltipBinder().bind(CpuMonitorTooltip.class, CpuMonitorTooltipView::new);
     getTooltipBinder().bind(MemoryMonitorTooltip.class, MemoryMonitorTooltipView::new);
-    getTooltipBinder().bind(EventActivityTooltip.class, EventActivityTooltipView::new);
-    getTooltipBinder().bind(EventSimpleEventTooltip.class, EventSimpleEventTooltipView::new);
+    getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
+    getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
     if (isEnergyProfilerEnabled) {
       getTooltipBinder().bind(EnergyMonitorTooltip.class, EnergyMonitorTooltipView::new);
     }
@@ -107,7 +108,9 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       component.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseReleased(MouseEvent e) {
-          expandMonitor(monitor);
+          if (SwingUtilities.isLeftMouseButton(e)) {
+            expandMonitor(monitor);
+          }
         }
       });
       component.addKeyListener(new KeyAdapter() {
@@ -116,15 +119,30 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
           // On Windows we don't get a KeyCode so checking the getKeyCode doesn't work. Instead we get the code from the char
           // we are given.
           int keyCode = KeyEvent.getExtendedKeyCodeForChar(e.getKeyChar());
-          if (keyCode == KeyEvent.VK_ENTER || keyCode == KeyEvent.VK_SPACE) {
+          if (keyCode == KeyEvent.VK_ENTER) {
             if (monitor.isFocused()) {
               expandMonitor(monitor);
             }
           }
         }
       });
+
+      // Configure Context Menu
+      IdeProfilerComponents ideProfilerComponents = getIdeComponents();
+      ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
+
+      ProfilerAction.Builder builder = new ProfilerAction.Builder("Open " + monitor.getName());
+      ProfilerAction action =
+        builder.setActionRunnable(() -> expandMonitor(monitor))
+          .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0))
+          .setContainerComponent(component).build();
+      ProfilerContextMenu.createIfAbsent(component).add(action);
+      contextMenuInstaller.installGenericContextMenu(component, action);
+      contextMenuInstaller.installGenericContextMenu(component, ContextMenuItem.SEPARATOR);
+      profilersView.installCommonMenuItems(component);
+
       int weight = (int)(view.getVerticalWeight() * 100f);
-      layout.setRowSizing(rowIndex, (weight > 0) ? weight + "*" : "Fit");
+      layout.setRowSizing(rowIndex, (weight > 0) ? weight + "*" : "Fit-");
       monitors.add(component, new TabularLayout.Constraint(rowIndex, 0));
       rowIndex++;
       myViews.add(view);

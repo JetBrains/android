@@ -26,49 +26,49 @@ typealias PsiClassPointer = SmartPsiElementPointer<out PsiClass>
 typealias PsiFieldPointer = SmartPsiElementPointer<out PsiField>
 
 data class RoomDatabase(
-    /** Annotated class. */
-    val psiClass: PsiClassPointer,
+  /** Annotated class. */
+  val psiClass: PsiClassPointer,
 
-    /** Classes mentioned in the `entities` annotation parameter. These may not actually be `@Entities` if the code is wrong.  */
-    val entities: Set<PsiClassPointer>
+  /** Classes mentioned in the `entities` annotation parameter. These may not actually be `@Entities` if the code is wrong.  */
+  val entities: Set<PsiClassPointer>
 )
 
 data class Entity(
-    /** Annotated class. */
-    val psiClass: PsiClassPointer,
+  /** Annotated class. */
+  val psiClass: PsiClassPointer,
 
-    /** Name of the table: take from the class name or the annotation parameter. */
-    override val name: String,
+  /** Name of the table: take from the class name or the annotation parameter. */
+  override val name: String,
 
-    /**
-     * [PsiElement] that determines the table name and should be the destination of references from SQL.
-     *
-     * This can be either the class itself or the annotation element.
-     */
-    val nameElement: PsiElementPointer = psiClass,
+  /**
+   * [PsiElement] that determines the table name and should be the destination of references from SQL.
+   *
+   * This can be either the class itself or the annotation element.
+   */
+  val nameElement: PsiElementPointer = psiClass,
 
-    /** Columns present in the table representing this entity. */
-    val columns: Set<EntityColumn> = emptySet()
+  /** Columns present in the table representing this entity. */
+  val columns: Set<EntityColumn> = emptySet()
 ) : SqlTable {
-    override fun processColumns(processor: Processor<SqlColumn>) = ContainerUtil.process(columns, processor)
-    override val definingElement: PsiElement get() = psiClass.element!!
-    override val resolveTo: PsiElement get() = nameElement.element!!
-    override val isView: Boolean get() = false
+  override fun processColumns(processor: Processor<SqlColumn>) = ContainerUtil.process(columns, processor)
+  override val definingElement: PsiElement get() = psiClass.element!!
+  override val resolveTo: PsiElement get() = nameElement.element!!
+  override val isView: Boolean get() = false
 }
 
 data class EntityColumn(
-    /** Field that defines this column. */
-    val psiField: PsiFieldPointer,
+  /** Field that defines this column. */
+  val psiField: PsiFieldPointer,
 
-    /** Effective name of the column, either taken from the field or from `@ColumnInfo`. */
-    override val name: String,
+  /** Effective name of the column, either taken from the field or from `@ColumnInfo`. */
+  override val name: String,
 
-    /** The [PsiElement] that defines the column name. */
-    val nameElement: PsiElementPointer = psiField
+  /** The [PsiElement] that defines the column name. */
+  val nameElement: PsiElementPointer = psiField
 ) : SqlColumn {
-    override val type: SqlType? get() = psiField.element?.type?.presentableText?.let(::JavaFieldSqlType)
-    override val definingElement: PsiElement get() = psiField.element!!
-    override val resolveTo: PsiElement get() = nameElement.element!!
+  override val type: SqlType? get() = psiField.element?.type?.presentableText?.let(::JavaFieldSqlType)
+  override val definingElement: PsiElement get() = psiField.element!!
+  override val resolveTo: PsiElement get() = nameElement.element!!
 }
 
 data class Dao(val psiClass: PsiClassPointer)
@@ -77,9 +77,9 @@ data class Dao(val psiClass: PsiClassPointer)
  * Schema defined using Room annotations in Java/Kotlin code.
  */
 data class RoomSchema(
-    val databases: Set<RoomDatabase>,
-    val entities: Set<Entity>,
-    val daos: Set<Dao>
+  val databases: Set<RoomDatabase>,
+  val entities: Set<Entity>,
+  val daos: Set<Dao>
 ) {
   fun findEntity(psiClass: PsiClass) = entities.find { it.psiClass.element == psiClass }
 }

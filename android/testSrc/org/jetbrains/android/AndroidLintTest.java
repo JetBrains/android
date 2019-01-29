@@ -16,14 +16,22 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.testutils.VirtualTimeScheduler;
+import com.android.tools.analytics.*;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.lint.*;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.testing.Sdks;
 import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.android.utils.CharSequences;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.LintIssueId;
+import com.google.wireless.android.sdk.stats.LintPerformance;
+import com.google.wireless.android.sdk.stats.LintSession;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass;
@@ -64,7 +72,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
@@ -79,6 +86,10 @@ public class AndroidLintTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    AnalyticsSettingsData analyticsSettings = new AnalyticsSettingsData();
+    analyticsSettings.setOptedIn(false);
+    AnalyticsSettings.setInstanceForTest(analyticsSettings);
+
     AndroidLintInspectionBase.invalidateInspectionShortName2IssueMap();
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false);
     myFixture.allowTreeAccessForAllFiles();
@@ -158,9 +169,37 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testContentDescription() throws Exception {
-    doTestWithFix(new AndroidLintContentDescriptionInspection(),
-                  "Set contentDescription",
-                  "/res/layout/layout.xml", "xml");
+    // Also tests analytics for single file (batch) analysis
+
+    VirtualTimeScheduler scheduler = new VirtualTimeScheduler();
+    TestUsageTracker usageTracker = new TestUsageTracker(scheduler);
+    UsageTracker.setWriterForTest(usageTracker);
+    try {
+
+      doTestWithFix(new AndroidLintContentDescriptionInspection(),
+                    "Set contentDescription",
+                    "/res/layout/layout.xml", "xml");
+
+      List<LoggedUsage> usages = usageTracker.getUsages();
+      assertThat(usages).hasSize(2);
+      AndroidStudioEvent event = usages.get(0).getStudioEvent();
+      assertThat(event.getKind()).isEqualTo(AndroidStudioEvent.EventKind.LINT_SESSION);
+      LintSession session = event.getLintSession();
+      assertThat(session.getAnalysisType()).isEqualTo(LintSession.AnalysisType.IDE_FILE);
+
+      List<LintIssueId> list = session.getIssueIdsList();
+      assertThat(list).hasSize(1);
+      LintIssueId issue1 = list.get(0);
+      assertThat(issue1.getIssueId()).isEqualTo("ContentDescription");
+      assertThat(issue1.getCount()).isEqualTo(1);
+      assertThat(issue1.getSeverity()).isEqualTo(LintIssueId.LintSeverity.DEFAULT_SEVERITY);
+
+      LintPerformance performance = session.getLintPerformance();
+        assertThat(performance.getFileCount()).isEqualTo(1);
+    } finally {
+      usageTracker.close();
+      UsageTracker.cleanAfterTesting();
+    }
   }
 
   public void testContentDescription1() throws Exception {
@@ -208,6 +247,12 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestHighlighting(new AndroidLintMissingPrefixInspection(), "/res/layout/layout.xml", "xml");
   }
 
+  public void testActions() throws Exception {
+    // Regression test for issue 79120601
+    doTestNoFix(new AndroidLintValidActionsXmlInspection(),
+                "/res/xml/actions.xml", "xml");
+  }
+
   public void testDuplicatedIds() throws Exception {
     doTestNoFix(new AndroidLintDuplicateIdsInspection(),
                 "/res/layout/layout.xml", "xml");
@@ -221,6 +266,45 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testAuthString() throws Exception {
     doTestNoFix(new AndroidLintAuthLeakInspection(),
                 "/src/test/pkg/AuthDemo.java", "java");
+  }
+
+  public void testColors() throws Exception {
+    myFixture.addFileToProject("/src/androidx/annotation/ColorRes.java",
+                               "" +
+                               "package androidx.annotation;\n" +
+                               "import static java.lang.annotation.ElementType.FIELD;\n" +
+                               "import static java.lang.annotation.ElementType.LOCAL_VARIABLE;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "\n" +
+                               "import java.lang.annotation.Documented;\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "@Documented\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({METHOD, PARAMETER, FIELD, LOCAL_VARIABLE})\n" +
+                               "public @interface ColorRes {\n" +
+                               "}\n");
+    myFixture.addFileToProject("/src/androidx/annotation/ColorInt.java",
+                               "" +
+                               "package androidx.annotation;\n" +
+                               "\n" +
+                               "import static java.lang.annotation.ElementType.FIELD;\n" +
+                               "import static java.lang.annotation.ElementType.LOCAL_VARIABLE;\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.ElementType.PARAMETER;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.CLASS;\n" +
+                               "\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "@Retention(CLASS)\n" +
+                               "@Target({PARAMETER,METHOD,LOCAL_VARIABLE,FIELD})\n" +
+                               "public @interface ColorInt {\n" +
+                               "}");
+
+    doTestNoFix(new AndroidLintResourceAsColorInspection(),
+                "/src/test/pkg/Colors.kt", "kt");
   }
 
   public void testInefficientWeight() throws Exception {
@@ -337,8 +421,11 @@ public class AndroidLintTest extends AndroidTestCase {
                                 "src/p1/pkg/MySqliteHelper.java");
     myFixture.copyFileToProject(getGlobalTestDir() + "/MainActivity.java",
                                 "src/p1/pkg/MainActivity.java");
-    myFixture.copyFileToProject(getGlobalTestDir() + "/R.java", "src/p1/pkg/R.java");
     myFixture.copyFileToProject(getGlobalTestDir() + "/strings.xml", "res/values/strings.xml");
+
+    if (!StudioFlags.IN_MEMORY_R_CLASSES.get()) {
+      myFixture.copyFileToProject(getGlobalTestDir() + "/R.java", "src/p1/pkg/R.java");
+    }
 
     // No highlighting test: the error markers are physically present in the PSI File
     // and confuses the manifest merger, which sees them. (The <caret> tag on the
@@ -442,7 +529,7 @@ public class AndroidLintTest extends AndroidTestCase {
     // Needs a valid SDK; can't use the mock one in the test data.
     AndroidSdkData prevSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (prevSdkData == null) {
-      Sdk androidSdk = createLatestAndroidSdk();
+      Sdk androidSdk = Sdks.createLatestAndroidSdk();
       AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
       assertNotNull(androidPlatform);
       // Put default platforms in the list before non-default ones so they'll be looked at first.

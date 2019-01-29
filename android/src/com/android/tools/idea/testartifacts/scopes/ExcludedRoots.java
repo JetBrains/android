@@ -160,19 +160,19 @@ class ExcludedRoots {
   }
 
   void removeLibraryPaths(@NotNull DependencySet dependencies) {
-    for (LibraryDependency dependency : dependencies.onLibraries()) {
-      for (File path : dependency.getBinaryPaths()) {
-        myExcludedRoots.remove(path);
-      }
-    }
-
-    //// Now we need to add to 'excluded' roots the libraries that are in the modules to include, but are in the scope that needs to be
-    //// excluded.
-    //// https://code.google.com/p/android/issues/detail?id=206481
+    // Now we need to add to 'excluded' roots the libraries that are in the modules to include, but are in the scope that needs to be
+    // excluded.
+    // https://code.google.com/p/android/issues/detail?id=206481
     for (ModuleDependency dependency : dependencies.onModules()) {
       Module module = dependency.getModule();
       if (module != null) {
         addLibraryPaths(module);
+      }
+    }
+
+    for (LibraryDependency dependency : dependencies.onLibraries()) {
+      for (File path : dependency.getBinaryPaths()) {
+        myExcludedRoots.remove(path);
       }
     }
   }

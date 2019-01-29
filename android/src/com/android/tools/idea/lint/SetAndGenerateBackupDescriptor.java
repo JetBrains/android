@@ -52,7 +52,7 @@ class SetAndGenerateBackupDescriptor extends DefaultLintQuickFix {
     super("Set fullBackupContent attribute and generate descriptor");
     ResourceUrl resourceUrl = ResourceUrl.create(ResourceType.XML, RESOURCE_URL_NAME, false);
     mySetAttributeQuickFix =
-      new SetAttributeQuickFix(myName, ATTR_FULL_BACKUP_CONTENT, resourceUrl.toString());
+      new SetAttributeQuickFix(myName, null, ATTR_FULL_BACKUP_CONTENT, resourceUrl.toString());
     myGenerateDescriptorFix = new GenerateBackupDescriptorFix(resourceUrl);
   }
 

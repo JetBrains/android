@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
-import com.android.tools.idea.gradle.dsl.parser.java.JavaVersionDslElement;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,6 +42,8 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public interface GradleDslWriter {
+  PsiElement moveDslElement(@NotNull GradleDslElement element);
+
   PsiElement createDslElement(@NotNull GradleDslElement element);
 
   void deleteDslElement(@NotNull GradleDslElement element);
@@ -53,27 +54,22 @@ public interface GradleDslWriter {
 
   void deleteDslLiteral(@NotNull GradleDslLiteral literal);
 
-  PsiElement createDslReference(@NotNull GradleDslReference reference);
-
-  void applyDslReference(@NotNull GradleDslReference reference);
-
-  void deleteDslReference(@NotNull GradleDslReference reference);
-
   PsiElement createDslMethodCall(@NotNull GradleDslMethodCall methodCall);
 
   void applyDslMethodCall(@NotNull GradleDslMethodCall methodCall);
 
   PsiElement createDslExpressionList(@NotNull GradleDslExpressionList expressionList);
 
+  void applyDslExpressionList(@NotNull GradleDslExpressionList expressionList);
+
   PsiElement createDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap);
 
-  PsiElement createDslJavaVersionElement(@NotNull JavaVersionDslElement javaVersionDslElement);
-
-  void applyDslJavaVersionElement(@NotNull JavaVersionDslElement javaVersionDslElement);
-
-  void deleteDslJavaVersionElement(@NotNull JavaVersionDslElement javaVersionDslElement);
+  void applyDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap);
 
   class Adapter implements GradleDslWriter {
+    @Override
+    public PsiElement moveDslElement(@NotNull GradleDslElement element) { return null; }
+
     @Override
     public PsiElement createDslElement(@NotNull GradleDslElement element) { return null; }
 
@@ -90,15 +86,6 @@ public interface GradleDslWriter {
     public void deleteDslLiteral(@NotNull GradleDslLiteral literal) { }
 
     @Override
-    public PsiElement createDslReference(@NotNull GradleDslReference reference) { return null; }
-
-    @Override
-    public void applyDslReference(@NotNull GradleDslReference reference) { }
-
-    @Override
-    public void deleteDslReference(@NotNull GradleDslReference reference) { }
-
-    @Override
     public PsiElement createDslMethodCall(@NotNull GradleDslMethodCall methodCall) { return null; }
 
     @Override
@@ -108,15 +95,12 @@ public interface GradleDslWriter {
     public PsiElement createDslExpressionList(@NotNull GradleDslExpressionList expressionList) { return null; }
 
     @Override
+    public void applyDslExpressionList(@NotNull GradleDslExpressionList expressionList) { }
+
+    @Override
     public PsiElement createDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap) { return null; }
 
     @Override
-    public PsiElement createDslJavaVersionElement(@NotNull JavaVersionDslElement javaVersionDslElement) { return null; }
-
-    @Override
-    public void applyDslJavaVersionElement(@NotNull JavaVersionDslElement javaVersionDslElement) { }
-
-    @Override
-    public void deleteDslJavaVersionElement(@NotNull JavaVersionDslElement javaVersionDslElement) { }
+    public void applyDslExpressionMap(@NotNull GradleDslExpressionMap expressionMap) { }
   }
 }

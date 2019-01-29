@@ -56,6 +56,11 @@ class AndroidProjectRule private constructor(
     private var lightFixture: Boolean = true,
 
     /**
+     * True if this rule should include an Android SDK.
+     */
+    private var withAndroidSdk: Boolean = false,
+
+    /**
      * Name of the fixture used to create the project directory when not
      * using a light fixture.
      *
@@ -93,6 +98,15 @@ class AndroidProjectRule private constructor(
     fun onDisk(fixtureName: String? = null) = AndroidProjectRule(
         lightFixture = false,
         fixtureName = fixtureName)
+
+    /**
+     * Returns an [AndroidProjectRule] that uses a fixture on disk
+     * using a [JavaTestFixtureFactory] with an Android SDK.
+     */
+    @JvmStatic
+    fun withSdk() = AndroidProjectRule(
+      lightFixture = false,
+      withAndroidSdk = true)
   }
 
   fun initAndroid(shouldInit: Boolean): AndroidProjectRule {
@@ -104,9 +118,9 @@ class AndroidProjectRule private constructor(
       mocks.replaceProjectService(serviceType, newServiceInstance)
 
   fun <T> replaceService(serviceType: Class<T>, newServiceInstance: T) =
-      mocks.replaceService(serviceType, newServiceInstance)
+      mocks.replaceApplicationService(serviceType, newServiceInstance)
 
-  fun <T> mockService(serviceType: Class<T>): T = mocks.mockService(serviceType)
+  fun <T> mockService(serviceType: Class<T>): T = mocks.mockApplicationService(serviceType)
 
   fun <T> mockProjectService(serviceType: Class<T>): T = mocks.mockProjectService(serviceType)
 
@@ -123,7 +137,7 @@ class AndroidProjectRule private constructor(
     if (initAndroid) {
       addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME)
     }
-    mocks = IdeComponents(fixture.project)
+    mocks = IdeComponents(fixture)
   }
 
   private fun createLightFixture(): CodeInsightTestFixture {
@@ -160,6 +174,9 @@ class AndroidProjectRule private constructor(
     val facetManager = FacetManager.getInstance(module)
     val facet = facetManager.createFacet<T, C>(type, facetName, null)
     runInEdtAndWait {
+      if (withAndroidSdk) {
+        Sdks.addLatestAndroidSdk(fixture.testRootDisposable, module)
+      }
       val facetModel = facetManager.createModifiableModel()
       facetModel.addFacet(facet)
       ApplicationManager.getApplication().runWriteAction { facetModel.commit() }
@@ -169,7 +186,6 @@ class AndroidProjectRule private constructor(
   }
 
   override fun after(description: Description) {
-    mocks.restore()
     runInEdtAndWait {
       val facetManager = FacetManager.getInstance(module)
       val facetModel = facetManager.createModifiableModel()

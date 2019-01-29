@@ -18,11 +18,11 @@ package com.android.tools.idea.templates.recipe;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.XmlElement;
 import com.android.resources.ResourceFolderType;
+import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.templates.FmGetConfigurationNameMethod;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
@@ -52,19 +52,19 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.flags.StudioFlags.MIGRATE_TO_ANDROID_X_REFACTORING_ENABLED;
 import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.parseBuildFile;
-import static com.android.tools.idea.gradle.util.GradleProjects.isBuildWithGradle;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePath;
 import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.*;
+import static com.android.tools.idea.util.DependencyManagementUtil.dependsOnOldSupportLib;
 import static com.android.utils.XmlUtils.XML_PROLOG;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
@@ -92,7 +92,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
   private final RenderingContext myContext;
   private final RecipeIO myIO;
   private final ReadonlyStatusHandler myReadonlyStatusHandler;
-  private boolean myNeedsSync;
 
   public DefaultRecipeExecutor(@NotNull RenderingContext context, boolean dryRun) {
     myReferences = new FindReferencesRecipeExecutor(context);
@@ -119,7 +118,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     File buildFile = getBuildFilePath(myContext);
     if (project.isInitialized()) {
       GradleBuildModel buildModel = getBuildModel(buildFile, project);
-      if (buildModel.appliedPlugins().stream().noneMatch(x -> x.value().equals(name))) {
+      if (buildModel.plugins().stream().noneMatch(x -> x.name().forceString().equals(name))) {
         buildModel.applyPlugin(name);
         myIO.applyChanges(buildModel);
       }
@@ -135,7 +134,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         throw new RuntimeException(e);
       }
     }
-    myNeedsSync = true;
   }
 
   @Override
@@ -165,9 +163,9 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
       }
       else {
         GradleVersion toBeAddedDependencyVersion = GradleVersion.parse(nullToEmpty(toBeAddedDependency.getVersion()));
-        GradleVersion existingDependencyVersion = GradleVersion.parse(nullToEmpty(targetDependencyModel.version().value()));
+        GradleVersion existingDependencyVersion = GradleVersion.parse(nullToEmpty(targetDependencyModel.version().toString()));
         if (toBeAddedDependencyVersion.compareTo(existingDependencyVersion) > 0) {
-          targetDependencyModel.setVersion(nullToEmpty(toBeAddedDependency.getVersion()));
+          targetDependencyModel.version().setValue(nullToEmpty(toBeAddedDependency.getVersion()));
         }
       }
       myIO.applyChanges(buildModel);
@@ -182,7 +180,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         throw new RuntimeException(e);
       }
     }
-    myNeedsSync = true;
   }
 
   @NotNull
@@ -307,7 +304,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
       if (targetFile.exists()) {
         if (myContext.getProject().isInitialized()) {
           VirtualFile toFile = findFileByIoFile(targetFile, true);
-          final ReadonlyStatusHandler.OperationStatus status = myReadonlyStatusHandler.ensureFilesWritable(Collections.singletonList(toFile));
+          final ReadonlyStatusHandler.OperationStatus status = myReadonlyStatusHandler.ensureFilesWritable(toFile);
           if (status.hasReadonlyFiles()) {
             throw new TemplateUserVisibleException(
               String.format("Attempt to update file that is readonly: %1$s", targetFile.getAbsolutePath()));
@@ -343,12 +340,10 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
       String contents;
       if (targetFile.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
         contents = RecipeMergeUtils.mergeGradleSettingsFile(sourceText, targetText);
-        myNeedsSync = true;
       }
       else if (targetFile.getName().equals(FN_BUILD_GRADLE)) {
         String compileSdkVersion = (String)getParamMap().get(TemplateMetadata.ATTR_BUILD_API_STRING);
         contents = myIO.mergeBuildFiles(sourceText, targetText, myContext.getProject(), compileSdkVersion);
-        myNeedsSync = true;
       }
       else if (hasExtension(targetFile, DOT_XML)) {
         contents = RecipeMergeUtils.mergeXml(myContext, sourceText, targetText, targetFile);
@@ -423,13 +418,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         throw new RuntimeException(e);
       }
     }
-    Project project = myContext.getProject();
-    if (myNeedsSync &&
-        myContext.performSync() &&
-        !project.isDefault() &&
-        isBuildWithGradle(project)) {
-      myIO.requestSync(project);
-    }
   }
 
   @Override
@@ -462,10 +450,10 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
    * Merge the URLs from our gradle template into the target module's build.gradle file
    */
   private void mergeDependenciesIntoGradle() throws Exception {
-    boolean isInstantApp = (Boolean)getParamMap().getOrDefault(ATTR_IS_INSTANT_APP, false);
+    // Note: ATTR_BASE_FEATURE_DIR has a value set for Instant App/Dynamic Feature modules.
     String baseFeatureRoot = (String)getParamMap().getOrDefault(ATTR_BASE_FEATURE_DIR, "");
     File featureBuildFile = getBuildFilePath(myContext);
-    if (!isInstantApp || isNullOrEmpty(baseFeatureRoot)) {
+    if (isNullOrEmpty(baseFeatureRoot)) {
       writeDependencies(featureBuildFile, x -> true);
     }
     else {
@@ -479,12 +467,13 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         configName = "api";
       }
 
+      // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
+      // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
       File baseBuildFile = getGradleBuildFilePath(new File(baseFeatureRoot));
       String configuration = configName;
       writeDependencies(baseBuildFile, x -> x.equals(configuration));
       writeDependencies(featureBuildFile, x -> !x.equals(configuration));
     }
-    myNeedsSync = true;
   }
 
   private void writeDependencies(File buildFile, Predicate<String> configurationFilter) throws IOException {
@@ -504,7 +493,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
         dependencies.append("  ")
           .append(dependency.getKey())
           .append(" ");
-        final String dependencyValue = dependency.getValue();
+        final String dependencyValue = convertToAndroidX(dependency.getValue());
         // Interpolated values need to be in double quotes
         boolean isInterpolated = dependencyValue.contains("$");
         dependencies.append(isInterpolated ? '"' : '\'')
@@ -515,6 +504,14 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
     }
     dependencies.append("}\n");
     return dependencies.toString();
+  }
+
+  private String convertToAndroidX(String dep) {
+    Boolean useAndroidX = (Boolean)getParamMap().get(ATTR_ANDROIDX_SUPPORT);
+    if (Boolean.TRUE.equals(useAndroidX)) {
+      return AndroidxNameUtils.getVersionedCoordinateMapping(dep);
+    }
+    return dep;
   }
 
   /**
@@ -677,7 +674,7 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
   }
 
   private void addFileAlreadyExistWarning(@NotNull File targetFile) {
-    addWarning(String.format("The following file could not be created since it already exists: %1$s", targetFile.getName()));
+    addWarning(String.format("The following file could not be created since it already exists: %1$s", targetFile.getPath()));
   }
 
 
@@ -711,11 +708,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
                                   @NotNull Project project,
                                   @Nullable String supportLibVersionFilter) {
       return ProjectSystemUtil.getProjectSystem(project).mergeBuildFiles(dependencies, destinationContents, supportLibVersionFilter);
-    }
-
-    public void requestSync(@NotNull Project project) {
-      ProjectSystemSyncManager.SyncReason reason = project.isInitialized() ? ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED : ProjectSystemSyncManager.SyncReason.PROJECT_LOADED;
-      ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(reason, true);
     }
   }
 
@@ -751,11 +743,6 @@ public final class DefaultRecipeExecutor implements RecipeExecutor {
                                   Project project,
                                   String compileSdkVersion) {
       return destinationContents;
-    }
-
-
-    @Override
-    public void requestSync(@NotNull Project project) {
     }
   }
 }

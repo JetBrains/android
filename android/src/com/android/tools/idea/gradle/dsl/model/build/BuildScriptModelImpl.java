@@ -42,7 +42,7 @@ public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildSc
     DependenciesDslElement dependenciesDslElement = myDslElement.getPropertyElement(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
     if (dependenciesDslElement == null) {
       dependenciesDslElement = new DependenciesDslElement(myDslElement);
-      myDslElement.setNewElement(DEPENDENCIES_BLOCK_NAME, dependenciesDslElement);
+      myDslElement.setNewElement(dependenciesDslElement);
     }
     return new DependenciesModelImpl(dependenciesDslElement);
   }
@@ -53,7 +53,7 @@ public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildSc
     RepositoriesDslElement repositoriesDslElement = myDslElement.getPropertyElement(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
     if (repositoriesDslElement == null) {
       repositoriesDslElement = new RepositoriesDslElement(myDslElement);
-      myDslElement.setNewElement(REPOSITORIES_BLOCK_NAME, repositoriesDslElement);
+      myDslElement.setNewElement(repositoriesDslElement);
     }
     return new RepositoriesModelImpl(repositoriesDslElement);
   }

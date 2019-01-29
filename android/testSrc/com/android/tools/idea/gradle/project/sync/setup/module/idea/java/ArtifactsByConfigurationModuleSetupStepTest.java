@@ -28,7 +28,6 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,8 +44,6 @@ import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -74,7 +71,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
 
     JavaModuleModel model = new JavaModuleModel(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                                                artifactsByConfiguration, null, null, null, true, false);
+                                                Collections.emptyList(), artifactsByConfiguration, null, null, null, true, false);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 
@@ -98,7 +95,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     Module module = getModule();
 
     JavaModuleModel model = new JavaModuleModel(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                                                artifactsByConfiguration, null, null, null, true, false);
+                                                Collections.emptyList(), artifactsByConfiguration, null, null, null, true, false);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 
@@ -155,8 +152,9 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     Map<String, Set<File>> artifactsByConfiguration = new HashMap<>();
     artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
 
-    JavaModuleModel model = new JavaModuleModel(moduleName, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                                                artifactsByConfiguration, null, buildFolderPath, null, true, false);
+    JavaModuleModel model =
+      new JavaModuleModel(moduleName, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+                          artifactsByConfiguration, null, buildFolderPath, null, true, false);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 

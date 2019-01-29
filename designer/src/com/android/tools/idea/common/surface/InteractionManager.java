@@ -15,20 +15,30 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static com.android.tools.idea.common.model.Coordinates.getAndroidXDip;
+import static com.android.tools.idea.common.model.Coordinates.getAndroidYDip;
+import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.*;
+import com.android.tools.adtui.ui.AdtUiCursors;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.MarqueeInteraction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PsiNavigationSupport;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,21 +47,38 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.datatransfer.Transferable;
-import java.awt.dnd.*;
-import java.awt.event.*;
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
-import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
-import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
 /**
  * The {@linkplain InteractionManager} is is the central manager of interactions; it is responsible
@@ -220,6 +247,7 @@ public class InteractionManager {
     }
     myHoverTimer.removeActionListener(myListener);
     myHoverTimer.stop();
+    myIsListening = false;
   }
 
   /**
@@ -312,6 +340,10 @@ public class InteractionManager {
     mySurface.setCursor(cursor != Cursor.getDefaultCursor() ? cursor : null);
   }
 
+  public boolean isInteractionInProgress() {
+    return myCurrentInteraction != null;
+  }
+
   /**
    * Helper class which implements the {@link MouseMotionListener},
    * {@link MouseListener} and {@link KeyListener} interfaces.
@@ -327,9 +359,8 @@ public class InteractionManager {
       int y = event.getY();
       int clickCount = event.getClickCount();
 
+      NlComponent component = getComponentAt(x, y);
       if (clickCount == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        NlComponent component = getComponentAt(x, y);
-
         if (component != null) {
           // TODO: find a way to move layout-specific logic elsewhere.
           if (mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
@@ -353,7 +384,6 @@ public class InteractionManager {
 
       // If shift is down, the user is multi-selecting the component, no need to navigate XML file in this case.
       if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown()) {
-        NlComponent component = getComponentAt(x, y);
         // TODO: find a way to move layout-specific logic elsewhere.
         if (component != null && mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
           navigateEditor(component, false);
@@ -362,7 +392,7 @@ public class InteractionManager {
 
       if (event.isPopupTrigger()) {
         selectComponentAt(x, y, false, true);
-        mySurface.getActionManager().showPopup(event);
+        mySurface.getActionManager().showPopup(event, component);
       }
     }
 
@@ -391,8 +421,9 @@ public class InteractionManager {
       ourLastStateMask = event.getModifiers();
 
       if (event.isPopupTrigger()) {
-        selectComponentAt(event.getX(), event.getY(), false, true);
-        mySurface.getActionManager().showPopup(event);
+        NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
+        mySurface.getActionManager().showPopup(event, selected);
+        event.consume();
         return;
       }
 
@@ -409,9 +440,9 @@ public class InteractionManager {
     @Override
     public void mouseReleased(@NotNull MouseEvent event) {
       if (event.isPopupTrigger()) {
-        selectComponentAt(event.getX(), event.getY(), false, true);
+        NlComponent selected = selectComponentAt(event.getX(), event.getY(), false, true);
         mySurface.repaint();
-        mySurface.getActionManager().showPopup(event);
+        mySurface.getActionManager().showPopup(event, selected);
         return;
       }
       else if (event.getButton() > 1 || SystemInfo.isMac && event.isControlDown()) {
@@ -429,7 +460,7 @@ public class InteractionManager {
       }
 
       if (myCurrentInteraction == null) {
-        boolean allowToggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.META_MASK)) != 0;
+        boolean allowToggle = (modifiers & (InputEvent.SHIFT_MASK | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) != 0;
         selectComponentAt(x, y, allowToggle, false);
         mySurface.repaint();
       }
@@ -454,29 +485,35 @@ public class InteractionManager {
      * @param ignoreIfAlreadySelected If true, and the clicked component is already selected, leave the
      *                                selection (including possibly other selected components) alone
      */
-    private void selectComponentAt(@SwingCoordinate int x, @SwingCoordinate int y, boolean allowToggle,
-                                   boolean ignoreIfAlreadySelected) {
+    @Nullable
+    private NlComponent selectComponentAt(@SwingCoordinate int x, @SwingCoordinate int y, boolean allowToggle,
+                                          boolean ignoreIfAlreadySelected) {
       // Just a click, select
       SceneView sceneView = mySurface.getSceneView(x, y);
       if (sceneView == null) {
-        return;
+        return null;
       }
+
+      SceneContext context = SceneContext.get(sceneView);
+      int xDip = getAndroidXDip(sceneView, x);
+      int yDip = getAndroidYDip(sceneView, y);
+      Scene scene = sceneView.getScene();
+      Target clickedTarget = scene.findTarget(context, xDip, yDip);
+      SceneComponent clicked;
+      if (clickedTarget != null) {
+        clicked = clickedTarget.getComponent();
+      }
+      else {
+        clicked = scene.findComponent(context, xDip, yDip);
+      }
+      NlComponent component = null;
+      if (clicked != null) {
+        component = clicked.getNlComponent();
+      }
+
       SelectionModel selectionModel = sceneView.getSelectionModel();
-      NlComponent component = Coordinates.findComponent(sceneView, x, y);
-
-      if (component == null) {
-        // Clicked component resize handle?
-        @AndroidDpCoordinate int mx = Coordinates.getAndroidXDip(sceneView, x);
-        @AndroidDpCoordinate int my = Coordinates.getAndroidYDip(sceneView, y);
-        @AndroidDpCoordinate int max = Coordinates.getAndroidDimensionDip(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
-        SelectionHandle handle = selectionModel.findHandle(mx, my, max, mySurface);
-        if (handle != null) {
-          component = handle.component;
-        }
-      }
-
       if (ignoreIfAlreadySelected && component != null && selectionModel.isSelected(component)) {
-        return;
+        return component;
       }
 
       if (component == null) {
@@ -488,6 +525,7 @@ public class InteractionManager {
       else {
         selectionModel.setSelection(Collections.singletonList(component));
       }
+      return component;
     }
 
     @Nullable
@@ -544,7 +582,6 @@ public class InteractionManager {
         int modifiers = event.getModifiers();
         //noinspection AssignmentToStaticFieldFromInstanceMethod
         ourLastStateMask = modifiers;
-        boolean toggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK)) != 0;
         SceneView sceneView = mySurface.getSceneView(x, y);
         if (sceneView == null) {
           return;
@@ -552,46 +589,35 @@ public class InteractionManager {
         Scene scene = sceneView.getScene();
         SelectionModel selectionModel = sceneView.getSelectionModel();
 
-        int xDp = Coordinates.getAndroidXDip(sceneView, x);
-        int yDp = Coordinates.getAndroidYDip(sceneView, y);
+        int xDp = getAndroidXDip(sceneView, x);
+        int yDp = getAndroidYDip(sceneView, y);
 
-        Interaction interaction = null;
-        // Dragging on top of a selection handle: start a resize operation
-        @AndroidDpCoordinate int max = Coordinates.getAndroidDimensionDip(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
-        SelectionHandle handle =
-          selectionModel.findHandle(Coordinates.getAndroidXDip(sceneView, x), Coordinates.getAndroidYDip(sceneView, y), max, mySurface);
-        if (handle != null) {
-          SceneComponent component = scene.getSceneComponent(handle.component);
-          assert component != null;
-          interaction = new ResizeInteraction(sceneView, component, handle);
+        Interaction interaction;
+        NlModel model = sceneView.getModel();
+        SceneComponent component = null;
+
+        // Make sure we start from root if we don't have anything selected
+        if (selectionModel.isEmpty() && !model.getComponents().isEmpty()) {
+          selectionModel.setSelection(ImmutableList.of(model.getComponents().get(0).getRoot()));
+        }
+
+        // See if you're dragging inside a selected parent; if so, drag the selection instead of any
+        // leaf nodes inside it
+        NlComponent primaryNlComponent = selectionModel.getPrimary();
+        SceneComponent primary = scene.getSceneComponent(primaryNlComponent);
+        if (primary != null && primary.getParent() != null && primary.containsX(xDp) && primary.containsY(yDp)) {
+          component = primary;
+        }
+        if (component == null) {
+          component = scene.findComponent(SceneContext.get(sceneView), xDp, yDp);
+        }
+
+        if (component == null || component.getParent() == null) {
+          // Dragging on the background/root view: start a marquee selection
+          interaction = new MarqueeInteraction(sceneView);
         }
         else {
-          NlModel model = sceneView.getModel();
-          SceneComponent component = null;
-
-          // Make sure we start from root if we don't have anything selected
-          if (selectionModel.isEmpty() && !model.getComponents().isEmpty()) {
-            selectionModel.setSelection(ImmutableList.of(model.getComponents().get(0).getRoot()));
-          }
-
-          // See if you're dragging inside a selected parent; if so, drag the selection instead of any
-          // leaf nodes inside it
-          NlComponent primaryNlComponent = selectionModel.getPrimary();
-          SceneComponent primary = scene.getSceneComponent(primaryNlComponent);
-          if (primary != null && primary.getParent() != null && primary.containsX(xDp) && primary.containsY(yDp)) {
-            component = primary;
-          }
-          if (component == null) {
-            component = scene.findComponent(SceneContext.get(sceneView), xDp, yDp);
-          }
-
-          if (component == null || component.getParent() == null) {
-            // Dragging on the background/root view: start a marquee selection
-            interaction = new MarqueeInteraction(sceneView, toggle);
-          }
-          else {
-            interaction = getSurface().createInteractionOnDrag(component, primary);
-          }
+          interaction = getSurface().createInteractionOnDrag(component, primary);
         }
 
         if (interaction != null) {
@@ -722,9 +748,9 @@ public class InteractionManager {
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
 
-        // TODO: support nav editor
         List<NlComponent> dragged = ApplicationManager.getApplication()
-          .runWriteAction((Computable<List<NlComponent>>)() -> NlModelHelperKt.createComponents(model, sceneView, item, insertType));
+                                                      .runWriteAction((Computable<List<NlComponent>>)() -> model
+                                                        .createComponents(item, insertType, mySurface));
 
         if (dragged == null) {
           event.reject();
@@ -739,7 +765,7 @@ public class InteractionManager {
         // This determines the icon presented to the user while dragging.
         // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
         // that reflects the users choice i.e. controlled by the modifier key.
-        event.accept(insertType.isCreate() ? DnDConstants.ACTION_COPY : event.getDropAction());
+        event.accept(insertType);
       }
     }
 
@@ -762,7 +788,7 @@ public class InteractionManager {
           // This determines the icon presented to the user while dragging.
           // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
           // that reflects the users choice i.e. controlled by the modifier key.
-          event.accept(insertType.isCreate() ? DnDConstants.ACTION_COPY : event.getDropAction());
+          event.accept(insertType);
         } else {
           event.reject();
         }
@@ -792,7 +818,7 @@ public class InteractionManager {
       InsertType insertType = performDrop(event.getDropAction(), event.getTransferable());
       if (insertType != null) {
         // This determines how the DnD source acts to a completed drop.
-        event.accept(insertType == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
+        event.accept(insertType);
         event.complete();
       }
       else {
@@ -839,8 +865,7 @@ public class InteractionManager {
         components = mySurface.getSelectionModel().getSelection();
       }
       else {
-        // TODO: support nav editor
-        components = NlModelHelperKt.createComponents(model, sceneView, item, insertType);
+        components = model.createComponents(item, insertType, mySurface);
 
         if (components.isEmpty()) {
           return null;  // User cancelled
@@ -954,10 +979,10 @@ public class InteractionManager {
     }
   }
 
-  private void setPanning(boolean panning) {
+  void setPanning(boolean panning) {
     if (panning != myIsPanning) {
       myIsPanning = panning;
-      mySurface.setCursor(panning ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+      mySurface.setCursor(panning ? AdtUiCursors.GRAB
                                   : Cursor.getDefaultCursor());
     }
   }
@@ -971,7 +996,7 @@ public class InteractionManager {
    * @param y     y position of the cursor for the passed event
    * @return true if the event has been intercepted and handled, false otherwise.
    */
-  private boolean interceptPanInteraction(@NotNull MouseEvent event, int x, int y) {
+  boolean interceptPanInteraction(@NotNull MouseEvent event, int x, int y) {
     int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
                           (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
                                             : InputEvent.CTRL_DOWN_MASK);
@@ -980,9 +1005,12 @@ public class InteractionManager {
         || (event.getModifiersEx() & modifierKeyMask) == modifierKeyMask) {
       DesignSurface surface = getSurface();
       Point position = surface.getScrollPosition();
-      position.translate(myLastMouseX - x, myLastMouseY - y);
-      surface.setScrollPosition(position);
-      mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+      // position can be null in tests
+      if (position != null) {
+        position.translate(myLastMouseX - x, myLastMouseY - y);
+        surface.setScrollPosition(position);
+        mySurface.setCursor(AdtUiCursors.GRABBING);
+      }
       return true;
     }
     return false;

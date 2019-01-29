@@ -19,11 +19,13 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import org.junit.Test;
 
 /**
  * Tests for {@link DataBindingModel}.
  */
 public class DataBindingModelTest extends GradleFileModelTestCase {
+  @Test
   public void testParseElements() throws Exception {
     String text = "android {\n" +
                   "  dataBinding {\n" +
@@ -44,6 +46,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertEquals("version", "1.0", dataBinding.version());
   }
 
+  @Test
   public void testEditElements() throws Exception {
     String text = "android {\n" +
                   "  dataBinding {\n" +
@@ -64,9 +67,9 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertEquals("enabled", Boolean.FALSE, dataBinding.enabled());
     assertEquals("version", "1.0", dataBinding.version());
 
-    dataBinding.setAddDefaultAdapters(false);
-    dataBinding.setEnabled(true);
-    dataBinding.setVersion("2.0");
+    dataBinding.addDefaultAdapters().setValue(false);
+    dataBinding.enabled().setValue(true);
+    dataBinding.version().setValue("2.0");
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -78,7 +81,38 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertEquals("version", "2.0", dataBinding.version());
   }
 
+  @Test
   public void testAddElements() throws Exception {
+    String text = "android {\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    DataBindingModel dataBinding = android.dataBinding();
+    assertMissingProperty("addDefaultAdapters", dataBinding.addDefaultAdapters());
+    assertMissingProperty("enabled", dataBinding.enabled());
+    assertMissingProperty("version", dataBinding.version());
+
+    dataBinding.addDefaultAdapters().setValue(true);
+    dataBinding.enabled().setValue(false);
+    dataBinding.version().setValue("1.0");
+
+    applyChangesAndReparse(buildModel);
+    android = buildModel.android();
+    assertNotNull(android);
+
+    dataBinding = android.dataBinding();
+    assertEquals("addDefaultAdapters", Boolean.TRUE, dataBinding.addDefaultAdapters());
+    assertEquals("enabled", Boolean.FALSE, dataBinding.enabled());
+    assertEquals("version", "1.0", dataBinding.version());
+  }
+
+  @Test
+  public void testAddElementsFromExisting() throws Exception {
     String text = "android {\n" +
                   "  dataBinding {\n" +
                   "  }\n" +
@@ -91,13 +125,13 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     DataBindingModel dataBinding = android.dataBinding();
-    assertNull("addDefaultAdapters", dataBinding.addDefaultAdapters());
-    assertNull("enabled", dataBinding.enabled());
-    assertNull("version", dataBinding.version());
+    assertMissingProperty("addDefaultAdapters", dataBinding.addDefaultAdapters());
+    assertMissingProperty("enabled", dataBinding.enabled());
+    assertMissingProperty("version", dataBinding.version());
 
-    dataBinding.setAddDefaultAdapters(true);
-    dataBinding.setEnabled(false);
-    dataBinding.setVersion("1.0");
+    dataBinding.addDefaultAdapters().setValue(true);
+    dataBinding.enabled().setValue(false);
+    dataBinding.version().setValue("1.0");
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -109,6 +143,7 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertEquals("version", "1.0", dataBinding.version());
   }
 
+  @Test
   public void testRemoveElements() throws Exception {
     String text = "android {\n" +
                   "  dataBinding {\n" +
@@ -130,9 +165,9 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
     assertEquals("enabled", Boolean.FALSE, dataBinding.enabled());
     assertEquals("version", "1.0", dataBinding.version());
 
-    dataBinding.removeAddDefaultAdapters();
-    dataBinding.removeEnabled();
-    dataBinding.removeVersion();
+    dataBinding.addDefaultAdapters().delete();
+    dataBinding.enabled().delete();
+    dataBinding.version().delete();
 
     applyChangesAndReparse(buildModel);
     android = buildModel.android();
@@ -140,8 +175,8 @@ public class DataBindingModelTest extends GradleFileModelTestCase {
 
     dataBinding = android.dataBinding();
     checkForInValidPsiElement(dataBinding, DataBindingModelImpl.class);
-    assertNull("addDefaultAdapters", dataBinding.addDefaultAdapters());
-    assertNull("enabled", dataBinding.enabled());
-    assertNull("version", dataBinding.version());
+    assertMissingProperty("addDefaultAdapters", dataBinding.addDefaultAdapters());
+    assertMissingProperty("enabled", dataBinding.enabled());
+    assertMissingProperty("version", dataBinding.version());
   }
 }

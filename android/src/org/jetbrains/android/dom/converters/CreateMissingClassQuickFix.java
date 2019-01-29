@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.ide.util.DirectoryChooserUtil;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -122,7 +121,7 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
         break;
       default:
         // There are several directories, present a dialog window for a user to choose a particular destination directory
-        final PsiDirectory[] array = filteredDirectories.toArray(new PsiDirectory[filteredDirectories.size()]);
+        final PsiDirectory[] array = filteredDirectories.toArray(PsiDirectory.EMPTY_ARRAY);
         directory = DirectoryChooserUtil.selectDirectory(aPackage.getProject(), array, filteredDirectories.get(0), "");
     }
 
@@ -158,14 +157,8 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
       }
     }.execute();
 
-    final PsiClass aClass = result.getResultObject();
-    // Open a created class in the editor
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        final OpenFileDescriptor fileDescriptor = new OpenFileDescriptor(project, aClass.getContainingFile().getVirtualFile());
-        FileEditorManager.getInstance(project).openEditor(fileDescriptor, true);
-      }
-    }, project.getDisposed());
+    PsiClass aClass = result.getResultObject();
+    OpenFileDescriptor fileDescriptor = new OpenFileDescriptor(project, aClass.getContainingFile().getVirtualFile());
+    FileEditorManager.getInstance(project).openEditor(fileDescriptor, true);
   }
 }

@@ -56,9 +56,9 @@ public class RoomUpdateStatementImpl extends ASTWrapperPsiElement implements Roo
   }
 
   @Override
-  @NotNull
+  @Nullable
   public RoomSingleTableStatementTable getSingleTableStatementTable() {
-    return findNotNullChildByClass(RoomSingleTableStatementTable.class);
+    return findChildByClass(RoomSingleTableStatementTable.class);
   }
 
   @Override

@@ -15,16 +15,5 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-
 public interface NdkBuildModel extends AbstractBuildModel {
-  @Override
-  @NotNull
-  NdkBuildModel setPath(@NotNull File path);
-
-  @Override
-  @NotNull
-  NdkBuildModel removePath();
 }

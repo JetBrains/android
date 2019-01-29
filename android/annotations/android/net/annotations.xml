@@ -95,7 +95,240 @@
       <val name="value" val="&quot;android.permission.ACCESS_NETWORK_STATE&quot;" />
     </annotation>
   </item>
+  <item name="android.net.IpSecAlgorithm IpSecAlgorithm(java.lang.String, byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.net.IpSecAlgorithm.CRYPT_AES_CBC, android.net.IpSecAlgorithm.AUTH_HMAC_MD5, android.net.IpSecAlgorithm.AUTH_HMAC_SHA1, android.net.IpSecAlgorithm.AUTH_HMAC_SHA256, android.net.IpSecAlgorithm.AUTH_HMAC_SHA384, android.net.IpSecAlgorithm.AUTH_HMAC_SHA512, android.net.IpSecAlgorithm.AUTH_CRYPT_AES_GCM}" />
+    </annotation>
+  </item>
+  <item name="android.net.IpSecAlgorithm IpSecAlgorithm(java.lang.String, byte[]) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecAlgorithm IpSecAlgorithm(java.lang.String, byte[], int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.net.IpSecAlgorithm.CRYPT_AES_CBC, android.net.IpSecAlgorithm.AUTH_HMAC_MD5, android.net.IpSecAlgorithm.AUTH_HMAC_SHA1, android.net.IpSecAlgorithm.AUTH_HMAC_SHA256, android.net.IpSecAlgorithm.AUTH_HMAC_SHA384, android.net.IpSecAlgorithm.AUTH_HMAC_SHA512, android.net.IpSecAlgorithm.AUTH_CRYPT_AES_GCM}" />
+    </annotation>
+  </item>
+  <item name="android.net.IpSecAlgorithm IpSecAlgorithm(java.lang.String, byte[], int) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecAlgorithm byte[] getKey()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecAlgorithm java.lang.String getName()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager">
+    <annotation name="android.support.annotation.SystemService">
+      <val name="value" val="android.content.Context.IPSEC_SERVICE" />
+    </annotation>
+  </item>
+  <item name="android.net.IpSecManager android.net.IpSecManager.SecurityParameterIndex allocateSecurityParameterIndex(java.net.InetAddress)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager android.net.IpSecManager.SecurityParameterIndex allocateSecurityParameterIndex(java.net.InetAddress) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager android.net.IpSecManager.SecurityParameterIndex allocateSecurityParameterIndex(java.net.InetAddress, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager android.net.IpSecManager.SecurityParameterIndex allocateSecurityParameterIndex(java.net.InetAddress, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager android.net.IpSecManager.UdpEncapsulationSocket openUdpEncapsulationSocket()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager android.net.IpSecManager.UdpEncapsulationSocket openUdpEncapsulationSocket(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager void applyTransportModeTransform(java.io.FileDescriptor, int, android.net.IpSecTransform) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager void applyTransportModeTransform(java.io.FileDescriptor, int, android.net.IpSecTransform) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.IpSecManager.DIRECTION_IN, android.net.IpSecManager.DIRECTION_OUT}" />
+    </annotation>
+  </item>
+  <item name="android.net.IpSecManager void applyTransportModeTransform(java.io.FileDescriptor, int, android.net.IpSecTransform) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager void applyTransportModeTransform(java.net.DatagramSocket, int, android.net.IpSecTransform) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager void applyTransportModeTransform(java.net.DatagramSocket, int, android.net.IpSecTransform) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.IpSecManager.DIRECTION_IN, android.net.IpSecManager.DIRECTION_OUT}" />
+    </annotation>
+  </item>
+  <item name="android.net.IpSecManager void applyTransportModeTransform(java.net.DatagramSocket, int, android.net.IpSecTransform) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager void applyTransportModeTransform(java.net.Socket, int, android.net.IpSecTransform) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager void applyTransportModeTransform(java.net.Socket, int, android.net.IpSecTransform) 1">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.IpSecManager.DIRECTION_IN, android.net.IpSecManager.DIRECTION_OUT}" />
+    </annotation>
+  </item>
+  <item name="android.net.IpSecManager void applyTransportModeTransform(java.net.Socket, int, android.net.IpSecTransform) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager void removeTransportModeTransforms(java.io.FileDescriptor) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager void removeTransportModeTransforms(java.net.DatagramSocket) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecManager void removeTransportModeTransforms(java.net.Socket) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder Builder(android.content.Context) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder android.net.IpSecTransform buildTransportModeTransform(java.net.InetAddress, android.net.IpSecManager.SecurityParameterIndex)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder android.net.IpSecTransform buildTransportModeTransform(java.net.InetAddress, android.net.IpSecManager.SecurityParameterIndex) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder android.net.IpSecTransform buildTransportModeTransform(java.net.InetAddress, android.net.IpSecManager.SecurityParameterIndex) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder android.net.IpSecTransform.Builder setAuthenticatedEncryption(android.net.IpSecAlgorithm)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder android.net.IpSecTransform.Builder setAuthenticatedEncryption(android.net.IpSecAlgorithm) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder android.net.IpSecTransform.Builder setAuthentication(android.net.IpSecAlgorithm)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder android.net.IpSecTransform.Builder setAuthentication(android.net.IpSecAlgorithm) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder android.net.IpSecTransform.Builder setEncryption(android.net.IpSecAlgorithm)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder android.net.IpSecTransform.Builder setEncryption(android.net.IpSecAlgorithm) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder android.net.IpSecTransform.Builder setIpv4Encapsulation(android.net.IpSecManager.UdpEncapsulationSocket, int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.IpSecTransform.Builder android.net.IpSecTransform.Builder setIpv4Encapsulation(android.net.IpSecManager.UdpEncapsulationSocket, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.net.LinkProperties java.lang.String getInterfaceName()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.LinkProperties java.lang.String getPrivateDnsServerName()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.MacAddress android.net.MacAddress fromBytes(byte[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.MacAddress android.net.MacAddress fromBytes(byte[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.MacAddress android.net.MacAddress fromString(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.MacAddress android.net.MacAddress fromString(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.MacAddress byte[] toByteArray()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.MacAddress int getAddressType()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.MacAddress.TYPE_UNICAST, android.net.MacAddress.TYPE_MULTICAST, android.net.MacAddress.TYPE_BROADCAST}" />
+    </annotation>
+  </item>
+  <item name="android.net.MacAddress java.lang.String toOuiString()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.net.NetworkCapabilities boolean hasCapability(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.NetworkCapabilities.NET_CAPABILITY_MMS, android.net.NetworkCapabilities.NET_CAPABILITY_SUPL, android.net.NetworkCapabilities.NET_CAPABILITY_DUN, android.net.NetworkCapabilities.NET_CAPABILITY_FOTA, android.net.NetworkCapabilities.NET_CAPABILITY_IMS, android.net.NetworkCapabilities.NET_CAPABILITY_CBS, android.net.NetworkCapabilities.NET_CAPABILITY_WIFI_P2P, android.net.NetworkCapabilities.NET_CAPABILITY_IA, android.net.NetworkCapabilities.NET_CAPABILITY_RCS, android.net.NetworkCapabilities.NET_CAPABILITY_XCAP, android.net.NetworkCapabilities.NET_CAPABILITY_EIMS, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_METERED, android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED, android.net.NetworkCapabilities.NET_CAPABILITY_TRUSTED, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_VPN, android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED, android.net.NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING, android.net.NetworkCapabilities.NET_CAPABILITY_FOREGROUND, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_CONGESTED, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED}" />
+    </annotation>
+  </item>
+  <item name="android.net.NetworkCapabilities boolean hasTransport(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.NetworkCapabilities.TRANSPORT_CELLULAR, android.net.NetworkCapabilities.TRANSPORT_WIFI, android.net.NetworkCapabilities.TRANSPORT_BLUETOOTH, android.net.NetworkCapabilities.TRANSPORT_ETHERNET, android.net.NetworkCapabilities.TRANSPORT_VPN, android.net.NetworkCapabilities.TRANSPORT_WIFI_AWARE, android.net.NetworkCapabilities.TRANSPORT_LOWPAN}" />
+    </annotation>
+  </item>
+  <item name="android.net.NetworkRequest boolean hasCapability(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.NetworkCapabilities.NET_CAPABILITY_MMS, android.net.NetworkCapabilities.NET_CAPABILITY_SUPL, android.net.NetworkCapabilities.NET_CAPABILITY_DUN, android.net.NetworkCapabilities.NET_CAPABILITY_FOTA, android.net.NetworkCapabilities.NET_CAPABILITY_IMS, android.net.NetworkCapabilities.NET_CAPABILITY_CBS, android.net.NetworkCapabilities.NET_CAPABILITY_WIFI_P2P, android.net.NetworkCapabilities.NET_CAPABILITY_IA, android.net.NetworkCapabilities.NET_CAPABILITY_RCS, android.net.NetworkCapabilities.NET_CAPABILITY_XCAP, android.net.NetworkCapabilities.NET_CAPABILITY_EIMS, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_METERED, android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED, android.net.NetworkCapabilities.NET_CAPABILITY_TRUSTED, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_VPN, android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED, android.net.NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING, android.net.NetworkCapabilities.NET_CAPABILITY_FOREGROUND, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_CONGESTED, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED}" />
+    </annotation>
+  </item>
+  <item name="android.net.NetworkRequest boolean hasTransport(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.NetworkCapabilities.TRANSPORT_CELLULAR, android.net.NetworkCapabilities.TRANSPORT_WIFI, android.net.NetworkCapabilities.TRANSPORT_BLUETOOTH, android.net.NetworkCapabilities.TRANSPORT_ETHERNET, android.net.NetworkCapabilities.TRANSPORT_VPN, android.net.NetworkCapabilities.TRANSPORT_WIFI_AWARE, android.net.NetworkCapabilities.TRANSPORT_LOWPAN}" />
+    </annotation>
+  </item>
+  <item name="android.net.NetworkRequest.Builder android.net.NetworkRequest.Builder addCapability(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.NetworkCapabilities.NET_CAPABILITY_MMS, android.net.NetworkCapabilities.NET_CAPABILITY_SUPL, android.net.NetworkCapabilities.NET_CAPABILITY_DUN, android.net.NetworkCapabilities.NET_CAPABILITY_FOTA, android.net.NetworkCapabilities.NET_CAPABILITY_IMS, android.net.NetworkCapabilities.NET_CAPABILITY_CBS, android.net.NetworkCapabilities.NET_CAPABILITY_WIFI_P2P, android.net.NetworkCapabilities.NET_CAPABILITY_IA, android.net.NetworkCapabilities.NET_CAPABILITY_RCS, android.net.NetworkCapabilities.NET_CAPABILITY_XCAP, android.net.NetworkCapabilities.NET_CAPABILITY_EIMS, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_METERED, android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED, android.net.NetworkCapabilities.NET_CAPABILITY_TRUSTED, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_VPN, android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED, android.net.NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING, android.net.NetworkCapabilities.NET_CAPABILITY_FOREGROUND, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_CONGESTED, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED}" />
+    </annotation>
+  </item>
+  <item name="android.net.NetworkRequest.Builder android.net.NetworkRequest.Builder addTransportType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.NetworkCapabilities.TRANSPORT_CELLULAR, android.net.NetworkCapabilities.TRANSPORT_WIFI, android.net.NetworkCapabilities.TRANSPORT_BLUETOOTH, android.net.NetworkCapabilities.TRANSPORT_ETHERNET, android.net.NetworkCapabilities.TRANSPORT_VPN, android.net.NetworkCapabilities.TRANSPORT_WIFI_AWARE, android.net.NetworkCapabilities.TRANSPORT_LOWPAN}" />
+    </annotation>
+  </item>
+  <item name="android.net.NetworkRequest.Builder android.net.NetworkRequest.Builder removeCapability(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.NetworkCapabilities.NET_CAPABILITY_MMS, android.net.NetworkCapabilities.NET_CAPABILITY_SUPL, android.net.NetworkCapabilities.NET_CAPABILITY_DUN, android.net.NetworkCapabilities.NET_CAPABILITY_FOTA, android.net.NetworkCapabilities.NET_CAPABILITY_IMS, android.net.NetworkCapabilities.NET_CAPABILITY_CBS, android.net.NetworkCapabilities.NET_CAPABILITY_WIFI_P2P, android.net.NetworkCapabilities.NET_CAPABILITY_IA, android.net.NetworkCapabilities.NET_CAPABILITY_RCS, android.net.NetworkCapabilities.NET_CAPABILITY_XCAP, android.net.NetworkCapabilities.NET_CAPABILITY_EIMS, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_METERED, android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED, android.net.NetworkCapabilities.NET_CAPABILITY_TRUSTED, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_VPN, android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED, android.net.NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING, android.net.NetworkCapabilities.NET_CAPABILITY_FOREGROUND, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_CONGESTED, android.net.NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED}" />
+    </annotation>
+  </item>
+  <item name="android.net.NetworkRequest.Builder android.net.NetworkRequest.Builder removeTransportType(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.net.NetworkCapabilities.TRANSPORT_CELLULAR, android.net.NetworkCapabilities.TRANSPORT_WIFI, android.net.NetworkCapabilities.TRANSPORT_BLUETOOTH, android.net.NetworkCapabilities.TRANSPORT_ETHERNET, android.net.NetworkCapabilities.TRANSPORT_VPN, android.net.NetworkCapabilities.TRANSPORT_WIFI_AWARE, android.net.NetworkCapabilities.TRANSPORT_LOWPAN}" />
+    </annotation>
+  </item>
+  <item name="android.net.Uri java.lang.String getAuthority()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getEncodedAuthority()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getEncodedFragment()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getEncodedPath()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getEncodedQuery()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getEncodedUserInfo()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getFragment()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getHost()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getLastPathSegment()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getPath()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getQuery()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getQueryParameter(java.lang.String)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getScheme()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.net.Uri java.lang.String getUserInfo()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
 </root>

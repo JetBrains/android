@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;

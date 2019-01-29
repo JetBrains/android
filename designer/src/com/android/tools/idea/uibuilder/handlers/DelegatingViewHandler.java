@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.uibuilder.api.CustomPanel;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
@@ -52,11 +54,6 @@ public class DelegatingViewHandler extends ViewHandler {
   }
 
   @Override
-  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
-    return myHandler.paintConstraints(screenView, graphics, component);
-  }
-
-  @Override
   public FillPolicy getFillPolicy() {
     return myHandler.getFillPolicy();
   }
@@ -67,8 +64,8 @@ public class DelegatingViewHandler extends ViewHandler {
   }
 
   @Override
-  public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
-    myHandler.addPopupMenuActions(actions);
+  public boolean addPopupMenuActions(@NotNull NlComponent component, @NotNull List<ViewAction> actions) {
+    return myHandler.addPopupMenuActions(component, actions);
   }
 
   // Properties
@@ -141,12 +138,6 @@ public class DelegatingViewHandler extends ViewHandler {
   @NotNull
   public Icon getIcon(@NotNull String tagName) {
     return myHandler.getIcon(tagName);
-  }
-
-  @Override
-  @NotNull
-  public Icon getLargeIcon(@NotNull String tagName) {
-    return myHandler.getLargeIcon(tagName);
   }
 
   @Override

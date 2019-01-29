@@ -51,6 +51,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
 import static com.android.tools.idea.gradle.util.GradleUtil.isRootModuleWithNoSources;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
@@ -85,7 +86,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
 
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       NdkFacet ndkFacet = NdkFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.getAndroidModel() != null) {
+      if (androidFacet != null && androidFacet.getConfiguration().getModel() != null) {
         children.add(new AndroidModuleNode(myProject, module, settings, myProjectViewPane));
       }
       else if (androidFacet != null && apkFacet != null) {
@@ -122,9 +123,6 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     }
 
     // TODO: What about files in the base project directory
-
-    // TODO: Do we want to show the External Libraries Node or a Dependencies node
-
     return children;
   }
 
@@ -135,17 +133,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     return String.format("%1$s", myProject.getName());
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    return super.equals(o);
-  }
-
-  /**
-   * Copy of {@link com.intellij.ide.projectView.impl.nodes.AbstractProjectNode#update(PresentationData)}
-   */
+  /** Copy of {@link com.intellij.ide.projectView.impl.nodes.AbstractProjectNode#update(PresentationData)} */
   @Override
   protected void update(@NotNull PresentationData presentation) {
     presentation.setIcon(PlatformIcons.PROJECT_ICON);
@@ -163,7 +151,21 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
 
     ProjectFileIndex index = ProjectRootManager.getInstance(myProject).getFileIndex();
     VirtualFile projectRootFolder = myProject.getBaseDir();
-    return index.isInContent(file) || index.isInLibrary(file) ||
-           (projectRootFolder != null && isAncestor(projectRootFolder, file, false));
+
+    if (index.isInContent(file) || index.isInLibrary(file) ||
+        (projectRootFolder != null && isAncestor(projectRootFolder, file, false))) {
+      return true;
+    }
+
+    if (ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT.get()) {
+      // Include files may be out-of-project so check for them.
+      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+        NdkFacet ndkFacet = NdkFacet.getInstance(module);
+        if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
+          return NdkModuleNode.containedInIncludeFolders(ndkFacet.getNdkModuleModel(), file);
+        }
+      }
+    }
+    return false;
   }
 }

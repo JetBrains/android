@@ -21,6 +21,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersion.AndroidVersionException;
+import com.android.support.AndroidxName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -61,6 +62,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.*;
@@ -73,6 +75,9 @@ import static org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
  */
 public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
 
+  protected static final BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> DEFAULT_MIGRATION_FACTORY = (artifact, version) ->
+    AppCompatPublicDotTxtLookup.getInstance().createAppCompatStyleMigration(artifact, version);
+
   static final int MIGRATION_ENTRY_SIZE = 35;
   static final String ATTR_ACTION_VIEW_CLASS = "actionViewClass";
   static final String ANDROID_WIDGET_SEARCH_VIEW_CLASS = "android.widget.SearchView";
@@ -80,6 +85,16 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   static final String ANDROID_WIDGET_SHARE_PROVIDER_CLASS = "android.widget.ShareActionProvider";
   static final String ATTR_ACTION_PROVIDER_CLASS = "actionProviderClass";
   static final String CLASS_SUPPORT_FRAGMENT_ACTIVITY = "android.support.v4.app.FragmentActivity";
+  static final AndroidxName ANDROID_SUPPORT_V7_APP_ALERT_DIALOG =
+    AndroidxName.of("android.support.v7.app.", "AlertDialog");
+  static final AndroidxName ANDROID_SUPPORT_V7_WIDGET_SEARCH_VIEW = AndroidxName.of("android.support.v7.widget.", "SearchView");
+  static final AndroidxName ANDROID_SUPPORT_V7_WIDGET_SHARE_ACTION_PROVIDER = AndroidxName.of("android.support.v7.widget.", "ShareActionProvider");
+  static final AndroidxName ANDROID_SUPPORT_V4_VIEW_ACTION_PROVIDER = AndroidxName.of("android.support.v4.view.", "ActionProvider");
+  static final AndroidxName ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT = AndroidxName.of("android.support.v4.view.", "MenuItemCompat");
+  static final AndroidxName ANDROID_SUPPORT_V7_WIDGET_LIST_POPUP_WINDOW = AndroidxName.of("android.support.v7.widget.", "ListPopupWindow");
+  static final AndroidxName ANDROID_SUPPORT_V7_APP_ACTION_BAR = AndroidxName.of("android.support.v7.app.", "ActionBar");
+  static final AndroidxName ANDROID_SUPPORT_V4_APP_FRAGMENT_TRANSACTION = AndroidxName.of("android.support.v4.app.", "FragmentTransaction");
+  static final AndroidxName ANDROID_SUPPORT_V4_APP_FRAGMENT_MANAGER = AndroidxName.of("android.support.v4.app.", "FragmentManager");
 
   /**
    * Dependency to add to build.gradle
@@ -101,9 +116,10 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   private final List<AppCompatMigrationEntry> myMigrationMap;
   private AppCompatStyleMigration myAppCompatStyleMigration;
   private PsiElement[] myElements = PsiElement.EMPTY_ARRAY;
-  private final boolean myCreateAppCompatStyleInstance;
   private List<SmartPsiElementPointer<PsiElement>> myRefsToShorten;
   private List<ClassMigrationUsageInfo> myClassMigrations;
+
+  private final BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> myAppCompatStyleMigrationFactory;
 
   /**
    * Keep track of files that may need {@link android.app.Activity} to be imported
@@ -122,17 +138,22 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   private PsiMigration myPsiMigration;
 
   protected MigrateToAppCompatProcessor(@NotNull Project project) {
-    this(project, buildMigrationMap(), null);
+    this(project, DEFAULT_MIGRATION_FACTORY);
+  }
+
+  @VisibleForTesting
+  protected MigrateToAppCompatProcessor(@NotNull Project project,
+                                        @NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> appCompatStyleMigrationFactory) {
+    this(project, buildMigrationMap(project), appCompatStyleMigrationFactory);
   }
 
   @VisibleForTesting
   protected MigrateToAppCompatProcessor(@NonNull Project project, @NonNull List<AppCompatMigrationEntry> migrationMap,
-                                        @Nullable AppCompatStyleMigration appCompatStyleMigration) {
+                                        @NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> appCompatStyleMigrationFactory) {
     super(project, null);
     myModules = ModuleManager.getInstance(project).getModules();
     myMigrationMap = migrationMap;
-    myAppCompatStyleMigration = appCompatStyleMigration;
-    myCreateAppCompatStyleInstance = myAppCompatStyleMigration == null;
+    myAppCompatStyleMigrationFactory = appCompatStyleMigrationFactory;
     myPsiFilesWithFragmentActivityImports = new SmartHashSet<>();
     myPsiFilesWithActivityImports = new SmartHashSet<>();
     myPsiMigration = startMigration(project);
@@ -142,96 +163,114 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     return PsiMigrationManager.getInstance(project).startMigration();
   }
 
+  /**
+   * Returns the correct name of the given {@link AndroidxName} based on whether AndroidX is on or not
+   */
+  @NotNull
+  private static String getName(boolean isAndroidx, @NotNull AndroidxName name) {
+    return isAndroidx ? name.newName() : name.oldName();
+  }
+
   @VisibleForTesting
   @NotNull
-  static List<AppCompatMigrationEntry> buildMigrationMap() {
+  static List<AppCompatMigrationEntry> buildMigrationMap(@NotNull Project project) {
+    boolean isAndroidx = MigrateToAndroidxUtil.isAndroidx(project);
+
     List<AppCompatMigrationEntry> mapEntries = Lists.newArrayListWithExpectedSize(MIGRATION_ENTRY_SIZE);
     // Change Activity => AppCompatActivity
-    mapEntries.add(new ClassMigrationEntry(CLASS_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY));
+    mapEntries.add(new ClassMigrationEntry(CLASS_ACTIVITY, getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY)));
     // ActionBarActivity is deprecated
-    mapEntries.add(new ClassMigrationEntry("android.support.v7.app.ActionBarActivity", CLASS_APP_COMPAT_ACTIVITY));
-    mapEntries.add(new ClassMigrationEntry(CLASS_SUPPORT_FRAGMENT_ACTIVITY, CLASS_APP_COMPAT_ACTIVITY));
-    mapEntries.add(new ClassMigrationEntry("android.app.ActionBar", "android.support.v7.app.ActionBar"));
+    mapEntries.add(new ClassMigrationEntry("android.support.v7.appActionBarActivity",
+                                           getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY)));
+    mapEntries.add(new ClassMigrationEntry(CLASS_SUPPORT_FRAGMENT_ACTIVITY,
+                                           getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY)));
+    mapEntries.add(new ClassMigrationEntry("android.app.ActionBar",
+                                           getName(isAndroidx, ANDROID_SUPPORT_V7_APP_ACTION_BAR)));
     // Change method getActionBar => getSupportActionBar
-    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "getActionBar", CLASS_APP_COMPAT_ACTIVITY,
+    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "getActionBar",
+                                            getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY),
                                             "getSupportActionBar"));
 
     // Change method setActionBar => setSupportActionBar
-    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "setActionBar", CLASS_APP_COMPAT_ACTIVITY,
+    mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "setActionBar",
+                                            getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY),
                                             "setSupportActionBar"));
 
-    mapEntries.add(new ClassMigrationEntry("android.widget.Toolbar", CLASS_TOOLBAR_V7));
+    mapEntries.add(new ClassMigrationEntry("android.widget.Toolbar",
+                                           getName(isAndroidx, CLASS_TOOLBAR_V7)));
 
     mapEntries.add(new XmlTagMigrationEntry("android.widget.Toolbar", "",
-                                            CLASS_TOOLBAR_V7, "",
+                                            getName(isAndroidx, CLASS_TOOLBAR_V7), "",
                                             XmlElementMigration.FLAG_LAYOUT));
 
     // Change usages of Fragment => v4.app.Fragment
-    mapEntries.add(new ClassMigrationEntry("android.app.Fragment", "android.support.v4.app.Fragment"));
+    mapEntries.add(new ClassMigrationEntry("android.app.Fragment",
+                                           getName(isAndroidx, CLASS_V4_FRAGMENT)));
     mapEntries.add(new ClassMigrationEntry("android.app.FragmentTransaction",
-                                           "android.support.v4.app.FragmentTransaction"));
+                                           getName(isAndroidx, ANDROID_SUPPORT_V4_APP_FRAGMENT_TRANSACTION)));
     mapEntries.add(new ClassMigrationEntry("android.app.FragmentManager",
-                                           "android.support.v4.app.FragmentManager"));
+                                           getName(isAndroidx, ANDROID_SUPPORT_V4_APP_FRAGMENT_MANAGER)));
 
     mapEntries.add(new MethodMigrationEntry(CLASS_ACTIVITY, "getFragmentManager",
-                                            CLASS_APP_COMPAT_ACTIVITY, "getSupportFragmentManager"));
+                                            getName(isAndroidx, CLASS_APP_COMPAT_ACTIVITY),
+                                            "getSupportFragmentManager"));
 
     mapEntries.add(new ClassMigrationEntry(
       "android.app.AlertDialog",
-      "android.support.v7.app.AlertDialog"));
+      getName(isAndroidx, ANDROID_SUPPORT_V7_APP_ALERT_DIALOG)));
 
     mapEntries.add(new ClassMigrationEntry(
       "android.widget.SearchView",
-      "android.support.v7.widget.SearchView"));
+      getName(isAndroidx, ANDROID_SUPPORT_V7_WIDGET_SEARCH_VIEW)));
 
     mapEntries.add(new ClassMigrationEntry(
       "android.widget.ShareActionProvider",
-      "android.support.v7.widget.ShareActionProvider"));
+      getName(isAndroidx, ANDROID_SUPPORT_V7_WIDGET_SHARE_ACTION_PROVIDER)));
 
     mapEntries.add(new ClassMigrationEntry(
       "android.view.ActionProvider",
-      "android.support.v4.view.ActionProvider"));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_ACTION_PROVIDER)));
 
     // The various MenuItem => MenuItemCompat migrations
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "getActionProvider",
-      "android.support.v4.view.MenuItemCompat", "getActionProvider", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "getActionProvider", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "getActionView",
-      "android.support.v4.view.MenuItemCompat", "getActionView", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "getActionView", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "collapseActionView",
-      "android.support.v4.view.MenuItemCompat", "collapseActionView", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "collapseActionView", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "expandActionView",
-      "android.support.v4.view.MenuItemCompat", "expandActionView", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "expandActionView", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "setActionProvider",
-      "android.support.v4.view.MenuItemCompat", "setActionProvider", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "setActionProvider", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "setActionView",
-      "android.support.v4.view.MenuItemCompat", "setActionView", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "setActionView", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "isActionViewExpanded",
-      "android.support.v4.view.MenuItemCompat", "isActionViewExpanded", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "isActionViewExpanded", 0));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "setShowAsAction",
-      "android.support.v4.view.MenuItemCompat", "setShowAsAction", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "setShowAsAction", 0));
 
     mapEntries.add(new ClassMigrationEntry(
       "android.view.MenuItem.OnActionExpandListener",
-      "android.support.v4.view.MenuItemCompat.OnActionExpandListener"));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT) + ".OnActionExpandListener"));
 
     mapEntries.add(new ReplaceMethodCallMigrationEntry(
       "android.view.MenuItem", "setOnActionExpandListener",
-      "android.support.v4.view.MenuItemCompat", "setOnActionExpandListener", 0));
+      getName(isAndroidx, ANDROID_SUPPORT_V4_VIEW_MENU_ITEM_COMPAT), "setOnActionExpandListener", 0));
 
     mapEntries.add(new AttributeMigrationEntry(ATTR_SHOW_AS_ACTION, ANDROID_URI,
                                                ATTR_SHOW_AS_ACTION, AUTO_URI,
@@ -249,7 +288,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
                                                XmlElementMigration.FLAG_MENU, TAG_ITEM));
 
     mapEntries.add(new AttributeValueMigrationEntry(ANDROID_WIDGET_SHARE_PROVIDER_CLASS,
-                                                    "android.support.v7.widget.ShareActionProvider",
+                                                    getName(isAndroidx, ANDROID_SUPPORT_V7_WIDGET_SHARE_ACTION_PROVIDER),
                                                     ATTR_ACTION_PROVIDER_CLASS, ANDROID_URI,
                                                     XmlElementMigration.FLAG_MENU, TAG_ITEM));
 
@@ -262,7 +301,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
                                                "ImageView", "ImageButton"));
 
     mapEntries.add(new ClassMigrationEntry("android.widget.ListPopupWindow",
-                                           "android.support.v7.widget.ListPopupWindow"));
+                                           getName(isAndroidx, ANDROID_SUPPORT_V7_WIDGET_LIST_POPUP_WINDOW)));
 
     return ImmutableList.copyOf(mapEntries);
   }
@@ -279,8 +318,8 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     myPsiFilesWithFragmentActivityImports.clear();
     myPsiFilesWithActivityImports.clear();
 
-    if (myCreateAppCompatStyleInstance) {
-      createAppCompatStyleMigration();
+    if (myAppCompatStyleMigration == null) {
+      myAppCompatStyleMigration = createAppCompatStyleMigration(myModules, myAppCompatStyleMigrationFactory);
     }
 
     List<UsageInfo> infos = new ArrayList<>();
@@ -381,7 +420,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
     }
 
     MigrateToAppCompatUtil.removeUnneededUsages(infos);
-    return infos.toArray(new UsageInfo[infos.size()]);
+    return infos.toArray(UsageInfo.EMPTY_ARRAY);
   }
 
   private void finishMigration() {
@@ -431,7 +470,7 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
           continue;
         }
         AndroidModel base = buildModel.android();
-        String version = base == null ? null : base.compileSdkVersion().value();
+        String version = base.compileSdkVersion().toString();
         JavaProjectModelModificationService.getInstance(myProject)
           .addDependency(module, new AppCompatLibraryDescriptor(version));
       }
@@ -527,7 +566,8 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
       // dependsOn transitively checks for dependencies so we mark the modules that will
       // transitively receive appcompat from another module.
       if (!modulesWithTransitiveAppCompat.contains(module) &&
-          !DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7)) {
+          !DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7) &&
+          !DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)) {
         modulesNeedingAppCompat.add(module);
         modulesWithTransitiveAppCompat.add(module);
       }
@@ -576,14 +616,17 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
   }
 
   // Create an instance of the AppCompatStyleMigration by looking at the compile Sdk version
-  private void createAppCompatStyleMigration() {
-
+  private static AppCompatStyleMigration createAppCompatStyleMigration(
+    @NotNull Module[] modules,
+    @NotNull BiFunction<GoogleMavenArtifactId, String, AppCompatStyleMigration> factory) {
+    boolean dependsOnAndroidX = false;
     AndroidVersion highest = new AndroidVersion(21); // atleast 21
-    for (Module module : myModules) {
+    for (Module module : modules) {
+      dependsOnAndroidX |= DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
       GradleBuildModel build = GradleBuildModel.get(module);
-      if (build != null && build.android() != null) {
+      if (build != null) {
         //noinspection ConstantConditions
-        String version = build.android().compileSdkVersion().value();
+        String version = build.android().compileSdkVersion().toString();
         if (version != null) {
           try {
             AndroidVersion current = new AndroidVersion(StringUtil.trimStart(version, "android-"));
@@ -596,14 +639,28 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
         }
       }
     }
+    GoogleMavenArtifactId artifact;
     AndroidVersion finalAndroidVersion = highest;
-    Predicate<GradleVersion> filter = v -> v.toString().startsWith(Integer.toString(finalAndroidVersion.getApiLevel()));
+    Predicate<GradleVersion> filter;
 
+    if (dependsOnAndroidX) {
+      artifact = GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7;
+      filter = null;
+    }
+    else {
+      artifact = GoogleMavenArtifactId.APP_COMPAT_V7;
+      // Only find version that match the API level
+      filter = v -> v.toString().startsWith(Integer.toString(finalAndroidVersion.getApiLevel()));
+    }
+
+    // For androidx since it it not stable, we need to also look in previews
     GradleVersion version = IdeGoogleMavenRepository.INSTANCE.findVersion(
-      GoogleMavenArtifactId.APP_COMPAT_V7.getMavenGroupId(), GoogleMavenArtifactId.APP_COMPAT_V7.getMavenArtifactId(), filter,
-      finalAndroidVersion.isPreview());
+      artifact.getMavenGroupId(), artifact.getMavenArtifactId(), filter,
+      artifact.isAndroidxLibrary() ||finalAndroidVersion.isPreview());
 
-    myAppCompatStyleMigration = AppCompatPublicDotTxtLookup.getInstance()
-      .createAppCompatStyleMigration(version == null ? "26.1.0" : version.toString());
+    String defaultVersion = artifact.isAndroidxLibrary() ?
+                            "1.0.0-alpha1" :
+                            "26.1.0";
+    return factory.apply(artifact, version == null ? defaultVersion : version.toString());
   }
 }

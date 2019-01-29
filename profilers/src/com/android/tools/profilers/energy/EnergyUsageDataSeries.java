@@ -17,9 +17,9 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataRequest;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyDataResponse.EnergySample;
+import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
 import com.android.tools.profilers.ProfilerClient;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,20 +28,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-class EnergyUsageDataSeries implements DataSeries<Long> {
+public class EnergyUsageDataSeries implements DataSeries<Long> {
 
   @NotNull private final ProfilerClient myClient;
   private final Common.Session mySession;
   @NotNull private final Function<EnergySample, Integer> mySampleToUsage;
 
   private static int getTotalUsage(@NotNull EnergySample sample) {
-    return sample.getCpuUsage() + sample.getNetworkUsage();
+    return sample.getCpuUsage() + sample.getNetworkUsage() + sample.getLocationUsage();
   }
 
   /**
    * Construct a data series which adds up all the different sources of energy in any given {@link EnergySample}
    */
-  EnergyUsageDataSeries(@NotNull ProfilerClient client, Common.Session session) {
+  public EnergyUsageDataSeries(@NotNull ProfilerClient client, Common.Session session) {
     this(client, session, EnergyUsageDataSeries::getTotalUsage);
   }
 
@@ -53,13 +53,13 @@ class EnergyUsageDataSeries implements DataSeries<Long> {
 
   @Override
   public List<SeriesData<Long>> getDataForXRange(Range range) {
-    EnergyDataRequest.Builder builder = EnergyDataRequest.newBuilder().setSession(mySession);
+    EnergyRequest.Builder builder = EnergyRequest.newBuilder().setSession(mySession);
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     builder.setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long) range.getMin()) - bufferNs);
     builder.setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long) range.getMax()) + bufferNs);
-    EnergyDataResponse energyData = myClient.getEnergyClient().getData(builder.build());
+    EnergyProfiler.EnergySamplesResponse samples = myClient.getEnergyClient().getSamples(builder.build());
 
-    return energyData.getSampleDataList().stream()
+    return samples.getSamplesList().stream()
       .map(data -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(data.getTimestamp()), (long)mySampleToUsage.apply(data)))
       .collect(Collectors.toList());
   }

@@ -19,46 +19,60 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
+import com.android.tools.idea.actions.DevicePickerHelpAction;
+import com.android.tools.idea.actions.DevicePickerHelpActionKt;
+import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.concurrent.EdtExecutor;
-import com.android.tools.idea.adb.AdbService;
-import com.android.tools.idea.connection.assistant.ConnectionAssistantBundleCreator;
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.DeviceCount;
+import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.android.tools.idea.run.LaunchableAndroidDevice;
+import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.wireless.android.sdk.stats.AdbAssistantStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.Alarm;
+import java.awt.BorderLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.util.*;
-import java.util.List;
 
 public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandler {
   private static final int DEVICE_TAB_INDEX = 0;
@@ -71,6 +85,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
 
   private final DevicePicker myDevicePicker;
   private final ListenableFuture<AndroidDebugBridge> myAdbFuture;
+  private final SettableFuture<Void> myRefreshAvdsFuture = SettableFuture.create();
 
   private JPanel myContentPane;
   private JBTabbedPane myTabbedPane;
@@ -128,6 +143,10 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
       throw new IllegalArgumentException("Unable to locate adb");
     }
     myAdbFuture = AdbService.getInstance().getDebugBridge(adb);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      myDevicePicker.refreshAvdsNow(null);
+      myRefreshAvdsFuture.set(null);
+    });
 
     DeployTargetState state = deployTargetStates.get(ShowChooserTargetProvider.ID);
     setDoNotAskOption(new UseSameDevicesOption((ShowChooserTargetProvider.State)state));
@@ -143,15 +162,23 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
     final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), getDisposable());
     loadingPanel.add(myDeployTargetInfos.isEmpty() ? myDevicesPanel : myContentPane);
 
-    loadingPanel.setLoadingText("Initializing ADB");
-
-    if (!myAdbFuture.isDone()) {
+    if (myAdbFuture.isDone()) {
+      if (!myRefreshAvdsFuture.isDone()) {
+        loadingPanel.startLoading();
+        sayLookingForAvds(loadingPanel);
+      }
+    } else {
+      loadingPanel.setLoadingText("Initializing ADB");
       loadingPanel.startLoading();
       Futures.addCallback(myAdbFuture, new FutureCallback<AndroidDebugBridge>() {
         @Override
         public void onSuccess(AndroidDebugBridge result) {
-          loadingPanel.stopLoading();
           Logger.getInstance(DeployTargetPickerDialog.class).info("Successfully obtained debug bridge");
+          if (myRefreshAvdsFuture.isDone()) {
+            loadingPanel.stopLoading();
+          } else {
+            sayLookingForAvds(loadingPanel);
+          }
         }
 
         @Override
@@ -164,6 +191,22 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
     }
 
     return loadingPanel;
+  }
+
+  private void sayLookingForAvds(JBLoadingPanel thePanel) {
+    thePanel.setLoadingText("Looking for virtual devices");
+    Futures.addCallback(myRefreshAvdsFuture, new FutureCallback<Void>() {
+      @Override
+      public void onSuccess(Void vv) {
+        Logger.getInstance(DeployTargetPickerDialog.class).info("Successfully obtained list of AVDs");
+        thePanel.stopLoading();
+      }
+      @Override
+      public void onFailure(@Nullable Throwable tt) {
+        Logger.getInstance(DeployTargetPickerDialog.class).info("Unable to obtain list of AVDs", tt);
+        thePanel.stopLoading();
+      }
+    });
   }
 
   @Nullable
@@ -238,18 +281,26 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
 
   @Override
   public void launchDiagnostics(AdbAssistantStats.Trigger trigger) {
-    UsageTracker.getInstance().log(
+    UsageTracker.log(UsageTrackerUtils.withProjectId(
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ADB_ASSISTANT_STATS)
-        .setAdbAssistantStats(AdbAssistantStats.newBuilder().setTrigger(trigger)));
-    if (ConnectionAssistantBundleCreator.isAssistantEnabled()) {
-      OpenAssistSidePanelAction action = new OpenAssistSidePanelAction();
-      action.openWindow(ConnectionAssistantBundleCreator.BUNDLE_ID, myFacet.getModule().getProject());
-      doCancelAction(); // need to close the dialog for tool window to show
-    }
-    else {
-      BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", myFacet.getModule().getProject());
-    }
+        .setAdbAssistantStats(AdbAssistantStats.newBuilder().setTrigger(trigger)),
+      myFacet.getModule().getProject()));
+
+    DevicePickerHelpAction action = (DevicePickerHelpAction) DevicePickerHelpActionKt.getAction();
+    ApplicationManager.getApplication().invokeLater(() -> {
+      action.actionPerformed(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, new DataContext() {
+        @Nullable
+        @Override
+        public Object getData(String dataId) {
+          if (dataId.equalsIgnoreCase(CommonDataKeys.PROJECT.getName())) {
+            return myFacet.getModule().getProject();
+          }
+          return null;
+        }
+      }));
+      if (action.closeDialog()) doCancelAction();
+    });
   }
 
   /**
@@ -331,7 +382,8 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
     // NOTE: WE ARE LAUNCHING EMULATORS HERE
     for (AndroidDevice device : devices) {
       if (!device.isRunning()) {
-        device.launch(myFacet.getModule().getProject());
+        Project project = myFacet.getModule().getProject();
+        device.launch(project);
       }
     }
 

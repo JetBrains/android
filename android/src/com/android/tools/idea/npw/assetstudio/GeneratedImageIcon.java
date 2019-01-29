@@ -15,22 +15,21 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
+import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.image.BufferedImage;
-import java.nio.file.Path;
 
 /** A {@link GeneratedIcon} that is defined by a {@link BufferedImage} at a given density. */
 public class GeneratedImageIcon extends GeneratedIcon {
   @NotNull private final String name;
-  @Nullable private final Path outputPath;
+  @Nullable private final PathString outputPath;
   @NotNull private final IconCategory category;
   @NotNull private final Density density;
   @NotNull private final BufferedImage image;
 
-  public GeneratedImageIcon(@NotNull String name, @Nullable Path outputPath, @NotNull IconCategory category, @NotNull Density density,
+  public GeneratedImageIcon(@NotNull String name, @Nullable PathString outputPath, @NotNull IconCategory category, @NotNull Density density,
                             @NotNull BufferedImage image) {
     this.name = name;
     this.outputPath = outputPath;
@@ -47,7 +46,7 @@ public class GeneratedImageIcon extends GeneratedIcon {
 
   @Override
   @Nullable
-  public Path getOutputPath() {
+  public PathString getOutputPath() {
     return outputPath;
   }
 

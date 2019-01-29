@@ -23,24 +23,24 @@ import com.android.tools.idea.common.command.NlWriteCommandAction;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Direction;
 import com.android.utils.Pair;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.Float;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.*;
@@ -52,6 +52,7 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuid
 public final class ConstraintComponentUtilities {
 
   public static final HashMap<String, String> ourReciprocalAttributes;
+  public static final Map<String, String> ourOtherSideAttributes;
   public static final HashMap<String, String> ourMapMarginAttributes;
   private static final HashMap<String, AnchorTarget.Type> ourMapSideToOriginAnchors;
   public static final ArrayList<String> ourLeftAttributes;
@@ -280,6 +281,15 @@ public final class ConstraintComponentUtilities {
     ourReciprocalAttributes.put(ATTR_LAYOUT_END_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF);
     ourReciprocalAttributes.put(ATTR_LAYOUT_END_TO_END_OF, ATTR_LAYOUT_END_TO_START_OF);
 
+    ourOtherSideAttributes = new ImmutableMap.Builder()
+      .put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF)
+      .put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_LEFT_TO_LEFT_OF)
+      .put(ATTR_LAYOUT_END_TO_END_OF, ATTR_LAYOUT_START_TO_START_OF)
+      .put(ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF)
+      .put(ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF)
+      .put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_TOP_TO_TOP_OF)
+      .build();
+
     ourMapMarginAttributes = new HashMap<>();
     ourMapMarginAttributes.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_MARGIN_LEFT);
     ourMapMarginAttributes.put(ATTR_LAYOUT_LEFT_TO_RIGHT_OF, ATTR_LAYOUT_MARGIN_LEFT);
@@ -387,7 +397,7 @@ public final class ConstraintComponentUtilities {
    * @param useRtlAttributes if true, we should use start/end
    * @param isRtl            if true, we are in RTL, otherwise in LTR
    */
-  public static void clearAnchor(AnchorTarget.Type type, AttributesTransaction transaction, boolean useRtlAttributes, boolean isRtl) {
+  public static void clearAnchor(AnchorTarget.Type type, NlAttributesHolder transaction, boolean useRtlAttributes, boolean isRtl) {
     switch (type) {
       case LEFT: {
         clearAttributes(SHERPA_URI, ourPotentialAttributes.get(AnchorTarget.Type.LEFT), transaction);
@@ -467,14 +477,14 @@ public final class ConstraintComponentUtilities {
   }
 
   /**
-   * Given a NlComponent and an attribute, return the corresponding AnchorTarget
+   * Given a NlComponent and an attribute, return the corresponding ConstraintAnchorTarget
    *
    * @param scene
    * @param targetComponent
    * @param attribute
    * @return
    */
-  public static AnchorTarget getOriginAnchor(Scene scene, NlComponent targetComponent, String attribute) {
+  public static ConstraintAnchorTarget getOriginAnchor(Scene scene, NlComponent targetComponent, String attribute) {
     AnchorTarget.Type type = ourMapSideToOriginAnchors.get(attribute);
     SceneComponent component = scene.getSceneComponent(targetComponent);
     if (component != null) {
@@ -484,13 +494,13 @@ public final class ConstraintComponentUtilities {
   }
 
   /**
-   * Given a NlComponent and an attribute, return the corresponding AnchorTarget
+   * Given a NlComponent and an attribute, return the corresponding ConstraintAnchorTarget
    */
-  public static AnchorTarget getTargetAnchor(Scene scene,
-                                             NlComponent targetComponent,
-                                             String attribute,
-                                             boolean supportsRtl,
-                                             boolean isInRtl) {
+  public static ConstraintAnchorTarget getTargetAnchor(Scene scene,
+                                                       NlComponent targetComponent,
+                                                       String attribute,
+                                                       boolean supportsRtl,
+                                                       boolean isInRtl) {
     SceneComponent component = scene.getSceneComponent(targetComponent);
     if (component == null) {
       return null;
@@ -506,11 +516,11 @@ public final class ConstraintComponentUtilities {
     return getAnchorTarget(component, ourLTRMapSideToTargetAnchors.get(attribute));
   }
 
-  public static AnchorTarget getAnchorTarget(@NotNull SceneComponent component, @NotNull AnchorTarget.Type type) {
+  public static ConstraintAnchorTarget getAnchorTarget(@NotNull SceneComponent component, @NotNull AnchorTarget.Type type) {
     for (Target target : component.getTargets()) {
-      if (target instanceof AnchorTarget) {
-        if (((AnchorTarget)target).getType() == type) {
-          return (AnchorTarget)target;
+      if (target instanceof ConstraintAnchorTarget) {
+        if (((ConstraintAnchorTarget)target).getType() == type) {
+          return (ConstraintAnchorTarget)target;
         }
       }
     }
@@ -601,21 +611,20 @@ public final class ConstraintComponentUtilities {
   }
 
   public static void clearAttributes(NlComponent component) {
-    AttributesTransaction transaction = component.startAttributeTransaction();
-    clearAllAttributes(component, transaction);
-    transaction.apply();
-
-    NlWriteCommandAction.run(component, "Cleared all constraints", transaction::commit);
+    ComponentModification modification = new ComponentModification(component, "Cleared all constraints");
+    clearAllAttributes(component, modification);
+    modification.commit();
   }
 
-  public static void setDpAttribute(String uri, String attribute, AttributesTransaction transaction, int value) {
+
+  public static void setDpAttribute(String uri, String attribute, NlAttributesHolder transaction, int value) {
     if (value > 0) {
       String position = String.format(VALUE_N_DP, value);
       transaction.setAttribute(uri, attribute, position);
     }
   }
 
-  public static void clearAttributes(String uri, ArrayList<String> attributes, AttributesTransaction transaction) {
+  public static void clearAttributes(String uri, ArrayList<String> attributes, NlAttributesHolder transaction) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
@@ -623,18 +632,18 @@ public final class ConstraintComponentUtilities {
     }
   }
 
-  public static void clearAttributes(String uri, String[] attributes, AttributesTransaction transaction) {
+  public static void clearAttributes(String uri, String[] attributes, NlAttributesHolder transaction) {
     for (int i = 0; i < attributes.length; i++) {
       transaction.setAttribute(uri, attributes[i], null);
     }
   }
 
-  public static void clearAttributes(String uri, Pair<String, String> attributes, AttributesTransaction transaction) {
+  public static void clearAttributes(String uri, Pair<String, String> attributes, NlAttributesHolder transaction) {
     transaction.setAttribute(uri, attributes.getFirst(), null);
     transaction.setAttribute(uri, attributes.getSecond(), null);
   }
 
-  private static void clearConnections(NlComponent component, ArrayList<String> attributes, AttributesTransaction transaction) {
+  private static void clearConnections(NlComponent component, ArrayList<String> attributes, NlAttributesHolder transaction) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
@@ -684,7 +693,7 @@ public final class ConstraintComponentUtilities {
     }
   }
 
-  private static void clearAllAttributes(NlComponent component, AttributesTransaction transaction) {
+  private static void clearAllAttributes(NlComponent component, NlAttributesHolder transaction) {
     if (isWidthConstrained(component) && isHorizontalResizable(component)) {
       String fixedWidth = String.format(VALUE_N_DP, getDpWidth(component));
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, fixedWidth);
@@ -706,7 +715,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static void updateOnDelete(NlComponent component, String targetId) {
-    AttributesTransaction transaction = null;
+    ComponentModification transaction = null;
     // noinspection ConstantConditions
     transaction = updateOnDelete(component, ourLeftAttributes, transaction, targetId);
     transaction = updateOnDelete(component, ourTopAttributes, transaction, targetId);
@@ -717,22 +726,21 @@ public final class ConstraintComponentUtilities {
     transaction = updateOnDelete(component, ourEndAttributes, transaction, targetId);
 
     if (transaction != null) {
-      transaction.apply();
-      NlWriteCommandAction.run(component, "Remove constraints pointing to a deleted component", transaction::commit);
+      transaction.commit();
     }
   }
 
-  private static AttributesTransaction updateOnDelete(NlComponent component,
+  private static ComponentModification updateOnDelete(NlComponent component,
                                                       ArrayList<String> attributes,
-                                                      AttributesTransaction transaction,
+                                                      ComponentModification modification,
                                                       String targetId) {
     if (isConnectedTo(component, attributes, targetId)) {
-      if (transaction == null) {
-        transaction = component.startAttributeTransaction();
+      if (modification == null) {
+        modification = new ComponentModification(component, "Update on Delete");
       }
-      clearConnections(component, attributes, transaction);
+      clearConnections(component, attributes, modification);
     }
-    return transaction;
+    return modification;
   }
 
   private static boolean isConnectedTo(NlComponent component, ArrayList<String> attributes, String targetId) {
@@ -748,7 +756,7 @@ public final class ConstraintComponentUtilities {
     return false;
   }
 
-  public static void ensureHorizontalPosition(NlComponent component, AttributesTransaction transaction) {
+  public static void ensureHorizontalPosition(NlComponent component, NlAttributesHolder transaction) {
     if (hasHorizontalConstraints(component)) {
       return;
     }
@@ -759,7 +767,7 @@ public final class ConstraintComponentUtilities {
     }
   }
 
-  public static void ensureVerticalPosition(NlComponent component, AttributesTransaction transaction) {
+  public static void ensureVerticalPosition(NlComponent component, NlAttributesHolder transaction) {
     if (hasVerticalConstraints(component)) {
       return;
     }
@@ -790,8 +798,10 @@ public final class ConstraintComponentUtilities {
   public static boolean isConstraintModelGreaterThan(@NotNull ViewEditor editor,
                                                      int major,
                                                      int... version) {
-    GradleVersion v = editor.getDependencyManager().getModuleDependencyVersion(
-      GoogleMavenArtifactId.CONSTRAINT_LAYOUT, editor.getModel().getFacet());
+    GoogleMavenArtifactId artifact = StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get() ?
+                                     GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
+                                     GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
+    GradleVersion v = editor.getDependencyManager().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
     return (versionGreaterThan(v, major,
                                (version.length > 0) ? version[0] : -1,
                                (version.length > 1) ? version[1] : -1, 0, 0));
@@ -852,7 +862,7 @@ public final class ConstraintComponentUtilities {
     return Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getX(component));
   }
 
-  private static boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
+  private static boolean hasAttributes(@NotNull NlAttributesHolder transaction, String uri, ArrayList<String> attributes) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
@@ -874,27 +884,27 @@ public final class ConstraintComponentUtilities {
     return null;
   }
 
-  private static boolean hasLeft(@NotNull AttributesTransaction transaction) {
+  private static boolean hasLeft(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourLeftAttributes);
   }
 
-  private static boolean hasTop(@NotNull AttributesTransaction transaction) {
+  private static boolean hasTop(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourTopAttributes);
   }
 
-  private static boolean hasRight(@NotNull AttributesTransaction transaction) {
+  private static boolean hasRight(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourRightAttributes);
   }
 
-  private static boolean hasBottom(@NotNull AttributesTransaction transaction) {
+  private static boolean hasBottom(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourBottomAttributes);
   }
 
-  private static boolean hasStart(@NotNull AttributesTransaction transaction) {
+  private static boolean hasStart(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourStartAttributes);
   }
 
-  private static boolean hasEnd(@NotNull AttributesTransaction transaction) {
+  private static boolean hasEnd(@NotNull NlAttributesHolder transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourEndAttributes);
   }
 
@@ -905,7 +915,7 @@ public final class ConstraintComponentUtilities {
    * @param transaction
    * @param component
    */
-  public static void cleanup(@NotNull AttributesTransaction transaction, @NotNull NlComponent component) {
+  public static void cleanup(@NotNull NlAttributesHolder transaction, @NotNull NlComponent component) {
     boolean hasLeft = hasLeft(transaction);
     boolean hasRight = hasRight(transaction);
     boolean hasTop = hasTop(transaction);
@@ -1026,7 +1036,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean isGuideLine(@NotNull NlComponent component) {
-    return component.getTagName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE);
+    return CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(component.getTagName());
   }
 
   public static @Nullable
@@ -1156,11 +1166,9 @@ public final class ConstraintComponentUtilities {
     else {
       chainStyle = ATTR_LAYOUT_CHAIN_SPREAD_INSIDE;
     }
-    AttributesTransaction transaction = chainHead.startAttributeTransaction();
-    transaction.setAttribute(SHERPA_URI, orientationStyle, chainStyle);
-    transaction.apply();
-
-    NlWriteCommandAction.run(chainHead, "Cycle chain style", transaction::commit);
+    ComponentModification modification = new ComponentModification(chainHead, "Cycle Chain Style");
+    modification.setAttribute(SHERPA_URI, orientationStyle, chainStyle);
+    modification.commit();
 
     component.getScene().needsRebuildList();
   }
@@ -1456,7 +1464,7 @@ public final class ConstraintComponentUtilities {
 
   public static boolean isConstraintLayout(@NotNull NlComponent component) {
     return NlComponentHelperKt.isOrHasSuperclass(component, CONSTRAINT_LAYOUT)
-           || component.getTag().getName().equals(CONSTRAINT_LAYOUT); // used during layout conversion
+           || CONSTRAINT_LAYOUT.isEquals(component.getTag().getName()); // used during layout conversion
   }
 
   // ordered the same as Direction enum

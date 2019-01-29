@@ -172,7 +172,7 @@ public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends M
     public void select() {
       myOwnerNode.myCurrentPageCount++;
       int[] newIndices;
-      if (myOwnerNode.myCurrentPageCount * NUM_CHILDREN_PER_PAGE > myOwnerNode.myChildren.size()) {
+      if (myOwnerNode.myCurrentPageCount * NUM_CHILDREN_PER_PAGE >= myOwnerNode.myChildren.size()) {
         newIndices = new int[myOwnerNode.myChildren.size() - myOwnerNode.myChildrenView.size()];
       }
       else {

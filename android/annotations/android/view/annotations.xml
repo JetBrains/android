@@ -236,6 +236,12 @@
   <item name="android.view.View T findViewById(int) 0">
     <annotation name="android.support.annotation.IdRes" />
   </item>
+  <item name="android.view.View T requireViewById(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.View T requireViewById(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
   <item name="android.view.View View(android.content.Context, android.util.AttributeSet) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -366,6 +372,12 @@
   <item name="android.view.View int getMeasuredWidth()">
     <annotation name="android.support.annotation.Px" />
   </item>
+  <item name="android.view.View int getOutlineAmbientShadowColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.view.View int getOutlineSpotShadowColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.view.View int getRight()">
     <annotation name="android.support.annotation.Px" />
   </item>
@@ -420,6 +432,9 @@
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
+  </item>
+  <item name="android.view.View java.lang.CharSequence getAccessibilityPaneTitle()">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View java.lang.CharSequence getTooltipText()">
     <annotation name="android.support.annotation.Nullable" />
@@ -642,6 +657,9 @@
   <item name="android.view.View void setAccessibilityDelegate(android.view.View.AccessibilityDelegate) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.View void setAccessibilityPaneTitle(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.View void setAlpha(float) 0">
     <annotation name="android.support.annotation.FloatRange">
       <val name="from" val="0.0" />
@@ -649,6 +667,9 @@
     </annotation>
   </item>
   <item name="android.view.View void setAutofillHints(java.lang.String...) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View void setAutofillId(android.view.autofill.AutofillId) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View void setBackgroundColor(int) 0">
@@ -729,6 +750,12 @@
   </item>
   <item name="android.view.View void setOnLongClickListener(android.view.View.OnLongClickListener) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.View void setOutlineAmbientShadowColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.view.View void setOutlineSpotShadowColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.view.View void setPadding(int, int, int, int) 0">
     <annotation name="android.support.annotation.Px" />
@@ -979,6 +1006,14 @@
   <item name="android.view.ViewStructure void setHtmlInfo(android.view.ViewStructure.HtmlInfo) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.view.ViewStructure void setImportantForAutofill(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.IMPORTANT_FOR_AUTOFILL_AUTO, android.view.View.IMPORTANT_FOR_AUTOFILL_YES, android.view.View.IMPORTANT_FOR_AUTOFILL_NO, android.view.View.IMPORTANT_FOR_AUTOFILL_YES_EXCLUDE_DESCENDANTS, android.view.View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS}" />
+    </annotation>
+  </item>
+  <item name="android.view.ViewStructure void setTextIdEntry(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.view.ViewStructure void setWebDomain(java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -1012,6 +1047,12 @@
   <item name="android.view.Window T findViewById(int) 0">
     <annotation name="android.support.annotation.IdRes" />
   </item>
+  <item name="android.view.Window T requireViewById(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.Window T requireViewById(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
   <item name="android.view.Window android.view.LayoutInflater getLayoutInflater()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -1024,6 +1065,9 @@
     </annotation>
   </item>
   <item name="android.view.Window int getNavigationBarColor()">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
+  <item name="android.view.Window int getNavigationBarDividerColor()">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
   <item name="android.view.Window int getStatusBarColor()">
@@ -1055,6 +1099,9 @@
   <item name="android.view.Window void setNavigationBarColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
+  <item name="android.view.Window void setNavigationBarDividerColor(int) 0">
+    <annotation name="android.support.annotation.ColorInt" />
+  </item>
   <item name="android.view.Window void setStatusBarColor(int) 0">
     <annotation name="android.support.annotation.ColorInt" />
   </item>
@@ -1076,6 +1123,9 @@
   <item name="android.view.Window.Callback void onProvideKeyboardShortcuts(java.util.List&lt;android.view.KeyboardShortcutGroup&gt;, android.view.Menu, int) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.view.WindowInsets android.view.DisplayCutout getDisplayCutout()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.WindowManager">
     <annotation name="android.support.annotation.SystemService">
       <val name="value" val="android.content.Context.WINDOW_SERVICE" />
@@ -1086,6 +1136,12 @@
       <val name="value" val="{android.content.pm.ActivityInfo.COLOR_MODE_DEFAULT, android.content.pm.ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT, android.content.pm.ActivityInfo.COLOR_MODE_HDR}" />
     </annotation>
   </item>
+  <item name="android.view.WindowManager.LayoutParams layoutInDisplayCutoutMode">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT, android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES, android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.view.WindowManager.LayoutParams softInputMode">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING, android.view.WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION}" />
@@ -1094,7 +1150,7 @@
   </item>
   <item name="android.view.WindowManager.LayoutParams type">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.view.WindowManager.LayoutParams.TYPE_BASE_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_STARTING, android.view.WindowManager.LayoutParams.TYPE_DRAWN_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_PANEL, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_MEDIA, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_SUB_PANEL, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG, android.view.WindowManager.LayoutParams.TYPE_STATUS_BAR, android.view.WindowManager.LayoutParams.TYPE_SEARCH_BAR, android.view.WindowManager.LayoutParams.TYPE_PHONE, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, android.view.WindowManager.LayoutParams.TYPE_TOAST, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY, android.view.WindowManager.LayoutParams.TYPE_PRIORITY_PHONE, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG, android.view.WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ERROR, android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD, android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD_DIALOG, android.view.WindowManager.LayoutParams.TYPE_WALLPAPER, android.view.WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL, android.view.WindowManager.LayoutParams.TYPE_PRIVATE_PRESENTATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY}" />
+      <val name="value" val="{android.view.WindowManager.LayoutParams.TYPE_BASE_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_STARTING, android.view.WindowManager.LayoutParams.TYPE_DRAWN_APPLICATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_PANEL, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_MEDIA, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_SUB_PANEL, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_ATTACHED_DIALOG, android.view.WindowManager.LayoutParams.TYPE_STATUS_BAR, android.view.WindowManager.LayoutParams.TYPE_SEARCH_BAR, android.view.WindowManager.LayoutParams.TYPE_PHONE, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, android.view.WindowManager.LayoutParams.TYPE_TOAST, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY, android.view.WindowManager.LayoutParams.TYPE_PRIORITY_PHONE, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG, android.view.WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG, android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ERROR, android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD, android.view.WindowManager.LayoutParams.TYPE_INPUT_METHOD_DIALOG, android.view.WindowManager.LayoutParams.TYPE_WALLPAPER, android.view.WindowManager.LayoutParams.TYPE_STATUS_BAR_PANEL, android.view.WindowManager.LayoutParams.TYPE_PRIVATE_PRESENTATION, android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, android.view.WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY}" />
     </annotation>
   </item>
   <item name="android.view.WindowManager.LayoutParams void setColorMode(int) 0">

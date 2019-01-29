@@ -22,6 +22,7 @@ import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -86,7 +87,7 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       final String fileName = AndroidResourceUtil.getDefaultResourceFileName(myResourceType);
       assert fileName != null;
-      VirtualFile resourceDir = myFacet.getPrimaryResourceDir();
+      VirtualFile resourceDir = ResourceFolderManager.getInstance(myFacet).getPrimaryFolder();
       assert resourceDir != null;
       if (!AndroidResourceUtil.createValueResource(project, resourceDir, myResourceName, myResourceType, fileName,
                                                    Collections.singletonList(SdkConstants.FD_RES_VALUES), "a")) {

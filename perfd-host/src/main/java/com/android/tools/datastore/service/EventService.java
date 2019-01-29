@@ -39,6 +39,17 @@ import java.util.function.Consumer;
  * passed into the connectService function.
  */
 public class EventService extends EventServiceGrpc.EventServiceImplBase implements ServicePassThrough {
+  /**
+   * This number controls the minimum number of states we return before the requested timestamp range.
+   * eg. Requested Range = |-------------|
+   * States =  ^  ^  ^   ^    ^   ^    ^   ^
+   * Result =     ^  ^   ^    ^   ^.
+   * With a prefix count of 3 we return the 3 states before our minimum range to ensure we return
+   * enough information back to the caller for them to understand the current state of the activity.
+   * The reason we are fixed at 3 is because the UI cares about when an activity is paused. There
+   * are at most 2 other states after paused that each event gets. The states are either SAVED/STOPPED and DESTROYED/REMOVED.
+   */
+  private static final int INCLUDED_STATE_CHANGES_BEFORE_START_COUNT = 3;
   private final EventsTable myEventsTable;
   private final Map<Long, PollRunner> myRunners = new HashMap<>();
   private final Consumer<Runnable> myFetchExecutor;
@@ -51,12 +62,20 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
     myEventsTable = new EventsTable();
   }
 
+  /**
+   * This function responds with a stream of activities and the state changes for the activities within a given range.
+   * Note if the caller request activities for range X to Y. The response will return all activities in range X to Y in addition
+   * to at most {@link INCLUDED_STATE_CHANGES_BEFORE_START_COUNT} states before X.
+   *
+   * @param request
+   * @param responseObserver
+   */
   @Override
   public void getActivityData(EventProfiler.EventDataRequest request, StreamObserver<EventProfiler.ActivityDataResponse> responseObserver) {
     EventProfiler.ActivityDataResponse.Builder response = EventProfiler.ActivityDataResponse.newBuilder();
     Common.Session session = request.getSession();
-    List<EventProfiler.ActivityData> activites = myEventsTable.getActivityDataBySession(session);
-    for (EventProfiler.ActivityData data : activites) {
+    List<EventProfiler.ActivityData> activities = myEventsTable.getActivityDataBySession(session);
+    for (EventProfiler.ActivityData data : activities) {
       // We always return information about an activity to the caller. This is so the caller can choose to act on this
       // information or drop it.
       EventProfiler.ActivityData.Builder builder = EventProfiler.ActivityData.newBuilder();
@@ -65,25 +84,20 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
       builder.setHash(data.getHash());
       builder.setFragmentData(data.getFragmentData());
 
-      // Loop through each state change event an activity has gone through and add
-      // 1) the first state change before the current start time.
-      // 2) add all the state changes in the current time range.
-      // 3) add the latest state change assuming the first two criteria are not met.
-      for (int i = 0; i < data.getStateChangesCount(); i++) {
+      // Find the first index greater than our initial request range.
+      int firstIndexGreaterThanStart = 0;
+      while (firstIndexGreaterThanStart < data.getStateChangesCount() &&
+             data.getStateChanges(firstIndexGreaterThanStart).getTimestamp() < request.getStartTimestamp()) {
+        firstIndexGreaterThanStart++;
+      }
+      firstIndexGreaterThanStart = Math.max(0, firstIndexGreaterThanStart - INCLUDED_STATE_CHANGES_BEFORE_START_COUNT);
+      // Starting at our new index add all states until we encounter one that is greater than our end timestamp.
+      for (int i = firstIndexGreaterThanStart; i < data.getStateChangesCount(); i++) {
         EventProfiler.ActivityStateData state = data.getStateChanges(i);
-        if (state.getTimestamp() > request.getStartTimestamp() && state.getTimestamp() <= request.getEndTimestamp()) {
-          if (builder.getStateChangesCount() == 0 && i > 0) {
-            builder.addStateChanges(data.getStateChanges(i - 1));
-          }
-          builder.addStateChanges(state);
-        }
-        else if (state.getTimestamp() > request.getEndTimestamp()) {
-          builder.addStateChanges(state);
+        if (state.getTimestamp() > request.getEndTimestamp()) {
           break;
         }
-      }
-      if (builder.getStateChangesCount() == 0) {
-        builder.addStateChanges(data.getStateChanges(data.getStateChangesCount() - 1));
+        builder.addStateChanges(state);
       }
       response.addData(builder);
     }

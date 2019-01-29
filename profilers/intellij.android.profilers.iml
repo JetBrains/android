@@ -15,12 +15,15 @@
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="android.sdktools.perflib" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.profilers.atrace" />
-    <orderEntry type="library" name="com.android.tools:common:26.1.2" level="project" />
-    <orderEntry type="library" name="com.android.tools:annotations:26.1.2" level="project" />
+    <orderEntry type="module" module-name="intellij.android.perfdHost" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" name="com.android.tools:common" level="project" />
+    <orderEntry type="library" name="com.android.tools:annotations" level="project" />
+    <orderEntry type="library" name="com.android.tools.ddms:ddmlib" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
   </component>
 </module>

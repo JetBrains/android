@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNullableValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValueImpl;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.google.common.collect.ImmutableList;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
 
 /**
  * Represents a repository defined with mavenCentral().
@@ -34,28 +32,20 @@ public class MavenCentralRepositoryModel extends UrlBasedRepositoryModelImpl {
 
   @NonNls private static final String ARTIFACT_URLS = "artifactUrls";
 
-  public MavenCentralRepositoryModel(@Nullable GradleDslExpressionMap dslElement) {
-    super(dslElement, "MavenRepo", "https://repo1.maven.org/maven2/");
+  public MavenCentralRepositoryModel(@NotNull GradlePropertiesDslElement holder, @NotNull GradleDslElement dslElement) {
+    super(holder, dslElement, "MavenRepo", "https://repo1.maven.org/maven2/");
   }
 
+
+
   @NotNull
-  public List<GradleNotNullValue<String>> artifactUrls() {
-    if (myDslElement == null) {
-      return ImmutableList.of();
+  public ResolvedPropertyModel artifactUrls() {
+    if (isPropertiesElementOrMap(myDslElement)) {
+      return GradlePropertyModelBuilder.create((GradlePropertiesDslElement)myDslElement, ARTIFACT_URLS).asMethod(true).buildResolved();
     }
-
-    List<GradleNotNullValue<String>> artifactUrls = myDslElement.getListProperty(ARTIFACT_URLS, String.class);
-    if (artifactUrls != null) {
-      return artifactUrls;
+    else {
+      return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).buildResolved();
     }
-
-    GradleNullableValue<String> artifactUrl = myDslElement.getLiteralProperty(ARTIFACT_URLS, String.class);
-    if (artifactUrl.value() != null) {
-      assert artifactUrl instanceof GradleNotNullValueImpl;
-      return ImmutableList.of((GradleNotNullValueImpl<String>)artifactUrl);
-    }
-
-    return ImmutableList.of();
   }
 
   @NotNull

@@ -17,7 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -45,6 +45,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,6 +55,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;
 
@@ -65,8 +67,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
 
   public void testStable() {
-    assertSame(ProjectResourceRepository.getOrCreateInstance(myFacet), ProjectResourceRepository.getOrCreateInstance(myFacet));
-    assertSame(ProjectResourceRepository.getOrCreateInstance(myFacet), ProjectResourceRepository.getOrCreateInstance(myModule));
+    assertSame(ResourceRepositoryManager.getProjectResources(myFacet), ResourceRepositoryManager.getProjectResources(myFacet));
+    assertSame(ResourceRepositoryManager.getProjectResources(myFacet), ResourceRepositoryManager.getProjectResources(myModule));
   }
 
   // Ensure that we invalidate the id cache when the file is rescanned but ids don't change
@@ -95,7 +97,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
     PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
     assertNotNull(layoutPsiFile);
-    assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+    assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
     final ResourceItem item = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
 
     final long generation = resources.getModificationCount();
@@ -113,7 +115,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     ApplicationManager.getApplication().invokeLater(() -> {
       assertTrue(generation < resources.getModificationCount());
       // Should still be defined:
-      assertTrue(resources.hasResourceItem(ResourceType.ID, "btn_title_refresh"));
+      assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
       ResourceItem newItem = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
       assertNotNull(newItem.getSource());
       // However, should be a different item
@@ -133,28 +135,28 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
     ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
     assertEquals(3, repository.getChildren().size());
-    Collection<String> items = repository.getItemsOfType(ResourceType.STRING);
+    Collection<String> items = repository.getResources(RES_AUTO, ResourceType.STRING).keySet();
     assertTrue(items.isEmpty());
 
     for (AndroidFacet facet : libraries) {
-      LocalResourceRepository moduleRepository = ModuleResourceRepository.getOrCreateInstance(facet);
+      LocalResourceRepository moduleRepository = ResourceRepositoryManager.getModuleResources(facet);
       assertNotNull(moduleRepository);
-      LocalResourceRepository moduleSetRepository = ProjectResourceRepository.getOrCreateInstance(facet);
+      LocalResourceRepository moduleSetRepository = ResourceRepositoryManager.getProjectResources(facet);
       assertNotNull(moduleSetRepository);
-      LocalResourceRepository librarySetRepository = AppResourceRepository.getOrCreateInstance(facet);
+      LocalResourceRepository librarySetRepository = ResourceRepositoryManager.getAppResources(facet);
       assertNotNull(librarySetRepository);
     }
-    ModuleResourceRepository.getOrCreateInstance(myFacet);
-    ProjectResourceRepository.getOrCreateInstance(myFacet);
-    AppResourceRepository.getOrCreateInstance(myFacet);
+    ResourceRepositoryManager.getModuleResources(myFacet);
+    ResourceRepositoryManager.getProjectResources(myFacet);
+    ResourceRepositoryManager.getAppResources(myFacet);
   }
 
   public void testGetResourceDirsAndUpdateRoots() {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
     addArchiveLibraries();
-    List<VirtualFile> flavorDirs = Lists.newArrayList(myFacet.getAllResourceDirectories());
+    List<VirtualFile> flavorDirs = Lists.newArrayList(ResourceFolderManager.getInstance(myFacet).getFolders());
     final ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
-    List<? extends LocalResourceRepository> originalChildren = repository.getChildren();
+    List<LocalResourceRepository> originalChildren = repository.getChildren();
     // Should have a bunch repository directories from the various flavors.
     Set<VirtualFile> resourceDirs = repository.getResourceDirs();
     assertNotEmpty(resourceDirs);
@@ -172,12 +174,12 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
         catch (IOException e) {
           assertFalse("delete failed " + e, false);
         }
-        myFacet.getResourceFolderManager().invalidate();
+        ResourceFolderManager.getInstance(myFacet).invalidate();
         repository.updateRoots();
       }
     });
     // The child repositories should be the same since the module structure didn't change.
-    List<? extends LocalResourceRepository> newChildren = repository.getChildren();
+    List<LocalResourceRepository> newChildren = repository.getChildren();
     Set<VirtualFile> newResourceDirs = repository.getResourceDirs();
     assertTrue(newChildren.equals(originalChildren));
     // However, the resourceDirs should now be different, missing the first flavor directory.
@@ -185,8 +187,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testRootChangeListener() {
-    ProjectResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(myFacet);
-    List<? extends LocalResourceRepository> originalChildren = resources.getChildren();
+    MultiResourceRepository resources = (MultiResourceRepository)ResourceRepositoryManager.getProjectResources(myFacet);
+    List<LocalResourceRepository> originalChildren = resources.getChildren();
     assertNotEmpty(originalChildren);
     Collection<VirtualFile> originalDirs = resources.getResourceDirs();
     assertNotEmpty(originalDirs);
@@ -219,7 +221,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     EnumSet<ResourceType> typesWithoutRes3 = EnumSet.of(ResourceType.ARRAY, ResourceType.ID, ResourceType.LAYOUT,
                                                         ResourceType.STRING, ResourceType.STYLE);
     EnumSet<ResourceType> allTypes = EnumSet.copyOf(typesWithoutRes3);
-    allTypes.addAll(Arrays.asList(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.DECLARE_STYLEABLE, ResourceType.PLURALS));
+    allTypes.addAll(Arrays.asList(ResourceType.ATTR, ResourceType.INTEGER, ResourceType.STYLEABLE, ResourceType.PLURALS));
 
 
     assertHasExactResourceTypes(resources, allTypes);
@@ -239,7 +241,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     File rootDir = androidProject.getRootDir();
     AndroidModuleModel androidModel =
       new AndroidModuleModel(androidProject.getName(), rootDir, androidProject, variant.getName(), new IdeDependenciesFactory());
-    myFacet.setAndroidModel(androidModel);
+    myFacet.getConfiguration().setModel(androidModel);
 
     File bundle = new File(rootDir, "bundle.aar");
     File libJar = new File(rootDir, "bundle_aar" + File.separatorChar + "library.jar");
@@ -348,8 +350,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(sharedLibValues);
     assertNotNull(lib2Values);
 
-    final AppResourceRepository lib1Resources = AppResourceRepository.getOrCreateInstance(lib1Facet);
-    final AppResourceRepository lib2Resources = AppResourceRepository.getOrCreateInstance(lib2Facet);
+    final LocalResourceRepository lib1Resources = ResourceRepositoryManager.getAppResources(lib1Facet);
+    final LocalResourceRepository lib2Resources = ResourceRepositoryManager.getAppResources(lib2Facet);
     assertNotNull(lib1Resources);
     assertNotNull(lib2Resources);
     assertNotSame(lib1Resources, lib2Resources);
@@ -359,28 +361,28 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertFalse(lib2Resources.isScanPending(sharedLibValues));
     assertFalse(lib2Resources.isScanPending(lib2Values));
 
-    assertTrue(lib1Resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
-    assertTrue(lib1Resources.hasResourceItem(ResourceType.STRING, "ellipsis"));
-    assertTrue(lib1Resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
-    List<ResourceItem> items = lib1Resources.getResourceItem(ResourceType.STRING, "ellipsis");
+    assertTrue(lib1Resources.hasResources(RES_AUTO, ResourceType.PLURALS, "my_plural"));
+    assertTrue(lib1Resources.hasResources(RES_AUTO, ResourceType.STRING, "ellipsis"));
+    assertTrue(lib1Resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
+    List<ResourceItem> items = lib1Resources.getResources(RES_AUTO, ResourceType.STRING, "ellipsis");
     assertNotNull(items);
-    ResourceValue firstValue = items.get(0).getResourceValue(false);
+    ResourceValue firstValue = items.get(0).getResourceValue();
     assertNotNull(firstValue);
     assertEquals("Here it is: \u2026!", firstValue.getValue());
 
-    assertTrue(lib2Resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
-    assertTrue(lib2Resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
-    assertTrue(lib2Resources.hasResourceItem(ResourceType.STRING, "ellipsis"));
+    assertTrue(lib2Resources.hasResources(RES_AUTO, ResourceType.ARRAY, "security_questions"));
+    assertTrue(lib2Resources.hasResources(RES_AUTO, ResourceType.PLURALS, "my_plural"));
+    assertTrue(lib2Resources.hasResources(RES_AUTO, ResourceType.STRING, "ellipsis"));
 
     // ONLY defined in lib2: should not be visible from lib1
-    assertTrue(lib2Resources.hasResourceItem(ResourceType.STRING, "unique_string"));
-    items = lib2Resources.getResourceItem(ResourceType.STRING, "unique_string");
+    assertTrue(lib2Resources.hasResources(RES_AUTO, ResourceType.STRING, "unique_string"));
+    items = lib2Resources.getResources(RES_AUTO, ResourceType.STRING, "unique_string");
     assertNotNull(items);
-    firstValue = items.get(0).getResourceValue(false);
+    firstValue = items.get(0).getResourceValue();
     assertNotNull(firstValue);
     assertEquals("Unique", firstValue.getValue());
 
-    assertFalse(lib1Resources.hasResourceItem(ResourceType.STRING, "unique_string"));
+    assertFalse(lib1Resources.hasResources(RES_AUTO, ResourceType.STRING, "unique_string"));
   }
 
   // Regression test for https://issuetracker.google.com/issues/68799367
@@ -418,10 +420,10 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     myFixture.addFileToProject(      "additionalModules/level1/res/values/strings.xml", level1Strings).getVirtualFile();
     myFixture.addFileToProject("additionalModules/level2/res/values/strings.xml", level2Strings).getVirtualFile();
 
-    AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(appFacet);
-    List<ResourceItem> resolved = appResources.getResourceItem(ResourceType.STRING, "test_string");
+    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(appFacet);
+    List<ResourceItem> resolved = appResources.getResources(RES_AUTO, ResourceType.STRING, "test_string");
     assertEquals(1, resolved.size());
-    assertEquals("LEVEL 1", resolved.get(0).getValueText());
+    assertEquals("LEVEL 1", resolved.get(0).getResourceValue().getValue());
 
     // Retry reversing the library dependency to ensure the order does not depend on anything other than the
     // dependency order (like for example, alphabetical order of the modules).
@@ -437,10 +439,10 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertFalse(ModuleRootManager.getInstance(app).isDependsOn(lib1));
     assertFalse(ModuleRootManager.getInstance(lib1).isDependsOn(lib2));
 
-    appResources = AppResourceRepository.getOrCreateInstance(appFacet);
-    resolved = appResources.getResourceItem(ResourceType.STRING, "test_string");
+    appResources = ResourceRepositoryManager.getAppResources(appFacet);
+    resolved = appResources.getResources(RES_AUTO, ResourceType.STRING, "test_string");
     assertEquals(1, resolved.size());
-    assertEquals("LEVEL 2", resolved.get(0).getValueText());
+    assertEquals("LEVEL 2", resolved.get(0).getResourceValue().getValue());
   }
 
   private static void addModuleDependency(Module from, Module to) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.repository.io.FileOpUtils;
+import com.android.repository.Revision;
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
@@ -23,10 +24,7 @@ import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.Storage;
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.internal.avd.AvdManager;
-import com.android.sdklib.internal.avd.GpuMode;
-import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.internal.avd.*;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.sdk.AndroidSdks;
@@ -39,9 +37,11 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.hash.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,13 +61,12 @@ import static com.google.common.base.Strings.nullToEmpty;
  * See also {@link AvdDeviceData}, which these options supplement.
  */
 public final class AvdOptionsModel extends WizardModel {
-  static final int MAX_NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors() / 2;
-  static final int RECOMMENDED_NUMBER_OF_CORES = Integer.min(4, MAX_NUMBER_OF_CORES);
 
   private static final Storage minGeneralInternalMemSize = new Storage(200, Storage.Unit.MiB);
   private static final Storage minPlayStoreInternalMemSize = new Storage(2, Storage.Unit.GiB);
   private static final Storage minGeneralSdSize = new Storage(10, Storage.Unit.MiB);
   private static final Storage minPlayStoreSdSize = new Storage(100, Storage.Unit.MiB);
+  private static final Storage defaultSdSize = new Storage(512, Storage.Unit.MiB);
 
   private final AvdInfo myAvdInfo;
 
@@ -80,7 +79,7 @@ public final class AvdOptionsModel extends WizardModel {
   private StringProperty myAvdId = new StringValueProperty();
   private StringProperty myAvdDisplayName = new StringValueProperty();
 
-  private ObjectProperty<Storage> myInternalStorage = new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_INTERNAL_STORAGE);
+  private ObjectProperty<Storage> myInternalStorage = new ObjectValueProperty<>(EmulatedProperties.DEFAULT_INTERNAL_STORAGE);
   private ObjectProperty<ScreenOrientation> mySelectedAvdOrientation =
     new ObjectValueProperty<>(ScreenOrientation.PORTRAIT);
   private ObjectProperty<AvdCamera> mySelectedAvdFrontCamera;
@@ -90,21 +89,24 @@ public final class AvdOptionsModel extends WizardModel {
   private BoolProperty myUseExternalSdCard = new BoolValueProperty(false);
   private BoolProperty myUseBuiltInSdCard = new BoolValueProperty(true);
   private ObjectProperty<AvdNetworkSpeed> mySelectedNetworkSpeed =
-    new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_NETWORK_SPEED);
+    new ObjectValueProperty<>(EmulatedProperties.DEFAULT_NETWORK_SPEED);
   private ObjectProperty<AvdNetworkLatency> mySelectedNetworkLatency =
-    new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_NETWORK_LATENCY);
+    new ObjectValueProperty<>(EmulatedProperties.DEFAULT_NETWORK_LATENCY);
 
   private StringProperty mySystemImageName = new StringValueProperty();
   private StringProperty mySystemImageDetails = new StringValueProperty();
 
-  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<>(RECOMMENDED_NUMBER_OF_CORES);
-  private ObjectProperty<Storage> myVmHeapStorage = new ObjectValueProperty<>(new Storage(16, Storage.Unit.MiB));
+  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<>(EmulatedProperties.RECOMMENDED_NUMBER_OF_CORES);
+  private ObjectProperty<Storage> myVmHeapStorage = new ObjectValueProperty<>(EmulatedProperties.DEFAULT_HEAP);
 
   private StringProperty myExternalSdCardLocation = new StringValueProperty();
-  private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<>(new Storage(100, Storage.Unit.MiB));
+  private OptionalProperty<Storage> mySdCardStorage = new OptionalValueProperty<>(defaultSdSize);
 
   private BoolProperty myUseHostGpu = new BoolValueProperty(true);
   private BoolProperty myColdBoot = new BoolValueProperty(false);
+  private BoolProperty myFastBoot = new BoolValueProperty(true);
+  private BoolProperty myChosenSnapshotBoot = new BoolValueProperty(false);
+  private StringProperty myChosenSnapshotFile = new StringValueProperty();
   private OptionalProperty<GpuMode> myHostGpuMode = new OptionalValueProperty<>(GpuMode.AUTO);
   private BoolProperty myEnableHardwareKeyboard = new BoolValueProperty(true);
 
@@ -157,7 +159,14 @@ public final class AvdOptionsModel extends WizardModel {
     myDevice.addListener(sender -> {
       if (myDevice.get().isPresent()) {
         myAvdDeviceData.updateValuesFromDevice(myDevice.getValue(), mySystemImage.getValueOrNull());
-        myVmHeapStorage.set(calculateInitialVmHeap(myAvdDeviceData));
+
+        ScreenSize size = ScreenSize.getScreenSize(myAvdDeviceData.diagonalScreenSize().get());
+        Density density = AvdScreenData.getScreenDensity(myAvdDeviceData.deviceId().get(),
+                                                         myAvdDeviceData.isTv().get(),
+                                                         myAvdDeviceData.screenDpi().get(),
+                                                         myAvdDeviceData.screenResolutionHeight().get());
+        Storage vmHeapSize = EmulatedProperties.calculateDefaultVmHeapSize(size, density, myAvdDeviceData.isTv().get());
+        myVmHeapStorage.set(vmHeapSize);
       }
     });
     mySystemImage.addListener(sender -> {
@@ -387,6 +396,21 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   @NotNull
+  public BoolProperty useFastBoot() {
+    return myFastBoot;
+  }
+
+  @NotNull
+  public BoolProperty useChosenSnapshotBoot() {
+    return myChosenSnapshotBoot;
+  }
+
+  @NotNull
+  public StringProperty chosenSnapshotFile() {
+    return myChosenSnapshotFile;
+  }
+
+  @NotNull
   public OptionalProperty<GpuMode> hostGpuMode() {
     return myHostGpuMode;
   }
@@ -502,6 +526,10 @@ public final class AvdOptionsModel extends WizardModel {
     myAvdDisplayName.set(AvdManagerConnection.getAvdDisplayName(avdInfo));
     myHasDeviceFrame.set(fromIniString(properties.get(AvdWizardUtils.DEVICE_FRAME_KEY)));
     myColdBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_COLD_BOOT)));
+    myFastBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_FAST_BOOT)));
+    myChosenSnapshotBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT)));
+    final String chosenFile = properties.get(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE);
+    myChosenSnapshotFile.set(StringUtil.notNullize(chosenFile));
 
     ScreenOrientation screenOrientation = null;
     String orientation = properties.get(HardwareProperties.HW_INITIAL_ORIENTATION);
@@ -550,101 +578,6 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   /**
-   * Set the initial VM heap size. This is based on the Android CDD minimums for each screen size and density.
-   */
-  @NotNull
-  private static Storage calculateInitialVmHeap(@NotNull AvdDeviceData deviceData) {
-    ScreenSize size = AvdScreenData.getScreenSize(deviceData.diagonalScreenSize().get());
-    Density density = AvdScreenData.getScreenDensity(deviceData.isTv().get(),
-                                                     deviceData.screenDpi().get(),
-                                                     deviceData.screenResolutionHeight().get());
-    int vmHeapSize = 32;
-
-    // These values are taken from Android 6.0 Compatibility
-    // Definition (dated October 16, 2015), section 3.7,
-    // Runtime Compatibility (with ANYDPI and NODPI defaulting
-    // to MEDIUM).
-
-    if (deviceData.isWear().get()) {
-      switch(density) {
-        case LOW:
-        case ANYDPI:
-        case NODPI:
-        case MEDIUM:
-        case TV:        vmHeapSize =  32; break;
-        case HIGH:
-        case DPI_280:   vmHeapSize =  36; break;
-        case XHIGH:
-        case DPI_360:   vmHeapSize =  48; break;
-        case DPI_400:   vmHeapSize =  56; break;
-        case DPI_420:   vmHeapSize =  64; break;
-        case XXHIGH:    vmHeapSize =  88; break;
-        case DPI_560:   vmHeapSize = 112; break;
-        case XXXHIGH:   vmHeapSize = 154; break;
-      }
-    } else {
-      switch(size) {
-        case SMALL:
-        case NORMAL:
-          switch(density) {
-            case LOW:
-            case ANYDPI:
-            case NODPI:
-            case MEDIUM:    vmHeapSize =  32; break;
-            case TV:
-            case HIGH:
-            case DPI_280:   vmHeapSize =  48; break;
-            case XHIGH:
-            case DPI_360:   vmHeapSize =  80; break;
-            case DPI_400:   vmHeapSize =  96; break;
-            case DPI_420:   vmHeapSize = 112; break;
-            case XXHIGH:    vmHeapSize = 128; break;
-            case DPI_560:   vmHeapSize = 192; break;
-            case XXXHIGH:   vmHeapSize = 256; break;
-          }
-          break;
-        case LARGE:
-          switch(density) {
-            case LOW:       vmHeapSize =  32; break;
-            case ANYDPI:
-            case NODPI:
-            case MEDIUM:    vmHeapSize =  48; break;
-            case TV:
-            case HIGH:      vmHeapSize =  80; break;
-            case DPI_280:   vmHeapSize =  96; break;
-            case XHIGH:     vmHeapSize = 128; break;
-            case DPI_360:   vmHeapSize = 160; break;
-            case DPI_400:   vmHeapSize = 192; break;
-            case DPI_420:   vmHeapSize = 228; break;
-            case XXHIGH:    vmHeapSize = 256; break;
-            case DPI_560:   vmHeapSize = 384; break;
-            case XXXHIGH:   vmHeapSize = 512; break;
-          }
-          break;
-        case XLARGE:
-          switch(density) {
-            case LOW:       vmHeapSize =  48; break;
-            case ANYDPI:
-            case NODPI:
-            case MEDIUM:    vmHeapSize =  80; break;
-            case TV:
-            case HIGH:      vmHeapSize =  96; break;
-            case DPI_280:   vmHeapSize = 144; break;
-            case XHIGH:     vmHeapSize = 192; break;
-            case DPI_360:   vmHeapSize = 240; break;
-            case DPI_400:   vmHeapSize = 288; break;
-            case DPI_420:   vmHeapSize = 336; break;
-            case XXHIGH:    vmHeapSize = 384; break;
-            case DPI_560:   vmHeapSize = 576; break;
-            case XXXHIGH:   vmHeapSize = 768; break;
-          }
-          break;
-      }
-    }
-    return new Storage(vmHeapSize, Storage.Unit.MiB);
-  }
-
-  /**
    * Returns a map containing all of the properties editable on this wizard to be passed on to the AVD prior to serialization
    */
   private Map<String, Object> generateUserEditedPropertiesMap() {
@@ -663,6 +596,9 @@ public final class AvdOptionsModel extends WizardModel {
     map.put(AvdWizardUtils.DEVICE_FRAME_KEY, myHasDeviceFrame.get());
     map.put(AvdWizardUtils.HOST_GPU_MODE_KEY, myHostGpuMode.getValue());
     map.put(AvdWizardUtils.USE_COLD_BOOT, myColdBoot.get());
+    map.put(AvdWizardUtils.USE_FAST_BOOT, myFastBoot.get());
+    map.put(AvdWizardUtils.USE_CHOSEN_SNAPSHOT_BOOT, myChosenSnapshotBoot.get());
+    map.put(AvdWizardUtils.CHOSEN_SNAPSHOT_FILE, myChosenSnapshotFile.get());
 
     if (myUseQemu2.get()) {
       if (myCpuCoreCount.get().isPresent()) {
@@ -686,6 +622,7 @@ public final class AvdOptionsModel extends WizardModel {
       map.put(AvdWizardUtils.EXISTING_SD_LOCATION, existingSdLocation.get());
     }
     if (!Strings.isNullOrEmpty(myExternalSdCardLocation.get())) {
+      map.put(AvdWizardUtils.EXISTING_SD_LOCATION, myExternalSdCardLocation.get());
       map.put(AvdWizardUtils.DISPLAY_SD_LOCATION_KEY, myExternalSdCardLocation.get());
     }
     map.put(AvdWizardUtils.DISPLAY_USE_EXTERNAL_SD_KEY, myUseExternalSdCard.get());
@@ -718,34 +655,31 @@ public final class AvdOptionsModel extends WizardModel {
     Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(device);
     Map<String, Object> userEditedProperties = generateUserEditedPropertiesMap();
 
-    // Remove the SD card setting that we're not using
     String sdCard = null;
-
-    boolean useExisting = myUseExternalSdCard.get();
-    if (!useExisting) {
-      if (sdCardStorage().get().isPresent() && myOriginalSdCard != null && sdCardStorage().getValue().equals(myOriginalSdCard.get())) {
-        // unchanged, use existing card
-        useExisting = true;
-      }
-    }
-
     boolean hasSdCard = false;
-    if (!useExisting) {
-
-      userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION);
-      Storage storage = null;
-      myOriginalSdCard = new ObjectValueProperty<>(mySdCardStorage.getValue());
-      if (mySdCardStorage.get().isPresent()) {
-        storage = mySdCardStorage.getValue();
-        sdCard = toIniString(storage, false);
-      }
-      hasSdCard = storage != null && storage.getSize() > 0;
-    }
-    else if (!Strings.isNullOrEmpty(myExternalSdCardLocation.get())) {
+    if (myUseExternalSdCard.get()) {
       sdCard = myExternalSdCardLocation.get();
+      // Remove SD card storage size because it will use external file
       userEditedProperties.remove(AvdWizardUtils.SD_CARD_STORAGE_KEY);
       hasSdCard = true;
+    } else {
+      if (sdCardStorage().get().isPresent() && myOriginalSdCard != null && sdCardStorage().getValue().equals(myOriginalSdCard.get())) {
+        // unchanged, use existing card
+        sdCard = existingSdLocation.get();
+        hasSdCard = true;
+      } else {
+        // Remove existing sd card because we will create a new one
+        userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION);
+        Storage storage = null;
+        myOriginalSdCard = new ObjectValueProperty<>(mySdCardStorage.getValue());
+        if (mySdCardStorage.get().isPresent()) {
+          storage = mySdCardStorage.getValue();
+          sdCard = toIniString(storage, false);
+        }
+        hasSdCard = storage != null && storage.getSize() > 0;
+      }
     }
+
     hardwareProperties.put(HardwareProperties.HW_SDCARD, toIniString(hasSdCard));
     // Remove any internal keys from the map
     userEditedProperties = Maps.filterEntries(
@@ -772,7 +706,14 @@ public final class AvdOptionsModel extends WizardModel {
         return toIniString((Double)value);
       }
       else if (value instanceof GpuMode) {
-        return ((GpuMode)value).getGpuSetting();
+        GpuMode gpuMode = (GpuMode)value;
+        if (gpuMode == GpuMode.SWIFT &&
+            !AvdManagerConnection.getDefaultAvdManagerConnection().
+              emulatorVersionIsAtLeast(new Revision(27, 1, 6))) {
+          // Older Emulator versions expect "guest" when SWIFT is selected on the UI
+          return "guest";
+        }
+        return gpuMode.getGpuSetting();
       }
       else {
         return value.toString();
@@ -832,10 +773,18 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }
 
+    final String sdCardFinal = sdCard;
     AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
-    myCreatedAvd = connection.createOrUpdateAvd(
-      myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
-      isCircular, sdCard, skinFile, hardwareProperties, false, myRemovePreviousAvd.get());
+
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(
+      () -> {
+        myCreatedAvd = connection.createOrUpdateAvd(
+          myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(),
+          isCircular, sdCardFinal, skinFile, hardwareProperties, false, myRemovePreviousAvd.get());
+      },
+      "Creating Android Virtual Device", false, null
+    );
+
     if (myCreatedAvd == null) {
       ApplicationManager.getApplication().invokeAndWait(() -> Messages.showErrorDialog(
         (Project)null, "An error occurred while creating the AVD. See idea.log for details.", "Error Creating AVD"), ModalityState.any());
@@ -845,5 +794,10 @@ public final class AvdOptionsModel extends WizardModel {
   @NotNull
   public AvdInfo getCreatedAvd() {
     return myCreatedAvd;
+  }
+
+  @Nullable
+  public String getAvdLocation() {
+    return (myAvdInfo == null) ? null : myAvdInfo.getDataFolderPath();
   }
 }

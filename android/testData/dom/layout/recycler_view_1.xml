@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
+
+  <!-- Resolve the class from the manifest package -->
+  <android.support.v7.widget.RecyclerView
+      android:layout_height="12dp"
+      android:layout_width="match_parent"
+      app:layoutManager=".MyLayoutManager">
+  </android.support.v7.widget.RecyclerView>
+
+  <!-- Fully qualified LayoutManager from application -->
+  <android.support.v7.widget.RecyclerView
+      android:layout_height="12dp"
+      android:layout_width="match_parent"
+      app:layoutManager="p1.p2.MyLayoutManager">
+  </android.support.v7.widget.RecyclerView>
+
+  <!-- Fully qualified LayoutManager from the support library -->
+  <android.support.v7.widget.RecyclerView
+      android:layout_height="12dp"
+      android:layout_width="match_parent"
+      app:layoutManager="android.support.v7.widget.LinearLayoutManager">
+  </android.support.v7.widget.RecyclerView>
+
+  <!-- LayoutManager from the support library with class name only -->
+  <android.support.v7.widget.RecyclerView
+      android:layout_height="12dp"
+      android:layout_width="match_parent"
+      app:layoutManager="LinearLayoutManager">
+  </android.support.v7.widget.RecyclerView>
+
+  <!-- Fully qualified LayoutManager from the support library -->
+  <android.support.v7.widget.RecyclerView
+      android:layout_height="12dp"
+      android:layout_width="match_parent"
+      app:layoutManager="android.support.v7.widget.GridLayoutManager">
+  </android.support.v7.widget.RecyclerView>
+
+  <!-- LayoutManager from the support library with class name only -->
+  <android.support.v7.widget.RecyclerView
+      android:layout_height="12dp"
+      android:layout_width="match_parent"
+      app:layoutManager="GridLayoutManager">
+  </android.support.v7.widget.RecyclerView>
+
+  <!-- Unknown LayoutManager -->
+  <android.support.v7.widget.RecyclerView
+      android:layout_height="12dp"
+      android:layout_width="match_parent"
+      app:layoutManager="p1.p2.<error descr="Unresolved class 'UnknownLayoutManager'">UnknownLayoutManager</error>">
+  </android.support.v7.widget.RecyclerView>
+
+  <!-- (Illegal) attempt to load LayoutManager from support library from the manifest path -->
+  <android.support.v7.widget.RecyclerView
+      android:layout_height="12dp"
+      android:layout_width="match_parent"
+      app:layoutManager=".<error descr="Unresolved class 'LinearLayoutManager'">LinearLayoutManager</error>">
+  </android.support.v7.widget.RecyclerView>
+
+</LinearLayout>

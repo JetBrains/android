@@ -70,7 +70,7 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.media.session.MediaController.Callback void onPlaybackStateChanged(android.media.session.PlaybackState) 0">
-    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.media.session.MediaController.Callback void onQueueChanged(java.util.List&lt;android.media.session.MediaSession.QueueItem&gt;) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -106,6 +106,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.session.MediaSession android.media.session.MediaSession.Token getSessionToken()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.media.session.MediaSession android.media.session.MediaSessionManager.RemoteUserInfo getCurrentControllerInfo()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.media.session.MediaSession void sendSessionEvent(java.lang.String, android.os.Bundle) 0">
@@ -184,6 +187,9 @@
       <val name="value" val="android.content.Context.MEDIA_SESSION_SERVICE" />
     </annotation>
   </item>
+  <item name="android.media.session.MediaSessionManager boolean isTrustedForMediaControl(android.media.session.MediaSessionManager.RemoteUserInfo) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.media.session.MediaSessionManager java.util.List&lt;android.media.session.MediaController&gt; getActiveSessions(android.content.ComponentName)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -220,13 +226,13 @@
     </annotation>
   </item>
   <item name="android.media.session.PlaybackState long getActions()">
-    <annotation name="android.support.annotation.IntDef">
+    <annotation name="android.support.annotation.LongDef">
       <val name="value" val="{android.media.session.PlaybackState.ACTION_STOP, android.media.session.PlaybackState.ACTION_PAUSE, android.media.session.PlaybackState.ACTION_PLAY, android.media.session.PlaybackState.ACTION_REWIND, android.media.session.PlaybackState.ACTION_SKIP_TO_PREVIOUS, android.media.session.PlaybackState.ACTION_SKIP_TO_NEXT, android.media.session.PlaybackState.ACTION_FAST_FORWARD, android.media.session.PlaybackState.ACTION_SET_RATING, android.media.session.PlaybackState.ACTION_SEEK_TO, android.media.session.PlaybackState.ACTION_PLAY_PAUSE, android.media.session.PlaybackState.ACTION_PLAY_FROM_MEDIA_ID, android.media.session.PlaybackState.ACTION_PLAY_FROM_SEARCH, android.media.session.PlaybackState.ACTION_SKIP_TO_QUEUE_ITEM, android.media.session.PlaybackState.ACTION_PLAY_FROM_URI, android.media.session.PlaybackState.ACTION_PREPARE, android.media.session.PlaybackState.ACTION_PREPARE_FROM_MEDIA_ID, android.media.session.PlaybackState.ACTION_PREPARE_FROM_SEARCH, android.media.session.PlaybackState.ACTION_PREPARE_FROM_URI}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.media.session.PlaybackState.Builder android.media.session.PlaybackState.Builder setActions(long) 0">
-    <annotation name="android.support.annotation.IntDef">
+    <annotation name="android.support.annotation.LongDef">
       <val name="value" val="{android.media.session.PlaybackState.ACTION_STOP, android.media.session.PlaybackState.ACTION_PAUSE, android.media.session.PlaybackState.ACTION_PLAY, android.media.session.PlaybackState.ACTION_REWIND, android.media.session.PlaybackState.ACTION_SKIP_TO_PREVIOUS, android.media.session.PlaybackState.ACTION_SKIP_TO_NEXT, android.media.session.PlaybackState.ACTION_FAST_FORWARD, android.media.session.PlaybackState.ACTION_SET_RATING, android.media.session.PlaybackState.ACTION_SEEK_TO, android.media.session.PlaybackState.ACTION_PLAY_PAUSE, android.media.session.PlaybackState.ACTION_PLAY_FROM_MEDIA_ID, android.media.session.PlaybackState.ACTION_PLAY_FROM_SEARCH, android.media.session.PlaybackState.ACTION_SKIP_TO_QUEUE_ITEM, android.media.session.PlaybackState.ACTION_PLAY_FROM_URI, android.media.session.PlaybackState.ACTION_PREPARE, android.media.session.PlaybackState.ACTION_PREPARE_FROM_MEDIA_ID, android.media.session.PlaybackState.ACTION_PREPARE_FROM_SEARCH, android.media.session.PlaybackState.ACTION_PREPARE_FROM_URI}" />
       <val name="flag" val="true" />
     </annotation>

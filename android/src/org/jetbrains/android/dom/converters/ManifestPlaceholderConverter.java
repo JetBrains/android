@@ -163,6 +163,6 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
       result.add(new PlaceholderReference(element, range, placeholdersArray));
     }
 
-    return result.toArray(new PsiReference[result.size()]);
+    return result.toArray(PsiReference.EMPTY_ARRAY);
   }
 }

@@ -15,19 +15,25 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.StateList;
+import com.android.tools.idea.res.StateListState;
 import com.android.utils.Pair;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("UseJBColor")
 public class ColorUtils {
@@ -64,21 +70,21 @@ public class ColorUtils {
 
   /**
    * @param styleAttributeName the name of a style attribute we want to check for contrast issues
-   * Returns the set of {@link ItemResourceValue} that have to be checked in the current theme for contrast against a particular attribute.
+   * Returns the set of {@link StyleItemResourceValue} that have to be checked in the current theme for contrast against a particular attribute.
    */
   @NotNull
-  public static ImmutableSet<ItemResourceValue> getContrastItems(@NotNull ThemeEditorContext context, @NotNull String styleAttributeName) {
+  public static ImmutableSet<StyleItemResourceValue> getContrastItems(@NotNull ThemeEditorContext context, @NotNull String styleAttributeName) {
     Set<String> contrastColorSet = CONTRAST_MAP.get(styleAttributeName);
     if (contrastColorSet == null) {
       return ImmutableSet.of();
     }
 
-    ImmutableSet.Builder<ItemResourceValue> contrastItemsBuilder = ImmutableSet.builder();
+    ImmutableSet.Builder<StyleItemResourceValue> contrastItemsBuilder = ImmutableSet.builder();
     ConfiguredThemeEditorStyle currentTheme = context.getCurrentTheme();
     assert currentTheme != null;
 
     for (String contrastColor : contrastColorSet) {
-      ItemResourceValue contrastItem = ThemeEditorUtils.resolveItemFromParents(currentTheme, contrastColor, false);
+      StyleItemResourceValue contrastItem = ThemeEditorUtils.resolveItemFromParents(currentTheme, contrastColor, false);
       if (contrastItem == null) {
         contrastItem = ThemeEditorUtils.resolveItemFromParents(currentTheme, contrastColor, true);
       }
@@ -101,12 +107,12 @@ public class ColorUtils {
     assert styleResourceResolver != null;
     Project project = context.getProject();
 
-    Set<ItemResourceValue> contrastItems = getContrastItems(context, styleAttributeName);
-    for (ItemResourceValue contrastItem : contrastItems) {
-      ResourceHelper.StateList stateList = ResourceHelper.resolveStateList(styleResourceResolver, contrastItem, project);
+    Set<StyleItemResourceValue> contrastItems = getContrastItems(context, styleAttributeName);
+    for (StyleItemResourceValue contrastItem : contrastItems) {
+      StateList stateList = ResourceHelper.resolveStateList(styleResourceResolver, contrastItem, project);
       if (stateList != null) {
-        List<ResourceHelper.StateListState> disabledStates = stateList.getDisabledStates();
-        for (ResourceHelper.StateListState stateListState : stateList.getStates()) {
+        List<StateListState> disabledStates = stateList.getDisabledStates();
+        for (StateListState stateListState : stateList.getStates()) {
           Color stateListColor = ResourceHelper
             .resolveColor(styleResourceResolver, styleResourceResolver.findResValue(stateListState.getValue(), false), project);
           if (stateListColor != null) {
@@ -121,7 +127,7 @@ public class ColorUtils {
             contrastColorsBuilder.put(disabledPrefix +
                                       ThemeEditorUtils.generateWordEnumeration(stateListState.getAttributesNames(false)) +
                                       " <b>" +
-                                      contrastItem.getName() +
+                                      contrastItem.getAttrName() +
                                       "</b>", stateListColor);
           }
         }
@@ -129,7 +135,7 @@ public class ColorUtils {
       else {
         Color resolvedColor = ResourceHelper.resolveColor(styleResourceResolver, contrastItem, project);
         if (resolvedColor != null) {
-          contrastColorsBuilder.put("<b>" + contrastItem.getName() + "</b>", resolvedColor);
+          contrastColorsBuilder.put("<b>" + contrastItem.getAttrName() + "</b>", resolvedColor);
         }
       }
     }

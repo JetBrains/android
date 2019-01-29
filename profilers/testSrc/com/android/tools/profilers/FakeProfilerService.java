@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.*;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
@@ -29,15 +31,35 @@ import java.util.Map;
 public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
   public static final String VERSION = "3141592";
   public static final long FAKE_DEVICE_ID = 1234;
+  public static final String FAKE_DEVICE_NAME = "FakeDevice";
+  public static final String FAKE_PROCESS_NAME = "FakeProcess";
+  public static final Common.Device FAKE_DEVICE = Common.Device.newBuilder()
+                                                               .setDeviceId(FAKE_DEVICE_ID)
+                                                               .setSerial(FAKE_DEVICE_NAME)
+                                                               .setApiLevel(AndroidVersion.VersionCodes.O)
+                                                               .setFeatureLevel(AndroidVersion.VersionCodes.O)
+                                                               .setModel(FAKE_DEVICE_NAME)
+                                                               .setState(Common.Device.State.ONLINE)
+                                                               .build();
+  //Setting PID to be 1 since there is a process with pid being 1 in test input atrace_processid_1
+  public static final Common.Process FAKE_PROCESS = Common.Process.newBuilder()
+                                                                  .setPid(1)
+                                                                  .setDeviceId(FAKE_DEVICE_ID)
+                                                                  .setState(Common.Process.State.ALIVE)
+                                                                  .setName(FAKE_PROCESS_NAME)
+                                                                  .build();
 
   private final Map<Long, Common.Device> myDevices;
   private final MultiMap<Common.Device, Common.Process> myProcesses;
   private final Map<String, ByteString> myCache;
   private final Map<Long, Common.Session> mySessions;
+  private final Map<Long, Common.SessionMetaData> mySessionMetaDatas;
   private long myTimestampNs;
   private boolean myThrowErrorOnGetDevices;
   private boolean myAttachAgentCalled;
-  private AgentStatusResponse.Status myAgentStatus;
+  private AgentStatusResponse myAgentStatus;
+
+  private Common.SessionMetaData.SessionType myLastImportedSessionType;
 
   public FakeProfilerService() {
     this(true);
@@ -55,20 +77,10 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myProcesses = MultiMap.create();
     myCache = new HashMap<>();
     mySessions = new HashMap<>();
+    mySessionMetaDatas = new HashMap<>();
     if (connected) {
-      Common.Device device = Common.Device.newBuilder()
-        .setDeviceId(FAKE_DEVICE_ID)
-        .setSerial("FakeDevice")
-        .setState(Common.Device.State.ONLINE)
-        .build();
-      Common.Process process = Common.Process.newBuilder()
-        .setPid(20)
-        .setDeviceId(FAKE_DEVICE_ID)
-        .setState(Common.Process.State.ALIVE)
-        .setName("FakeProcess")
-        .build();
-      addDevice(device);
-      addProcess(device, process);
+      addDevice(FAKE_DEVICE);
+      addProcess(FAKE_DEVICE, FAKE_PROCESS);
     }
   }
 
@@ -100,6 +112,11 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     // Update device on devices map
     myDevices.remove(oldDevice.getDeviceId());
     myDevices.put(newDevice.getDeviceId(), newDevice);
+  }
+
+  public void addSession(Common.Session session, Common.SessionMetaData metadata) {
+    mySessions.put(session.getSessionId(), session);
+    mySessionMetaDatas.put(session.getSessionId(), metadata);
   }
 
   public void addFile(String id, ByteString contents) {
@@ -166,25 +183,57 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   @Override
   public void beginSession(BeginSessionRequest request, StreamObserver<BeginSessionResponse> responseObserver) {
     BeginSessionResponse.Builder builder = BeginSessionResponse.newBuilder();
-    long sessionId = request.getDeviceId() ^ request.getProcessId();
+    long sessionId = request.getDeviceId() ^ request.getPid();
     Common.Session session = Common.Session.newBuilder()
       .setSessionId(sessionId)
       .setDeviceId(request.getDeviceId())
-      .setPid(request.getProcessId())
+      .setPid(request.getPid())
       .setStartTimestamp(myTimestampNs)
       .setEndTimestamp(Long.MAX_VALUE)
       .build();
+    Common.SessionMetaData metadata = Common.SessionMetaData.newBuilder()
+      .setSessionId(sessionId)
+      .setSessionName(request.getSessionName())
+      .setStartTimestampEpochMs(request.getRequestTimeEpochMs())
+      .setJvmtiEnabled(request.getJvmtiConfig().getAttachAgent())
+      .setLiveAllocationEnabled(request.getJvmtiConfig().getLiveAllocationEnabled())
+      .setType(Common.SessionMetaData.SessionType.FULL)
+      .build();
     mySessions.put(sessionId, session);
+    mySessionMetaDatas.put(sessionId, metadata);
+    myAttachAgentCalled = request.getJvmtiConfig().getAttachAgent();
     builder.setSession(session);
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
 
   @Override
+  public void importSession(ImportSessionRequest request, StreamObserver<ImportSessionResponse> responseObserver) {
+    mySessions.put(request.getSession().getSessionId(), request.getSession());
+
+    Common.Session session = request.getSession();
+    long sessionId = session.getSessionId();
+    Common.SessionMetaData metadata = Common.SessionMetaData.newBuilder()
+      .setSessionId(sessionId)
+      .setSessionName(request.getSessionName())
+      .setJvmtiEnabled(false)
+      .setLiveAllocationEnabled(false)
+      .setType(request.getSessionType())
+      .build();
+    mySessionMetaDatas.put(sessionId, metadata);
+    myAttachAgentCalled = false;
+    myLastImportedSessionType = request.getSessionType();
+    responseObserver.onNext(ImportSessionResponse.newBuilder().build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void endSession(EndSessionRequest request, StreamObserver<EndSessionResponse> responseObserver) {
     assert (mySessions.containsKey(request.getSessionId()));
-    Common.Session session = mySessions.get(request.getSessionId()).toBuilder()
-      .setEndTimestamp(1000L) // set an arbitrary end time that is not Long.MAX_VALUE
+    Common.Session session = mySessions.get(request.getSessionId());
+    // Set an arbitrary end time that is not Long.MAX_VALUE, which is reserved for indicating a session is ongoing.
+    session = session.toBuilder()
+      .setEndTimestamp(session.getStartTimestamp() + 1)
       .build();
     mySessions.put(session.getSessionId(), session);
     EndSessionResponse.Builder builder = EndSessionResponse.newBuilder().setSession(session);
@@ -202,23 +251,32 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   }
 
   @Override
-  public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
-    AgentStatusResponse.Builder builder = AgentStatusResponse.newBuilder();
-    if (myAgentStatus != null) {
-      builder.setStatus(myAgentStatus);
+  public void getSessionMetaData(GetSessionMetaDataRequest request,
+                                 StreamObserver<GetSessionMetaDataResponse> responseObserver) {
+    if (mySessionMetaDatas.containsKey(request.getSessionId())) {
+      responseObserver.onNext(GetSessionMetaDataResponse.newBuilder().setData(mySessionMetaDatas.get(request.getSessionId())).build());
     }
-    responseObserver.onNext(builder.build());
+    else {
+      responseObserver.onNext(GetSessionMetaDataResponse.getDefaultInstance());
+    }
     responseObserver.onCompleted();
   }
 
   @Override
-  public void attachAgent(AgentAttachRequest request, StreamObserver<AgentAttachResponse> responseObserver) {
-    myAttachAgentCalled = true;
-    responseObserver.onNext(AgentAttachResponse.getDefaultInstance());
+  public void deleteSession(DeleteSessionRequest request, StreamObserver<DeleteSessionResponse> responseObserver) {
+    mySessions.remove(request.getSessionId());
+    mySessionMetaDatas.remove(request.getSessionId());
+    responseObserver.onNext(DeleteSessionResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
 
-  public void setAgentStatus(@NotNull AgentStatusResponse.Status status) {
+  @Override
+  public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentStatusResponse> responseObserver) {
+    responseObserver.onNext(myAgentStatus != null ? myAgentStatus : AgentStatusResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
+
+  public void setAgentStatus(@NotNull AgentStatusResponse status) {
     myAgentStatus = status;
   }
 
@@ -228,5 +286,9 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
 
   public boolean getAgentAttachCalled() {
     return myAttachAgentCalled;
+  }
+
+  public Common.SessionMetaData.SessionType getLastImportedSessionType() {
+    return myLastImportedSessionType;
   }
 }

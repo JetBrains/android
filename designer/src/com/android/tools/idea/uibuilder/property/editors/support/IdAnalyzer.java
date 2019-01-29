@@ -23,10 +23,7 @@ import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
@@ -111,6 +108,7 @@ public class IdAnalyzer {
       String reference = references.iterator().next();
       references.remove(reference);
       myReservedIds.add(reference);
+      //noinspection SuspiciousMethodCalls
       referenceMap.get(reference).stream()
         .filter(id -> !myReservedIds.contains(id))
         .forEach(references::add);
@@ -120,6 +118,7 @@ public class IdAnalyzer {
   private void findChildIdsWithTagName(@NotNull String childTagName) {
     List<NlComponent> components = myProperty.getComponents();
     if (components.size() == 1) {
+      //noinspection SuspiciousMethodCalls
       components.get(0).getChildren().stream()
         .filter(component -> component.getTagName().equals(childTagName))
         .map(NlComponent::getId)
@@ -163,10 +162,17 @@ public class IdAnalyzer {
     RADIO_BUTTON
   );
 
+  private static final PropertyGroup CHIP_GROUP = new ChildTagPropertyGroup(
+    AUTO_URI,
+    ImmutableList.of(ATTR_CHECKED_CHIP),
+    CHIP
+  );
+
   private static final List<PropertyGroup> PROPERTY_GROUPS = ImmutableList.of(
     RELATIVE_LAYOUT_GROUP,
     CONSTRAINT_LAYOUT_GROUP,
-    RADIO_GROUP);
+    RADIO_GROUP,
+    CHIP_GROUP);
 
   private static class PropertyGroup {
     private final String myNamespace;

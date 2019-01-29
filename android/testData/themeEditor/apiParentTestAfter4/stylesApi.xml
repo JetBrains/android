@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.MyTheme">
+    <style name="Theme.MyTheme" parent="android:Theme">
         <item name="android:windowIsFloating">true</item>
     </style>
 </resources>

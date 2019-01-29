@@ -15,16 +15,24 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
+import com.android.tools.profilers.memory.FakeMemoryService;
+import com.android.tools.profilers.sessions.SessionsManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class CpuProfilerTest {
 
@@ -32,38 +40,148 @@ public class CpuProfilerTest {
 
   private static final Common.Session FAKE_SESSION = Common.Session.newBuilder().setSessionId(4321).setPid(FAKE_PID).build();
 
-  private final FakeCpuService myService = new FakeCpuService();
+  private final FakeProfilerService myProfilerService = new FakeProfilerService();
 
-  private Common.Process FAKE_PROCESS = Common.Process.newBuilder().setPid(FAKE_PID).setName("FakeProcess").build();
+  private final FakeCpuService myCpuService = new FakeCpuService();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuProfilerTest", myService);
+  public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("CpuProfilerTest", myProfilerService, new FakeMemoryService(), myCpuService);
+
+  @Rule public final ExpectedException myExpectedException = ExpectedException.none();
 
   private CpuProfiler myCpuProfiler;
 
+  private FakeIdeProfilerServices myIdeServices;
+
+  private StudioProfilers myProfilers;
+
   @Before
-  public void setUp() throws Exception {
-    myCpuProfiler = new CpuProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
+  public void setUp() {
+    myIdeServices = new FakeIdeProfilerServices();
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeServices, new FakeTimer());
   }
 
   @Test
   public void newMonitor() {
+    myCpuProfiler = new CpuProfiler(myProfilers);
     ProfilerMonitor monitor = myCpuProfiler.newMonitor();
-    assertNotNull(monitor);
-    assertTrue(monitor instanceof CpuMonitor);
+    assertThat(monitor).isNotNull();
+    assertThat(monitor).isInstanceOf(CpuMonitor.class);
   }
 
   @Test
-  public void startProfilingCallStartMonitoringAppId() throws InterruptedException {
-    myCpuProfiler.startProfiling(FAKE_SESSION, FAKE_PROCESS);
+  public void startProfilingCallStartMonitoringAppId() {
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    myCpuProfiler.startProfiling(FAKE_SESSION);
     // Make sure the session of the service was set to FAKE_SESSION by the start monitoring request
-    assertEquals(FAKE_SESSION, myService.getSession());
+    assertThat(myCpuService.getSession()).isEqualTo(FAKE_SESSION);
   }
 
   @Test
-  public void stopProfilingCallStopMonitoringAppId() throws InterruptedException {
-    myCpuProfiler.stopProfiling(FAKE_SESSION, FAKE_PROCESS);
+  public void stopProfilingCallStopMonitoringAppId() {
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    myCpuProfiler.stopProfiling(FAKE_SESSION);
     // Make sure the session of the service was set to FAKE_SESSION by the stop monitoring request
-    assertEquals(FAKE_SESSION, myService.getSession());
+    assertThat(myCpuService.getSession()).isEqualTo(FAKE_SESSION);
+  }
+
+  @Test
+  public void importedSessionListenerShouldBeRegistered() {
+    // Enable the import trace flag
+    myIdeServices.enableImportTrace(true);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    // Importing a session from a trace file should select a Common.SessionMetaData.SessionType.CPU_CAPTURE session
+    sessionsManager.importSessionFromFile(trace);
+
+    // Verify that CpuProfilerStage is open in Import trace mode
+    assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
+    CpuProfilerStage cpuProfilerStage = (CpuProfilerStage)myProfilers.getStage();
+    assertThat(cpuProfilerStage.isImportTraceMode()).isTrue();
+  }
+
+  @Test
+  public void importedSessionListenerShouldntBeRegisteredIfFlagIsDisabled() {
+    // Enable the import trace flag
+    myIdeServices.enableImportTrace(false);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    Common.Session session = sessionsManager.createImportedSession("name.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0);
+    sessionsManager.update();
+    // Expect setting the session to fail, because session manager shouldn't be aware of Common.SessionMetaData.SessionType.CPU_CAPTURE,
+    // as we didn't register a listener for this type of captures.
+    myExpectedException.expect(AssertionError.class);
+    sessionsManager.setSession(session);
+  }
+
+  @Test
+  public void traceImportHandlerShouldBeRegistered() {
+    // Enable the import trace flag
+    myIdeServices.enableImportTrace(true);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+
+    boolean sessionImportedSuccessfully = sessionsManager.importSessionFromFile(trace);
+    assertThat(sessionImportedSuccessfully).isTrue();
+
+    assertThat(myProfilerService.getLastImportedSessionType()).isEqualTo(Common.SessionMetaData.SessionType.CPU_CAPTURE);
+  }
+
+  @Test
+  public void traceImportHandlerShouldntBeRegisteredIfFlagIsDisabled() {
+    // Disable the import trace flag
+    myIdeServices.enableImportTrace(false);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+
+    boolean sessionImportedSuccessfully = sessionsManager.importSessionFromFile(trace);
+    assertThat(sessionImportedSuccessfully).isFalse();
+
+    assertThat(myProfilerService.getLastImportedSessionType()).isNull();
+  }
+
+  @Test
+  public void referenceToTraceFilesAreSavedPerSession() {
+    // Enable the import trace flag
+    myIdeServices.enableImportTrace(true);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    File trace1 = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    sessionsManager.importSessionFromFile(trace1);
+    Common.Session session1 = sessionsManager.getSelectedSession();
+
+    File trace2 = CpuProfilerTestUtils.getTraceFile("basic.trace");
+    sessionsManager.importSessionFromFile(trace2);
+    Common.Session session2 = sessionsManager.getSelectedSession();
+
+
+    assertThat(myCpuProfiler.getTraceFile(session1)).isEqualTo(trace1);
+    assertThat(myCpuProfiler.getTraceFile(session2)).isEqualTo(trace2);
+  }
+
+  @Test
+  public void importedSessionsStartTimeShouldBeTraceCreationTime() throws IOException {
+    // Enable the import trace flag
+    myIdeServices.enableImportTrace(true);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    long traceCreationTime =
+      Files.readAttributes(Paths.get(trace.getPath()), BasicFileAttributes.class).creationTime().to(TimeUnit.NANOSECONDS);
+
+
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+    // Imported session's start time should be equal to the imported trace file creation time
+    sessionsManager.importSessionFromFile(trace);
+    assertThat(sessionsManager.getSelectedSession().getStartTimestamp()).isEqualTo(traceCreationTime);
   }
 }

@@ -16,13 +16,13 @@
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
-import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
-import com.android.tools.idea.gradle.dsl.api.values.GradleValue;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -40,6 +40,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
   @NotNull private static final String TEST_DIR = "hello/i/am/a/dir";
   @NotNull private static final String OTHER_TEST_DIR = "/this/is/also/a/dir";
 
+  @Test
   public void testParseJCenterDefaultRepository() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter()\n" +
@@ -52,6 +53,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
   }
 
+  @Test
   public void testParseJCenterCustomRepository() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter {\n" +
@@ -67,11 +69,12 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repositoryModel).isInstanceOf(JCenterRepositoryModel.class);
     JCenterRepositoryModel repository = (JCenterRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
-    assertEquals("name", "BintrayJCenter2", repository.name().value());
+    assertEquals("name", "BintrayJCenter2", repository.name().toString());
     assertNotNull("url", repository.url().getPsiElement());
-    assertEquals("url", "http://jcenter.bintray.com/", repository.url().value());
+    assertEquals("url", "http://jcenter.bintray.com/", repository.url().toString());
   }
 
+  @Test
   public void testParseMavenCentralRepository() throws IOException {
     String text = "repositories {\n" +
                   "  mavenCentral()\n" +
@@ -84,12 +87,13 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoryModel repositoryModel = repositories.get(0);
     assertThat(repositoryModel).isInstanceOf(MavenCentralRepositoryModel.class);
     MavenCentralRepositoryModel repository = (MavenCentralRepositoryModel)repositoryModel;
-    assertNull("name", repository.name().getPsiElement());
-    assertEquals("name", "MavenRepo", repository.name().value());
+    assertEquals("name", "MavenRepo", repository.name().toString());
+    assertNull("url", repository.name().getPsiElement());
+    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url().toString());
     assertNull("url", repository.url().getPsiElement());
-    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url().value());
   }
 
+  @Test
   public void testParseMavenCentralRepositoryWithMultipleArtifactUrls() throws IOException {
     String text = "repositories {\n" +
                   "  mavenCentral name: \"nonDefaultName\", " +
@@ -104,14 +108,15 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repositoryModel).isInstanceOf(MavenCentralRepositoryModel.class);
     MavenCentralRepositoryModel repository = (MavenCentralRepositoryModel)repositoryModel;
     assertNotNull("name", repository.name().getPsiElement());
-    assertEquals("name", "nonDefaultName", repository.name().value());
+    assertEquals("name", "nonDefaultName", repository.name().toString());
     assertNull("url", repository.url().getPsiElement());
-    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url().value());
+    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url().toString());
     assertEquals("artifactUrls",
                  ImmutableList.of("http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"),
                  repository.artifactUrls());
   }
 
+  @Test
   public void testParseMavenCentralRepositoryWithSingleArtifactUrls() throws IOException {
     String text = "repositories {\n" +
                   "  mavenCentral artifactUrls: \"http://www.mycompany.com/artifacts\"\n" +
@@ -125,12 +130,13 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repositoryModel).isInstanceOf(MavenCentralRepositoryModel.class);
     MavenCentralRepositoryModel repository = (MavenCentralRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
-    assertEquals("name", "MavenRepo", repository.name().value());
+    assertEquals("name", "MavenRepo", repository.name().toString());
     assertNull("url", repository.url().getPsiElement());
-    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url().value());
-    assertEquals("artifactUrls", ImmutableList.of("http://www.mycompany.com/artifacts"), repository.artifactUrls());
+    assertEquals("url", "https://repo1.maven.org/maven2/", repository.url().toString());
+    assertEquals("artifactUrls", "http://www.mycompany.com/artifacts", repository.artifactUrls());
   }
 
+  @Test
   public void testParseCustomMavenRepository() throws IOException {
     String text = "repositories {\n" +
                   "  maven {\n" +
@@ -147,11 +153,12 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repositoryModel).isInstanceOf(MavenRepositoryModelImpl.class);
     MavenRepositoryModelImpl repository = (MavenRepositoryModelImpl)repositoryModel;
     assertNotNull("name", repository.name().getPsiElement());
-    assertEquals("name", "myRepoName", repository.name().value());
+    assertEquals("name", "myRepoName", repository.name().toString());
     assertNotNull("url", repository.url().getPsiElement());
-    assertEquals("url", "http://repo.mycompany.com/maven2", repository.url().value());
+    assertEquals("url", "http://repo.mycompany.com/maven2", repository.url().toString());
   }
 
+  @Test
   public void testParseMavenRepositoryWithArtifactUrls() throws IOException {
     String text = "repositories {\n" +
                   "  maven {\n" +
@@ -171,14 +178,15 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repositoryModel).isInstanceOf(MavenRepositoryModelImpl.class);
     MavenRepositoryModelImpl repository = (MavenRepositoryModelImpl)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
-    assertEquals("name", "maven", repository.name().value());
+    assertEquals("name", "maven", repository.name().toString());
     assertNotNull("url", repository.url().getPsiElement());
-    assertEquals("url", "http://repo2.mycompany.com/maven2", repository.url().value());
+    assertEquals("url", "http://repo2.mycompany.com/maven2", repository.url().toString());
     assertEquals("artifactUrls",
                  ImmutableList.of("http://repo.mycompany.com/jars", "http://repo.mycompany.com/jars2"),
                  repository.artifactUrls());
   }
 
+  @Test
   public void testParseMavenRepositoryWithCredentials() throws IOException {
     String text = "repositories {\n" +
                   "  maven {\n" +
@@ -198,10 +206,10 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repositoryModel).isInstanceOf(MavenRepositoryModelImpl.class);
     MavenRepositoryModelImpl repository = (MavenRepositoryModelImpl)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
-    assertEquals("name", "maven", repository.name().value());
+    assertEquals("name", "maven", repository.name().toString());
     assertNotNull("url", repository.url().getPsiElement());
-    assertEquals("url", "http://repo.mycompany.com/maven2", repository.url().value());
-    assertThat(repository.artifactUrls()).isEmpty();
+    assertEquals("url", "http://repo.mycompany.com/maven2", repository.url().toString());
+    assertMissingProperty(repository.artifactUrls());
 
     MavenCredentialsModel credentials = repository.credentials();
     assertNotNull(credentials);
@@ -209,6 +217,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("password", "password123", credentials.password());
   }
 
+  @Test
   public void testParseFlatDirRepository() throws IOException {
     String text = "repositories {\n" +
                   "  flatDir {\n" +
@@ -224,10 +233,11 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repositoryModel).isInstanceOf(FlatDirRepositoryModel.class);
     FlatDirRepositoryModel repository = (FlatDirRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
-    assertEquals("name", "flatDir", repository.name().value());
+    assertEquals("name", "flatDir", repository.name().toString());
     assertEquals("dirs", ImmutableList.of("lib1", "lib2"), repository.dirs());
   }
 
+  @Test
   public void testParseFlatDirRepositoryWithSingleDirArgument() throws IOException {
     String text = "repositories {\n" +
                   "   flatDir name: 'libs', dirs: \"libs\"\n" +
@@ -241,10 +251,11 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repositoryModel).isInstanceOf(FlatDirRepositoryModel.class);
     FlatDirRepositoryModel repository = (FlatDirRepositoryModel)repositoryModel;
     assertNotNull("name", repository.name().getPsiElement());
-    assertEquals("name", "libs", repository.name().value());
-    assertEquals("dirs", ImmutableList.of("libs"), repository.dirs());
+    assertEquals("name", "libs", repository.name().toString());
+    assertEquals("dirs", "libs", repository.dirs());
   }
 
+  @Test
   public void testParseFlatDirRepositoryWithDirListArgument() throws IOException {
     String text = "repositories {\n" +
                   "   flatDir dirs: [\"libs1\", \"libs2\"]\n" +
@@ -259,10 +270,11 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
     FlatDirRepositoryModel repository = (FlatDirRepositoryModel)repositoryModel;
     assertNull("name", repository.name().getPsiElement());
-    assertEquals("name", "flatDir", repository.name().value());
+    assertEquals("name", "flatDir", repository.name().toString());
     assertEquals("dirs", ImmutableList.of("libs1", "libs2"), repository.dirs());
   }
 
+  @Test
   public void testParseMultipleRepositories() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter()\n" +
@@ -282,6 +294,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals("url", "https://repo1.maven.org/maven2/", mavenCentralRepository.url());
   }
 
+  @Test
   public void testParseGoogleDefaultRepository() throws IOException {
     String text = "repositories {\n" +
                   "  google()\n" +
@@ -294,6 +307,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyGoogleDefaultRepositoryModel(repositories.get(0));
   }
 
+  @Test
   public void testAddGoogleRepositoryByMethodCall() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter()\n" +
@@ -308,6 +322,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
   }
 
+  @Test
   public void testAddGoogleRepositoryByMethodCallEmpty() throws IOException {
     String text = "repositories {\n" +
                   "}";
@@ -318,6 +333,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyAddGoogleRepositoryByMethodCall();
   }
 
+  @Test
   public void testAddGoogleRepositoryToEmptyBuildscript() throws IOException {
     String text = "buildscript {\n" +
                   "}";
@@ -340,6 +356,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyGoogleDefaultRepositoryModel(repositories.get(0));
   }
 
+  @Test
   public void testAddGoogleRepositoryByMethodCallPresent() throws IOException {
     String text = "repositories {\n" +
                   "  google()\n" +
@@ -356,6 +373,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertFalse(buildModel.isModified());
   }
 
+  @Test
   public void testAddGoogleRepositoryByUrl() throws IOException {
     String text = "repositories {\n" +
                   "  jcenter()\n" +
@@ -370,6 +388,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
   }
 
+  @Test
   public void testAddGoogleRepositoryByUrlEmpty() throws IOException {
     String text = "repositories {\n" +
                   "}";
@@ -380,6 +399,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyAddGoogleRepositoryByUrl();
   }
 
+  @Test
   public void testAddGoogleRepositoryByUrlPresent() throws IOException {
     String text = "repositories {\n" +
                   "  maven {\n" +
@@ -410,9 +430,9 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(jcenter).isInstanceOf(JCenterDefaultRepositoryModel.class);
     JCenterDefaultRepositoryModel jCenterRepository = (JCenterDefaultRepositoryModel)jcenter;
     assertNull("name", jCenterRepository.name().getPsiElement());
-    assertEquals("name", "BintrayJCenter2", jCenterRepository.name().value());
+    assertEquals("name", "BintrayJCenter2", jCenterRepository.name().toString());
     assertNull("url", jCenterRepository.url().getPsiElement());
-    assertEquals("url", "https://jcenter.bintray.com/", jCenterRepository.url().value());
+    assertEquals("url", "https://jcenter.bintray.com/", jCenterRepository.url().toString());
   }
 
   private void verifyAddGoogleRepositoryByMethodCall() {
@@ -455,11 +475,12 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repository).isInstanceOf(MavenRepositoryModelImpl.class);
     MavenRepositoryModelImpl mavenRepository = (MavenRepositoryModelImpl)repository;
     assertNotNull("url", mavenRepository.url().getPsiElement());
-    assertEquals("url", GOOGLE_DEFAULT_REPO_URL, mavenRepository.url().value());
+    assertEquals("url", GOOGLE_DEFAULT_REPO_URL, mavenRepository.url().toString());
     assertNotNull("name", mavenRepository.name().getPsiElement());
-    assertEquals("name", GOOGLE_DEFAULT_REPO_NAME, mavenRepository.name().value());
+    assertEquals("name", GOOGLE_DEFAULT_REPO_NAME, mavenRepository.name().toString());
   }
 
+  @Test
   public void testAddFlatRepository() throws IOException {
     writeToBuildFile("repositories {\n\n}");
 
@@ -477,10 +498,11 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repos.get(0)).isInstanceOf(FlatDirRepositoryModel.class);
 
     FlatDirRepositoryModel flatModel = (FlatDirRepositoryModel)repos.get(0);
-    assertThat(flatModel.dirs()).hasSize(1);
-    assertEquals("/usr/local/repo", flatModel.dirs().get(0));
+    assertThat(flatModel.dirs().toList()).hasSize(1);
+    assertEquals("/usr/local/repo", flatModel.dirs().toList().get(0).toString());
   }
 
+  @Test
   public void testAddFlatRepositoryFromEmpty() throws IOException {
     writeToBuildFile("");
 
@@ -498,10 +520,11 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repos.get(0)).isInstanceOf(FlatDirRepositoryModel.class);
 
     FlatDirRepositoryModel flatModel = (FlatDirRepositoryModel)repos.get(0);
-    assertThat(flatModel.dirs()).hasSize(1);
-    assertEquals("/usr/local/repo", flatModel.dirs().get(0));
+    assertThat(flatModel.dirs().toList()).hasSize(1);
+    assertEquals("/usr/local/repo", flatModel.dirs().toList().get(0).toString());
   }
 
+  @Test
   public void testAddToExistingFlatRepository() throws IOException {
     String text = "repositories {\n" +
                   "  flatDir {\n" +
@@ -526,13 +549,14 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
     FlatDirRepositoryModel flatDirRepositoryModel = (FlatDirRepositoryModel)repos.get(0);
 
-    List<GradleNotNullValue<String>> dirs = flatDirRepositoryModel.dirs();
-    dirs.sort(Comparator.comparing(GradleValue::value));
+    List<GradlePropertyModel> dirs = flatDirRepositoryModel.dirs().toList();
+    dirs.sort(Comparator.comparing(e -> e.resolve().toString()));
 
-    assertEquals(OTHER_TEST_DIR, dirs.get(0));
-    assertEquals(TEST_DIR, dirs.get(1));
+    assertEquals(OTHER_TEST_DIR, dirs.get(0).toString());
+    assertEquals(TEST_DIR, dirs.get(1).toString());
   }
 
+  @Test
   public void testAddDuplicateToExistingFlatRepository() throws IOException {
     String text = "repositories {\n" +
                   "  flatDir.dirs '" + TEST_DIR + "'\n" +
@@ -546,7 +570,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repositories).hasSize(1);
 
     repositoriesModel.addFlatDirRepository(TEST_DIR);
-    assertFalse(buildModel.isModified());
+    assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
 
     List<RepositoryModel> repos = buildModel.repositories().repositories();
@@ -554,7 +578,89 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(repos.get(0)).isInstanceOf(FlatDirRepositoryModel.class);
 
     FlatDirRepositoryModel flatDirRepositoryModel = (FlatDirRepositoryModel)repos.get(0);
-    assertThat(flatDirRepositoryModel.dirs()).hasSize(1);
-    assertEquals(TEST_DIR, flatDirRepositoryModel.dirs().get(0).value());
+    assertThat(flatDirRepositoryModel.dirs().toList()).hasSize(2);
+    assertEquals(TEST_DIR, flatDirRepositoryModel.dirs().toList().get(0).toString());
+    assertEquals(TEST_DIR, flatDirRepositoryModel.dirs().toList().get(1).toString());
+  }
+
+  @Test
+  public void testSetNameForMethodCall() throws IOException {
+    String text = "repositories {\n" +
+                  "  jcenter()\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0)).isInstanceOf(JCenterDefaultRepositoryModel.class);
+    repositories.get(0).name().setValue("hello");
+
+    applyChangesAndReparse(buildModel);
+
+    repositoriesModel = buildModel.repositories();
+    repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+    assertThat(repositories.get(0)).isInstanceOf(JCenterRepositoryModel.class);
+    assertThat(repositories.get(0).name().toString()).isEqualTo("hello");
+  }
+
+  @Test
+  public void testSetUrlForMethodCall() throws IOException {
+    String text = "";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).isEmpty();
+
+    repositoriesModel.addRepositoryByMethodName("jcenter");
+    repositories = repositoriesModel.repositories();
+    assertSize(1, repositories);
+    assertThat(repositories.get(0)).isInstanceOf(JCenterDefaultRepositoryModel.class);
+
+    ((JCenterDefaultRepositoryModel)repositories.get(0)).url().setValue("good.url");
+
+    applyChangesAndReparse(buildModel);
+
+    repositoriesModel = buildModel.repositories();
+    repositories = repositoriesModel.repositories();
+    assertSize(1, repositories);
+    assertThat(repositories.get(0)).isInstanceOf(JCenterRepositoryModel.class);
+    assertThat(((JCenterRepositoryModel)repositories.get(0)).url().toString()).isEqualTo("good.url");
+  }
+
+  @Test
+  public void testSetArtifactUrlsInMaven() throws IOException {
+    String text = "repositories {\n" +
+                  "  jcenter()\n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+
+    repositoriesModel.addMavenRepositoryByUrl("good.url", "Good Name");
+    repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(2);
+    assertThat(repositories.get(1)).isInstanceOf(MavenRepositoryModelImpl.class);
+
+    ((MavenRepositoryModelImpl)repositories.get(1)).artifactUrls().addListValue().setValue("nice.url");
+    ((MavenRepositoryModelImpl)repositories.get(1)).artifactUrls().addListValue().setValue("other.nice.url");
+
+    applyChangesAndReparse(buildModel);
+
+    repositoriesModel = buildModel.repositories();
+    repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(2);
+    assertThat(repositories.get(1)).isInstanceOf(MavenRepositoryModelImpl.class);
+    MavenRepositoryModelImpl model = (MavenRepositoryModelImpl)repositories.get(1);
+    assertThat(model.name().toString()).isEqualTo("Good Name");
+    assertThat(model.url().toString()).isEqualTo("good.url");
+    verifyListProperty(model.artifactUrls(), "repositories.maven.artifactUrls", ImmutableList.of("nice.url", "other.nice.url"));
   }
 }

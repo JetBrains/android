@@ -32,7 +32,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
@@ -46,7 +45,7 @@ public class RunSdkConfigAction extends DumbAwareAction {
   }
 
   @Override
-  public void update(@NotNull AnActionEvent e) {
+  public void update(AnActionEvent e) {
     if (e == null || ActionPlaces.WELCOME_SCREEN.equals(e.getPlace()) || IdeInfo.getInstance().isAndroidStudio()) {
       Presentation presentation = e == null ? getTemplatePresentation() : e.getPresentation();
       presentation.setEnabledAndVisible(isAndroidSdkManagerEnabled());
@@ -58,8 +57,8 @@ public class RunSdkConfigAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(@NotNull AnActionEvent e) {
-    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+  public void actionPerformed(@Nullable AnActionEvent e) {
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.SDK_MANAGER)
                                    .setKind(AndroidStudioEvent.EventKind.SDK_MANAGER_TOOLBAR_CLICKED));
     if (e != null && ActionPlaces.WELCOME_SCREEN.equals(e.getPlace())) {

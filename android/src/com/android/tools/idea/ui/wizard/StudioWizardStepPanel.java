@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.ui.wizard;
 
+import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 /**
  * A panel that provides a standard look and feel across wizard steps used in Android Studio.
@@ -32,5 +36,16 @@ public final class StudioWizardStepPanel extends JPanel {
 
     myRootPanel.add(innerPanel);
     add(myRootPanel);
+  }
+
+  /**
+   * When creating a StudioWizardStepPanel which may be so tall as to require vertical scrolling,
+   * using this helper method to automatically wrap it with an appropriate JScrollPane.
+   */
+  @NotNull
+  public static JBScrollPane wrappedWithVScroll(@NotNull JPanel innerPanel) {
+    JBScrollPane sp = new JBScrollPane(new StudioWizardStepPanel(innerPanel), VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    sp.setBorder(BorderFactory.createEmptyBorder());
+    return sp;
   }
 }

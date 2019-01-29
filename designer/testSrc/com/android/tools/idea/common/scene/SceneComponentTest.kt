@@ -17,7 +17,10 @@ package com.android.tools.idea.common.scene
 
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.scene.target.CommonDragTarget
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
+import com.android.tools.idea.uibuilder.model.viewGroupHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.mockito.Mockito
 
@@ -52,6 +55,22 @@ open class SceneComponentTest: SceneTest() {
     assertSize(2, parent.children)
     assertEquals(sceneComponent, parent.children[1])
     assertEquals(parent, sceneComponent.parent)
+  }
+
+  fun testDoNotCreateCommonDragTargetOnRootComponent() {
+    StudioFlags.NELE_DRAG_PLACEHOLDER.override(true)
+
+    val root = myScene.getSceneComponent("parent")!!
+    root.updateTargets()
+    val rootCommonDragTargets = root.targets.filterIsInstance<CommonDragTarget>()
+    assertEmpty(rootCommonDragTargets)
+
+    val child = myScene.getSceneComponent("child")!!
+    child.updateTargets()
+    val childCommonDragTargets = child.targets.filterIsInstance<CommonDragTarget>()
+    assertSize(1, childCommonDragTargets)
+
+    StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride()
   }
 
   override fun createModel(): ModelBuilder {

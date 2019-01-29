@@ -32,7 +32,6 @@ import static com.android.SdkConstants.*;
 public class CustomViewGroupHandler extends DelegatingViewGroupHandler {
 
   private final Icon myIcon16;
-  private final Icon myIcon24;
   private final String myTagName;
   private final String myClassName;
   @Language("XML")
@@ -46,7 +45,6 @@ public class CustomViewGroupHandler extends DelegatingViewGroupHandler {
 
   public CustomViewGroupHandler(@NotNull ViewGroupHandler handler,
                                 @Nullable Icon icon16,
-                                @Nullable Icon icon24,
                                 @NotNull String tagName,
                                 @NotNull String className,
                                 @Nullable @Language("XML") String xml,
@@ -57,7 +55,6 @@ public class CustomViewGroupHandler extends DelegatingViewGroupHandler {
                                 @NotNull List<String> layoutProperties) {
     super(handler);
     myIcon16 = icon16;
-    myIcon24 = icon24;
     myTagName = tagName;
     myClassName = className;
     myXml = xml;
@@ -74,12 +71,6 @@ public class CustomViewGroupHandler extends DelegatingViewGroupHandler {
   @NotNull
   public Icon getIcon(@NotNull String tagName) {
     return myIcon16 != null && tagName.equals(myTagName) ? myIcon16 : super.getIcon(tagName);
-  }
-
-  @Override
-  @NotNull
-  public Icon getLargeIcon(@NotNull String tagName) {
-    return myIcon24 != null && tagName.equals(myTagName) ? myIcon24 : super.getIcon(tagName);
   }
 
   @Override

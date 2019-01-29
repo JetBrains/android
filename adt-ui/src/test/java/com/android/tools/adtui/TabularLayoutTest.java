@@ -27,13 +27,82 @@ import static org.junit.Assert.fail;
 public final class TabularLayoutTest {
   @Test
   public void columnCountMatchesLayoutDefinition() {
-    TabularLayout layout = new TabularLayout("Fit,*,123px");
+    TabularLayout layout = new TabularLayout("Fit-,*,123px");
     assertThat(layout.getNumColumns()).isEqualTo(3);
   }
 
   @Test
-  public void minimumWidthCalculationUsesFitValues() throws Exception {
-    final JPanel panel = new JPanel(new TabularLayout("Fit,Fit"));
+  public void layoutThrowsExceptionIfComponentAddedWithoutConstraint() {
+    final JPanel panel = new JPanel(new TabularLayout("*"));
+    final JPanel row1 = new JPanel();
+    final JPanel row2 = new JPanel();
+
+    panel.add(row1, new TabularLayout.Constraint(0, 0));
+    try {
+      panel.add(row2);
+      fail();
+    }
+    catch (IllegalArgumentException ignored) {
+    }
+  }
+
+
+  @Test
+  public void fitPreferredWidthUsesComponentPrefferedSizeNotMinimumnSize() {
+    final JPanel panel = new JPanel(new TabularLayout("Fit"));
+
+    Component col0 = Box.createHorizontalStrut(20);
+    col0.setMinimumSize(new Dimension(10, 10));
+    col0.setPreferredSize(new Dimension(20, 20));
+
+    panel.add(col0, new TabularLayout.Constraint(0, 0));
+
+    mockPackPanel(panel);
+
+    assertThat(panel.getWidth()).isEqualTo(20);
+  }
+
+  @Test
+  public void fitPreferredWorksWithFitSize() {
+    final JPanel panel = new JPanel(new TabularLayout("Fit,Fit-"));
+
+    Component col0 = Box.createHorizontalStrut(20);
+    col0.setMinimumSize(new Dimension(10, 10));
+    col0.setPreferredSize(new Dimension(20, 20));
+    Component col1 = Box.createHorizontalStrut(30);
+    col1.setMinimumSize(new Dimension(30, 30));
+    col1.setPreferredSize(new Dimension(100, 100));
+
+    panel.add(col0, new TabularLayout.Constraint(0, 0));
+    panel.add(col1, new TabularLayout.Constraint(0, 1));
+
+    mockPackPanel(panel);
+
+    assertThat(panel.getWidth()).isEqualTo(50);
+  }
+
+  @Test
+  public void fitPreferredWorksAsRowSizing() {
+    final JPanel panel = new JPanel(new TabularLayout("Fit-,Fit", "Fit"));
+
+    Component row0 = Box.createHorizontalStrut(20);
+    row0.setMinimumSize(new Dimension(10, 10));
+    row0.setPreferredSize(new Dimension(20, 20));
+    Component row1 = Box.createHorizontalStrut(30);
+    row1.setMinimumSize(new Dimension(30, 30));
+    row1.setPreferredSize(new Dimension(100, 100));
+
+    panel.add(row0, new TabularLayout.Constraint(0, 0));
+    panel.add(row1, new TabularLayout.Constraint(1, 0));
+
+    mockPackPanel(panel);
+
+    assertThat(panel.getHeight()).isEqualTo(50);
+  }
+
+  @Test
+  public void minimumWidthCalculationUsesFitValues() {
+    final JPanel panel = new JPanel(new TabularLayout("Fit-,Fit-"));
 
     Component col0 = Box.createHorizontalStrut(80);
     Component col1 = Box.createHorizontalStrut(20);
@@ -47,7 +116,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void minimumWidthCalculationFixedValuesOverrideComponentSizes() throws Exception {
+  public void minimumWidthCalculationFixedValuesOverrideComponentSizes() {
     final JPanel panel = new JPanel(new TabularLayout("100px,50px"));
 
     Component col0 = Box.createHorizontalStrut(90);
@@ -62,8 +131,8 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void fitWidthChoosesLargestValueAcrossMultipleRows() throws Exception {
-    final JPanel panel = new JPanel(new TabularLayout("Fit,Fit"));
+  public void fitWidthChoosesLargestValueAcrossMultipleRows() {
+    final JPanel panel = new JPanel(new TabularLayout("Fit-,Fit-"));
 
     final Component row0col0 = Box.createHorizontalStrut(100);
     final Component row1col0 = Box.createHorizontalStrut(300);
@@ -95,8 +164,8 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void fitWidthUsesComponentMinimumSizeNotPreferredSize() throws Exception {
-    final JPanel panel = new JPanel(new TabularLayout("Fit"));
+  public void fitMinusUsesMinimumAndDefaultIsFitPreferred() {
+    final JPanel panel = new JPanel(new TabularLayout("Fit-"));
 
     JPanel cell = new JPanel();
     cell.setMinimumSize(new Dimension(5, 10));
@@ -110,8 +179,8 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void proportionalColumnsTakeRemainingSpace() throws Exception {
-    final JPanel panel = new JPanel(new TabularLayout("100px,Fit,3*,*,50px"));
+  public void proportionalColumnsTakeRemainingSpace() {
+    final JPanel panel = new JPanel(new TabularLayout("100px,Fit-,3*,*,50px"));
     panel.setPreferredSize(new Dimension(300, 20));
 
     // Col 1 = 100, Col 5 = 50
@@ -143,7 +212,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void preferredSizeCalculationMakesRoomForProportionalColumns() throws Exception {
+  public void preferredSizeCalculationMakesRoomForProportionalColumns() {
     final JPanel panel = new JPanel(new TabularLayout("*,2*,3*,4*"));
 
     // Col 0 - 10%
@@ -171,7 +240,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void minimumSizeCalculationCollapsesProportionalColumns() throws Exception {
+  public void minimumSizeCalculationCollapsesProportionalColumns() {
     final JPanel panel = new JPanel(new TabularLayout("10px,990*,*,20px,3*"));
 
     mockPackPanel(panel);
@@ -180,7 +249,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void heightCalculationSkipsEmptyRows() throws Exception {
+  public void heightCalculationSkipsEmptyRows() {
     final JPanel panel = new JPanel(new TabularLayout("100px"));
 
     final Component row0 = Box.createVerticalStrut(20);
@@ -199,7 +268,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void heightCalculationIncludesVgapAndSkipsEmptyRows() throws Exception {
+  public void heightCalculationIncludesVgapAndSkipsEmptyRows() {
     final JPanel panel = new JPanel(new TabularLayout("100px").setVGap(20));
 
     final Component row2 = Box.createVerticalStrut(20);
@@ -223,7 +292,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void heightCalculationSkipsInvisibleRows() throws Exception {
+  public void heightCalculationSkipsInvisibleRows() {
     final JPanel panel = new JPanel(new TabularLayout("100px"));
 
     final Component row0 = Box.createVerticalStrut(20);
@@ -244,8 +313,8 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void proportionalLayoutCollapsesIfAllContentsAreInvisible() throws Exception {
-    final JPanel panel = new JPanel(new TabularLayout("Fit"));
+  public void proportionalLayoutCollapsesIfAllContentsAreInvisible() {
+    final JPanel panel = new JPanel(new TabularLayout("Fit-"));
 
     final Component row0 = Box.createVerticalStrut(20);
     final Component row1 = Box.createVerticalStrut(50);
@@ -264,7 +333,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void layoutTakesInsetsIntoAccount() throws Exception {
+  public void layoutTakesInsetsIntoAccount() {
     final JPanel panel = new JPanel(new TabularLayout("*"));
     panel.setPreferredSize(new Dimension(300, 30));
 
@@ -285,8 +354,8 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void cellsCanSpanAcrossMultipleColumns() throws Exception {
-    final JPanel panel = new JPanel(new TabularLayout("Fit,Fit"));
+  public void cellsCanSpanAcrossMultipleColumns() {
+    final JPanel panel = new JPanel(new TabularLayout("Fit-,Fit-"));
 
     final Component row0col0 = Box.createHorizontalStrut(20);
     final Component row0col1 = Box.createHorizontalStrut(50);
@@ -305,8 +374,8 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void columnSpanMustBeWithinBounds() throws Exception {
-    final JPanel panel = new JPanel(new TabularLayout("Fit,Fit"));
+  public void columnSpanMustBeWithinBounds() {
+    final JPanel panel = new JPanel(new TabularLayout("Fit-,Fit-"));
     final JPanel row = new JPanel();
 
     try {
@@ -318,8 +387,8 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void columnSpanMustBeGreaterThanZero() throws Exception {
-    final JPanel panel = new JPanel(new TabularLayout("Fit,Fit"));
+  public void columnSpanMustBeGreaterThanZero() {
+    final JPanel panel = new JPanel(new TabularLayout("Fit-,Fit-"));
     final JPanel row = new JPanel();
 
     try {
@@ -331,7 +400,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void rowsCanBeConfiguredWithFixedHeights() throws Exception {
+  public void rowsCanBeConfiguredWithFixedHeights() {
     TabularLayout layout = new TabularLayout("50px", "100px,200px,300px");
 
     final JPanel panel = new JPanel(layout);
@@ -351,7 +420,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void rowsCanBeConfiguredDynamically() throws Exception {
+  public void rowsCanBeConfiguredDynamically() {
     TabularLayout layout = new TabularLayout("50px");
     layout.setRowSizing(0, "100px");
     layout.setRowSizing(1, "200px");
@@ -373,7 +442,7 @@ public final class TabularLayoutTest {
     assertThat(row1.getWidth()).isEqualTo(50);
   }
   @Test
-  public void rowsCanBeConfiguredWithProportionalHeights() throws Exception {
+  public void rowsCanBeConfiguredWithProportionalHeights() {
     TabularLayout layout = new TabularLayout("*", "*,2*");
 
     final JPanel panel = new JPanel(layout);
@@ -395,7 +464,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void cellsCanSpanAcrossMultipleRowsAndColumns() throws Exception {
+  public void cellsCanSpanAcrossMultipleRowsAndColumns() {
     TabularLayout layout = new TabularLayout("10px,20px,30px", "100px,200px,300px");
     final JPanel panel = new JPanel(layout);
 
@@ -449,7 +518,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void proportionalSizingHandlesRoundingErrorWhenSizesRoundDown() throws Exception {
+  public void proportionalSizingHandlesRoundingErrorWhenSizesRoundDown() {
     // 3 rows - each row gets 33.333...% of the space. However, since Swing sizes are integers,
     // for a panel of size 100, this would give us "33" * 3, missing a pixel. Tabular layout should
     // add back that missing space somehow.
@@ -470,7 +539,7 @@ public final class TabularLayoutTest {
   }
 
   @Test
-  public void proportionalSizingHandlesRoundingErrorWhenSizesRoundUp() throws Exception {
+  public void proportionalSizingHandlesRoundingErrorWhenSizesRoundUp() {
     // 8 rows - each row gets 12.5% of the space. However, since Swing sizes are integers,
     // for a panel of size 100, this would give us "13" * 8, which is 4 pixels too large. Tabular
     // layout should remove out that extra space somehow.

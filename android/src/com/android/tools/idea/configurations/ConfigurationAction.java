@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
+import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
@@ -44,11 +44,15 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
   protected final ConfigurationHolder myRenderContext;
   private int myFlags;
 
-  ConfigurationAction(@NotNull ConfigurationHolder renderContext, @NotNull String title) {
+  public ConfigurationAction(@NotNull ConfigurationHolder renderContext) {
+    this(renderContext, null, null);
+  }
+
+  public ConfigurationAction(@NotNull ConfigurationHolder renderContext, @Nullable String title) {
     this(renderContext, title, null);
   }
 
-  ConfigurationAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @Nullable Icon icon) {
+  public ConfigurationAction(@NotNull ConfigurationHolder renderContext, @Nullable String title, @Nullable Icon icon) {
     super(title, null, icon);
     myRenderContext = renderContext;
   }
@@ -57,7 +61,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
   }
 
   @Override
-  public void actionPerformed(@NotNull AnActionEvent e) {
+  public void actionPerformed(AnActionEvent e) {
     final ActionManagerEx manager = ActionManagerEx.getInstanceEx();
     final DataContext dataContext = e.getDataContext();
     // Regular actions invoke this method before performing the action. We do so as well since the analytics subsystem hooks into
@@ -76,7 +80,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
   protected void tryUpdateConfiguration() {
     Configuration configuration = myRenderContext.getConfiguration();
     if (configuration != null) {
-      // See if after switching we need to switch files
+      // See if after switching we need to switch files.
       Configuration clone = configuration.clone();
       myFlags = 0;
       clone.addListener(this);
@@ -84,16 +88,16 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
       clone.removeListener(this);
 
       boolean affectsFileSelection = (myFlags & MASK_FILE_ATTRS) != 0;
-      // get the resources of the file's project.
+      // Get the resources of the file's project.
       if (affectsFileSelection) {
         Module module = myRenderContext.getConfiguration().getModule();
         if (module != null) {
           VirtualFile file = myRenderContext.getConfiguration().getFile();
           if (file != null) {
-            ConfigurationMatcher matcher = new ConfigurationMatcher(clone, AppResourceRepository.getOrCreateInstance(module), file);
+            ConfigurationMatcher matcher = new ConfigurationMatcher(clone, file);
             List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
             if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
-              // Switch files, and leave this configuration alone
+              // Switch files, and leave this configuration alone.
               pickedBetterMatch(matchingFiles.get(0), file);
               AndroidFacet facet = AndroidFacet.getInstance(module);
               assert facet != null;
@@ -118,8 +122,10 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     FileEditorManagerEx manager = FileEditorManagerEx.getInstanceEx(project);
     FileEditorWithProvider previousSelection = manager.getSelectedEditorWithProvider(old);
     manager.openEditor(descriptor, true);
+
     if (previousSelection != null) {
-      manager.setSelectedEditor(file, previousSelection.getProvider().getEditorTypeId());
+      FileEditorProvider provider = previousSelection.getProvider();
+      manager.setSelectedEditor(file, provider.getEditorTypeId());
     }
   }
 

@@ -17,19 +17,18 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.GradleTask;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
-import static org.easymock.EasyMock.*;
+import static java.util.Collections.emptyList;
 
 /**
  * Tests for {@link GradleUtil}.
@@ -58,26 +57,16 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
   }
 
   public void testGetGradleBuildFileFromModuleWithGradleFacet() {
-    GradleProject project = createMock(GradleProject.class);
-    expect(project.getPath()).andReturn(myModule.getName());
+    String name = myModuleRootDir.getName();
+    GradleProjectStub gradleProject = new GradleProjectStub(name, ":" + name, getBaseDirPath(getProject()), myBuildFile);
 
-    //noinspection unchecked
-    DomainObjectSet<? extends GradleTask> tasks = createMock(DomainObjectSet.class);
-    project.getTasks();
-    expectLastCall().andReturn(tasks);
-
-    expect(tasks.isEmpty()).andReturn(true);
-    replay(project, tasks);
-
-    GradleModuleModel gradleModuleModel = new GradleModuleModel(myModule.getName(), project, myBuildFile, "2.2.1");
+    GradleModuleModel gradleModuleModel = new GradleModuleModel(myModule.getName(), gradleProject, emptyList(), myBuildFile, "2.2.1");
 
     GradleFacet facet = createAndAddGradleFacet(myModule);
     facet.setGradleModuleModel(gradleModuleModel);
 
     VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModule);
     assertIsGradleBuildFile(buildFile);
-
-    verify(project, tasks);
   }
 
   private static void assertIsGradleBuildFile(@Nullable VirtualFile buildFile) {

@@ -111,9 +111,12 @@ public class EnumEditorTest extends PropertyTestCase {
       .expectValue("sendEmail");
   }
 
+  // This will happen when a table editor loses focus.
   public void testSetEmptyProperty() {
     myEditorFixture
       .setProperty(getProperty(myButton, ATTR_VISIBILITY))
-      .setProperty(EmptyProperty.INSTANCE);
+      .gainFocus()
+      .setProperty(EmptyProperty.INSTANCE)
+      .loseFocus();
   }
 }

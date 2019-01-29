@@ -46,7 +46,7 @@ class GradleRunnerCleanupTask extends AndroidStudioCleanUpTask {
             children.add(child);
           }
         }
-        configurableEP.children = children.toArray(new ConfigurableEP[children.size()]);
+        configurableEP.children = children.toArray(new ConfigurableEP[0]);
       }
     }
   }

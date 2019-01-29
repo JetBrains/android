@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.property.editors.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -40,11 +41,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 public class TextInspectorProvider implements InspectorProvider<NlPropertiesManager> {
+  private static final Set<String> TAG_EXCEPTIONS = ImmutableSet.of(CHIP);
+
   @VisibleForTesting
   static final List<String> REQUIRED_TEXT_PROPERTIES = ImmutableList.of(
     ATTR_TEXT,
@@ -63,6 +67,9 @@ public class TextInspectorProvider implements InspectorProvider<NlPropertiesMana
   public boolean isApplicable(@NotNull List<NlComponent> components,
                               @NotNull Map<String, NlProperty> properties,
                               @NotNull NlPropertiesManager propertiesManager) {
+    if (components.stream().map(component -> component.getTagName()).anyMatch(tag -> TAG_EXCEPTIONS.contains(tag))) {
+      return false;
+    }
     if (!properties.keySet().containsAll(REQUIRED_TEXT_PROPERTIES)) {
       return false;
     }
@@ -194,7 +201,7 @@ public class TextInspectorProvider implements InspectorProvider<NlPropertiesMana
       inspector.addTitle("TextView");
       inspector.addComponent(ATTR_TEXT, myText.getTooltipText(), myTextEditor.getComponent());
       JLabel designText = inspector.addComponent(ATTR_TEXT, myDesignText.getTooltipText(), myDesignTextEditor.getComponent());
-      designText.setIcon(StudioIcons.LayoutEditor.Properties.DESIGN_PROPERTY);
+      designText.setIcon(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE);
       inspector.addComponent(ATTR_CONTENT_DESCRIPTION, myDescription.getTooltipText(), myDescriptionEditor.getComponent());
 
       inspector.addExpandableComponent(ATTR_TEXT_APPEARANCE, myStyle.getTooltipText(), myStyleEditor.getComponent(),

@@ -16,9 +16,16 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.analytics.FilterMetadata;
+import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
+import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
+import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
+import com.android.tools.profilers.sessions.SessionArtifact;
+import com.android.tools.profilers.sessions.SessionsManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +35,56 @@ public final class FakeFeatureTracker implements FeatureTracker {
    * Stores the last {@link CpuCaptureMetadata} passed to the tracker.
    */
   private CpuCaptureMetadata myLastCpuCaptureMetadata;
+
+  /**
+   * Stores the last {@link EnergyEventMetadata} passed to the tracker.
+   */
+  private EnergyEventMetadata myLastEnergyEventMetadata;
+
+  /**
+   * Stores the last {@link EnergyRangeMetadata} passed to the tracker.
+   */
+  private EnergyRangeMetadata myLastEnergyRangeMetadata;
+
+  /**
+   * Stores the last {@link FilterMetadata} passed to the tracker.
+   */
+  private FilterMetadata myLastFilterMetadata;
+
+  /**
+   * Stores the last {@link ProfilingConfiguration} passed to track the startup CPU profiling.
+   */
+  private ProfilingConfiguration myLastCpuStartupProfilingConfig;
+
+  /**
+   * Stores the last {@link CpuProfiler.CpuProfilerType} passed to the tracker.
+   */
+  private CpuProfiler.CpuProfilerType myLastCpuProfilerType;
+
+  /**
+   * Whether the last import trace was tracked as success.
+   */
+  private Boolean myLastImportTraceSucceeded;
+
+  /**
+   * Whether {@link #trackSelectThread()} was called.
+   */
+  private boolean myTrackSelectThreadCalled;
+
+  /**
+   * Stores the last boolean value of {@link pathProvided} passed to track API tracing.
+   */
+  private boolean myLastCpuApiTracingPathProvided;
+
+  /**
+   * The times that the usage data of API-initiated tracing has been recorded.
+   */
+  private int myApiTracingUsageCount = 0;
+
+  /**
+   * The last {@link CaptureDetails} passed to the tracker.
+   */
+  @Nullable private CaptureDetails.Type myLastCaptureDetailsType = null;
 
   @Override
   public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
@@ -56,6 +113,31 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackChangeProcess(@Nullable Common.Process process) {
+
+  }
+
+  @Override
+  public void trackCreateSession(Common.SessionMetaData.SessionType sessionType, SessionsManager.SessionCreationSource sourceType) {
+
+  }
+
+  @Override
+  public void trackStopSession() {
+
+  }
+
+  @Override
+  public void trackSessionsPanelStateChanged(boolean isExpanded) {
+
+  }
+
+  @Override
+  public void trackSessionsPanelResized() {
+
+  }
+
+  @Override
+  public void trackSessionArtifactSelected(@NotNull SessionArtifact artifact, boolean isSessionLive) {
 
   }
 
@@ -109,28 +191,79 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackSelectThread() {
+  public void trackImportTrace(@NotNull CpuProfiler.CpuProfilerType profilerType, boolean success) {
+    myLastCpuProfilerType = profilerType;
+    myLastImportTraceSucceeded = success;
+  }
 
+  public CpuProfiler.CpuProfilerType getLastCpuProfilerType() {
+    return myLastCpuProfilerType;
+  }
+
+  public Boolean getLastImportTraceStatus() {
+    return myLastImportTraceSucceeded;
+  }
+
+  @Override
+  public void trackCpuStartupProfiling(@NotNull ProfilingConfiguration configuration) {
+    myLastCpuStartupProfilingConfig = configuration;
+  }
+
+  @Nullable
+  public ProfilingConfiguration getLastCpuStartupProfilingConfig() {
+    return myLastCpuStartupProfilingConfig;
+  }
+
+  @Override
+  public void trackCpuApiTracing(boolean sampling, boolean pathProvided, int bufferSize, int flags, int intervalUs) {
+    myLastCpuApiTracingPathProvided = pathProvided;
+    myApiTracingUsageCount++;
+  }
+
+  public boolean getLastCpuAPiTracingPathProvided() {
+    return myLastCpuApiTracingPathProvided;
+  }
+
+  public int getApiTracingUsageCount() {
+    return myApiTracingUsageCount;
+  }
+
+  @Override
+  public void trackSelectThread() {
+    myTrackSelectThreadCalled = true;
+  }
+
+  public boolean isTrackSelectThreadCalled() {
+    return myTrackSelectThreadCalled;
   }
 
   @Override
   public void trackSelectCaptureTopDown() {
-
+    myLastCaptureDetailsType = CaptureDetails.Type.TOP_DOWN;
   }
 
   @Override
   public void trackSelectCaptureBottomUp() {
-
+    myLastCaptureDetailsType = CaptureDetails.Type.BOTTOM_UP;
   }
 
   @Override
   public void trackSelectCaptureFlameChart() {
-
+    myLastCaptureDetailsType = CaptureDetails.Type.FLAME_CHART;
   }
 
   @Override
   public void trackSelectCaptureCallChart() {
+    myLastCaptureDetailsType = CaptureDetails.Type.CALL_CHART;
+  }
 
+  public void resetLastCaptureDetailsType() {
+    myLastCaptureDetailsType = null;
+  }
+
+  @Nullable
+  public CaptureDetails.Type getLastCaptureDetailsType() {
+    return myLastCaptureDetailsType;
   }
 
   @Override
@@ -171,6 +304,10 @@ public final class FakeFeatureTracker implements FeatureTracker {
   @Override
   public void trackSelectMemoryReferences() {
 
+  }
+
+  @Override
+  public void trackSelectMemoryHeap(@NotNull String heapName) {
   }
 
   @Override
@@ -229,7 +366,44 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackFilterMetadata(@NotNull FilterMetadata filterMetadata) {
+  public void trackSelectCpuKernelElement() {
 
+  }
+
+  @Override
+  public void trackToggleCpuKernelHideablePanel() {
+
+  }
+
+  @Override
+  public void trackToggleCpuThreadsHideablePanel() {
+
+  }
+
+  @Override
+  public void trackFilterMetadata(@NotNull FilterMetadata filterMetadata) {
+    myLastFilterMetadata = filterMetadata;
+  }
+
+  @Override
+  public void trackSelectEnergyRange(@NotNull EnergyRangeMetadata rangeMetadata) {
+    myLastEnergyRangeMetadata = rangeMetadata;
+  }
+
+  public EnergyRangeMetadata getLastEnergyRangeMetadata() {
+    return myLastEnergyRangeMetadata;
+  }
+
+  @Override
+  public void trackSelectEnergyEvent(@NotNull EnergyEventMetadata eventMetadata) {
+    myLastEnergyEventMetadata = eventMetadata;
+  }
+
+  public EnergyEventMetadata getLastEnergyEventMetadata() {
+    return myLastEnergyEventMetadata;
+  }
+
+  public FilterMetadata getLastFilterMetadata() {
+    return myLastFilterMetadata;
   }
 }

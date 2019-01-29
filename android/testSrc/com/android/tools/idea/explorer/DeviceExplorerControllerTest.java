@@ -73,12 +73,14 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -90,6 +92,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   private MockDeviceExplorerView myMockView;
   private MockDeviceFileSystemService myMockService;
   private MockDeviceExplorerFileManager myMockFileManager;
+  private Supplier<Path> myDownloadLocationSupplier;
   private MockDeviceFileSystem myDevice1;
   private MockDeviceFileEntry myFoo;
   private MockDeviceFileEntry myFooFile1;
@@ -104,6 +107,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   private TestInputDialog myInitialTestInputDialog;
   private FutureCallbackExecutor myEdtExecutor;
   private FutureCallbackExecutor myTaskExecutor;
+  private boolean myTearingDown;
 
   @Override
   protected void setUp() throws Exception {
@@ -120,18 +124,21 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       public void setActiveDeviceTreeModel(@Nullable DeviceFileSystem device,
                                            @Nullable DefaultTreeModel treeModel,
                                            @Nullable DefaultTreeSelectionModel treeSelectionModel) {
-        // We notify the mock view before everything else to avoid having a dependency
-        // on the order of registration of listeners registered with {@code DeviceExplorerModel.addListener()}
-        assert myMockView != null;
-        myMockView.deviceTreeModelUpdated(device, treeModel, treeSelectionModel);
+        if (!myTearingDown) {
+          // We notify the mock view before everything else to avoid having a dependency
+          // on the order of registration of listeners registered with {@code DeviceExplorerModel.addListener()}
+          assert myMockView != null;
+          myMockView.deviceTreeModelUpdated(device, treeModel, treeSelectionModel);
+        }
         super.setActiveDeviceTreeModel(device, treeModel, treeSelectionModel);
       }
     };
     myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor);
     myMockView = new MockDeviceExplorerView(getProject(), toolWindow, new MockDeviceFileSystemRendererFactory(), myModel);
-    myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myEdtExecutor);
     File downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true);
-    myMockFileManager.setDefaultDownloadPath(downloadPath.toPath());
+    myDownloadLocationSupplier = Mockito.mock(Supplier.class);
+    Mockito.when(myDownloadLocationSupplier.get()).thenReturn(downloadPath.toPath());
+    myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myEdtExecutor, myDownloadLocationSupplier);
 
     myDevice1 = myMockService.addDevice("TestDevice-1");
     myFoo = myDevice1.getRoot().addDirectory("Foo");
@@ -154,6 +161,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      myTearingDown = true;
+
       RepaintManager.setCurrentManager(null);
       myMockRepaintManager = null;
 
@@ -169,14 +178,11 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         Disposer.dispose(myMockFileManager);
         myMockFileManager = null;
       }
-      myMockView = null;
 
       myFooLink1 = null;
       myFooFile1 = null;
       myFooFile2 = null;
       myFooDir = null;
-      myDevice1 = null;
-      myDevice2 = null;
       myFoo = null;
       myFile1 = null;
       myFile2 = null;
@@ -186,7 +192,6 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         myMockService = null;
       }
 
-      myModel = null;
       myTaskExecutor = null;
       myEdtExecutor = null;
       ClipboardSynchronizer.getInstance().resetContent();
@@ -422,6 +427,42 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
     pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
+  }
+
+  public void testDownloadFileLocationWithMouseClick() throws Exception {
+    // This saves in the default location for test
+    downloadFile(() -> {
+      TreePath path = getFileEntryPath(myFile1);
+      Rectangle pathBounds = myMockView.getTree().getPathBounds(path);
+      assert pathBounds != null;
+
+      // Fire double-click event
+      fireDoubleClick(myMockView.getTree(), pathBounds.x, pathBounds.y);
+
+      pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
+    });
+    Path downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
+    assertTrue(downloadPath.toString()
+                           .endsWith("unitTest_downloadFileLocationWithMouseClick/device-explorer-temp/TestDevice-1/file1.txt"));
+
+    // Change the setting to an alternate directory, ensure that changing during runtime works
+    Path changedPath = FileUtil.createTempDirectory("device-explorer-temp-2","", true).toPath();
+    Mockito.when(myDownloadLocationSupplier.get()).thenReturn(changedPath);
+
+    // Now try the alternate location
+    downloadFile(() -> {
+      TreePath path = getFileEntryPath(myFile1);
+      Rectangle pathBounds = myMockView.getTree().getPathBounds(path);
+      assert pathBounds != null;
+
+      // Fire double-click event
+      fireDoubleClick(myMockView.getTree(), pathBounds.x, pathBounds.y);
+
+      pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
+    });
+    downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
+    assertTrue(downloadPath.toString()
+                           .endsWith("unitTest_downloadFileLocationWithMouseClick/device-explorer-temp-2/TestDevice-1/file1.txt"));
   }
 
   public void testDownloadFileFailure() throws InterruptedException, ExecutionException, TimeoutException {

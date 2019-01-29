@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.theme;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -25,6 +25,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,15 +40,25 @@ import static com.google.common.truth.Truth.assertThat;
  * Unit test for the theme preview
  */
 @RunIn(TestGroup.THEME)
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class ThemePreviewTest {
 
   @Rule public final RenderTimeoutRule timeout = new RenderTimeoutRule(60, TimeUnit.SECONDS);
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @Before
+  public void setup() {
+    StudioFlags.THEME_EDITOR_ENABLED.override(true);
+  }
+
+  @After
+  public void tearDown() {
+    StudioFlags.THEME_EDITOR_ENABLED.clearOverride();
+  }
+
   @Test
   public void testPreviewAvailability() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     Project project = guiTest.ideFrame().getProject();
     EditorFixture editor = guiTest.ideFrame().getEditor();
@@ -67,7 +80,7 @@ public class ThemePreviewTest {
   @Test
   public void testPreviewAvailabilityDumbModeDelays() throws Exception {
     // Test that things still work if we force the IDE into dumb mode at certain times.
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     Project project = guiTest.ideFrame().getProject();
     Application application =
@@ -88,9 +101,10 @@ public class ThemePreviewTest {
     assertThat(ToolWindowManager.getInstance(project).getToolWindow("Theme Preview").isAvailable()).isTrue();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/79252943
   @Test
   public void testToolbarState() throws Exception {
-    guiTest.importSimpleApplication();
+    guiTest.importSimpleLocalApplication();
 
     Project project = guiTest.ideFrame().getProject();
     EditorFixture editor = guiTest.ideFrame().getEditor();

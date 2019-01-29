@@ -16,15 +16,15 @@
 package com.android.tools.idea.tests.gui.assetstudio;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-@RunWith(GuiTestRunner.class)
+@RunWith(GuiTestRemoteRunner.class)
 public class NewVectorAssetTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
@@ -36,8 +36,7 @@ public class NewVectorAssetTest {
       .clickPath("app")
       .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
       .clickNext()
-      .clickFinish();
-    guiTest.ideFrame()
+      .clickFinish()
       .getEditor()
       .open("app/src/main/res/drawable/ic_android_black_24dp.xml");
   }

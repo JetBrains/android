@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.palette2;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.components.JBLabel;
@@ -31,15 +31,15 @@ import java.awt.*;
 
 /**
  * A list control for displaying palette items.
- *
- *      +------------------------+
- *      | ⌸ Button               |
- *      | ⍄ ToggleButton         |
- *      | ⍓ FloatingActionB... ↓ |
- *      |   ...                  |
- *      +------------------------+
- *      Example of an item list.
- *
+ * <p>
+ * +------------------------+
+ * | ⌸ Button               |
+ * | ⍄ ToggleButton         |
+ * | ⍓ FloatingActionB... ↓ |
+ * |   ...                  |
+ * +------------------------+
+ * Example of an item list.
+ * <p>
  * The item names each have an icon to the left that represent the item.
  * An item may also have a download icon to the right of the name indicating
  * that this item requires a project dependency to be added.
@@ -117,7 +117,8 @@ public class ItemList extends ListWithMargin<Palette.Item> {
       if (itemList.displayFittedTextIfNecessary(index)) {
         int leftMargin = icon.getIconWidth() + myIconTextGap + getIpad().right + getIpad().left;
         int rightMargin = StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD.getIconWidth();
-        text = AdtUiUtils.shrinkToFit(text, list.getFontMetrics(list.getFont()), list.getWidth() - leftMargin - rightMargin);
+        text = AdtUiUtils
+          .shrinkToFit(text, s -> list.getFontMetrics(list.getFont()).stringWidth(s) <= list.getWidth() - leftMargin - rightMargin);
       }
 
       setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);

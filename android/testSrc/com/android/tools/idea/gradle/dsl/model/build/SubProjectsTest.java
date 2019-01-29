@@ -18,11 +18,13 @@ package com.android.tools.idea.gradle.dsl.model.build;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.intellij.pom.java.LanguageLevel;
+import org.junit.Test;
 
 /**
  * Tests subprojects section of the build.gradle file.
  */
 public class SubProjectsTest extends GradleFileModelTestCase {
+  @Test
   public void testSubProjectsSection() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -38,14 +40,15 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     JavaModel java = getGradleBuildModel().java();
-    assertNull(java.sourceCompatibility());
-    assertNull(java.targetCompatibility());
+    assertMissingProperty(java.sourceCompatibility());
+    assertMissingProperty(java.targetCompatibility());
 
     JavaModel subModuleJava = getSubModuleGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, subModuleJava.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility());
+    assertEquals(LanguageLevel.JDK_1_5, subModuleJava.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility().toLanguageLevel());
   }
 
+  @Test
   public void testSubProjectsSectionWithLocalProperties() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -63,14 +66,15 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     JavaModel java = getGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_4, java.sourceCompatibility()); // subprojects section applies only for sub projects.
-    assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility()); // subprojects section applies only for sub projects.
+    assertEquals(LanguageLevel.JDK_1_4, java.sourceCompatibility().toLanguageLevel()); // subprojects section applies only for sub projects.
+    assertEquals(LanguageLevel.JDK_1_5, java.targetCompatibility().toLanguageLevel()); // subprojects section applies only for sub projects.
 
     JavaModel subModuleJava = getSubModuleGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, subModuleJava.sourceCompatibility()); // Subproject got 1_5 from SubProjects section
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility()); // Subproject got 1_6 from SubProjects section
+    assertEquals(LanguageLevel.JDK_1_5, subModuleJava.sourceCompatibility().toLanguageLevel()); // Subproject got 1_5 from SubProjects section
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.targetCompatibility().toLanguageLevel()); // Subproject got 1_6 from SubProjects section
   }
 
+  @Test
   public void testOverrideSubProjectsSection() throws Exception {
     String settingsText = "include ':" + SUB_MODULE_NAME + "'";
 
@@ -89,11 +93,11 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     JavaModel java = getGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility());
-    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility());
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
 
     JavaModel subModuleJava = getSubModuleGradleBuildModel().java();
-    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.sourceCompatibility()); // 1_4 is overridden with 1_6
-    assertEquals(LanguageLevel.JDK_1_7, subModuleJava.targetCompatibility()); // 1_5 is overridden with 1_7
+    assertEquals(LanguageLevel.JDK_1_6, subModuleJava.sourceCompatibility().toLanguageLevel()); // 1_4 is overridden with 1_6
+    assertEquals(LanguageLevel.JDK_1_7, subModuleJava.targetCompatibility().toLanguageLevel()); // 1_5 is overridden with 1_7
   }
 }

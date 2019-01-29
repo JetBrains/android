@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.property.editors
 
+import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -39,39 +40,44 @@ class AllDestinationsEditorTest : NavTestCase() {
             action("a2", destination = "fragment1")
           }
         }
+        addChild(ComponentDescriptor("fragment"), null)
       }
     }
     val property = mock(NlProperty::class.java)
     `when`(property.components).thenReturn(listOf(model.find("a1")))
 
-    EnumEditorFixture
-        .create(::AllDestinationsEditor)
-        .setProperty(property)
+    EnumEditorFixture.create(::AllDestinationsEditor).use {
+      it.setProperty(property)
         .showPopup()
-        .expectChoices("none", null,
-            "root", "@+id/root",
-            "fragment1 (f1)", "@+id/f1",
-            "activity1", "@+id/activity1",
-            "subnav1", "@+id/subnav1",
-            "fragment2 (f2)", "@+id/f2",
-            "f3", "@+id/f3",
-            "subnav2", "@+id/subnav2",
-            "f4", "@+id/f4")
+        .expectChoices(
+          "none", null,
+          "activity1", "@+id/activity1",
+          "f1", "@+id/f1",
+          "f2", "@+id/f2",
+          "f3", "@+id/f3",
+          "f4", "@+id/f4",
+          "root", "@+id/root",
+          "subnav1", "@+id/subnav1",
+          "subnav2", "@+id/subnav2"
+          )
+    }
 
     `when`(property.components).thenReturn(listOf(model.find("a2")))
 
-    EnumEditorFixture
-        .create(::AllDestinationsEditor)
-        .setProperty(property)
+    EnumEditorFixture.create(::AllDestinationsEditor).use {
+      it.setProperty(property)
         .showPopup()
-        .expectChoices("none", null,
-            "root", "@+id/root",
-            "fragment1 (f1)", "@+id/f1",
-            "activity1", "@+id/activity1",
-            "subnav1", "@+id/subnav1",
-            "fragment2 (f2)", "@+id/f2",
-            "f3", "@+id/f3",
-            "subnav2", "@+id/subnav2",
-            "f4", "@+id/f4")
+        .expectChoices(
+          "none", null,
+          "activity1", "@+id/activity1",
+          "f1", "@+id/f1",
+          "f2", "@+id/f2",
+          "f3", "@+id/f3",
+          "f4", "@+id/f4",
+          "root", "@+id/root",
+          "subnav1", "@+id/subnav1",
+          "subnav2", "@+id/subnav2"
+        )
+    }
   }
 }

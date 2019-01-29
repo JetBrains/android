@@ -23,11 +23,12 @@ import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
+import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.google.common.base.Objects;
+import com.android.tools.idea.project.IndexingSuspender;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,9 +38,9 @@ import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMo
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.TaskInfo;
+import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.wm.IdeFrame;
@@ -51,6 +52,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.List;
+import java.util.Objects;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
@@ -62,14 +65,12 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.IN_BACKGROUND_ASYNC;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
-import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
   @NotNull private final IdeInfo myIdeInfo;
-  @NotNull private final GradleSyncFailureHandler mySyncFailureHandler;
   @NotNull private final PreSyncProjectCleanUp myPreSyncProjectCleanUp;
   @NotNull private final PreSyncChecks myPreSyncChecks;
 
@@ -78,29 +79,33 @@ public class GradleSyncInvoker {
     return ServiceManager.getService(GradleSyncInvoker.class);
   }
 
-  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
-                           @NotNull IdeInfo ideInfo,
-                           @NotNull GradleSyncFailureHandler syncFailureHandler) {
-    this(fileDocumentManager, ideInfo, syncFailureHandler, new PreSyncProjectCleanUp(), new PreSyncChecks());
+  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager, @NotNull IdeInfo ideInfo) {
+    this(fileDocumentManager, ideInfo, new PreSyncProjectCleanUp(), new PreSyncChecks());
   }
 
   private GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
                             @NotNull IdeInfo ideInfo,
-                            @NotNull GradleSyncFailureHandler syncFailureHandler,
                             @NotNull PreSyncProjectCleanUp preSyncProjectCleanUp,
                             @NotNull PreSyncChecks preSyncChecks) {
     myFileDocumentManager = fileDocumentManager;
     myIdeInfo = ideInfo;
-    mySyncFailureHandler = syncFailureHandler;
     myPreSyncProjectCleanUp = preSyncProjectCleanUp;
     myPreSyncChecks = preSyncChecks;
   }
 
+  /**
+   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * sync is not run at the same time as indexing.
+   */
   public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
                                                     @NotNull GradleSyncStats.Trigger trigger) {
     requestProjectSyncAndSourceGeneration(project, trigger, null);
   }
 
+  /**
+   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * sync is not run at the same time as indexing.
+   */
   public void requestProjectSyncAndSourceGeneration(@NotNull Project project,
                                                     @NotNull GradleSyncStats.Trigger trigger,
                                                     @Nullable GradleSyncListener listener) {
@@ -108,10 +113,18 @@ public class GradleSyncInvoker {
     requestProjectSync(project, request, listener);
   }
 
+  /**
+   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * sync is not run at the same time as indexing.
+   */
   public void requestProjectSync(@NotNull Project project, @NotNull Request request) {
     requestProjectSync(project, request, null);
   }
 
+  /**
+   * This method should not be called within a {@link DumbModeTask}, the {@link IndexingSuspender} will take care of ensuring that
+   * sync is not run at the same time as indexing.
+   */
   public void requestProjectSync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
     if (GradleSyncState.getInstance(project).isSyncInProgress()) {
       return;
@@ -123,15 +136,12 @@ public class GradleSyncInvoker {
 
     Runnable syncTask = () -> {
       ensureToolWindowContentInitialized(project, GRADLE_SYSTEM_ID);
-      try {
-        if (prepareProject(project, listener)) {
-          sync(project, request, listener);
-        }
-      }
-      catch (ConfigurationException e) {
-        showErrorDialog(project, e.getMessage(), e.getTitle());
+      if (prepareProject(project, listener)) {
+        sync(project, request, listener);
       }
     };
+
+    GradleSyncState.getInstance(project).syncTaskCreated(request);
 
     Application application = ApplicationManager.getApplication();
     if (application.isUnitTestMode()) {
@@ -164,8 +174,7 @@ public class GradleSyncInvoker {
     return false;
   }
 
-  private boolean prepareProject(@NotNull Project project, @Nullable GradleSyncListener listener)
-    throws ConfigurationException {
+  private boolean prepareProject(@NotNull Project project, @Nullable GradleSyncListener listener) {
     if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() || hasTopLevelGradleBuildFile(project)) {
       boolean isImportedProject = GradleProjectInfo.getInstance(project).isImportedProject();
       if (!isImportedProject) {
@@ -232,8 +241,8 @@ public class GradleSyncInvoker {
       listener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
     }
 
-    boolean useNewGradleSync = NewGradleSync.isEnabled();
-    if (!useNewGradleSync) {
+    boolean useNewGradleSync = NewGradleSync.isEnabled(project);
+    if (request.variantOnlySyncOptions == null) {
       removeAndroidModels(project);
     }
 
@@ -241,16 +250,15 @@ public class GradleSyncInvoker {
     gradleSync.sync(request, listener);
   }
 
-  private void handlePreSyncCheckFailure(@NotNull Project project,
-                                         @NotNull String failureCause,
-                                         @Nullable GradleSyncListener syncListener,
-                                         @NotNull GradleSyncInvoker.Request request) {
+  private static void handlePreSyncCheckFailure(@NotNull Project project,
+                                                @NotNull String failureCause,
+                                                @Nullable GradleSyncListener syncListener,
+                                                @NotNull GradleSyncInvoker.Request request) {
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     if (syncState.syncStarted(true, request)) {
       if (syncListener != null) {
         syncListener.syncStarted(project, request.useCachedGradleModels, request.generateSourcesOnSuccess);
       }
-      mySyncFailureHandler.createTopLevelModelAndOpenProject(project);
       syncState.syncFailed(failureCause);
       if (syncListener != null) {
         syncListener.syncFailed(project, failureCause);
@@ -266,9 +274,15 @@ public class GradleSyncInvoker {
     for (Module module : moduleManager.getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        facet.setAndroidModel(null);
+        facet.getConfiguration().setModel(null);
       }
     }
+  }
+
+  @NotNull
+  public List<GradleModuleModels> fetchGradleModels(@NotNull Project project, @NotNull ProgressIndicator indicator) {
+    GradleSync gradleSync = NewGradleSync.isEnabled(project) ? new NewGradleSync(project) : new IdeaGradleSync(project);
+    return gradleSync.fetchGradleModels(indicator);
   }
 
   public static class Request {
@@ -279,6 +293,9 @@ public class GradleSyncInvoker {
     public boolean cleanProject;
     public boolean useCachedGradleModels;
     public boolean skipAndroidPluginUpgrade;
+    public boolean forceFullVariantsSync;
+    // Perform a variant-only sync if not null.
+    @Nullable public VariantOnlySyncOptions variantOnlySyncOptions;
 
     @NotNull
     public static Request projectLoaded() {
@@ -317,22 +334,27 @@ public class GradleSyncInvoker {
              cleanProject == request.cleanProject &&
              generateSourcesOnSuccess == request.generateSourcesOnSuccess &&
              useCachedGradleModels == request.useCachedGradleModels &&
-             trigger == request.trigger;
+             skipAndroidPluginUpgrade == request.skipAndroidPluginUpgrade &&
+             trigger == request.trigger &&
+             Objects.equals(variantOnlySyncOptions, request.variantOnlySyncOptions);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, trigger);
+      return Objects.hash(runInBackground, cleanProject, generateSourcesOnSuccess, useCachedGradleModels, skipAndroidPluginUpgrade, trigger,
+                          variantOnlySyncOptions);
     }
 
     @Override
     public String toString() {
       return "RequestSettings{" +
-             "myRunInBackground=" + runInBackground +
-             ", myCleanProject=" + cleanProject +
-             ", myGenerateSourcesOnSuccess=" + generateSourcesOnSuccess +
-             ", myUseCachedGradleModels=" + useCachedGradleModels +
-             ", myTrigger=" + trigger +
+             "runInBackground=" + runInBackground +
+             ", cleanProject=" + cleanProject +
+             ", generateSourcesOnSuccess=" + generateSourcesOnSuccess +
+             ", useCachedGradleModels=" + useCachedGradleModels +
+             ", skipAndroidPluginUpgrade=" + skipAndroidPluginUpgrade +
+             ", trigger=" + trigger +
+             ", variantOnlySyncOptions=" + variantOnlySyncOptions +
              '}';
     }
   }

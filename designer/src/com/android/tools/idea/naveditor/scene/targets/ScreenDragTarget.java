@@ -16,15 +16,16 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.DragBaseTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.naveditor.model.NavCoordinate;
-import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
+import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.common.scene.target.MultiComponentTarget;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
@@ -34,13 +35,11 @@ import java.util.List;
  */
 public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTarget {
 
-  private final ManualLayoutAlgorithm myAlgorithm;
   private final Point[] myChildOffsets;
 
-  public ScreenDragTarget(@NotNull SceneComponent component, @NotNull ManualLayoutAlgorithm algorithm) {
+  public ScreenDragTarget(@NotNull SceneComponent component) {
     super();
     setComponent(component);
-    myAlgorithm = algorithm;
 
     myChildOffsets = new Point[component.getChildren().size()];
   }
@@ -50,7 +49,7 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  protected void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
+  protected void updateAttributes(@NotNull NlAttributesHolder attributes, int x, int y) {
     // Nothing
   }
 
@@ -65,7 +64,7 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   }
 
   @Override
-  public void mouseDrag(@NavCoordinate int x, @NavCoordinate int y, @Nullable List<Target> closestTarget) {
+  public void mouseDrag(@NavCoordinate int x, @NavCoordinate int y, @NotNull List<Target> closestTarget) {
     // TODO: Support growing the scrollable area when dragging a control off the screen
     SceneComponent parent = myComponent.getParent();
 
@@ -96,7 +95,7 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
   }
 
   @Override
-  public void mouseRelease(@NavCoordinate int x, @NavCoordinate int y, @Nullable List<Target> closestTargets) {
+  public void mouseRelease(@NavCoordinate int x, @NavCoordinate int y, @NotNull List<Target> closestTargets) {
     if (!myComponent.isDragging()) {
       return;
     }
@@ -105,7 +104,7 @@ public class ScreenDragTarget extends DragBaseTarget implements MultiComponentTa
       if (Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1) {
         return;
       }
-      myAlgorithm.save(myComponent);
+      ((NavSceneManager)myComponent.getScene().getSceneManager()).save(ImmutableList.of(myComponent));
     }
     if (myChangedComponent) {
       myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);

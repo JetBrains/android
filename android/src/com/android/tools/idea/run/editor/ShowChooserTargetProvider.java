@@ -63,16 +63,12 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
     return true;
   }
 
-  @Override
   @Nullable
-  public DeployTarget showPrompt(@NotNull Executor executor,
-                                 @NotNull ExecutionEnvironment env,
-                                 @NotNull AndroidFacet facet,
-                                 @NotNull DeviceCount deviceCount,
-                                 boolean androidTests,
-                                 @NotNull Map<String, DeployTargetState> deployTargetStates,
-                                 int runConfigId,
-                                 @NotNull LaunchCompatibilityChecker compatibilityChecker) {
+  public DeployTarget getCachedDeployTarget(@NotNull Executor executor,
+                                            @NotNull AndroidFacet facet,
+                                            @NotNull DeviceCount deviceCount,
+                                            @NotNull Map<String, DeployTargetState> deployTargetStates,
+                                            int runConfigId) {
     State showChooserState = (State)deployTargetStates.get(getId());
     Project project = facet.getModule().getProject();
 
@@ -89,6 +85,26 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
       if (!devices.isEmpty()) {
         return new RealizedDeployTarget(null, null, DeviceFutures.forDevices(devices));
       }
+    }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public DeployTarget showPrompt(@NotNull Executor executor,
+                                 @NotNull ExecutionEnvironment env,
+                                 @NotNull AndroidFacet facet,
+                                 @NotNull DeviceCount deviceCount,
+                                 boolean androidTests,
+                                 @NotNull Map<String, DeployTargetState> deployTargetStates,
+                                 int runConfigId,
+                                 @NotNull LaunchCompatibilityChecker compatibilityChecker) {
+    State showChooserState = (State)deployTargetStates.get(getId());
+    Project project = facet.getModule().getProject();
+
+    DeployTarget cachedDeployTarget = getCachedDeployTarget(executor, facet, deviceCount, deployTargetStates, runConfigId);
+    if (cachedDeployTarget != null) {
+      return cachedDeployTarget;
     }
 
     List<DeployTargetProvider<DeployTargetState>> applicableTargets = getTargetsProvidingRunProfileState(executor, androidTests);

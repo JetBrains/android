@@ -15,9 +15,26 @@
  */
 package com.android.tools.idea.templates;
 
+import static com.android.SdkConstants.DOT_XML;
+import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
+import static com.android.tools.idea.templates.Parameter.Constraint;
+import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_IS_INSTANT_MODULE;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_HAS_INSTANT_APP_WRAPPER;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_DYNAMIC_INSTANT_APP;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_SUPPORT;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_KOTLIN_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MIN_API_LEVEL;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
+import static com.android.tools.idea.templates.TemplateMetadata.TAG_FORMFACTOR;
+import static com.android.tools.idea.templates.TemplateUtils.hasExtension;
+import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.android.tools.idea.templates.recipe.Recipe;
@@ -42,29 +59,20 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.impl.source.PostprocessReformattingAspect;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
+import java.util.Map;
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.List;
-import java.util.Map;
-
-import static com.android.SdkConstants.DOT_XML;
-import static com.android.tools.idea.templates.FreemarkerUtils.processFreemarkerTemplate;
-import static com.android.tools.idea.templates.Parameter.Constraint;
-import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.templates.TemplateUtils.hasExtension;
-import static com.android.tools.idea.templates.parse.SaxUtils.getPath;
 
 /**
  * Handler which manages instantiating FreeMarker templates, copying resources
@@ -101,6 +109,8 @@ public class Template {
   public static final String CATEGORY_PROJECTS = "gradle-projects";
   public static final String CATEGORY_OTHER = "other";
   public static final String CATEGORY_APPLICATION = "Application";
+  public static final String ANDROID_MODULE_TEMPLATE = "Android Module";
+  public static final String ANDROID_PROJECT_TEMPLATE = "Android Project";
 
   /**
    * Highest supported format; templates with a higher number will be skipped
@@ -236,15 +246,30 @@ public class Template {
       Map<String, Object> paramMap = context.getParamMap();
       Object kotlinSupport = paramMap.get(ATTR_KOTLIN_SUPPORT);
       Object kotlinVersion = paramMap.get(ATTR_KOTLIN_VERSION);
-      UsageTracker.getInstance().log(
+      AndroidStudioEvent.Builder aseBuilder =
         AndroidStudioEvent.newBuilder()
-          .setCategory(EventCategory.TEMPLATE)
-          .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
-          .setTemplateRenderer(titleToTemplateRenderer(title))
-          .setKotlinSupport(
-            KotlinSupport.newBuilder()
-              .setIncludeKotlinSupport(kotlinSupport instanceof Boolean ? (Boolean)kotlinSupport : false)
-              .setKotlinSupportVersion(kotlinVersion instanceof String ? (String)kotlinVersion : "unknown")));
+                          .setCategory(EventCategory.TEMPLATE)
+                          .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
+                          .setTemplateRenderer(titleToTemplateRenderer(title))
+                          .setKotlinSupport(
+                            KotlinSupport.newBuilder()
+                                         .setIncludeKotlinSupport(kotlinSupport instanceof Boolean ? (Boolean)kotlinSupport : false)
+                                         .setKotlinSupportVersion(kotlinVersion instanceof String ? (String)kotlinVersion : "unknown"));
+      UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
+      if (Boolean.TRUE.equals(paramMap.get(ATTR_HAS_INSTANT_APP_WRAPPER))) {
+        aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_PROJECT);
+        UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
+      }
+
+      if (title.equals("Android Project") && Boolean.TRUE.equals(paramMap.get(ATTR_IS_DYNAMIC_INSTANT_APP))) {
+        aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_BUNDLE_PROJECT);
+        UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
+      }
+
+      if (Boolean.TRUE.equals(paramMap.get(ATTR_DYNAMIC_IS_INSTANT_MODULE))) {
+        aseBuilder.setTemplateRenderer(TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE);
+        UsageTracker.log(UsageTrackerUtils.withProjectId(aseBuilder, project));
+      }
     }
 
     if (context.shouldReformat()) {
@@ -262,9 +287,9 @@ public class Template {
     switch (title) {
       case "":
         return TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER;
-      case "Android Module":
+      case ANDROID_MODULE_TEMPLATE:
         return TemplateRenderer.ANDROID_MODULE;
-      case "Android Project":
+      case ANDROID_PROJECT_TEMPLATE:
         return TemplateRenderer.ANDROID_PROJECT;
       case "Empty Activity":
         return TemplateRenderer.EMPTY_ACTIVITY;
@@ -300,7 +325,7 @@ public class Template {
         return TemplateRenderer.FRAGMENT_LIST;
       case "Master/Detail Flow":
         return TemplateRenderer.MASTER_DETAIL_FLOW;
-      case "Android Wear Module":
+      case "Wear OS Module":
         return TemplateRenderer.ANDROID_WEAR_MODULE;
       case "Broadcast Receiver":
         return TemplateRenderer.BROADCAST_RECEIVER;
@@ -330,6 +355,12 @@ public class Template {
         return TemplateRenderer.BASIC_ACTIVITIY;
       case "App Widget":
         return TemplateRenderer.APP_WIDGET;
+      case "Instant App Project":
+        return TemplateRenderer.ANDROID_INSTANT_APP_PROJECT;
+      case "Instant App":
+        return TemplateRenderer.ANDROID_INSTANT_APP_MODULE;
+      case "Dynamic Feature (Instant App)":
+        return TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE;
       default:
         return TemplateRenderer.CUSTOM_TEMPLATE_RENDERER;
     }

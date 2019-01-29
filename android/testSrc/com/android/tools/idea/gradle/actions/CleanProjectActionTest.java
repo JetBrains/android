@@ -40,8 +40,8 @@ public class CleanProjectActionTest extends IdeaTestCase {
     initMocks(this);
 
     myAction = new CleanProjectAction();
-    IdeComponents.replaceService(myProject, GradleProjectBuilder.class, myGradleProjectBuilder);
-    IdeComponents.replaceService(myProject, GradleBuildState.class, myGradleBuildState);
+    new IdeComponents(myProject).replaceProjectService(GradleProjectBuilder.class, myGradleProjectBuilder);
+    new IdeComponents(myProject).replaceProjectService(GradleBuildState.class, myGradleBuildState);
   }
 
   public void testCleanPerformed() {

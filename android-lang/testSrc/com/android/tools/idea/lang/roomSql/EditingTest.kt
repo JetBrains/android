@@ -20,8 +20,8 @@ class EditingTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -35,8 +35,8 @@ class EditingTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -50,8 +50,8 @@ class EditingTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -65,8 +65,8 @@ class EditingTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -80,8 +80,8 @@ class EditingTest : RoomLightTestCase() {
     myFixture.configureByText("UserDao.java", """
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {
@@ -95,8 +95,8 @@ class EditingTest : RoomLightTestCase() {
     myFixture.checkResult("""
         package com.example;
 
-        import android.arch.persistence.room.Dao;
-        import android.arch.persistence.room.Query;
+        import androidx.room.Dao;
+        import androidx.room.Query;
 
         @Dao
         public interface UserDao {

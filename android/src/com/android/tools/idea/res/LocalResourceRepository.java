@@ -15,46 +15,39 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.res2.AbstractResourceRepository;
-import com.android.ide.common.res2.ResourceFile;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.AbstractResourceRepository;
+import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceTable;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
-
+import static com.android.SdkConstants.*;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 /**
  * Repository for Android application resources, e.g. those that show up in {@code R}, not {@code android.R}
@@ -74,7 +67,7 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
  * module with dependencies will contain these components:
  * <ul>
  *   <li> A {@link AppResourceRepository} which contains a
- *          {@link FileResourceRepository} wrapping each AAR library dependency, and merges this with
+ *          {@link AarSourceResourceRepository} wrapping each AAR library dependency, and merges this with
  *          the project resource repository </li>
  *   <li> A {@link ProjectResourceRepository} representing the collection of module repositories</li>
  *   <li> For each module (e.g. the main module and library module}, a {@link ModuleResourceRepository}</li>
@@ -178,19 +171,18 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   @Override
-  public void dispose() {
-  }
+  public void dispose() {}
 
-  public void addParent(@NonNull MultiResourceRepository parent) {
+  public void addParent(@NotNull MultiResourceRepository parent) {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents == null) {
-        myParents = Lists.newArrayListWithExpectedSize(2); // Don't expect many parents
+        myParents = new ArrayList<>(2); // Don't expect many parents
       }
       myParents.add(parent);
     }
   }
 
-  public void removeParent(@NonNull MultiResourceRepository parent) {
+  public void removeParent(@NotNull MultiResourceRepository parent) {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents != null) {
         myParents.remove(parent);
@@ -214,7 +206,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
-  protected void invalidateParentCaches(@Nullable String namespace, @NotNull ResourceType... types) {
+  protected void invalidateParentCaches(@NotNull ResourceNamespace namespace, @NotNull ResourceType... types) {
     synchronized (ITEM_MAP_LOCK) {
       if (myParents != null) {
         for (MultiResourceRepository parent : myParents) {
@@ -226,7 +218,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
   /** If this repository has not already been visited, merge its items of the given type into result. */
   protected final void merge(@NotNull Set<LocalResourceRepository> visited,
-                             @Nullable String namespace,
+                             @NotNull ResourceNamespace namespace,
                              @NotNull ResourceType type,
                              @NotNull SetMultimap<String, String> seenQualifiers,
                              @NotNull ListMultimap<String, ResourceItem> result) {
@@ -238,7 +230,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   protected void doMerge(@NotNull Set<LocalResourceRepository> visited,
-                         @Nullable String namespace,
+                         @NotNull ResourceNamespace namespace,
                          @NotNull ResourceType type,
                          @NotNull SetMultimap<String, String> seenQualifiers,
                          @NotNull ListMultimap<String, ResourceItem> result) {
@@ -248,8 +240,8 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
     for (ResourceItem item : items.values()) {
       String name = item.getName();
-      String qualifiers = item.getQualifiers();
-      if (!result.containsKey(name) || type == ResourceType.DECLARE_STYLEABLE || type == ResourceType.ID || !seenQualifiers.containsEntry(name, qualifiers)) {
+      String qualifiers = item.getConfiguration().getQualifierString();
+      if (!result.containsKey(name) || type == ResourceType.STYLEABLE || type == ResourceType.ID || !seenQualifiers.containsEntry(name, qualifiers)) {
         // We only add a duplicate item if there isn't an item with the same qualifiers (and it's
         // not an id; id's are allowed to be defined in multiple places even with the same
         // qualifiers)
@@ -257,13 +249,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
         seenQualifiers.put(name, qualifiers);
       }
     }
-  }
-
-  protected boolean computeHasResourcesOfType(@NotNull ResourceType type, @NotNull Set<LocalResourceRepository> visited) {
-    if (!visited.add(this)) {
-      return false;
-    }
-    return hasResourcesOfType(type);
   }
 
   // ---- Implements ModificationCount ----
@@ -293,38 +278,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   @Nullable
-  public VirtualFile getMatchingFile(@NonNull VirtualFile file, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
-    List<VirtualFile> matches = getMatchingFiles(file, type, config);
-    return matches.isEmpty() ? null : matches.get(0);
-  }
-
-  @NonNull
-  public List<VirtualFile> getMatchingFiles(@NonNull VirtualFile file, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
-    List<ResourceFile> matches = super.getMatchingFiles(ResourceHelper.getResourceName(file), type, config);
-    List<VirtualFile> matchesFiles = new ArrayList<>(matches.size());
-    for (ResourceFile match : matches) {
-      if (match != null) {
-        if (match instanceof PsiResourceFile) {
-          matchesFiles.add(((PsiResourceFile)match).getPsiFile().getVirtualFile());
-        }
-        else {
-          matchesFiles.add(LocalFileSystem.getInstance().findFileByIoFile(match.getFile()));
-        }
-      }
-    }
-    return matchesFiles;
-  }
-
-  /** @deprecated Use {@link #getMatchingFile(VirtualFile, ResourceType, FolderConfiguration)} in the plugin code */
-  @Nullable
-  @Override
-  @Deprecated
-  public ResourceFile getMatchingFile(@NonNull String name, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
-    assert name.indexOf('.') == -1 : name;
-    return super.getMatchingFile(name, type, config);
-  }
-
-  @Nullable
   public DataBindingInfo getDataBindingInfoForLayout(String layoutName) {
     return null;
   }
@@ -335,13 +288,13 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   @VisibleForTesting
-  public boolean isScanPending(@NonNull PsiFile psiFile) {
+  public boolean isScanPending(@NotNull PsiFile psiFile) {
     return false;
   }
 
   /** Returns the {@link PsiFile} corresponding to the source of the given resource item, if possible */
   @Nullable
-  public static PsiFile getItemPsiFile(@NonNull Project project, @NonNull ResourceItem item) {
+  public static PsiFile getItemPsiFile(@NotNull Project project, @NotNull ResourceItem item) {
     if (project.isDisposed()) {
       return null;
     }
@@ -351,18 +304,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       return psiResourceItem.getPsiFile();
     }
 
-    ResourceFile source = item.getSource();
-    if (source == null) { // most likely a dynamically defined value
-      return null;
-    }
-
-    if (source instanceof PsiResourceFile) {
-      PsiResourceFile prf = (PsiResourceFile)source;
-      return prf.getPsiFile();
-    }
-
-    File file = source.getFile();
-    VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+    VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(item);
     if (virtualFile != null) {
       PsiManager psiManager = PsiManager.getInstance(project);
       return psiManager.findFile(virtualFile);
@@ -376,7 +318,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
    * defined for resource items in value files.
    */
   @Nullable
-  public static XmlTag getItemTag(@NonNull Project project, @NonNull ResourceItem item) {
+  public static XmlTag getItemTag(@NotNull Project project, @NotNull ResourceItem item) {
     if (item instanceof PsiResourceItem) {
       PsiResourceItem psiResourceItem = (PsiResourceItem)item;
       return psiResourceItem.getTag();
@@ -391,13 +333,16 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       if (rootTag != null && rootTag.isValid()) {
         XmlTag[] subTags = rootTag.getSubTags();
         for (XmlTag tag : subTags) {
-          if (tag.isValid() && resourceName.equals(tag.getAttributeValue(SdkConstants.ATTR_NAME))) {
+          if (tag.isValid()
+              && resourceName.equals(tag.getAttributeValue(ATTR_NAME))
+              && item.getType() == AndroidResourceUtil.getResourceTypeForResourceTag(tag)) {
             return tag;
           }
         }
+        // TODO: Support nested tags inside declare-styleable. See http://b/74194028.
       }
 
-      // This method should only be called on value resource types
+      // This method should only be called on value resource types.
       assert FolderTypeRelationship.getRelatedFolders(item.getType()).contains(ResourceFolderType.VALUES) : item.getType();
     }
 
@@ -405,7 +350,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   }
 
   @Nullable
-  public String getViewTag(@NonNull ResourceItem item) {
+  public String getViewTag(@NotNull ResourceItem item) {
     if (item instanceof PsiResourceItem) {
       PsiResourceItem psiItem = (PsiResourceItem)item;
       XmlTag tag = psiItem.getTag();
@@ -425,7 +370,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
 
       PsiFile file = psiItem.getPsiFile();
-      if (file.isValid() && file instanceof XmlFile) {
+      if (file instanceof XmlFile && file.isValid()) {
         XmlFile xmlFile = (XmlFile)file;
         XmlTag rootTag = xmlFile.getRootTag();
         if (rootTag != null && rootTag.isValid()) {
@@ -487,6 +432,63 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
           parent.invalidateResourceDirs();
         }
       }
+    }
+  }
+
+  /** Package accessible version of {@link #getFullTable()}. */
+  @NonNull
+  ResourceTable getFullTablePackageAccessible() {
+    return getFullTable();
+  }
+
+  public static final class EmptyRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
+    @NotNull private final ResourceNamespace myNamespace;
+
+    public EmptyRepository(@NotNull ResourceNamespace namespace) {
+      super("");
+      myNamespace = namespace;
+    }
+
+    @NotNull
+    @Override
+    protected Set<VirtualFile> computeResourceDirs() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    protected ResourceTable getFullTable() {
+      return new ResourceTable();
+    }
+
+    @Nullable
+    @Override
+    protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace,
+                                                        @NotNull ResourceType type,
+                                                        boolean create) {
+      if (create) {
+        throw new UnsupportedOperationException();
+      } else {
+        return null;
+      }
+    }
+
+    @NotNull
+    @Override
+    public Set<ResourceNamespace> getNamespaces() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public ResourceNamespace getNamespace() {
+      return myNamespace;
+    }
+
+    @Nullable
+    @Override
+    public String getPackageName() {
+      return myNamespace.getPackageName();
     }
   }
 }

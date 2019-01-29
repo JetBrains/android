@@ -20,7 +20,6 @@ import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.SceneView;
@@ -28,6 +27,7 @@ import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.CropTool;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.ExtractWidgetTool;
 import com.android.tools.idea.uibuilder.mockup.editor.tools.SelectionEditors;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -42,13 +42,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -374,7 +375,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
   public void setToolContext(@Nullable DesignSurface newDesignSurface) {
     assert newDesignSurface == null || newDesignSurface instanceof NlDesignSurface;
     if (mySurface != null) {
-      SceneManager manager = mySurface.getSceneManager();
+      LayoutlibSceneManager manager = mySurface.getSceneManager();
       if (manager != null) {
         manager.removeRenderListener(this);
       }
@@ -385,7 +386,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface>, 
     SceneView sceneView = newDesignSurface != null ? newDesignSurface.getCurrentSceneView() : null;
     if (sceneView != null) {
       mySurface = (NlDesignSurface)newDesignSurface;
-      SceneManager manager = mySurface.getSceneManager();
+      LayoutlibSceneManager manager = mySurface.getSceneManager();
       if (manager != null) {
         manager.addRenderListener(this);
       }

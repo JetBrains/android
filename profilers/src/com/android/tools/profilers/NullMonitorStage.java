@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.profiler.proto.Common;
@@ -26,18 +25,6 @@ import org.jetbrains.annotations.NotNull;
  * or when an unsupported device is selected. It represents the stage of no-process, no-device, and unsupported devices.
  */
 public class NullMonitorStage extends Stage {
-
-  @VisibleForTesting
-  static final String ANDROID_PROFILER_TITLE = "Android Profiler";
-  @VisibleForTesting
-  static final String DEVICE_NOT_SUPPORTED_TITLE = "Device not supported";
-
-  @VisibleForTesting
-  static final String NO_DEVICE_MESSAGE = "No device detected. Please plug in a device,<br/>or launch the emulator.";
-  @VisibleForTesting
-  static final String NO_DEBUGGABLE_PROCESS_MESSAGE = "No debuggable processes detected for<br/>the selected device.";
-  @VisibleForTesting
-  static final String DEVICE_NOT_SUPPORTED_MESSAGE = "Android Profiler requires a device with<br/>API 21 (Lollipop) or higher.";
 
   private Type myType;
 
@@ -76,6 +63,10 @@ public class NullMonitorStage extends Stage {
     myAspect.changed(Aspect.NULL_MONITOR_TYPE);
   }
 
+  public Type getType() {
+    return myType;
+  }
+
   @Override
   public void enter() {
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -83,29 +74,6 @@ public class NullMonitorStage extends Stage {
 
   @Override
   public void exit() {
-  }
-
-  public String getMessage() {
-    switch (myType) {
-      case NO_DEVICE:
-        return NO_DEVICE_MESSAGE;
-      case UNSUPPORTED_DEVICE:
-        return DEVICE_NOT_SUPPORTED_MESSAGE;
-      case NO_DEBUGGABLE_PROCESS:
-      default:
-        return NO_DEBUGGABLE_PROCESS_MESSAGE;
-    }
-  }
-
-  public String getTitle() {
-    switch (myType) {
-      case UNSUPPORTED_DEVICE:
-        return DEVICE_NOT_SUPPORTED_TITLE;
-      case NO_DEVICE:
-      case NO_DEBUGGABLE_PROCESS:
-      default:
-        return ANDROID_PROFILER_TITLE;
-    }
   }
 
   enum Type {

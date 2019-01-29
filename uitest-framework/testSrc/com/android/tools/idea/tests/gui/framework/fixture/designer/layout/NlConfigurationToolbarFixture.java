@@ -33,6 +33,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.function.Predicate;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.clickPopupMenuItemMatching;
@@ -80,7 +81,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseApiLevel(@NotNull String apiLevel) {
-    selectDropDownActionButtonItem("API Version in Editor", text -> apiLevel.equals(text));
+    selectDropDownActionButtonItem("API Version for Preview", text -> apiLevel.equals(text));
     return this;
   }
 
@@ -92,14 +93,14 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
   public void requireTheme(@NotNull String theme) {
     Wait.seconds(1).expecting("theme to be updated")
-      .until(() -> theme.equals(TextAccessors.getTextAccessor(findToolbarButton("Theme in Editor")).getText()));
+      .until(() -> theme.equals(TextAccessors.getTextAccessor(findToolbarButton("Theme for Preview")).getText()));
   }
 
   /**
    * Returns the current API level of the toolbar's configuration as a String
    */
   public String getApiLevel() {
-    return TextAccessors.getTextAccessor(findToolbarButton("API Version in Editor")).getText();
+    return TextAccessors.getTextAccessor(findToolbarButton("API Version for Preview")).getText();
   }
 
   /**
@@ -107,12 +108,12 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
    */
   @NotNull
   public NlConfigurationToolbarFixture<ParentFixture> chooseDevice(@NotNull String label) {
-    selectDropDownActionButtonItem("Device in Editor (D)", new DeviceNamePredicate(label));
+    selectDropDownActionButtonItem("Device for Preview (D)", new DeviceNamePredicate(label));
     return this;
   }
 
   public void chooseLayoutVariant(@NotNull String layoutVariant) {
-    selectDropDownActionButtonItem("Orientation in Editor (O)", Predicate.isEqual(layoutVariant));
+    selectDropDownActionButtonItem("Orientation for Preview (O)", Predicate.isEqual(layoutVariant));
   }
 
   /**
@@ -155,8 +156,11 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   @NotNull
   public ThemeSelectionDialogFixture openThemeSelectionDialog() {
     // We directly perform the action here because ActionButton of Theme may be collapsed and cannot be found by finder.
-    AnAction themeMenuAction = myToolBar.getActions().stream().filter(action -> action instanceof ThemeMenuAction).findAny().get();
-    ApplicationManager.getApplication().invokeLater(() -> themeMenuAction.actionPerformed(new TestActionEvent()));
+    ThemeMenuAction themeMenuAction =
+      (ThemeMenuAction)myToolBar.getActions().stream().filter(action -> action instanceof ThemeMenuAction).findAny().get();
+    AnAction moreThemeAction =
+      Arrays.stream(themeMenuAction.getChildren(null)).filter(action -> action instanceof ThemeMenuAction.MoreThemesAction).findAny().get();
+    ApplicationManager.getApplication().invokeLater(() -> moreThemeAction.actionPerformed(new TestActionEvent()));
     return ThemeSelectionDialogFixture.find(myRobot);
   }
 
@@ -187,14 +191,14 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
   public NlConfigurationToolbarFixture<ParentFixture> setOrientationAsLandscape() {
     // If there is any Landscape variation, the text of Action Button will become "Landscape -> [variation_folder]/[layout_name].xml"
     // Use String.startsWith() to cover that case.
-    selectDropDownActionButtonItem("Orientation in Editor (O)", item -> item.startsWith("Landscape"));
+    selectDropDownActionButtonItem("Orientation for Preview (O)", item -> item.startsWith("Landscape"));
     return this;
   }
 
   public NlConfigurationToolbarFixture<ParentFixture> setOrientationAsPortrait() {
     // If there is any Portrait variation, the text of Action Button will become "Portrait -> [variation_folder]/[layout_name].xml"
     // Use String.startsWith() to cover that case.
-    selectDropDownActionButtonItem("Orientation in Editor (O)", item -> item.startsWith("Portrait"));
+    selectDropDownActionButtonItem("Orientation for Preview (O)", item -> item.startsWith("Portrait"));
     return this;
   }
 

@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
 
 class NdkContentEntriesSetup extends ContentEntriesSetup {
@@ -44,5 +45,12 @@ class NdkContentEntriesSetup extends ContentEntriesSetup {
       }
     }
     addOrphans();
+    // Exclude .externalNativeBuild (b/72450552)
+    File rootDirPath = myAndroidModel.getRootDirPath();
+    File externalNativeBuildFolder = new File(rootDirPath, ".externalNativeBuild");
+    ContentEntry parentEntry = findParentContentEntry(externalNativeBuildFolder, contentEntries.stream());
+    if (parentEntry != null) {
+      addExcludedFolder(parentEntry, externalNativeBuildFolder);
+    }
   }
 }

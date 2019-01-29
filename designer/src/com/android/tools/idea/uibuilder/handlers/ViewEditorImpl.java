@@ -19,24 +19,24 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
-import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.model.NlDependencyManager;
+import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiAnnotation;
@@ -46,7 +46,6 @@ import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -163,10 +162,11 @@ public class ViewEditorImpl extends ViewEditor {
 
       NlModel model = myModel;
       XmlFile xmlFile = model.getFile();
-      AndroidFacet facet = model.getFacet();
-      RenderService renderService = RenderService.getInstance(facet);
-      RenderLogger logger = renderService.createLogger();
-      final RenderTask task = renderService.createTask(xmlFile, getConfiguration(), logger, null);
+      Module module = model.getModule();
+      RenderService renderService = RenderService.getInstance(module.getProject());
+      final RenderTask task = renderService.taskBuilder(model.getFacet(), getConfiguration())
+                                     .withPsiFile(xmlFile)
+                                     .build();
       if (task == null) {
         return null;
       }
@@ -192,12 +192,13 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   @Override
-  public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types) {
+  public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types, boolean includeSampleData) {
     NlModel model = myModel;
     ChooseResourceDialog dialog = ChooseResourceDialog.builder()
       .setModule(model.getModule())
       .setTypes(types)
       .setConfiguration(model.getConfiguration())
+      .setShowSampleDataPicker(includeSampleData)
       .build();
 
     if (!title.isEmpty()) {
@@ -244,7 +245,7 @@ public class ViewEditorImpl extends ViewEditor {
       return false;
     }
     for (PsiAnnotation annotation : modifiers.getAnnotations()) {
-      if (Objects.equals(annotation.getQualifiedName(), RESTRICT_TO_ANNOTATION)) {
+      if (RESTRICT_TO_ANNOTATION.isEquals(annotation.getQualifiedName())) {
         return false;
       }
     }
@@ -265,7 +266,7 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public void insertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index, @NotNull InsertType insertType) {
-    getModel().addComponents(children, parent, getChild(parent, index), insertType, this);
+    getModel().addComponents(children, parent, getChild(parent, index), insertType, this.myScene.getDesignSurface());
   }
 
   @NotNull
@@ -279,16 +280,9 @@ public class ViewEditorImpl extends ViewEditor {
     return 0 <= index && index < parent.getChildCount() ? parent.getChild(index) : null;
   }
 
-
-  /**
-   * Try to get an existing View editor from the {@link SceneView}'s {@link SceneManager}
-   *
-   * @deprecated use {@link #getOrCreate(Scene)} instead.
-   */
-  @Deprecated
-  @NotNull
-  public static ViewEditor getOrCreate(@NotNull SceneView sceneView) {
-    return getOrCreate(sceneView.getScene());
+  @Override
+  public void openResourceFile(@NotNull String resourceId) {
+    DesignSurfaceHelper.openResource(myConfiguration, resourceId, myModel.getVirtualFile());
   }
 
   /**
@@ -296,6 +290,11 @@ public class ViewEditorImpl extends ViewEditor {
    */
   @NotNull
   public static ViewEditor getOrCreate(@NotNull Scene scene) {
-    return scene.getSceneManager().getViewEditor();
+    return ((LayoutlibSceneManager)scene.getSceneManager()).getViewEditor();
+  }
+
+  @Override
+  public boolean moduleDependsOnAppCompat() {
+    return NlModelHelperKt.moduleDependsOnAppCompat(myModel);
   }
 }

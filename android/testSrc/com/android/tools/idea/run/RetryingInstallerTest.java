@@ -18,7 +18,9 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.run.util.StopWatchTimeSource;
 import org.jetbrains.android.util.AndroidBundle;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,6 +34,7 @@ public class RetryingInstallerTest {
   private RetryingInstaller.Prompter myPrompter;
   private LaunchStatus myLaunchStatus;
   private RetryingInstaller myRetryingInstaller;
+  private TestTimeSource myStopWatchTimeSource;
 
   @Before
   public void setUp() {
@@ -40,17 +43,31 @@ public class RetryingInstallerTest {
     myPrompter = mock(RetryingInstaller.Prompter.class);
 
     myLaunchStatus = mock(LaunchStatus.class);
+    myStopWatchTimeSource = new TestTimeSource();
+    StopWatchTimeSource.INSTANCE.overrideDefault(myStopWatchTimeSource);
 
     myRetryingInstaller =
       new RetryingInstaller(myDevice, myInstaller, APPLICATION_ID, myPrompter, mock(ConsolePrinter.class), myLaunchStatus);
+  }
+
+  @After
+  public void cleanUp() {
+    StopWatchTimeSource.INSTANCE.resetDefault();
   }
 
   @Test
   public void singleInstallOnSuccess() {
     // if the installer succeeds on the first try...
     when(myInstaller.installApp(myDevice, myLaunchStatus))
-      .thenReturn(new InstallResult(InstallResult.FailureCode.NO_ERROR, null, null));
-    assertThat(myRetryingInstaller.install()).isTrue();
+      .thenAnswer(invocationOnMock -> {
+        myStopWatchTimeSource.advance(20);
+        return new InstallResult(InstallResult.FailureCode.NO_ERROR, null, null);
+      });
+    RetryingInstallerResult installResult = myRetryingInstaller.install();
+    assertThat(installResult.isSuccess()).isTrue();
+    assertThat(installResult.getRetryCount()).isEqualTo(1);
+    assertThat(installResult.getTotalDuration().toMillis()).isEqualTo(20);
+    assertThat(installResult.getLastInstallDuration().toMillis()).isEqualTo(20);
 
     // then we should only have called it once...
     verify(myInstaller, times(1)).installApp(myDevice, myLaunchStatus);
@@ -63,13 +80,20 @@ public class RetryingInstallerTest {
   public void notifyUserIfDeviceDisconnectedDuringInstall() {
     // on an install request, return a failure on first install and a success on the 2nd install
     when (myInstaller.installApp(myDevice, myLaunchStatus))
-      .thenReturn(new InstallResult(InstallResult.FailureCode.DEVICE_NOT_FOUND, null, null));
+      .thenAnswer(invocation -> {
+        myStopWatchTimeSource.advance(50);
+        return new InstallResult(InstallResult.FailureCode.DEVICE_NOT_FOUND, null, null);
+      });
 
     when (myDevice.getName())
       .thenReturn("Test Device");
 
     // perform the installation
-    assertThat(myRetryingInstaller.install()).isFalse();
+    RetryingInstallerResult installResult = myRetryingInstaller.install();
+    assertThat(installResult.isSuccess()).isFalse();
+    assertThat(installResult.getRetryCount()).isEqualTo(1);
+    assertThat(installResult.getTotalDuration().toMillis()).isEqualTo(50);
+    assertThat(installResult.getLastInstallDuration().toMillis()).isEqualTo(50);
 
     // verify that we got only 1 install requests (there is no retry for this error)
     verify(myInstaller, times(1)).installApp(myDevice, myLaunchStatus);
@@ -83,8 +107,14 @@ public class RetryingInstallerTest {
   public void promptUserOnIncompatibleUpdate() {
     // on an install request, return a failure on first install and a success on the 2nd install
     when (myInstaller.installApp(myDevice, myLaunchStatus))
-      .thenReturn(new InstallResult(InstallResult.FailureCode.INSTALL_FAILED_VERSION_DOWNGRADE, null, null))
-      .thenReturn(new InstallResult(InstallResult.FailureCode.NO_ERROR, null, null));
+      .thenAnswer(invocation -> {
+        myStopWatchTimeSource.advance(100);
+        return new InstallResult(InstallResult.FailureCode.INSTALL_FAILED_VERSION_DOWNGRADE, null, null);
+      })
+      .thenAnswer(invocation -> {
+        myStopWatchTimeSource.advance(200);
+        return new InstallResult(InstallResult.FailureCode.NO_ERROR, null, null);
+      });
     try {
       when (myDevice.uninstallPackage(APPLICATION_ID)).thenReturn(null);
     }
@@ -92,10 +122,17 @@ public class RetryingInstallerTest {
     }
 
     // answer true to any prompts
-    when (myPrompter.showQuestionPrompt(anyString())).thenReturn(true);
+    when (myPrompter.showQuestionPrompt(anyString())).thenAnswer(invocation -> {
+      myStopWatchTimeSource.advance(5000);
+      return true;
+    });
 
     // perform the installation
-    assertThat(myRetryingInstaller.install()).isTrue();
+    RetryingInstallerResult installResult = myRetryingInstaller.install();
+    assertThat(installResult.isSuccess()).isTrue();
+    assertThat(installResult.getRetryCount()).isEqualTo(2);
+    assertThat(installResult.getTotalDuration().toMillis()).isEqualTo(5300);
+    assertThat(installResult.getLastInstallDuration().toMillis()).isEqualTo(200);
 
     // verify that we got 2 install requests (the first one must've failed, then we retried after prompting the user)
     verify(myInstaller, times(2)).installApp(myDevice, myLaunchStatus);
@@ -103,5 +140,18 @@ public class RetryingInstallerTest {
     // verify that we prompted the user
     verify(myPrompter).showQuestionPrompt(AndroidBundle.message(
       "deployment.failed.uninstall.prompt.text", AndroidBundle.message("deployment.failed.reason.version.downgrade")));
+  }
+
+  private static class TestTimeSource implements StopWatchTimeSource.StopWatchTimeSourceOverride {
+    private long myTicks;
+
+    @Override
+    public long getCurrentTimeMillis() {
+      return myTicks;
+    }
+
+    public void advance(long ticks) {
+      myTicks += ticks;
+    }
   }
 }

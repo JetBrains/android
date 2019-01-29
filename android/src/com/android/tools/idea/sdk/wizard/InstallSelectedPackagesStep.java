@@ -20,19 +20,19 @@ import com.android.repository.api.*;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.adtui.validation.Validator;
-import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.adtui.validation.validators.FalseValidator;
-import com.android.tools.adtui.validation.validators.TrueValidator;
-import com.android.tools.idea.observable.ListenerManager;
-import com.android.tools.idea.observable.core.BoolProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
-import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.ThrottledProgressWrapper;
+import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.core.BoolProperty;
+import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.adtui.validation.validators.FalseValidator;
+import com.android.tools.adtui.validation.validators.TrueValidator;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -231,11 +231,6 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
       indicator = new EmptyProgressIndicator();
     }
     customLogger.setIndicator(indicator);
-    myLogger.logInfo("To install:");
-    for (UpdatablePackage p : myInstallRequests) {
-      myLogger.logInfo(String.format("- %1$s (%2$s)", p.getRemote().getDisplayName(), p.getRemote().getPath()));
-    }
-    myLogger.logInfo("");
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
   }
 
@@ -281,6 +276,9 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
 
     @Override
     public boolean isCanceled() {
+      if (myIndicator != null) {
+        myCancelled = myCancelled || myIndicator.isCanceled();
+      }
       return myCancelled;
     }
 
@@ -413,7 +411,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     private ModelWizard.Facade myWizard;
     private InstallTask myTask;
 
-    BackgroundAction() {
+    public BackgroundAction() {
       super("Background");
     }
 

@@ -15,11 +15,16 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.FlatTabbedPane;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.profilers.*;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
+import com.android.tools.adtui.stdui.CommonTabbedPane;
+import com.android.tools.adtui.stdui.StandardColors;
+import com.android.tools.profilers.ContextMenuInstaller;
+import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerTimeline;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute;
@@ -44,7 +49,6 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
@@ -58,7 +62,8 @@ import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_V
  */
 final class MemoryInstanceDetailsView extends AspectObserver {
   private static final String TITLE_TAB_REFERENCES = "References";
-  private static final String TITLE_TAB_CALLSTACK = "Call Stack";
+  private static final String TITLE_TAB_ALLOCATION_CALLSTACK = "Allocation Call Stack";
+  private static final String TITLE_TAB_DEALLOCATION_CALLSTACK = "Deallocation Call Stack";
   private static final int LABEL_COLUMN_WIDTH = 500;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
 
@@ -70,7 +75,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final JTabbedPane myTabsPanel;
 
-  @NotNull private final StackTraceView myStackTraceView;
+  @NotNull private final StackTraceView myAllocationStackTraceView;
+
+  @NotNull private final StackTraceView myDeallocationStackTraceView;
 
   @Nullable private JComponent myReferenceColumnTree;
 
@@ -88,9 +95,10 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, this::instanceChanged);
     myIdeProfilerComponents = ideProfilerComponents;
 
-    myTabsPanel = new FlatTabbedPane();
+    myTabsPanel = new CommonTabbedPane();
     myTabsPanel.addChangeListener(this::trackActiveTab);
-    myStackTraceView = ideProfilerComponents.createStackView(stage.getStackTraceModel());
+    myAllocationStackTraceView = ideProfilerComponents.createStackView(stage.getAllocationStackTraceModel());
+    myDeallocationStackTraceView = ideProfilerComponents.createStackView(stage.getDeallocationStackTraceModel());
 
     myInstanceViewers.add(new BitmapViewer());
 
@@ -121,7 +129,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         () -> new SimpleColumnRenderer<ValueObject>(value -> {
           int depth = value.getAdapter().getDepth();
           if (depth >= 0 && depth < Integer.MAX_VALUE) {
-            return Integer.toString(depth);
+            return NumberFormatter.formatInteger(depth);
           }
           return "";
         }, value -> null, SwingConstants.RIGHT),
@@ -138,9 +146,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           if (node instanceof InstanceObject) {
             InstanceObject instanceObject = (InstanceObject)node;
             if (instanceObject.getAllocTime() > Long.MIN_VALUE) {
-              return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
-                TimeUnit.MILLISECONDS.toMicros(1),
-                myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
+              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getAllocTime()));
             }
           }
           return "";
@@ -158,9 +164,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           if (node instanceof InstanceObject) {
             InstanceObject instanceObject = (InstanceObject)node;
             if (instanceObject.getDeallocTime() < Long.MAX_VALUE) {
-              return TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
-                TimeUnit.MILLISECONDS.toMicros(1),
-                myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
+              return TimeFormatter.getSemiSimplifiedClockString(myTimeline.convertToRelativeTimeUs(instanceObject.getDeallocTime()));
             }
           }
           return "";
@@ -174,7 +178,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       new AttributeColumn<ValueObject>(
         "Native Size",
         () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getNativeSize() != INVALID_VALUE ? Long.toString(value.getAdapter().getNativeSize()) : "",
+          value -> value.getAdapter().getNativeSize() != INVALID_VALUE
+                   ? NumberFormatter.formatInteger(value.getAdapter().getNativeSize())
+                   : "",
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -185,7 +191,9 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       new AttributeColumn<ValueObject>(
         "Shallow Size",
         () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getShallowSize() != INVALID_VALUE ? Integer.toString(value.getAdapter().getShallowSize()) : "",
+          value -> value.getAdapter().getShallowSize() != INVALID_VALUE
+                   ? NumberFormatter.formatInteger(value.getAdapter().getShallowSize())
+                   : "",
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -196,7 +204,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       new AttributeColumn<ValueObject>(
         "Retained Size",
         () -> new SimpleColumnRenderer<ValueObject>(
-          value -> value.getAdapter().getRetainedSize() != INVALID_VALUE ? Long.toString(value.getAdapter().getRetainedSize()) : "",
+          value -> value.getAdapter().getRetainedSize() != INVALID_VALUE ? NumberFormatter
+            .formatInteger(value.getAdapter().getRetainedSize()) : "",
           value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
@@ -217,7 +226,8 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       case TITLE_TAB_REFERENCES:
         featureTracker.trackSelectMemoryReferences();
         break;
-      case TITLE_TAB_CALLSTACK:
+      case TITLE_TAB_ALLOCATION_CALLSTACK:
+      case TITLE_TAB_DEALLOCATION_CALLSTACK:
         featureTracker.trackSelectMemoryStack();
         break;
       default:
@@ -273,12 +283,21 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     }
 
     // Populate Callstacks
-    List<CodeLocation> callStack = instance.getCodeLocations();
-    if (!callStack.isEmpty()) {
-      myStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), callStack);
-      JComponent stackTraceView = myStackTraceView.getComponent();
+    List<CodeLocation> allocCallStack = instance.getAllocationCodeLocations();
+    if (!allocCallStack.isEmpty()) {
+      myAllocationStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), allocCallStack);
+      JComponent stackTraceView = myAllocationStackTraceView.getComponent();
       stackTraceView.setBorder(DEFAULT_TOP_BORDER);
-      myTabsPanel.addTab(TITLE_TAB_CALLSTACK, stackTraceView);
+      myTabsPanel.addTab(TITLE_TAB_ALLOCATION_CALLSTACK, stackTraceView);
+      hasContent = true;
+    }
+
+    List<CodeLocation> deallocCallStack = instance.getDeallocationCodeLocations();
+    if (!deallocCallStack.isEmpty()) {
+      myDeallocationStackTraceView.getModel().setStackFrames(instance.getDeallocationThreadId(), deallocCallStack);
+      JComponent stackTraceView = myDeallocationStackTraceView.getComponent();
+      stackTraceView.setBorder(DEFAULT_TOP_BORDER);
+      myTabsPanel.addTab(TITLE_TAB_DEALLOCATION_CALLSTACK, stackTraceView);
       hasContent = true;
     }
 
@@ -318,7 +337,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       root.sort(comparator);
       treeModel.nodeStructureChanged(root);
     });
-    builder.setHoverColor(ProfilerColors.DEFAULT_HOVER_COLOR);
+    builder.setHoverColor(StandardColors.HOVER_COLOR);
     builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     builder.setBorder(DEFAULT_TOP_BORDER);
     builder.setShowVerticalLines(true);
@@ -423,7 +442,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           assert heapSet != null;
           myStage.selectHeapSet(heapSet);
           ClassifierSet classifierSet = heapSet.findContainingClassifierSet(targetInstance);
-          assert classifierSet != null && classifierSet instanceof ClassSet;
+          assert classifierSet instanceof ClassSet;
           myStage.selectClassSet((ClassSet)classifierSet);
           myStage.selectInstanceObject(targetInstance);
         }

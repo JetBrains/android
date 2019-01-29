@@ -17,22 +17,22 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.theme.attributes.editors.AttributeReferenceRendererEditor;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeFormat;
+import com.android.ide.common.rendering.api.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 class ResourcesCompletionProvider implements AttributeReferenceRendererEditor.CompletionProvider, ThemeEditorContext.ChangeListener {
-  private final ArrayList<ResourceValue> myAllResources = new ArrayList<ResourceValue>();
+  private final ArrayList<ResourceValue> myAllResources = new ArrayList<>();
 
   ResourcesCompletionProvider(@NotNull ThemeEditorContext themeEditorContext) {
     fillResources(themeEditorContext.getResourceResolver());
@@ -50,22 +50,22 @@ class ResourcesCompletionProvider implements AttributeReferenceRendererEditor.Co
     }
 
     Set<ResourceType> acceptedTypes = EnumSet.noneOf(ResourceType.class);
-    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Color)) {
+    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.COLOR)) {
       acceptedTypes.add(ResourceType.COLOR);
     }
-    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Dimension)) {
+    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.DIMENSION)) {
       acceptedTypes.add(ResourceType.DIMEN);
     }
-    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.String)) {
+    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.STRING)) {
       acceptedTypes.add(ResourceType.STRING);
     }
-    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.Reference)) {
+    if (ThemeEditorUtils.acceptsFormat(attrDefinition, AttributeFormat.REFERENCE)) {
       acceptedTypes.addAll(ImmutableList
                              .of(ResourceType.LAYOUT, ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.STYLE,
                                  ResourceType.ATTR, ResourceType.STRING, ResourceType.DIMEN, ResourceType.TRANSITION));
     }
 
-    ArrayList<String> resourceNamesList = new ArrayList<String>(myAllResources.size());
+    ArrayList<String> resourceNamesList = new ArrayList<>(myAllResources.size());
     for (ResourceValue resource : myAllResources) {
       if (!acceptedTypes.contains(resource.getResourceType())) {
         continue;

@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
@@ -65,18 +67,16 @@ final class GridDragHandler extends DragHandler {
         return;
       }
       AttributesTransaction transaction = component.startAttributeTransaction();
-      switch (layoutComponent.getTagName()) {
-        case SdkConstants.GRID_LAYOUT: {
-          transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW, String.valueOf(row));
-          transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN, String.valueOf(column));
-          break;
-        }
-        case SdkConstants.GRID_LAYOUT_V7: {
-          transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ROW, String.valueOf(row));
-          transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_COLUMN, String.valueOf(column));
-          break;
-        }
+      String tagName = layoutComponent.getTagName();
+      if (SdkConstants.GRID_LAYOUT.equals(tagName)) {
+        transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW, String.valueOf(row));
+        transaction.setAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN, String.valueOf(column));
       }
+      else if (SdkConstants.GRID_LAYOUT_V7.isEquals(tagName)) {
+        transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ROW, String.valueOf(row));
+        transaction.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_COLUMN, String.valueOf(column));
+      }
+
       transaction.commit();
       editor.insertChildren(layoutComponent, components, -1, insertType);
       return;

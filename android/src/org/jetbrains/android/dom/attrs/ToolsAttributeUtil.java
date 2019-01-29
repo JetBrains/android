@@ -15,20 +15,53 @@
  */
 package org.jetbrains.android.dom.attrs;
 
+import static com.android.SdkConstants.ATTR_ACTION_BAR_NAV_MODE;
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.ATTR_DISCARD;
+import static com.android.SdkConstants.ATTR_IGNORE;
+import static com.android.SdkConstants.ATTR_KEEP;
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_LISTFOOTER;
+import static com.android.SdkConstants.ATTR_LISTHEADER;
+import static com.android.SdkConstants.ATTR_LISTITEM;
+import static com.android.SdkConstants.ATTR_LOCALE;
+import static com.android.SdkConstants.ATTR_MENU;
+import static com.android.SdkConstants.ATTR_MOCKUP;
+import static com.android.SdkConstants.ATTR_MOCKUP_CROP;
+import static com.android.SdkConstants.ATTR_MOCKUP_OPACITY;
+import static com.android.SdkConstants.ATTR_OPEN_DRAWER;
+import static com.android.SdkConstants.ATTR_PARENT_TAG;
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.ATTR_SHRINK_MODE;
+import static com.android.SdkConstants.ATTR_SRC_COMPAT;
+import static com.android.SdkConstants.ATTR_TARGET_API;
+import static com.android.SdkConstants.ATTR_USE_HANDLER;
+import static com.android.SdkConstants.CLASS_VIEW;
+import static com.android.SdkConstants.CLASS_VIEWGROUP;
+import static com.android.SdkConstants.VALUE_SAFE;
+import static com.android.SdkConstants.VALUE_STRICT;
+import static com.android.SdkConstants.WIDGET_PKG_PREFIX;
+import static java.util.Collections.singletonList;
+
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.util.xml.ResolvingConverter;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.converters.*;
+import org.jetbrains.android.dom.converters.PackageClassConverter;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.converters.StaticEnumConverter;
+import org.jetbrains.android.dom.converters.TargetApiConverter;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-import static com.android.SdkConstants.*;
-import static java.util.Collections.singletonList;
 
 /**
  * Class containing utility methods to handle XML attributes in the "tools" namespace.
@@ -42,10 +75,20 @@ import static java.util.Collections.singletonList;
 public class ToolsAttributeUtil {
   private static final ResolvingConverter LAYOUT_REFERENCE_CONVERTER =
     new ResourceReferenceConverter(EnumSet.of(ResourceType.LAYOUT));
-  private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter(true, false, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-  private static final ResolvingConverter VIEW_CONVERTER = new ViewClassConverter();
-  private static final ResolvingConverter VIEW_GROUP_CONVERTER = new ViewGroupClassConverter();
-
+  private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter.Builder()
+    .useManifestBasePackage(true)
+    .withExtendClassNames(AndroidUtils.ACTIVITY_BASE_CLASS_NAME)
+    .build();
+  private static final ResolvingConverter VIEW_CONVERTER = new PackageClassConverter.Builder()
+    .completeLibraryClasses(true)
+    .withExtendClassNames(CLASS_VIEW)
+    .withExtraBasePackages(WIDGET_PKG_PREFIX)
+    .build();
+  private static final ResolvingConverter VIEW_GROUP_CONVERTER = new PackageClassConverter.Builder()
+    .completeLibraryClasses(true)
+    .withExtendClassNames(CLASS_VIEWGROUP)
+    .withExtraBasePackages(WIDGET_PKG_PREFIX)
+    .build();
   private static final List<AttributeFormat> NO_FORMATS = Collections.emptyList();
 
   // Manifest merger attribute names
@@ -55,39 +98,39 @@ public class ToolsAttributeUtil {
   public static final String ATTR_REPLACE = "replace";
   public static final String ATTR_OVERRIDE_LIBRARY = "overrideLibrary";
 
-  /** List of all the tools namespace attributes and its attribute format */
+  /** List of all the tools namespace attributes and their formats. */
   private static final ImmutableMap<String, List<AttributeFormat>> ATTRIBUTES = ImmutableMap.<String, List<AttributeFormat>>builder()
     // Layout files attributes
-    .put(ATTR_ACTION_BAR_NAV_MODE, singletonList(AttributeFormat.Flag))
-    .put(ATTR_CONTEXT, ImmutableList.of(AttributeFormat.Reference, AttributeFormat.String))
+    .put(ATTR_ACTION_BAR_NAV_MODE, singletonList(AttributeFormat.FLAGS))
+    .put(ATTR_CONTEXT, ImmutableList.of(AttributeFormat.REFERENCE, AttributeFormat.STRING))
     .put(ATTR_IGNORE, NO_FORMATS)
-    .put(ATTR_LISTFOOTER,  singletonList(AttributeFormat.Reference))
-    .put(ATTR_LISTHEADER, singletonList(AttributeFormat.Reference))
-    .put(ATTR_LISTITEM, singletonList(AttributeFormat.Reference))
-    .put(ATTR_LAYOUT, singletonList(AttributeFormat.Reference))
+    .put(ATTR_LISTFOOTER,  singletonList(AttributeFormat.REFERENCE))
+    .put(ATTR_LISTHEADER, singletonList(AttributeFormat.REFERENCE))
+    .put(ATTR_LISTITEM, singletonList(AttributeFormat.REFERENCE))
+    .put(ATTR_LAYOUT, singletonList(AttributeFormat.REFERENCE))
     .put(ATTR_LOCALE, NO_FORMATS)
     .put(ATTR_MENU, NO_FORMATS)
-    .put(ATTR_MOCKUP, singletonList(AttributeFormat.String))
-    .put(ATTR_MOCKUP_OPACITY, singletonList(AttributeFormat.Float))
-    .put(ATTR_MOCKUP_CROP, singletonList(AttributeFormat.String))
-    .put(ATTR_OPEN_DRAWER, singletonList(AttributeFormat.Enum))
-    .put(ATTR_PARENT_TAG, singletonList(AttributeFormat.String))
-    .put(ATTR_SHOW_IN, singletonList(AttributeFormat.Reference))
+    .put(ATTR_MOCKUP, singletonList(AttributeFormat.STRING))
+    .put(ATTR_MOCKUP_OPACITY, singletonList(AttributeFormat.FLOAT))
+    .put(ATTR_MOCKUP_CROP, singletonList(AttributeFormat.STRING))
+    .put(ATTR_OPEN_DRAWER, singletonList(AttributeFormat.ENUM))
+    .put(ATTR_PARENT_TAG, singletonList(AttributeFormat.STRING))
+    .put(ATTR_SHOW_IN, singletonList(AttributeFormat.REFERENCE))
     .put(ATTR_TARGET_API, NO_FORMATS)
     // Manifest merger attributes
-    .put(ATTR_NODE, singletonList(AttributeFormat.Enum))
+    .put(ATTR_NODE, singletonList(AttributeFormat.ENUM))
     .put(ATTR_STRICT, NO_FORMATS)
     .put(ATTR_REMOVE, NO_FORMATS)
     .put(ATTR_REPLACE, NO_FORMATS)
     .put(ATTR_OVERRIDE_LIBRARY, NO_FORMATS)
     // Raw files attributes
-    .put(ATTR_SHRINK_MODE, singletonList(AttributeFormat.Enum))
+    .put(ATTR_SHRINK_MODE, singletonList(AttributeFormat.ENUM))
     .put(ATTR_KEEP, NO_FORMATS)
     .put(ATTR_DISCARD, NO_FORMATS)
-    .put(ATTR_USE_HANDLER, singletonList(AttributeFormat.Reference))
+    .put(ATTR_USE_HANDLER, singletonList(AttributeFormat.REFERENCE))
     // AppCompatImageView srcCompat attribute
     // TODO: Remove this definition and make sure the app namespace attributes are handled by AndroidDomUtil#getAttributeDefinition
-    .put(ATTR_SRC_COMPAT, singletonList(AttributeFormat.Reference))
+    .put(ATTR_SRC_COMPAT, singletonList(AttributeFormat.REFERENCE))
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, ResolvingConverter> CONVERTERS = ImmutableMap.<String, ResolvingConverter>builder()
@@ -136,15 +179,6 @@ public class ToolsAttributeUtil {
     }
 
     Collection<AttributeFormat> formats = ATTRIBUTES.get(name);
-    AttributeDefinition def = new ToolsAttributeDefinition(name);
-    def.addFormats(formats);
-
-    return def;
-  }
-
-  public static class ToolsAttributeDefinition extends AttributeDefinition {
-    public ToolsAttributeDefinition(@NotNull String name) {
-      super(name);
-    }
+    return new AttributeDefinition(ResourceNamespace.TOOLS, name, null, formats);
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredElement;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
@@ -36,8 +36,8 @@ public class ThemeEditorTestUtils {
    */
   public static Collection<EditedStyleItem> getStyleLocalValues(@NotNull final ConfiguredThemeEditorStyle style) {
     final Set<String> localAttributes = Sets.newHashSet();
-    for (ConfiguredElement<ItemResourceValue> value : style.getConfiguredValues()) {
-      localAttributes.add(ResolutionUtils.getQualifiedItemName(value.getElement()));
+    for (ConfiguredElement<StyleItemResourceValue> value : style.getConfiguredValues()) {
+      localAttributes.add(ResolutionUtils.getQualifiedItemAttrName(value.getElement()));
     }
 
     return Collections2

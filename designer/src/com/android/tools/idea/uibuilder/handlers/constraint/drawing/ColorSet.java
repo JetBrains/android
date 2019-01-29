@@ -16,12 +16,18 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint.drawing;
 
+import com.intellij.ui.JBColor;
 import java.awt.*;
 
 /**
  * Holds a set of colors for drawing a scene
  */
 public class ColorSet {
+
+    public static final JBColor DEFAULT_LASSO_BORDER_COLOR =
+      new JBColor(new Color(0xc01886f7, true), new Color(0xc09ccdff, true));
+    public static final JBColor DEFAULT_LASSO_FILL_COLOR =
+      new JBColor(new Color(0x1a1886f7, true), new Color(0x1a9ccdff, true));
 
     public static Stroke
             sNormalStroke = new BasicStroke(1);
@@ -87,6 +93,7 @@ public class ColorSet {
 
     protected Color mWidgetActionBackground;
     protected Color mWidgetActionSelectedBackground;
+    protected Color mWidgetActionSelectedBorder;
     protected Color mButtonBackground;
 
     protected Color mSelectionColor;
@@ -105,6 +112,9 @@ public class ColorSet {
 
     protected Color mDragReceiverFrames = new Color(135, 195, 77);
     protected Color mDragReceiverBackground = new Color(154, 221, 140, 60);
+
+    protected Color mLassoSelectionBorder;
+    protected Color mLassoSelectionFill;
 
     public Stroke getOutlineStroke() { return sOutlineStroke; }
 
@@ -252,6 +262,8 @@ public class ColorSet {
 
     public Color getWidgetActionSelectedBackground() { return mWidgetActionSelectedBackground; }
 
+    public Color getWidgetActionSelectedBorder() { return mWidgetActionSelectedBorder; }
+
     public Stroke getSoftConstraintStroke() {
         return mSoftConstraintStroke;
     }
@@ -260,4 +272,11 @@ public class ColorSet {
         return myUnconstrainedColor;
     }
 
+    public Color getLassoSelectionBorder() {
+        return mLassoSelectionBorder;
+    }
+
+    public Color getLassoSelectionFill() {
+        return mLassoSelectionFill;
+    }
 }

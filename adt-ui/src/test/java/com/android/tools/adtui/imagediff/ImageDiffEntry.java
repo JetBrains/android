@@ -22,18 +22,16 @@ import java.awt.image.BufferedImage;
  * how much both images can differ (in %) to still be considered similar.
  */
 abstract class ImageDiffEntry {
-
   private String myBaselineFilename;
+  private double mySimilarityThreshold;
 
-  private float mySimilarityThreshold;
-
-  ImageDiffEntry(String baselineFilename, float similarityThreshold) {
+  ImageDiffEntry(String baselineFilename, double similarityThreshold) {
     myBaselineFilename = baselineFilename;
     mySimilarityThreshold = similarityThreshold;
   }
 
   ImageDiffEntry(String baselineFilename) {
-    this(baselineFilename, ImageDiffUtil.DEFAULT_IMAGE_DIFF_PERCENT_THRESHOLD);
+    this(baselineFilename, ImageDiffUtil.DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
   }
 
   /**
@@ -41,7 +39,7 @@ abstract class ImageDiffEntry {
    */
   protected abstract BufferedImage generateComponentImage();
 
-  public final float getSimilarityThreshold() {
+  public final double getSimilarityThreshold() {
     return mySimilarityThreshold;
   }
 

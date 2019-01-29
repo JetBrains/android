@@ -15,53 +15,75 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator
 
+import com.android.annotations.VisibleForTesting
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.model.Coordinates.getSwingDimension
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
+import com.android.tools.idea.common.scene.draw.DrawFilledRoundRectangle
+import com.android.tools.idea.common.scene.draw.DrawRectangle
+import com.android.tools.idea.common.scene.draw.DrawRoundRectangle
 import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.model.NavCoordinate
-import com.android.tools.idea.naveditor.scene.*
-import com.android.tools.idea.naveditor.scene.draw.DrawFilledRectangle
-import com.android.tools.idea.naveditor.scene.draw.DrawRectangle
+import com.android.tools.idea.naveditor.scene.DRAW_ACTIVITY_BORDER_LEVEL
+import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
+import com.android.tools.idea.naveditor.scene.DRAW_SCREEN_LABEL_LEVEL
+import com.android.tools.idea.naveditor.scene.NavColorSet
+import com.android.tools.idea.naveditor.scene.convertToRoundRect
+import com.android.tools.idea.naveditor.scene.growRectangle
+import com.android.tools.idea.naveditor.scene.scaledFont
+import com.intellij.util.ui.JBUI
 import java.awt.Font
-import java.awt.Rectangle
+import java.awt.geom.Rectangle2D
 
 /**
  * [SceneDecorator] responsible for creating draw commands for one activity in the navigation editor.
  */
 
 // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
-@NavCoordinate private val ACTIVITY_ARC_SIZE = 12
-@NavCoordinate private val ACTIVITY_PADDING = 8
-@NavCoordinate private val ACTIVITY_TEXT_HEIGHT = 26
-@NavCoordinate private val ACTIVITY_BORDER_THICKNESS = 2
+@NavCoordinate
+private val ACTIVITY_ARC_SIZE = JBUI.scale(12f)
+@NavCoordinate
+private val ACTIVITY_PADDING = JBUI.scale(8f)
+@NavCoordinate
+private val ACTIVITY_TEXT_HEIGHT = JBUI.scale(26f)
+@SwingCoordinate
+@VisibleForTesting
+val ACTIVITY_BORDER_WIDTH = JBUI.scale(1f)
 
-class ActivityDecorator : NavScreenDecorator() {
+object ActivityDecorator : NavScreenDecorator() {
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     super.addContent(list, time, sceneContext, component)
 
-    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneContext, component.fillDrawRect(0, null))
-    val arcSize = Coordinates.getSwingDimension(sceneContext, ACTIVITY_ARC_SIZE)
-    list.add(DrawFilledRectangle(drawRectangle, sceneContext.colorSet.componentBackground, arcSize))
+    val sceneView = sceneContext.surface?.currentSceneView ?: return
 
-    @SwingCoordinate val strokeThickness = strokeThickness(sceneContext, component, ACTIVITY_BORDER_THICKNESS)
-    list.add(DrawRectangle(drawRectangle, frameColor(sceneContext, component), strokeThickness, arcSize))
+    @SwingCoordinate val drawRectangle = Coordinates.getSwingRectDip(sceneView, component.fillDrawRect2D(0, null))
+    @SwingCoordinate val roundRect = convertToRoundRect(sceneView, drawRectangle, ACTIVITY_ARC_SIZE)
+    list.add(DrawFilledRoundRectangle(DRAW_FRAME_LEVEL, roundRect, sceneContext.colorSet.componentBackground))
+    list.add(DrawRoundRectangle(DRAW_FRAME_LEVEL, roundRect, frameColor(sceneContext, component), frameThickness(component)))
 
-    val imageRectangle = Rectangle(drawRectangle)
+    val imageRectangle = Rectangle2D.Float(drawRectangle.x, drawRectangle.y, drawRectangle.width, drawRectangle.height)
 
-    @SwingCoordinate val activityPadding = Coordinates.getSwingDimension(sceneContext, ACTIVITY_PADDING)
-    imageRectangle.grow(-activityPadding, -activityPadding)
+    @SwingCoordinate val activityPadding = Coordinates.getSwingDimension(sceneView, ACTIVITY_PADDING)
+    growRectangle(imageRectangle, -activityPadding, -activityPadding)
 
-    @SwingCoordinate val activityTextHeight = Coordinates.getSwingDimension(sceneContext, ACTIVITY_TEXT_HEIGHT)
+    @SwingCoordinate val activityTextHeight = getSwingDimension(sceneView, ACTIVITY_TEXT_HEIGHT)
     imageRectangle.height -= (activityTextHeight - activityPadding)
 
-    drawImage(list, sceneContext, component, imageRectangle)
+    drawScreen(list, sceneContext, component, imageRectangle)
 
-    val textRectangle = Rectangle(drawRectangle.x, imageRectangle.y + imageRectangle.height, drawRectangle.width, activityTextHeight)
+    val imageBorder = Rectangle2D.Float()
+    imageBorder.setRect(imageRectangle)
+
+    growRectangle(imageBorder, ACTIVITY_BORDER_WIDTH, ACTIVITY_BORDER_WIDTH)
+    list.add(DrawRectangle(DRAW_ACTIVITY_BORDER_LEVEL, imageRectangle, NavColorSet.ACTIVITY_BORDER_COLOR, ACTIVITY_BORDER_WIDTH))
+
+    val textRectangle = Rectangle2D.Float(drawRectangle.x, imageRectangle.y + imageRectangle.height, drawRectangle.width,
+                                  activityTextHeight)
     list.add(DrawTruncatedText(DRAW_SCREEN_LABEL_LEVEL, "Activity", textRectangle, textColor(sceneContext, component),
-        scaledFont(sceneContext, Font.BOLD), true))
+                               scaledFont(sceneContext, Font.BOLD), true))
   }
 }

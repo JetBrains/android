@@ -29,6 +29,11 @@ class NavActionsPropertyTest : NavTestCase() {
         fragment("f1") {
           action("a1", destination = "f2")
           action("a2", destination = "f3")
+          action("pop", popUpTo = "f3")
+          action("popInclusive", popUpTo = "f3", inclusive = true)
+          action("popSelfInclusive", popUpTo = "f1", inclusive = true)
+          action("invalid")
+          action("exit", destination = "other")
         }
         fragment("f2")
         fragment("f3")
@@ -38,8 +43,13 @@ class NavActionsPropertyTest : NavTestCase() {
 
   fun testMultipleActions() {
     val property = NavActionsProperty(listOf(model.find("f1")!!))
-    assertEquals(model.find("a1"), property.getChildProperty("f2").components[0])
-    assertEquals(model.find("a2"), property.getChildProperty("f3").components[0])
+    assertEquals(model.find("a1"), property.getChildProperties("f2")[0].components[0])
+    assertEquals(model.find("a2"), property.getChildProperties("f3")[0].components[0])
+    assertEquals(model.find("pop"), property.getChildProperties("f3")[1].components[0])
+    assertEquals(model.find("popInclusive"), property.getChildProperties("Caller of f3")[0].components[0])
+    assertEquals(model.find("popSelfInclusive"), property.getChildProperties("Caller of f1")[0].components[0])
+    assertEquals(model.find("invalid"), property.getChildProperties("Invalid Action")[0].components[0])
+    assertEquals(model.find("exit"), property.getChildProperties("other")[0].components[0])
   }
 
   fun testNoActions() {
@@ -53,7 +63,7 @@ class NavActionsPropertyTest : NavTestCase() {
     val action = model.find("a1")!!
     fragment.addChild(action)
     property.refreshList()
-    assertEquals(action, property.getChildProperty("f2").components[0])
+    assertEquals(action, property.getChildProperties("f2")[0].components[0])
     fragment.removeChild(action)
     property.refreshList()
     assertTrue(property.properties.isEmpty())

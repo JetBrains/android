@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android.splits;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,16 +25,17 @@ public class LanguageDslElement extends GradleDslBlockElement {
   @NonNls public static final String LANGUAGE_BLOCK_NAME = "language";
 
   public LanguageDslElement(@NotNull GradleDslElement parent) {
-    super(parent, LANGUAGE_BLOCK_NAME);
+    super(parent, GradleNameElement.create(LANGUAGE_BLOCK_NAME));
   }
 
   @Override
-  public void addParsedElement(@NotNull String property, @NotNull GradleDslElement element) {
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    String property = element.getName();
     if (property.equals("include")) {
       addToParsedExpressionList(property, element);
       return;
     }
 
-    super.addParsedElement(property, element);
+    super.addParsedElement(element);
   }
 }

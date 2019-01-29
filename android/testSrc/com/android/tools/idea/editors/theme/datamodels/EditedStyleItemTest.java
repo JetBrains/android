@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.editors.theme.datamodels;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValueImpl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -34,23 +36,24 @@ public class EditedStyleItemTest extends AndroidTestCase {
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myLayout);
 
     // We just get a theme that we use as fake source to pass to the ConfiguredItemResourceValue constructor
-    ConfiguredThemeEditorStyle fakeTheme = ResolutionUtils.getStyle(configuration, "android:Theme", null);
+    ConfiguredThemeEditorStyle fakeTheme = ResolutionUtils.getThemeEditorStyle(configuration, "android:Theme", null);
     assertNotNull(fakeTheme);
 
     //noinspection ConstantConditions
-    List<ConfiguredElement<ItemResourceValue>> items = ImmutableList.of(ConfiguredElement
-                                                                          .create(FolderConfiguration.getConfigForFolder("values-v21"),
-                                                                                  new ItemResourceValue("attribute", false, "otherValue",
-                                                                                                        false, null)));
+    List<ConfiguredElement<StyleItemResourceValue>> items = ImmutableList.of(
+      ConfiguredElement.create(FolderConfiguration.getConfigForFolder("values-v21"),
+                               new StyleItemResourceValueImpl(ResourceNamespace.RES_AUTO, "attribute", "otherValue", null)));
 
     EditedStyleItem editedStyleItem = new EditedStyleItem(
-      ConfiguredElement.create(new FolderConfiguration(), new ItemResourceValue("attribute", false, "selectedValue", false, null)), items,
+      ConfiguredElement.create(new FolderConfiguration(),
+                               new StyleItemResourceValueImpl(ResourceNamespace.RES_AUTO, "attribute", "selectedValue", null)),
+      items,
       fakeTheme);
 
     assertEquals("selectedValue", editedStyleItem.getValue());
     assertEquals("selectedValue", editedStyleItem.getSelectedValue().getValue());
     assertEquals(1, editedStyleItem.getNonSelectedItemResourceValues().size());
-    ConfiguredElement<ItemResourceValue> notSelectedItem = editedStyleItem.getNonSelectedItemResourceValues().iterator().next();
+    ConfiguredElement<StyleItemResourceValue> notSelectedItem = editedStyleItem.getNonSelectedItemResourceValues().iterator().next();
     assertEquals("otherValue", notSelectedItem.myValue.getValue());
   }
 }

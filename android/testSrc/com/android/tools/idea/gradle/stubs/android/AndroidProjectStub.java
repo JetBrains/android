@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
+import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
@@ -40,6 +42,8 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @NotNull private final Map<String, IdeVariant> myVariants = Maps.newHashMap();
   @NotNull private final List<SigningConfig> mySigningConfigs = new ArrayList<>();
   @NotNull private final List<String> myFlavorDimensions = new ArrayList<>();
+  @NotNull private final List<String> myVariantNames = new ArrayList<>();
+  @NotNull private final List<SyncIssue> mySyncIssues = new ArrayList<>();
 
   @NotNull private final String myName;
   @NotNull private final FileStructure myFileStructure;
@@ -88,9 +92,21 @@ public class AndroidProjectStub implements IdeAndroidProject {
 
   @Override
   public void forEachVariant(@NotNull Consumer<IdeVariant> action) {
-    for (IdeVariant next: myVariants.values()) {
+    for (IdeVariant next : myVariants.values()) {
       action.accept(next);
     }
+  }
+
+  @Override
+  public void addVariants(@NotNull Collection<Variant> variants, @NotNull IdeDependenciesFactory factory) {
+    for (Variant variant : variants) {
+      addVariant(variant.getName());
+    }
+  }
+
+  @Override
+  public void addSyncIssues(@NotNull Collection<SyncIssue> syncIssues) {
+    mySyncIssues.addAll(syncIssues);
   }
 
   @Override
@@ -124,6 +140,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
     return myDefaultConfig;
   }
 
+  @NotNull
   public BuildTypeContainerStub addBuildType(@NotNull String buildTypeName) {
     BuildTypeContainerStub buildType = new BuildTypeContainerStub(buildTypeName, myFileStructure);
     myBuildTypes.put(buildTypeName, buildType);
@@ -185,9 +202,17 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @Override
   @NotNull
   public Collection<Variant> getVariants() {
-    List<Variant> result = new ArrayList<>();
-    result.addAll(myVariants.values());
-    return result;
+    return new ArrayList<>(myVariants.values());
+  }
+
+  public void clearVariants() {
+    myVariants.clear();
+  }
+
+  @Override
+  @NotNull
+  public Collection<String> getVariantNames() {
+    return myVariantNames;
   }
 
   @Override
@@ -240,7 +265,36 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @Override
   @NotNull
   public AaptOptions getAaptOptions() {
-    return mock(AaptOptions.class);
+    return new AaptOptions() {
+      @Nullable
+      @Override
+      public String getIgnoreAssets() {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public Collection<String> getNoCompress() {
+        return null;
+      }
+
+      @Override
+      public boolean getFailOnMissingConfigEntry() {
+        return false;
+      }
+
+      @NotNull
+      @Override
+      public List<String> getAdditionalParameters() {
+        return Collections.emptyList();
+      }
+
+      @NotNull
+      @Override
+      public Namespacing getNamespacing() {
+        return Namespacing.DISABLED;
+      }
+    };
   }
 
   @Override
@@ -258,7 +312,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @Override
   @NotNull
   public Collection<SyncIssue> getSyncIssues() {
-    return Collections.emptyList();
+    return mySyncIssues;
   }
 
   @Override
@@ -295,6 +349,12 @@ public class AndroidProjectStub implements IdeAndroidProject {
     return false;
   }
 
+  @NonNull
+  @Override
+  public Collection<String> getDynamicFeatures() {
+    return ImmutableList.of();
+  }
+
   public AndroidProjectStub setPluginGeneration(int pluginGeneration) {
     myPluginGeneration = pluginGeneration;
     return this;
@@ -321,5 +381,15 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @NotNull
   public File getBuildFile() {
     return myBuildFile;
+  }
+
+  public void setVariantNames(@NotNull String... variantNames) {
+    myVariantNames.clear();
+    myVariantNames.addAll(Arrays.asList(variantNames));
+  }
+
+  public void setSyncIssues(@NotNull SyncIssue... syncIssues) {
+    mySyncIssues.clear();
+    mySyncIssues.addAll(Arrays.asList(syncIssues));
   }
 }

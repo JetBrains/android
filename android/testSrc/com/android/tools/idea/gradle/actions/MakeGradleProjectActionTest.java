@@ -46,8 +46,8 @@ public class MakeGradleProjectActionTest extends IdeaTestCase {
     initMocks(this);
 
     Project project = getProject();
-    IdeComponents.replaceService(project, GradleBuildInvoker.class, myBuildInvoker);
-    IdeComponents.replaceService(project, ProjectStructure.class, myProjectStructure);
+    new IdeComponents(project).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
+    new IdeComponents(project).replaceProjectService(ProjectStructure.class, myProjectStructure);
 
     myAction = new MakeGradleProjectAction();
   }
@@ -66,7 +66,7 @@ public class MakeGradleProjectActionTest extends IdeaTestCase {
   public void testDoPerformWithFailedSync() {
     // Simulate failed sync.
     GradleSyncState syncState = mock(GradleSyncState.class);
-    IdeComponents.replaceService(getProject(), GradleSyncState.class, syncState);
+    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
     when(syncState.lastSyncFailed()).thenReturn(true);
 
     // when sync fails, the list of "leaf" modules is empty.

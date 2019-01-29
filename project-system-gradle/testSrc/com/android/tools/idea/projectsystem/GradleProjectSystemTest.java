@@ -26,27 +26,16 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 public class GradleProjectSystemTest extends IdeaTestCase {
-  private IdeComponents myIdeComponents;
-  private GradleProjectInfo myGradleProjectInfo;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myIdeComponents = new IdeComponents(myProject);
+    IdeComponents ideComponents = new IdeComponents(myProject);
+    ideComponents.mockProjectService(GradleDependencyManager.class);
+    ideComponents.mockProjectService(GradleProjectBuilder.class);
 
-    myIdeComponents.mockProjectService(GradleDependencyManager.class);
-    myIdeComponents.mockProjectService(GradleProjectBuilder.class);
-    myGradleProjectInfo = myIdeComponents.mockProjectService(GradleProjectInfo.class);
-    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myIdeComponents.restore();
-    } finally {
-      super.tearDown();
-    }
+    GradleProjectInfo gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class);
+    when(gradleProjectInfo.isBuildWithGradle()).thenReturn(true);
   }
 
   public void testIsGradleProjectSystem() {

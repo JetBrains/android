@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.editors.theme.attributes.editors;
 
-import com.android.ide.common.rendering.api.ItemResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import spantable.CellSpanModel;
 
 import javax.swing.*;
@@ -29,7 +29,7 @@ import java.awt.*;
 import java.util.EventObject;
 
 /**
- * Cell editor used to replace {@link ItemResourceValue} with extracted "simple" value,
+ * Cell editor used to replace {@link StyleItemResourceValue} with extracted "simple" value,
  * which is usually a String or a Boolean, with the purpose of using standard JTable cell
  * editors, such as checkbox for Boolean values
  */
