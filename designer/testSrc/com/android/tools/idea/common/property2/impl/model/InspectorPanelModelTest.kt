@@ -22,10 +22,10 @@ import com.android.SdkConstants.ATTR_COLOR
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.common.property2.impl.model.util.TestTableLineModel
 import com.android.tools.idea.common.property2.impl.model.util.TestPTableModel
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
-import com.android.tools.idea.uibuilder.property2.testutils.FakeTableLine
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -60,8 +60,8 @@ class InspectorPanelModelTest {
     val someItem = CollapsibleLabelModel("some", someEditor, true, properties)
     val otherItem = CollapsibleLabelModel("other", otherEditor, false, properties)
     val genericLine = GenericInspectorLineModel()
-    val tableLineModel1 = FakeTableLine(TestPTableModel(false, emptyMap(), emptyList()), true)
-    val tableLineModel2 = FakeTableLine(TestPTableModel(false, emptyMap(), emptyList()), false)
+    val tableLineModel1 = TestTableLineModel(TestPTableModel(false, emptyMap(), emptyList()), true)
+    val tableLineModel2 = TestTableLineModel(TestPTableModel(false, emptyMap(), emptyList()), false)
 
     init {
       outerGroup.makeExpandable(true)
