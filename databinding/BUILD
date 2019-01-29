@@ -34,6 +34,9 @@ iml_module(
         "//tools/idea/platform/lang-impl:intellij.platform.lang.impl[module]",
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/idea/xml/impl:intellij.xml.impl[module]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/idea/.idea/libraries:protobuf",
     ],
 )
 
@@ -90,5 +93,9 @@ iml_module(
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/databinding:intellij.android.databinding[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/idea/.idea/libraries:protobuf[test]",
     ],
 )

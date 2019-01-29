@@ -55,21 +55,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Extension point for supporting Data Binding methods.
- */
-interface DataBindingSupport {
-  @NotNull
-  DataBindingMode getDataBindingMode(@NotNull AndroidFacet facet);
-
-  /**
-   * Return a {@link ModificationTracker} that is incremented every time the setting for whether
-   * data binding is enabled or disabled changes.
-   */
-  @NotNull
-  ModificationTracker getDataBindingEnabledTracker();
-}
-
-/**
  * Utility class that handles the interaction between Data Binding and the IDE.
  */
 public final class DataBindingUtil {
@@ -83,8 +68,7 @@ public final class DataBindingUtil {
    */
   @Nullable
   static DataBindingSupport getDataBindingSupport() {
-    List<DataBindingSupport> extensionList =
-      new ExtensionPointName<DataBindingSupport>("com.android.tools.idea.databinding.dataBindingSupport").getExtensionList();
+    List<DataBindingSupport> extensionList = DataBindingSupport.Companion.getEP_NAME().getExtensionList();
     return extensionList.isEmpty() ? null : extensionList.get(0);
   }
 

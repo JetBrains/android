@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.tools.idea.databinding.analytics.api.DataBindingTracker
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
+import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.google.common.collect.Maps
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -36,6 +39,7 @@ class DataBindingProjectComponent(val project: Project) : ModificationTracker {
   private val dataBindingEnabledModules: CachedValue<Array<AndroidFacet>>
   private val modificationCount = AtomicLong(0)
   private val dataBindingPsiPackages = Maps.newConcurrentMap<String, PsiPackage>()
+  private val dataBindingTracker = DataBindingTracker.getInstance(project)
 
   init {
     dataBindingEnabledModules = CachedValuesManager.getManager(project).createCachedValue({
@@ -54,6 +58,15 @@ class DataBindingProjectComponent(val project: Project) : ModificationTracker {
         DataBindingUtil.getDataBindingEnabledTracker(),
         ModuleManager.getInstance(project))
     }, false)
+    GradleSyncState.subscribe(project, object : GradleSyncListener {
+      override fun syncSucceeded(project: Project) {
+        dataBindingTracker.trackDataBindingEnabled()
+      }
+
+      override fun syncFailed(project: Project, errorMessage: String) {
+        dataBindingTracker.trackDataBindingEnabled()
+      }
+    })
   }
 
   fun hasAnyDataBindingEnabledFacet(): Boolean = getDataBindingEnabledFacets().isNotEmpty()
