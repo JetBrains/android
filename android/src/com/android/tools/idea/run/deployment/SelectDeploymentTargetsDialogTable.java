@@ -24,8 +24,8 @@ import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 
 final class SelectDeploymentTargetsDialogTable extends JBTable {
-  SelectDeploymentTargetsDialogTable(@NotNull AsyncDevicesGetter devicesGetter, @NotNull Project project) {
-    super(new SelectDeploymentTargetsDialogTableModel(devicesGetter, project));
+  SelectDeploymentTargetsDialogTable(@NotNull Project project) {
+    super(new SelectDeploymentTargetsDialogTableModel(project));
 
     setDefaultEditor(Boolean.class, new BooleanTableCellEditor());
     setTableHeader(null);

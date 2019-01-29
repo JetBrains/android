@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.annotations.VisibleForTesting.Visibility;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
@@ -24,6 +22,7 @@ import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.deployable.Deployable;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
 import java.time.Instant;
@@ -32,7 +31,6 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@VisibleForTesting(visibility = Visibility.PACKAGE)
 public abstract class Device {
   @NotNull
   private final String myName;
@@ -80,10 +78,10 @@ public abstract class Device {
     abstract T self();
 
     @NotNull
-    abstract Device build(@Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service);
+    abstract Device build(@Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map);
   }
 
-  Device(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service) {
+  Device(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map) {
     assert builder.myName != null;
     myName = builder.myName;
 
@@ -94,7 +92,7 @@ public abstract class Device {
     myAndroidDevice = builder.myAndroidDevice;
 
     myIsValid = checker == null || !checker.validate(myAndroidDevice).isCompatible().equals(ThreeState.NO);
-    myConnectionTime = service.get(myKey);
+    myConnectionTime = map.get(myKey);
   }
 
   @NotNull
@@ -103,7 +101,7 @@ public abstract class Device {
   abstract boolean isConnected();
 
   @NotNull
-  @VisibleForTesting(visibility = Visibility.PACKAGE)
+  @VisibleForTesting
   public final String getName() {
     return myName;
   }
