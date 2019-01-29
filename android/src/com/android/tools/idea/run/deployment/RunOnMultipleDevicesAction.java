@@ -22,12 +22,8 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 final class RunOnMultipleDevicesAction extends AnAction {
-  @NotNull
-  private final AsyncDevicesGetter myDevicesGetter;
-
-  RunOnMultipleDevicesAction(@NotNull AsyncDevicesGetter devicesGetter) {
+  RunOnMultipleDevicesAction() {
     super("Run on multiple devices", null, AllIcons.Actions.Execute);
-    myDevicesGetter = devicesGetter;
   }
 
   @Override
@@ -38,6 +34,6 @@ final class RunOnMultipleDevicesAction extends AnAction {
       return;
     }
 
-    new SelectDeploymentTargetsDialog(myDevicesGetter, project).show();
+    new SelectDeploymentTargetsDialog(project).show();
   }
 }
