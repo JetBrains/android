@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.google.common.annotations.VisibleForTesting;
@@ -27,12 +28,16 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.HyperlinkAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
+import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
+import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.CANCEL;
+import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.OK;
 import static com.intellij.ide.BrowserUtil.browse;
 import static javax.swing.Action.NAME;
 
@@ -40,7 +45,10 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
   private JPanel myCenterPanel;
   private JEditorPane myMessagePane;
 
+  @NotNull private final Project myProject;
   @NotNull private final String myMessage;
+  @NotNull private final String myRecommendedPluginVersion;
+  @Nullable private final String myCurrentPluginVersion;
 
   private static TestDialog ourTestImplementation = TestDialog.DEFAULT;
 
@@ -62,6 +70,7 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
 
   public ForcedPluginPreviewVersionUpgradeDialog(@NotNull Project project, @NotNull AndroidPluginInfo pluginInfo) {
     super(project);
+    myProject = project;
 
     boolean experimental = pluginInfo.isExperimental();
     String pluginType = experimental ? "Experimental " : "";
@@ -71,6 +80,9 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
     setUpAsHtmlLabel(myMessagePane);
     AndroidPluginGeneration pluginGeneration = pluginInfo.getPluginGeneration();
     String pluginVersion = pluginGeneration.getLatestKnownVersion();
+    myRecommendedPluginVersion = pluginVersion;
+    GradleVersion currentVersion = pluginInfo.getPluginVersion();
+    myCurrentPluginVersion = (currentVersion != null) ? pluginInfo.getPluginVersion().toString() : null;
     myMessage = "<b>The project is using an incompatible version of the " + pluginGeneration.getDescription() + ".</b><br/<br/>" +
                  "To continue opening the project, the IDE will update the plugin to version " + pluginVersion + ".<br/><br/>" +
                  "You can learn more about this version of the plugin from the " +
@@ -95,6 +107,18 @@ public class ForcedPluginPreviewVersionUpgradeDialog extends DialogWrapper {
   @NotNull
   protected JComponent createCenterPanel() {
     return myCenterPanel;
+  }
+
+  @Override
+  public void doCancelAction() {
+    recordUpgradeDialogEvent(myProject, myCurrentPluginVersion, myRecommendedPluginVersion, CANCEL);
+    super.doCancelAction();
+  }
+
+  @Override
+  protected void doOKAction() {
+    recordUpgradeDialogEvent(myProject, myCurrentPluginVersion, myRecommendedPluginVersion, OK);
+    super.doOKAction();
   }
 
   @Override
