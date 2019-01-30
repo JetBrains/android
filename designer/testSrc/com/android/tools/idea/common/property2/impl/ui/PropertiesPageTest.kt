@@ -18,6 +18,7 @@ package com.android.tools.idea.common.property2.impl.ui
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.tools.adtui.ptable2.PTableModel
+import com.android.tools.adtui.testing.ApplicationRule
 import com.android.tools.idea.common.property2.api.ControlTypeProvider
 import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.common.property2.api.InspectorLineModel
@@ -30,7 +31,6 @@ import com.android.tools.idea.common.property2.impl.model.GenericInspectorLineMo
 import com.android.tools.idea.common.property2.impl.model.SeparatorLineModel
 import com.android.tools.idea.common.property2.impl.model.TitleLineModel
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -46,7 +46,7 @@ import kotlin.test.fail
 
 class PropertiesPageTest {
   @JvmField @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val appRule = ApplicationRule()
 
   private var disposable: Disposable? = null
   private var page: PropertiesPage? = null
