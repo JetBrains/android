@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.common.property2.api
 
-import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.adtui.testing.ApplicationRule
 import com.android.tools.idea.common.property2.impl.model.util.TestInspectorBuilder
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyModel
 import com.android.tools.idea.common.property2.impl.ui.WatermarkPanel
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import org.junit.After
@@ -32,10 +31,10 @@ import javax.swing.JPanel
 import javax.swing.JTabbedPane
 
 class PropertiesPanelTest {
-  @JvmField @Rule
-  val projectRule = AndroidProjectRule.inMemory()
 
-  private var properties: PropertiesComponent? = null
+  @JvmField @Rule
+  val appRule = ApplicationRule()
+
   private var model1: TestPropertyModel? = null
   private var model2: TestPropertyModel? = null
   private var view1: PropertiesView<TestPropertyItem>? = null
@@ -56,8 +55,6 @@ class PropertiesPanelTest {
   @Suppress("UNCHECKED_CAST")
   @Before
   fun setUp() {
-    properties = PropertiesComponentMock()
-    projectRule.replaceService(PropertiesComponent::class.java, properties!!)
     model1 = TestPropertyModel()
     model2 = TestPropertyModel()
     view1 = PropertiesView("Layout Editor", model1!!)
@@ -106,7 +103,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testTwoTabsVisible() {
-    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     model1!!.propertiesGenerated()
@@ -116,7 +113,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testSwitchBetweenViews() {
-    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     model1!!.propertiesGenerated()
@@ -133,10 +130,11 @@ class PropertiesPanelTest {
 
   @Test
   fun testPreferredTabOpened() {
-    properties!!.setValue("android.last.property.tab.Layout Editor", "Advanced")
-    properties!!.setValue("android.last.property.tab.Navigation Editor", "Last")
+    val properties = PropertiesComponent.getInstance()
+    properties.setValue("android.last.property.tab.Layout Editor", "Advanced")
+    properties.setValue("android.last.property.tab.Navigation Editor", "Last")
 
-    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     model1!!.propertiesGenerated()
@@ -148,25 +146,26 @@ class PropertiesPanelTest {
 
   @Test
   fun testChangingTabsUpdatesThePreferredTab() {
-    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
     panel.addView(view2!!)
     model2!!.propertiesGenerated()
     val tabs = panel.component.getComponent(1) as JTabbedPane
     assertThat(tabs.tabCount).isEqualTo(3)
+    val properties = PropertiesComponent.getInstance()
 
     tabs.selectedIndex = 2
-    assertThat(properties!!.getValue("android.last.property.tab.Navigation Editor")).isEqualTo("Last")
+    assertThat(properties.getValue("android.last.property.tab.Navigation Editor")).isEqualTo("Last")
 
     tabs.selectedIndex = 0
-    assertThat(properties!!.getValue("android.last.property.tab.Navigation Editor")).isEqualTo("Simple")
+    assertThat(properties.getValue("android.last.property.tab.Navigation Editor")).isEqualTo("Simple")
 
     tabs.selectedIndex = 1
-    assertThat(properties!!.getValue("android.last.property.tab.Navigation Editor")).isEqualTo("Extra")
+    assertThat(properties.getValue("android.last.property.tab.Navigation Editor")).isEqualTo("Extra")
   }
 
   @Test
   fun testFilterHidesNonSearchableTabs() {
-    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     tab1a!!.searchable = false
@@ -193,7 +192,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testOneTabNotApplicable() {
-    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     builder1a!!.applicable = false
@@ -215,7 +214,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testNothingApplicable() {
-    val panel = PropertiesPanel<TestPropertyItem>(projectRule.fixture.testRootDisposable)
+    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     builder1!!.applicable = false
