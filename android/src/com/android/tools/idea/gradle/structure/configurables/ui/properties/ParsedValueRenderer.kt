@@ -36,7 +36,7 @@ interface ValueRenderer {
   fun renderTo(textRenderer: TextRenderer): Boolean
 }
 
-private val variableNameAttributes = merge(SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, SimpleTextAttributes(0, JBColor.blue))
+private val variableNameAttributes = merge(SimpleTextAttributes.REGULAR_ATTRIBUTES, SimpleTextAttributes(0, JBColor.link()))
 private val regularAttributes = merge(SimpleTextAttributes.REGULAR_ATTRIBUTES, SimpleTextAttributes(0, JBColor.black))
 private val commentAttributes = SimpleTextAttributes.GRAYED_ATTRIBUTES
 private val defaultAttributes = SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES
