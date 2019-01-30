@@ -15,10 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import static com.android.internal.R.id.contentPanel;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.intellij.ide.DataManager;
+import com.intellij.ide.IdeView;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.editor.Document;
@@ -148,6 +157,18 @@ public class NlPreviewManager implements ProjectComponent {
 
     final JComponent contentPanel = myToolWindowForm.getComponent();
     final ContentManager contentManager = myToolWindow.getContentManager();
+    contentManager.addDataProvider(dataId -> {
+      if (LangDataKeys.MODULE.is(dataId) || LangDataKeys.IDE_VIEW.is(dataId) || CommonDataKeys.VIRTUAL_FILE.is(dataId)) {
+        TextEditor textEditor = myToolWindowForm.getEditor();
+        if (textEditor != null) {
+          JComponent component = textEditor.getEditor().getContentComponent();
+          DataContext context = DataManager.getInstance().getDataContext(component);
+          return context.getData(dataId);
+        }
+      }
+      return null;
+    });
+
     @SuppressWarnings("ConstantConditions") final Content content = contentManager.getFactory().createContent(contentPanel, null, false);
     content.setDisposer(myToolWindowForm);
     content.setCloseable(false);
