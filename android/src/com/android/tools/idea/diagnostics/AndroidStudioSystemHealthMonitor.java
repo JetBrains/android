@@ -129,7 +129,12 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
   @NonNls private static final String NON_BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE = "studio.exp";
 
   private static final int MAX_PERFORMANCE_REPORTS_COUNT =
-    Integer.getInteger("studio.diagnostic.performanceThreadDump.maxReports", 3);
+    Integer.getInteger("studio.diagnostic.performanceThreadDump.maxReports", 0);
+  private static final int MAX_HISTOGRAM_REPORTS_COUNT =
+    Integer.getInteger("studio.diagnostic.histogram.maxReports", 10);
+  private static final int MAX_FREEZE_REPORTS_COUNT =
+    Integer.getInteger("studio.diagnostic.freeze.maxReports",
+                       ApplicationManager.getApplication().isEAP() ? 10 : 1);
 
   /**
    * Histogram of event timings, in milliseconds. Must be accessed from the EDT.
@@ -492,16 +497,22 @@ public class AndroidStudioSystemHealthMonitor implements BaseComponent {
     }
 
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      // Due to large number of PerformanceThreadDump reports, limit the number of ones that are uploaded.
-      // Takes a random sample of reports.
-      List<DiagnosticReport> performanceThreadDumps = reports.stream().filter(r -> r.getType().equals("PerformanceThreadDump")).collect(
-        Collectors.toList());
-      Collections.shuffle(performanceThreadDumps);
-      performanceThreadDumps.stream().limit(MAX_PERFORMANCE_REPORTS_COUNT).forEach(r -> sendDiagnosticReport(r));
-
-      reports.stream().filter(r -> r.getType().equals("Histogram")).limit(10).forEach(r -> sendDiagnosticReport(r));
-      reports.stream().filter(r -> r.getType().equals("Freeze")).limit(10).forEach(r -> sendDiagnosticReport(r));
+      sendDiagnosticReportsOfTypeWithLimit("PerformanceThreadDump", reports, MAX_PERFORMANCE_REPORTS_COUNT);
+      sendDiagnosticReportsOfTypeWithLimit("Histogram", reports, MAX_HISTOGRAM_REPORTS_COUNT);
+      sendDiagnosticReportsOfTypeWithLimit("Freeze", reports, MAX_FREEZE_REPORTS_COUNT);
     });
+  }
+
+  private static void sendDiagnosticReportsOfTypeWithLimit(String type,
+                                                           @NotNull List<DiagnosticReport> reports,
+                                                           int maxCount) {
+    List<DiagnosticReport> reportsOfType = reports.stream().filter(r -> r.getType().equals(type)).collect(
+      Collectors.toList());
+    if (reportsOfType.size() > maxCount) {
+      Collections.shuffle(reportsOfType);
+      reportsOfType = reportsOfType.subList(0, maxCount);
+    }
+    reportsOfType.forEach(r -> sendDiagnosticReport(r));
   }
 
   public static void trackCrashes(@NotNull List<StudioCrashDetails> descriptions) {
