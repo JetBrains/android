@@ -45,10 +45,10 @@ class AddArgumentDialogTest : NavTestCase() {
       dialog.name = "myArgument"
       assertNull(dialog.doValidate())
 
-      dialog.type = "boolean"
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.BOOLEAN
       assertNull(dialog.doValidate())
 
-      dialog.type = "long"
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.LONG
       dialog.defaultValue = "1234"
       assertNull(dialog.doValidate())
       dialog.defaultValue = "abcdL"
@@ -56,7 +56,19 @@ class AddArgumentDialogTest : NavTestCase() {
       dialog.defaultValue = "1234L"
       assertNull(dialog.doValidate())
 
-      dialog.type = "reference"
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.FLOAT
+      dialog.defaultValue = "1.5"
+      assertNull(dialog.doValidate())
+      dialog.defaultValue = "1.5f"
+      assertNull(dialog.doValidate())
+      dialog.defaultValue = "123"
+      assertNull(dialog.doValidate())
+      dialog.defaultValue = "1234L"
+      assertNotNull(dialog.doValidate())
+      dialog.defaultValue = "abcd"
+      assertNotNull(dialog.doValidate())
+
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.REFERENCE
       dialog.defaultValue = "1234"
       assertNotNull(dialog.doValidate())
       dialog.defaultValue = "@id/bad_id"
@@ -115,12 +127,19 @@ class AddArgumentDialogTest : NavTestCase() {
       assertTrue(dialog.dialogUI.myDefaultValueComboBox.isVisible)
       assertFalse(dialog.dialogUI.myDefaultValueTextField.isVisible)
 
-      for (t in listOf("integer", "long", "string", "reference", null)) {
-        dialog.type = t
+      for (t in listOf(
+        AddArgumentDialog.Type.INTEGER,
+        AddArgumentDialog.Type.FLOAT,
+        AddArgumentDialog.Type.LONG,
+        AddArgumentDialog.Type.STRING,
+        AddArgumentDialog.Type.REFERENCE,
+        null
+      )) {
+        dialog.dialogUI.myTypeComboBox.selectedItem = t
         assertFalse(dialog.dialogUI.myDefaultValueComboBox.isVisible)
         assertTrue(dialog.dialogUI.myDefaultValueTextField.isVisible)
       }
-      dialog.type = "boolean"
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.BOOLEAN
       assertTrue(dialog.dialogUI.myDefaultValueComboBox.isVisible)
       assertFalse(dialog.dialogUI.myDefaultValueTextField.isVisible)
     }
@@ -131,18 +150,34 @@ class AddArgumentDialogTest : NavTestCase() {
       NavModelBuilderUtil.navigation {
         fragment("fragment1") {
           argument("myArgument", type = "custom.Parcelable")
+          argument("myArgument2", type = "integer[]")
+          argument("myArgument3", type = "long[]")
+          argument("myArgument4", type = "float[]")
+          argument("myArgument5", type = "boolean[]")
+          argument("myArgument6", type = "reference[]")
         }
       }
     }
     val fragment1 = model.find("fragment1")!!
+    fragment1.children.forEach {
+      AddArgumentDialog(it, fragment1).runAndClose { dialog ->
+        assertTrue(dialog.dialogUI.myNullableCheckBox.isEnabled)
+      }
+    }
 
     AddArgumentDialog(fragment1.children[0], fragment1).runAndClose { dialog ->
-      assertTrue(dialog.dialogUI.myNullableCheckBox.isEnabled)
-      dialog.type = "string"
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.STRING
       assertTrue(dialog.dialogUI.myNullableCheckBox.isEnabled)
 
-      for (t in listOf("integer", "long", "boolean", "reference", null)) {
-        dialog.type = t
+      for (t in listOf(
+        AddArgumentDialog.Type.INTEGER,
+        AddArgumentDialog.Type.FLOAT,
+        AddArgumentDialog.Type.LONG,
+        AddArgumentDialog.Type.BOOLEAN,
+        AddArgumentDialog.Type.REFERENCE,
+        null
+      )) {
+        dialog.dialogUI.myTypeComboBox.selectedItem = t
         assertFalse(dialog.dialogUI.myNullableCheckBox.isEnabled)
       }
     }
@@ -173,7 +208,7 @@ class AddArgumentDialogTest : NavTestCase() {
     val parcelable = ClassUtil.findPsiClass(PsiManager.getInstance(project), CLASS_PARCELABLE)
     val classChooserFactory = mock(TreeClassChooserFactory::class.java)
     val classChooser = mock(TreeClassChooser::class.java)
-    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull())).thenReturn(classChooser)
+    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull(), any())).thenReturn(classChooser)
     IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
 
     testParcelable(model, classChooser, "mytest.navtest.Containing")
@@ -188,10 +223,61 @@ class AddArgumentDialogTest : NavTestCase() {
     `when`(classChooser.selected).thenReturn(psiClass)
 
     AddArgumentDialog(null, fragment1).runAndClose { dialog ->
-      dialog.type = "foo"
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_PARCELABLE
       assertEquals(jvmName, dialog.type)
     }
   }
+
+  fun testEnum() {
+    val model = model("nav.xml") {
+      NavModelBuilderUtil.navigation {
+        fragment("fragment1")
+      }
+    }
+
+    val classChooserFactory = mock(TreeClassChooserFactory::class.java)
+    val classChooser = mock(TreeClassChooser::class.java)
+    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), isNull(), any(), any())).thenReturn(classChooser)
+    val customEnum = mock(PsiClass::class.java)
+    `when`(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
+    `when`(classChooser.selected).thenReturn(customEnum)
+    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+
+    val fragment1 = model.find("fragment1")!!
+
+    AddArgumentDialog(null, fragment1).runAndClose { dialog ->
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_ENUM
+      assertEquals("java.nio.file.AccessMode", dialog.type)
+      assertEquals("READ", dialog.dialogUI.myDefaultValueComboBox.model.getElementAt(0))
+    }
+  }
+
+  fun testInnerClass() {
+    val model = model("nav.xml") {
+      NavModelBuilderUtil.navigation {
+        fragment("fragment1")
+      }
+    }
+    val classChooserFactory = mock(TreeClassChooserFactory::class.java)
+    val classChooser = mock(TreeClassChooser::class.java)
+    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), any(), any(), any())).thenReturn(classChooser)
+    val containingClass = mock(PsiClass::class.java)
+    `when`(containingClass.qualifiedName).thenReturn("android.graphics.Paint")
+    val innerClass = mock(PsiClass::class.java)
+    `when`(innerClass.qualifiedName).thenReturn("android.graphics.Paint.Align")
+    `when`(innerClass.containingClass).thenReturn(containingClass)
+    `when`(innerClass.name).thenReturn("Align")
+    `when`(classChooser.selected).thenReturn(innerClass)
+    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+
+    val fragment1 = model.find("fragment1")!!
+
+    AddArgumentDialog(null, fragment1).runAndClose { dialog ->
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_ENUM
+      assertEquals("android.graphics.Paint\$Align", dialog.type)
+    }
+  }
+
 
   fun testCancelCustomParcelable() {
     val model = model("nav.xml") {
@@ -202,20 +288,20 @@ class AddArgumentDialogTest : NavTestCase() {
     val parcelable = ClassUtil.findPsiClass(PsiManager.getInstance(project), CLASS_PARCELABLE)
     val classChooserFactory = mock(TreeClassChooserFactory::class.java)
     val classChooser = mock(TreeClassChooser::class.java)
-    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull())).thenReturn(classChooser)
+    `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull(), any())).thenReturn(classChooser)
     `when`(classChooser.selected).thenReturn(null)
     IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
 
     val fragment1 = model.find("fragment1")!!
 
     AddArgumentDialog(null, fragment1).runAndClose { dialog ->
-      dialog.type = "foo"
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_PARCELABLE
       assertEquals(null, dialog.type)
     }
 
     AddArgumentDialog(null, fragment1).runAndClose { dialog ->
-      dialog.type = "integer"
-      dialog.type = "foo"
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.INTEGER
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_PARCELABLE
       assertEquals("integer", dialog.type)
     }
   }
@@ -231,7 +317,7 @@ class AddArgumentDialogTest : NavTestCase() {
 
     AddArgumentDialog(null, f1).runAndClose { dialog ->
       dialog.name = "myArgument"
-      dialog.type = "long"
+      dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.LONG
       dialog.defaultValue = "1234"
 
       TestNavUsageTracker.create(model).use { tracker ->
