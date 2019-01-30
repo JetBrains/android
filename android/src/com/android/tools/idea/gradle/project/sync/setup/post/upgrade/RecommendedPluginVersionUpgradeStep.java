@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
@@ -27,9 +30,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class RecommendedPluginVersionUpgradeStep extends PluginVersionUpgradeStep {
   @NotNull private final RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
