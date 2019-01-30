@@ -33,29 +33,29 @@ public class ModuleDownloadDeviceFeatureTest extends AndroidTestCase {
 
     deviceFeatureModel.deviceFeatureValue().set("test<");
     assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '<' in dist:name 'test<'", validatorPanel.getValidationLabel().getText());
+    assertEquals("Illegal character '<' in Name 'test<'", validatorPanel.getValidationLabel().getText());
 
     deviceFeatureModel.deviceFeatureValue().set("\"test");
     assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '\"' in dist:name '\"test'", validatorPanel.getValidationLabel().getText());
+    assertEquals("Illegal character '\"' in Name '\"test'", validatorPanel.getValidationLabel().getText());
 
     deviceFeatureModel.deviceFeatureValue().set("\"tes&t");
     assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '\"' in dist:name '\"tes&t'", validatorPanel.getValidationLabel().getText());
+    assertEquals("Illegal character '\"' in Name '\"tes&t'", validatorPanel.getValidationLabel().getText());
 
     deviceFeatureModel.deviceFeatureValue().set("<\"tes&t");
     assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '<' in dist:name '<\"tes&t'", validatorPanel.getValidationLabel().getText());
+    assertEquals("Illegal character '<' in Name '<\"tes&t'", validatorPanel.getValidationLabel().getText());
 
     deviceFeatureModel.deviceFeatureType().set(DeviceFeatureKind.GL_ES_VERSION);
 
     deviceFeatureModel.deviceFeatureValue().set("&<\"tes&t");
     assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '&' in dist:glEsVersion '&<\"tes&t'", validatorPanel.getValidationLabel().getText());
+    assertEquals("Illegal character '&' in OpenGL ES Version '&<\"tes&t'", validatorPanel.getValidationLabel().getText());
 
     deviceFeatureModel.deviceFeatureValue().set("test&<\"tes&t");
     assertTrue(validatorPanel.hasErrors().get());
-    assertEquals("Illegal character '&' in dist:glEsVersion 'test&<\"tes&t'", validatorPanel.getValidationLabel().getText());
+    assertEquals("Illegal character '&' in OpenGL ES Version 'test&<\"tes&t'", validatorPanel.getValidationLabel().getText());
 
     deviceFeatureModel.deviceFeatureValue().set("test");
     assertFalse(validatorPanel.hasErrors().get());

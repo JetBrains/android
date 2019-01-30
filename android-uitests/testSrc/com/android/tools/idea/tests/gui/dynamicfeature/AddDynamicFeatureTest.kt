@@ -31,6 +31,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.JLabelMatcher
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -440,18 +441,31 @@ class AddDynamicFeatureTest {
     ideFrame.editor
       .open("MyDynamicFeature/src/main/AndroidManifest.xml")
       .currentFileContents.run {
-      assertThat(this).contains("""<dist:delivery>""")
-      assertThat(this).contains("""<dist:install-time>""")
-      assertThat(this).contains("""<dist:conditions>""")
-      assertThat(this).doesNotContain("""<dist:min-sdk""")
-      assertThat(this).contains("""<dist:device-feature dist:name="test" />""")
-      assertThat(this).contains("""<dist:device-feature dist:glEsVersion="0x2000000" />""")
-      assertThat(this).doesNotContain("""<dist:device-feature dist:name="test2" />""")
-      assertThat(this).contains("""</dist:conditions>""")
-      assertThat(this).contains("""</dist:install-time>""")
-      assertThat(this).doesNotContain("""<dist:on-demand />""")
-      assertThat(this).contains("""</dist:delivery>""")
-      assertThat(this).contains("""<dist:fusing dist:include="false" />""")
+
+        val expected =
+"""<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:dist="http://schemas.android.com/apk/distribution"
+    package="com.example.mydynamicfeature">
+
+    <dist:module
+        dist:instant="false"
+        dist:title="@string/title_mydynamicfeature">
+        <dist:delivery>
+            <dist:install-time>
+                <dist:conditions>
+                    <dist:device-feature dist:name="test" />
+                    <dist:device-feature
+                        dist:name="android.hardware.opengles.version"
+                        dist:version="0x2000000" />
+                </dist:conditions>
+            </dist:install-time>
+        </dist:delivery>
+        <dist:fusing dist:include="false" />
+    </dist:module>
+</manifest>
+
+"""
+      assertEquals(expected, this)
     }
 
     ideFrame.editor
