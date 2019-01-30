@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.hprof.action
 
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.android.tools.idea.diagnostics.hprof.util.HeapDumpAnalysisNotificationGroup
+import com.android.tools.idea.ui.GuiTestingService
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
@@ -60,6 +61,11 @@ class HeapDumpSnapshotRunnable(
     LOG.info("HeapDumpSnapshotRunnable started: invokedByUser=$invokedByUser, analysisOption=$analysisOption")
 
     if (!invokedByUser) {
+
+      if (ApplicationManager.getApplication().isUnitTestMode || GuiTestingService.getInstance().isGuiTestingMode) {
+        LOG.info("Disabled for tests.")
+        return
+      }
 
       if (!ApplicationManager.getApplication().isEAP) {
         LOG.info("Heap dump analysis is enabled only on EAP builds.")
