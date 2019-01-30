@@ -13,7 +13,7 @@ import com.intellij.psi.formatter.xml.XmlBlock;
 import com.intellij.psi.formatter.xml.XmlPolicy;
 import com.intellij.psi.formatter.xml.XmlTagBlock;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.dom.color.ColorDomFileDescription;
+import org.jetbrains.android.dom.color.fileDescriptions.ColorStateListDomFileDescription;
 import org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings.MySettings;
@@ -36,7 +36,7 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
 
     XmlFile xmlFile = (XmlFile)psiFile;
 
-    return ColorDomFileDescription.isColorResourceFile(xmlFile) ||
+    return new ColorStateListDomFileDescription().isMyFile(xmlFile, null) ||
            new DrawableStateListDomFileDescription().isMyFile(xmlFile, null) ||
            ManifestDomFileDescription.isManifestFile(xmlFile) ||
            ResourceHelper.getFolderType(xmlFile) != null;
@@ -96,7 +96,7 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
 
     XmlFile xmlFile = (XmlFile)psiFile;
 
-    if (ColorDomFileDescription.isColorResourceFile(xmlFile) || new DrawableStateListDomFileDescription().isMyFile(xmlFile, null)) {
+    if (new ColorStateListDomFileDescription().isMyFile(xmlFile, null) || new DrawableStateListDomFileDescription().isMyFile(xmlFile, null)) {
       return settings.VALUE_RESOURCE_FILE_SETTINGS;
     }
 
