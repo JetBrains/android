@@ -18,9 +18,10 @@ package com.android.tools.idea.adb;
 import com.intellij.openapi.options.ConfigurableUi;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.util.SystemInfo;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
   private JPanel myPanel;
