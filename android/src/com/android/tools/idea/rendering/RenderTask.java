@@ -148,7 +148,7 @@ public class RenderTask {
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
   @Nullable private Integer myOverrideBgColor;
   private boolean myShowDecorations = true;
-  @NotNull private final AssetRepositoryImpl myAssetRepository;
+  private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
   @NotNull private final Locale myLocale;
   @NotNull private final Object myCredential;
@@ -305,6 +305,7 @@ public class RenderTask {
         }
       }
       myImageFactoryDelegate = null;
+      myAssetRepository = null;
 
       return null;
     });
