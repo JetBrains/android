@@ -78,7 +78,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
         settings == null ? new GradleExecutionSettings(null, null, DistributionType.BUNDLED, false) : settings;
       appendInitScriptArgument(taskNames, jvmAgentSetup, effectiveSettings);
       // @formatter:off
-      request.setJvmArguments(new ArrayList<>(effectiveSettings.getVmOptions()))
+      request.setJvmArguments(effectiveSettings.getJvmArguments())
              .setCommandLineArguments(effectiveSettings.getArguments())
              .withEnvironmentVariables(effectiveSettings.getEnv())
              .passParentEnvs(effectiveSettings.isPassParentEnvs())
