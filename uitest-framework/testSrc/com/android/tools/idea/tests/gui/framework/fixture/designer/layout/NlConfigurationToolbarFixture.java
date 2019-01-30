@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.TextAccessors;
+import com.android.tools.adtui.actions.DropDownActionTestUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
@@ -158,6 +159,7 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
     // We directly perform the action here because ActionButton of Theme may be collapsed and cannot be found by finder.
     ThemeMenuAction themeMenuAction =
       (ThemeMenuAction)myToolBar.getActions().stream().filter(action -> action instanceof ThemeMenuAction).findAny().get();
+    DropDownActionTestUtil.updateActions(themeMenuAction);
     AnAction moreThemeAction =
       Arrays.stream(themeMenuAction.getChildren(null)).filter(action -> action instanceof ThemeMenuAction.MoreThemesAction).findAny().get();
     ApplicationManager.getApplication().invokeLater(() -> moreThemeAction.actionPerformed(new TestActionEvent()));
