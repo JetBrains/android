@@ -30,6 +30,7 @@ import javax.swing.JRootPane;
 import javax.swing.text.JTextComponent;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizardFixture>
@@ -129,6 +130,9 @@ public class ConfigureDynamicFeatureDeliveryStepFixture<W extends AbstractWizard
     // Find the "remove" button and click it
     LinkLabel removeLabel = robot().finder().findByType(featurePanel, LinkLabel.class);
     new LinkLabelFixture(robot(), removeLabel).clickLink();
+
+    Wait.seconds(2).expecting("Remove Label to disappear")
+      .until(() -> !removeLabel.isShowing());
 
     return this;
   }
