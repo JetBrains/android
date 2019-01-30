@@ -1,0 +1,2 @@
+# Network
+com.intellij.util.io.HttpRequests.openConnection=#warn
