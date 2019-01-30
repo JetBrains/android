@@ -126,6 +126,8 @@
     <orderEntry type="library" scope="TEST" name="kxml2" level="project" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:testing" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:testing" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-reflect" level="project" />
   </component>
 </module>

@@ -30,5 +30,6 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools:testutils" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.ddms:ddmlib" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
   </component>
 </module>

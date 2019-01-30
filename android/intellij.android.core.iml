@@ -182,5 +182,6 @@
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="com.android.tools.build:builder-model" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="asm-tools" level="project" />
+    <orderEntry type="library" name="kotlin-reflect" level="project" />
   </component>
 </module>
