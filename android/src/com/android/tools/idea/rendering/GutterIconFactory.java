@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering;
 
 import static com.android.SdkConstants.DOT_XML;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.ResourceUrl;
@@ -27,6 +26,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.XmlUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Disposer;
@@ -81,6 +81,7 @@ public class GutterIconFactory {
    * Read XML data from Document when possible (in case there are unsaved changes
    * for a file open in an editor).
    */
+  @NotNull
   private static String getXmlContent(@NotNull VirtualFile file) throws IOException {
     com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getCachedDocument(file);
 
@@ -116,7 +117,7 @@ public class GutterIconFactory {
         StringBuilder builder = new StringBuilder(100);
         image = VdPreview.getPreviewFromVectorDocument(imageTargetSize, document, builder);
         if (builder.length() > 0) {
-          LOG.warn("Problems rendering " + file.getPath() + ": " + builder);
+          LOG.warn("Problems rendering " + file.getPresentableUrl() + ": " + builder);
         }
       }
       else {
@@ -140,7 +141,7 @@ public class GutterIconFactory {
       return new ImageIcon(image);
     }
     catch (Throwable e) {
-      LOG.warn(String.format("Could not read/render icon image %1$s", file.getPath()), e);
+      LOG.warn(String.format("Could not read/render icon image %1$s", file.getPresentableUrl()), e);
     }
 
     return null;
@@ -199,7 +200,7 @@ public class GutterIconFactory {
     catch (Exception e) {
       // Not just IOExceptions here; for example, we've seen
       // IllegalArgumentException @ ...... < PNGImageReader:1479 < ... ImageIO.read
-      LOG.warn(String.format("Could not read icon image %1$s", file.getUrl()), e);
+      LOG.warn(String.format("Could not read icon image %1$s", file.getPresentableUrl()), e);
       return null;
     }
   }
