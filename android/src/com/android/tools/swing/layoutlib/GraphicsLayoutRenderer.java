@@ -47,6 +47,7 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -84,7 +85,7 @@ import org.jetbrains.annotations.Nullable;
  * <p/>
  * <p/>Note: This class is not thread safe.
  */
-public class GraphicsLayoutRenderer {
+public class GraphicsLayoutRenderer implements Disposable {
   private static final Logger LOG = Logger.getInstance(GraphicsLayoutRenderer.class);
 
   private static final int MIN_LAYOUTLIB_API_VERSION = 15;
