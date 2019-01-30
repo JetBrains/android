@@ -42,7 +42,10 @@ class FilteredPTableModelImpl<P : PropertyItem>(
   private val itemFilter: (P) -> Boolean,
   private val itemComparator: Comparator<PTableItem>,
   private val groups: List<GroupSpec<P>>,
-  private val keepNewAfterFlyAway: Boolean) : FilteredPTableModel<P>, PTableModel {
+  private val keepNewAfterFlyAway: Boolean,
+  private val allowEditing: Boolean
+) : FilteredPTableModel<P>, PTableModel {
+
   private val listeners = mutableListOf<PTableModelUpdateListener>()
 
   /** The items in this table model */
@@ -83,7 +86,7 @@ class FilteredPTableModelImpl<P : PropertyItem>(
   }
 
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
-    return when (item) {
+    return allowEditing && when (item) {
       is NewPropertyItem -> column == PTableColumn.NAME || item.delegate != null
       else -> column == PTableColumn.VALUE
     }

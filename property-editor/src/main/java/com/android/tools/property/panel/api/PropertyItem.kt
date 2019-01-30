@@ -50,6 +50,7 @@ interface PropertyItem : PTableItem {
    * Default value to display when [value] is null.
    */
   val defaultValue: String?
+    get() = null
 
   /**
    * If [value] is a reference then resolve the reference, otherwise this is the same as [value].
@@ -61,6 +62,7 @@ interface PropertyItem : PTableItem {
    * Whether the original [value] is a reference value
    */
   val isReference: Boolean
+    get() = false
 
   /**
    * An editor may display a button on the right
