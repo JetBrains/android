@@ -55,8 +55,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
 
   public void testAction() {
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
-    Presentation presentation = action.getTemplatePresentation().clone();
-    action.createCustomComponent(presentation); // To force updateActions to be called...
+    action.updateActions();
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class, "Landscape");
@@ -75,7 +74,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
     Presentation presentation = action.getTemplatePresentation().clone();
-    action.createCustomComponent(presentation); // To force updateActions to be called...
+    action.updateActions();
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class,
@@ -97,8 +96,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-sw600dp/layout1.xml");
     OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, mySurface);
-    Presentation presentation = action.getTemplatePresentation().clone();
-    action.createCustomComponent(presentation); // To force updateActions to be called...
+    action.updateActions();
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
     checkAction(actions[1], OrientationMenuAction.SetDeviceStateAction.class,
