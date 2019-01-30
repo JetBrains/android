@@ -104,10 +104,4 @@ interface PropertyItem : PTableItem {
    */
   val editingSupport: EditingSupport
     get() = EditingSupport.INSTANCE
-
-  /**
-   * The matching design property, i.e. tools attribute
-   */
-  val designProperty: PropertyItem
-    get() = throw IllegalStateException()
 }

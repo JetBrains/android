@@ -189,7 +189,7 @@ open class NelePropertyItem(
     }
   }
 
-  override val designProperty: NelePropertyItem
+  val designProperty: NelePropertyItem
     get() = if (namespace == TOOLS_URI) this else
       NelePropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, optionalValue, components)
 
