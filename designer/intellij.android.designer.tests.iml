@@ -46,6 +46,7 @@
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:shared" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:protos" level="project" />
     <orderEntry type="library" scope="TEST" name="com.android.tools.lint:lint-api" level="project" />
-    <orderEntry type="library" name="com.android.tools.analytics-library:testing" level="project" />
+    <orderEntry type="library" scope="TEST" name="com.android.tools.analytics-library:testing" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
   </component>
 </module>
