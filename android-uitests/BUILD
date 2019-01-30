@@ -1,6 +1,13 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+filegroup(
+    name = "aspect_rules",
+    srcs = ["default_aspect_rules.txt"],
+)
+
 COMMON_DATA = [
+    "//tools/adt/idea/android-uitests:aspect_rules",
+    "//tools/base/aspects_agent:aspects_agent",
     "//tools/adt/idea/android:test_deps.zip",
     "//prebuilts/studio/jdk",
     "//prebuilts/studio/sdk:build-tools/latest",
@@ -1396,7 +1403,11 @@ java_test(
     data = COMMON_DATA + glob([
         "testData/NoAppCompatLibApp/**",
     ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddAppCompatLibTest"],
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddAppCompatLibTest",
+        "-Daspects.agent.jar=$(location //tools/base/aspects_agent:aspects_agent)",
+        "-Daspects.agent.rules=$(location //tools/adt/idea/android-uitests:aspect_rules)",
+    ],
     tags = COMMON_TAGS + [
         "no_psq",
         "qa_fast",

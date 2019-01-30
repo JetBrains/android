@@ -152,6 +152,13 @@ object GuiTestLauncher {
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
       "-Didea.gui.test.port=$port")
+    /* aspects agent options */
+    val aspectsAgentJar = GuiTestOptions.getAspectsAgentJar()
+    // TODO(b/124110538): set a default rule when we don't specify one, so we don't need to check if this is empty
+    val aspectsAgentRules = GuiTestOptions.getAspectsAgentRules()
+    if (aspectsAgentJar.isNotEmpty() && aspectsAgentRules.isNotEmpty()) {
+      options+="-javaagent:${aspectsAgentJar}=${aspectsAgentRules}"
+    }
     /* debugging options */
     if (GuiTestOptions.isDebug()) {
       options += "-Didea.debug.mode=true"
