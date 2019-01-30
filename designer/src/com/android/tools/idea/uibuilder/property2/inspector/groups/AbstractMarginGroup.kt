@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.property2.inspector.groups
 
 import com.android.tools.adtui.ptable2.PTableItem
-import com.android.tools.idea.common.property2.api.FilteredPTableModel
 import com.android.tools.idea.common.property2.api.GroupSpec
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property2.inspector.androidSortOrder
 
 abstract class AbstractMarginGroup(override val name: String,
                                    private val all: NelePropertyItem?,
@@ -43,7 +43,7 @@ abstract class AbstractMarginGroup(override val name: String,
     }
 
   override val comparator: Comparator<PTableItem>
-    get() = FilteredPTableModel.androidSortOrder
+    get() = androidSortOrder
 
   override fun hashCode(): Int {
     return name.hashCode()

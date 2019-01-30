@@ -36,8 +36,6 @@ import com.android.tools.adtui.ptable2.PTableColumn
 import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.idea.common.property2.api.FilteredPTableModel
-import com.android.tools.idea.common.property2.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
-import com.android.tools.idea.common.property2.api.FilteredPTableModel.PTableModelFactory.androidSortOrder
 import com.android.tools.idea.common.property2.api.GroupSpec
 import com.android.tools.idea.common.property2.impl.model.util.TestNewPropertyItem
 import com.android.tools.idea.common.property2.impl.model.util.TestPTableModelUpdateListener
@@ -47,6 +45,8 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+
+private const val MARGIN_GROUP_NAME = "margin"
 
 class FilteredPTableModelImplTest {
   private var model: TestPropertyModel? = null
@@ -62,6 +62,8 @@ class FilteredPTableModelImplTest {
   private var propMarginStart: TestPropertyItem? = null
   private var propMarginTop: TestPropertyItem? = null
   private var propMargin: TestPropertyItem? = null
+  private var alternateSortOrder: Comparator<PTableItem>? = null
+
 
   @Before
   fun init() {
@@ -91,6 +93,9 @@ class FilteredPTableModelImplTest {
     model!!.add(propMarginStart!!)
     model!!.add(propMarginTop!!)
     model!!.add(propMargin!!)
+    alternateSortOrder = Comparator
+      .comparingInt<PTableItem>{ it.name.length }
+      .thenComparing(PTableItem::name)
   }
 
   @After
@@ -114,7 +119,7 @@ class FilteredPTableModelImplTest {
   @Test
   fun testFilteredContent() {
     val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, keepNewAfterFlyAway = false)
-    assertThat(tableModel.items).containsExactly(propWidth, propHeight, propText).inOrder()
+    assertThat(tableModel.items.map{ it.name }).containsExactly(ATTR_LAYOUT_HEIGHT, ATTR_LAYOUT_WIDTH, ATTR_TEXT).inOrder()
   }
 
   @Test
@@ -124,50 +129,54 @@ class FilteredPTableModelImplTest {
     val property = TestPropertyItem(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
     tableModel.addListener(listener)
     tableModel.addNewItem(property)
-    assertThat(tableModel.items).containsExactly(propWidth, propHeight, propText).inOrder()
+    assertThat(tableModel.items.map { it.name })
+      .containsExactly(ATTR_LAYOUT_HEIGHT, ATTR_LAYOUT_WIDTH, ATTR_TEXT).inOrder()
     assertThat(listener.updateCount).isEqualTo(0)
   }
 
   @Test
-  fun testAddExistingPropertyAlphabeticalOrder() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alphabeticalSortOrder, keepNewAfterFlyAway = false)
+  fun testAddExistingPropertyAlternateOrder() {
+    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = TestPTableModelUpdateListener()
     val property = TestPropertyItem(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_MATCH_PARENT)
     tableModel.addListener(listener)
     tableModel.addNewItem(property)
-    assertThat(tableModel.items).containsExactly(propHeight, propWidth, propText).inOrder()
+    assertThat(tableModel.items.map { it.name })
+      .containsExactly(ATTR_TEXT, ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT).inOrder()
     assertThat(listener.updateCount).isEqualTo(0)
   }
 
   @Test
   fun testAddNonExistingProperty() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, androidSortOrder, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = TestPTableModelUpdateListener()
     val property = TestPropertyItem(ANDROID_URI, ATTR_FONT_FAMILY, "Sans")
     tableModel.editedItem = propHeight
     tableModel.addListener(listener)
     tableModel.addNewItem(property)
-    assertThat(tableModel.items).containsExactly(propWidth, propHeight, property, propText).inOrder()
+    assertThat(tableModel.items.map { it.name })
+      .containsExactly(ATTR_TEXT, ATTR_FONT_FAMILY, ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT).inOrder()
     assertThat(listener.updateCount).isEqualTo(1)
     assertThat(listener.nextEditedItem).isEqualTo(propHeight)
   }
 
   @Test
   fun testAddNewProperty() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, androidSortOrder, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = TestPTableModelUpdateListener()
     val property = TestNewPropertyItem()
     tableModel.editedItem = propHeight
     tableModel.addListener(listener)
     tableModel.addNewItem(property)
-    assertThat(tableModel.items).containsExactly(propWidth, propHeight, propText, property).inOrder()
+    assertThat(tableModel.items.map { it.name })
+      .containsExactly(ATTR_TEXT, ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, "").inOrder()
     assertThat(listener.updateCount).isEqualTo(1)
     assertThat(listener.nextEditedItem).isEqualTo(property)
   }
 
   @Test
   fun testIsCellEditable() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, androidSortOrder, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val property = TestNewPropertyItem()
     assertThat(tableModel.isCellEditable(propWidth!!, PTableColumn.NAME)).isFalse()
     assertThat(tableModel.isCellEditable(propWidth!!, PTableColumn.VALUE)).isTrue()
@@ -180,7 +189,7 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testAcceptMoveToNextEditor() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, androidSortOrder, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val property = TestNewPropertyItem()
     assertThat(tableModel.acceptMoveToNextEditor(propWidth!!, PTableColumn.NAME)).isTrue()
     assertThat(tableModel.acceptMoveToNextEditor(propWidth!!, PTableColumn.VALUE)).isTrue()
@@ -193,54 +202,60 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testRefreshWhenHeightIsRemoved() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, androidSortOrder, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = TestPTableModelUpdateListener()
     tableModel.addListener(listener)
     tableModel.editedItem = propWidth
 
     propHeight!!.value = ""
     tableModel.refresh()
-    assertThat(tableModel.items).containsExactly(propWidth, propText).inOrder()
+    assertThat(tableModel.items.map { it.name })
+      .containsExactly(ATTR_TEXT, ATTR_LAYOUT_WIDTH).inOrder()
     assertThat(listener.updateCount).isEqualTo(1)
     assertThat(listener.nextEditedItem).isEqualTo(propWidth)
   }
 
   @Test
-  fun testRefreshWhenHeightIsEditedAndRemoved() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, androidSortOrder, keepNewAfterFlyAway = false)
+  fun testRefreshWhenWidthIsEditedAndRemoved() {
+    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = TestPTableModelUpdateListener()
     tableModel.addListener(listener)
-    tableModel.editedItem = propHeight
+    tableModel.editedItem = propWidth
 
-    propHeight!!.value = ""
+    propWidth!!.value = ""
     tableModel.refresh()
-    assertThat(tableModel.items).containsExactly(propWidth, propText).inOrder()
+    assertThat(tableModel.items.map { it.name })
+      .containsExactly(ATTR_TEXT, ATTR_LAYOUT_HEIGHT).inOrder()
     assertThat(listener.updateCount).isEqualTo(1)
-    assertThat(listener.nextEditedItem).isEqualTo(propText)
+    assertThat(listener.nextEditedItem?.name).isEqualTo(ATTR_LAYOUT_HEIGHT)
   }
 
   @Test
   fun testRefreshWhenGravityIsAssigned() {
-    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, androidSortOrder, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, { !it.value.isNullOrEmpty() }, alternateSortOrder!!, keepNewAfterFlyAway = false)
     val listener = TestPTableModelUpdateListener()
     tableModel.addListener(listener)
     tableModel.editedItem = propText
 
     propGravity!!.value = VALUE_TOP
     tableModel.refresh()
-    assertThat(tableModel.items).containsExactly(propWidth, propHeight, propGravity, propText).inOrder()
+    assertThat(tableModel.items.map { it.name })
+      .containsExactly(ATTR_TEXT, ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_LAYOUT_GRAVITY).inOrder()
     assertThat(listener.updateCount).isEqualTo(1)
     assertThat(listener.nextEditedItem).isEqualTo(propText)
   }
 
   @Test
   fun testSortedGroup() {
-    val tableModel = FilteredPTableModel.create(model!!, { true }, androidSortOrder, listOf(MarginGroup()), false)
+    val tableModel = FilteredPTableModel.create(model!!, { true }, alternateSortOrder!!, listOf(MarginGroup()), false)
     val items = tableModel.items
-    val group = items[3] as PTableGroupItem
-    assertThat(items).containsExactly(propWidth, propHeight, propGravity, group, propText, propVisible).inOrder()
-    assertThat(group.children).containsExactly(propMargin, propMarginStart, propMarginLeft, propMarginTop, propMarginEnd,
-                                               propMarginRight, propMarginBottom).inOrder()
+    assertThat(items.map { it.name })
+      .containsExactly(ATTR_TEXT, MARGIN_GROUP_NAME, ATTR_VISIBLE, ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_LAYOUT_GRAVITY)
+      .inOrder()
+    val group = items[1] as PTableGroupItem
+    assertThat(group.children.map { it.name })
+      .containsExactly(ATTR_LAYOUT_MARGIN, ATTR_LAYOUT_MARGIN_END, ATTR_LAYOUT_MARGIN_TOP, ATTR_LAYOUT_MARGIN_LEFT,
+                       ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_START, ATTR_LAYOUT_MARGIN_BOTTOM).inOrder()
   }
 
   private inner class MarginGroup: GroupSpec<TestPropertyItem> {
@@ -255,7 +270,7 @@ class FilteredPTableModelImplTest {
                 it == propMarginEnd || it == propMarginTop || it == propMarginBottom }
 
     override val comparator: Comparator<PTableItem>
-      get() = FilteredPTableModel.androidSortOrder
+      get() = alternateSortOrder!!
 
     private fun part(property: TestPropertyItem?, override: TestPropertyItem? = null): String {
       return override?.value ?: property?.value ?: "?"

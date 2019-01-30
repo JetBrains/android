@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
+import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.idea.common.property2.api.ControlType
 import com.android.tools.idea.common.property2.api.EditorProvider
 import com.android.tools.idea.common.property2.api.EnumSupportProvider
 import com.android.tools.idea.common.property2.api.FilteredPTableModel
-import com.android.tools.idea.common.property2.api.FilteredPTableModel.PTableModelFactory.androidSortOrder
 import com.android.tools.idea.common.property2.api.InspectorBuilder
 import com.android.tools.idea.common.property2.api.InspectorPanel
 import com.android.tools.idea.common.property2.api.PropertiesTable
@@ -33,10 +33,17 @@ import com.android.tools.idea.uibuilder.property2.support.NeleTwoStateBooleanCon
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
+import org.jetbrains.android.formatter.AttributeComparator
 
 private const val DECLARED_TITLE = "Declared Attributes"
 private const val ADD_PROPERTY_ACTION_TITLE = "Add Property"
 private const val DELETE_ROW_ACTION_TITLE = "Remove Selected Property"
+
+/**
+ * Comparator that is sorting [PTableItem] in Android sorting order.
+ * This implies layout attributes first and layout_width before layout_height.
+ */
+val androidSortOrder: Comparator<PTableItem> = AttributeComparator<PTableItem> { it.name }
 
 class DeclaredAttributesInspectorBuilder(private val model: NelePropertiesModel,
                                          enumSupportProvider: EnumSupportProvider<NelePropertyItem>) : InspectorBuilder<NelePropertyItem> {
@@ -55,7 +62,7 @@ class DeclaredAttributesInspectorBuilder(private val model: NelePropertiesModel,
     }
     newPropertyInstance.properties = properties
     newPropertyInstance.name = ""
-    val declaredTableModel = FilteredPTableModel.create(model, { item -> item.rawValue != null })
+    val declaredTableModel = FilteredPTableModel.create(model, { item -> item.rawValue != null }, androidSortOrder)
     val addNewRow = AddNewRowAction(declaredTableModel, newPropertyInstance)
     val deleteRowAction = DeleteRowAction(declaredTableModel)
     val tableLineModel = addTable(inspector, DECLARED_TITLE, declaredTableModel, tableUIProvider,
