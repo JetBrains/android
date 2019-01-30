@@ -36,6 +36,10 @@ object GuiTestOptions {
 
   fun getDebugPort(): Int = getSystemProperty("idea.gui.test.debug.port", 5005)
   fun getBootClasspath(): String = getSystemProperty("idea.gui.test.bootclasspath", "../out/production/boot")
+
+  fun getAspectsAgentJar(): String = getSystemProperty("aspects.agent.jar", "")
+  fun getAspectsAgentRules(): String = getSystemProperty("aspects.agent.rules", "")
+
   //used for restarted and resumed test to qualify from what point to start
   fun getSegmentIndex(): Int = getSystemProperty(SEGMENT_INDEX, 0)
   fun getNumTestSegments(): Int = getSystemProperty(NUM_TEST_SEGMENTS_KEY, 1)
