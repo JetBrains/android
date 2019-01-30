@@ -32,19 +32,11 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.ClassUtil;
-import com.intellij.util.Processor;
-import com.jetbrains.cidr.lang.navigation.OCSymbolNavigationItem;
-import com.jetbrains.cidr.lang.symbols.OCQualifiedName;
-import com.jetbrains.cidr.lang.symbols.OCSymbol;
-import com.jetbrains.cidr.lang.symbols.cpp.OCDeclaratorSymbol;
-import com.jetbrains.cidr.lang.symbols.cpp.OCFunctionSymbol;
-import com.jetbrains.cidr.lang.symbols.symtable.OCGlobalProjectSymbolsCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -86,13 +78,6 @@ public final class IntellijCodeNavigator extends CodeNavigator {
 
       navigatable = getApkMappingNavigable(location);
       if (navigatable != null) {
-        return navigatable;
-      }
-    }
-
-    if (location.isNativeCode()) {
-      Navigatable navigatable = getNativeNavigatable(location);
-      if (navigatable.canNavigate()) {
         return navigatable;
       }
     }
@@ -179,60 +164,6 @@ public final class IntellijCodeNavigator extends CodeNavigator {
       }
     }
     return sourceMap;
-  }
-
-  /**
-   * Tries to find and return the method's corresponding {@link Navigatable} within the project.
-   */
-  @NotNull
-  private Navigatable getNativeNavigatable(@NotNull CodeLocation location) {
-    // We use OCGlobalProjectSymbolsCache#processByQualifiedName to look for the target method. If it finds symbols that match the target
-    // method name, it will iterate the list of matched symbols and use the processor below in each one of them, until the processor returns
-    // false.
-    OCSymbol[] symbolToNavigate = new OCSymbol[1]; // Workaround to set the symbolToNavigate inside the processor.
-
-    Processor<OCSymbol> processor = symbol -> {
-      if (!(symbol instanceof OCFunctionSymbol)) {
-        return true; // Symbol is not a function. Continue the processing.
-      }
-      OCFunctionSymbol function = ((OCFunctionSymbol)symbol);
-      if (!function.getName().equals(location.getMethodName())) {
-        return true; // Method name does not match. Continue the processing.
-      }
-      OCQualifiedName qualifier = function.getQualifiedName().getQualifier();
-      String qualifierName = (qualifier == null || qualifier.getName() == null) ? "" : qualifier.getName();
-      if (!qualifierName.equals(location.getClassName())) {
-        return true; // Class name does not match. Continue the processing.
-      }
-
-      // Check if method parameters match the function's
-      List<String> parameters = location.getMethodParameters();
-      if (parameters != null) {
-        List<OCDeclaratorSymbol> functionParams = function.getParameterSymbols();
-        if (functionParams.size() != parameters.size()) {
-          return true; // Parameters count don't match. Continue the processing.
-        }
-
-        boolean match = true;
-        for (int i = 0; i < parameters.size(); i++) {
-          if (!parameters.get(i).equals(functionParams.get(i).getType().getName())) {
-            match = false;
-            break;
-          }
-        }
-        if (!match) {
-          return true; // Parameters don't match. Continue the processing.
-        }
-      }
-
-      // We have found a match. Return it.
-      symbolToNavigate[0] = function;
-      return false;
-    };
-    assert location.getMethodName() != null;
-    OCGlobalProjectSymbolsCache.processByQualifiedName(myProject, processor, location.getMethodName());
-
-    return new OCSymbolNavigationItem(symbolToNavigate[0], myProject);
   }
 
   @Nullable
