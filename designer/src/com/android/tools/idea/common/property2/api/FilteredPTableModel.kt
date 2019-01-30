@@ -18,7 +18,6 @@ package com.android.tools.idea.common.property2.api
 import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.impl.model.FilteredPTableModelImpl
-import org.jetbrains.android.formatter.AttributeComparator
 
 /**
  * A [PTableModel] for variable length property tables.
@@ -62,12 +61,6 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
   companion object PTableModelFactory {
 
     /**
-     * Comparator that is sorting [PTableItem] in Android sorting order.
-     * This implies layout attributes first and layout_width before layout_height.
-     */
-    val androidSortOrder: Comparator<PTableItem> = AttributeComparator<PTableItem> { it.name }
-
-    /**
      * Comparator that is sorting [PTableItem] in alphabetical sorting order.
      */
     val alphabeticalSortOrder: Comparator<PTableItem> = Comparator.comparing(PTableItem::name)
@@ -91,7 +84,7 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
      */
     fun <P : PropertyItem> create(model: PropertiesModel<P>,
                                   itemFilter: (P) -> Boolean,
-                                  itemComparator: Comparator<PTableItem> = androidSortOrder,
+                                  itemComparator: Comparator<PTableItem> = alphabeticalSortOrder,
                                   groups: List<GroupSpec<P>> = emptyList(),
                                   keepNewAfterFlyAway: Boolean = true): FilteredPTableModel<P> {
       return FilteredPTableModelImpl(model, itemFilter, itemComparator, groups, keepNewAfterFlyAway)
