@@ -15,37 +15,40 @@
  */
 package com.android.tools.idea.common.property2.impl.model
 
-import com.android.SdkConstants
+import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.adtui.testing.ApplicationRule
 import com.android.tools.idea.common.property2.api.EnumSupport
 import com.android.tools.idea.common.property2.api.EnumValue
-import com.android.tools.idea.common.property2.impl.model.util.TestInspectorLineModel
-import com.android.tools.idea.common.property2.impl.model.util.TestLineType
 import com.android.tools.idea.common.property2.impl.model.util.TestAction
 import com.android.tools.idea.common.property2.impl.model.util.TestEnumSupport
+import com.android.tools.idea.common.property2.impl.model.util.TestInspectorLineModel
+import com.android.tools.idea.common.property2.impl.model.util.TestLineType
 import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyZeroInteractions
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
 class ComboBoxPropertyEditorModelTest {
 
   @JvmField @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val appRule = ApplicationRule()
 
   private fun createModel(): ComboBoxPropertyEditorModel {
     return createModel(TestEnumSupport("visible", "invisible", "gone"))
   }
 
   private fun createModel(enumSupport: EnumSupport): ComboBoxPropertyEditorModel {
-    val property = TestPropertyItem(SdkConstants.ANDROID_URI, ATTR_VISIBILITY, "visible")
+    val property = TestPropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     property.defaultValue = "defaultNone"
     return ComboBoxPropertyEditorModel(property, enumSupport, true)
   }
