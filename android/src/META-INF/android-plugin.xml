@@ -432,7 +432,8 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.ScaleDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedRotateDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.RotateDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.color.ColorDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorGradientDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.raw.RawDomFileDescription"/>
 
     <dom.fileDescription implementation="org.jetbrains.android.dom.manifest.ManifestDomFileDescription"/>

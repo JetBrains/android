@@ -66,10 +66,9 @@ import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.color.ColorDomFileDescription;
+import org.jetbrains.android.dom.color.AndroidColorDomUtil;
 import org.jetbrains.android.dom.converters.FlagConverter;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
-import org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription;
 import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.dom.layout.Data;
@@ -151,8 +150,8 @@ public class AndroidCompletionContributor extends CompletionContributor {
       addAll(TransitionDomUtil.getPossibleRoots(), resultSet);
       return false;
     }
-    else if (ColorDomFileDescription.isColorResourceFile(xmlFile)) {
-      resultSet.addElement(LookupElementBuilder.create(DrawableStateListDomFileDescription.TAG_NAME));
+    else if (AndroidColorDomUtil.isColorResourceFile(xmlFile)) {
+      addAll(AndroidColorDomUtil.getPossibleRoots(), resultSet);
       return false;
     }
     else if (RawDomFileDescription.isRawFile(xmlFile)) {
