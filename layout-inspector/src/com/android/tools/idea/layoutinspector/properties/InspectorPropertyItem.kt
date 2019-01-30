@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.layoutinspector.properties
 
-import com.android.tools.adtui.workbench.ToolContent
-import com.android.tools.idea.layoutinspector.LayoutInspector
-import javax.swing.JComponent
-import javax.swing.JLabel
+import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.utils.HashCodes
 
-class LayoutInspectorPropertiesPanel : ToolContent<LayoutInspector> {
-  override fun setToolContext(toolContext: LayoutInspector?) {
-  }
+data class InspectorPropertyItem(
+  override val namespace: String,
+  override val name: String,
+  override var value: String?,
+  val view: InspectorView,
+  val model: InspectorPropertiesModel
+) : PropertyItem {
 
-  override fun getComponent(): JComponent {
-    return JLabel("properties")
-  }
+  override fun hashCode(): Int = HashCodes.mix(namespace.hashCode(), name.hashCode())
 
-  override fun dispose() {
-  }
+  override fun equals(other: Any?): Boolean =
+    other is InspectorPropertyItem && namespace == other.namespace && name == other.name
 }
