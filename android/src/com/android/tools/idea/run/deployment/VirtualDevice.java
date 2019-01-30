@@ -39,6 +39,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -76,12 +77,15 @@ final class VirtualDevice extends Device {
     }
 
     try (Stream<Path> stream = Files.list(snapshots)) {
+      @SuppressWarnings("UnstableApiUsage")
+      Collector<String, ?, ImmutableList<String>> collector = ImmutableList.toImmutableList();
+
       return stream
         .filter(Files::isDirectory)
         .map(VirtualDevice::getName)
         .filter(Objects::nonNull)
         .sorted()
-        .collect(ImmutableList.toImmutableList());
+        .collect(collector);
     }
     catch (IOException exception) {
       Logger.getInstance(VirtualDevice.class).warn(snapshots.toString(), exception);
