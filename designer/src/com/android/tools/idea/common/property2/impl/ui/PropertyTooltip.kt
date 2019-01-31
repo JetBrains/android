@@ -40,7 +40,8 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 
 private const val ICON_SPACING = 6
-private const val TIP_WIDTH_START = "<div WIDTH=600>"
+private const val MAX_WIDTH = 600
+private const val TIP_WIDTH_START = "<div WIDTH=$MAX_WIDTH>"
 private const val TIP_WIDTH_END = "</div>"
 
 /**
@@ -59,6 +60,18 @@ class PropertyTooltip(val component: JComponent, point: Point) : IdeTooltip(comp
   }
 
   companion object {
+
+    fun setToolTip(component: JComponent, event: MouseEvent, text: String?): String? {
+      val manager = IdeTooltipManager.getInstance()
+      if (text == null) {
+        manager.hideCurrent(event)
+      }
+      else {
+        val tooltip = createTooltipWithContent(component, event.point, text, null, null, null, null)
+        manager.setCustomTooltip(component, tooltip)
+      }
+      return null
+    }
 
     fun setToolTip(component: JComponent, event: MouseEvent, property: PropertyItem?, forValue: Boolean, text: String): String? {
       val manager = IdeTooltipManager.getInstance()
@@ -154,6 +167,12 @@ private class TooltipComponent: JPanel(BorderLayout()) {
     else {
       content = HtmlEscapers.htmlEscaper().escape(value)
     }
-    return "$HTML_START$TIP_WIDTH_START$content$TIP_WIDTH_END$HTML_END"
+    var widthStart = ""
+    var widthEnd = ""
+    if (textLabel.getFontMetrics(textLabel.font).stringWidth(content) > MAX_WIDTH) {
+      widthStart = TIP_WIDTH_START
+      widthEnd = TIP_WIDTH_END
+    }
+    return "$HTML_START$widthStart$content$widthEnd$HTML_END"
   }
 }

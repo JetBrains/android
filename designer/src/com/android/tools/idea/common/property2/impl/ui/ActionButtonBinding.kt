@@ -42,26 +42,26 @@ import javax.swing.JComponent
  */
 class ActionButtonBinding(private val model: PropertyEditorModel,
                           private val editor: JComponent) : CellPanel(), DataProvider {
-  private val boundImage = JBLabel()
-  private val button
+  private val actionButton = ButtonWithCustomTooltip()
+  private val actionButtonModel
     get() = model.property.browseButton
 
   init {
     add(editor, BorderLayout.CENTER)
-    add(boundImage, BorderLayout.EAST)
+    add(actionButton, BorderLayout.EAST)
     updateFromModel()
 
-    boundImage.registerActionKey({ buttonPressed(null) }, KeyStrokes.SPACE, "space")
-    boundImage.registerActionKey({ buttonPressed(null) }, KeyStrokes.ENTER, "enter")
+    actionButton.registerActionKey({ buttonPressed(null) }, KeyStrokes.SPACE, "space")
+    actionButton.registerActionKey({ buttonPressed(null) }, KeyStrokes.ENTER, "enter")
     model.addListener(ValueChangedListener { updateFromModel() })
 
-    boundImage.addMouseListener(object: MouseAdapter() {
+    actionButton.addMouseListener(object: MouseAdapter() {
       override fun mousePressed(event: MouseEvent) {
         buttonPressed(event)
       }
     })
-    boundImage.isFocusable = button?.actionButtonFocusable ?: false
-    boundImage.addFocusListener(ImageFocusListener(boundImage) { updateFromModel() })
+    actionButton.isFocusable = actionButtonModel?.actionButtonFocusable ?: false
+    actionButton.addFocusListener(ImageFocusListener(actionButton) { updateFromModel() })
   }
 
   override fun requestFocus() {
@@ -69,7 +69,7 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
   }
 
   private fun updateFromModel() {
-    boundImage.icon = button?.getActionIcon(boundImage.hasFocus())
+    actionButton.icon = actionButtonModel?.getActionIcon(actionButton.hasFocus())
     isVisible = model.visible
   }
 
@@ -81,7 +81,7 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
   }
 
   private fun buttonPressed(mouseEvent: MouseEvent?) {
-    val action = button?.action ?: return
+    val action = actionButtonModel?.action ?: return
     if (action is ActionGroup) {
       val popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, action)
       val location = locationFromEvent(mouseEvent)
@@ -99,7 +99,16 @@ class ActionButtonBinding(private val model: PropertyEditorModel,
     if (mouseEvent != null) {
       return mouseEvent.locationOnScreen
     }
-    val location = boundImage.locationOnScreen
-    return Point(location.x + boundImage.width / 2, location.y + boundImage.height / 2)
+    val location = actionButton.locationOnScreen
+    return Point(location.x + actionButton.width / 2, location.y + actionButton.height / 2)
+  }
+
+  private inner class ButtonWithCustomTooltip : JBLabel() {
+
+    override fun getToolTipText(event: MouseEvent): String? {
+      // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
+      val component = event.source as? JComponent ?: this
+      return PropertyTooltip.setToolTip(component, event, actionButtonModel?.action?.templatePresentation?.description)
+    }
   }
 }
