@@ -16,6 +16,8 @@
 package com.android.tools.adtui.actions;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
 import com.intellij.ui.JBColor;
@@ -49,7 +51,7 @@ public class DropDownActionButton extends ActionButtonWithText implements TextAc
 
   private boolean myIsSelected = false;
 
-  public DropDownActionButton(@NotNull DropDownAction action,
+  public DropDownActionButton(@NotNull AnAction action,
                               @NotNull Presentation presentation,
                               @NotNull String place) {
     super(action, presentation, place, DEFAULT_MINIMUM_BUTTON_SIZE);
@@ -117,6 +119,6 @@ public class DropDownActionButton extends ActionButtonWithText implements TextAc
   }
 
   private boolean shouldPaintArrow() {
-    return ((DropDownAction)myAction).hasDropDownArrow();
+    return myAction instanceof ActionGroup && ((ActionGroup)myAction).getChildren(null).length > 1;
   }
 }
