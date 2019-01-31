@@ -20,12 +20,10 @@ import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
-import com.intellij.notification.NotificationListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
-import org.jetbrains.annotations.Nullable;
 
 public interface LaunchTask {
   /**
@@ -37,24 +35,21 @@ public interface LaunchTask {
   @NotNull
   String getDescription();
 
-  @NotNull
-  default String getFailureReason() {
-    return "Error while " + getDescription();
-  }
-
-  @NotNull
-  default String getError() {
-    return "Error " + getDescription();
-  }
-
-  @Nullable
-  default NotificationListener getNotificationListener() {
-    return null;
-  }
-
   int getDuration();
 
   boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer);
+
+  default LaunchResult run(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+    boolean success = perform(device, launchStatus, printer);
+    LaunchResult result = new LaunchResult();
+    result.setSuccess(success);
+    if (!success) {
+      result.setError("Error " + getDescription());
+      result.setErrorId("");
+      result.setConsoleError("Error while " + getDescription());
+    }
+    return result;
+  }
 
   @NotNull
   String getId();
@@ -67,10 +62,5 @@ public interface LaunchTask {
   @NotNull
   default Collection<LaunchTaskDetail> getSubTaskDetails() {
     return Collections.emptyList();
-  }
-
-  @NotNull
-  default String getErrorId() {
-    return "";
   }
 }
