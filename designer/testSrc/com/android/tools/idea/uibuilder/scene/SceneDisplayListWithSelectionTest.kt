@@ -102,10 +102,10 @@ DrawResize,96,196,8,8,0
 DrawResize,96,216,8,8,0
 DrawResize,196,196,8,8,0
 DrawResize,196,216,8,8,0
-DrawAnchor,97,207,6,6,0
-DrawAnchor,147,197,6,6,0
-DrawAnchor,197,207,6,6,0
-DrawAnchor,147,217,6,6,0
+DrawAnchor,94,204,12,12,0
+DrawAnchor,144,192,12,12,0
+DrawAnchor,194,204,12,12,0
+DrawAnchor,144,216,12,12,0
 DrawComponentBackground,100,500,5,5,1
 DrawTextRegion,100,500,5,5,0,0,false,false,5,5,28,1.0,""
 DrawNlComponentFrame,100,500,5,5,1,5,5
