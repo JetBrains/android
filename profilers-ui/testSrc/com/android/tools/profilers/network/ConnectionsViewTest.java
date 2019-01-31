@@ -15,25 +15,30 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.profilers.*;
-import com.android.tools.profilers.network.httpdata.HttpData;
-import com.google.common.collect.ImmutableList;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
-import java.awt.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import static org.hamcrest.core.AllOf.allOf;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.StringEndsWith.endsWith;
 import static org.junit.Assert.assertThat;
+
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.network.httpdata.HttpData;
+import com.google.common.collect.ImmutableList;
+import java.awt.Color;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.swing.JTable;
+import javax.swing.table.TableCellRenderer;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class ConnectionsViewTest {
   private static final ImmutableList<HttpData> FAKE_DATA =
@@ -44,17 +49,19 @@ public class ConnectionsViewTest {
              .setResponsePayloadSize(TestHttpData.fakeContentSize(3))
              .build())
       .add(TestHttpData.newBuilder(4, 21, 34)
-                       .setResponseFields(TestHttpData.fakeResponseFields(4, "bmp"))
-                       .build())
+             .setResponseFields(TestHttpData.fakeResponseFields(4, "bmp"))
+             .build())
       .build();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ConnectionsViewTest", new FakeProfilerService(false),
-                                                                   FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+  private final FakeTimer myTimer = new FakeTimer();
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("ConnectionsViewTest", new FakeTransportService(myTimer, false), new FakeProfilerService(myTimer),
+                        FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkProfilerStageView myStageView;
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     myStageView = new NetworkProfilerStageView(profilersView, new NetworkProfilerStage(profilers));
   }

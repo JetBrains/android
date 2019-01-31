@@ -15,34 +15,59 @@
  */
 package com.android.tools.datastore.poller;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.CpuService;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.CpuProfiler.*;
+import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerConfiguration;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilerType;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStartResponse;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
+import com.android.tools.profiler.proto.CpuProfiler.CpuStopResponse;
+import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceRequest;
+import com.android.tools.profiler.proto.CpuProfiler.GetTraceResponse;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
+import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
+import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
+import com.android.tools.profiler.proto.CpuProfiler.TraceInfo;
+import com.android.tools.profiler.proto.CpuProfiler.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Transport.TimeRequest;
+import com.android.tools.profiler.proto.Transport.TimeResponse;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestName;
-
-import java.nio.charset.Charset;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 public class CpuDataPollerTest extends DataStorePollerTest {
 
@@ -92,7 +117,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public TestName myTestName = new TestName();
   private FakeCpuService myFakeCpuService = new FakeCpuService();
   public TestGrpcService myService =
-    new TestGrpcService(CpuDataPollerTest.class, myTestName, myCpuService, myFakeCpuService, new FakeProfilerService());
+    new TestGrpcService(CpuDataPollerTest.class, myTestName, myCpuService, myFakeCpuService, new FakeTransportService());
 
   @Rule
   public RuleChain myChain = RuleChain.outerRule(myTestName).around(myService);
@@ -100,7 +125,6 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   @Before
   public void setUp() throws Exception {
     when(myDataStoreService.getCpuClient(any())).thenReturn(CpuServiceGrpc.newBlockingStub(myService.getChannel()));
-    when(myDataStoreService.getProfilerClient(any())).thenReturn(ProfilerServiceGrpc.newBlockingStub(myService.getChannel()));
     startMonitoringApp();
   }
 
@@ -187,7 +211,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     CpuDataRequest request = CpuDataRequest
       .newBuilder().setSession(SESSION).setStartTimestamp(delayFromBase(11)).setEndTimestamp(Long.MAX_VALUE).build();
     CpuDataResponse expectedResponse = CpuDataResponse.newBuilder()
-                                                      .build();
+      .build();
     StreamObserver<CpuDataResponse> observer = mock(StreamObserver.class);
     myCpuService.getData(request, observer);
     validateResponse(observer, expectedResponse);
@@ -358,10 +382,10 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void getDeadThreadBeforeRange() {
     long startTimestamp = delayFromBase(20);
     GetThreadsRequest request = GetThreadsRequest.newBuilder()
-                                                 .setSession(SESSION)
-                                                 .setStartTimestamp(startTimestamp)
-                                                 .setEndTimestamp(delayFromBase(40))
-                                                 .build();
+      .setSession(SESSION)
+      .setStartTimestamp(startTimestamp)
+      .setEndTimestamp(delayFromBase(40))
+      .build();
     GetThreadsResponse expectedResponse = GetThreadsResponse
       .newBuilder()
       // THREAD_ID is not returned because it died before the requested range start
@@ -482,11 +506,11 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     validateResponse(observer2, expectedResponse);
   }
 
-  private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
+  private static class FakeTransportService extends TransportServiceGrpc.TransportServiceImplBase {
 
     @Override
-    public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> responseObserver) {
-      responseObserver.onNext(Profiler.TimeResponse.newBuilder().setTimestampNs(BASE_TIME_NS).build());
+    public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> responseObserver) {
+      responseObserver.onNext(TimeResponse.newBuilder().setTimestampNs(BASE_TIME_NS).build());
       responseObserver.onCompleted();
     }
   }

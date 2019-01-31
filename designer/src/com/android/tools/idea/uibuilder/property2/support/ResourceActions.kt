@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property2.support
 import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
+import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.idea.common.property2.api.HelpSupport
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
@@ -36,13 +37,11 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.util.Locale
 import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.JTable
-import javax.swing.KeyStroke
 import javax.swing.SwingUtilities
 
 /**
@@ -62,7 +61,7 @@ class ToggleShowResolvedValueAction(val model: NelePropertiesModel) : AnAction("
 
   companion object {
     @JvmField
-    val SHORTCUT = KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, KeyEvent.META_MASK), null)
+    val SHORTCUT = KeyboardShortcut(KeyStrokes.CMD_MINUS, null)
   }
 }
 
@@ -142,7 +141,7 @@ object ColorSelectionAction: AnAction("Select Color") {
       .addColorPickerListener(ColorPickerListener { color, _ -> property.value = colorToString(color) })
       .focusWhenDisplay(true)
       .setFocusCycleRoot(true)
-      .addKeyAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, true), object : AbstractAction() {
+      .addKeyAction(KeyStrokes.ESCAPE, object : AbstractAction() {
         override fun actionPerformed(event: ActionEvent) {
           dialog.close()
           restoreFocus(restoreFocusTo)

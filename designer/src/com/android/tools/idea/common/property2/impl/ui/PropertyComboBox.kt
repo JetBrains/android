@@ -17,11 +17,11 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
+import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 
 import com.android.tools.idea.common.property2.api.EnumValue
 import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
@@ -67,15 +67,15 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
 
   init {
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
-    registerActionKey({ model.enterKeyPressed() }, KeyStrokes.enter, "enter")
-    registerActionKey({ model.escapeKeyPressed() }, KeyStrokes.escape, "escape")
+    registerActionKey({ model.enterKeyPressed() }, KeyStrokes.ENTER, "enter")
+    registerActionKey({ model.escapeKeyPressed() }, KeyStrokes.ESCAPE, "escape")
     HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     if (asTableCellEditor) {
       putClientProperty("JComboBox.isTableCellEditor", true)
     }
 
-    textField.registerActionKey({ enter() }, KeyStrokes.enter, "enter")
-    textField.registerActionKey({ escape() }, KeyStrokes.escape, "escape")
+    textField.registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
+    textField.registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape")
 
     val focusListener = TextEditorFocusListener(textField, this, model)
     addFocusListener(focusListener)

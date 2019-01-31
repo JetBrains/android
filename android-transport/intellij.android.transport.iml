@@ -17,5 +17,6 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.perfdHost" />
+    <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
   </component>
 </module>

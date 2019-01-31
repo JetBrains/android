@@ -35,6 +35,7 @@ import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -90,13 +91,14 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
       // Add Android Studio custom information we want to see prepopulated in the bug reports
       sb.append("\n\n");
+      sb.append(String.format("AS: %1$s; ", ApplicationInfoEx.getInstanceEx().getFullVersion()));
       if (project != null) {
-        sb.append(String.format("Android Gradle Plugin: %1$s\n", safeCall(() -> getGradlePluginDetails(project))));
-        sb.append(String.format("Gradle: %1$s\n", safeCall(() -> getGradleDetails(project))));
+        sb.append(String.format("Android Gradle Plugin: %1$s; ", safeCall(() -> getGradlePluginDetails(project))));
+        sb.append(String.format("Gradle: %1$s; ", safeCall(() -> getGradleDetails(project))));
       }
-      sb.append(String.format("NDK: %1$s\n", safeCall(() -> getNdkDetails(project, sdkHandler, progress))));
-      sb.append(String.format("LLDB: %1$s\n", safeCall(() -> getLldbDetails(sdkHandler, progress))));
-      sb.append(String.format("CMake: %1$s\n", safeCall(() -> getCMakeDetails(project, sdkHandler, progress))));
+      sb.append(String.format("NDK: %1$s; ", safeCall(() -> getNdkDetails(project, sdkHandler, progress))));
+      sb.append(String.format("LLDB: %1$s; ", safeCall(() -> getLldbDetails(sdkHandler, progress))));
+      sb.append(String.format("CMake: %1$s", safeCall(() -> getCMakeDetails(project, sdkHandler, progress))));
       return sb.toString();
     });
   }
@@ -140,7 +142,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     if (project != null) {
       try {
         String ndkDir = new LocalProperties(project).getProperty(PROPERTY_NDK);
-        sb.append(String.format("from local.properties: %1$s; ",
+        sb.append(String.format("from local.properties: %1$s, ",
                                 ndkDir == null ? "(not specified)"
                                                : getNdkVersion(ndkDir)));
       }
@@ -150,7 +152,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     }
     // Latest NDK package in the SDK (if any)
     LocalPackage p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_NDK, null,false, progress);
-    sb.append(String.format("latest from SDK: %1$s; ",
+    sb.append(String.format("latest from SDK: %1$s",
                             p == null ? "(not found)"
                                       : getNdkVersion(p.getLocation().getAbsolutePath())));
     return sb.toString();
@@ -209,7 +211,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       // OK, the version of LLDB compatible with the running version of Studio not found, display the latest installed
       // information instead (and indicate that the supported version is not found)
       p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_LLDB, null, false, progress);
-      return String.format("pinned revision %1$s not found; latest from SDK: %2$s; ", SdkConstants.LLDB_PINNED_REVISION,
+      return String.format("pinned revision %1$s not found, latest from SDK: %2$s", SdkConstants.LLDB_PINNED_REVISION,
                            getLocalPackageDisplayInfo(p));
     }
     return getLocalPackageDisplayInfo(p);
@@ -225,7 +227,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       // CMake specified in local.properties (if any)
       try {
         String cmakeDir = new LocalProperties(project).getProperty(PROPERTY_CMAKE);
-        sb.append(String.format("from local.properties: %1$s; ",
+        sb.append(String.format("from local.properties: %1$s, ",
                                 cmakeDir == null ? "(not specified)"
                                                  : runAndGetCMakeVersion(getCMakeExecutablePath(cmakeDir))));
       }
@@ -235,12 +237,12 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     }
     // Latest CMake package in the SDK (if any)
     LocalPackage p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_CMAKE, null,false, progress);
-    sb.append(String.format("latest from SDK: %1$s; ",
+    sb.append(String.format("latest from SDK: %1$s, ",
                             p == null ? "(not found)"
                                       : runAndGetCMakeVersion(getCMakeExecutablePath(p.getLocation().getAbsolutePath()))));
     // CMake from PATH (if any)
     String cmakeBinFromPath = findOnPath("cmake");
-    sb.append(String.format("from PATH: %1$s; ",
+    sb.append(String.format("from PATH: %1$s",
                             cmakeBinFromPath == null ? "(not found)"
                                                      : runAndGetCMakeVersion(cmakeBinFromPath)));
     return sb.toString();

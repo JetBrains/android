@@ -15,33 +15,50 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profilers.*;
-import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.ClassSet;
+import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
+import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
+import com.android.tools.profilers.memory.adapters.ReferenceObject;
+import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.collect.ImmutableSet;
+import java.awt.Component;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
-import static org.junit.Assert.*;
-
 public class MemoryInstanceDetailsViewTest {
+  private final FakeTimer myTimer = new FakeTimer();
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeProfilerService(), new FakeMemoryService());
+  public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
+                        new FakeMemoryService());
 
   private MemoryProfilerStage myStage;
   private MemoryInstanceDetailsView myDetailsView;
@@ -54,7 +71,7 @@ public class MemoryInstanceDetailsViewTest {
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
     myStage =
-      new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer()), loader);
+      new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer), loader);
     myDetailsView = new MemoryInstanceDetailsView(myStage, myFakeIdeProfilerComponents);
     myFakeCaptureObject = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE").build();
   }

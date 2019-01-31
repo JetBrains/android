@@ -15,33 +15,30 @@
  */
 package com.android.tools.profilers;
 
+import static com.android.tools.profilers.FakeTransportService.VERSION;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler.VersionRequest;
-import com.android.tools.profiler.proto.Profiler.VersionResponse;
+import com.android.tools.profiler.proto.Transport.VersionRequest;
+import com.android.tools.profiler.proto.Transport.VersionResponse;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 public final class StudioProfilersCommonTest {
-  private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
-  @Rule public FakeGrpcServer myGrpcServer = FakeGrpcServer.createFakeGrpcServer("StudioProfilerCommonTestChannel", myProfilerService);
-
-  @Before
-  public void setup() {
-    myProfilerService.reset();
-  }
+  private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer, false);
+  @Rule public FakeGrpcServer myGrpcServer =
+    FakeGrpcServer.createFakeGrpcServer("StudioProfilerCommonTestChannel", myTransportService, new FakeProfilerService(myTimer));
 
   @Test
   public void testVersion() {
     VersionResponse response =
-      myGrpcServer.getClient().getProfilerClient().getVersion(VersionRequest.getDefaultInstance());
-    assertThat(response.getVersion()).isEqualTo(FakeProfilerService.VERSION);
+      myGrpcServer.getClient().getTransportClient().getVersion(VersionRequest.getDefaultInstance());
+    assertThat(response.getVersion()).isEqualTo(VERSION);
   }
 
   @Test
@@ -75,24 +72,24 @@ public final class StudioProfilersCommonTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     Common.Device device = Common.Device.newBuilder()
-                                        .setDeviceId("FakeDevice" .hashCode())
-                                        .setFeatureLevel(AndroidVersion.VersionCodes.BASE)
-                                        .setSerial("FakeDevice")
-                                        .setState(Common.Device.State.ONLINE)
-                                        .build();
-    myProfilerService.addDevice(device);
+      .setDeviceId("FakeDevice".hashCode())
+      .setFeatureLevel(AndroidVersion.VersionCodes.BASE)
+      .setSerial("FakeDevice")
+      .setState(Common.Device.State.ONLINE)
+      .build();
+    myTransportService.addDevice(device);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
     profilers.setProcess(device, null);
     assertThat(profilers.getDevice()).isEqualTo(device);
     assertThat(profilers.getProcess()).isNull();
 
     Common.Process process = Common.Process.newBuilder()
-                                           .setDeviceId(device.getDeviceId())
-                                           .setPid(20)
-                                           .setName("FakeProcess")
-                                           .setState(Common.Process.State.ALIVE)
-                                           .build();
-    myProfilerService.addProcess(device, process);
+      .setDeviceId(device.getDeviceId())
+      .setPid(20)
+      .setName("FakeProcess")
+      .setState(Common.Process.State.ALIVE)
+      .build();
+    myTransportService.addProcess(device, process);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
     profilers.setProcess(device, process);
 

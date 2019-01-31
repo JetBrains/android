@@ -19,33 +19,32 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.android.tools.profiler.proto.Profiler.BytesRequest;
-import com.android.tools.profiler.proto.Profiler.BytesResponse;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Transport.BytesRequest;
+import com.android.tools.profiler.proto.Transport.BytesResponse;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
 import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link NetworkConnectionsModel} that uses the legacy network RPC mechanism to fetch http connection data originated from an app.
  * Note that if {@link FeatureConfig#isUnifiedPipelineEnabled()} is true, the {@link RpcNetworkConnectionsModel} should be used instead.
  */
 public class LegacyRpcNetworkConnectionsModel implements NetworkConnectionsModel {
-  @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
+  @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportService;
   @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
   @NotNull private final Common.Session mySession;
 
-  public LegacyRpcNetworkConnectionsModel(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
+  public LegacyRpcNetworkConnectionsModel(@NotNull TransportServiceGrpc.TransportServiceBlockingStub transportService,
                                           @NotNull NetworkServiceGrpc.NetworkServiceBlockingStub networkService,
                                           @NotNull Common.Session session) {
-    myProfilerService = profilerService;
+    myTransportService = transportService;
     myNetworkService = networkService;
     mySession = session;
   }
@@ -125,11 +124,11 @@ public class LegacyRpcNetworkConnectionsModel implements NetworkConnectionsModel
     }
 
     BytesRequest request = BytesRequest.newBuilder()
+      .setStreamId(mySession.getStreamId())
       .setId(id)
-      .setSession(mySession)
       .build();
 
-    BytesResponse response = myProfilerService.getBytes(request);
+    BytesResponse response = myTransportService.getBytes(request);
     return response.getContents();
   }
 

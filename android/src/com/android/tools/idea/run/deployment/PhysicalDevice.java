@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
@@ -55,13 +55,13 @@ final class PhysicalDevice extends Device {
 
     @NotNull
     @Override
-    PhysicalDevice build(@Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service) {
-      return new PhysicalDevice(this, checker, service);
+    PhysicalDevice build(@Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map) {
+      return new PhysicalDevice(this, checker, map);
     }
   }
 
-  private PhysicalDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service) {
-    super(builder, checker, service);
+  private PhysicalDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map) {
+    super(builder, checker, map);
   }
 
   @NotNull

@@ -151,8 +151,7 @@ public class ViewEditorImpl extends ViewEditor {
   @Override
   public CompletableFuture<Map<NlComponent, Dimension>> measureChildren(@NotNull NlComponent parent, @Nullable RenderTask.AttributeFilter filter) {
     // TODO: Reuse snapshot!
-    XmlTag parentTag = parent.getTag();
-    if (!parentTag.isValid()) {
+    if (!parent.getBackend().isValid()) {
       return CompletableFuture.completedFuture(Collections.emptyMap());
     }
 
@@ -176,6 +175,7 @@ public class ViewEditorImpl extends ViewEditor {
     }
 
     // Measure unweighted bounds
+    XmlTag parentTag = parent.getTag();
     return task.measureChildren(parentTag, filter)
       .whenCompleteAsync((map, ex) -> task.dispose(), PooledThreadExecutor.INSTANCE)
       .thenApply(map -> {

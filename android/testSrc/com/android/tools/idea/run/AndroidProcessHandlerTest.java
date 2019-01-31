@@ -146,7 +146,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
     myExecuteShellCommandLatch.await();
 
     assertThat(text).isEqualTo(Arrays.asList(
-      "Connected to process 1493 on device myDevice\n",
+      "Connected to process 1493 on device 'myDevice'.\n",
       LogcatOutputConfigurableProvider.BANNER_MESSAGE + '\n',
       "W/DummyFirst: First Line1\n",
       "    First Line2\n",
@@ -179,7 +179,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
 
     // Assert
     assertThat(events.size()).isEqualTo(1);
-    assertThat(events.get(0).getText()).isEqualTo("Connected to process 1493 on device myDevice\n");
+    assertThat(events.get(0).getText()).isEqualTo("Connected to process 1493 on device 'myDevice'.\n");
   }
 
   public void testLogcatMessagesAreNotForwardedIfSettingDisabled() throws Exception {
@@ -209,7 +209,7 @@ public class AndroidProcessHandlerTest extends AndroidTestCase {
 
     // Assert
     assertThat(events.size()).isEqualTo(1);
-    assertThat(events.get(0).getText()).isEqualTo("Connected to process 1493 on device myDevice\n");
+    assertThat(events.get(0).getText()).isEqualTo("Connected to process 1493 on device 'myDevice'.\n");
   }
 
   private static void sendTextLine(@NotNull IShellOutputReceiver receiver, @NotNull String s) {

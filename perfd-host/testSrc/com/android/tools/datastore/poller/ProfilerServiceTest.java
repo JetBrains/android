@@ -25,16 +25,18 @@ import com.android.tools.datastore.FakeLogService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Common.AgentData;
-import com.android.tools.profiler.proto.Common.AgentStatusRequest;
-import com.android.tools.profiler.proto.Profiler.*;
+import com.android.tools.profiler.proto.Profiler.BeginSessionRequest;
+import com.android.tools.profiler.proto.Profiler.BeginSessionResponse;
+import com.android.tools.profiler.proto.Profiler.DeleteSessionRequest;
+import com.android.tools.profiler.proto.Profiler.EndSessionRequest;
+import com.android.tools.profiler.proto.Profiler.EndSessionResponse;
+import com.android.tools.profiler.proto.Profiler.GetSessionMetaDataRequest;
+import com.android.tools.profiler.proto.Profiler.GetSessionMetaDataResponse;
+import com.android.tools.profiler.proto.Profiler.GetSessionsRequest;
+import com.android.tools.profiler.proto.Profiler.GetSessionsResponse;
+import com.android.tools.profiler.proto.Profiler.ImportSessionRequest;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.google.common.collect.ImmutableMap;
 import io.grpc.stub.StreamObserver;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,14 +46,6 @@ import org.junit.rules.TestName;
 
 public class ProfilerServiceTest extends DataStorePollerTest {
   private static final long DEVICE_ID = 1234;
-  private static final String DEVICE_SERIAL = "SomeSerialId";
-  private static final String BOOT_ID = "SOME BOOT ID";
-  private static final Common.Device DEVICE = Common.Device
-    .newBuilder().setDeviceId(DEVICE_ID).setBootId(BOOT_ID).setSerial(DEVICE_SERIAL).build();
-  private static final Common.Process INITIAL_PROCESS = Common.Process
-    .newBuilder().setDeviceId(DEVICE_ID).setPid(1234).setName("INITIAL").build();
-  private static final Common.Process FINAL_PROCESS = Common.Process
-    .newBuilder().setDeviceId(DEVICE_ID).setPid(4321).setName("FINAL").build();
   private static final Common.Session START_SESSION_1 = Common.Session
     .newBuilder()
     .setSessionId(1)
@@ -73,16 +67,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private ProfilerService myProfilerService = new ProfilerService(myDataStore, getPollTicker()::run, new FakeLogService());
-
-  private static final String BYTES_ID_1 = "0123456789";
-  private static final String BYTES_ID_2 = "9876543210";
-  private static final String BAD_ID = "0000000000";
-  private static final ByteString BYTES_1 = ByteString.copyFromUtf8("FILE_1");
-  private static final ByteString BYTES_2 = ByteString.copyFromUtf8("FILE_2");
-
-  private static final Map<String, ByteString> PAYLOAD_CACHE = new ImmutableMap.Builder<String, ByteString>()
-    .put(BYTES_ID_1, BYTES_1).put(BYTES_ID_2, BYTES_2).build();
+  private ProfilerService myProfilerService = new ProfilerService(myDataStore, new FakeLogService());
 
   private FakeProfilerService myFakeService = new FakeProfilerService();
   private TestName myTestName = new TestName();
@@ -93,136 +78,12 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   @Before
   public void setUp() {
-    myProfilerService.startMonitoring(myService.getChannel());
     when(myDataStore.getProfilerClient(any())).thenReturn(ProfilerServiceGrpc.newBlockingStub(myService.getChannel()));
   }
 
   @After
   public void tearDown() {
     myDataStore.shutdown();
-  }
-
-  @Test
-  public void testGetTimes() {
-    StreamObserver<TimeResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getCurrentTime(TimeRequest.getDefaultInstance(), observer);
-    validateResponse(observer, TimeResponse.getDefaultInstance());
-  }
-
-  @Test
-  public void testGetVersion() {
-    StreamObserver<VersionResponse> observer = mock(StreamObserver.class);
-    myProfilerService.getVersion(VersionRequest.getDefaultInstance(), observer);
-    validateResponse(observer, VersionResponse.getDefaultInstance());
-  }
-
-  @Test
-  public void testGetDevices() {
-    StreamObserver<GetDevicesResponse> observer = mock(StreamObserver.class);
-    GetDevicesResponse expected = GetDevicesResponse.newBuilder()
-      .addDevice(DEVICE)
-      .build();
-    myProfilerService.getDevices(GetDevicesRequest.getDefaultInstance(), observer);
-    validateResponse(observer, expected);
-  }
-
-  @Test
-  public void testDeviceDisconnect() {
-    myService.shutdownServer();
-    getPollTicker().run();
-    StreamObserver<GetProcessesResponse> observer = mock(StreamObserver.class);
-    GetProcessesResponse expected = GetProcessesResponse
-      .newBuilder().addProcess(INITIAL_PROCESS.toBuilder().setState(Common.Process.State.DEAD)).build();
-    GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build();
-    myProfilerService.getProcesses(request, observer);
-    validateResponse(observer, expected);
-  }
-
-  @Test
-  public void testGetProcesses() {
-    StreamObserver<GetProcessesResponse> observer = mock(StreamObserver.class);
-    GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build();
-    GetProcessesResponse expected = GetProcessesResponse.newBuilder().addProcess(INITIAL_PROCESS).build();
-    myProfilerService.getProcesses(request, observer);
-    validateResponse(observer, expected);
-  }
-
-  @Test
-  public void testGetDeadProcesses() {
-    StreamObserver<GetProcessesResponse> observer = mock(StreamObserver.class);
-    GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(DEVICE.getDeviceId()).build();
-    GetProcessesResponse expected = GetProcessesResponse.newBuilder().addProcess(INITIAL_PROCESS).build();
-    myProfilerService.getProcesses(request, observer);
-    validateResponse(observer, expected);
-
-    // Change the process list for the second tick.
-    // We expect to get back both processes, the initial process
-    // Should be set to a dead state.
-    myFakeService.setProcessToReturn(FINAL_PROCESS);
-    getPollTicker().run();
-    observer = mock(StreamObserver.class);
-    expected = GetProcessesResponse
-      .newBuilder().addProcess(INITIAL_PROCESS.toBuilder().setState(Common.Process.State.DEAD)).addProcess(FINAL_PROCESS).build();
-    myProfilerService.getProcesses(request, observer);
-    validateResponse(observer, expected);
-  }
-
-  @Test
-  public void testGetFile() {
-    StreamObserver<BytesResponse> observer1 = mock(StreamObserver.class);
-    BytesRequest request1 = BytesRequest.newBuilder().setId(BYTES_ID_1).build();
-    BytesResponse response1 = BytesResponse.newBuilder().setContents(BYTES_1).build();
-    myProfilerService.getBytes(request1, observer1);
-    validateResponse(observer1, response1);
-
-    StreamObserver<BytesResponse> observer2 = mock(StreamObserver.class);
-    BytesRequest request2 = BytesRequest.newBuilder().setId(BYTES_ID_2).build();
-    BytesResponse response2 = BytesResponse.newBuilder().setContents(BYTES_2).build();
-    myProfilerService.getBytes(request2, observer2);
-    validateResponse(observer2, response2);
-
-    StreamObserver<BytesResponse> observerNoMatch = mock(StreamObserver.class);
-    BytesRequest requestBad =
-      BytesRequest.newBuilder().setId(BAD_ID).build();
-    BytesResponse responseNoMatch = BytesResponse.getDefaultInstance();
-    myProfilerService.getBytes(requestBad, observerNoMatch);
-    validateResponse(observerNoMatch, responseNoMatch);
-  }
-
-  @Test
-  public void testGetFileCached() {
-    // Pull data into the database cache.
-    StreamObserver<BytesResponse> observer1 = mock(StreamObserver.class);
-    BytesRequest request1 = BytesRequest.newBuilder().setId(BYTES_ID_1).build();
-    BytesResponse response1 = BytesResponse.newBuilder().setContents(BYTES_1).build();
-    myProfilerService.getBytes(request1, observer1);
-    validateResponse(observer1, response1);
-
-    StreamObserver<BytesResponse> observer2 = mock(StreamObserver.class);
-    BytesRequest request2 = BytesRequest.newBuilder().setId(BYTES_ID_2).build();
-    BytesResponse response2 = BytesResponse.newBuilder().setContents(BYTES_2).build();
-    myProfilerService.getBytes(request2, observer2);
-    validateResponse(observer2, response2);
-
-    // Disconnect the client
-    when(myDataStore.getProfilerClient(any())).thenReturn(null);
-
-    // Validate that we get back the expected bytes
-    observer1 = mock(StreamObserver.class);
-    myProfilerService.getBytes(request1, observer1);
-    validateResponse(observer1, response1);
-
-    observer2 = mock(StreamObserver.class);
-    myProfilerService.getBytes(request2, observer2);
-    validateResponse(observer2, response2);
-
-    // Validate that bad instances still return default.
-    StreamObserver<BytesResponse> observerNoMatch = mock(StreamObserver.class);
-    BytesRequest requestBad =
-      BytesRequest.newBuilder().setId(BAD_ID).build();
-    BytesResponse responseNoMatch = BytesResponse.getDefaultInstance();
-    myProfilerService.getBytes(requestBad, observerNoMatch);
-    validateResponse(observerNoMatch, responseNoMatch);
   }
 
   @Test
@@ -288,75 +149,15 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     validateResponse(observer, response);
   }
 
-  @Test
-  public void agentStatus() {
-    getPollTicker().run();
-    StreamObserver<AgentData> observer = mock(StreamObserver.class);
-    myProfilerService
-      .getAgentStatus(AgentStatusRequest.newBuilder().setDeviceId(DEVICE_ID).setPid(INITIAL_PROCESS.getPid()).build(), observer);
-    AgentData response = AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build();
-    validateResponse(observer, response);
-  }
-
-  @Test
-  public void configureStartupAgent() {
-    StreamObserver<ConfigureStartupAgentResponse> observer = mock(StreamObserver.class);
-    myProfilerService
-      .configureStartupAgent(ConfigureStartupAgentRequest.newBuilder().setDeviceId(DEVICE_ID).setAgentLibFileName("TEST").build(),
-                             observer);
-    ConfigureStartupAgentResponse response = ConfigureStartupAgentResponse.newBuilder().setAgentArgs("TEST").build();
-    validateResponse(observer, response);
-  }
-
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
 
-    private Common.Process myProcessToReturn = INITIAL_PROCESS;
     private Common.Session mySessionToReturn;
-
-    public void setProcessToReturn(Common.Process process) {
-      myProcessToReturn = process;
-    }
 
     /**
      * @param session The Session object to return when calling beginSession and endSession.
      */
     public void setSessionToReturn(Common.Session session) {
       mySessionToReturn = session;
-    }
-
-    @Override
-    public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> responseObserver) {
-      responseObserver.onNext(TimeResponse.getDefaultInstance());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getVersion(VersionRequest request, StreamObserver<VersionResponse> responseObserver) {
-      responseObserver.onNext(VersionResponse.getDefaultInstance());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getBytes(BytesRequest request, StreamObserver<BytesResponse> responseObserver) {
-      BytesResponse.Builder builder = BytesResponse.newBuilder();
-      ByteString bytes = PAYLOAD_CACHE.get(request.getId());
-      if (bytes != null) {
-        builder.setContents(bytes);
-      }
-      responseObserver.onNext(builder.build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> responseObserver) {
-      responseObserver.onNext(GetDevicesResponse.newBuilder().addDevice(DEVICE).build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getProcesses(GetProcessesRequest request, StreamObserver<GetProcessesResponse> responseObserver) {
-      responseObserver.onNext(GetProcessesResponse.newBuilder().addProcess(myProcessToReturn).build());
-      responseObserver.onCompleted();
     }
 
     @Override
@@ -377,18 +178,6 @@ public class ProfilerServiceTest extends DataStorePollerTest {
       }
       responseObserver.onNext(responseBuilder.build());
       responseObserver.onCompleted();
-    }
-
-    @Override
-    public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentData> responseObserver) {
-      responseObserver.onNext(AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build());
-      responseObserver.onCompleted();
-    }
-
-    @Override
-    public void configureStartupAgent(ConfigureStartupAgentRequest request, StreamObserver<ConfigureStartupAgentResponse> observer) {
-      observer.onNext(ConfigureStartupAgentResponse.newBuilder().setAgentArgs(request.getAgentLibFileName()).build());
-      observer.onCompleted();
     }
   }
 }

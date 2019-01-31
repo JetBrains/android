@@ -24,10 +24,22 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.profiler.protobuf3jarjar.ByteString
-import com.android.tools.profilers.*
-import com.android.tools.profilers.cpu.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.StudioMonitorStage
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.CpuCaptureArtifactView
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.FakeCpuService
+import com.android.tools.profilers.cpu.ProfilingTechnology
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.*
+import com.android.tools.profilers.memory.FakeMemoryService
+import com.android.tools.profilers.memory.HprofArtifactView
+import com.android.tools.profilers.memory.LegacyAllocationsArtifactView
+import com.android.tools.profilers.memory.MemoryProfilerStage
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.network.FakeNetworkService
@@ -42,28 +54,28 @@ class SessionsViewTest {
 
   private val VALID_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
 
-  private val myProfilerService = FakeProfilerService(false)
+  private val myTimer = FakeTimer()
+  private val myTransportService = FakeTransportService(myTimer, false)
   private val myMemoryService = FakeMemoryService()
   private val myCpuService = FakeCpuService()
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel(
     "SessionsViewTestChannel",
-    myProfilerService,
+    myTransportService,
+    FakeProfilerService(myTimer),
     myMemoryService,
     myCpuService,
     FakeEventService(),
     FakeNetworkService.newBuilder().build()
   )
 
-  private lateinit var myTimer: FakeTimer
   private lateinit var myProfilers: StudioProfilers
   private lateinit var mySessionsManager: SessionsManager
   private lateinit var mySessionsView: SessionsView
 
   @Before
   fun setup() {
-    myTimer = FakeTimer()
     myProfilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), myTimer)
     mySessionsManager = myProfilers.sessionsManager
     mySessionsView = SessionsView(myProfilers, FakeIdeProfilerComponents())
@@ -78,7 +90,7 @@ class SessionsViewTest {
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
 
-    myProfilerService.setTimestampNs(1)
+    myTimer.currentTimeNs = 1
     mySessionsManager.beginSession(device, process1)
     var session1 = mySessionsManager.selectedSession
     assertThat(sessionsPanel.componentCount).isEqualTo(1)
@@ -91,7 +103,7 @@ class SessionsViewTest {
     sessionItem0 = sessionsPanel.getComponent(0) as SessionItemView
     assertThat(sessionItem0.artifact.session).isEqualTo(session1)
 
-    myProfilerService.setTimestampNs(2)
+    myTimer.currentTimeNs = 2
     mySessionsManager.beginSession(device, process2)
     val session2 = mySessionsManager.selectedSession
     assertThat(sessionsPanel.componentCount).isEqualTo(2)
@@ -153,7 +165,7 @@ class SessionsViewTest {
     assertThat(selectionAction.childrenActions[2].text).isEqualTo(SessionsView.NO_SUPPORTED_DEVICES)
     assertThat(selectionAction.childrenActions[2].isEnabled).isFalse()
 
-    myProfilerService.addDevice(device1)
+    myTransportService.addDevice(device1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
@@ -166,7 +178,7 @@ class SessionsViewTest {
     assertThat(deviceAction1.childrenActions[0].text).isEqualTo(SessionsView.NO_DEBUGGABLE_PROCESSES)
     assertThat(deviceAction1.childrenActions[0].isEnabled).isFalse()
 
-    myProfilerService.addProcess(device1, process1)
+    myTransportService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     myProfilers.setProcess(device1, process1)
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
@@ -176,7 +188,7 @@ class SessionsViewTest {
     var processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10)" }
     assertThat(processAction1.childrenActionCount).isEqualTo(0)
 
-    myProfilerService.addProcess(device1, otherProcess1)
+    myTransportService.addProcess(device1, otherProcess1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(selectionAction.childrenActionCount).isEqualTo(3)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
@@ -189,8 +201,8 @@ class SessionsViewTest {
       .first { c -> c.text == "Other1 (20)" }
 
     // Test the reverse case of having only "other" processes
-    myProfilerService.addDevice(device2)
-    myProfilerService.addProcess(device2, otherProcess2)
+    myTransportService.addDevice(device2)
+    myTransportService.addProcess(device2, otherProcess2)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(selectionAction.childrenActionCount).isEqualTo(4)
     deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
@@ -228,13 +240,13 @@ class SessionsViewTest {
     // Also test processes that can be grouped in the fly-out menu.
     myProfilers.setPreferredProcess("Manufacturer2 Model2", "Process4", null)
 
-    myProfilerService.addDevice(deadDevice)
-    myProfilerService.addDevice(onlineDevice)
-    myProfilerService.addProcess(deadDevice, deadProcess1)
-    myProfilerService.addProcess(deadDevice, aliveProcess1)
-    myProfilerService.addProcess(onlineDevice, deadProcess2)
-    myProfilerService.addProcess(onlineDevice, aliveProcess2)
-    myProfilerService.addProcess(onlineDevice, deadProcess3)
+    myTransportService.addDevice(deadDevice)
+    myTransportService.addDevice(onlineDevice)
+    myTransportService.addProcess(deadDevice, deadProcess1)
+    myTransportService.addProcess(deadDevice, aliveProcess1)
+    myTransportService.addProcess(onlineDevice, deadProcess2)
+    myTransportService.addProcess(onlineDevice, aliveProcess2)
+    myTransportService.addProcess(onlineDevice, deadProcess3)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     var selectionAction = mySessionsView.processSelectionAction
     assertThat(selectionAction.childrenActions.any { c -> c.text == "Manufacturer1 Model1" }).isFalse()
@@ -259,11 +271,11 @@ class SessionsViewTest {
     // Mark all process as preferred processes as we are not testing the other processes flyout here.
     myProfilers.setPreferredProcess(null, "Process", null)
 
-    myProfilerService.addDevice(device1)
-    myProfilerService.addProcess(device1, process1)
+    myTransportService.addDevice(device1)
+    myTransportService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
-    myProfilerService.addProcess(device1, process2)
+    myTransportService.addProcess(device1, process2)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     var selectionAction = mySessionsView.processSelectionAction
     var processAction2 = selectionAction.childrenActions
@@ -273,8 +285,8 @@ class SessionsViewTest {
     assertThat(myProfilers.device).isEqualTo(device1)
     assertThat(myProfilers.process).isEqualTo(process2)
 
-    myProfilerService.addDevice(device2)
-    myProfilerService.addProcess(device2, process3)
+    myTransportService.addDevice(device2)
+    myTransportService.addProcess(device2, process3)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     var processAction3 = selectionAction.childrenActions
       .first { c -> c.text == "Manufacturer2 Model2" }.childrenActions
@@ -294,8 +306,8 @@ class SessionsViewTest {
     val stopProfilingButton = mySessionsView.stopProfilingButton
     assertThat(stopProfilingButton.isEnabled).isFalse()
 
-    myProfilerService.addDevice(device1)
-    myProfilerService.addProcess(device1, process1)
+    myTransportService.addDevice(device1)
+    myTransportService.addProcess(device1, process1)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     myProfilers.setProcess(device1, process1)
 
@@ -353,11 +365,11 @@ class SessionsViewTest {
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
     myCpuService.addTraceInfo(cpuTraceInfo)
 
-    myProfilerService.setTimestampNs(1)
+    myTimer.currentTimeNs = 2
     mySessionsManager.beginSession(device, process1)
     mySessionsManager.endCurrentSession()
     val session1 = mySessionsManager.selectedSession
-    myProfilerService.setTimestampNs(2)
+    myTimer.currentTimeNs = 2
     mySessionsManager.beginSession(device, process2)
     mySessionsManager.endCurrentSession()
     val session2 = mySessionsManager.selectedSession
@@ -392,11 +404,11 @@ class SessionsViewTest {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
-    myProfilerService.setTimestampNs(1)
+    myTimer.currentTimeNs = 1
     mySessionsManager.beginSession(device, process1)
     mySessionsManager.endCurrentSession()
     val session1 = mySessionsManager.selectedSession
-    myProfilerService.setTimestampNs(2)
+    myTimer.currentTimeNs = 2
     mySessionsManager.beginSession(device, process2)
     mySessionsManager.endCurrentSession()
     val session2 = mySessionsManager.selectedSession
@@ -426,10 +438,10 @@ class SessionsViewTest {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
     val process2 = Common.Process.newBuilder().setPid(20).setState(Common.Process.State.ALIVE).build()
-    myProfilerService.setTimestampNs(1)
+    myTimer.currentTimeNs = 1
     mySessionsManager.beginSession(device, process1)
     mySessionsManager.endCurrentSession()
-    myProfilerService.setTimestampNs(2)
+    myTimer.currentTimeNs = 2
     mySessionsManager.beginSession(device, process2)
     mySessionsManager.endCurrentSession()
 
@@ -475,7 +487,7 @@ class SessionsViewTest {
       .build()
     myCpuService.addTraceInfo(cpuTraceInfo)
 
-    myProfilerService.setTimestampNs(0)
+    myTimer.currentTimeNs = 0
     mySessionsManager.beginSession(device, process)
     mySessionsManager.endCurrentSession()
     val session = mySessionsManager.selectedSession
@@ -532,7 +544,7 @@ class SessionsViewTest {
     val configuration = CpuProfiler.CpuProfilerConfiguration.newBuilder().setProfilerType(CpuProfiler.CpuProfilerType.ATRACE).build()
     myCpuService.setOngoingCaptureConfiguration(configuration, sessionStartNs + 1)
 
-    myProfilerService.setTimestampNs(sessionStartNs)
+    myTimer.currentTimeNs = sessionStartNs
     mySessionsManager.beginSession(device, process)
     val session = mySessionsManager.selectedSession
 
@@ -569,7 +581,7 @@ class SessionsViewTest {
     val heapDumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(10).setEndTime(11).build()
     myMemoryService.addExplicitHeapDumpInfo(heapDumpInfo)
 
-    myProfilerService.setTimestampNs(1)
+    myTimer.currentTimeNs = 1
     mySessionsManager.beginSession(device, process)
     mySessionsManager.endCurrentSession()
     val session = mySessionsManager.selectedSession

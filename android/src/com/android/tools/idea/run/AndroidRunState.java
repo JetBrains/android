@@ -118,6 +118,7 @@ public class AndroidRunState implements RunProfileState {
     LaunchInfo launchInfo = new LaunchInfo(executor, runner, myEnv, myConsoleProvider);
     LaunchTaskRunner task = new LaunchTaskRunner(myModule.getProject(),
                                                  myLaunchConfigName,
+                                                 myEnv.getExecutionTarget().getDisplayName(),
                                                  launchInfo,
                                                  processHandler,
                                                  myDeviceFutures,

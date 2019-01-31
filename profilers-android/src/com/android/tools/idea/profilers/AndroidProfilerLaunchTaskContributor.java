@@ -39,7 +39,10 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.Transport.ConfigureStartupAgentRequest;
+import com.android.tools.profiler.proto.Transport.ConfigureStartupAgentResponse;
+import com.android.tools.profiler.proto.Transport.TimeRequest;
+import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -134,16 +137,13 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     if (device.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
       return "";
     }
-    Profiler.ConfigureStartupAgentResponse response = profilerService.getProfilerClient().getProfilerClient()
-                                                                     .configureStartupAgent(
-                                                                       Profiler.ConfigureStartupAgentRequest.newBuilder()
-                                                                                                            .setDeviceId(deviceId)
-                                                                                                            // TODO: Find a way of finding the correct ABI
-                                                                                                            .setAgentLibFileName(
-                                                                                                              getAbiDependentLibPerfaName(
-                                                                                                                device))
-                                                                                                            .setAppPackageName(
-                                                                                                              appPackageName).build());
+    ConfigureStartupAgentResponse response = profilerService.getProfilerClient().getTransportClient()
+      .configureStartupAgent(ConfigureStartupAgentRequest.newBuilder()
+          .setStreamId(deviceId)
+          // TODO: Find a way of finding the correct ABI
+          .setAgentLibFileName(getAbiDependentLibPerfaName(device))
+          .setAppPackageName(appPackageName)
+          .build());
     return response.getAgentArgs().isEmpty() ? "" : "--attach-agent " + response.getAgentArgs();
   }
 
@@ -437,9 +437,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
         deviceId = getProfilerDevice(device, profilerService).getDeviceId();
       }
 
-      Profiler.TimeResponse timeResponse = profilerService.getProfilerClient().getProfilerClient().getCurrentTime(
-        Profiler.TimeRequest.newBuilder().setStreamId(deviceId).build());
-      if (!Profiler.TimeResponse.getDefaultInstance().equals(timeResponse)) {
+      TimeResponse timeResponse = profilerService.getProfilerClient().getTransportClient().getCurrentTime(
+        TimeRequest.newBuilder().setStreamId(deviceId).build());
+      if (!TimeResponse.getDefaultInstance().equals(timeResponse)) {
         // Found a valid time response, sets that as the time for detecting when the process is next launched.
         startTimeNs = timeResponse.getTimestampNs();
       }

@@ -93,7 +93,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
     mySelectionModel = new SelectionModel(timeline.getSelectionRange());
     profilers.addDependency(myAspectObserver)
-             .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
+      .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
     mySelectionModel.addListener(new SelectionListener() {
       @Override
@@ -110,9 +110,10 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
       }
     });
 
-    myConnectionsModel = profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled() ?
-      new RpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(), profilers.getSession()) :
-      new LegacyRpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(),
+    myConnectionsModel =
+      profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled() ?
+      new RpcNetworkConnectionsModel(profilers.getClient().getTransportClient(), profilers.getSession()) :
+      new LegacyRpcNetworkConnectionsModel(profilers.getClient().getTransportClient(),
                                            profilers.getClient().getNetworkClient(),
                                            profilers.getSession());
 

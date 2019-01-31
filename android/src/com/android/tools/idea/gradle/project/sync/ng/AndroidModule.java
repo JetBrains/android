@@ -122,13 +122,13 @@ public class AndroidModule {
 
   static class ModuleDependency {
     @NotNull final String id;
-    @Nullable final String variant;
-    @Nullable final String abi;
+    @Nullable final String inheritedVariant;
+    @Nullable final String inheritedAbi;
 
-    ModuleDependency(@NotNull String id, @Nullable String variant, @Nullable String abi) {
+    ModuleDependency(@NotNull String id, @Nullable String inheritedVariant, @Nullable String inheritedAbi) {
       this.id = id;
-      this.variant = variant;
-      this.abi = abi;
+      this.inheritedVariant = inheritedVariant;
+      this.inheritedAbi = inheritedAbi;
     }
   }
 }

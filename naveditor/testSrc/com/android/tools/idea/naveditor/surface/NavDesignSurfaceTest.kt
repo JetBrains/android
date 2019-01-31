@@ -176,7 +176,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation("root") {
         fragment("fragment1", layout = "activity_main", name = "mytest.navtest.MainActivity")
-        fragment("fragment2", layout = "activity_main2", name = "mytest.navtest.BlankFragment")
+        fragment("fragment2", layout = "fragment_blank", name = "mytest.navtest.BlankFragment")
       }
     }
     surface.model = model
@@ -187,7 +187,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
       editorManager.closeFile(editorManager.openFiles[0])
       surface.notifyComponentActivate(model.find("fragment2")!!)
-      assertEquals("activity_main2.xml", editorManager.openFiles[0].name)
+      assertEquals("fragment_blank.xml", editorManager.openFiles[0].name)
       verify(tracker, times(2)).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT).build())
     }
   }

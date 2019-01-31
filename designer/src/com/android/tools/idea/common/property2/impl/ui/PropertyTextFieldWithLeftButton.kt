@@ -17,8 +17,8 @@ package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerAnActionKey
-import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.common.property2.impl.support.ImageFocusListener
@@ -62,8 +62,8 @@ open class PropertyTextFieldWithLeftButton(private val editorModel: TextFieldWit
     textField.isOpaque = false
     super.add(leftComponent, BorderLayout.WEST)
     super.add(textField, BorderLayout.CENTER)
-    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.space, "space")
-    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.enter, "enter")
+    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.SPACE, "space")
+    leftButton?.registerAnActionKey({ buttonAction }, KeyStrokes.ENTER, "enter")
     if (leftButton != null) {
       HelpSupportBinding.registerHelpKeyActions(leftButton, { editorModel.property })
     }

@@ -79,7 +79,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     builder.installDefaultCommandHandlers();
 
     // Add the debug commands handler
-    builder.setDeviceCommandHandler(JdwpCommandHandler.COMMAND, JdwpCommandHandler::new);
+    builder.addDeviceHandler(new JdwpCommandHandler());
     myServer = builder.build();
     myServer.start();
 

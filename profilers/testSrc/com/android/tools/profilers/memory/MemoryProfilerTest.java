@@ -15,6 +15,11 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_ID;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
+import static org.junit.Assert.assertArrayEquals;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.perflib.heap.SnapshotBuilder;
@@ -23,41 +28,41 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.network.FakeNetworkService;
 import com.google.common.truth.Truth;
+import java.io.ByteArrayOutputStream;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.io.ByteArrayOutputStream;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_ID;
-import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
-import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
-import static org.junit.Assert.assertArrayEquals;
 
 public class MemoryProfilerTest {
   private static final int FAKE_PID = 111;
   private static final Common.Session TEST_SESSION = Common.Session.newBuilder().setSessionId(1).setPid(FAKE_PID).build();
   private static final long DEVICE_STARTTIME_NS = 0;
 
-  private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
+  private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer, false);
   private final FakeMemoryService myMemoryService = new FakeMemoryService();
   @Rule public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryProfilerTest", myMemoryService, myProfilerService, new FakeEventService(), new FakeCpuService(),
+    new FakeGrpcChannel("MemoryProfilerTest", myMemoryService, myTransportService, new FakeProfilerService(myTimer), new FakeEventService(),
+                        new FakeCpuService(),
                         FakeNetworkService.newBuilder().build());
 
   private StudioProfilers myStudioProfiler;
   private FakeIdeProfilerServices myIdeProfilerServices;
-  private FakeTimer myTimer;
 
   @Before
   public void setUp() {
-    myTimer = new FakeTimer();
     myIdeProfilerServices = new FakeIdeProfilerServices();
     myStudioProfiler = new StudioProfilers(myGrpcChannel.getClient(), myIdeProfilerServices, myTimer);
   }
@@ -87,7 +92,7 @@ public class MemoryProfilerTest {
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(0);
 
     // Advance the timer to select the device + process
-    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
+    myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
@@ -98,13 +103,13 @@ public class MemoryProfilerTest {
     myIdeProfilerServices.enableLiveAllocationTracking(true);
     setupODeviceAndProcess();
 
-    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
+    myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
     Truth.assertThat(myMemoryService.getTrackAllocationCount()).isEqualTo(2);
 
     myMemoryService.resetTrackAllocationCount();
-    myProfilerService.setAgentStatus(DEFAULT_AGENT_DETACHED_RESPONSE);
+    myTransportService.setAgentStatus(DEFAULT_AGENT_DETACHED_RESPONSE);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStudioProfiler.changed(ProfilerAspect.AGENT);
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
@@ -114,7 +119,7 @@ public class MemoryProfilerTest {
   @Test
   public void testStopTrackingOnProfilerStop() {
     myIdeProfilerServices.enableLiveAllocationTracking(true);
-    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
+    myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
     setupODeviceAndProcess();
 
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isTrue();
@@ -170,8 +175,8 @@ public class MemoryProfilerTest {
       .setName("FakeProcess")
       .setStartTimestampNs(DEVICE_STARTTIME_NS)
       .build();
-    myProfilerService.addDevice(device);
-    myProfilerService.addProcess(device, process);
+    myTransportService.addDevice(device);
+    myTransportService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myStudioProfiler.setProcess(device, process);
   }

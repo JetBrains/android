@@ -16,15 +16,14 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
@@ -34,14 +33,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -59,21 +59,26 @@ import org.jetbrains.ide.PooledThreadExecutor;
  */
 public class DependencyManager implements Disposable {
   private final Project myProject;
-  private final Set<String> myMissingLibraries;
   private final List<DependencyChangeListener> myListeners;
+  private final AtomicReference<Set<String>> myMissingLibraries;
+  private final AtomicBoolean myUseAndroidXDependencies;
+  private final Object mySync;
+  @GuardedBy("mySync")
   private Module myModule;
+  @GuardedBy("mySync")
   private Palette myPalette;
-  private boolean myUseAndroidXDependencies;
   private boolean myRegisteredForDependencyUpdates;
   private boolean myNotifyAlways;
   private Consumer<Future<?>> mySyncTopicConsumer;
 
   public DependencyManager(@NotNull Project project) {
     myProject = project;
-    myMissingLibraries = new HashSet<>();
+    myMissingLibraries = new AtomicReference<>(Collections.emptySet());
+    myUseAndroidXDependencies = new AtomicBoolean(false);
     myListeners = new ArrayList<>(2);
     myPalette = Palette.EMPTY;
     mySyncTopicConsumer = future -> {};
+    mySync = new Object();
   }
 
   public void addDependencyChangeListener(@NotNull DependencyChangeListener listener) {
@@ -81,26 +86,24 @@ public class DependencyManager implements Disposable {
   }
 
   public Future<?> setPalette(@NotNull Palette palette, @NotNull Module module) {
-    myPalette = palette;
-    myModule = module;
+    synchronized (mySync) {
+      myPalette = palette;
+      myModule = module;
+    }
     // These computations are quite expensive, run them on a background thread to avoid blocking the UI.
     return ensureRunningOnBackgroundThread(() -> {
       checkForRelevantDependencyChanges();
       registerDependencyUpdates();
-      invokeLaterIfNeeded(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
+      ApplicationManager.getApplication().invokeLater(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
     });
   }
 
   public boolean useAndroidXDependencies() {
-    return myUseAndroidXDependencies;
+    return myUseAndroidXDependencies.get();
   }
 
   public boolean needsLibraryLoad(@NotNull Palette.Item item) {
-    return myMissingLibraries.contains(item.getGradleCoordinateId());
-  }
-
-  public boolean dependsOn(@NotNull GoogleMavenArtifactId artifactId) {
-    return DependencyManagementUtil.dependsOn(myModule, artifactId);
+    return myMissingLibraries.get().contains(item.getGradleCoordinateId());
   }
 
   @TestOnly
@@ -117,20 +120,37 @@ public class DependencyManager implements Disposable {
   public void dispose() {
   }
 
-  private synchronized boolean checkForRelevantDependencyChanges() {
-    return checkForNewMissingDependencies() | checkForNewAndroidXDependencies();
+  private boolean checkForRelevantDependencyChanges() {
+    synchronized (mySync) {
+      return checkForNewMissingDependencies() | checkForNewAndroidXDependencies();
+    }
   }
 
   private boolean checkForNewAndroidXDependencies() {
     boolean useAndroidX = computeUseAndroidXDependencies();
-    if (useAndroidX == myUseAndroidXDependencies) {
+    if (useAndroidX == myUseAndroidXDependencies.get()) {
       return false;
     }
-    myUseAndroidXDependencies = useAndroidX;
+    myUseAndroidXDependencies.set(useAndroidX);
     return true;
   }
 
+  /**
+   * This method will update {@link #myMissingLibraries} to the current set.
+   *
+   * The current set of dependencies referenced from {@link #myPalette} that are not
+   * part of the dependencies in the current {@link AndroidModuleSystem}.
+   *
+   * The method is called from a background thread and is safe even if there are more
+   * than 1 background thread running at a given time since we synchronize on the
+   * calling method: checkForRelevantDependencyChanges.
+   *
+   * @return true if the set of missing libraries has changed. This indicates that users of this service should be notified.
+   */
+  // This method is only called from checkForRelevantDependencyChanges where the mySync monitor is already held.
+  @SuppressWarnings("FieldAccessNotGuarded")
   private boolean checkForNewMissingDependencies() {
+    assert(!ApplicationManager.getApplication().isDispatchThread());
     Set<String> missing = Collections.emptySet();
 
     if (myModule != null && !myModule.isDisposed() && !myProject.isDisposed()) {
@@ -141,19 +161,26 @@ public class DependencyManager implements Disposable {
         .filter(coordinate -> moduleSystem.getRegisteredDependency(coordinate) == null)
         .map(coordinate -> coordinate.getId())
         .filter(Objects::nonNull)
-        .collect(Collectors.toSet());
+        .collect(ImmutableSet.toImmutableSet());
 
-      if (myMissingLibraries.equals(missing)) {
+      if (myMissingLibraries.get().equals(missing)) {
         return false;
       }
     }
 
-    myMissingLibraries.clear();
-    myMissingLibraries.addAll(missing);
+    myMissingLibraries.set(missing);
     return true;
   }
 
-  private synchronized void registerDependencyUpdates() {
+  /**
+   * Register for project sync updates.
+   *
+   * The dependencies of a module for Android Studio is dictated from the {@link ProjectSystemService},
+   * which will update the IJ libraries based on the build specification for the service.
+   * All successful syncs means there is potentially a new set of dependencies.
+   * There will be no successful dependency changes without a successful project sync.
+   */
+  private void registerDependencyUpdates() {
     if (myRegisteredForDependencyUpdates || myProject.isDisposed()) {
       return;
     }
@@ -163,7 +190,7 @@ public class DependencyManager implements Disposable {
       // however the DependencyChangeListeners must be called from the UI thread as they update the UI.
       mySyncTopicConsumer.accept(ensureRunningOnBackgroundThread(() -> {
         if ((result == ProjectSystemSyncManager.SyncResult.SUCCESS && checkForRelevantDependencyChanges()) || myNotifyAlways) {
-          invokeLaterIfNeeded(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
+          ApplicationManager.getApplication().invokeLater(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
         }
       }));
     });
@@ -174,11 +201,15 @@ public class DependencyManager implements Disposable {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(item.getGradleCoordinateId() + ":+");
 
       if (coordinate != null) {
-        DependencyManagementUtil.addDependencies(myModule, Collections.singletonList(coordinate), true);
+        synchronized (mySync) {
+          DependencyManagementUtil.addDependencies(myModule, Collections.singletonList(coordinate), true);
+        }
       }
     }
   }
 
+  // This method is only called indirectly from checkForRelevantDependencyChanges where the mySync monitor is already held.
+  @SuppressWarnings("FieldAccessNotGuarded")
   private boolean computeUseAndroidXDependencies() {
     if (myProject.isDisposed()) {
       return false;

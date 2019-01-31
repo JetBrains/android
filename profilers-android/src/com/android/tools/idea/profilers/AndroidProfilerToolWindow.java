@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.profilers.perfd.ProfilerServiceProxy;
+import com.android.tools.idea.profilers.perfd.TransportServiceProxy;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.*;
@@ -235,8 +236,8 @@ public class AndroidProfilerToolWindow implements Disposable {
   @NotNull
   static String getDeviceDisplayName(@NotNull IDevice device) {
     StringBuilder deviceNameBuilder = new StringBuilder();
-    String manufacturer = ProfilerServiceProxy.getDeviceManufacturer(device);
-    String model = ProfilerServiceProxy.getDeviceModel(device);
+    String manufacturer = TransportServiceProxy.getDeviceManufacturer(device);
+    String model = TransportServiceProxy.getDeviceModel(device);
     String serial = device.getSerialNumber();
     String suffix = String.format("-%s", serial);
     if (model.endsWith(suffix)) {

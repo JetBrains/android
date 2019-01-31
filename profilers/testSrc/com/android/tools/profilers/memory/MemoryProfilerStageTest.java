@@ -15,44 +15,58 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.model.*;
-import com.android.tools.adtui.model.filter.Filter;
-import com.android.tools.adtui.model.legend.SeriesLegend;
-import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.android.tools.profiler.proto.Common.AgentData;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.profilers.FakeTraceParser;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.cpu.FakeCpuService;
-import com.android.tools.profilers.event.FakeEventService;
-import com.android.tools.profilers.memory.adapters.*;
-import com.android.tools.profilers.network.FakeNetworkService;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.MoreExecutors;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static com.android.tools.profilers.FakeProfilerService.FAKE_DEVICE_ID;
+import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_ID;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Common.AgentData;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.cpu.FakeCpuService;
+import com.android.tools.profilers.event.FakeEventService;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.ClassSet;
+import com.android.tools.profilers.memory.adapters.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
+import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
+import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
+import com.android.tools.profilers.network.FakeNetworkService;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.MoreExecutors;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
+import org.junit.Test;
+
 public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
-  @NotNull private final FakeProfilerService myProfilerService = new FakeProfilerService();
+  @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myProfilerService,
+    new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myTransportService, new FakeProfilerService(myTimer),
                         new FakeCpuService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
 
   @Override
@@ -475,8 +489,8 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       .setState(Common.Process.State.ALIVE)
       .setName("FakeProcess")
       .build();
-    myProfilerService.addDevice(device);
-    myProfilerService.addProcess(device, process);
+    myTransportService.addDevice(device);
+    myTransportService.addProcess(device, process);
     myStage.getStudioProfilers().setPreferredProcess("FakeDevice", "FakeProcess", null);
 
     MemoryData memoryData = MemoryData.newBuilder()
@@ -496,7 +510,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(objectSeries.getDataSeries().getDataForXRange(new Range(TimeUnit.SECONDS.toMicros(1), TimeUnit.SECONDS.toMicros(1))))
       .isEmpty();
 
-    myProfilerService.setAgentStatus(AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build());
+    myTransportService.setAgentStatus(AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build());
     memoryData = MemoryData.newBuilder()
       .setEndTimestamp(2 * FakeTimer.ONE_SECOND_IN_NS)
       .addAllocStatsSamples(
@@ -548,7 +562,7 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testAllocatedLegendChangesBasedOnSamplingMode() {
     // Perfa needs to be running for "Allocated" series to show.
-    myProfilerService.setAgentStatus(AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build());
+    myTransportService.setAgentStatus(AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     long time = TimeUnit.MICROSECONDS.toNanos(2);
@@ -562,11 +576,11 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       ))
       .build();
     MemoryData memoryData = MemoryData.newBuilder()
-                                      .setEndTimestamp(time)
-                                      .addAllocationsInfo(liveAllocInfo)
-                                      .addAllocSamplingRateEvents(trackingMode)
-                                      .addAllocStatsSamples(allocStatsSample)
-                                      .build();
+      .setEndTimestamp(time)
+      .addAllocationsInfo(liveAllocInfo)
+      .addAllocSamplingRateEvents(trackingMode)
+      .addAllocStatsSamples(allocStatsSample)
+      .build();
     myService.setMemoryData(memoryData);
     MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
     myStage.getStudioProfilers().getTimeline().getTooltipRange().set(time, time);
@@ -575,36 +589,36 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Now change sampling mode to sampled, the Allocated legend should show "N/A"
     memoryData = memoryData.toBuilder()
-                           .clearAllocStatsSamples()
-                           .clearAllocSamplingRateEvents()
-                           .addAllocSamplingRateEvents(
-                             trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
-                               MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()
-                             )))
-                           .addAllocStatsSamples(allocStatsSample.toBuilder().setJavaAllocationCount(300))
-                           .build();
+      .clearAllocStatsSamples()
+      .clearAllocSamplingRateEvents()
+      .addAllocSamplingRateEvents(
+        trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+          MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue()
+        )))
+      .addAllocStatsSamples(allocStatsSample.toBuilder().setJavaAllocationCount(300))
+      .build();
     myService.setMemoryData(memoryData);
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
 
     // Now change sampling mode to none, the Allocated legend should still show "N/A"
     memoryData = memoryData.toBuilder()
-                           .clearAllocSamplingRateEvents()
-                           .addAllocSamplingRateEvents(
-                             trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
-                               MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()
-                             )))
-                           .build();
+      .clearAllocSamplingRateEvents()
+      .addAllocSamplingRateEvents(
+        trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+          MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue()
+        )))
+      .build();
     myService.setMemoryData(memoryData);
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
 
     // Value should update once sampling mode is set back to full.
     memoryData = memoryData.toBuilder()
-                           .clearAllocSamplingRateEvents()
-                           .addAllocSamplingRateEvents(
-                             trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
-                               MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()
-                             )))
-                           .build();
+      .clearAllocSamplingRateEvents()
+      .addAllocSamplingRateEvents(
+        trackingMode.toBuilder().setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(
+          MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()
+        )))
+      .build();
     myService.setMemoryData(memoryData);
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("200");
   }

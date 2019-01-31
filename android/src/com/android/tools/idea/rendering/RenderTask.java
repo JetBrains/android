@@ -81,8 +81,11 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -122,6 +125,18 @@ public class RenderTask {
    */
   private static final int DOWNSCALED_IMAGE_MAX_BYTES = 2_500_000; // 2.5MB
 
+  /**
+   * Executor to run the dispose tasks. The thread will run them sequentially.
+   */
+  private static final ExecutorService ourDisposeService = new ThreadPoolExecutor(0, 1, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+                                                                                  new ThreadFactory() {
+                                                                                    @Override
+                                                                                    public Thread newThread(@NotNull Runnable runnable) {
+                                                                                      return new Thread(runnable,
+                                                                                                        "RenderTask dispose thread");
+                                                                                    }
+                                                                                  });
+
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderTaskContext myContext;
   @NotNull private final RenderLogger myLogger;
@@ -133,7 +148,7 @@ public class RenderTask {
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
   @Nullable private Integer myOverrideBgColor;
   private boolean myShowDecorations = true;
-  @NotNull private final AssetRepositoryImpl myAssetRepository;
+  private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
   @NotNull private final Locale myLocale;
   @NotNull private final Object myCredential;
@@ -266,7 +281,7 @@ public class RenderTask {
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
-    FutureTask<Void> disposeTask = new FutureTask<>(() -> {
+    return ourDisposeService.submit(() -> {
       try {
         CompletableFuture<?>[] currentRunningFutures;
         synchronized (myRunningFutures) {
@@ -290,12 +305,10 @@ public class RenderTask {
         }
       }
       myImageFactoryDelegate = null;
+      myAssetRepository = null;
 
       return null;
     });
-
-    new Thread(disposeTask, "RenderTask dispose thread").start();
-    return disposeTask;
   }
 
   /**
@@ -820,15 +833,11 @@ public class RenderTask {
    * Asynchronously renders the given resource value (which should refer to a drawable)
    * and returns it as an image.
    *
-   * @param drawableResourceValue the drawable resource value to be rendered, or null
+   * @param drawableResourceValue the drawable resource value to be rendered
    * @return a {@link CompletableFuture} with the BufferedImage of the passed drawable.
    */
   @NotNull
-  public CompletableFuture<BufferedImage> renderDrawable(ResourceValue drawableResourceValue) {
-    if (drawableResourceValue == null) {
-      return CompletableFuture.completedFuture(null);
-    }
-
+  public CompletableFuture<BufferedImage> renderDrawable(@NotNull ResourceValue drawableResourceValue) {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     RenderTaskContext context = getContext();
@@ -841,16 +850,23 @@ public class RenderTask {
     params.setAssetRepository(myAssetRepository);
 
     return runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params))
-      .thenApply(result -> {
-        if (result != null && result.isSuccess()) {
-          Object data = result.getData();
-          if (data instanceof BufferedImage) {
-            return (BufferedImage)data;
+        .thenCompose(result -> {
+          if (result != null && result.isSuccess()) {
+            Object data = result.getData();
+            if (!(data instanceof BufferedImage)) {
+              data = null;
+            }
+            return CompletableFuture.completedFuture((BufferedImage)data);
           }
-        }
-
-        return null;
-      });
+          else {
+            Throwable exception = result == null ? new RuntimeException("Rendering failed - null result") : result.getException();
+            if (exception == null) {
+              exception = new RuntimeException("Rendering failed - " + result.getErrorMessage());
+            }
+            reportException(exception);
+            return immediateFailedFuture(exception);
+          }
+        });
   }
 
   /**

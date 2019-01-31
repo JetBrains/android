@@ -21,10 +21,10 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiInvalidElementAccessException
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
-import kotlin.properties.Delegates
 
 open class NlComponentBackendXml private constructor(
   private val myModel: NlModel) : NlComponentBackend {
@@ -38,11 +38,11 @@ open class NlComponentBackendXml private constructor(
     myTagName = tag.name
     val application = ApplicationManager.getApplication()
     if (application.isReadAccessAllowed) {
-      myTagPointer = SmartPointerManager.getInstance(myModel.project).createSmartPsiElementPointer<XmlTag>(myTag)
+      myTagPointer = SmartPointerManager.getInstance(myModel.project).createSmartPsiElementPointer(myTag)
     }
     else {
       application.runReadAction {
-        myTagPointer = SmartPointerManager.getInstance(myModel.project).createSmartPsiElementPointer<XmlTag>(myTag)
+        myTagPointer = SmartPointerManager.getInstance(myModel.project).createSmartPsiElementPointer(myTag)
       }
     }
   }
@@ -58,16 +58,14 @@ open class NlComponentBackendXml private constructor(
     val application = ApplicationManager.getApplication()
     if (application.isReadAccessAllowed) {
       if (tag.isValid()) {
-        myTagPointer = SmartPointerManager.getInstance(myModel.project)
-          .createSmartPsiElementPointer(tag)
+        myTagPointer = SmartPointerManager.getInstance(myModel.project).createSmartPsiElementPointer(tag)
         myTagName = tag.getName()
       }
     }
     else {
       application.runReadAction {
         if (tag.isValid()) {
-          myTagPointer = SmartPointerManager.getInstance(myModel.project)
-            .createSmartPsiElementPointer(tag)
+          myTagPointer = SmartPointerManager.getInstance(myModel.project).createSmartPsiElementPointer(tag)
           myTagName = tag.getName()
         }
       }
@@ -106,7 +104,12 @@ open class NlComponentBackendXml private constructor(
   }
 
   override fun getAffectedFile(): VirtualFile? {
-    return getTag().containingFile?.virtualFile
+    return try {
+      getTag().containingFile?.virtualFile
+    } catch (e: PsiInvalidElementAccessException) {
+      // The exception is thrown when the XmlTag element returned by getTag() is no longer valid.
+      null
+    }
   }
 
   override fun reformatAndRearrange() {
@@ -116,5 +119,9 @@ open class NlComponentBackendXml private constructor(
     }
 
     TemplateUtils.reformatAndRearrange(myModel.project, getTag())
+  }
+
+  override fun isValid(): Boolean {
+    return getTag().isValid
   }
 }

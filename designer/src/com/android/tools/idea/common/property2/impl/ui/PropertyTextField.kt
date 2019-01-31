@@ -16,8 +16,8 @@
 package com.android.tools.idea.common.property2.impl.ui
 
 import com.android.tools.adtui.stdui.CommonTextField
+import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
-import com.android.tools.idea.common.property2.impl.model.KeyStrokes
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
 import com.android.tools.idea.common.property2.impl.support.TextEditorFocusListener
@@ -34,10 +34,10 @@ import javax.swing.JComponent
 class PropertyTextField(editorModel: TextFieldPropertyEditorModel) : CommonTextField<TextFieldPropertyEditorModel>(editorModel),
                                                                      DataProvider {
   init {
-    registerActionKey({ enter() }, KeyStrokes.enter, "enter")
-    registerActionKey({ tab() }, KeyStrokes.tab, "tab")
-    registerActionKey({ backTab() }, KeyStrokes.backtab, "backTab")
-    registerActionKey({ escape() }, KeyStrokes.escape, "escape")
+    registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
+    registerActionKey({ tab() }, KeyStrokes.TAB, "tab")
+    registerActionKey({ backTab() }, KeyStrokes.BACKTAB, "backTab")
+    registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape")
     HelpSupportBinding.registerHelpKeyActions(this, { editorModel.property })
     addFocusListener(TextEditorFocusListener(this, this, editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)

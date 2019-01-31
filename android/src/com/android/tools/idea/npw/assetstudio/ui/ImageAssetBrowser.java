@@ -19,29 +19,34 @@ import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.utils.SdkUtils;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.openapi.vfs.VirtualFile;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import javax.imageio.ImageIO;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Panel which wraps a {@link ImageAsset}, allowing the user to browse for an image file to use as
  * an asset.
  */
 public final class ImageAssetBrowser extends TextFieldWithBrowseButton implements AssetComponent<ImageAsset> {
-  private final ImageAsset myImageAsset = new ImageAsset();
-  private final BindingsManager myBindings = new BindingsManager();
-  private final List<ActionListener> myListeners = new ArrayList<>(1);
+  private static final String[] IMAGE_FILE_SUFFIXES = getImageFileSuffixes();
+
+  @NotNull private final ImageAsset myImageAsset = new ImageAsset();
+  @NotNull private final BindingsManager myBindings = new BindingsManager();
+  @NotNull private final List<ActionListener> myListeners = new ArrayList<>(1);
 
   public ImageAssetBrowser() {
-    addBrowseFolderListener(null, null, null, FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
+    addBrowseFolderListener(null, null, null,
+                            FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor().withFileFilter(ImageAssetBrowser::isImageFile));
 
     TextProperty imagePathText = new TextProperty(getTextField());
     myBindings.bind(imagePathText, myImageAsset.imagePath().transform(file -> file.map(File::getAbsolutePath).orElse("")));
@@ -57,20 +62,40 @@ public final class ImageAssetBrowser extends TextFieldWithBrowseButton implement
     myImageAsset.imagePath().addListener(onImageChanged);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public ImageAsset getAsset() {
     return myImageAsset;
   }
 
   @Override
-  public void addAssetListener(@NotNull ActionListener l) {
-    myListeners.add(l);
+  public void addAssetListener(@NotNull ActionListener listener) {
+    myListeners.add(listener);
   }
 
   @Override
   public void dispose() {
     myBindings.releaseAll();
     myListeners.clear();
+  }
+
+  private static boolean isImageFile(@NotNull VirtualFile file) {
+    String path = file.getPath();
+    for (String suffix : IMAGE_FILE_SUFFIXES) {
+      if (SdkUtils.endsWithIgnoreCase(path, suffix) &&
+          path.length() > suffix.length() && path.charAt(path.length() - suffix.length() - 1) == '.') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static String[] getImageFileSuffixes() {
+    String[] rasterSuffixes = ImageIO.getReaderFileSuffixes();
+    String[] suffixes = new String[rasterSuffixes.length + 2];
+    suffixes[0] = "svg";
+    suffixes[1] = "xml";
+    System.arraycopy(rasterSuffixes, 0, suffixes, 2, rasterSuffixes.length);
+    return suffixes;
   }
 }

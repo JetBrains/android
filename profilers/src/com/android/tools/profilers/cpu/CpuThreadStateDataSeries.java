@@ -19,8 +19,9 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
+import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -30,12 +31,12 @@ import org.jetbrains.annotations.NotNull;
  * This class is responsible for querying CPU thread data from unified pipeline {@link Common.Event} and extract a single thread data.
  */
 public class CpuThreadStateDataSeries implements DataSeries<CpuProfilerStage.ThreadState> {
-  @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myClient;
+  @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myClient;
   private final long myStreamId;
   private final int myPid;
   private final int myThreadId;
 
-  public CpuThreadStateDataSeries(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub client,
+  public CpuThreadStateDataSeries(@NotNull TransportServiceGrpc.TransportServiceBlockingStub client,
                                   long streamId, int pid, int threadId) {
     myClient = client;
     myStreamId = streamId;
@@ -48,8 +49,8 @@ public class CpuThreadStateDataSeries implements DataSeries<CpuProfilerStage.Thr
     List<SeriesData<CpuProfilerStage.ThreadState>> series = new ArrayList<>();
     long maxNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMax());
     // Query from the beginning because we need the last state of the thread before range min.
-    Profiler.GetEventGroupsResponse response = myClient.getEventGroups(
-      Profiler.GetEventGroupsRequest.newBuilder()
+    GetEventGroupsResponse response = myClient.getEventGroups(
+      GetEventGroupsRequest.newBuilder()
         .setStreamId(myStreamId)
         .setPid(myPid)
         .setKind(Common.Event.Kind.CPU_THREAD)
