@@ -38,7 +38,7 @@ class ExtractVariableDialog<PropertyT : Any, ModelPropertyCoreT : ModelPropertyC
   private val worker = ExtractVariableWorker(refactoredProperty)
 
   init {
-    title = "Bind to New Variable"
+    title = "Extract Variable"
     init()
   }
 
