@@ -30,6 +30,7 @@ import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.impl.ProjectLifecycleListener
@@ -37,8 +38,6 @@ import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.concurrency.AsyncPromise
-import org.jetbrains.concurrency.Promise
 import java.io.File
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -78,6 +77,7 @@ object AndroidStudioUsageTracker {
     val app = ApplicationManager.getApplication()
     val connection = app.messageBus.connect()
     connection.subscribe(ProjectLifecycleListener.TOPIC, ProjectLifecycleTracker())
+    connection.subscribe(LatencyListener.TOPIC, TypingLatencyTracker)
   }
 
   private fun runDailyReports() {
@@ -138,6 +138,8 @@ object AndroidStudioUsageTracker {
                        .setCategory(AndroidStudioEvent.EventCategory.SYSTEM)
                        .setKind(AndroidStudioEvent.EventKind.STUDIO_PROCESS_STATS)
                        .setJavaProcessStats(CommonMetricsData.javaProcessStats))
+
+    TypingLatencyTracker.reportTypingLatency()
   }
 
   /**
