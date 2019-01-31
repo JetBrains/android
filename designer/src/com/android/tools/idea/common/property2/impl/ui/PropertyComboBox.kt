@@ -147,7 +147,9 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
   }
 
   override fun getToolTipText(event: MouseEvent): String? {
-    return PropertyTooltip.setToolTip(textField, event, model.property, forValue = true, text = model.text)
+    // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
+    val component = event.source as? JComponent ?: textField
+    return PropertyTooltip.setToolTip(component, event, model.property, forValue = true, text = textField.text)
   }
 
   override fun getData(dataId: String): Any? {
