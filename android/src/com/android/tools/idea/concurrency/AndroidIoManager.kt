@@ -23,6 +23,8 @@ import java.util.concurrent.ExecutorService
 class AndroidIoManager {
   companion object {
     private const val NAME = "Android IO tasks"
+
+    @JvmStatic
     fun getInstance(): AndroidIoManager = ServiceManager.getService(AndroidIoManager::class.java)!!
   }
 
