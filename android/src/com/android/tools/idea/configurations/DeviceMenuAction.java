@@ -155,14 +155,6 @@ public class DeviceMenuAction extends DropDownAction {
   }
 
   @Override
-  protected boolean hasDropDownArrow() {
-    // Calculating the entries can be expensive and we know that we always have more than one. The method #updateActions always adds at
-    // least the default devices and "Add Device Definition...". The only case where the arrow is not displayed at all is when we do not have
-    // a configuration.
-    return myRenderContext.getConfiguration() != null;
-  }
-
-  @Override
   protected boolean updateActions() {
     removeAll();
     Configuration configuration = myRenderContext.getConfiguration();

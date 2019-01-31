@@ -57,13 +57,6 @@ public class LocaleMenuAction extends DropDownAction {
   }
 
   @Override
-  protected boolean hasDropDownArrow() {
-    // This menu always has most of the time at least two options so no need to calculate the actions to show the arrow. In most cases
-    // the actions to Edit translations and switch to RTL locale are always present.
-    return true;
-  }
-
-  @Override
   protected boolean updateActions() {
     removeAll();
     // TODO: Offer submenus, lazily populated, which offer languages either by code or by name.
