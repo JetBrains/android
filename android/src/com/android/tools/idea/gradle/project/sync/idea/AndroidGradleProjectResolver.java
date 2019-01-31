@@ -15,7 +15,37 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import com.android.builder.model.*;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
+import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
+import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
+import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.getModelVersion;
+import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.IMPORTED_MODULE;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.util.ExceptionUtil.getRootCause;
+import static com.intellij.util.PathUtil.getJarPathForClass;
+import static java.util.Collections.emptyList;
+import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleConfigPath;
+
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.NativeAndroidProject;
+import com.android.builder.model.SyncIssue;
+import com.android.builder.model.Variant;
 import com.android.builder.model.level2.GlobalLibraryMap;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
@@ -26,7 +56,11 @@ import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
-import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
@@ -52,43 +86,26 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.PathsList;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.simulateRegisteredSyncError;
-import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG;
-import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX;
-import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.getModelVersion;
-import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
-import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.util.ExceptionUtil.getRootCause;
-import static com.intellij.util.PathUtil.getJarPathForClass;
-import static java.util.Collections.emptyList;
-import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getModuleConfigPath;
-import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 
 /**
  * Imports Android-Gradle projects into IDEA.
@@ -249,7 +266,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     catch (UnsupportedOperationException ignore) {
     }
     File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
-    GradleModuleModel gradleModuleModel = new GradleModuleModel(moduleName, gradleProject, emptyList(), buildFilePath, gradleVersion);
+    // Note: currently getModelVersion() matches the AGP version and it is the only way to get the AGP version.
+    // Note: agpVersion is currently not available for Java modules.
+    String agpVersion = androidProject != null ? androidProject.getModelVersion() : null;
+    GradleModuleModel gradleModuleModel =
+      new GradleModuleModel(moduleName, gradleProject, emptyList(), buildFilePath, gradleVersion, agpVersion);
     ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
 
     if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
