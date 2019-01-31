@@ -60,7 +60,7 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     String name = myModuleRootDir.getName();
     GradleProjectStub gradleProject = new GradleProjectStub(name, ":" + name, getBaseDirPath(getProject()), myBuildFile);
 
-    GradleModuleModel gradleModuleModel = new GradleModuleModel(myModule.getName(), gradleProject, emptyList(), myBuildFile, "2.2.1");
+    GradleModuleModel gradleModuleModel = new GradleModuleModel(myModule.getName(), gradleProject, emptyList(), myBuildFile, "2.2.1", null);
 
     GradleFacet facet = createAndAddGradleFacet(myModule);
     facet.setGradleModuleModel(gradleModuleModel);
