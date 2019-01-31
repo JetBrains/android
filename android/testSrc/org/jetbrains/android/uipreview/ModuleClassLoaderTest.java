@@ -200,7 +200,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
 
     // Trigger build.
-    PostProjectBuildTasksExecutor.getInstance(getProject()).onBuildCompletion(DummyCompileContext.getInstance());
+    PostProjectBuildTasksExecutor.getInstance(getProject()).onBuildCompletion(DummyCompileContext.create(getProject()));
     assertThat(loader.isSourceModified("com.google.example.Modified", null)).isFalse();
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
   }
