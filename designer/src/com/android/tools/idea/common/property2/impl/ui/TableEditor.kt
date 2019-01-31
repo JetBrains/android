@@ -33,7 +33,9 @@ import com.intellij.psi.codeStyle.NameUtil
 import com.intellij.util.text.Matcher
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import javax.swing.JTable
+import javax.swing.SwingUtilities
 
 private const val DEFAULT_ROW_HEIGHT = 24
 private const val MINIMUM_ROW_HEIGHT = 20
@@ -92,10 +94,13 @@ class TableEditor(val lineModel: TableLineModelImpl,
   private fun getToolTipText(event: MouseEvent): String? {
     val tableRow = component.rowAtPoint(event.point)
     val tableColumn = component.columnAtPoint(event.point)
-    val index = component.convertRowIndexToModel(tableRow)
-    val column = PTableColumn.fromColumn(tableColumn)
-    val property = component.model.getValueAt(index, tableColumn) as? PropertyItem
-    return PropertyTooltip.setToolTip(component, event, property, column == PTableColumn.VALUE, property?.value.orEmpty())
+    val item = component.getValueAt(tableRow, tableColumn)
+    val renderer = component.getCellRenderer(tableRow, tableColumn)
+    val cell = renderer.getTableCellRendererComponent(component, item, false, false, tableRow, tableColumn) ?: return null
+    val rect = component.getCellRect(tableRow, tableColumn, true)
+    cell.setBounds(0, 0, rect.width, rect.height)
+    val control = SwingUtilities.getDeepestComponentAt(cell, event.x - rect.x, event.y - rect.y) as? JComponent
+    return control?.getToolTipText(event)
   }
 
   private fun computeRowHeight(): Int {
