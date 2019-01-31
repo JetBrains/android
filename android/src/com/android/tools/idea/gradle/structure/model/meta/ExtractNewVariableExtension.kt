@@ -28,8 +28,8 @@ class ExtractNewVariableExtension<T : Any, PropertyCoreT : ModelPropertyCore<T>>
   private val project: PsProject,
   private val module: PsModule?
 ) : EditorExtensionAction<T, PropertyCoreT> {
-  override val title: String = "Bind to New Variable"
-  override val tooltip: String = "Bind to New Variable"
+  override val title: String = "Extract Variable"
+  override val tooltip: String = "Extract Variable"
   override val icon: Icon = AllIcons.Nodes.Variable
   override val availableInNonPropertyContext: Boolean = false
   override val isMainAction: Boolean = true
