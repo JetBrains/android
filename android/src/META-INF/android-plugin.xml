@@ -22,9 +22,7 @@
   <depends>com.android.tools.idea.smali</depends>
 
   <!-- TODO: We can make this a permanent dependency after fixing all Bazel tests -->
-<!--
   <depends optional="true" config-file="android-kotlin.xml">org.jetbrains.kotlin</depends>
--->
 
   <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
   <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
