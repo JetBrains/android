@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
@@ -69,4 +70,19 @@ public class GuidelineAnchorTarget extends ConstraintAnchorTarget {
     return false;
   }
 
+  @Override
+  public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
+    picker.addRect(this, 0, transform.getSwingXDip(myLeft), transform.getSwingYDip(myTop),
+                   transform.getSwingXDip(myRight), transform.getSwingYDip(myBottom));
+  }
+
+  @Override
+  public float getCenterX() {
+    return (myLeft + myRight) / 2;
+  }
+
+  @Override
+  public float getCenterY() {
+    return (myTop + myBottom) / 2;
+  }
 }

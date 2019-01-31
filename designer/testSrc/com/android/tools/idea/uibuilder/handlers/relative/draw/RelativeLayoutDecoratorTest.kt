@@ -350,10 +350,10 @@ DrawResize,191,271,8,8,0
 DrawResize,191,281,8,8,0
 DrawResize,221,271,8,8,0
 DrawResize,221,281,8,8,0
-DrawAnchor,192,277,6,6,0
-DrawAnchor,207,271,6,6,0
-DrawAnchor,222,277,6,6,0
-DrawAnchor,207,283,6,6,0
+DrawAnchor,189,274,12,12,0
+DrawAnchor,204,262,12,12,0
+DrawAnchor,219,274,12,12,0
+DrawAnchor,204,286,12,12,0
 DrawVerticalArrowCommand - (210, 275, 275)
 DrawHorizontalDashedLineCommand: (195, 275) - (275, 275)
 DrawHorizontalArrowCommand - (225, 280, 280)
