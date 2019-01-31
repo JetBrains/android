@@ -83,6 +83,7 @@ import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Lists;
 import com.intellij.build.SyncViewManager;
@@ -588,6 +589,56 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertNotNull(topLevelModule);
     // Verify that GradleFacet is not applied to top-level project.
     assertNull(GradleFacet.getInstance(topLevelModule));
+  }
+
+  public void testAgpVersionPopulated() throws Exception {
+    loadSimpleApplication();
+    for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      // agpVersion is not available for Java modules.
+      if (gradleFacet != null && androidFacet != null) {
+        assertThat(gradleFacet.getConfiguration().LAST_SUCCESSFUL_SYNC_AGP_VERSION)
+          .isEqualTo(BuildEnvironment.getInstance().getGradlePluginVersion());
+        assertThat(gradleFacet.getConfiguration().LAST_KNOWN_AGP_VERSION)
+          .isEqualTo(BuildEnvironment.getInstance().getGradlePluginVersion());
+      }
+    }
+  }
+
+  public void testOnlyLastKnownAgpVersionPopulatedForUnsuccessfulSync() throws Exception {
+    Project project = getProject();
+    // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
+    loadProject(DEPENDENT_MODULES);
+    for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      if (gradleFacet != null) {
+        // Clean any LAST_SUCCESSFUL_SYNC_AGP_VERSION set by initial import.
+        gradleFacet.getConfiguration().LAST_SUCCESSFUL_SYNC_AGP_VERSION = null;
+        gradleFacet.getConfiguration().LAST_KNOWN_AGP_VERSION = null;
+      }
+    }
+
+    File appBuildFile = getBuildFilePath("app");
+    appendToFile(appBuildFile, "\ndependencies { implementation 'bad:bad:bad' }\n");
+
+    try {
+      requestSyncAndWait();
+    }
+    catch (AssertionError expected) {
+      // Sync issues are expected.
+    }
+
+    for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      // agpVersion is not available for Java modules.
+      if (gradleFacet != null && androidFacet != null) {
+        assertThat(gradleFacet.getConfiguration().LAST_SUCCESSFUL_SYNC_AGP_VERSION).isNull();
+        assertThat(gradleFacet.getConfiguration().LAST_KNOWN_AGP_VERSION)
+          .isEqualTo(BuildEnvironment.getInstance().getGradlePluginVersion());
+      }
+    }
   }
 
   // Verify that execute task.
