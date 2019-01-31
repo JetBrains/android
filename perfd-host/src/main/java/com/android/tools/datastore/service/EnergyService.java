@@ -24,17 +24,25 @@ import com.android.tools.datastore.database.EnergyTable;
 import com.android.tools.datastore.energy.BatteryModel;
 import com.android.tools.datastore.poller.EnergyDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
-import com.android.tools.profiler.proto.*;
-import com.android.tools.profiler.proto.EnergyProfiler.*;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.EnergyProfiler;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyEventGroupRequest;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyEventsResponse;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergyRequest;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySamplesResponse;
+import com.android.tools.profiler.proto.EnergyServiceGrpc;
+import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase implements ServicePassThrough {
 
@@ -72,14 +80,14 @@ public class EnergyService extends EnergyServiceGrpc.EnergyServiceImplBase imple
     EnergyServiceGrpc.EnergyServiceBlockingStub energyClient = myService.getEnergyClient(deviceId);
     CpuServiceGrpc.CpuServiceBlockingStub cpuClient = myService.getCpuClient(deviceId);
     NetworkServiceGrpc.NetworkServiceBlockingStub networkClient = myService.getNetworkClient(deviceId);
-    ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerClient = myService.getProfilerClient(deviceId);
+    TransportServiceGrpc.TransportServiceBlockingStub transportClient = myService.getTransportClient(deviceId);
 
-    if (energyClient != null && profilerClient != null) {
+    if (energyClient != null && transportClient != null) {
       responseObserver.onNext(energyClient.startMonitoringApp(request));
       responseObserver.onCompleted();
       long sessionId = request.getSession().getSessionId();
       myRunners
-        .put(sessionId, new EnergyDataPoller(request.getSession(), myBatteryModel, myEnergyTable, profilerClient, cpuClient, networkClient,
+        .put(sessionId, new EnergyDataPoller(request.getSession(), myBatteryModel, myEnergyTable, transportClient, cpuClient, networkClient,
                                              energyClient, myLogService));
       myFetchExecutor.accept(myRunners.get(sessionId));
     }

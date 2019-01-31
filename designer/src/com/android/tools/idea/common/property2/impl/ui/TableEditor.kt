@@ -21,6 +21,8 @@ import com.android.tools.adtui.ptable2.PTableCellRendererProvider
 import com.android.tools.adtui.ptable2.PTableColumn
 import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.adtui.ptable2.PTableItem
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.property2.api.PropertyItem
 import com.android.tools.idea.common.property2.impl.model.TableEditingRequest
 import com.android.tools.idea.common.property2.impl.model.TableLineModelImpl
@@ -64,6 +66,11 @@ class TableEditor(val lineModel: TableLineModelImpl,
       lineModel.selectedItem = item
     }
     HelpSupportBinding.registerHelpKeyActions(component, { lineModel.selectedItem as? PropertyItem })
+
+    // In the properties panel we do not want the table to handle it's own navigation.
+    // Ignore the events and allow the scrollPane created in PropertiesPage to handle the events.
+    component.registerActionKey({}, KeyStrokes.PAGE_UP, "pageUp", { false })
+    component.registerActionKey({}, KeyStrokes.PAGE_DOWN, "pageDown", { false })
   }
 
   private fun handleValueChanged() {

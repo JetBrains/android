@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
@@ -75,8 +76,9 @@ class NavActionManagerTest : NavTestCase() {
   }
 
   fun testAddElement() {
-    val layout = LocalResourceManager.getInstance(myFacet.module)!!.findResourceFiles(
-      ResourceFolderType.LAYOUT).stream().filter { file -> file.name == "activity_main.xml" }.findFirst().get() as XmlFile
+    val resourceFiles =
+        LocalResourceManager.getInstance(myFacet.module)!!.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
+    val layout = resourceFiles.stream().filter { file -> file.name == "activity_main.xml" }.findFirst().get() as XmlFile
     WriteCommandAction.runWriteCommandAction(project) {
       val destinationClass = JavaPsiFacade.getInstance(project).findClass("mytest.navtest.MainActivity",
                                                                           GlobalSearchScope.allScope(project))!!

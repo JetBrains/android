@@ -19,13 +19,10 @@ import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.intellij.util.ui.JBUI
-import java.awt.event.InputEvent
-import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JTextField
-import javax.swing.KeyStroke
 import javax.swing.plaf.UIResource
 import javax.swing.plaf.basic.BasicComboBoxEditor
 
@@ -41,11 +38,13 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : JComboB
     @Suppress("LeakingThis")
     super.setEditor(CommonComboBoxEditor(model, this))
     textField = editor.editorComponent as CommonTextField<*>
-    textField?.registerActionKey({ moveNext() }, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "moveNext")
-    textField?.registerActionKey({ movePrevious() }, KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "movePrevious")
-    textField?.registerActionKey({ moveNextPage() }, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), "moveNextPage")
-    textField?.registerActionKey({ movePreviousPage() }, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), "movePreviousPage")
-    textField?.registerActionKey({ togglePopup() }, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.ALT_DOWN_MASK), "toggle")
+    textField?.registerActionKey({ moveNext() }, KeyStrokes.DOWN, "moveNext")
+    textField?.registerActionKey({ movePrevious() }, KeyStrokes.UP, "movePrevious", { isPopupVisible })
+    textField?.registerActionKey({ moveNextPage() }, KeyStrokes.PAGE_DOWN, "moveNextPage", { isPopupVisible })
+    textField?.registerActionKey({ movePreviousPage() }, KeyStrokes.PAGE_UP, "movePreviousPage", { isPopupVisible })
+    textField?.registerActionKey({ togglePopup() }, KeyStrokes.ALT_DOWN, "toggle")
+    registerActionKey({}, KeyStrokes.PAGE_DOWN, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({}, KeyStrokes.PAGE_UP, "noop", { false }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
 
     setFromModel()
 

@@ -261,7 +261,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     final Project project = env.getProject();
     final boolean forceColdswap = !InstantRunUtils.isInvokedViaHotswapAction(env);
     final boolean instantRunEnabled = InstantRunSettings.isInstantRunEnabled();
-    final AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(project, null, getUniqueID());
+    final AndroidSessionInfo existingSessionInfo = AndroidSessionInfo.findOldSession(project, null, getUniqueID(), env.getExecutionTarget());
 
     stats.setDebuggable(LaunchUtils.canDebugApp(facet));
     stats.setInstantRunEnabled(instantRunEnabled);

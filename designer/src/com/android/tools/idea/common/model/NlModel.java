@@ -55,6 +55,9 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -982,17 +985,35 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                             @NotNull InsertType insertType,
                             @Nullable DesignSurface surface,
                             @Nullable Runnable attributeUpdatingTask) {
-    if (!canAddComponents(toAdd, receiver, before)) {
+    // Make a copy of the components list, as it's not immutable and can be modified/cleared while we're still adding the components.
+    // For instance, NlDropListener#clearDraggedComponents clears the list of components shortly after it passes them to addComponents.
+    ImmutableList<NlComponent> componentsToAdd = ImmutableList.copyOf(toAdd);
+
+    if (!canAddComponents(componentsToAdd, receiver, before)) {
       return;
     }
 
-    NlDependencyManager.Companion.get().addDependencies(
-      toAdd, getFacet(), () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask)
-    );
+    // Add the components in a separate thread as it might end up running network operations to add missing dependencies.
+    ProgressManager.getInstance().run(new Task.Backgroundable(myFacet.getModule().getProject(), "Adding Components...") {
+
+      private boolean myHasDependencies;
+
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        myHasDependencies = NlDependencyManager.Companion.get().addDependencies(componentsToAdd, getFacet());
+      }
+
+      @Override
+      public void onSuccess() {
+        if (myHasDependencies) {
+          // Only add the components if dependencies are added (or if they were already there)
+          addComponentInWriteCommand(componentsToAdd, receiver, before, insertType, surface, attributeUpdatingTask);
+        }
+      }
+    });
   }
 
-  @Nullable
-  private Unit addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
+  private void addComponentInWriteCommand(@NotNull List<NlComponent> toAdd,
                                           @NotNull NlComponent receiver,
                                           @Nullable NlComponent before,
                                           @NotNull InsertType insertType,
@@ -1009,7 +1030,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       notifyModified(ChangeType.ADD_COMPONENTS);
     });
-    return null;
   }
 
   @NotNull

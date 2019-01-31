@@ -31,9 +31,10 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.profilers.perfd.PerfdProxy;
-import com.android.tools.idea.profilers.perfd.ProfilerServiceProxy;
+import com.android.tools.idea.profilers.perfd.ProfilerServiceProxyManager;
+import com.android.tools.idea.profilers.perfd.TransportServiceProxy;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.profiler.proto.Common;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
@@ -54,7 +55,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -184,11 +184,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   private Runnable getDisconnectRunnable(@NotNull String serialNumber) {
     return () -> mySerialToDeviceContextMap.compute(serialNumber, (unused, context) -> {
       assert context != null;
-      PerfdProxy proxy = context.myLastKnownPerfdProxy;
+      TransportProxy proxy = context.myLastKnownTransportProxy;
       if (proxy != null) {
         proxy.disconnect();
       }
-      context.myLastKnownPerfdProxy = null;
+      context.myLastKnownTransportProxy = null;
       return context;
     });
   }
@@ -218,7 +218,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
   private void spawnPerfd(@NonNull IDevice device) {
     mySerialToDeviceContextMap.compute(device.getSerialNumber(), (serial, context) -> {
-      assert context != null && (context.myLastKnownPerfdProxy == null || context.myLastKnownPerfdProxy.getDevice() != device);
+      assert context != null && (context.myLastKnownTransportProxy == null || context.myLastKnownTransportProxy.getDevice() != device);
       context.myLastKnowPerfdThreadfuture = context.myExecutor.submit(new PerfdThread(device, myDataStoreService));
       return context;
     });
@@ -228,7 +228,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     @NotNull private final DataStoreService myDataStore;
     @NotNull private final IDevice myDevice;
     private int myLocalPort;
-    private volatile PerfdProxy myPerfdProxy;
+    private volatile TransportProxy myTransportProxy;
 
     public PerfdThread(@NotNull IDevice device, @NotNull DataStoreService datastore) {
       myDataStore = datastore;
@@ -264,8 +264,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
             boolean[] alreadyExists = new boolean[]{false};
             mySerialToDeviceContextMap.compute(myDevice.getSerialNumber(), (serial, context) -> {
               assert context != null;
-              if (context.myLastKnownPerfdProxy != null) {
-                getLogger().info(String.format("PerfdProxy was already created for device: %s", myDevice));
+              if (context.myLastKnownTransportProxy != null) {
+                getLogger().info(String.format("TransportProxy was already created for device: %s", myDevice));
                 alreadyExists[0] = true;
               }
               return context;
@@ -276,10 +276,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
             try {
               createPerfdProxy();
-              getLogger().info(String.format("PerfdProxy successfully created for device: %s", myDevice));
+              getLogger().info(String.format("TransportProxy successfully created for device: %s", myDevice));
             }
             catch (AdbCommandRejectedException | IOException | TimeoutException e) {
-              getLogger().warn(String.format("PerfdProxy failed for device: %s", myDevice), e);
+              getLogger().warn(String.format("TransportProxy failed for device: %s", myDevice), e);
             }
           }
 
@@ -345,12 +345,14 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
         // Creates a proxy server that the datastore connects to.
         String channelName = myDevice.getSerialNumber();
-        myPerfdProxy = new PerfdProxy(myDevice, perfdChannel, channelName);
-        myPerfdProxy.connect();
+        myTransportProxy = new TransportProxy(myDevice, perfdChannel);
+        ProfilerServiceProxyManager.registerProxies(myTransportProxy);
+        myTransportProxy.initializeProxyServer(channelName);
+        myTransportProxy.connect();
 
         mySerialToDeviceContextMap.compute(myDevice.getSerialNumber(), (serial, context) -> {
           assert context != null;
-          context.myLastKnownPerfdProxy = myPerfdProxy;
+          context.myLastKnownTransportProxy = myTransportProxy;
           return context;
         });
 
@@ -359,10 +361,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
         if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
           myDataStore.connect(Common.Stream.newBuilder()
-                                             .setStreamId(myDataStore.getUniqueStreamId())
-                                             .setType(Common.Stream.Type.DEVICE)
-                                             .setDevice(ProfilerServiceProxy.profilerDeviceFromIDevice(myDevice))
-                                             .build(),
+                                .setStreamId(myDataStore.getUniqueStreamId())
+                                .setType(Common.Stream.Type.DEVICE)
+                                .setDevice(TransportServiceProxy.transportDeviceFromIDevice(myDevice))
+                                .build(),
                               proxyChannel);
         }
         else {
@@ -370,9 +372,9 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         }
       }
       catch (TimeoutException | AdbCommandRejectedException | IOException e) {
-        // If some error happened after PerfdProxy was created, make sure to disconnect it
-        if (myPerfdProxy != null) {
-          myPerfdProxy.disconnect();
+        // If some error happened after TransportProxy was created, make sure to disconnect it
+        if (myTransportProxy != null) {
+          myTransportProxy.disconnect();
         }
         throw e;
       }
@@ -402,7 +404,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
   private static class DeviceContext {
     @NotNull private final ExecutorService myExecutor = new ThreadPoolExecutor(0, 1, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-    @Nullable private PerfdProxy myLastKnownPerfdProxy;
+    @Nullable private TransportProxy myLastKnownTransportProxy;
     @Nullable private Future<?> myLastKnowPerfdThreadfuture;
   }
 }

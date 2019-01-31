@@ -66,6 +66,12 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
   }
 
   @NotNull
+  public ConfigureNewAndroidProjectStepFixture<W> setUseAndroidX(boolean select) {
+    selectCheckBoxWithText("Use AndroidX artifacts", select);
+    return this;
+  }
+
+  @NotNull
   public ConfigureNewAndroidProjectStepFixture<W> setUseOfflineRepo(boolean select) {
     selectCheckBoxWithText("Use offline repo", select);
     return this;

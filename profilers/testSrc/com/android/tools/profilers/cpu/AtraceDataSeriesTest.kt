@@ -19,25 +19,28 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profilers.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.atrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.*
+import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
 class AtraceDataSeriesTest {
+  private val myTimer = FakeTimer()
   private lateinit var myStage: CpuProfilerStage
 
   @Rule
   @JvmField
-  var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", FakeCpuService(), FakeProfilerService())
+  var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", FakeCpuService(), FakeTransportService(myTimer),
+                                      FakeProfilerService(myTimer))
 
   @Before
   fun setup() {
-    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), FakeTimer())
+    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), myTimer)
     myStage = CpuProfilerStage(profilers)
     val parser = AtraceParser(1)
     val capture = parser.parse(CpuProfilerTestUtils.getTraceFile("atrace_processid_1.ctrace"), 2)
@@ -50,64 +53,64 @@ class AtraceDataSeriesTest {
     val series = AtraceDataSeries<CpuProfilerStage.ThreadState>(myStage, { _ -> testSeriesData })
     // Test get exact data.
     var seriesData: List<SeriesData<CpuProfilerStage.ThreadState>> =
-        series.getDataForXRange(
-            Range(
-                TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
-                TimeUnit.MILLISECONDS.toMicros(100).toDouble()
-            )
+      series.getDataForXRange(
+        Range(
+          TimeUnit.MILLISECONDS.toMicros(1).toDouble(),
+          TimeUnit.MILLISECONDS.toMicros(100).toDouble()
         )
+      )
     verifySeriesDataMatches(seriesData, testSeriesData, 0, 10)
 
     // Test no overlap returns one result. This result should be the last.
     seriesData =
-        series.getDataForXRange(
-            Range(
-                TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
-                TimeUnit.MILLISECONDS.toMicros(150).toDouble()
-            )
+      series.getDataForXRange(
+        Range(
+          TimeUnit.MILLISECONDS.toMicros(100).toDouble(),
+          TimeUnit.MILLISECONDS.toMicros(150).toDouble()
         )
+      )
     verifySeriesDataMatches(seriesData, testSeriesData, 9, 10)
 
     // Test trace info starts before series data [xxxx|xx]----| returns only valid overlapped range.
     seriesData =
-        series.getDataForXRange(
-            Range(
-                TimeUnit.MILLISECONDS.toMicros(0).toDouble(),
-                TimeUnit.MILLISECONDS.toMicros(50).toDouble()
-            )
+      series.getDataForXRange(
+        Range(
+          TimeUnit.MILLISECONDS.toMicros(0).toDouble(),
+          TimeUnit.MILLISECONDS.toMicros(50).toDouble()
         )
+      )
     verifySeriesDataMatches(seriesData, testSeriesData, 0, 5)
 
     // Test trace info overlaps end of series data |-----[xx|xxx] returns only data starting at just before 50 up to max data.
     seriesData =
-        series.getDataForXRange(
-            Range(
-                TimeUnit.MILLISECONDS.toMicros(50).toDouble(),
-                TimeUnit.MILLISECONDS.toMicros(150).toDouble()
-            )
+      series.getDataForXRange(
+        Range(
+          TimeUnit.MILLISECONDS.toMicros(50).toDouble(),
+          TimeUnit.MILLISECONDS.toMicros(150).toDouble()
         )
+      )
     verifySeriesDataMatches(seriesData, testSeriesData, 5, 10)
 
     // Test trace info is subset of series data [xxx|xxxx|xx] returns only data within range
     val minUs = TimeUnit.MILLISECONDS.toMicros(50)
     val maxUs = TimeUnit.MILLISECONDS.toMicros(75)
     seriesData =
-        series.getDataForXRange(
-            Range(
-                minUs.toDouble(),
-                maxUs.toDouble()
-            )
+      series.getDataForXRange(
+        Range(
+          minUs.toDouble(),
+          maxUs.toDouble()
         )
+      )
     verifySeriesDataMatches(seriesData, testSeriesData, 5, 8)
 
     // Test last element is returned if we request last bit of data.
     seriesData =
-        series.getDataForXRange(
-            Range(
-                TimeUnit.MILLISECONDS.toMicros(99).toDouble(),
-                TimeUnit.MILLISECONDS.toMicros(100).toDouble()
-            )
+      series.getDataForXRange(
+        Range(
+          TimeUnit.MILLISECONDS.toMicros(99).toDouble(),
+          TimeUnit.MILLISECONDS.toMicros(100).toDouble()
         )
+      )
     verifySeriesDataMatches(seriesData, testSeriesData, 9, 10)
   }
 

@@ -19,19 +19,33 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profiler.proto.Profiler.TimeRequest;
-import com.android.tools.profiler.proto.Profiler.TimeResponse;
+import com.android.tools.profiler.proto.Transport.TimeRequest;
+import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.protobuf3jarjar.ByteString;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerAspect;
+import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.StudioProfiler;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
 import io.grpc.StatusRuntimeException;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -44,6 +58,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 public class MemoryProfiler extends StudioProfiler {
 
@@ -130,7 +145,7 @@ public class MemoryProfiler extends StudioProfiler {
       return;
     }
 
-    TimeResponse timeResponse = myProfilers.getClient().getProfilerClient()
+    TimeResponse timeResponse = myProfilers.getClient().getTransportClient()
       .getCurrentTime(TimeRequest.newBuilder().setStreamId(session.getStreamId()).build());
     long timeNs = timeResponse.getTimestampNs();
     try {
@@ -173,15 +188,15 @@ public class MemoryProfiler extends StudioProfiler {
                              startTimestampEpochMs);
     // Bind the imported session with heap dump data through MemoryClient.
     HeapDumpInfo heapDumpInfo = HeapDumpInfo.newBuilder()
-                                            .setFileName(file.getName())
-                                            .setStartTime(fileCreationTime)
-                                            .setEndTime(fileCreationTime + 1)
-                                            .build();
+      .setFileName(file.getName())
+      .setStartTime(fileCreationTime)
+      .setEndTime(fileCreationTime + 1)
+      .build();
     ImportHeapDumpRequest heapDumpRequest = ImportHeapDumpRequest.newBuilder()
-                                                                 .setSession(session)
-                                                                 .setData(ByteString.copyFrom(bytes))
-                                                                 .setInfo(heapDumpInfo)
-                                                                 .build();
+      .setSession(session)
+      .setData(ByteString.copyFrom(bytes))
+      .setInfo(heapDumpInfo)
+      .build();
     ImportHeapDumpResponse response = myProfilers.getClient().getMemoryClient().importHeapDump(heapDumpRequest);
     // Select the new session
     if (response.getStatus() == ImportHeapDumpResponse.Status.SUCCESS) {
@@ -214,15 +229,15 @@ public class MemoryProfiler extends StudioProfiler {
       .createImportedSession(file.getName(), Common.SessionMetaData.SessionType.MEMORY_CAPTURE, sessionStartTimeNs, sessionEndTimeNs,
                              startTimestampEpochMs);
     AllocationsInfo info = AllocationsInfo.newBuilder()
-                                          .setStartTime(sessionStartTimeNs)
-                                          .setEndTime(sessionEndTimeNs)
-                                          .setLegacy(true)
-                                          .build();
+      .setStartTime(sessionStartTimeNs)
+      .setEndTime(sessionEndTimeNs)
+      .setLegacy(true)
+      .build();
     ImportLegacyAllocationsRequest request = ImportLegacyAllocationsRequest.newBuilder()
-                                                                           .setSession(session)
-                                                                           .setInfo(info)
-                                                                           .setAllocations(LegacyAllocationEventsResponse.newBuilder().setStatus(LegacyAllocationEventsResponse.Status.NOT_READY))
-                                                                           .build();
+      .setSession(session)
+      .setInfo(info)
+      .setAllocations(LegacyAllocationEventsResponse.newBuilder().setStatus(LegacyAllocationEventsResponse.Status.NOT_READY))
+      .build();
     ImportLegacyAllocationsResponse response = myProfilers.getClient().getMemoryClient().importLegacyAllocations(request);
     // Select the new session
     if (response.getStatus() == ImportLegacyAllocationsResponse.Status.SUCCESS) {
@@ -241,13 +256,13 @@ public class MemoryProfiler extends StudioProfiler {
         LegacyAllocationConverter converter = new LegacyAllocationConverter();
         converter.parseDump(bytes);
         LegacyAllocationEventsResponse allocations = LegacyAllocationEventsResponse.newBuilder()
-                                                                                   .setStatus(LegacyAllocationEventsResponse.Status.SUCCESS)
-                                                                                   .addAllEvents(converter.getAllocationEvents(info.getStartTime(), info.getEndTime()))
-                                                                                   .build();
+          .setStatus(LegacyAllocationEventsResponse.Status.SUCCESS)
+          .addAllEvents(converter.getAllocationEvents(info.getStartTime(), info.getEndTime()))
+          .build();
         AllocationContextsResponse contexts = AllocationContextsResponse.newBuilder()
-                                                                        .addAllAllocatedClasses(converter.getClassNames())
-                                                                        .addAllAllocationStacks(converter.getAllocationStacks())
-                                                                        .build();
+          .addAllAllocatedClasses(converter.getClassNames())
+          .addAllAllocationStacks(converter.getAllocationStacks())
+          .build();
         ImportLegacyAllocationsRequest updateRequest = request.toBuilder().setAllocations(allocations).setContexts(contexts).build();
         myProfilers.getClient().getMemoryClient().importLegacyAllocations(updateRequest);
       }
@@ -274,7 +289,7 @@ public class MemoryProfiler extends StudioProfiler {
     Range dataRange = profilers.getTimeline().getDataRange();
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMin());
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMax());
-    List<SeriesData<AllocationSamplingRateDurationData>> series =  samplingSeries.getDataForXRange(new Range(rangeMin, rangeMax));
+    List<SeriesData<AllocationSamplingRateDurationData>> series = samplingSeries.getDataForXRange(new Range(rangeMin, rangeMax));
     return !series.isEmpty();
   }
 

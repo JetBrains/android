@@ -15,6 +15,11 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profilers.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.profilers.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
@@ -22,37 +27,35 @@ import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.network.FakeNetworkService;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
-import static org.junit.Assert.assertEquals;
-
 public class AllocStatsDataSeriesTest {
 
+  private final FakeTimer myTimer = new FakeTimer();
   private final FakeMemoryService myService = new FakeMemoryService();
 
-  private final FakeProfilerService myProfilerService = new FakeProfilerService();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myProfilerService, myService,
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myTransportService, myService,
+                                                                   new FakeProfilerService(myTimer),
                                                                    new FakeEventService(),
                                                                    new FakeCpuService(),
                                                                    new FakeNetworkService.Builder().build());
 
   @Test
   public void testGetDataForXRange() {
-    FakeTimer timer = new FakeTimer();
-    myProfilerService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
-    StudioProfilers studioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
-    studioProfilers.setPreferredProcess(FakeProfilerService.FAKE_DEVICE_NAME, FakeProfilerService.FAKE_PROCESS_NAME, null);
-    timer.tick(TimeUnit.SECONDS.toNanos(1));
+    myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
+    StudioProfilers studioProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
+    studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
 
     MemoryData memoryData = MemoryData.newBuilder()
       .setEndTimestamp(1)

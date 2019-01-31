@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
+<GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetEvents" Class="class com.android.tools.profiler.proto.Transport$GetEventsRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$GetEventsRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/GetEvents</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetEvents" Class="class com.android.tools.profiler.proto.Common$Event">
+        <Message>pid: 1
+kind: PROCESS
+timestamp: 100
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Common$Event</clazz>
+        <functionCalled>profiler.proto.TransportService/GetEvents</functionCalled>
+        <message>pid: 1
+kind: PROCESS
+timestamp: 100
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/Execute" Class="class com.android.tools.profiler.proto.Transport$ExecuteRequest">
+        <Message>command {
+  stream_id: 1234
+  type: BEGIN_SESSION
+  pid: 1
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$ExecuteRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/Execute</functionCalled>
+        <message>command {
+  stream_id: 1234
+  type: BEGIN_SESSION
+  pid: 1
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/Execute" Class="class com.android.tools.profiler.proto.Transport$ExecuteResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$ExecuteResponse</clazz>
+        <functionCalled>profiler.proto.TransportService/Execute</functionCalled>
+        <message></message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/Execute" Class="class com.android.tools.profiler.proto.Transport$ExecuteRequest">
+        <Message>command {
+  stream_id: 1234
+  type: BEGIN_SESSION
+  pid: 1
+}
+</Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$ExecuteRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/Execute</functionCalled>
+        <message>command {
+  stream_id: 1234
+  type: BEGIN_SESSION
+  pid: 1
+}
+</message>
+    </GrpcCall>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/Execute" Class="class com.android.tools.profiler.proto.Transport$ExecuteResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$ExecuteResponse</clazz>
+        <functionCalled>profiler.proto.TransportService/Execute</functionCalled>
+        <message></message>
+    </GrpcCall>
+</GrpcList>

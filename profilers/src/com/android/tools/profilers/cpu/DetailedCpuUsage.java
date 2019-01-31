@@ -41,13 +41,13 @@ public class DetailedCpuUsage extends CpuUsage {
       long streamId = profilers.getSession().getStreamId();
       int pid = profilers.getSession().getPid();
       others = new UnifiedEventDataSeries(
-        profilers.getClient().getProfilerClient(),
+        profilers.getClient().getTransportClient(),
         streamId,
         pid,
         Common.Event.Kind.CPU_USAGE,
         pid,
         events -> extractData(events.stream().map(event -> event.getCpuUsage()).collect(Collectors.toList()), true));
-      threads = new CpuThreadCountDataSeries(profilers.getClient().getProfilerClient(), streamId, pid);
+      threads = new CpuThreadCountDataSeries(profilers.getClient().getTransportClient(), streamId, pid);
     }
     else {
       others =

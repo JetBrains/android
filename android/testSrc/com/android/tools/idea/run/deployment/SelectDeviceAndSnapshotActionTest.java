@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public final class SelectDeviceAndSnapshotActionTest {
-  private ConnectionTimeService myService;
+  private KeyToConnectionTimeMap myMap;
   private DeviceAndSnapshotComboBoxAction myComboBoxAction;
 
   @Before
@@ -36,7 +36,7 @@ public final class SelectDeviceAndSnapshotActionTest {
     Clock clock = Mockito.mock(Clock.class);
     Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
-    myService = new ConnectionTimeService(clock);
+    myMap = new KeyToConnectionTimeMap(clock);
   }
 
   @Before
@@ -44,7 +44,7 @@ public final class SelectDeviceAndSnapshotActionTest {
     myComboBoxAction = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       () -> true,
-      Mockito.mock(AsyncDevicesGetter.class),
+      project -> null,
       Mockito.mock(Clock.class));
   }
 
@@ -55,7 +55,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(ImmutableList.of())
-      .build(null, myService);
+      .build(null, myMap);
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
       .setComboBoxAction(myComboBoxAction)
@@ -72,7 +72,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(VirtualDevice.DEFAULT_SNAPSHOT_COLLECTION)
-      .build(null, myService);
+      .build(null, myMap);
 
     SelectDeviceAndSnapshotAction action = new SelectDeviceAndSnapshotAction.Builder()
       .setComboBoxAction(myComboBoxAction)
@@ -89,7 +89,7 @@ public final class SelectDeviceAndSnapshotActionTest {
       .setKey("Pixel_2_XL_API_28")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshots(ImmutableList.of("snap_2018-08-07_16-27-58"))
-      .build(null, myService);
+      .build(null, myMap);
 
     try {
       new SelectDeviceAndSnapshotAction.Builder()

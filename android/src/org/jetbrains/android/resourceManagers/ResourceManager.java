@@ -22,7 +22,6 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -48,17 +47,12 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class ResourceManager {
-  private interface FileResourceProcessor {
-    void process(@NotNull VirtualFile resFile, @NotNull String resName);
-  }
-
   protected final Project myProject;
 
   protected ResourceManager(@NotNull Project project) {
@@ -69,19 +63,7 @@ public abstract class ResourceManager {
    * Returns the resource repository associated with this resource manager.
    */
   @NotNull
-  public abstract ResourceRepository getResourceRepository();
-
-  /**
-   * Returns all the resource directories for this module <b>and all of its module dependencies</b>
-   * grouped by library name. A null key is used for the library name for system, application
-   * and folder resources.
-   */
-  @NotNull
-  public abstract Collection<VirtualFile> getAllResourceDirs();
-
-  /** Returns all the resource directories for this module only .*/
-  @NotNull
-  public abstract List<VirtualFile> getResourceDirs();
+  protected abstract ResourceRepository getResourceRepository();
 
   /** Returns true if the given directory is a resource directory in this module. */
   public abstract boolean isResourceDir(@NotNull VirtualFile dir);
@@ -89,51 +71,8 @@ public abstract class ResourceManager {
   @Nullable
   public abstract AttributeDefinitions getAttributeDefinitions();
 
-  private void processFileResources(@NotNull Collection<VirtualFile> resDirs,
-                                    @NotNull ResourceFolderType folderType,
-                                    @NotNull FileResourceProcessor processor) {
-    for (VirtualFile resSubdir : AndroidResourceUtil.getResourceSubdirs(folderType, resDirs)) {
-      ResourceFolderType resType = ResourceFolderType.getFolderType(resSubdir.getName());
-
-      if (resType != null) {
-        assert folderType.equals(resType);
-        String resTypeName = resType.getName();
-        for (VirtualFile resFile : resSubdir.getChildren()) {
-          String resName = AndroidCommonUtils.getResourceName(resTypeName, resFile.getName());
-
-          if (!resFile.isDirectory() && isResourcePublic(resTypeName, resName)) {
-            processor.process(resFile, resName);
-          }
-        }
-      }
-    }
-  }
-
   public boolean isResourcePublic(@NotNull String type, @NotNull String name) {
     return true;
-  }
-
-  @NotNull
-  public List<PsiFile> findResourceFiles(@NotNull ResourceFolderType resourceType) {
-    return findResourceFiles(resourceType, null, true, true);
-  }
-
-  @NotNull
-  public List<PsiFile> findResourceFiles(@NotNull ResourceFolderType resourceFolderType,
-                                         @Nullable String nameToLookFor,
-                                         boolean distinguishDelimitersInName,
-                                         boolean withDependencies) {
-    List<PsiFile> result = new ArrayList<>();
-    Collection<VirtualFile> resDirs = withDependencies ? getAllResourceDirs() : getResourceDirs();
-    processFileResources(resDirs, resourceFolderType, (resFile, resName) -> {
-      if (nameToLookFor == null || AndroidUtils.equal(nameToLookFor, resName, distinguishDelimitersInName)) {
-        PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
-        if (file != null) {
-          result.add(file);
-        }
-      }
-    });
-    return result;
   }
 
   @Nullable

@@ -17,7 +17,8 @@ package com.android.tools.profilers.commands
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Profiler
+import com.android.tools.profiler.proto.Transport.Command
+import com.android.tools.profiler.proto.Transport.EventGroup
 
 /**
  * This class handles begin session commands by creating a unique session each time this command is called.
@@ -30,14 +31,13 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
     return attachAgentCalled
   }
 
-  override fun handleCommand(command: Profiler.Command, events: MutableList<Profiler.EventGroup.Builder>) {
+  override fun handleCommand(command: Command, events: MutableList<EventGroup.Builder>) {
     nextSessionId++
     attachAgentCalled = command.beginSession.hasJvmtiConfig() && command.beginSession.jvmtiConfig.attachAgent
     if (attachAgentCalled) {
-      events.add(Profiler.EventGroup.newBuilder().setGroupId(nextSessionId)
+      events.add(EventGroup.newBuilder().setGroupId(nextSessionId)
                    .addEvents(Common.Event.newBuilder().apply {
-                     groupId = nextSessionId
-                     pid = command.beginSession.pid
+                     pid = command.pid
                      kind = Common.Event.Kind.AGENT
                      timestamp = timer.currentTimeNs
                      agentData = Common.AgentData.newBuilder().apply {
@@ -45,17 +45,17 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
                      }.build()
                    }))
     }
-    events.add(Profiler.EventGroup.newBuilder().setGroupId(nextSessionId)
+    events.add(EventGroup.newBuilder().setGroupId(nextSessionId)
                  .addEvents(Common.Event.newBuilder().apply {
                    groupId = nextSessionId
-                   pid = command.beginSession.pid
+                   pid = command.pid
                    kind = Common.Event.Kind.SESSION
                    timestamp = timer.currentTimeNs
                    session = Common.SessionData.newBuilder().apply {
                      sessionStarted = Common.SessionData.SessionStarted.newBuilder().apply {
                        sessionId = nextSessionId
                        streamId = command.streamId
-                       pid = command.beginSession.pid
+                       pid = command.pid
                        startTimestampEpochMs = command.beginSession.requestTimeEpochMs
                        sessionName = command.beginSession.sessionName
                        type = Common.SessionData.SessionStarted.SessionType.FULL

@@ -21,7 +21,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.targets.PlatformTarget;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -216,11 +215,8 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
       case DATA:
         return getLocation() + SdkConstants.OS_PLATFORM_DATA_FOLDER;
       case RESOURCES:
-        if (StudioFlags.ALLOW_FRAMEWORK_RES_JAR.get()) {
-          Preconditions.checkState(myFrameworkResPath != null, "Embedded framework_res.jar not found");
-          return myFrameworkResPath;
-        }
-        return getLocation() + SdkConstants.OS_PLATFORM_RESOURCES_FOLDER;
+        Preconditions.checkState(myFrameworkResPath != null, "Embedded framework_res.jar not found");
+        return myFrameworkResPath;
       case FONTS:
         return getLocation() + SdkConstants.OS_PLATFORM_FONTS_FOLDER;
       default:

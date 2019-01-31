@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
@@ -22,32 +24,31 @@ import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.FakeTransportService;
 import com.android.tools.profilers.StudioProfilers;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import static com.google.common.truth.Truth.assertThat;
-
 public class CpuTraceDataSeriesTest {
 
+  private final FakeTimer myTimer = new FakeTimer();
   private final FakeCpuService myService = new FakeCpuService();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuTraceDataSeriesTest", myService, new FakeProfilerService());
+  public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("CpuTraceDataSeriesTest", myService, new FakeTransportService(myTimer), new FakeProfilerService(myTimer));
 
   private CpuProfilerStage.CpuTraceDataSeries mySeries;
 
   @Before
   public void setUp() throws Exception {
-    FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     // One second must be enough for new devices (and processes) to be picked up
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     CpuProfilerStage stage = new CpuProfilerStage(profilers);
     mySeries = stage.getCpuTraceDataSeries();
   }

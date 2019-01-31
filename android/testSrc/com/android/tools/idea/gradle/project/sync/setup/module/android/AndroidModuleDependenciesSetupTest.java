@@ -259,4 +259,29 @@ public class AndroidModuleDependenciesSetupTest extends IdeaTestCase {
     verify(myLibraryFilePaths).findSourceJarPath(updatedBinaryPath);
     verify(myLibraryFilePaths).findJavadocJarPath(updatedBinaryPath);
   }
+
+  public void testSetUpMultipleLibrariesWithSameName() throws IOException {
+    File path1 = createTempFile("fakeLibrary.jar", "");
+    File path2 = createTempFile("fakeLibrary2.jar", "");
+
+    String libraryName = "Gradle: fakeLibrary";
+    Module module = getModule();
+
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    File[] binaryPaths1 = {path1};
+    File[] binaryPaths2 = {path2};
+
+    // Update library with the same name twice, and make sure there is no "already disposed" exception.
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, path2, binaryPaths1, false);
+    myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, libraryName, COMPILE, path1, binaryPaths2, false);
+
+    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit); // Apply changes before checking state.
+
+    List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
+    assertThat(libraryOrderEntries).hasSize(1); // Only one library should be in the library table.
+
+    Library library = libraryOrderEntries.get(0).getLibrary();
+    // Verify that the classpath is the same with the first library.
+    assertThat(library.getUrls(CLASSES)).asList().containsExactly(pathToIdeaUrl(path1));
+  }
 }

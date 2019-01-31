@@ -15,35 +15,23 @@
  */
 package com.android.tools.idea.profilers.perfd;
 
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.inprocess.InProcessChannelBuilder;
-import org.junit.Test;
-
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.Test;
 
 public class NetworkServiceProxyTest {
   @Test
   public void testBindServiceContainsAllMethods() throws Exception {
-    IDevice mockDevice = mock(IDevice.class);
-    when(mockDevice.getSerialNumber()).thenReturn("Serial");
-    when(mockDevice.getName()).thenReturn("Device");
-    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(1, "API"));
-    when(mockDevice.isOnline()).thenReturn(true);
-    when(mockDevice.getClients()).thenReturn(new Client[0]);
     ManagedChannel channel = InProcessChannelBuilder.forName("NetworkServiceProxyTest").build();
-    NetworkServiceProxy proxy = new NetworkServiceProxy(mockDevice, channel);
+    NetworkServiceProxy proxy = new NetworkServiceProxy(channel);
 
     ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = NetworkServiceGrpc.getServiceDescriptor().getMethods();

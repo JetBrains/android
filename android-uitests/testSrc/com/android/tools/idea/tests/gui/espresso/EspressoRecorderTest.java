@@ -17,11 +17,21 @@ package com.android.tools.idea.tests.gui.espresso;
 
 import com.android.tools.idea.tests.gui.emulator.DeleteAvdsRule;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.emulator.EmulatorGenerator;
-import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.RecordingDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.TestClassNameInputDialogFixture;
 import com.intellij.openapi.util.Ref;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.event.KeyEvent;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
@@ -30,11 +40,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
-
-import java.awt.event.KeyEvent;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class EspressoRecorderTest {
@@ -80,12 +85,8 @@ public class EspressoRecorderTest {
     String avdName = EmulatorGenerator.ensureDefaultAvdIsCreated(ideFrameFixture.invokeAvdManager());
 
     ideFrameFixture
-      .invokeMenuPath("Run", "Record Espresso Test");
-    DeployTargetPickerDialogFixture.find(guiTest.robot())
-      .selectDevice(avdName)
-      .clickOk();
-
-    ideFrameFixture.getDebugToolWindow()
+      .recordEspressoTest(avdName)
+      .getDebugToolWindow()
       .findContent(TEST_RECORDER_APP)
       .waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
 
@@ -122,11 +123,10 @@ public class EspressoRecorderTest {
 
     popupList.get().clickItem("Wrapper[MyActivityTest]");
 
-    DeployTargetPickerDialogFixture.find(guiTest.robot())
+    ideFrameFixture
       .selectDevice(avdName)
-      .clickOk();
-
-    // Wait until tests run completion.
-    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
+      .getRunToolWindow()
+      .findContent(APP_NAME)
+      .waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
   }
 }

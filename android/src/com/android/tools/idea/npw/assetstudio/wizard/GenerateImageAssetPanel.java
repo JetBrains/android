@@ -49,6 +49,7 @@ import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -145,6 +146,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
 
   @NotNull private AndroidModuleTemplate myPaths;
   @NotNull private final IconGenerationProcessor myIconGenerationProcessor = new IconGenerationProcessor();
+  @NotNull private final StringProperty myPreviewRenderingError = new StringValueProperty();
 
   /**
    * Create a panel which can generate Android icons. The supported types passed in will be
@@ -346,6 +348,15 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
         return Validator.Result.OK;
       }
     });
+
+    myValidatorPanel.registerValidator(myPreviewRenderingError, errorMessage -> {
+      if (!errorMessage.isEmpty()) {
+        return new Validator.Result(Validator.Severity.ERROR, errorMessage);
+      }
+      else {
+        return Validator.Result.OK;
+      }
+    });
   }
 
   /**
@@ -428,10 +439,17 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       // Update the icon type specific output preview panel with the new preview images
       myOutputPreviewPanels.get(iconType).showPreviewImages(iconGeneratorResult);
 
-      // Update the current preview panel only if the icon type has not changed since
-      // the request was enqueued.
+      // Update the current preview panel only if the icon type has not changed since the request was enqueued.
       if (Objects.equals(iconType, myOutputIconType.get())) {
         updateOutputPreviewPanel();
+
+        Collection<String> errors = iconGeneratorResult.getErrors();
+        String errorMessage = errors.isEmpty() ?
+                              "" :
+                              errors.size() == 1 ?
+                              "Preview rendering error: " + Iterables.getOnlyElement(errors) :
+                              "Icon preview was rendered with errors";
+        myPreviewRenderingError.set(errorMessage);
       }
     });
   }

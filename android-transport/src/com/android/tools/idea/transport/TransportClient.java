@@ -15,12 +15,27 @@
  */
 package com.android.tools.idea.transport;
 
+import com.android.tools.profiler.proto.TransportServiceGrpc;
+import io.grpc.ManagedChannel;
+import io.grpc.inprocess.InProcessChannelBuilder;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Wrapper that represents a client connected to a channel via the input |channelName|.
  */
 public class TransportClient {
 
-  public TransportClient(String channelName) {
+  @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myBlockingStub;
+
+  public TransportClient(String name) {
+    // Optimization - In-process direct-executor channel which allows us to communicate between the profiler and perfd-host without
+    // going through the thread pool. This gives us a speed boost per grpc call plus the full caller's stack in perfd-host.
+    ManagedChannel channel = InProcessChannelBuilder.forName(name).usePlaintext(true).directExecutor().build();
+    myBlockingStub = TransportServiceGrpc.newBlockingStub(channel);
   }
 
+  @NotNull
+  public TransportServiceGrpc.TransportServiceBlockingStub getBlockingStub() {
+    return myBlockingStub;
+  }
 }

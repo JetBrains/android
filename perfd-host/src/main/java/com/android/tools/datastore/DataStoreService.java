@@ -100,8 +100,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   private final Consumer<Runnable> myFetchExecutor;
   @NotNull
   private Consumer<Throwable> myNoPiiExceptionHanlder;
-
-  private ProfilerService myProfilerService;
+  private TransportService myTransportService;
   @NotNull
   private NativeSymbolizer myNativeSymbolizer = new NopSymbolizer();
   private final ServerInterceptor myInterceptor;
@@ -166,8 +165,9 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    myProfilerService = new ProfilerService(this, myFetchExecutor, myLogService);
-    registerService(myProfilerService);
+    myTransportService = new TransportService(this, myFetchExecutor, myLogService);
+    registerService(myTransportService);
+    registerService(new ProfilerService(this, myLogService));
     registerService(new EventService(this, myFetchExecutor));
     registerService(new CpuService(this, myFetchExecutor, myLogService));
     registerService(new MemoryService(this, myFetchExecutor, myLogService));
@@ -214,7 +214,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    * @param channel communication channel for the datastore to connect to perfd on.
    */
   public void connect(@NotNull ManagedChannel channel) {
-    myProfilerService.startMonitoring(channel);
+    myTransportService.startMonitoring(channel);
   }
 
   /**
@@ -225,7 +225,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    */
   public void connect(@NotNull Common.Stream stream, @NotNull ManagedChannel channel) {
     assert stream.getStreamId() != 0;
-    myProfilerService.startPolling(stream, channel);
+    myTransportService.startPolling(stream, channel);
   }
 
   public long getUniqueStreamId() {
@@ -254,7 +254,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     if (myConnectedClients.containsKey(deviceId)) {
       DataStoreClient client = myConnectedClients.remove(deviceId);
       client.shutdownNow();
-      myProfilerService.stopMonitoring(client.getChannel());
+      myTransportService.stopMonitoring(client.getChannel());
     }
   }
 
@@ -305,6 +305,10 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getProfilerClient() : null;
   }
 
+  public TransportServiceGrpc.TransportServiceBlockingStub getTransportClient(@NotNull DeviceId deviceId) {
+    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getTransportClient() : null;
+  }
+
   @Override
   public void onDataStoreError(Throwable t) {
     myNoPiiExceptionHanlder.accept(t);
@@ -315,6 +319,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    */
   private static class DataStoreClient {
     @NotNull private final Channel myChannel;
+    @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportClient;
     @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
     @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
     @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
@@ -324,6 +329,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
 
     public DataStoreClient(@NotNull Channel channel) {
       myChannel = channel;
+      myTransportClient = TransportServiceGrpc.newBlockingStub(channel);
       myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
       myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
       myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
@@ -335,6 +341,11 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     @NotNull
     public Channel getChannel() {
       return myChannel;
+    }
+
+    @NotNull
+    public TransportServiceGrpc.TransportServiceBlockingStub getTransportClient() {
+      return myTransportClient;
     }
 
     @NotNull

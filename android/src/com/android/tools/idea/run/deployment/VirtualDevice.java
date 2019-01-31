@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.emulator.SnapshotOuterClass.Snapshot;
 import com.android.sdklib.AndroidVersion;
@@ -26,6 +25,7 @@ import com.android.tools.idea.run.ConnectedAndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.runners.ExecutionUtil;
@@ -39,6 +39,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -76,12 +77,15 @@ final class VirtualDevice extends Device {
     }
 
     try (Stream<Path> stream = Files.list(snapshots)) {
+      @SuppressWarnings("UnstableApiUsage")
+      Collector<String, ?, ImmutableList<String>> collector = ImmutableList.toImmutableList();
+
       return stream
         .filter(Files::isDirectory)
         .map(VirtualDevice::getName)
         .filter(Objects::nonNull)
         .sorted()
-        .collect(ImmutableList.toImmutableList());
+        .collect(collector);
     }
     catch (IOException exception) {
       Logger.getInstance(VirtualDevice.class).warn(snapshots.toString(), exception);
@@ -166,13 +170,13 @@ final class VirtualDevice extends Device {
 
     @NotNull
     @Override
-    VirtualDevice build(@Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service) {
-      return new VirtualDevice(this, checker, service);
+    VirtualDevice build(@Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map) {
+      return new VirtualDevice(this, checker, map);
     }
   }
 
-  private VirtualDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull ConnectionTimeService service) {
-    super(builder, checker, service);
+  private VirtualDevice(@NotNull Builder builder, @Nullable LaunchCompatibilityChecker checker, @NotNull KeyToConnectionTimeMap map) {
+    super(builder, checker, map);
 
     myConnected = builder.myConnected;
     mySnapshots = builder.mySnapshots;

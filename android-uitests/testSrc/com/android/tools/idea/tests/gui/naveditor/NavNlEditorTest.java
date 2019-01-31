@@ -287,6 +287,7 @@ public class NavNlEditorTest {
       .assertCanInteractWithSurface();
   }
 
+  @RunIn(TestGroup.UNRELIABLE)  // b/123521236
   @Test
   public void testKeyMappings() throws Exception {
     IdeFrameFixture frame = guiTest.importProject("Navigation");

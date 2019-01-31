@@ -19,7 +19,14 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.ProfilersTestData
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -29,14 +36,13 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 
 class CpuThreadsTooltipViewTest {
-  private var timer: FakeTimer = FakeTimer()
-  private var cpuService = FakeCpuService()
-  private val fakeProfilerService = FakeProfilerService()
+  private val timer = FakeTimer()
+  private val cpuService = FakeCpuService()
   private lateinit var cpuStage: CpuProfilerStage
   private lateinit var cpuThreadsTooltip: CpuThreadsTooltip
   private lateinit var cpuThreadsTooltipView: FakeCpuThreadsTooltipView
   @get:Rule
-  val myGrpcChannel = FakeGrpcChannel("CpuThreadsTooltipViewTest", cpuService, fakeProfilerService)
+  val myGrpcChannel = FakeGrpcChannel("CpuThreadsTooltipViewTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer))
 
   @Before
   fun setUp() {

@@ -1,0 +1,110 @@
+Histogram. Top 50 by instance count (Note: counts/bytes include soft-ref objects):
+    1:            3451          248900 char[]
+    2:            3435           96180 java.lang.String
+    3:             711           12204 java.lang.Class
+    4:             632           64272 java.lang.Object[]
+    5:             622           37320 java.util.LinkedHashMap$Entry
+    6:             425          134550 byte[]
+    7:             358           15752 java.util.HashMap$Node
+    8:             290           21288 java.lang.String[]
+    9:             256            5120 java.lang.Integer
+   10:             157            6908 java.util.Hashtable$Entry
+   11:             136            7948 int[]
+   12:             109           12317 java.lang.reflect.Field
+   13:             106            5936 java.lang.ref.SoftReference
+   14:             105            4620 java.util.concurrent.ConcurrentHashMap$Node
+   15:              84            1344 java.lang.Object
+   16:              74            8288 java.net.URL
+   17:              48            3072 java.lang.ref.Finalizer
+   18:              39            2496 sun.util.locale.LocaleObjectCache$CacheEntry
+   19:              37            1961 java.io.ObjectStreamField
+   20:              35            3115 sun.misc.URLClassPath$JarLoader
+   21:              34            1088 java.io.ExpiringCache$Entry
+   22:              32            2048 java.util.HashMap
+   23:              24           16640 java.util.HashMap$Node[]
+   24:              24             384 java.lang.ref.ReferenceQueue$Lock
+   25:              23            2116 java.lang.Class$ReflectionData
+   26:              22             880 java.lang.ref.ReferenceQueue
+   27:              22            2684 java.lang.reflect.Constructor
+   28:              21            2100 java.util.concurrent.ConcurrentHashMap
+   29:              21             588 java.util.jar.Attributes$Name
+   30:              19             684 java.util.Locale$LocaleKey
+   31:              19             836 java.util.Locale
+   32:              19            1007 sun.util.locale.BaseLocale$Key
+   33:              19             988 sun.util.locale.BaseLocale
+   34:              17            1309 sun.nio.cs.UTF_8$Encoder
+   35:              16             368 java.lang.Class[]
+   36:              16            3840 java.util.concurrent.ConcurrentHashMap$Node[]
+   37:              15            2160 java.util.WeakHashMap$Entry[]
+   38:              15            1080 java.util.WeakHashMap
+   39:              15             660 java.io.File
+   40:              14             350 sun.misc.MetaIndex
+   41:              14             448 java.util.ArrayList
+   42:              13             884 java.security.AccessControlContext
+   43:              13             741 java.util.zip.ZipFile$ZipFileInputStream
+   44:              13             504 java.io.ObjectStreamField[]
+   45:              12             588 java.util.zip.ZipCoder
+   46:              12             384 java.util.ArrayDeque
+   47:              12            1080 java.util.jar.JarFile
+   48:              11             396 sun.reflect.NativeConstructorAccessorImpl
+   49:              11             264 java.lang.reflect.Constructor[]
+   50:              11             264 sun.reflect.DelegatingConstructorAccessorImpl
+[...removed 228 lines...]
+Total:           12115          775595 278 classes (Total instances: 12115)
+
+Top 10 by bytes count:
+    2:            3451          248900 char[]
+    3:             425          134550 byte[]
+    4:            3435           96180 java.lang.String
+    5:             632           64272 java.lang.Object[]
+    6:             622           37320 java.util.LinkedHashMap$Entry
+    7:             290           21288 java.lang.String[]
+    8:              24           16640 java.util.HashMap$Node[]
+    9:             358           15752 java.util.HashMap$Node
+   10:             109           12317 java.lang.reflect.Field
+   11:             711           12204 java.lang.Class
+
+Nominated classes:
+ --> 425 byte[] (0MB)
+ --> 3451 char[] (0MB)
+ --> 3435 java.lang.String (0MB)
+ --> 35 sun.misc.URLClassPath$JarLoader (0MB)
+ --> 39 sun.util.locale.LocaleObjectCache$CacheEntry (0MB)
+
+=============== OBJECT GRAPH ===============
+Roots count: 1172
+Classes count: 702
+
+CLASS: byte[] (422 objects)
+ROOT: Static field: sun.util.calendar.ZoneInfoFile.ruleArray: 385 objects (91%)
+       385  91%          1 byte[][]
+       385  91%        385 byte[]
+
+CLASS: java.lang.String (1916 objects)
+ROOT: Static field: sun.util.calendar.ZoneInfoFile.regions: 600 objects (31%)
+       600  31%          1 java.lang.String[]
+       600  31%        600 java.lang.String
+
+CLASS: char[] (1932 objects)
+ROOT: Static field: sun.util.calendar.ZoneInfoFile.regions: 600 objects (31%)
+       600  31%          1 java.lang.String[]
+       600  31%        600 java.lang.String
+       600  31%        600 char[]
+
+CLASS: sun.util.locale.LocaleObjectCache$CacheEntry (39 objects)
+ROOT: Static field: java.util.Locale.LOCALECACHE: 19 objects (48%)
+        19  48%          1 java.util.Locale$Cache
+        19  48%          1 java.util.concurrent.ConcurrentHashMap
+        19  48%          1 java.util.concurrent.ConcurrentHashMap$Node[]
+        19  48%         16 java.util.concurrent.ConcurrentHashMap$Node
+        16  41%         16 sun.util.locale.LocaleObjectCache$CacheEntry
+
+CLASS: sun.misc.URLClassPath$JarLoader (35 objects)
+ROOT: Static field: java.util.ResourceBundle$RBClassLoader.loader: 30 objects (85%)
+        30  85%          1 sun.misc.Launcher$AppClassLoader
+        20  57%          1 sun.misc.URLClassPath
+        20  57%          1 java.util.ArrayList
+        20  57%          1 java.lang.Object[]
+        20  57%         20 sun.misc.URLClassPath$JarLoader
+============== DISPOSER TREE ===============
+============= DISPOSED OBJECTS =============

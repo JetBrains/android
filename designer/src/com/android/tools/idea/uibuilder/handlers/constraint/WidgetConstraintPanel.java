@@ -162,7 +162,8 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
    * This loads the parameters form component the ConstraintWidget
    */
   private void configureUI() {
-    if (myWidgetModel.getComponent() == null) {
+    NlComponent component = myWidgetModel.getComponent();
+    if (component == null) {
       return;
     }
 
@@ -181,6 +182,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     if (showHorizontalSlider) {
       float bias = myWidgetModel.getHorizontalBias();
       mHorizontalSlider.setValue((int)(bias * 100));
+      mHorizontalSlider.setInverted(ConstraintUtilities.isInRTL(component));
     }
 
     if (showVerticalSlider) {
@@ -207,7 +209,7 @@ public class WidgetConstraintPanel extends AdtSecondaryPanel implements CustomPa
     private static final JBDimension THUMB_SIZE = JBUI.size(18);
     private static final int TRACK_THICKNESS = JBUI.scale(5);
     private static final int ARC_SIZE = JBUI.scale(2);
-    private static final int SLIDER_LENGTH = 120;
+    private static final int SLIDER_LENGTH = JBUI.scale(120);
     private static final Dimension V_SIZE = new Dimension(THUMB_SIZE.width, SLIDER_LENGTH);
     private static final Dimension H_SIZE = new Dimension(SLIDER_LENGTH, THUMB_SIZE.height);
     @NotNull private static Font SMALL_FONT = new Font("Helvetica", Font.PLAIN, JBUI.scaleFontSize(10));

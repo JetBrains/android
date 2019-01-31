@@ -103,7 +103,6 @@ import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -488,7 +487,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
   private static void prepareResourceFileRenaming(PsiFile file, String newName, Map<PsiElement, String> allRenames, AndroidFacet facet) {
     Project project = file.getProject();
-    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
+    LocalResourceManager manager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
     ResourceFolderType type = manager.getFileResourceFolderType(file);
     if (type == null) return;
     String name = file.getName();
@@ -497,7 +496,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       return;
     }
 
-    List<PsiFile> resourceFiles = manager.findResourceFiles(type, AndroidCommonUtils.getResourceName(type.getName(), name), true, false);
+    Collection<PsiFile> resourceFiles = manager.findResourceFiles(ResourceNamespace.TODO(), type, AndroidCommonUtils.getResourceName(type.getName(), name), true, false);
     List<PsiFile> alternativeResources = new ArrayList<>();
     for (PsiFile resourceFile : resourceFiles) {
       if (!resourceFile.getManager().areElementsEquivalent(file, resourceFile) && resourceFile.getName().equals(name)) {

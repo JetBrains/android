@@ -18,7 +18,11 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profilers.*
+import com.android.tools.profilers.FakeGrpcChannel
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
+import com.android.tools.profilers.FakeTransportService
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -33,6 +37,7 @@ import org.junit.rules.ExpectedException
 class CpuCaptureSessionArtifactTest {
 
   private val myCpuService = FakeCpuService()
+  private val myTimer = FakeTimer()
 
   @get:Rule
   val myThrown = ExpectedException.none()
@@ -40,7 +45,8 @@ class CpuCaptureSessionArtifactTest {
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel(
     "CpuCaptureSessionArtifactTestChannel",
-    FakeProfilerService(false),
+    FakeTransportService(myTimer, false),
+    FakeProfilerService(myTimer),
     FakeMemoryService(),
     myCpuService,
     FakeEventService(),
@@ -53,7 +59,7 @@ class CpuCaptureSessionArtifactTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), FakeTimer())
+    val profilers = StudioProfilers(myGrpcChannel.client, FakeIdeProfilerServices(), myTimer)
     mySessionsManager = profilers.sessionsManager
     mySessionsManager.createImportedSession("fake.trace", Common.SessionMetaData.SessionType.CPU_CAPTURE, 0, 0, 0)
     mySessionsManager.update()

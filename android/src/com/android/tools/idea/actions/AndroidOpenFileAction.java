@@ -17,14 +17,12 @@ package com.android.tools.idea.actions;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.fileTypes.profiler.AndroidProfilerCaptureFileType;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.util.FileExtensions;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
@@ -37,16 +35,19 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.platform.PlatformProjectOpenProcessor;
 import com.intellij.projectImport.ProjectAttachProcessor;
+import java.util.EnumSet;
+import java.util.List;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
 import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
 import static com.intellij.ide.actions.OpenFileAction.openFile;
-import static com.intellij.ide.impl.ProjectUtil.*;
+import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
+import static com.intellij.ide.impl.ProjectUtil.confirmOpenNewProject;
+import static com.intellij.ide.impl.ProjectUtil.focusProjectWindow;
+import static com.intellij.ide.impl.ProjectUtil.openOrImport;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor;
 import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpenedFile;
@@ -155,22 +156,16 @@ public class AndroidOpenFileAction extends DumbAwareAction {
     }
   }
 
+  private static boolean canOpenAsExistingProject(VirtualFile file) {
+    return FileExtensions.toVirtualFile(FileExtensions.toPathString(file).resolve(Project.DIRECTORY_STORE_FOLDER), true) != null;
+  }
+
   private static boolean openOrImportProject(@NotNull VirtualFile file, @Nullable Project project) {
-    if (canImportAsGradleProject(file)) {
+    if (!canOpenAsExistingProject(file) && canImportAsGradleProject(file)) {
       VirtualFile target = findImportTarget(file);
       if (target != null) {
-        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        if (openProjects.length > 0) {
-          int exitCode = confirmOpenNewProject(false);
-          if (exitCode == GeneralSettings.OPEN_PROJECT_SAME_WINDOW) {
-            Project toClose = ((project != null) && !project.isDefault()) ? project : openProjects[openProjects.length - 1];
-            if (!closeAndDispose(toClose)) {
-              return false;
-            }
-          }
-          else if (exitCode != GeneralSettings.OPEN_PROJECT_NEW_WINDOW) {
-            return false;
-          }
+        if (!promptToCloseIfNecessary(project)) {
+          return false;
         }
 
         GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
@@ -184,6 +179,24 @@ public class AndroidOpenFileAction extends DumbAwareAction {
       return true;
     }
     return false;
+  }
+
+  private static boolean promptToCloseIfNecessary(@Nullable Project project) {
+    boolean success = true;
+    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+    if (openProjects.length > 0) {
+      int exitCode = confirmOpenNewProject(false);
+      if (exitCode == GeneralSettings.OPEN_PROJECT_SAME_WINDOW) {
+        Project toClose = ((project != null) && !project.isDefault()) ? project : openProjects[openProjects.length - 1];
+        if (!closeAndDispose(toClose)) {
+          success = false;
+        }
+      }
+      else if (exitCode != GeneralSettings.OPEN_PROJECT_NEW_WINDOW) {
+        success = false;
+      }
+    }
+    return success;
   }
 
   /**

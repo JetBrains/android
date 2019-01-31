@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
+import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
@@ -31,6 +32,7 @@ import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
+import org.jetbrains.annotations.Nullable;
 
 public class MarginPopup extends JPanel {
   private JBTextField myTextField = new JBTextField();
@@ -39,9 +41,14 @@ public class MarginPopup extends JPanel {
   private int[] myHistoryValues = {-1, -1, -1, -1};
   ActionListener myListener;
   private int myValue = 8;
+  private JBPopup myPopup;
 
   public int getValue() {
     return myValue;
+  }
+
+  public void setPopup(@Nullable JBPopup popup) {
+    myPopup = popup;
   }
 
   private ActionListener myDefaultListener = new ActionListener() {
@@ -62,7 +69,9 @@ public class MarginPopup extends JPanel {
       if (myListener != null) {
         myListener.actionPerformed(e);
       }
-      SwingUtilities.getWindowAncestor(MarginPopup.this).setVisible(false);
+      if (myPopup != null) {
+        myPopup.cancel();
+      }
     }
   };
 

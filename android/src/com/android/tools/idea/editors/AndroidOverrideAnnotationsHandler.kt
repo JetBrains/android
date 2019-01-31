@@ -31,13 +31,19 @@ class AndroidOverrideAnnotationsHandler : OverrideImplementsAnnotationsHandler {
       "android.support.annotation.NonNull",
       "android.support.annotation.Nullable",
       "androidx.annotation.RecentlyNonNull",
-      "androidx.annotation.RecentlyNullable")
+      "androidx.annotation.RecentlyNullable",
+      "android.annotation.NonNull",
+      "android.annotation.Nullable")
   }
 
   override fun cleanup(source: PsiModifierListOwner, targetClass: PsiElement?, target: PsiModifierListOwner) {
     // Rename @RecentlyX annotations to @X
     rename(target, "androidx.annotation.RecentlyNullable", "androidx.annotation.Nullable")
     rename(target, "androidx.annotation.RecentlyNonNull", "androidx.annotation.NonNull")
+    // Also, android.annotation.X maps to androidx.annotation.X: the android.annotations are hidden
+    // but part of android.jar rather than the support library, though hidden from app developers
+    rename(target, "android.annotation.Nullable", "androidx.annotation.Nullable")
+    rename(target, "android.annotation.NonNull", "androidx.annotation.NonNull")
   }
 
   private fun rename(target: PsiModifierListOwner, old: String, new: String) {

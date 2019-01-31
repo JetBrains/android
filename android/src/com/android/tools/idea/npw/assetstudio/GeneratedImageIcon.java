@@ -23,37 +23,14 @@ import org.jetbrains.annotations.Nullable;
 
 /** A {@link GeneratedIcon} that is defined by a {@link BufferedImage} at a given density. */
 public class GeneratedImageIcon extends GeneratedIcon {
-  @NotNull private final String name;
-  @Nullable private final PathString outputPath;
-  @NotNull private final IconCategory category;
   @NotNull private final Density density;
   @NotNull private final BufferedImage image;
 
   public GeneratedImageIcon(@NotNull String name, @Nullable PathString outputPath, @NotNull IconCategory category, @NotNull Density density,
                             @NotNull BufferedImage image) {
-    this.name = name;
-    this.outputPath = outputPath;
-    this.category = category;
+    super(name, outputPath, category);
     this.density = density;
     this.image = image;
-  }
-
-  @Override
-  @NotNull
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  @Nullable
-  public PathString getOutputPath() {
-    return outputPath;
-  }
-
-  @Override
-  @NotNull
-  public IconCategory getCategory() {
-    return category;
   }
 
   @NotNull

@@ -18,15 +18,11 @@ package org.jetbrains.android.resourceManagers;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.xml.ConvertContext;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -45,7 +41,7 @@ public class FrameworkResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  public ResourceRepository getResourceRepository() {
+  protected ResourceRepository getResourceRepository() {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
     assert repositoryManager != null;
     ResourceRepository frameworkResources = repositoryManager.getFrameworkResources(false);
@@ -64,13 +60,6 @@ public class FrameworkResourceManager extends ResourceManager {
     return !myPublicOnly || platform.getSdkData().getTargetData(platform.getTarget()).isResourcePublic(type, name);
   }
 
-  @Override
-  @NotNull
-  public Collection<VirtualFile> getAllResourceDirs() {
-    VirtualFile resDir = getResourceDir();
-    return resDir == null ? ImmutableList.of() : ImmutableList.of(resDir);
-  }
-
   @Nullable
   private VirtualFile getResourceDir() {
     AndroidPlatform platform = getPlatform();
@@ -85,13 +74,6 @@ public class FrameworkResourceManager extends ResourceManager {
   @Override
   public boolean isResourceDir(@NotNull VirtualFile dir) {
     return dir.equals(getResourceDir());
-  }
-
-  @Override
-  @NotNull
-  public List<VirtualFile> getResourceDirs() {
-    VirtualFile dir = getResourceDir();
-    return dir != null ? Collections.singletonList(dir) : Collections.emptyList();
   }
 
   @Nullable

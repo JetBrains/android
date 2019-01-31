@@ -128,7 +128,7 @@ class NelePropertiesProvider(private val facet: AndroidFacet): PropertiesProvide
       var combinedProperties: Table<String, String, NelePropertyItem>? = null
       for (component in components) {
         val tag = component.tag
-        if (!tag.isValid) {
+        if (!component.backend.isValid()) {
           return emptyTable
         }
 

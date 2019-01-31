@@ -16,7 +16,7 @@
 <component xmlns="http://jetbrains.org/intellij/schema/application-info"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://jetbrains.org/intellij/schema/application-info http://jetbrains.org/intellij/schema/ApplicationInfo.xsd">
-  <version major="3" minor="5" micro="0" patch="2" full="{0}.{1} Canary 3" eap="true" />
+  <version major="3" minor="5" micro="0" patch="3" full="{0}.{1} Canary 4" eap="true" />
   <company name="Google" url="http://developer.android.com"/>
   <build number="__BUILD_NUMBER__" date="__BUILD_DATE__"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="cccccc" progressY="268" progressTailIcon="/artwork/studio_progress_tail.png"/>
@@ -36,7 +36,7 @@
 
   <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://developer.android.com/r/studio-ui/menu-start.html"/>
-  <feedback url="https://issuetracker.google.com/issues/new?component=192708&amp;template=840533&amp;description=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read https://developer.android.com/studio/report-bugs.html carefully and supply all required information." />
+  <feedback url="https://issuetracker.google.com/issues/new?component=192708&amp;template=840533&amp;description=Build: __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read https://developer.android.com/studio/report-bugs.html carefully and supply all required information." />
   <whatsnew url="https://developer.android.com/r/studio-ui/menu-whats-new.html"/>
   <keymap win="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
           mac="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf"/>

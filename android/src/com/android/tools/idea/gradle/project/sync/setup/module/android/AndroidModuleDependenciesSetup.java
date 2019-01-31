@@ -140,12 +140,18 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
    * Check if the cached Library instance is still valid, by comparing the cached classes url and the current
    * binary url. This can be false if a library is recompiled with updated sources but the same version, in which
    * case the artifact will be exploded to a different directory.
-   *
-   * This check needs to operate on the Library.ModifiableModel as it is possible that the library has already been created for another
-   * module during the current sync. In this case the Library objects will not have the un-committed roots visible, this causes us to
-   * recreate the library multiple times and leads to a "already disposed" exception when committing the models.
+   * <p>
+   * If the library has already been created for another module during the current sync, treat library as valid,
+   * because recreating it leads to "already disposed" exception when committing the models. Although the library
+   * might have different binary paths due to different classpath in modules, using the previous path works because
+   * it was returned by the same Gradle Sync invocation.
    */
   private static boolean isLibraryValid(@NotNull Library.ModifiableModel library, @NotNull File[] binaryPaths) {
+    // The same library model has been setup by previous module. Don't recreate the library to avoid "already disposed" error.
+    if (library.isChanged()) {
+      return true;
+    }
+
     String[] cachedUrls = library.getUrls(CLASSES);
 
     if (cachedUrls.length != binaryPaths.length) {

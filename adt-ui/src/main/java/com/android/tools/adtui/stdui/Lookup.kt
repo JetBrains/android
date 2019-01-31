@@ -113,6 +113,9 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
     }
   }
 
+  val enabled: Boolean
+    get() = isVisible && filteredModel.size > 0
+
   fun selectFirst() {
     if (filteredModel.size > 0) {
       ui.semiFocused = true
