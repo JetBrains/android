@@ -32,7 +32,7 @@ class AndroidDataSource extends LocalDataSource implements ModificationTracker {
   private State myState = new State();
 
   AndroidDataSource() {
-    super("", "org.sqlite.JDBC", "", null, null);
+    setDriverClass("org.sqlite.JDBC");
   }
 
   @NotNull
