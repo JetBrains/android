@@ -16,15 +16,34 @@
 
 package com.android.tools.idea.startup;
 
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.psi.codeStyle.CodeStyleScheme;
+import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.JavaCodeStyleSettings;
 import com.intellij.psi.codeStyle.PackageEntry;
 import com.intellij.psi.codeStyle.PackageEntryTable;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidCodeStyleSettings {
+  @NonNls public static final String CONFIG_V1 = "AndroidCodeStyleSettings.V1";
+
   private AndroidCodeStyleSettings() {}
+
+  public static void initializeDefaults(@NotNull PropertiesComponent propertiesComponent) {
+    if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
+      propertiesComponent.setValue(CONFIG_V1, "true");
+      CodeStyleSchemes schemes = CodeStyleSchemes.getInstance();
+      CodeStyleScheme scheme = schemes.getDefaultScheme();
+
+      if (scheme != null) {
+        modify(scheme.getCodeStyleSettings());
+      }
+    }
+  }
 
   public static void modify(CodeStyleSettings settings) {
     // Use Android XML formatter by default
