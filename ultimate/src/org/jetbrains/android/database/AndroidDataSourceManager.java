@@ -88,7 +88,7 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
   @NotNull
   @Override
   public AndroidDataSource copyDataSource(@NotNull String newName, @NotNull AndroidDataSource copyFrom) {
-    AndroidDataSource result = copyFrom.copy();
+    AndroidDataSource result = copyFrom.copy(false);
     result.setName(newName);
     result.resolveDriver();
     return result;

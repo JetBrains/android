@@ -121,8 +121,9 @@ class AndroidDataSource extends LocalDataSource implements ModificationTracker {
 
   @Override
   @NotNull
-  public AndroidDataSource copy() {
+  public AndroidDataSource copy(boolean temporary) {
     AndroidDataSource newSource = new AndroidDataSource();
+    newSource.myTemporary = temporary;
     newSource.setName(getName());
     newSource.setDatabaseDriver(getDatabaseDriver());
     State newState = newSource.getState();
