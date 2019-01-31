@@ -101,12 +101,6 @@ public class ThemeMenuAction extends DropDownAction {
   }
 
   @Override
-  protected boolean hasDropDownArrow() {
-    // Calculating themes can be expensive and we know that there is always more than one so always display the dropdown arrow
-    return true;
-  }
-
-  @Override
   protected boolean updateActions() {
     removeAll();
     addThemeActions();
