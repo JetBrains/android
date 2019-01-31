@@ -312,7 +312,7 @@ filegroup(
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [
-            "//tools/base/deploy/installer:android",
+            "//tools/base/deploy/installer:android-installer",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
     }) + ["//tools/base/deploy/deployer:java_version"],
