@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.projectsystem
 
-import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.extensions.ProjectExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -93,7 +93,7 @@ interface AndroidProjectSystem {
   fun getSyncManager(): ProjectSystemSyncManager
 }
 
-val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
+val EP_NAME = ProjectExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")
 
 /**
  * Returns the instance of {@link AndroidProjectSystem} that applies to the given {@link Project}.
