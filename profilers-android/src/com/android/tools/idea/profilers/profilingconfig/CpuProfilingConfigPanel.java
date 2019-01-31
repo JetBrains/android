@@ -40,7 +40,7 @@ import javax.swing.event.DocumentEvent;
  */
 public class CpuProfilingConfigPanel {
 
-  private static final int MIN_SAMPLING_INTERVAL_US = 100;
+  private static final int MIN_SAMPLING_INTERVAL_US = 10;
 
   private static final int MAX_SAMPLING_INTERVAL_US = 100000;
 
