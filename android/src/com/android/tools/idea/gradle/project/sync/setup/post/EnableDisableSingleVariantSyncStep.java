@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.ide.util.PropertiesComponent;
