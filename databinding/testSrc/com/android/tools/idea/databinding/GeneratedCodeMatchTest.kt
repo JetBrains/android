@@ -19,9 +19,6 @@ import com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT
 import com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.runners.Parameterized.Parameters
 
@@ -31,6 +28,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.collect.Lists
+import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
@@ -221,7 +220,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       lib.name!!.startsWith(parameters.dataBindingLibArtifact)
     }.jarFile
 
-    assertTrue(classJar.exists())
+    assertThat(classJar.exists()).isTrue()
     JarFile(classJar, true).use {
       val entry = it.getEntry(parameters.dataBindingBaseBindingClass)!!
       return ClassReader(it.getInputStream(entry))
@@ -233,11 +232,12 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
   fun testGeneratedCodeMatchesExpected() {
     // temporary fix until test model can detect dependencies properly
     val assembleDebug = projectRule.invokeTasks(projectRule.project, "assembleDebug")
-    assertTrue(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"), assembleDebug.isBuildSuccessful)
+    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
+      .that(assembleDebug.isBuildSuccessful).isTrue()
 
     val syncState = GradleSyncState.getInstance(projectRule.project)
-    assertFalse(syncState.isSyncNeeded.toBoolean())
-    assertEquals(ModuleDataBinding.getInstance(projectRule.androidFacet).dataBindingMode, parameters.mode)
+    assertThat(syncState.isSyncNeeded.toBoolean()).isFalse()
+    assertThat(parameters.mode).isEqualTo(ModuleDataBinding.getInstance(projectRule.androidFacet).dataBindingMode)
 
     // trigger initialization
     ResourceRepositoryManager.getModuleResources(projectRule.androidFacet)
@@ -245,7 +245,9 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     val classesOut = File(projectRule.project.basePath, "/app/build/intermediates/javac//debug/compileDebugJavaWithJavac/classes")
 
     val classes = FileUtils.listFiles(classesOut, arrayOf("class"), true)
-    assertTrue("if we cannot find any class, something is wrong with the test", classes.isNotEmpty())
+    assertWithMessage("No compiled classes found. Something is wrong with this test.")
+      .that(classes).isNotEmpty()
+
     val viewDataBindingClass = findViewDataBindingClass()
 
     // Grab a description set for the ViewDataBinding base class, as we'll strip it out of the
@@ -283,10 +285,13 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       // Convert Asm and PSI classes into description sets and verify they're the same
       val asmInfo = ClassDescriber.collectDescriptionSet(classReader, baseClassInfo)
       val psiInfo = ClassDescriber.collectDescriptionSet(psiClass)
-      assertEquals(className, asmInfo, psiInfo)
+      assertWithMessage(className).that(asmInfo).isEqualTo(psiInfo)
     }
-    assertTrue("test sanity, should be able to find some data binding generated classes", verifiedClassCount > 3)
-    assertEquals("These classes are missing", "", missingClasses.joinToString(", "))
+    assertWithMessage("Failed to find an expected number of generated data binding classes")
+      .that(verifiedClassCount).isGreaterThan(3)
+
+    assertWithMessage("PSI and generated code are out of sync for: ${missingClasses.joinToString(", ")}")
+      .that(missingClasses).isEmpty()
   }
 
   /**
