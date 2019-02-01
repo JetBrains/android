@@ -47,7 +47,6 @@ import static com.android.resources.ResourceFolderType.getTypeByName;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -75,6 +74,7 @@ import com.android.tools.idea.databinding.DataBindingUtil;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.utils.ILogger;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Table;
@@ -373,7 +373,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   private ResourceMerger createFreshResourceMerger() {
     ResourceMerger merger = new ResourceMerger(0 /* minSdk */);
-    ResourceSet myData = new ResourceSet(myResourceDir.getName(), myNamespace, getLibraryName(), false /* validateEnabled */);
+    ResourceSet myData = new ResourceSet(myResourceDir.getName(), myNamespace, null, false /* validateEnabled */);
     File resourceDir = VfsUtilCore.virtualToIoFile(myResourceDir);
     myData.addSource(resourceDir);
     merger.addDataSet(myData);
