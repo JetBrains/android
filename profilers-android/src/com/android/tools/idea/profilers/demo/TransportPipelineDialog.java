@@ -115,7 +115,9 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
 
     myEventFilter = new ComboBox<>();
     for (Common.Event.Kind kind : Common.Event.Kind.values()) {
-      myEventFilter.addItem(kind);
+      if (kind != Common.Event.Kind.UNRECOGNIZED) {
+        myEventFilter.addItem(kind);
+      }
     }
     myEventLog = new JBTextArea();
     myEventFilter.addActionListener(e -> {
@@ -234,7 +236,7 @@ public class TransportPipelineDialog extends DialogWrapper implements Updatable 
     if (!mySelectedProcess.equals(Common.Process.getDefaultInstance())) {
       if (myAgentConnected) {
         Common.Event.Kind eventKind = (Common.Event.Kind)myEventFilter.getSelectedItem();
-        if (!Common.Event.Kind.NONE.equals(eventKind)) {
+        if (eventKind != null && !Common.Event.Kind.NONE.equals(eventKind)) {
           Transport.GetEventGroupsRequest eventRequest = Transport.GetEventGroupsRequest.newBuilder()
             .setKind(eventKind)
             .setFromTimestamp(myLastEventRequestTimestampNs)
