@@ -112,6 +112,19 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
                              "uses-feature", "uses-split");
   }
 
+  public void testNavGraphCompletion() throws Throwable {
+    doTestCompletionVariantsContains("navgraph1.xml", "nav-graph");
+  }
+
+  public void testNavGraphAttributeCompletion() throws Throwable {
+    doTestCompletionVariantsContains("navgraph2.xml", "android:value");
+  }
+
+  public void testNavGraphValueCompletion() throws Throwable {
+    copyFileToProject("nav_main.xml", "res/navigation/nav_main.xml");
+    doTestCompletionVariantsContains("navgraph3.xml", "@navigation/nav_main");
+  }
+
   public void testSoftTagsAndAttrs() throws Throwable {
     myFixture.disableInspections(new AndroidUnknownAttributeInspection());
     myFixture.disableInspections(new AndroidElementNotAllowedInspection());
