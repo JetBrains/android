@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.utils.concurrency.CacheUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.facet.ProjectFacetManager;
@@ -31,11 +31,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -44,6 +39,10 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A project services that manages {@link ResourceFolderRepository} instances, creating them an necessary and reusing repositories for the
@@ -79,8 +78,8 @@ public class ResourceFolderRegistry {
     return ReadAction.compute(() -> get(facet, dir, ResourceRepositoryManager.getInstance(facet).getNamespace()));
   }
 
-  @NotNull
   @VisibleForTesting
+  @NotNull
   ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir, @NotNull ResourceNamespace namespace) {
     Cache<VirtualFile, ResourceFolderRepository> cache =
         namespace == ResourceNamespace.RES_AUTO ? myNonNamespacedCache : myNamespacedCache;
