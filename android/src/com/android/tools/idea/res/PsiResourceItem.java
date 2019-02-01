@@ -465,9 +465,7 @@ public class PsiResourceItem implements ResourceItem {
   private static ArrayResourceValueImpl parseArrayValue(@NotNull XmlTag tag, @NotNull ArrayResourceValueImpl arrayValue) {
     for (XmlTag child : tag.getSubTags()) {
       String text = ValueXmlHelper.unescapeResourceString(ResourceHelper.getTextContent(child), true, true);
-      if (text != null) {
-        arrayValue.addElement(text);
-      }
+      arrayValue.addElement(text);
     }
 
     return arrayValue;
