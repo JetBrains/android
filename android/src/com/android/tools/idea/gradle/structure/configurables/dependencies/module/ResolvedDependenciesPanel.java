@@ -36,6 +36,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -96,6 +97,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
         super.processMouseEvent(e);
       }
     };
+    myTree.setRowHeight(JBUI.scale(24));
 
     setHeaderActions();
     getHeader().setPreferredFocusedComponent(myTree);
