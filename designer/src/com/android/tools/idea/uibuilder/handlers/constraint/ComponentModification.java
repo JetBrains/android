@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -110,7 +110,7 @@ public class ComponentModification implements NlAttributesHolder {
       }
       if (transaction != null) {
         transaction.apply();
-        NlWriteCommandAction.run(myComponent, myLabel, transaction::commit);
+        NlWriteCommandActionUtil.run(myComponent, myLabel, transaction::commit);
       }
     } else {
       AttributesTransaction transaction = myComponent.startAttributeTransaction();
@@ -119,7 +119,7 @@ public class ComponentModification implements NlAttributesHolder {
         transaction.setAttribute(key.getFirst(), key.getSecond(), value);
       }
       transaction.apply();
-      NlWriteCommandAction.run(myComponent, myLabel, transaction::commit);
+      NlWriteCommandActionUtil.run(myComponent, myLabel, transaction::commit);
     }
   }
 

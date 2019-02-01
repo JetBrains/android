@@ -27,7 +27,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -82,7 +82,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import kotlin.Unit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1020,7 +1019,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                           @Nullable DesignSurface surface,
                                           @Nullable Runnable attributeUpdatingTask) {
     DumbService.getInstance(getProject()).runWhenSmart(() -> {
-      NlWriteCommandAction.run(toAdd, generateAddComponentsDescription(toAdd, insertType), () -> {
+      NlWriteCommandActionUtil.run(toAdd, generateAddComponentsDescription(toAdd, insertType), () -> {
         if (attributeUpdatingTask != null) {
           // Update the attribute before adding components, if need.
           attributeUpdatingTask.run();
@@ -1050,7 +1049,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                       @NotNull NlComponent receiver,
                       @Nullable NlComponent before,
                       final @NotNull InsertType insertType) {
-    NlWriteCommandAction.run(added, generateAddComponentsDescription(added, insertType), () -> {
+    NlWriteCommandActionUtil.run(added, generateAddComponentsDescription(added, insertType), () -> {
       for (NlComponent component : added) {
         component.addTags(receiver, before, insertType);
       }
