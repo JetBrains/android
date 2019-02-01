@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -311,7 +311,7 @@ public final class NlComponentTest extends AndroidTestCase {
     NlComponent relativeLayout = createComponent(relativeLayoutTag);
     when(myModel.getFile()).thenReturn(xmlFile);
     when(myModel.getProject()).thenReturn(getProject());
-    NlWriteCommandAction.run(relativeLayout, "addTextView", () -> textView.addTags(relativeLayout, null, InsertType.PASTE));
+    NlWriteCommandActionUtil.run(relativeLayout, "addTextView", () -> textView.addTags(relativeLayout, null, InsertType.PASTE));
     UIUtil.dispatchAllInvocationEvents();
 
     @Language("XML")

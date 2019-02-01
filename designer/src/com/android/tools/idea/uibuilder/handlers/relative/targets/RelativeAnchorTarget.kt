@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
 import com.android.SdkConstants.*
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlComponent
@@ -169,7 +169,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     val nlComponent = myComponent.authoritativeNlComponent
     clearAssociatedAttribute(attributesTransaction)
     val message = "Remove constraint from ${myType.name} of ${nlComponent.tagName}"
-    NlWriteCommandAction.run(nlComponent, message) { attributesTransaction.commit() }
+    NlWriteCommandActionUtil.run(nlComponent, message) { attributesTransaction.commit() }
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
     updateAlignedComponentIds()
   }
@@ -179,7 +179,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     connectTo(target, attributesTransaction)
     val message = "Create constraint between ${myType.name} of ${nlComponent.tagName} " +
         "and ${target.myType} of ${target.myComponent.authoritativeNlComponent.tagName}"
-    NlWriteCommandAction.run(nlComponent, message) { attributesTransaction.commit() }
+    NlWriteCommandActionUtil.run(nlComponent, message) { attributesTransaction.commit() }
     myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
     updateAlignedComponentIds()
   }
