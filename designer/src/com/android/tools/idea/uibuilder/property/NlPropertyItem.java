@@ -27,7 +27,7 @@ import com.android.tools.adtui.ptable.PTable;
 import com.android.tools.adtui.ptable.PTableGroupItem;
 import com.android.tools.adtui.ptable.PTableItem;
 import com.android.tools.adtui.ptable.StarState;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.property.NlProperty;
@@ -364,7 +364,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     String oldValue = getValue();
     String componentName = myComponents.size() == 1 ? myComponents.get(0).getTagName() : "Multiple";
 
-    NlWriteCommandAction.run(myComponents, "Set " + componentName + '.' + myName + " to " + attrValueWithUnit, () -> {
+    NlWriteCommandActionUtil.run(myComponents, "Set " + componentName + '.' + myName + " to " + attrValueWithUnit, () -> {
       myComponents.forEach(component -> component.setAttribute(myNamespace, myName, attrValueWithUnit));
       if (myPropertiesManager != null) {
         myPropertiesManager.propertyChanged(this, oldValue, attrValueWithUnit);

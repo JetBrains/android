@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -343,6 +343,6 @@ public class Scout {
       return;
     }
 
-    NlWriteCommandAction.run(list, label, () -> list.forEach(component -> component.startAttributeTransaction().commit()));
+    NlWriteCommandActionUtil.run(list, label, () -> list.forEach(component -> component.startAttributeTransaction().commit()));
   }
 }

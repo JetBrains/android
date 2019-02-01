@@ -24,7 +24,7 @@ import static com.android.SdkConstants.TOOLS_PREFIX;
 
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
@@ -259,7 +259,7 @@ public class NlDropListener extends DropTargetAdapter {
       }
     }
 
-    NlWriteCommandAction.run(myDragReceiver, "", () -> {
+    NlWriteCommandActionUtil.run(myDragReceiver, "", () -> {
       XmlTag tag = myDragReceiver.getTag();
       tag.setName(DependencyManagementUtil.mapAndroidxName(ModuleUtilCore.findModuleForPsiElement(tag), CONSTRAINT_LAYOUT));
 

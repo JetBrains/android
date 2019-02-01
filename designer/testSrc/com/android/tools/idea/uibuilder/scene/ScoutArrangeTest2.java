@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.scout.Scout;
@@ -67,7 +67,7 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyMiddle, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
@@ -117,7 +117,7 @@ public class ScoutArrangeTest2 extends SceneTest {
     System.out.println("list size" + list.size());
     Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list, true);
     Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyBottom, list, true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
@@ -163,7 +163,7 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignVerticallyTop, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterHorizontally, list,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
@@ -209,7 +209,7 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyCenter, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
@@ -258,7 +258,7 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyLeft, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
@@ -303,7 +303,7 @@ public class ScoutArrangeTest2 extends SceneTest {
     List<NlComponent> list = myModel.getComponents().get(0).getChildren();
     Scout.arrangeWidgets(Scout.Arrange.AlignHorizontallyRight, list,true);
     Scout.arrangeWidgets(Scout.Arrange.CenterVertically, list,true);
-    NlWriteCommandAction
+    NlWriteCommandActionUtil
       .run(list, Scout.Arrange.ConnectTop.toString(), () -> list.forEach(component -> component.startAttributeTransaction().commit()));
     myScreen.get("@+id/textview2")
       .expectXml("<TextView\n" +
