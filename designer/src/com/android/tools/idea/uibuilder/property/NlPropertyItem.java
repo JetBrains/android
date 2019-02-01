@@ -313,7 +313,9 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   @Nullable
   public XmlTag getTag() {
-    return myComponents.size() == 1 ? myComponents.get(0).getTag() : null;
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    NlComponent component = myComponents.size() == 1 ? myComponents.get(0) : null;
+    return component != null ? component.getBackend().getTag() : null;
   }
 
   @Override
