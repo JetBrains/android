@@ -255,7 +255,6 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     val baseClassInfo = ClassDescriber.collectDescriptionSet(viewDataBindingClass)
 
     val javaPsiFacade = JavaPsiFacade.getInstance(projectRule.project)
-    val missingClasses = HashSet<String>()
 
     val classMap = classes.mapNotNull<File, ClassReader> { file ->
       try {
@@ -269,14 +268,15 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     }.map { classReader -> classReader.className to classReader }.toMap()
 
     val moduleScope = projectRule.androidFacet.module.getModuleWithDependenciesAndLibrariesScope(false)
-    var verifiedClassCount = 0
+    val missingClasses = HashSet<String>()
+    val generatedClasses = HashSet<String>()
     for (classReader in classMap.values) {
       if (!isGeneratedDataBindingClass(viewDataBindingClass, classReader)) {
         continue
       }
-      verifiedClassCount++
-      val className = classReader.className
-      val psiClass = javaPsiFacade.findClass(className.pathToPkg(), moduleScope)
+      val className = classReader.className.pathToPkg()
+      generatedClasses.add(className)
+      val psiClass = javaPsiFacade.findClass(className, moduleScope)
       if (psiClass == null) {
         missingClasses.add(className)
         continue
@@ -287,8 +287,12 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
       val psiInfo = ClassDescriber.collectDescriptionSet(psiClass)
       assertWithMessage(className).that(asmInfo).isEqualTo(psiInfo)
     }
-    assertWithMessage("Failed to find an expected number of generated data binding classes")
-      .that(verifiedClassCount).isGreaterThan(3)
+    assertWithMessage("Failed to find expected generated data binding classes; did the compiler change?")
+      .that(generatedClasses).containsExactly(
+        "${parameters.mode.packageName}DataBindingComponent",
+        "com.android.example.appwithdatabinding.databinding.ActivityMainBinding",
+        "com.android.example.appwithdatabinding.databinding.MultiConfigLayoutBinding",
+        "com.android.example.appwithdatabinding.databinding.NoVariableLayoutBinding")
 
     assertWithMessage("PSI and generated code are out of sync for: ${missingClasses.joinToString(", ")}")
       .that(missingClasses).isEmpty()
