@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
@@ -119,7 +119,7 @@ public class ConstraintDragHandler extends DragHandler {
     Scene scene = editor.getScene();
     if (myComponent != null) {
       NlComponent root = myComponent.getNlComponent().getRoot();
-      NlWriteCommandAction.run(root, "Add App Namespace", () -> root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI));
+      NlWriteCommandActionUtil.run(root, "Add App Namespace", () -> root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI));
 
       @AndroidDpCoordinate int dx = editor.pxToDp(x) - myComponent.getDrawWidth() / 2;
       @AndroidDpCoordinate int dy = editor.pxToDp(y) - myComponent.getDrawHeight() / 2;

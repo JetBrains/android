@@ -22,7 +22,7 @@ import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.idea.actions.MockupDeleteAction;
 import com.android.tools.idea.actions.MockupEditAction;
 import com.android.tools.idea.common.actions.GotoComponentAction;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -469,7 +469,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
           return;
       }
       if (myAction.affectsUndo()) {
-        NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () ->
+        NlWriteCommandActionUtil.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () ->
           myAction.perform(myEditor, myHandler, myComponent, mySelectedChildren, e.getModifiers()));
       }
       else {
@@ -564,7 +564,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     public void actionPerformed(@NotNull AnActionEvent e) {
       boolean newState = !myAction.isSelected(myEditor, myHandler, myComponent, mySelectedChildren);
       if (myAction.affectsUndo()) {
-        NlWriteCommandAction.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () -> applySelection(newState));
+        NlWriteCommandActionUtil.run(myComponent, Strings.nullToEmpty(e.getPresentation().getText()), () -> applySelection(newState));
       }
       else {
         try {

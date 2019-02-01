@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
@@ -157,7 +157,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
       updateAttributes(attributes, x, y)
       attributes.apply()
       if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
-        NlWriteCommandAction.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
+        NlWriteCommandActionUtil.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
       }
     }
     if (myChangedComponent) {

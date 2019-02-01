@@ -24,7 +24,7 @@ import static com.android.SdkConstants.SHERPA_URI;
 import static com.android.SdkConstants.TAG;
 
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -252,7 +252,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
                                @NotNull AttributesTransaction transaction,
                                @Nullable String idList) {
     transaction.setAttribute(SHERPA_URI, CONSTRAINT_REFERENCED_IDS, idList);
-    NlWriteCommandAction.run(component, "", transaction::commit);
+    NlWriteCommandActionUtil.run(component, "", transaction::commit);
   }
 
   @Override

@@ -21,7 +21,7 @@ import com.android.SdkConstants.TOOLS_URI
 import com.android.annotations.VisibleForTesting
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.common.command.NlWriteCommandAction
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.property.NlProperty
 import com.android.tools.idea.common.property.editors.EnumEditor
 import com.android.tools.idea.common.property.editors.NlComponentEditor
@@ -50,7 +50,7 @@ class DestinationClassEditor(listener: NlEditingListener = Listener, comboBox: C
   @VisibleForTesting
   object Listener: NlEditingListener {
     override fun stopEditing(editor: NlComponentEditor, value: Any?) {
-      NlWriteCommandAction.run(editor.property.components[0], "Set Class Name") layout@{
+      NlWriteCommandActionUtil.run(editor.property.components[0], "Set Class Name") layout@{
         DEFAULT_LISTENER.stopEditing(editor, value)
         val className = value as? String ?: return@layout
         editor.property.components[0].setAttribute(TOOLS_URI, ATTR_LAYOUT, (editor as DestinationClassEditor).findLayoutForClass(className))

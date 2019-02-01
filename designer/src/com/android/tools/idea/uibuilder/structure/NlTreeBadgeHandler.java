@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
@@ -319,7 +319,7 @@ public class NlTreeBadgeHandler {
         return;
       }
 
-      NlWriteCommandAction.run(component, "", () ->
+      NlWriteCommandActionUtil.run(component, "", () ->
         component.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LOCKED, isLocked ? null : SdkConstants.VALUE_TRUE));
     }
 

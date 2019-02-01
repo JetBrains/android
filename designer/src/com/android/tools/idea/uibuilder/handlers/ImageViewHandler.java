@@ -36,7 +36,7 @@ import static com.android.tools.idea.flags.StudioFlags.NELE_SAMPLE_DATA_UI;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandAction;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -156,7 +156,7 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   public void setSrcAttribute(@NotNull NlComponent component, @Nullable String imageSource) {
-    NlWriteCommandAction.run(component, "", () -> {
+    NlWriteCommandActionUtil.run(component, "", () -> {
       if (shouldUseSrcCompat(component.getModel())) {
         component.setAttribute(ANDROID_URI, ATTR_SRC, null);
         component.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, imageSource);
@@ -180,7 +180,7 @@ public class ImageViewHandler extends ViewHandler {
 
   public void setToolsSrc(@NotNull NlComponent component, @Nullable String value) {
     String attr = shouldUseSrcCompat(component.getModel()) ? ATTR_SRC_COMPAT : ATTR_SRC;
-    NlWriteCommandAction.run(component, "Set sample source", () -> component.setAttribute(TOOLS_URI, attr, value));
+    NlWriteCommandActionUtil.run(component, "Set sample source", () -> component.setAttribute(TOOLS_URI, attr, value));
   }
 
   @Nullable
