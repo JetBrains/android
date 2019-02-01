@@ -36,11 +36,12 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import org.jetbrains.android.facet.AndroidFacet
 
 private const val TOOL_WINDOW_ID = "Resources Explorer"
 
-private const val STRIPE_TITLE = "Resources"
+private const val STRIPE_TITLE = "Resource Manager"
 
 /**
  * Provides the tool explorer panel
@@ -54,7 +55,6 @@ class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Any>
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    toolWindow.title = TOOL_WINDOW_ID
     createContent(toolWindow, project)
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }
