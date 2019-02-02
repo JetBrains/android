@@ -33,7 +33,7 @@ public class CorruptGradleDependencyErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.startsWith("Premature end of Content-Length delimited message body")) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       return "Gradle's dependency cache seems to be corrupt or out of sync.";
     }
     return null;

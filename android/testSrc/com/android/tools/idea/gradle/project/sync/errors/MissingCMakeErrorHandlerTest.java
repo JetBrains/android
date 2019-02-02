@@ -120,7 +120,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     assertEquals(
       errMsg,
       handler.findErrorMessage(
-        new ExternalSystemException(errMsg), DummyProject.getInstance()));
+        new ExternalSystemException(errMsg), getProject()));
   }
 
   public void testFailedToInstallCMake() {
@@ -129,7 +129,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     assertEquals(
       errMsg,
       handler.findErrorMessage(
-        new ExternalSystemException(errMsg), DummyProject.getInstance()));
+        new ExternalSystemException(errMsg), getProject()));
   }
 
   public void testFindErrorMessageFailedToFindCmake() {
@@ -139,7 +139,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
     assertEquals(
       expectedMsg,
       handler.findErrorMessage(
-        new ExternalSystemException("Failed to find CMake."), DummyProject.getInstance()));
+        new ExternalSystemException("Failed to find CMake."), getProject()));
   }
 
   public void testFindErrorMessageUnableToGetCmakeVersion() {
@@ -150,14 +150,14 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
       expectedMsg,
       handler.findErrorMessage(
         new ExternalSystemException("Unable to get the CMake version located at: /Users/alruiz/Library/Android/sdk/cmake/bin"),
-        DummyProject.getInstance()));
+        getProject()));
   }
 
   public void testFindErrorMessageWithCmakeVersion() {
     MissingCMakeErrorHandler handler = createHandler(Collections.emptyList(), Collections.emptyList());
     String msg = "CMake '1.2.3' was not found in PATH or by cmake.dir property\n" +
                  "- CMake '4.5.6' was found on PATH\n";
-    assertEquals(msg, handler.findErrorMessage(new ExternalSystemException(msg), DummyProject.getInstance()));
+    assertEquals(msg, handler.findErrorMessage(new ExternalSystemException(msg), getProject()));
   }
 
   public void testDefaultInstall() {
@@ -167,7 +167,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
       Collections.emptyList()
     );
 
-    List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(DummyProject.getInstance(), errMsg);
+    List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(getProject(), errMsg);
     assertThat(quickFixes).hasSize(1);
     assertThat(quickFixes.get(0)).isInstanceOf(InstallCMakeHyperlink.class);
     assertThat(((InstallCMakeHyperlink)quickFixes.get(0)).getCmakeVersion()).isEqualTo(null);
@@ -180,7 +180,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
       Collections.emptyList()
     );
 
-    List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(DummyProject.getInstance(), errMsg);
+    List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(getProject(), errMsg);
     assertThat(quickFixes).hasSize(0);
   }
 
@@ -191,7 +191,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
       Collections.emptyList()
     );
 
-    List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(DummyProject.getInstance(), errMsg);
+    List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(getProject(), errMsg);
     assertThat(quickFixes).hasSize(0);
   }
 
@@ -202,7 +202,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
       Collections.singletonList("3.10.2")
     );
 
-    List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(DummyProject.getInstance(), errMsg);
+    List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(getProject(), errMsg);
     assertThat(quickFixes).hasSize(0);
   }
 
@@ -215,7 +215,7 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
       Collections.singletonList("3.10.2")
     );
 
-    List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(DummyProject.getInstance(), errMsg);
+    List<NotificationHyperlink> quickFixes = handler.getQuickFixHyperlinks(getProject(), errMsg);
     assertThat(quickFixes).hasSize(1);
     assertThat(quickFixes.get(0)).isInstanceOf(InstallCMakeHyperlink.class);
     assertThat(((InstallCMakeHyperlink)quickFixes.get(0)).getCmakeVersion()).isEqualTo(Revision.parseRevision("3.10.2"));

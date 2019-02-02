@@ -43,7 +43,7 @@ public class Jdk8RequiredErrorHandler extends BaseSyncErrorHandler {
         text += ".";
       }
       text += " Please use JDK 8 or newer.";
-      updateUsageTracker();
+      updateUsageTracker(project);
       return text;
     }
     return null;

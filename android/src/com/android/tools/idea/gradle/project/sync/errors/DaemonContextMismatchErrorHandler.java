@@ -47,7 +47,7 @@ public class DaemonContextMismatchErrorHandler extends BaseSyncErrorHandler {
         "Java home is different.".equals(message.get(2))) {
       String expectedAndActual = parseExpectedAndActualJavaHomes(text);
       if (isNotEmpty(expectedAndActual)) {
-        updateUsageTracker();
+        updateUsageTracker(project);
         return firstLine + "\n" + message.get(2) + "\n" + expectedAndActual + "\n" + "Please configure the JDK to match the expected one.";
       }
     }
