@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.TargetSelectionMode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
@@ -67,24 +67,23 @@ public class DeployTargetContext implements JDOMExternalizable {
   public DeployTargetProvider getCurrentDeployTargetProvider() {
     if (TARGET_SELECTION_MODE.equals(TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name()) &&
         !mySelectDeviceSnapshotComboBoxVisible.get()) {
-      return getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG);
+      return getShowDialogDeployTargetProvider();
     }
 
-    Optional<DeployTargetProvider> provider = getDeployTargetProvider(myDeployTargetProviders, TARGET_SELECTION_MODE);
-    return provider.orElse(getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG));
+    return getDeployTargetProvider(myDeployTargetProviders, TARGET_SELECTION_MODE).orElse(getShowDialogDeployTargetProvider());
   }
 
   @NotNull
-  private DeployTargetProvider getDeployTargetProvider(@NotNull TargetSelectionMode mode) {
-    return getDeployTargetProvider(myDeployTargetProviders, mode.name()).orElseThrow(AssertionError::new);
+  private DeployTargetProvider getShowDialogDeployTargetProvider() {
+    return getDeployTargetProvider(myDeployTargetProviders, TargetSelectionMode.SHOW_DIALOG.name()).orElseThrow(AssertionError::new);
   }
 
   @NotNull
   private static Optional<DeployTargetProvider> getDeployTargetProvider(@NotNull Collection<DeployTargetProvider> providers,
                                                                         @NotNull String id) {
     return providers.stream()
-                    .filter(provider -> provider.getId().equals(id))
-                    .findFirst();
+      .filter(provider -> provider.getId().equals(id))
+      .findFirst();
   }
 
   @NotNull
