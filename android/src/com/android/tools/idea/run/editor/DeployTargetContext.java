@@ -65,11 +65,8 @@ public class DeployTargetContext implements JDOMExternalizable {
 
   @NotNull
   public DeployTargetProvider getCurrentDeployTargetProvider() {
-    if (mySelectDeviceSnapshotComboBoxVisible.get()) {
-      return getDeployTargetProvider(TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX);
-    }
-
-    if (TARGET_SELECTION_MODE.equals(TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name())) {
+    if (TARGET_SELECTION_MODE.equals(TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name()) &&
+        !mySelectDeviceSnapshotComboBoxVisible.get()) {
       return getDeployTargetProvider(TargetSelectionMode.SHOW_DIALOG);
     }
 
