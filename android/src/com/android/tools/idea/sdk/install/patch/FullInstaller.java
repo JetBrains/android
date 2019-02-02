@@ -161,5 +161,8 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
   protected void cleanup(@NotNull ProgressIndicator progress) {
     super.cleanup(progress);
     mFop.deleteFileOrFolder(getLocation(progress));
+    if (myUnzippedPackage != null) {
+      mFop.deleteFileOrFolder(myUnzippedPackage);
+    }
   }
 }
