@@ -35,7 +35,7 @@ public class UnknownHostErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && rootCause instanceof UnknownHostException) {
-      updateUsageTracker(UNKNOWN_HOST);
+      updateUsageTracker(project, UNKNOWN_HOST);
       return String.format("Unknown host '%1$s'. You may need to adjust the proxy settings in Gradle.", text);
     }
     return null;

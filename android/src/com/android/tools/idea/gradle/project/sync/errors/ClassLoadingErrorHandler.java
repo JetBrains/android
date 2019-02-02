@@ -51,7 +51,7 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
 
   @Override
   public boolean handleError(@NotNull ExternalSystemException error, @NotNull NotificationData notification, @NotNull Project project) {
-    String text = findErrorMessage(getRootCause(error));
+    String text = findErrorMessage(project, getRootCause(error));
     if (text == null) {
       return false;
     }
@@ -123,7 +123,7 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
   }
 
   @Nullable
-  private static String findErrorMessage(@NotNull Throwable rootCause) {
+  private static String findErrorMessage(@NotNull Project project, @NotNull Throwable rootCause) {
     String text = rootCause.getMessage();
     if (rootCause instanceof ClassNotFoundException) {
       String className = nullToEmpty(text);
@@ -131,18 +131,18 @@ public class ClassLoadingErrorHandler extends SyncErrorHandler {
       if (matcher.matches()) {
         className = matcher.group(1);
       }
-      updateUsageTracker(CLASS_NOT_FOUND, className);
+      updateUsageTracker(project, CLASS_NOT_FOUND, className);
       return String.format("Unable to load class '%1$s'.", className);
     }
 
     if (rootCause instanceof NoSuchMethodError) {
       String methodName = nullToEmpty(text);
-      updateUsageTracker(METHOD_NOT_FOUND, methodName);
+      updateUsageTracker(project, METHOD_NOT_FOUND, methodName);
       return String.format("Unable to find method '%1$s'.", methodName);
     }
 
     if (isNotEmpty(text) && text.contains("cannot be cast to")) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       return text;
     }
     return null;
