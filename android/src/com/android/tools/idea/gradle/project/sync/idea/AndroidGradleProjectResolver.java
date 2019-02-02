@@ -31,7 +31,7 @@ import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_H
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -68,6 +68,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanup
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
@@ -155,11 +156,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
       // @formatter:off
       event.setCategory(GRADLE_SYNC)
-           .setKind(GRADLE_SYNC_FAILURE)
+           .setKind(GRADLE_SYNC_FAILURE_DETAILS)
            .setGradleSyncFailure(UNSUPPORTED_ANDROID_MODEL_VERSION)
            .setGradleVersion(androidProject.getModelVersion());
       // @formatter:on
-
+      UsageTrackerUtils.withProjectId(event, myProjectFinder.findProject(resolverCtx));
       UsageTracker.log(event);
 
       String msg = getUnsupportedModelVersionErrorMsg(getModelVersion(androidProject));
@@ -499,9 +500,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
           AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
           // @formatter:off
           event.setCategory(GRADLE_SYNC)
-               .setKind(GRADLE_SYNC_FAILURE)
+               .setKind(GRADLE_SYNC_FAILURE_DETAILS)
                .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION);
           // @formatter:on;
+          UsageTrackerUtils.withProjectId(event, myProjectFinder.findProject(resolverCtx));
           UsageTracker.log(event);
 
           return new ExternalSystemException("The project is using an unsupported version of Gradle.");

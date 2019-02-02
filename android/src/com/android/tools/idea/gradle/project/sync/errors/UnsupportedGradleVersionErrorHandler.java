@@ -68,7 +68,7 @@ public class UnsupportedGradleVersionErrorHandler extends BaseSyncErrorHandler {
       }
     }
     if (isNotEmpty(newMsg)) {
-      updateUsageTracker(UNSUPPORTED_GRADLE_VERSION);
+      updateUsageTracker(project, UNSUPPORTED_GRADLE_VERSION);
       return newMsg;
     }
     return null;

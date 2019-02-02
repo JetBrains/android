@@ -42,7 +42,7 @@ public class UnsupportedModelVersionErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       return text;
     }
     return null;
