@@ -351,7 +351,7 @@ class AddDynamicFeatureTest {
 
   /**
    * Verifies that user is able to add a Dynamic Feature Module through the
-   * new module wizard, without specifying device feature conditions.
+   * new module wizard, with conditional delivery specifying "minsdk = 24".
    */
   @Test
   @Throws(Exception::class)
@@ -371,6 +371,8 @@ class AddDynamicFeatureTest {
       .enterName("My Dynamic Feature Title")
       .setFusing(false)
       .setDownloadInstallKind(DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS)
+      .checkMinimumSdkApiCheckBox()
+      .selectMinimumSdkApi("24")
       .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish()
@@ -384,6 +386,7 @@ class AddDynamicFeatureTest {
       assertThat(this).contains("""<dist:delivery>""")
       assertThat(this).contains("""<dist:install-time>""")
       assertThat(this).contains("""<dist:conditions>""")
+      assertThat(this).contains("""<dist:min-sdk dist:value="24" />""")
       assertThat(this).contains("""</dist:conditions>""")
       assertThat(this).contains("""</dist:install-time>""")
       assertThat(this).doesNotContain("""<dist:on-demand />""")
