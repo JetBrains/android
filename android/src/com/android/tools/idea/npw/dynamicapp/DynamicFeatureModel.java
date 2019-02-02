@@ -20,6 +20,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEA
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_FUSING;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_MIN_SDK_DELIVERY;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_ON_DEMAND;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY;
@@ -70,6 +71,8 @@ public class DynamicFeatureModel extends WizardModel {
     new OptionalValueProperty<>(DownloadInstallKind.ON_DEMAND_ONLY);
   @NotNull private final BoolProperty myFeatureFusing = new BoolValueProperty(true);
   @NotNull private final BoolProperty myInstantModule = new BoolValueProperty(false);
+  @NotNull private final BoolProperty myConditionalMinSdk = new BoolValueProperty(false);
+  @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myConditionalMinSdkInfo = new OptionalValueProperty<>();
   @NotNull private final ObservableList<DeviceFeatureModel> myDeviceFeatures = new ObservableList<>();
 
   public DynamicFeatureModel(@NotNull Project project,
@@ -138,6 +141,14 @@ public class DynamicFeatureModel extends WizardModel {
   @NotNull
   public BoolProperty instantModule() { return myInstantModule; }
 
+  @NotNull
+  public BoolProperty conditionalMinSdk() { return myConditionalMinSdk; }
+
+  @NotNull
+  public OptionalProperty<AndroidVersionsInfo.VersionItem> conditionalMinSdkInfo() {
+    return myConditionalMinSdkInfo;
+  }
+
   @Override
   protected void handleFinished() {
     File moduleRoot = new File(myProject.getBasePath(), moduleName().get());
@@ -164,12 +175,20 @@ public class DynamicFeatureModel extends WizardModel {
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME);
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.INCLUDE_AT_INSTALL_TIME_WITH_CONDITIONS);
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY, myDownloadInstallKind.getValue() == DownloadInstallKind.ON_DEMAND_ONLY);
+    myTemplateValues.put(ATTR_DYNAMIC_FEATURE_MIN_SDK_DELIVERY, getMinSdkTemplateValue());
     myTemplateValues.put(ATTR_DYNAMIC_FEATURE_DEVICE_FEATURE_LIST, myDeviceFeatures);
 
 
     if (doDryRun(moduleRoot, myTemplateValues)) {
       render(moduleRoot, myTemplateValues);
     }
+  }
+
+  @NotNull
+  private String getMinSdkTemplateValue() {
+    return myConditionalMinSdk.get() && myConditionalMinSdkInfo.isPresent().get()
+           ? myConditionalMinSdkInfo.getValue().getMinApiLevelStr()
+           : "";
   }
 
   private boolean doDryRun(@NotNull File moduleRoot, @NotNull Map<String, Object> templateValues) {

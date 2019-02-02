@@ -16,22 +16,31 @@
 package com.android.tools.idea.npw.dynamicapp;
 
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
+import com.android.tools.idea.npw.project.FormFactorSdkControls;
 import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.collections.ObservableList;
 import com.android.tools.idea.observable.core.BoolValueProperty;
+import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.expressions.bool.AndExpression;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.ui.components.labels.LinkListener;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
 public class ModuleDownloadConditions {
   public JPanel myRootPanel;
+  public JCheckBox myMinimumSDKLevelCheckBox;
   private JPanel myDeviceFeaturesContainer;
+  private FormFactorSdkControls myFormFactorSdkControls;
   @SuppressWarnings("unused") // Defined to make things clearer in UI designer.
+  private JPanel myFormFactorSdkControlsPanel;
   private LinkLabel<Void> myAddDeviceFeatureLinkLabel;
   private ObservableList<DeviceFeatureModel> myModel;
   private ObservableValue<Boolean> myIsPanelActive;
@@ -45,6 +54,7 @@ public class ModuleDownloadConditions {
     myAddDeviceFeatureLinkLabel.setIcon(null); // Clear default icon
 
     // For UI testing
+    myMinimumSDKLevelCheckBox.setName("ModuleDownloadConditions.myMinimumSDKLevelCheckBox");
     myAddDeviceFeatureLinkLabel.setName("ModuleDownloadConditions.myAddDeviceFeatureLinkLabel");
     myDeviceFeaturesContainer.setName("ModuleDownloadConditions.myDeviceFeaturesContainer");
 
@@ -58,15 +68,26 @@ public class ModuleDownloadConditions {
   }
 
   public void init(@NotNull Project project,
+                   @NotNull Disposable parentDisposable,
+                   @NotNull OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo,
                    @NotNull ValidatorPanel validatorPanel,
                    @NotNull ObservableValue<Boolean> isPanelActive) {
     myProject = project;
     myValidatorPanel = validatorPanel;
+    myFormFactorSdkControls.init(androidSdkInfo, parentDisposable);
     myIsPanelActive = isPanelActive;
   }
 
   public void setModel(@NotNull ObservableList<DeviceFeatureModel> model) {
     myModel = model;
+  }
+
+  public void startSdkDataLoading(FormFactor factor, int sdk) {
+    myFormFactorSdkControls.startDataLoading(factor, sdk);
+  }
+
+  public void setSdkControlEnabled(Boolean enabled) {
+    myFormFactorSdkControls.setEnabled(enabled);
   }
 
   private void addDeviceFeatureRow() {
@@ -111,4 +132,9 @@ public class ModuleDownloadConditions {
     myDeviceFeaturesContainer.repaint();
   }
 
+  private void createUIComponents() {
+    myFormFactorSdkControls = new FormFactorSdkControls();
+    myFormFactorSdkControls.showStatsPanel(false);
+    myFormFactorSdkControlsPanel = myFormFactorSdkControls.getRoot();
+  }
 }
