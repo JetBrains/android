@@ -47,7 +47,7 @@ public class MissingBuildToolsErrorHandler extends BaseSyncErrorHandler {
     if (isNotEmpty(text)) {
       Matcher matcher = MISSING_BUILD_TOOLS_PATTERN.matcher(getFirstLineMessage(text));
       if ((rootCause instanceof IllegalStateException || rootCause instanceof ExternalSystemException) && matcher.matches()) {
-        updateUsageTracker(MISSING_BUILD_TOOLS);
+        updateUsageTracker(project, MISSING_BUILD_TOOLS);
         return text;
       }
     }

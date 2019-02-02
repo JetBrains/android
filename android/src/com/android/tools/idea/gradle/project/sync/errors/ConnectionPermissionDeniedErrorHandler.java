@@ -35,7 +35,7 @@ public class ConnectionPermissionDeniedErrorHandler extends BaseSyncErrorHandler
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (rootCause instanceof SocketException && isNotEmpty(text) && text.contains("Permission denied: connect")) {
-      updateUsageTracker(CONNECTION_DENIED);
+      updateUsageTracker(project, CONNECTION_DENIED);
       return "Connection to the Internet denied.";
     }
     return null;

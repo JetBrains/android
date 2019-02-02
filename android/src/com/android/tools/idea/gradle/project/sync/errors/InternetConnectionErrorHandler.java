@@ -36,7 +36,7 @@ public class InternetConnectionErrorHandler extends BaseSyncErrorHandler {
       if (firstLine.startsWith("Could not GET ") ||
           firstLine.startsWith("Could not HEAD ") ||
           firstLine.startsWith("Network is unreachable")) {
-        updateUsageTracker();
+        updateUsageTracker(project);
         return text;
       }
     }

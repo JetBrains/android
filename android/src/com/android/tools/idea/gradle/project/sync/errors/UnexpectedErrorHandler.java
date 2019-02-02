@@ -35,7 +35,7 @@ public class UnexpectedErrorHandler extends BaseSyncErrorHandler {
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {
     String text = rootCause.getMessage();
     if (isNotEmpty(text) && text.contains(UNEXPECTED_ERROR_FILE_BUG)) {
-      updateUsageTracker();
+      updateUsageTracker(project);
       return text;
     }
     return null;
