@@ -21,7 +21,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiInvalidElementAccessException
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
@@ -57,7 +56,7 @@ open class NlComponentBackendXml private constructor(
     // HACK: see getTag
     val application = ApplicationManager.getApplication()
     if (application.isReadAccessAllowed) {
-      if (tag.isValid()) {
+      if (tag.isValid) {
         myTagPointer = SmartPointerManager.getInstance(myModel.project).createSmartPsiElementPointer(tag)
         myTagName = tag.getName()
       }
@@ -73,7 +72,7 @@ open class NlComponentBackendXml private constructor(
     myTag = tag
   }
 
-  override fun getTag(): XmlTag {
+  override fun getTagDeprecated(): XmlTag {
     // HACK: We want to use SmartPsiElementPointer as they make sure that the XmlTag we return here is not invalid.
     // However, SmartPsiElementPointer.getElement can return null when the underlying Psi element has been deleted. Since this method is
     // annotated @NotNull, we return the original tag if the pointer gives a null result.
@@ -90,13 +89,19 @@ open class NlComponentBackendXml private constructor(
     return tag ?: this.myTag
   }
 
+  override fun getTag(): XmlTag? {
+    ApplicationManager.getApplication().assertReadAccessAllowed()
+    val tag = myTagPointer.element
+    return if (tag != null && tag.isValid) tag else null
+  }
+
   override fun getTagPointer(): SmartPsiElementPointer<XmlTag> {
     return myTagPointer
   }
 
   override fun setTagName(name: String) {
     myTagName = name
-    getTag().name = name
+    getTag()?.name = name
   }
 
   override fun getTagName(): String {
@@ -104,24 +109,27 @@ open class NlComponentBackendXml private constructor(
   }
 
   override fun getAffectedFile(): VirtualFile? {
-    return try {
-      getTag().containingFile?.virtualFile
-    } catch (e: PsiInvalidElementAccessException) {
-      // The exception is thrown when the XmlTag element returned by getTag() is no longer valid.
-      null
+    val application = ApplicationManager.getApplication()
+    return if (application.isReadAccessAllowed) {
+      myTagPointer.element?.containingFile?.virtualFile
+    }
+    else {
+      application.runReadAction(Computable { myTagPointer.element?.containingFile?.virtualFile })
     }
   }
 
   override fun reformatAndRearrange() {
-    if (getAffectedFile() == null) {
+    ApplicationManager.getApplication().assertWriteAccessAllowed()
+    val xmlTag = myTagPointer.element
+    if (xmlTag?.containingFile?.virtualFile == null) {
       Logger.getInstance(NlWriteCommandAction::class.java).warn("Not reformatting ${getTagName()} because its virtual file is null")
       return
     }
 
-    TemplateUtils.reformatAndRearrange(myModel.project, getTag())
+    TemplateUtils.reformatAndRearrange(myModel.project, xmlTag)
   }
 
   override fun isValid(): Boolean {
-    return getTag().isValid
+    return ApplicationManager.getApplication().isReadAccessAllowed && myTagPointer.element?.isValid == true
   }
 }
