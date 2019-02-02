@@ -50,7 +50,20 @@ public class AarSourceResourceRepositoryTest extends TestCase {
     // There's no R.txt, so the layout file should be parsed and the two ids found.
     AarSourceResourceRepository repository = ResourcesTestsUtil.getTestAarRepository("my_aar_lib_noRDotTxt");
     assertThat(repository.getIdsFromRTxt()).isNull();
-    assertThat(repository.getResources(ResourceNamespace.RES_AUTO, ResourceType.ID).keySet()).containsExactly("id_from_layout");
+    assertThat(repository.getResources(ResourceNamespace.RES_AUTO, ResourceType.ID).keySet())
+      .containsExactly(
+          "btn_title_refresh",
+          "bug123032845",
+          "header",
+          "image",
+          "imageButton",
+          "imageView",
+          "imageView2",
+          "nonExistent",
+          "noteArea",
+          "styledView",
+          "text2",
+          "title_refresh_progress");
   }
 
   public void testGetAllDeclaredIds_wrongRDotTxt() {
