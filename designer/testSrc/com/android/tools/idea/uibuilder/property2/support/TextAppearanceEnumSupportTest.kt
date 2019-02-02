@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
+import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.EnumValueUtil
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth
-import com.intellij.testFramework.PsiTestUtil
-import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 
 private const val PROJECT_TEXT_APPEARANCES = """
@@ -39,8 +41,7 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
 
   fun testTextViewTextAppearanceWithAppCompat() {
     // setup
-    val testPath = AndroidTestBase.getModulePath("designer/testData/property/appcompat-aar")
-    PsiTestUtil.addLibrary(myModule, "appcompat.aar", testPath, "classes.jar", "res")
+    Dependencies.add(myFixture, APPCOMPAT_LIB_ARTIFACT_ID)
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE)
 
