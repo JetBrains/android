@@ -20,7 +20,6 @@ import static com.android.SdkConstants.PREFIX_THEME_REF;
 import static com.android.SdkConstants.REFERENCE_STYLE;
 import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.idea.common.property.NlProperty;
@@ -38,13 +37,6 @@ public class TextAppearanceEnumSupport extends StyleEnumSupport {
 
   public TextAppearanceEnumSupport(@NotNull NlProperty property) {
     super(property);
-  }
-
-  @VisibleForTesting
-  TextAppearanceEnumSupport(@NotNull NlProperty property,
-                            @NotNull StyleFilter styleFilter,
-                            @NotNull ResourceNamespace namespace) {
-    super(property, styleFilter, namespace);
   }
 
   @Override
