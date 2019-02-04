@@ -119,7 +119,12 @@ public class ConstraintDragHandler extends DragHandler {
     Scene scene = editor.getScene();
     if (myComponent != null) {
       NlComponent root = myComponent.getNlComponent().getRoot();
-      NlWriteCommandActionUtil.run(root, "Add App Namespace", () -> root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI));
+      String prefix = NlWriteCommandActionUtil.compute(root, "Add App Namespace",
+                                                       () -> root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI));
+      if (prefix == null) {
+        // Abort, it was impossible to add the prefix, probably because the XmlTag of root has disappeared.
+        return;
+      }
 
       @AndroidDpCoordinate int dx = editor.pxToDp(x) - myComponent.getDrawWidth() / 2;
       @AndroidDpCoordinate int dy = editor.pxToDp(y) - myComponent.getDrawHeight() / 2;
