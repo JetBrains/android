@@ -19,6 +19,8 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.NonNavigatable;
@@ -38,7 +40,8 @@ class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
   }
 
   @Override
-  void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile) {
+  void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile,
+              @NotNull SyncIssueUsageReporter usageReporter) {
     String text = syncIssue.getMessage();
     MessageType type = getMessageType(syncIssue);
     SyncMessage message = new SyncMessage(DEFAULT_GROUP, type, NonNavigatable.INSTANCE, text);
@@ -48,5 +51,6 @@ class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
     message.add(quickFixes);
 
     getSyncMessages(module).report(message);
+    SyncIssueUsageReporterUtils.collect(usageReporter, syncIssue.getType(), quickFixes);
   }
 }

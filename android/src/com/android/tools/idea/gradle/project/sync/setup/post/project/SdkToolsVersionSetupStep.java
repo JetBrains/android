@@ -79,7 +79,7 @@ public class SdkToolsVersionSetupStep extends ProjectSetupStep {
   }
 
   @VisibleForTesting
-  static class InstallSdkToolsHyperlink extends NotificationHyperlink {
+  public static class InstallSdkToolsHyperlink extends NotificationHyperlink {
     @NotNull private final Revision myVersion;
 
     InstallSdkToolsHyperlink(@NotNull Revision version) {

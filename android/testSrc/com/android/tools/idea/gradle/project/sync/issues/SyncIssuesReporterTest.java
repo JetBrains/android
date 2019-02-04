@@ -31,6 +31,7 @@ import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
@@ -93,9 +94,11 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
 
     verify(myStrategy1, never())
-      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
+                 any());
     verify(myStrategy2)
-      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
+                 any());
 
     assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasSyncErrors());
   }
@@ -117,9 +120,11 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     reporter.report(ImmutableMap.of(appModule, Lists.newArrayList(mySyncIssue)));
 
     verify(myStrategy1, never())
-      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
+                 any());
     verify(myStrategy2)
-      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
+                 any());
   }
 
   public void testReportUsingDefaultStrategy() throws Exception {
@@ -186,9 +191,11 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertNotNull(message);
 
     verify(myStrategy1, never())
-      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
+                 any());
     verify(myStrategy2, never())
-      .reportAll(ImmutableList.of(mySyncIssue), ImmutableMap.of(mySyncIssue, appModule), ImmutableMap.of(appModule, buildFile));
+      .reportAll(eq(ImmutableList.of(mySyncIssue)), eq(ImmutableMap.of(mySyncIssue, appModule)), eq(ImmutableMap.of(appModule, buildFile)),
+                 any());
 
     assertTrue(GradleSyncState.getInstance(getProject()).getSummary().hasSyncErrors());
   }
@@ -274,7 +281,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     InOrder inOrder = inOrder(myStrategy1, myStrategy2);
 
-    inOrder.verify(myStrategy2).reportAll(eq(ImmutableList.of(syncIssue2)), anyMap(), anyMap());
-    inOrder.verify(myStrategy1).reportAll(eq(ImmutableList.of(mySyncIssue, syncIssue3)), anyMap(), anyMap());
+    inOrder.verify(myStrategy2).reportAll(eq(ImmutableList.of(syncIssue2)), anyMap(), anyMap(), any());
+    inOrder.verify(myStrategy1).reportAll(eq(ImmutableList.of(mySyncIssue, syncIssue3)), anyMap(), anyMap(), any());
   }
 }

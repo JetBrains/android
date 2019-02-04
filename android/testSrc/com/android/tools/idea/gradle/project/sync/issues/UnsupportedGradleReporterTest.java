@@ -30,6 +30,9 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.module.Module;
 import java.util.List;
 
@@ -40,6 +43,7 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
   private SyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnsupportedGradleReporter myReporter;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
@@ -47,6 +51,7 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
     mySyncIssue = mock(SyncIssue.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnsupportedGradleReporter();
+    myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   public void testGetSupportedIssueType() {
@@ -63,7 +68,7 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
     when(mySyncIssue.getMessage()).thenReturn(expectedText);
     when(mySyncIssue.getData()).thenReturn("2.14.1");
 
-    myReporter.report(mySyncIssue, appModule, null);
+    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
 
     SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
@@ -86,5 +91,16 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
 
     quickFix = quickFixes.get(2);
     assertThat(quickFix).isInstanceOf(OpenGradleSettingsHyperlink.class);
+
+    assertEquals(
+      ImmutableList.of(
+        GradleSyncIssue
+          .newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_GRADLE_SETTINGS_HYPERLINK)
+          .build()),
+      myUsageReporter.getCollectedIssue());
   }
 }
