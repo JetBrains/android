@@ -15,41 +15,34 @@
  */
 package com.android.tools.idea.observable.expressions.bool;
 
+import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ObservableValue;
-import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.Expression;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class for boolean expressions, providing a default implementation for the {@link ObservableBool} interface.
  */
 public abstract class BooleanExpression extends Expression<Boolean> implements ObservableBool {
-  public static final ObservableBool ALWAYS_TRUE = new ConstantBool(true);
-  public static final ObservableBool ALWAYS_FALSE = new ConstantBool(false);
+  public static final ObservableBool ALWAYS_TRUE = new ConstantBool() {
+    @Override
+    @NotNull
+    public Boolean get() {
+      return Boolean.TRUE;
+    }
+  };
+  public static final ObservableBool ALWAYS_FALSE = new ConstantBool() {
+    @Override
+    @NotNull
+    public Boolean get() {
+      return Boolean.FALSE;
+    }
+  };
 
   protected BooleanExpression(ObservableValue... values) {
     super(values);
-  }
-
-  @NotNull
-  @Override
-  public final ObservableBool not() {
-    return BooleanExpressions.not(this);
-  }
-
-  @NotNull
-  @Override
-  public final ObservableBool or(@NotNull ObservableValue<Boolean> other) {
-    return new OrExpression(this, other);
-  }
-
-  @NotNull
-  @Override
-  public final ObservableBool and(@NotNull ObservableValue<Boolean> other) {
-    return new AndExpression(this, other);
   }
 
   /**
@@ -66,22 +59,20 @@ public abstract class BooleanExpression extends Expression<Boolean> implements O
     };
   }
 
-  private static class ConstantBool extends BoolProperty {
-    private final Boolean myValue;
-
-    private ConstantBool(Boolean value) {
-      myValue = value;
-    }
-
-    @NotNull
+  private static abstract class ConstantBool implements ObservableBool {
     @Override
-    public Boolean get() {
-      return myValue;
+    public void addListener(@NotNull InvalidationListener listener) {
+      // No need to notify the listener since the value never changes.
     }
 
     @Override
-    protected void setDirectly(@NotNull Boolean value) {
-      throw new UnsupportedOperationException();
+    public void removeListener(@NotNull InvalidationListener listener) {
+      // No need to notify the listener since the value never changes.
+    }
+
+    @Override
+    public void addWeakListener(@NotNull InvalidationListener listener) {
+      // No need to notify the listener since the value never changes.
     }
   }
 }
