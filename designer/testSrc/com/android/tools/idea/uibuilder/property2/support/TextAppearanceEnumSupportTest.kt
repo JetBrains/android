@@ -20,10 +20,12 @@ import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.testing.Dependencies
+import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.EnumValueUtil
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.truth.Truth
+import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.android.AndroidTestCase
 
 private const val PROJECT_TEXT_APPEARANCES = """
@@ -51,25 +53,25 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
     val expectedProjectValues = listOf("@style/TextAppearance.Blue", "@style/MyTextStyle")
     val expectedProjectDisplayValues = listOf("Blue", "MyTextStyle")
     val expectedAppCompatValues = listOf(
-        "@style/TextAppearance.AppCompat.Body1",
-        "@style/TextAppearance.AppCompat.Body2",
-        "@style/TextAppearance.AppCompat.Display1",
-        "@style/TextAppearance.AppCompat.Display2",
-        "@style/TextAppearance.AppCompat.Display3",
-        "@style/TextAppearance.AppCompat.Display4",
-        "@style/TextAppearance.AppCompat.Large",
-        "@style/TextAppearance.AppCompat.Medium",
-        "@style/TextAppearance.AppCompat.Small")
+      "@style/TextAppearance.AppCompat.Body1",
+      "@style/TextAppearance.AppCompat.Body2",
+      "@style/TextAppearance.AppCompat.Display1",
+      "@style/TextAppearance.AppCompat.Display2",
+      "@style/TextAppearance.AppCompat.Display3",
+      "@style/TextAppearance.AppCompat.Display4",
+      "@style/TextAppearance.AppCompat.Large",
+      "@style/TextAppearance.AppCompat.Medium",
+      "@style/TextAppearance.AppCompat.Small")
     val expectedAppCompatDisplayValues = listOf(
-        "Body1",
-        "Body2",
-        "Display1",
-        "Display2",
-        "Display3",
-        "Display4",
-        "Large",
-        "Medium",
-        "Small")
+      "Body1",
+      "Body2",
+      "Display1",
+      "Display2",
+      "Display3",
+      "Display4",
+      "Large",
+      "Medium",
+      "Small")
     var index = 0
     index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
     index = EnumValueUtil.checkSection(values, index, APPCOMPAT_HEADER, 9, expectedAppCompatValues, expectedAppCompatDisplayValues)
@@ -87,28 +89,72 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
     val expectedProjectValues = listOf("@style/TextAppearance.Blue", "@style/MyTextStyle")
     val expectedProjectDisplayValues = listOf("Blue", "MyTextStyle")
     val expectedAndroidValues = listOf(
-        "@android:style/TextAppearance.Material.Body1",
-        "@android:style/TextAppearance.Material.Body2",
-        "@android:style/TextAppearance.Material.Display1",
-        "@android:style/TextAppearance.Material.Display2",
-        "@android:style/TextAppearance.Material.Display3",
-        "@android:style/TextAppearance.Material.Display4",
-        "@android:style/TextAppearance.Material.Large",
-        "@android:style/TextAppearance.Material.Medium",
-        "@android:style/TextAppearance.Material.Small")
+      "@android:style/TextAppearance.Material.Body1",
+      "@android:style/TextAppearance.Material.Body2",
+      "@android:style/TextAppearance.Material.Display1",
+      "@android:style/TextAppearance.Material.Display2",
+      "@android:style/TextAppearance.Material.Display3",
+      "@android:style/TextAppearance.Material.Display4",
+      "@android:style/TextAppearance.Material.Large",
+      "@android:style/TextAppearance.Material.Medium",
+      "@android:style/TextAppearance.Material.Small")
     val expectedAndroidDisplayValues = listOf(
-        "Body1",
-        "Body2",
-        "Display1",
-        "Display2",
-        "Display3",
-        "Display4",
-        "Large",
-        "Medium",
-        "Small")
+      "Body1",
+      "Body2",
+      "Display1",
+      "Display2",
+      "Display3",
+      "Display4",
+      "Large",
+      "Medium",
+      "Small")
     var index = 0
     index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
     index = EnumValueUtil.checkSection(values, index, ANDROID_HEADER, 9, expectedAndroidValues, expectedAndroidDisplayValues)
     Truth.assertThat(index).isEqualTo(-1)
+  }
+
+  fun testTextViewTextAppearanceWithInvalidXmlTag() {
+    // setup
+    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
+    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE)
+    deleteXmlTag(property)
+
+    // test
+    val support = TextAppearanceEnumSupport(property)
+    val values = support.values
+    val expectedProjectValues = listOf("@style/TextAppearance.Blue", "@style/MyTextStyle")
+    val expectedProjectDisplayValues = listOf("Blue", "MyTextStyle")
+    val expectedAndroidValues = listOf(
+      "@android:style/TextAppearance.Material.Body1",
+      "@android:style/TextAppearance.Material.Body2",
+      "@android:style/TextAppearance.Material.Display1",
+      "@android:style/TextAppearance.Material.Display2",
+      "@android:style/TextAppearance.Material.Display3",
+      "@android:style/TextAppearance.Material.Display4",
+      "@android:style/TextAppearance.Material.Large",
+      "@android:style/TextAppearance.Material.Medium",
+      "@android:style/TextAppearance.Material.Small")
+    val expectedAndroidDisplayValues = listOf(
+      "Body1",
+      "Body2",
+      "Display1",
+      "Display2",
+      "Display3",
+      "Display4",
+      "Large",
+      "Medium",
+      "Small")
+    var index = 0
+    index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
+    index = EnumValueUtil.checkSection(values, index, ANDROID_HEADER, 9, expectedAndroidValues, expectedAndroidDisplayValues)
+    Truth.assertThat(index).isEqualTo(-1)
+  }
+
+  private fun deleteXmlTag(property: NelePropertyItem) {
+    val tag = property.components.first().backend.getTagPointer().element!!
+    WriteCommandAction.writeCommandAction(project).run<Throwable> {
+      tag.delete()
+    }
   }
 }
