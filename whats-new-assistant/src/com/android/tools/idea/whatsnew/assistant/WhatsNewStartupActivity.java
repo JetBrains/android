@@ -31,7 +31,6 @@ import com.android.annotations.VisibleForTesting;
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.ui.GuiTestingService;
-import com.intellij.ide.TipOfTheDayManager;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
@@ -76,7 +75,6 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
 
     if (shouldShowMessage(data, applicationRevision)) {
       // We don't want to show two popups, so disable the normal tip of the day if we're showing what's new.
-      disableTipOfTheDay();
       openWhatsNewAssistant(project);
     }
   }
@@ -97,20 +95,6 @@ public class WhatsNewStartupActivity implements StartupActivity, DumbAware {
           return null;
         }
       }));
-  }
-
-  private static void disableTipOfTheDay() {
-    TipOfTheDayManager tips = Extensions.findExtension(StartupActivity.POST_STARTUP_ACTIVITY, TipOfTheDayManager.class);
-    try {
-      // This is obviously a horrible hack
-      Field flag = TipOfTheDayManager.class.getDeclaredField("myVeryFirstProjectOpening");
-      flag.setAccessible(true);
-      flag.setBoolean(tips, false);
-      flag.setAccessible(false);
-    }
-    catch (Exception e) {
-      // nothing, just give up
-    }
   }
 
   @VisibleForTesting
