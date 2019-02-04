@@ -801,10 +801,6 @@ config_setting(
 )
 
 # sanity test
-DEBUG_ON_EMU_TEST_TAGS = list(COMMON_TAGS)
-
-DEBUG_ON_EMU_TEST_TAGS.remove("cpu:3")
-
 java_test(
     name = "DebugOnEmulatorTest",
     size = "enormous",
@@ -822,7 +818,12 @@ java_test(
     jvm_flags = [
         "-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.DebugOnEmulatorTest",
     ],
-    tags = DEBUG_ON_EMU_TEST_TAGS + [
+    # do not sort: the beginning of this list is copied from COMMON_TAGS
+    tags = [
+        "block-network",
+        "no_mac",
+        "no_windows",
+        "slow",
         "no-remote",
         "requires-fakeroot",
         "no_psq",
