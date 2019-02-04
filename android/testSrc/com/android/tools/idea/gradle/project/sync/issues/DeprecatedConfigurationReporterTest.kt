@@ -20,9 +20,10 @@ import com.android.builder.model.SyncIssue.SEVERITY_ERROR
 import com.android.builder.model.SyncIssue.SEVERITY_WARNING
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.INFO
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING
 import com.intellij.openapi.module.Module
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -37,6 +38,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
   private lateinit var module2: Module
   private lateinit var messageStub: GradleSyncMessagesStub
   private lateinit var reporter: DeprecatedConfigurationReporter
+  private lateinit var usageReporter: TestSyncIssueUsageReporter
 
   override fun setUp() {
     super.setUp()
@@ -48,6 +50,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     syncIssue2 = mock(SyncIssue::class.java)
     module1 = mock(Module::class.java)
     module2 = mock(Module::class.java)
+    usageReporter = TestSyncIssueUsageReporter()
 
     `when`(module1.name).thenReturn("app")
     `when`(module1.project).thenReturn(project)
@@ -64,7 +67,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(syncIssue2.data).thenReturn("key")
     `when`(syncIssue2.severity).thenReturn(SEVERITY_WARNING)
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module1), mapOf())
+    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module1), mapOf(), usageReporter)
 
     val messages = messageStub.notifications
     assertSize(1, messages)
@@ -75,6 +78,10 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     assertThat(message.notificationCategory, equalTo(INFO))
 
     assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
+
+    assertEquals(
+      listOf(GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
+      usageReporter.collectedIssue)
   }
 
   @Test
@@ -86,7 +93,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(syncIssue2.data).thenReturn("key")
     `when`(syncIssue2.severity).thenReturn(SEVERITY_WARNING)
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf())
+    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 
     val messages = messageStub.notifications
     assertSize(2, messages)
@@ -101,6 +108,13 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     assertThat(message.notificationCategory, equalTo(INFO))
 
     assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
+
+    assertEquals(
+      listOf(
+        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
+        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
+      ),
+      usageReporter.collectedIssue)
   }
 
   @Test
@@ -112,7 +126,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(syncIssue2.data).thenReturn("key")
     `when`(syncIssue2.severity).thenReturn(SEVERITY_WARNING)
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf())
+    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 
     val messages = messageStub.notifications
     assertSize(1, messages)
@@ -123,6 +137,10 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     assertThat(message.notificationCategory, equalTo(INFO))
 
     assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
+
+    assertEquals(
+      listOf(GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
+      usageReporter.collectedIssue)
   }
 
   @Test
@@ -134,7 +152,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(syncIssue2.data).thenReturn("key")
     `when`(syncIssue2.severity).thenReturn(SEVERITY_WARNING)
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf())
+    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 
     val messages = messageStub.notifications
     assertSize(2, messages)
@@ -149,6 +167,13 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     assertThat(message.notificationCategory, equalTo(INFO))
 
     assertThat(messageStub.fakeErrorCount, equalTo(0))
+
+    assertEquals(
+      listOf(
+        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
+        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
+      ),
+      usageReporter.collectedIssue)
   }
 
   @Test
@@ -160,7 +185,7 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     `when`(syncIssue2.data).thenReturn("key")
     `when`(syncIssue2.severity).thenReturn(SEVERITY_ERROR)
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf())
+    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 
     val messages = messageStub.notifications
     assertSize(1, messages)
@@ -171,5 +196,9 @@ class DeprecatedConfigurationReporterTest : AndroidGradleTestCase() {
     assertThat(message.notificationCategory, equalTo(ERROR))
 
     assertThat(messageStub.fakeErrorCount, equalTo(1))
+
+    assertEquals(
+      listOf(GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
+      usageReporter.collectedIssue)
   }
 }
