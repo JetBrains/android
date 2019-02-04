@@ -16,6 +16,9 @@
 package com.android.tools.idea.observable.core;
 
 import com.android.tools.idea.observable.ObservableValue;
+import com.android.tools.idea.observable.expressions.bool.AndExpression;
+import com.android.tools.idea.observable.expressions.bool.NotExpression;
+import com.android.tools.idea.observable.expressions.bool.OrExpression;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -23,11 +26,17 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface ObservableBool extends ObservableValue<Boolean> {
   @NotNull
-  ObservableBool not();
+  default ObservableBool not() {
+    return new NotExpression(this);
+  }
 
   @NotNull
-  ObservableBool or(@NotNull ObservableValue<Boolean> other);
+  default ObservableBool or(@NotNull ObservableValue<Boolean> other) {
+    return new OrExpression(this, other);
+  }
 
   @NotNull
-  ObservableBool and(@NotNull ObservableValue<Boolean> other);
+  default ObservableBool and(@NotNull ObservableValue<Boolean> other) {
+    return new AndExpression(this, other);
+  }
 }
