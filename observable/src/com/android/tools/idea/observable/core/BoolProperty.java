@@ -16,38 +16,16 @@
 package com.android.tools.idea.observable.core;
 
 import com.android.tools.idea.observable.AbstractProperty;
-import com.android.tools.idea.observable.ObservableValue;
-import com.android.tools.idea.observable.expressions.bool.AndExpression;
-import com.android.tools.idea.observable.expressions.bool.OrExpression;
-import com.android.tools.idea.observable.expressions.bool.NotExpression;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Base class that every boolean-type property should inherit from, as it provides useful methods
  * that enable chaining.
  */
 public abstract class BoolProperty extends AbstractProperty<Boolean> implements ObservableBool {
-
+  /**
+   * Flips the value of this property from FALSE to TRUE, or from TRUE to FALSE.
+   */
   public void invert() {
     set(!get());
   }
-
-  @NotNull
-  @Override
-  public ObservableBool not() {
-    return new NotExpression(this);
-  }
-
-  @NotNull
-  @Override
-  public ObservableBool or(@NotNull ObservableValue<Boolean> other) {
-    return new OrExpression(this, other);
-  }
-
-  @NotNull
-  @Override
-  public ObservableBool and(@NotNull ObservableValue<Boolean> other) {
-    return new AndExpression(this, other);
-  }
-
 }
