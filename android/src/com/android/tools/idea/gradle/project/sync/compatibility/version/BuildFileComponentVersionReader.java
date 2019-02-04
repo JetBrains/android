@@ -102,7 +102,7 @@ public class BuildFileComponentVersionReader implements ComponentVersionReader {
     return "'" + myComponentName + "'";
   }
 
-  private static class OpenBuildFileHyperlink extends NotificationHyperlink {
+  public static class OpenBuildFileHyperlink extends NotificationHyperlink {
     @NotNull private final PositionInFile myFileLocation;
 
     OpenBuildFileHyperlink(@NotNull Module module, @NotNull PositionInFile fileLocation) {
