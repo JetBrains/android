@@ -477,8 +477,22 @@ public class NlComponent implements NlAttributesHolder {
     return Collections.emptyList();
   }
 
-  public String ensureNamespace(@NotNull String prefix, @NotNull String namespace) {
-    return AndroidResourceUtil.ensureNamespaceImported((XmlFile)getTag().getContainingFile(), namespace, prefix);
+  /**
+   * Make sure there is a namespace declaration for the specified namespace.
+   *
+   * @param suggestedPrefix use this prefix if a namespace declaration is to be added
+   * @param namespace the namespace a declaration is needed for
+   * @return the prefix for the namespace. This will be the existing namespace prefix unless
+   *         a new namespace declaration was added in which case it will be suggestedPrefix.
+   *         If the corresponding XmlTag doesn't exist a null is returned.
+   */
+  @Nullable
+  public String ensureNamespace(@NotNull String suggestedPrefix, @NotNull String namespace) {
+    XmlTag tag = getBackend().getTag();
+    if (tag == null) {
+      return null;
+    }
+    return AndroidResourceUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, suggestedPrefix);
   }
 
   public boolean isShowing() {

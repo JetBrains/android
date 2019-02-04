@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
@@ -101,6 +102,30 @@ public final class NlComponentTest extends AndroidTestCase {
                  "    NlComponent{tag=<TextView>, bounds=[0,0:200x100}\n" +
                  "    NlComponent{tag=<Button>, bounds=[10,110:400x100}",
                  NlTreeDumper.dumpTree(Collections.singletonList(linearLayout)));
+  }
+
+  public void testEnsureNamespaceWithInvalidXmlTag() {
+    @Language("XML")
+    String layout = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                    "<LinearLayout" +
+                    " xmlns:android=\"" + ANDROID_URI + "\"" +
+                    " android:layout_width=\"wrap_content\"" +
+                    " android:layout_height=\"wrap_content\">" +
+                    " <TextView/>"  +
+                    "</LinearLayout>";
+
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", layout);
+    NlComponent textView = MockNlComponent.create(xmlFile.getRootTag().getSubTags()[0]);
+
+    deleteXmlTag(textView);
+    String prefix = textView.ensureNamespace("app", AUTO_URI);
+    assertNull(prefix);
+  }
+
+  private void deleteXmlTag(@NotNull NlComponent component) {
+    XmlTag tag = component.getBackend().getTagPointer().getElement();
+    WriteCommandAction.writeCommandAction(getProject()).run(() -> tag.delete());
+    UIUtil.dispatchAllInvocationEvents();
   }
 
   private XmlTag createTagFromXml(String xml) {
