@@ -44,5 +44,6 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.c" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.property-editor" scope="TEST" />
   </component>
 </module>

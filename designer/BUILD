@@ -49,6 +49,7 @@ iml_module(
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/adt/idea/resources-aar:intellij.android.resources-aar[module]",
+        "//tools/adt/idea/property-editor:intellij.android.property-editor[module]",
     ],
 )
 
@@ -141,5 +142,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/vendor/intellij/cidr:intellij.c[module, test]",
+        "//tools/adt/idea/property-editor:intellij.android.property-editor[module, test]",
     ],
 )
