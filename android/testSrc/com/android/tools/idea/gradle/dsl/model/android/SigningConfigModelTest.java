@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_AND_APPLY_SIGNING_CONFIG;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_CONSOLE_READ_PASSWORD_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SIGNING_CONFIG_MODEL_ADD_ENVIRONMENT_VARIABLE_PASSWORD_ELEMENTS;
@@ -38,7 +40,9 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import java.util.List;
 import org.junit.Test;
@@ -514,5 +518,28 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs).hasSize(1);
     assertEquals("newName", signingConfigs.get(0).name());
     assertEquals("myReleaseKey", signingConfigs.get(0).keyAlias().toString());
+  }
+
+  @Test
+  public void testSigningConfigAddedToTopOfAndroidBlock() throws Exception {
+    writeToBuildFile(SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+
+    SigningConfigModel signingConfig = androidModel.addSigningConfig("release");
+    signingConfig.storeFile().setValue(new ReferenceTo("keystorefile"));
+    signingConfig.storePassword().setValue("123456");
+    signingConfig.keyAlias().setValue("demo");
+    signingConfig.keyPassword().setValue("123456");
+
+    BuildTypeModel buildType = androidModel.buildTypes().stream().filter(type -> type.name().equals("release")).findFirst().orElse(null);
+    assertNotNull(buildType);
+
+    buildType.signingConfig().setValue(new ReferenceTo(signingConfig));
+
+    applyChangesAndReparse(buildModel);
+
+    verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK_EXPECTED);
   }
 }
