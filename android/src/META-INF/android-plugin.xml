@@ -162,6 +162,10 @@
               description="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
       <separator/>
+      <action id="ResourceExplorer.open"
+              text="Resource Manager"
+              icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS"
+              class="com.android.tools.idea.ui.resourcemanager.actions.OpenResourceManagerAction"/>
       <action id="Android.ShowThemeEditor" class="com.android.tools.idea.actions.AndroidShowThemeEditor"/>
       <separator/>
       <group id="AndroidToolsGroupExtension"/>
