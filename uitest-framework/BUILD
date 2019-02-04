@@ -39,6 +39,7 @@ iml_module(
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/adt/idea/android/lib:spantable[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/property-editor:intellij.android.property-editor[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
