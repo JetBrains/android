@@ -31,8 +31,11 @@ import com.android.tools.idea.testing.Dependencies;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -87,6 +90,31 @@ public class StyleEnumSupportTest {
       androidStyle("Widget.Material.CompoundButton.CheckBox"),
       androidStyle("Widget.Material.Light.CompoundButton.CheckBox")
     ).inOrder();
+  }
+
+  @Test
+  public void testFindPossibleValuesWithInvalidXmlTag() {
+    NlComponent checkBox = myLayout.getChild(0);
+    NlPropertyItem property = NlPropertyItem.create(new XmlName(ATTR_STYLE, ""), null, ImmutableList.of(checkBox), null);
+    deleteTag(checkBox);
+    StyleEnumSupport support = new StyleEnumSupport(property);
+    assertThat(support.getAllValues()).containsExactly(
+      new ValueWithDisplayString("MyCheckBox", "@style/MyCheckBox"),
+      ValueWithDisplayString.SEPARATOR,
+      androidStyle("Widget.CompoundButton.CheckBox"),
+      androidStyle("Widget.DeviceDefault.CompoundButton.CheckBox"),
+      androidStyle("Widget.DeviceDefault.Light.CompoundButton.CheckBox"),
+      androidStyle("Widget.Holo.CompoundButton.CheckBox"),
+      androidStyle("Widget.Holo.Light.CompoundButton.CheckBox"),
+      androidStyle("Widget.Material.CompoundButton.CheckBox"),
+      androidStyle("Widget.Material.Light.CompoundButton.CheckBox")
+    ).inOrder();
+  }
+
+  private void deleteTag(@NotNull NlComponent component) {
+    XmlTag tag = component.getBackend().getTagPointer().getElement();
+    WriteCommandAction.writeCommandAction(myProjectRule.getProject()).run(() -> tag.delete());
+    UIUtil.dispatchAllInvocationEvents();
   }
 
   @NotNull
