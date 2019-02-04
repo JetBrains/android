@@ -188,8 +188,6 @@ class SyncResultHandler {
       // This is extremely handy when debugging sync errors in tests. Do not remove.
       //noinspection UseOfSystemOutOrSystemErr
       System.out.println("***** sync error: " + error.getMessage());
-      //noinspection CallToPrintStackTrace
-      error.printStackTrace();
     }
 
     if (syncListener != null) {

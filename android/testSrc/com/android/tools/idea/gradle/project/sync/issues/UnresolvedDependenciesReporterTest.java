@@ -20,6 +20,9 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHy
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -41,6 +44,7 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
 
   private GradleSyncMessagesStub mySyncMessages;
   private UnresolvedDependenciesReporter myReporter;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   protected void setUp() throws Exception {
@@ -49,6 +53,7 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     mySyncMessages = replaceSyncMessagesService(getProject());
     new IdeComponents(getProject()).replaceProjectService(GradleSettings.class, myGradleSettings);
     myReporter = new UnresolvedDependenciesReporter();
+    myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   public void testReportWithoutDependencyAndExtraInfo() {
@@ -59,7 +64,7 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     List<String> extraInfo = Arrays.asList("line1", "line2");
     when(mySyncIssue.getMultiLineMessage()).thenReturn(extraInfo);
 
-    myReporter.report(mySyncIssue, getModule(), null);
+    myReporter.report(mySyncIssue, getModule(), null, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessages.getNotifications();
     assertSize(1, messages);
@@ -70,6 +75,15 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     NotificationUpdate update = mySyncMessages.getNotificationUpdate();
     assertSize(1, update.getFixes());
     assertInstanceOf(update.getFixes().get(0), ShowSyncIssuesDetailsHyperlink.class);
+
+    assertEquals(
+      ImmutableList.of(
+        GradleSyncIssue
+          .newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_SYNC_ISSUES_DETAILS_HYPERLINK)
+          .build()),
+      myUsageReporter.getCollectedIssue());
   }
 
   /**
@@ -81,7 +95,7 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     when(mySyncIssue.getMessage()).thenReturn(text);
     when(mySyncIssue.getMultiLineMessage()).thenReturn(null);
     when(myGradleSettings.isOfflineWork()).thenReturn(true);
-    myReporter.report(mySyncIssue, getModule(), null);
+    myReporter.report(mySyncIssue, getModule(), null, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessages.getNotifications();
     assertSize(1, messages);
@@ -91,6 +105,15 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     NotificationUpdate update = mySyncMessages.getNotificationUpdate();
     assertSize(1, update.getFixes());
     assertInstanceOf(update.getFixes().get(0), DisableOfflineModeHyperlink.class);
+
+    assertEquals(
+      ImmutableList.of(
+        GradleSyncIssue
+          .newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.DISABLE_OFFLINE_MODE_HYPERLINK)
+          .build()),
+      myUsageReporter.getCollectedIssue());
   }
 
   /**
@@ -102,7 +125,7 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     when(mySyncIssue.getMessage()).thenReturn(text);
     when(mySyncIssue.getMultiLineMessage()).thenReturn(null);
     when(myGradleSettings.isOfflineWork()).thenReturn(false);
-    myReporter.report(mySyncIssue, getModule(), null);
+    myReporter.report(mySyncIssue, getModule(), null, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessages.getNotifications();
     assertSize(1, messages);
@@ -110,5 +133,10 @@ public class UnresolvedDependenciesReporterTest extends IdeaTestCase {
     assertEquals(expected, message.getMessage());
 
     assertSize(0, message.getRegisteredListenerIds());
+
+    assertEquals(
+      ImmutableList.of(
+        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY).build()),
+      myUsageReporter.getCollectedIssue());
   }
 }

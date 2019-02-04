@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
+import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
+import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.model.SyncIssue;
@@ -31,23 +41,16 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static com.android.ide.common.repository.SdkMavenRepository.GOOGLE;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link UnresolvedDependenciesReporter}.
@@ -57,6 +60,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   private SyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnresolvedDependenciesReporter myReporter;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
@@ -67,6 +71,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     myIdeComponents = new IdeComponents(getProject());
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnresolvedDependenciesReporter();
+    myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   @Override
@@ -92,7 +97,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     Module appModule = myModules.getAppModule();
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    myReporter.report(mySyncIssue, appModule, buildFile);
+    myReporter.report(mySyncIssue, appModule, buildFile, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -107,6 +112,15 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     VirtualFile file = ((OpenFileDescriptor)message.getNavigatable()).getFile();
     assertSame(buildFile, file);
+
+    assertEquals(
+      ImmutableList.of(
+        GradleSyncIssue
+          .newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
+          .build()),
+      myUsageReporter.getCollectedIssue());
   }
 
   public void testReportWithConstraintLayout() throws Exception {
@@ -120,7 +134,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     when(mySyncIssue.getData()).thenReturn("com.android.support.constraint:constraint-layout:+");
 
-    myReporter.report(mySyncIssue, appModule, null);
+    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -133,6 +147,16 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     List<NotificationHyperlink> quickFixes = mySyncMessagesStub.getNotificationUpdate().getFixes();
     assertNotEmpty(quickFixes);
+
+    assertEquals(
+      ImmutableList.of(
+        GradleSyncIssue
+          .newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.INSTALL_ARTIFACT_HYPERLINK)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
+          .build()),
+      myUsageReporter.getCollectedIssue());
   }
 
   public void testReportWithAppCompat() throws Exception {
@@ -143,7 +167,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
 
-    myReporter.report(mySyncIssue, appModule, getGradleBuildFile(appModule));
+    myReporter.report(mySyncIssue, appModule, getGradleBuildFile(appModule), myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -166,6 +190,16 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
       quickFix = quickFixes.get(1);
       assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
     }
+
+    assertEquals(
+      ImmutableList.of(
+        GradleSyncIssue
+          .newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
+          .build()),
+      myUsageReporter.getCollectedIssue());
   }
 
   public void testReportWithAppCompatAndGoogle() throws Exception {
@@ -181,7 +215,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
 
-    myReporter.report(mySyncIssue, appModule, null);
+    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -200,6 +234,15 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     if (IdeInfo.getInstance().isAndroidStudio()) {
       assertThat(quickFixes.get(0)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
     }
+
+    assertEquals(
+      ImmutableList.of(
+        maybeAddShowDependencyInProjectStructureHyperLink(
+          GradleSyncIssue
+            .newBuilder()
+            .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY))
+          .build()),
+      myUsageReporter.getCollectedIssue());
   }
 
   /**
@@ -219,7 +262,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
 
-    myReporter.report(mySyncIssue, spyAppModule, null);
+    myReporter.report(mySyncIssue, spyAppModule, null, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -242,6 +285,16 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
       quickFix = quickFixes.get(1);
       assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
     }
+
+    assertEquals(
+      ImmutableList.of(
+        maybeAddShowDependencyInProjectStructureHyperLink(
+          GradleSyncIssue
+            .newBuilder()
+            .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
+            .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK))
+          .build()),
+      myUsageReporter.getCollectedIssue());
   }
 
   public void testReportWithPlayServices() throws Exception {
@@ -252,7 +305,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     when(mySyncIssue.getData()).thenReturn("com.google.android.gms:play-services:9.4.0");
 
-    myReporter.report(mySyncIssue, appModule, null);
+    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -276,6 +329,16 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
       quickFix = quickFixes.get(1);
       assertThat(quickFix).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
     }
+
+    assertEquals(
+      ImmutableList.of(
+        maybeAddShowDependencyInProjectStructureHyperLink(
+          GradleSyncIssue
+            .newBuilder()
+            .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
+            .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.INSTALL_REPOSITORY_HYPERLINK))
+          .build()),
+      myUsageReporter.getCollectedIssue());
   }
 
   public void testDeduplicateAcrossModules() throws Exception {
@@ -333,7 +396,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     moduleMap.put(issues.get(0), appModule);
     moduleMap.put(issues.get(1), libModule);
     myReporter
-      .reportAll(issues, moduleMap, ImmutableMap.of(appModule, getGradleBuildFile(appModule), libModule, getGradleBuildFile(libModule)));
+      .reportAll(issues, moduleMap, ImmutableMap.of(appModule, getGradleBuildFile(appModule), libModule, getGradleBuildFile(libModule)), myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -341,6 +404,15 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     NotificationData message = messages.get(0);
     assertEquals("Unresolved dependencies", message.getTitle());
     assertThat(message.getMessage()).contains("Failed to resolve: com.google.android.gms.play-services:9.4.0\nAffected Modules:");
+
+    assertEquals(
+      ImmutableList.of(
+        GradleSyncIssue
+          .newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.INSTALL_REPOSITORY_HYPERLINK)
+          .build()),
+      myUsageReporter.getCollectedIssue());
   }
 
   public void testGetModuleLink() throws Exception {
@@ -366,7 +438,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
     when(mySyncIssue.getData()).thenReturn("androidx.room:room-compiler:2.0.0-alpha1");
 
-    myReporter.report(mySyncIssue, appModule, appFile);
+    myReporter.report(mySyncIssue, appModule, appFile, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -375,5 +447,22 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     assertSize(2, links);
     assertThat(links.get(0)).isInstanceOf(AddGoogleMavenRepositoryHyperlink.class);
     assertThat(links.get(1)).isInstanceOf(ShowDependencyInProjectStructureHyperlink.class);
+
+    assertEquals(
+      ImmutableList.of(
+        GradleSyncIssue
+          .newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK)
+          .build()),
+      myUsageReporter.getCollectedIssue());
+  }
+
+  private static GradleSyncIssue.Builder maybeAddShowDependencyInProjectStructureHyperLink(GradleSyncIssue.Builder builder) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      builder.addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK);
+    }
+    return builder;
   }
 }

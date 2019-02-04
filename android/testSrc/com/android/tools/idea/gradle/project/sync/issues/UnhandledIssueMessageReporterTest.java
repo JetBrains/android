@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
@@ -39,6 +42,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
   private SyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnhandledIssuesReporter myReporter;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
@@ -46,6 +50,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     mySyncIssue = mock(SyncIssue.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnhandledIssuesReporter();
+    myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   public void testGetSupportedIssueType() {
@@ -65,7 +70,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
 
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    myReporter.report(mySyncIssue, appModule, buildFile);
+    myReporter.report(mySyncIssue, appModule, buildFile, myUsageReporter);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -80,6 +85,11 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
     VirtualFile file = ((OpenFileDescriptor)message.getNavigatable()).getFile();
     assertSame(buildFile, file);
+
+    assertEquals(
+      ImmutableList.of(
+        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE).build()),
+      myUsageReporter.getCollectedIssue());
   }
 
   public void testReportWithoutBuildFile() throws Exception {
@@ -93,7 +103,7 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     when(mySyncIssue.getMessage()).thenReturn(text);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
 
-    myReporter.report(mySyncIssue, appModule, null);
+    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
 
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
@@ -104,5 +114,10 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
     assertEquals(expectedText, message.getMessage());
 
     assertNull(message.getNavigatable());
+
+    assertEquals(
+      ImmutableList.of(
+        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE).build()),
+      myUsageReporter.getCollectedIssue());
   }
 }
