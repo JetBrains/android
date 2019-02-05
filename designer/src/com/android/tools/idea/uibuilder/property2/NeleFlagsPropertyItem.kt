@@ -19,9 +19,9 @@ import com.android.SdkConstants
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.FlagPropertyItem
-import com.android.tools.idea.common.property2.api.FlagsPropertyItem
-import com.android.tools.idea.common.property2.api.PropertyItem
+import com.android.tools.property.panel.api.FlagPropertyItem
+import com.android.tools.property.panel.api.FlagsPropertyItem
+import com.android.tools.property.panel.api.PropertyItem
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.common.collect.Sets

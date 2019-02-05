@@ -24,8 +24,8 @@ import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.property2.api.PropertiesModel
-import com.android.tools.idea.common.property2.api.PropertiesModelListener
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat

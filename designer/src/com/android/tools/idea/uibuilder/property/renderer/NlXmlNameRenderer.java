@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
-import com.android.tools.adtui.ptable.PNameRenderer;
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableCellRenderer;
-import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.property.ptable.PNameRenderer;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableCellRenderer;
+import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.AddPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlResourceHeader;
 import com.intellij.openapi.util.text.StringUtil;

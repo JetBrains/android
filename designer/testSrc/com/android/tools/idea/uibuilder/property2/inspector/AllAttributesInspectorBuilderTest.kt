@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants
-import com.android.tools.adtui.ptable2.PTableGroupItem
-import com.android.tools.idea.common.property2.api.EditorProvider
-import com.android.tools.idea.common.property2.impl.model.util.FakeLineType
+import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.testing.addManifest

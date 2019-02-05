@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.property2.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.impl.support.EditorFocusListener
-import com.android.tools.idea.common.property2.impl.support.HelpSupportBinding
+import com.android.tools.property.panel.impl.support.EditorFocusListener
+import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.android.tools.idea.uibuilder.property2.model.ToggleButtonPropertyEditorModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager

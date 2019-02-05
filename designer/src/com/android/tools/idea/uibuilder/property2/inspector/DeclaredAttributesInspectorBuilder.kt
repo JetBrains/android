@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.tools.adtui.ptable2.PTableItem
-import com.android.tools.idea.common.property2.api.ControlType
-import com.android.tools.idea.common.property2.api.EditorProvider
-import com.android.tools.idea.common.property2.api.EnumSupportProvider
-import com.android.tools.idea.common.property2.api.FilteredPTableModel
-import com.android.tools.idea.common.property2.api.InspectorBuilder
-import com.android.tools.idea.common.property2.api.InspectorPanel
-import com.android.tools.idea.common.property2.api.PropertiesTable
-import com.android.tools.idea.common.property2.api.TableLineModel
-import com.android.tools.idea.common.property2.api.TableUIProvider
-import com.android.tools.idea.common.property2.impl.support.SimpleControlTypeProvider
+import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.panel.api.ControlType
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.EnumSupportProvider
+import com.android.tools.property.panel.api.FilteredPTableModel
+import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesTable
+import com.android.tools.property.panel.api.TableLineModel
+import com.android.tools.property.panel.api.TableUIProvider
+import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem

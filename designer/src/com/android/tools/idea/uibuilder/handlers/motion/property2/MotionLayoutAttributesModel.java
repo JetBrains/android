@@ -20,7 +20,7 @@ import static com.android.tools.idea.uibuilder.handlers.motion.property2.MotionL
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlComponentDelegate;
-import com.android.tools.idea.common.property2.api.PropertiesModel;
+import com.android.tools.property.panel.api.PropertiesModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;

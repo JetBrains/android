@@ -44,8 +44,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.PropertiesModel
-import com.android.tools.idea.common.property2.api.PropertiesModelListener
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilEventsProcessed
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase

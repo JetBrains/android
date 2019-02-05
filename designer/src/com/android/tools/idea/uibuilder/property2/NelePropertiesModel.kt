@@ -21,9 +21,9 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.property2.api.PropertiesModel
-import com.android.tools.idea.common.property2.api.PropertiesModelListener
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.PropertiesModel
+import com.android.tools.property.panel.api.PropertiesModelListener
+import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView

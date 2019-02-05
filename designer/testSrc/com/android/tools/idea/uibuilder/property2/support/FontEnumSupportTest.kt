@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
-import com.android.tools.idea.common.property2.api.EnumValue
+import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VirtualFile

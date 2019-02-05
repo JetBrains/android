@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.*
+import com.android.tools.property.panel.api.*
 import com.android.tools.idea.uibuilder.api.CustomPanel
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager

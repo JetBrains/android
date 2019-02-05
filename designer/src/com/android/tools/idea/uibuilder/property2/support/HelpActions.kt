@@ -25,7 +25,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_LAYOUT_PARAMS
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.tools.idea.common.property2.api.HelpSupport
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers

@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.idea.uibuilder.api.CustomPanel
 import javax.swing.JPanel
 

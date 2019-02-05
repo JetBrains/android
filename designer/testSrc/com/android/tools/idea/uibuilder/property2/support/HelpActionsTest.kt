@@ -29,7 +29,7 @@ import com.android.SdkConstants.FQCN_IMAGE_VIEW
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.tools.idea.common.property2.api.HelpSupport
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.EXPECTED_TEXT_TOOLTIP
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem

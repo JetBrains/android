@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
-import com.android.tools.adtui.ptable.PTableCellEditor;
+import com.android.tools.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.NlResourceItem;
 import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;

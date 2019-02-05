@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property2
 
 import com.android.SdkConstants.*
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
 import com.google.common.collect.HashBasedTable
