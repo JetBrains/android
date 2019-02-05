@@ -31,6 +31,9 @@ public class DataStorePollerTest {
   protected static final Common.Device DEVICE =
     Common.Device.newBuilder().setDeviceId(TEST_DEVICE_ID).setBootId("TEST_BOOT_ID").setSerial("TEST_DEVICE_SERIAL").build();
 
+  protected static final Common.Stream STREAM =
+    Common.Stream.newBuilder().setStreamId(DEVICE.getDeviceId()).setType(Common.Stream.Type.DEVICE).setDevice(DEVICE).build();
+
   protected static final Common.Session SESSION =
     Common.Session.newBuilder().setSessionId(TEST_SESSION_ID).setStreamId(TEST_DEVICE_ID).setPid(TEST_APP_ID).build();
 

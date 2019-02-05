@@ -15,23 +15,16 @@
  */
 package com.android.tools.datastore.database
 
-import com.android.tools.datastore.DeviceId
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Profiler
-import com.android.tools.profiler.proto.Transport.AgentStatusRequest
 import com.android.tools.profiler.proto.Transport.BytesRequest
 import com.android.tools.profiler.proto.Transport.BytesResponse
-import com.android.tools.profiler.proto.Transport.GetDevicesResponse
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest
-import com.android.tools.profiler.proto.Transport.GetProcessesRequest
-import com.android.tools.profiler.proto.Transport.GetProcessesResponse
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.util.function.Consumer
 
 class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   companion object {
-    val FAKE_DEVICE_ID = DeviceId.of(1)
     val SESSION_1_1_1 = 0
     val SESSION_1_1_2 = 1
     val SESSION_1_1_3 = 2
@@ -70,20 +63,8 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
             10).build())
       }),
       (Consumer { it.queryUnifiedEvents() }),
-      (Consumer { assertThat(it.getDevices()).isEqualTo(GetDevicesResponse.getDefaultInstance()) }),
-      (Consumer {
-        assertThat(it.getProcesses(GetProcessesRequest.getDefaultInstance())).isEqualTo(GetProcessesResponse.getDefaultInstance())
-      }),
-      (Consumer {
-        assertThat(it.getAgentStatus(AgentStatusRequest.getDefaultInstance())).isEqualTo(Common.AgentData.getDefaultInstance())
-      }),
       (Consumer { assertThat(it.getBytes(BytesRequest.getDefaultInstance())).isEqualTo(null) }),
-      (Consumer { it.insertOrUpdateDevice(Common.Device.getDefaultInstance()) }),
-      (Consumer { it.insertBytes(0, "id", BytesResponse.getDefaultInstance()) }),
-      (Consumer { it.insertOrUpdateProcess(DeviceId.of(-1), Common.Process.getDefaultInstance()) }),
-      (Consumer {
-        it.updateAgentStatus(DeviceId.of(-1), Common.Process.getDefaultInstance(), Common.AgentData.getDefaultInstance())
-      }))
+      (Consumer { it.insertBytes(0, "id", BytesResponse.getDefaultInstance()) }))
   }
 
   private fun insertData(count: Int, incrementGroupId: Boolean): List<Common.Event> {
@@ -276,43 +257,6 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     val results = table.executeOneTimeQuery("SELECT * FROM [UnifiedEventsTable]", arrayOf())
     val repeatedResults = table.executeOneTimeQuery("SELECT * FROM [UnifiedEventsTable]", arrayOf())
     assertThat(results.statement).isSameAs(repeatedResults.statement)
-  }
-
-  @Test
-  fun testExistingProcessIsUpdated() {
-    val process = Common.Process.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).setPid(99).setName("FakeProcess").setState(
-      Common.Process.State.ALIVE)
-      .setStartTimestampNs(10).build()
-
-    // Setup initial process and status.
-    val status = Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build()
-    table.insertOrUpdateProcess(FAKE_DEVICE_ID, process)
-    table.updateAgentStatus(FAKE_DEVICE_ID, process, status)
-
-    // Double-check the process has been added.
-    var processes = table.getProcesses(GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build())
-    assertThat(processes.processList).hasSize(1)
-    assertThat(processes.getProcess(0)).isEqualTo(process)
-
-    // Double-check status has been set.
-    val request = AgentStatusRequest.newBuilder().setPid(process.pid).setDeviceId(FAKE_DEVICE_ID.get()).build()
-    assertThat(table.getAgentStatus(request).status).isEqualTo(Common.AgentData.Status.ATTACHED)
-
-    // Kill the process entry and verify that the process state is updated and the agent status remains the same.
-    val deadProcess = process.toBuilder().setState(Common.Process.State.DEAD).build()
-    table.insertOrUpdateProcess(FAKE_DEVICE_ID, deadProcess)
-    processes = table.getProcesses(GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build())
-    assertThat(processes.processList).hasSize(1)
-    assertThat(processes.getProcess(0)).isEqualTo(deadProcess)
-    assertThat(table.getAgentStatus(request).status).isEqualTo(Common.AgentData.Status.ATTACHED)
-
-    // Resurrects the process and verify that the start time does not change. This is a scenario for Emulator Snapshots.
-    val resurrectedProcess = process.toBuilder().setStartTimestampNs(20).build()
-    table.insertOrUpdateProcess(FAKE_DEVICE_ID, resurrectedProcess)
-    processes = table.getProcesses(GetProcessesRequest.newBuilder().setDeviceId(FAKE_DEVICE_ID.get()).build())
-    assertThat(processes.processList).hasSize(1)
-    assertThat(processes.getProcess(0)).isEqualTo(process)
-    assertThat(table.getAgentStatus(request).status).isEqualTo(Common.AgentData.Status.ATTACHED)
   }
 
   private fun validateFilter(request: GetEventGroupsRequest, vararg expectedIndices: Int) {

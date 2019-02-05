@@ -21,7 +21,7 @@ import com.android.tools.datastore.DataStorePollerTest
 import com.android.tools.datastore.DataStoreService
 import com.android.tools.datastore.DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE
 import com.android.tools.datastore.FakeLogService
-import com.android.tools.datastore.database.UnifiedEventsTable
+import com.android.tools.datastore.database.DeviceProcessTable
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest
@@ -46,7 +46,7 @@ class DeviceProcessPollerTest : DataStorePollerTest() {
   private lateinit var myDataStore: DataStoreService
   private lateinit var myProfilerService: FakeTransportService
   private lateinit var myDatabase: DataStoreDatabase
-  private lateinit var myTable: UnifiedEventsTable
+  private lateinit var myTable: DeviceProcessTable
   private lateinit var myServer: Server
   private lateinit var myManagedChannel: ManagedChannel
   private lateinit var myServiceStub: TransportServiceGrpc.TransportServiceBlockingStub
@@ -59,7 +59,7 @@ class DeviceProcessPollerTest : DataStorePollerTest() {
     myProfilerService = FakeTransportService()
     val namespace = DEFAULT_SHARED_NAMESPACE
     myDatabase = myDataStore.createDatabase(servicePath + namespace.myNamespace, namespace.myCharacteristic) { _ -> }
-    myTable = UnifiedEventsTable()
+    myTable = DeviceProcessTable()
     myTable.initialize(myDatabase.connection)
 
     myServer = InProcessServerBuilder.forName("ProfilerDevicePollerServer").addService(myProfilerService).build()
@@ -67,7 +67,7 @@ class DeviceProcessPollerTest : DataStorePollerTest() {
     myManagedChannel = InProcessChannelBuilder.forName("ProfilerDevicePollerServer").build()
     myServiceStub = TransportServiceGrpc.newBlockingStub(myManagedChannel)
 
-    myProcessPoller = DeviceProcessPoller(myDataStore, myTable, myServiceStub)
+    myProcessPoller = DeviceProcessPoller(myTable, myServiceStub)
     // Stops the poller as that's dependent on system clock. We need to manually test the poll method.
     myProcessPoller.stop()
   }

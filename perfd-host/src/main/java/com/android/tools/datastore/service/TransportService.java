@@ -15,14 +15,17 @@
  */
 package com.android.tools.datastore.service;
 
+import static com.android.tools.idea.flags.StudioFlags.PROFILER_UNIFIED_PIPELINE;
+
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.DeviceId;
-import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
+import com.android.tools.datastore.StreamId;
 import com.android.tools.datastore.database.DataStoreTable;
+import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.poller.DeviceProcessPoller;
 import com.android.tools.datastore.poller.UnifiedEventsDataPoller;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
@@ -52,7 +55,6 @@ import io.grpc.stub.StreamObserver;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -66,13 +68,9 @@ import org.jetbrains.annotations.NotNull;
 public class TransportService extends TransportServiceGrpc.TransportServiceImplBase implements ServicePassThrough {
   private final Map<Channel, DeviceProcessPoller> myLegacyPollers = Maps.newHashMap();
   private final Consumer<Runnable> myFetchExecutor;
-  @NotNull private final LogService myLogService;
   @NotNull private final UnifiedEventsTable myTable;
+  @NotNull private final DeviceProcessTable myLegacyTable;
   @NotNull private final DataStoreService myService;
-  /**
-   * A mapping of stream ids to active stubs. This mapping allows commands to be routed to the proper stubs.
-   */
-  private final HashMap<Long, TransportServiceGrpc.TransportServiceBlockingStub> myStreamIdToStub;
   /**
    * A mapping of active channels to pollers. This mapping allows us to keep track of active pollers for a channel, and clean up pollers
    * when channels are closed.
@@ -84,13 +82,11 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   private final Map<Channel, Stream> myChannelToStream = Maps.newHashMap();
 
   public TransportService(@NotNull DataStoreService service,
-                          Consumer<Runnable> fetchExecutor,
-                          @NotNull LogService logService) {
+                          Consumer<Runnable> fetchExecutor) {
     myService = service;
     myFetchExecutor = fetchExecutor;
-    myLogService = logService;
     myTable = new UnifiedEventsTable();
-    myStreamIdToStub = new HashMap<>();
+    myLegacyTable = new DeviceProcessTable();
   }
 
 
@@ -104,43 +100,45 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
     assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
     myTable.initialize(connection);
-    myTable.initialize(connection);
-  }
 
-  public void startMonitoring(Channel channel) {
-    assert !myLegacyPollers.containsKey(channel);
-    TransportServiceGrpc.TransportServiceBlockingStub stub = TransportServiceGrpc.newBlockingStub(channel);
-    DeviceProcessPoller poller = new DeviceProcessPoller(myService, myTable, stub);
-    myLegacyPollers.put(channel, poller);
-    DataStoreTable.addDataStoreErrorCallback(poller);
-    myFetchExecutor.accept(myLegacyPollers.get(channel));
+    if (!PROFILER_UNIFIED_PIPELINE.get()) {
+      myLegacyTable.initialize(connection);
+    }
   }
 
   /**
-   * This call to startPolling maps a stream to a channel. This information is used in the new event pipeline.
+   * Connects the datastore layer to a channel. By default ths starts the {@link UnifiedEventsDataPoller} for the transport pipeline which
+   * streams Events into the database. If the profiler is using the legacy pipeline ({@link StudioFlags#PROFILER_UNIFIED_PIPELINE} flag),
+   * this also starts the {@link DeviceProcessPoller} which handles device and process information in the legacy database schema.
    */
-  public void startPolling(Stream stream, Channel channel) {
-    TransportServiceGrpc.TransportServiceBlockingStub stub = TransportServiceGrpc.newBlockingStub(channel);
+  public void connectToChannel(Stream stream, Channel channel) {
+    long streamId = stream.getStreamId();
+    TransportServiceGrpc.TransportServiceBlockingStub stub = myService.getTransportClient(StreamId.of(streamId));
+    assert (stub != null);
     streamConnected(stream);
-    UnifiedEventsDataPoller poller = new UnifiedEventsDataPoller(stream.getStreamId(), myTable, stub);
-    myUnifiedEventsPollers.put(channel, poller);
-    myStreamIdToStub.put(stream.getStreamId(), stub);
+    UnifiedEventsDataPoller unifiedPoller = new UnifiedEventsDataPoller(stream.getStreamId(), myTable, stub, myService);
+    myUnifiedEventsPollers.put(channel, unifiedPoller);
     myChannelToStream.put(channel, stream);
-    myFetchExecutor.accept(poller);
+    DataStoreTable.addDataStoreErrorCallback(unifiedPoller);
+    myFetchExecutor.accept(unifiedPoller);
+
+    if (!PROFILER_UNIFIED_PIPELINE.get()) {
+      DeviceProcessPoller legacyPoller = new DeviceProcessPoller(myLegacyTable, stub);
+      myLegacyPollers.put(channel, legacyPoller);
+      myFetchExecutor.accept(legacyPoller);
+    }
   }
 
-  public void stopMonitoring(Channel channel) {
+  public void disconnectFromChannel(Channel channel) {
     if (myLegacyPollers.containsKey(channel)) {
       DeviceProcessPoller poller = myLegacyPollers.remove(channel);
       poller.stop();
-      DataStoreTable.removeDataStoreErrorCallback(poller);
     }
     if (myUnifiedEventsPollers.containsKey(channel)) {
       UnifiedEventsDataPoller poller = myUnifiedEventsPollers.remove(channel);
       poller.stop();
-      streamDisconnected(myChannelToStream.get(channel));
-      myStreamIdToStub.remove(myChannelToStream.get(channel).getStreamId());
-      myChannelToStream.remove(channel);
+      DataStoreTable.removeDataStoreErrorCallback(poller);
+      streamDisconnected(myChannelToStream.remove(channel));
     }
   }
 
@@ -168,9 +166,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> observer) {
     // This function can get called before the datastore is connected to a device as such we need to check
     // if we have a connection before attempting to get the time.
-    long streamId = request.getStreamId();
-    TransportServiceGrpc.TransportServiceBlockingStub client =
-      myStreamIdToStub.containsKey(streamId) ? myStreamIdToStub.get(streamId) : myService.getTransportClient(DeviceId.of(streamId));
+    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(StreamId.of(request.getStreamId()));
     if (client != null) {
       observer.onNext(client.getCurrentTime(request));
     }
@@ -183,9 +179,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
   @Override
   public void getVersion(VersionRequest request, StreamObserver<VersionResponse> observer) {
-    long streamId = request.getStreamId();
-    TransportServiceGrpc.TransportServiceBlockingStub client =
-      myStreamIdToStub.containsKey(streamId) ? myStreamIdToStub.get(streamId) : myService.getTransportClient(DeviceId.of(streamId));
+    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(StreamId.of(request.getStreamId()));
     if (client != null) {
       observer.onNext(client.getVersion(request));
     }
@@ -194,21 +188,21 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
   @Override
   public void getDevices(GetDevicesRequest request, StreamObserver<GetDevicesResponse> observer) {
-    GetDevicesResponse response = myTable.getDevices();
+    GetDevicesResponse response = myLegacyTable.getDevices();
     observer.onNext(response);
     observer.onCompleted();
   }
 
   @Override
   public void getProcesses(GetProcessesRequest request, StreamObserver<GetProcessesResponse> observer) {
-    GetProcessesResponse response = myTable.getProcesses(request);
+    GetProcessesResponse response = myLegacyTable.getProcesses(request);
     observer.onNext(response);
     observer.onCompleted();
   }
 
   @Override
   public void getAgentStatus(AgentStatusRequest request, StreamObserver<AgentData> observer) {
-    observer.onNext(myTable.getAgentStatus(request));
+    observer.onNext(myLegacyTable.getAgentStatus(request));
     observer.onCompleted();
   }
 
@@ -217,12 +211,11 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     // TODO: Currently the cache is on demand, we want to look into caching all available files.
     BytesResponse response = myTable.getBytes(request);
     long streamId = request.getStreamId();
-    TransportServiceGrpc.TransportServiceBlockingStub client =
-      myStreamIdToStub.containsKey(streamId) ? myStreamIdToStub.get(streamId) : myService.getTransportClient(DeviceId.of(streamId));
+    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(StreamId.of(streamId));
 
     if (response == null && client != null) {
       response = client.getBytes(request);
-      myTable.insertBytes(request.getStreamId(), request.getId(), response);
+      myTable.insertBytes(streamId, request.getId(), response);
     }
     else if (response == null) {
       response = BytesResponse.getDefaultInstance();
@@ -235,9 +228,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   @Override
   public void configureStartupAgent(ConfigureStartupAgentRequest request,
                                     StreamObserver<ConfigureStartupAgentResponse> observer) {
-    long streamId = request.getStreamId();
-    TransportServiceGrpc.TransportServiceBlockingStub client =
-      myStreamIdToStub.containsKey(streamId) ? myStreamIdToStub.get(streamId) : myService.getTransportClient(DeviceId.of(streamId));
+    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(StreamId.of(request.getStreamId()));
     if (client != null) {
       observer.onNext(client.configureStartupAgent(request));
     }
@@ -250,11 +241,10 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
   @Override
   public void execute(ExecuteRequest request, StreamObserver<ExecuteResponse> responseObserver) {
-    long streamId = request.getCommand().getStreamId();
     // TODO (b/114751407): Send stream id 0 to all streams.
-    // TODO (b/114751407): Handle stream not found.
-    if (myStreamIdToStub.containsKey(streamId)) {
-      TransportServiceGrpc.TransportServiceBlockingStub client = myStreamIdToStub.get(streamId);
+    long streamId = request.getCommand().getStreamId();
+    TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(StreamId.of(streamId));
+    if (client != null) {
       responseObserver.onNext(client.execute(request));
       responseObserver.onCompleted();
     }
