@@ -285,4 +285,6 @@ public class BuildVariantUpdaterTest extends IdeaTestCase {
       StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
     }
   }
+
+  // TODO: Add unit tests to cover dependent modules (with and without NDK model).
 }
