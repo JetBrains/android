@@ -20,7 +20,10 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.scene.Scene;
+import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.property.MockNlComponent;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -39,6 +42,7 @@ import java.util.Collections;
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -364,5 +368,108 @@ public final class NlComponentTest extends AndroidTestCase {
                       "    </RelativeLayout>\n" +
                       "</layout>\n";
     assertEquals(expected, xmlFile.getText());
+  }
+
+  public void testCreateChildInvalidTag() {
+    // Create component with valid xmlTag, but without backing VFS.
+    String xmlText = "<TextView" +
+                     " xmlns:android=\"" + ANDROID_URI + "\"" +
+                     " xmlns:tools=\"" + TOOLS_URI + "\"" +
+                     " android:text=\"Initial\"" +
+                     " tools:text=\"ToolText\"" +
+                     " android:layout_width=\"wrap_content\"" +
+                     " android:layout_height=\"wrap_content\" />";
+    NlComponent componentWithoutFile = createComponent(createTagFromXml(xmlText));
+
+    ViewEditor mockEditor = mock(ViewEditor.class);
+    setupMockViewEditorWithMockSurface(mockEditor);
+    when(myModel.getProject()).thenReturn(getProject());
+
+    NlWriteCommandActionUtil.run(componentWithoutFile, "addTextView", () -> {
+      // should fail as backing component does not have valid VFS.
+      NlComponent child = NlComponentHelperKt.createChild(
+        componentWithoutFile, mockEditor, "", null, InsertType.CREATE);
+      assertNull(child);});
+
+    UIUtil.dispatchAllInvocationEvents();
+  }
+
+  public void testCreateChildValidTag() {
+    // Create component with valid vfs.
+    String relativeLayoutText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+                                "\n" +
+                                "    <RelativeLayout />\n" +
+                                "</layout>\n";
+    String textViewText = "<TextView" +
+                          " xmlns:android=\"" + ANDROID_URI + "\"" +
+                          " xmlns:tools=\"" + TOOLS_URI + "\"" +
+                          " android:text=\"Initial\"" +
+                          " tools:text=\"ToolText\"" +
+                          " android:layout_width=\"wrap_content\"" +
+                          " android:layout_height=\"wrap_content\" />";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", relativeLayoutText);
+    XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
+    NlComponent relativeLayout = createComponent(rootTag);
+    NlComponent childToReturn = createComponent(createTagFromXml(textViewText));
+
+    ViewEditor mockEditor =  mock(ViewEditor.class);
+    setupMockViewEditorWithMockSurface(mockEditor);
+
+
+    when(myModel.getProject()).thenReturn(getProject());
+    when(myModel.createComponent(any(), any(), any(), any(), any()))
+      .thenReturn(childToReturn);
+
+    NlWriteCommandActionUtil.run(relativeLayout, "addTextView", () -> {
+      NlComponent child = NlComponentHelperKt.createChild(
+        relativeLayout, mockEditor, "", null, InsertType.CREATE);
+
+      assertEquals(childToReturn, child);
+    });
+    UIUtil.dispatchAllInvocationEvents();
+  }
+
+  public void testCreateChildInvalidAccess() {
+    String editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+                      "\n" +
+                      "    <RelativeLayout />\n" +
+                      "</layout>\n";
+    String textViewText = "<TextView" +
+                          " xmlns:android=\"" + ANDROID_URI + "\"" +
+                          " xmlns:tools=\"" + TOOLS_URI + "\"" +
+                          " android:text=\"Initial\"" +
+                          " tools:text=\"ToolText\"" +
+                          " android:layout_width=\"wrap_content\"" +
+                          " android:layout_height=\"wrap_content\" />";
+    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
+    XmlTag rootTag = xmlFile.getRootTag().getSubTags()[0];
+    NlComponent relativeLayout = createComponent(rootTag);
+    NlComponent childToReturn = createComponent(createTagFromXml(textViewText));
+
+    ViewEditor mockEditor =  mock(ViewEditor.class);
+    setupMockViewEditorWithMockSurface(mockEditor);
+
+    when(myModel.getProject()).thenReturn(getProject());
+    when(myModel.createComponent(any(), any(), any(), any(), any()))
+      .thenReturn(childToReturn);
+
+    assertThrows(
+      AssertionError.class,
+      () -> NlComponentHelperKt.createChild(relativeLayout, mockEditor, "", null, InsertType.CREATE));
+
+    UIUtil.dispatchAllInvocationEvents();
+  }
+
+  private DesignSurface setupMockViewEditorWithMockSurface(ViewEditor mockEditor) {
+    Scene mockScene = mock(Scene.class);
+    DesignSurface mockSurface = mock(DesignSurface.class);
+
+    when(mockEditor.getScene()).thenReturn(mockScene);
+    when(mockScene.getDesignSurface()).thenReturn(mockSurface);
+    return mockSurface;
   }
 }
