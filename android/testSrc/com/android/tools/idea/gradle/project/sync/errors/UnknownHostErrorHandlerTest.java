@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ToggleOfflineModeHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.net.UnknownHostException;
@@ -28,6 +30,9 @@ import java.util.List;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_HOST;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_URL_HYPERLINK;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.TOGGLE_OFFLINE_MODE_HYPERLINK;
 
 /**
  * Tests for {@link UnknownHostErrorHandler}.
@@ -35,12 +40,14 @@ import static com.google.common.truth.Truth.assertThat;
 public class UnknownHostErrorHandlerTest extends AndroidGradleTestCase {
 
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
   private Boolean myOriginalOfflineSetting;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
     myOriginalOfflineSetting = GradleSettings.getInstance(getProject()).isOfflineWork();
   }
 
@@ -72,5 +79,8 @@ public class UnknownHostErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes).hasSize(2);
     assertThat(quickFixes.get(0)).isInstanceOf(ToggleOfflineModeHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(OpenUrlHyperlink.class);
+
+    assertEquals(UNKNOWN_HOST, myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(TOGGLE_OFFLINE_MODE_HYPERLINK, OPEN_URL_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }

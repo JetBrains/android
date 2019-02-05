@@ -15,14 +15,38 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
+import com.android.tools.idea.testing.IdeComponents
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
+import com.intellij.openapi.project.Project
+import junit.framework.Assert.assertSame
 
 class TestSyncIssueUsageReporter(
-  val collectedIssue: MutableList<GradleSyncIssue> = mutableListOf<GradleSyncIssue>()
+    val collectedIssue: MutableList<GradleSyncIssue> = mutableListOf(),
+    var collectedFailure: AndroidStudioEvent.GradleSyncFailure? = null,
+    val collectedQuickFixes: MutableList<AndroidStudioEvent.GradleSyncQuickFix> = mutableListOf()
 ) : SyncIssueUsageReporter {
+  override fun collect(failure: AndroidStudioEvent.GradleSyncFailure) {
+    collectedFailure = failure
+  }
+
+  override fun collect(quickFixes: Collection<AndroidStudioEvent.GradleSyncQuickFix>) {
+    collectedQuickFixes.addAll(quickFixes)
+  }
+
   override fun collect(issue: GradleSyncIssue.Builder) {
     collectedIssue.add(issue.build())
   }
 
   override fun reportToUsageTracker() = Unit
+
+  companion object {
+    @JvmStatic
+    fun replaceSyncMessagesService(project: Project): TestSyncIssueUsageReporter {
+      val syncMessages = TestSyncIssueUsageReporter()
+      IdeComponents(project).replaceProjectService<SyncIssueUsageReporter>(SyncIssueUsageReporter::class.java, syncMessages)
+      assertSame(syncMessages, SyncIssueUsageReporter.getInstance(project))
+      return syncMessages
+    }
+  }
 }

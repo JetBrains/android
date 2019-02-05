@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
+import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.util.List;
 
@@ -30,6 +32,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.DSL_METHOD_NOT_FOUND;
 import static com.intellij.openapi.util.io.FileUtil.loadFile;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
@@ -40,11 +43,13 @@ import static com.intellij.util.SystemProperties.getLineSeparator;
  */
 public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleErrorWithMethodNotFoundInSettingsFile() throws Exception {
@@ -72,6 +77,9 @@ public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCa
     OpenFileHyperlink openFileQuickFix = (OpenFileHyperlink)quickFix;
     assertEquals(toSystemIndependentName(settingsFile.getPath()), openFileQuickFix.getFilePath());
     assertEquals(0, openFileQuickFix.getLineNumber());
+
+    assertEquals(DSL_METHOD_NOT_FOUND, myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 
   public void testHandleErrorWithMethodNotFoundInBuildFile() throws Exception {
@@ -96,5 +104,8 @@ public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCa
     assertThat(quickFixes.get(0)).isInstanceOf(NotificationHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(NotificationHyperlink.class);
     assertThat(quickFixes.get(2)).isInstanceOf(FixAndroidGradlePluginVersionHyperlink.class);
+
+    assertEquals(DSL_METHOD_NOT_FOUND, myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 }
