@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!-- Auto generated with perfd-host test via flag -Dtest.export.grpc=True -->
 <GrpcList>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetEvents" Class="class com.android.tools.profiler.proto.Transport$GetEventsRequest">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$GetEventsRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/GetEvents</functionCalled>
+        <message></message>
+    </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.TransportService/GetDevices" Class="class com.android.tools.profiler.proto.Transport$GetDevicesRequest">
         <Message></Message>
         <clazz>class com.android.tools.profiler.proto.Transport$GetDevicesRequest</clazz>
@@ -10,16 +16,16 @@
     <GrpcCall FunctionCalled="profiler.proto.TransportService/GetDevices" Class="class com.android.tools.profiler.proto.Transport$GetDevicesResponse">
         <Message>device {
   device_id: 1234
-  serial: "SomeSerialId"
-  boot_id: "SOME BOOT ID"
+  serial: "TEST_DEVICE_SERIAL"
+  boot_id: "TEST_BOOT_ID"
 }
 </Message>
         <clazz>class com.android.tools.profiler.proto.Transport$GetDevicesResponse</clazz>
         <functionCalled>profiler.proto.TransportService/GetDevices</functionCalled>
         <message>device {
   device_id: 1234
-  serial: "SomeSerialId"
-  boot_id: "SOME BOOT ID"
+  serial: "TEST_DEVICE_SERIAL"
+  boot_id: "TEST_BOOT_ID"
 }
 </message>
     </GrpcCall>

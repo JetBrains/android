@@ -16,17 +16,11 @@
 package com.android.tools.datastore.database;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.datastore.DeviceId;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Event;
-import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.BytesRequest;
 import com.android.tools.profiler.proto.Transport.BytesResponse;
 import com.android.tools.profiler.proto.Transport.EventGroup;
-import com.android.tools.profiler.proto.Transport.GetDevicesResponse;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
-import com.android.tools.profiler.proto.Transport.GetProcessesRequest;
-import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
 import com.android.tools.profiler.protobuf3jarjar.InvalidProtocolBufferException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -45,15 +39,6 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       "INSERT OR IGNORE INTO [UnifiedEventsTable] (StreamId, ProcessId, GroupId, Kind, Timestamp, Data) VALUES (?, ?, ?, ?, ?, ?)"),
     // Only used for test.
     QUERY_EVENTS("SELECT Data FROM [UnifiedEventsTable]"),
-    INSERT_DEVICE("INSERT OR REPLACE INTO [DevicesTable] (DeviceId, Data) values (?, ?)"),
-    INSERT_PROCESS("INSERT OR REPLACE INTO [ProcessesTable] (DeviceId, ProcessId, Name, State, StartTime, Arch) " +
-                   "values (?, ?, ?, ?, ?, ?)"),
-    UPDATE_PROCESS_STATE("UPDATE [ProcessesTable] Set State = ? WHERE DeviceId = ? AND ProcessId = ?"),
-    SELECT_PROCESSES("SELECT DeviceId, ProcessId, Name, State, StartTime, Arch from [ProcessesTable] WHERE DeviceId = ?"),
-    SELECT_PROCESS_BY_ID("SELECT ProcessId from [ProcessesTable] WHERE DeviceId = ? AND ProcessId = ?"),
-    SELECT_DEVICE("SELECT Data from [DevicesTable]"),
-    FIND_AGENT_STATUS("SELECT AgentStatus from [ProcessesTable] WHERE DeviceId = ? AND ProcessId = ?"),
-    UPDATE_AGENT_STATUS("UPDATE [ProcessesTable] SET AgentStatus = ? WHERE DeviceId = ? AND ProcessId = ?"),
     INSERT_BYTES("INSERT OR IGNORE INTO [BytesTable] (StreamId, Id, Data) VALUES (?, ?, ?)"),
     GET_BYTES("SELECT Data FROM [BytesTable] WHERE StreamId = ? AND Id = ?");
 
@@ -92,14 +77,9 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
                   "Kind INTEGER NOT NULL", // Required filter, required for all data.
                   "Timestamp INTEGER NOT NULL", // Optional filter, required for all data.
                   "Data BLOB");
-      createTable("DevicesTable", "DeviceId INTEGER", "Data BLOB");
-      createTable("ProcessesTable", "DeviceId INTEGER", "ProcessId INTEGER", "Name STRING NOT NULL", "State INTEGER",
-                  "StartTime INTEGER", "Arch STRING NOT NULL", "AgentStatus INTEGER");
       createTable("BytesTable", "StreamId INTEGER NOT NULL", "Id STRING NOT NULL", "Data BLOB");
       createUniqueIndex("UnifiedEventsTable", "StreamId", "ProcessId", "GroupId", "Kind", "Timestamp");
       createUniqueIndex("UnifiedEventsTable", "StreamId", "Kind", "Timestamp");
-      createUniqueIndex("DevicesTable", "DeviceId");
-      createUniqueIndex("ProcessesTable", "DeviceId", "ProcessId");
       createUniqueIndex("BytesTable", "StreamId", "Id");
     }
     catch (SQLException ex) {
@@ -142,18 +122,18 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
    * FromTimestamp X - ToTimestamp Y Example
    * <p>
    * Events
-   *  1:  i----i----i-----i
-   *  2:----e
-   *  3:               i---
-   *  4:       i-----i
-   *  5:  i---------------
-   *
-   *  Query: X -> Y
-   *          x-----y
-   *  Results:
-   *  1:  i----i----i-----i
-   *  4:       i-----i
-   *  5:  i---------------
+   * 1:  i----i----i-----i
+   * 2:----e
+   * 3:               i---
+   * 4:       i-----i
+   * 5:  i---------------
+   * <p>
+   * Query: X -> Y
+   * x-----y
+   * Results:
+   * 1:  i----i----i-----i
+   * 4:       i-----i
+   * 5:  i---------------
    * Note: Group 1 has all elements returned due to +1/-1 behavior.
    * Note: Group 2 and group 3 do not get returned. Group 2 only has an end event before our from timestamp, while Group 3 only has data
    * after.
@@ -229,117 +209,6 @@ public class UnifiedEventsTable extends DataStoreTable<UnifiedEventsTable.Statem
       groups.add(builder.build());
     });
     return groups;
-  }
-
-
-  @NotNull
-  public GetDevicesResponse getDevices() {
-    if (isClosed()) {
-      return GetDevicesResponse.getDefaultInstance();
-    }
-
-    GetDevicesResponse.Builder responseBuilder = GetDevicesResponse.newBuilder();
-    try {
-      ResultSet results = executeQuery(Statements.SELECT_DEVICE);
-      while (results.next()) {
-        responseBuilder.addDevice(Common.Device.parseFrom(results.getBytes(1)));
-      }
-    }
-    catch (InvalidProtocolBufferException | SQLException ex) {
-      onError(ex);
-    }
-    return responseBuilder.build();
-  }
-
-  @NotNull
-  public GetProcessesResponse getProcesses(@NotNull GetProcessesRequest request) {
-    if (isClosed()) {
-      return GetProcessesResponse.getDefaultInstance();
-    }
-
-    GetProcessesResponse.Builder responseBuilder = GetProcessesResponse.newBuilder();
-    try {
-      ResultSet results = executeQuery(Statements.SELECT_PROCESSES, request.getDeviceId());
-      while (results.next()) {
-        long deviceId = results.getLong(1);
-        int pid = results.getInt(2);
-        String name = results.getString(3);
-        int state = results.getInt(4);
-        long startTimeNs = results.getLong(5);
-        String arch = results.getString(6);
-        Common.Process process = Common.Process.newBuilder()
-          .setDeviceId(deviceId)
-          .setPid(pid)
-          .setName(name)
-          .setState(Common.Process.State.forNumber(state))
-          .setStartTimestampNs(startTimeNs)
-          .setAbiCpuArch(arch)
-          .build();
-        responseBuilder.addProcess(process);
-      }
-    }
-    catch (SQLException ex) {
-      onError(ex);
-    }
-    return responseBuilder.build();
-  }
-
-  public void insertOrUpdateDevice(@NotNull Common.Device device) {
-    // TODO: Update start/end times with times polled from device.
-    // End time always equals now, start time comes from device. This way if we get disconnected we still have an accurate end time.
-    execute(Statements.INSERT_DEVICE, device.getDeviceId(), device.toByteArray());
-  }
-
-  public void insertOrUpdateProcess(@NotNull DeviceId devicdId, @NotNull Common.Process process) {
-    try {
-      ResultSet results = executeQuery(Statements.SELECT_PROCESS_BY_ID, devicdId.get(), process.getPid());
-      if (results.next()) {
-        execute(Statements.UPDATE_PROCESS_STATE, process.getStateValue(), devicdId.get(), process.getPid());
-      }
-      else {
-        execute(Statements.INSERT_PROCESS, devicdId.get(), process.getPid(), process.getName(), process.getStateValue(),
-                process.getStartTimestampNs(), process.getAbiCpuArch());
-      }
-    }
-    catch (SQLException ex) {
-      onError(ex);
-    }
-  }
-
-  /**
-   * NOTE: Currently an assumption is made such that the agent lives and dies along with the process it is attached to.
-   * If for some reason the agent freezes and we stop receiving a valid heartbeat momentarily, this will not downgrade the HasAgent status
-   * in the process entry.
-   */
-  public void updateAgentStatus(@NotNull DeviceId devicdId,
-                                @NotNull Common.Process process,
-                                @NotNull Common.AgentData agentData) {
-    try {
-      ResultSet results = executeQuery(Statements.FIND_AGENT_STATUS, devicdId.get(), process.getPid());
-      if (results.next()) {
-        execute(Statements.UPDATE_AGENT_STATUS, agentData.getStatus().ordinal(),
-                devicdId.get(), process.getPid());
-      }
-    }
-    catch (SQLException ex) {
-      onError(ex);
-    }
-  }
-
-  @NotNull
-  public Common.AgentData getAgentStatus(@NotNull AgentStatusRequest request) {
-    Common.AgentData.Builder responseBuilder = Common.AgentData.newBuilder();
-    try {
-      ResultSet results = executeQuery(Statements.FIND_AGENT_STATUS, request.getDeviceId(), request.getPid());
-      if (results.next()) {
-        responseBuilder.setStatusValue(results.getInt(1));
-      }
-    }
-    catch (SQLException ex) {
-      onError(ex);
-    }
-
-    return responseBuilder.build();
   }
 
   public void insertBytes(@NotNull long streamId, @NotNull String id, @NotNull BytesResponse response) {

@@ -31,6 +31,7 @@ import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.profiler.proto.Common;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -214,6 +215,7 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
 
   /**
    * Subclass implements this method to return an instance of TransportThread to be spawned
+   *
    * @param device
    * @return instance of TransportThread
    */
@@ -271,6 +273,7 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
     /**
      * Subclass implements this method to perform actions before Transport daemon is started. This is when files should
      * be copied to the device.
+     *
      * @throws SyncException
      * @throws AdbCommandRejectedException
      * @throws TimeoutException
@@ -292,6 +295,7 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
 
     /**
      * Executes shell command on device to start the Transport daemon
+     *
      * @throws TimeoutException
      * @throws AdbCommandRejectedException
      * @throws ShellCommandUnresponsiveException
@@ -356,6 +360,7 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
 
     /**
      * Creates TransportProxy for the device
+     *
      * @throws TimeoutException
      * @throws AdbCommandRejectedException
      * @throws IOException
@@ -393,7 +398,8 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
 
         // Creates a proxy server that the datastore connects to.
         String channelName = myDevice.getSerialNumber();
-        myTransportProxy = new TransportProxy(myDevice, transportChannel);
+        Common.Device transportDevice = TransportServiceProxy.transportDeviceFromIDevice(myDevice);
+        myTransportProxy = new TransportProxy(myDevice, transportDevice, transportChannel);
 
         // Subclass can register proxies here
         postProxyCreation();
@@ -410,7 +416,12 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
         // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
         // We should otherwise do it for performance reasons, so we should investigate why.
         ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
-        connectDataStore(proxyChannel);
+        myDataStore.connect(Common.Stream.newBuilder()
+                              .setStreamId(transportDevice.getDeviceId())
+                              .setType(Common.Stream.Type.DEVICE)
+                              .setDevice(transportDevice)
+                              .build(),
+                            proxyChannel);
       }
       catch (TimeoutException | AdbCommandRejectedException | IOException e) {
         // If some error happened after TransportProxy was created, make sure to disconnect it
@@ -426,14 +437,6 @@ public abstract class TransportDeviceManager implements AndroidDebugBridge.IDebu
      * the proxy server itself has been built. This is where proxy services should be registered.
      */
     protected abstract void postProxyCreation();
-
-    /**
-     *
-     * @param channel The communication channel for the datastore to connect to Transport on
-     */
-    protected void connectDataStore(@NotNull ManagedChannel channel) {
-      myDataStore.connect(channel);
-    }
 
     /**
      * A helper method to check whether the device has completed the boot sequence.

@@ -18,10 +18,10 @@ package com.android.tools.datastore
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-class DeviceIdTest {
+class StreamIdTest {
   @Test
   fun deviceIdEquality() {
-    assertThat(DeviceId.of(-1)).isEqualTo(DeviceId.of(-1))
-    assertThat(DeviceId.of(-1)).isNotEqualTo(-1)
+    assertThat(StreamId.of(-1)).isEqualTo(StreamId.of(-1))
+    assertThat(StreamId.of(-1)).isNotEqualTo(-1)
   }
 }
