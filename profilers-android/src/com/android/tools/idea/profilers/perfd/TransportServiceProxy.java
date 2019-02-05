@@ -18,9 +18,13 @@ package com.android.tools.idea.profilers.perfd;
 import static com.android.ddmlib.Client.CHANGE_NAME;
 
 import com.android.annotations.NonNull;
+import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.MultiLineReceiver;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
@@ -49,6 +53,7 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -94,19 +99,7 @@ public class TransportServiceProxy extends TransportProxyService
     myIsDeviceApiSupported = device.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
     myDevice = device;
     myServiceStub = TransportServiceGrpc.newBlockingStub(channel);
-
-    if (myIsDeviceApiSupported) {
-      // if device API is supported, use grpc to obtain the device
-      GetDevicesResponse devices = myServiceStub.getDevices(GetDevicesRequest.getDefaultInstance());
-      //TODO Remove set functions when we move functionality over to perfd.
-      assert devices.getDeviceList().size() == 1;
-      myProfilerDevice = transportDeviceFromIDevice(device, devices.getDevice(0).toBuilder());
-    }
-    else {
-      // if device API level is not supported, sets an arbitrary boot id to be used in the device session
-      myProfilerDevice =
-        transportDeviceFromIDevice(device, Common.Device.newBuilder().setBootId(String.valueOf(device.getSerialNumber().hashCode())));
-    }
+    myProfilerDevice = transportDeviceFromIDevice(device);
     getLog().info(String.format("ProfilerDevice created: %s", myProfilerDevice));
 
     updateProcesses();
@@ -119,16 +112,39 @@ public class TransportServiceProxy extends TransportProxyService
    * Converts an {@link IDevice} object into a {@link Common.Device}.
    *
    * @param device  the IDevice to retrieve information from.
-   * @param builder the device builder used for generating the device proto. Pre-determined information (e.g. device's boot_id) already
-   *                stored in the builder will be used if they are not overridden by ones from the IDevice instance.
    * @return
    */
   @NotNull
-  private static Common.Device transportDeviceFromIDevice(@NotNull IDevice device, @NotNull Common.Device.Builder builder) {
+  public static Common.Device transportDeviceFromIDevice(@NotNull IDevice device) {
+    StringBuilder bootIdBuilder = new StringBuilder();
+    try {
+      device.executeShellCommand("cat /proc/sys/kernel/random/boot_id", new MultiLineReceiver() {
+        @Override
+        public void processNewLines(@NonNull String[] lines) {
+          // There should only be one-line here.
+          assert (lines.length == 1);
+          bootIdBuilder.append(lines[0]);
+        }
+
+        @Override
+        public boolean isCancelled() {
+          return false;
+        }
+      });
+    }
+    catch (TimeoutException | AdbCommandRejectedException | IOException | ShellCommandUnresponsiveException e) {
+      getLog().warn(String.format("Unable to retrieve boot_id from device %s", device), e);
+    }
+
+    String bootId = bootIdBuilder.toString();
+    if (bootId.isEmpty()) {
+      bootId = String.valueOf(device.getSerialNumber().hashCode());
+    }
+
     long device_id;
     try {
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      digest.update(builder.getBootId().getBytes());
+      digest.update(bootId.getBytes());
       digest.update(device.getSerialNumber().getBytes());
       device_id = ByteBuffer.wrap(digest.digest()).getLong();
     }
@@ -138,7 +154,8 @@ public class TransportServiceProxy extends TransportProxyService
       device_id = new Random(System.currentTimeMillis()).nextLong();
     }
 
-    return builder.setDeviceId(device_id)
+    return Common.Device.newBuilder()
+      .setDeviceId(device_id)
       .setSerial(device.getSerialNumber())
       .setModel(getDeviceModel(device))
       .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
@@ -149,11 +166,6 @@ public class TransportServiceProxy extends TransportProxyService
       .setIsEmulator(device.isEmulator())
       .setState(convertState(device.getState()))
       .build();
-  }
-
-  @NotNull
-  public static Common.Device transportDeviceFromIDevice(@NotNull IDevice device) {
-    return transportDeviceFromIDevice(device, Common.Device.newBuilder());
   }
 
   private static Common.Device.State convertState(@NotNull IDevice.DeviceState state) {
