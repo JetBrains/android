@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.common.property2.impl.model.util
 
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.android.tools.adtui.ptable2.PTableItem
+import com.android.tools.adtui.ptable2.PTableModelUpdateListener
 
-class TestAction(text: String): AnAction(text) {
-  var actionPerformedCount = 0
-    private set
+class FakePTableModelUpdateListener : PTableModelUpdateListener {
+  var updateCount = 0
+  var nextEditedItem: PTableItem? = null
+  var modelWasChanged = false
 
-  override fun actionPerformed(e: AnActionEvent) {
-    actionPerformedCount++
+  override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {
+    this.nextEditedItem = nextEditedItem
+    modelWasChanged = modelWasChanged or modelChanged
+    updateCount++
   }
 }

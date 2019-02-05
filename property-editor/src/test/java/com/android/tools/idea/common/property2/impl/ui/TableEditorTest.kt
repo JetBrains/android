@@ -25,7 +25,7 @@ import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.idea.common.property2.impl.model.TableLineModelImpl
 import com.android.tools.idea.common.property2.impl.model.util.TestGroupItem
-import com.android.tools.idea.common.property2.impl.model.util.TestPTableModel
+import com.android.tools.idea.common.property2.impl.model.util.FakePTableModel
 import com.android.tools.idea.common.property2.impl.model.util.TestTableItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -46,7 +46,7 @@ class TableEditorTest {
     }
     val group1: PTableGroupItem = TestGroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
     val group2: PTableGroupItem = TestGroupItem("group2", mapOf("size" to "4dp", "tone" to "C"))
-    val tableModel = TestPTableModel(true, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
+    val tableModel = FakePTableModel(true, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
     val model = TableLineModelImpl(tableModel, true)
     val editor = TableEditor(model, DefaultPTableCellRendererProvider(), editorProvider)
     model.filter = "top"

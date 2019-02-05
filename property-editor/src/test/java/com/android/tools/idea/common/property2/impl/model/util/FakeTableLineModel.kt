@@ -19,10 +19,10 @@ import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.api.TableLineModel
 
-class TestTableLineModel(
+class FakeTableLineModel(
   override val tableModel: PTableModel,
   override val isSearchable: Boolean
-) : TestInspectorLineModel(TestLineType.TABLE), TableLineModel {
+) : FakeInspectorLineModel(FakeLineType.TABLE), TableLineModel {
 
   override var selectedItem: PTableItem? = null
 
