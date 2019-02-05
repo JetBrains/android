@@ -16,9 +16,10 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.intellij.openapi.project.Project
 import kotlin.properties.Delegates
 
-class LayoutInspector(layoutInspectorModel: InspectorModel) {
+class LayoutInspector(layoutInspectorModel: InspectorModel, val project: Project) {
   val modelChangeListeners = mutableListOf<(InspectorModel, InspectorModel) -> Unit>()
 
   var layoutInspectorModel: InspectorModel by Delegates.observable(layoutInspectorModel) { _, old, new ->

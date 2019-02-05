@@ -62,7 +62,7 @@ private fun readNode(dis: DataInputStream) : InspectorView {
       data[i - 1] = dis.readInt()
     }
   }
-  val result = InspectorView("todo", type, left, top, width, height, listOf())
+  val result = InspectorView(type, left, top, width, height)
   data?.let {
     val buffer = DataBufferInt(data, width * height)
     val model = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, width, height, intArrayOf(0xff0000, 0xff00, 0xff, -0x1000000))
