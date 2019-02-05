@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ToggleOfflineModeHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.util.List;
@@ -35,12 +37,14 @@ import static com.google.common.truth.Truth.assertThat;
 public class MissingDependencyErrorHandlerTest extends AndroidGradleTestCase {
 
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
   private Boolean myOriginalOfflineSetting;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
     myOriginalOfflineSetting = GradleSettings.getInstance(getProject()).isOfflineWork();
   }
 
@@ -70,6 +74,9 @@ public class MissingDependencyErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes).hasSize(2);
     assertThat(quickFixes.get(0)).isInstanceOf(ToggleOfflineModeHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(SearchInBuildFilesHyperlink.class);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 
   public void testHandleErrorWithBuildFileLocation() throws Exception {
@@ -89,5 +96,8 @@ public class MissingDependencyErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes.get(0)).isInstanceOf(ToggleOfflineModeHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(OpenFileHyperlink.class);
     assertThat(quickFixes.get(2)).isInstanceOf(SearchInBuildFilesHyperlink.class);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 }
