@@ -24,10 +24,10 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.ActionIconButton
-import com.android.tools.idea.common.property2.api.FlagsPropertyItem
-import com.android.tools.idea.common.property2.api.NewPropertyItem
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.ActionIconButton
+import com.android.tools.property.panel.api.FlagsPropertyItem
+import com.android.tools.property.panel.api.NewPropertyItem
+import com.android.tools.property.panel.api.PropertiesTable
 
 /**
  * A [NelePropertyItem] where it is possible to edit the name of the property.

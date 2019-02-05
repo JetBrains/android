@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 
 fun getTagName(properties: PropertiesTable<NelePropertyItem>): String? {

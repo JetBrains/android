@@ -22,9 +22,9 @@ import static org.mockito.Mockito.when;
 
 import com.android.layoutinspector.model.ViewNode;
 import com.android.layoutinspector.parser.ViewNodeParser;
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableItem;
-import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableItem;
+import com.android.tools.property.ptable.PTableModel;
 import com.android.tools.idea.editors.layoutInspector.DefaultNoEditHandler;
 import com.android.tools.idea.editors.layoutInspector.EditHandler;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;

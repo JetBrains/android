@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property.renderer;
 
-import com.android.tools.adtui.ptable.*;
-import com.android.tools.adtui.ptable.simple.SimpleGroupItem;
-import com.android.tools.adtui.ptable.simple.SimpleItem;
+import com.android.tools.property.ptable.*;
+import com.android.tools.property.ptable.simple.SimpleGroupItem;
+import com.android.tools.property.ptable.simple.SimpleItem;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ide.CopyPasteManager;
 import junit.framework.TestCase;

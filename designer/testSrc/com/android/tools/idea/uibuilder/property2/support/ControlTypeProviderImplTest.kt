@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.*
-import com.android.tools.idea.common.property2.api.ControlType
-import com.android.tools.idea.common.property2.api.EnumSupport
-import com.android.tools.idea.common.property2.api.EnumSupportProvider
+import com.android.tools.property.panel.api.ControlType
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType

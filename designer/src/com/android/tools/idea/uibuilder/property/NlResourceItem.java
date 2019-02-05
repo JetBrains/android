@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.adtui.ptable.PTableItem;
+import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.editors.strings.StringsWriteUtils;
 import com.intellij.openapi.application.TransactionGuard;

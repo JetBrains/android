@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2
 import com.android.SdkConstants
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
@@ -27,8 +27,6 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.junit.Test
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 
 class MotionLayoutPropertyProviderTest : LayoutTestCase() {
 
