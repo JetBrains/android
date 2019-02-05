@@ -44,7 +44,7 @@ class InspectorViewDescriptor(private val id: String,
     view(id, rect.x, rect.y, rect.width, rect.height, type, body)
 
   fun build(): InspectorView {
-    val result = InspectorView(id, type, x, y, width, height, listOf())
+    val result = InspectorView(type, x, y, width, height)
     children.mapTo(result.children) { it.build() }
     return result
   }

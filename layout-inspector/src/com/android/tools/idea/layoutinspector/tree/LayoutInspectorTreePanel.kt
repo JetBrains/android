@@ -45,6 +45,11 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     layoutInspector?.modelChangeListeners?.remove(this::modelChanged)
     layoutInspector = toolContext
     layoutInspector?.modelChangeListeners?.add(this::modelChanged)
+    layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, new ->
+      if (new != null) {
+        tree.model = DefaultTreeModel(MyTreeNode(new, null))
+      }
+    }
     if (toolContext != null) {
       modelChanged(toolContext.layoutInspectorModel, toolContext.layoutInspectorModel)
     }

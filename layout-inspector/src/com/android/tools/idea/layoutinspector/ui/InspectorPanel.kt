@@ -17,8 +17,9 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
-import com.android.tools.idea.layoutinspector.sampledata.chromeSampleData
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.intellij.openapi.project.Project
 import java.awt.BorderLayout
@@ -32,7 +33,7 @@ class InspectorPanel(val project: Project) : JPanel(BorderLayout()) {
 
   init {
     val workbench = WorkBench<LayoutInspector>(project, "Layout Inspector", null)
-    val layoutInspector = LayoutInspector(chromeSampleData)
+    val layoutInspector = LayoutInspector(InspectorModel(InspectorView("empty", 0, 0, 1, 1)), project)
     deviceViewPanel = DeviceViewPanel(layoutInspector)
     workbench.init(deviceViewPanel, layoutInspector, listOf(
       LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()))
