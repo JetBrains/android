@@ -17,8 +17,8 @@ package com.android.tools.idea.common.property2.impl.model.util
 
 import com.android.tools.idea.common.property2.api.NewPropertyItem
 
-class TestNewPropertyItem(val properties: Map<String, TestPropertyItem> = emptyMap()) :
-  TestPropertyItem("", "", null, null, null), NewPropertyItem {
+class FakeNewPropertyItem(val properties: Map<String, FakePropertyItem> = emptyMap()) :
+  FakePropertyItem("", "", null, null, null), NewPropertyItem {
 
   override var name: String = ""
     set(value) {
@@ -26,10 +26,10 @@ class TestNewPropertyItem(val properties: Map<String, TestPropertyItem> = emptyM
       delegate = properties[value]
     }
 
-  override var delegate: TestPropertyItem? = null
+  override var delegate: FakePropertyItem? = null
 
   // All "New" properties are considered equal, since only 1 should appear in a model
-  override fun equals(other: Any?) = other is TestNewPropertyItem
+  override fun equals(other: Any?) = other is FakeNewPropertyItem
 
   override fun hashCode() = 12345
 

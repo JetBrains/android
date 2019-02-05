@@ -18,7 +18,7 @@ package com.android.tools.idea.common.property2.impl.model
 import com.android.tools.adtui.ptable2.PTable
 import com.android.tools.adtui.ptable2.PTableGroupItem
 import com.android.tools.idea.common.property2.impl.model.util.TestGroupItem
-import com.android.tools.idea.common.property2.impl.model.util.TestPTableModel
+import com.android.tools.idea.common.property2.impl.model.util.FakePTableModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -82,7 +82,7 @@ class TableLineModelTest {
   class TableTest(expanded: Boolean = false) {
     private val group1: PTableGroupItem = TestGroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
     private val group2: PTableGroupItem = TestGroupItem("group2", mapOf("size" to "4dp", "tone" to "C"))
-    val model = TestPTableModel(expanded, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
+    val model = FakePTableModel(expanded, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
     val table = PTable.create(model)
 
     fun applyTableLineModel(tableLineModel: TableLineModelImpl) {

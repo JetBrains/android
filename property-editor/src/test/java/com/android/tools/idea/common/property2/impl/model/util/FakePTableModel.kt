@@ -21,7 +21,7 @@ import com.android.tools.adtui.ptable2.PTableItem
 import com.android.tools.adtui.ptable2.PTableModel
 import java.util.Objects
 
-class TestPTableModel(expanded: Boolean,
+class FakePTableModel(expanded: Boolean,
                       values: Map<String, String>,
                       groups: List<PTableGroupItem>): PTableModel {
   override var editedItem: PTableItem? = null

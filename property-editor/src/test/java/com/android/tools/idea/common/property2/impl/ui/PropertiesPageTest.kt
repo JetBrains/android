@@ -30,7 +30,7 @@ import com.android.tools.idea.common.property2.impl.model.CollapsibleLabelModel
 import com.android.tools.idea.common.property2.impl.model.GenericInspectorLineModel
 import com.android.tools.idea.common.property2.impl.model.SeparatorLineModel
 import com.android.tools.idea.common.property2.impl.model.TitleLineModel
-import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
+import com.android.tools.idea.common.property2.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -237,7 +237,7 @@ class PropertiesPageTest {
   private fun makeEditor(): Pair<PropertyEditorModel, JComponent> {
     val model = mock(PropertyEditorModel::class.java)
     val editor = JLabel()
-    val property = TestPropertyItem(ANDROID_URI, ATTR_TEXT, "Hello")
+    val property = FakePropertyItem(ANDROID_URI, ATTR_TEXT, "Hello")
     `when`(model.property).thenReturn(property)
     return Pair(model, editor)
   }

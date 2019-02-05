@@ -19,10 +19,10 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.impl.model.util.TestInspectorLineModel
-import com.android.tools.idea.common.property2.impl.model.util.TestLineType
-import com.android.tools.idea.common.property2.impl.model.util.TestNewPropertyItem
-import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
+import com.android.tools.idea.common.property2.impl.model.util.FakeInspectorLineModel
+import com.android.tools.idea.common.property2.impl.model.util.FakeLineType
+import com.android.tools.idea.common.property2.impl.model.util.FakeNewPropertyItem
+import com.android.tools.idea.common.property2.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -32,7 +32,7 @@ import org.mockito.Mockito.times
 class PropertyNameEditorModelTest {
 
   private fun createModel(): Pair<PropertyNameEditorModel, ValueChangedListener> {
-    val property = TestNewPropertyItem(mapOf(ATTR_TEXT_COLOR to TestPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR)))
+    val property = FakeNewPropertyItem(mapOf(ATTR_TEXT_COLOR to FakePropertyItem(ANDROID_URI, ATTR_TEXT_COLOR)))
     val model = PropertyNameEditorModel(property)
     val listener = Mockito.mock(ValueChangedListener::class.java)
     model.addListener(listener)
@@ -42,7 +42,7 @@ class PropertyNameEditorModelTest {
   @Test
   fun testEnter() {
     val (model, listener) = createModel()
-    val line = TestInspectorLineModel(TestLineType.PROPERTY)
+    val line = FakeInspectorLineModel(FakeLineType.PROPERTY)
     model.lineModel = line
     model.text = ATTR_TEXT
     assertThat(model.commit()).isFalse()

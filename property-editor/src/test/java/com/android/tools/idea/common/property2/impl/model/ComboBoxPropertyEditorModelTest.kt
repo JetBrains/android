@@ -21,11 +21,11 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.testing.ApplicationRule
 import com.android.tools.idea.common.property2.api.EnumSupport
 import com.android.tools.idea.common.property2.api.EnumValue
-import com.android.tools.idea.common.property2.impl.model.util.TestAction
-import com.android.tools.idea.common.property2.impl.model.util.TestEnumSupport
-import com.android.tools.idea.common.property2.impl.model.util.TestInspectorLineModel
-import com.android.tools.idea.common.property2.impl.model.util.TestLineType
-import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
+import com.android.tools.idea.common.property2.impl.model.util.FakeAction
+import com.android.tools.idea.common.property2.impl.model.util.FakeEnumSupport
+import com.android.tools.idea.common.property2.impl.model.util.FakeInspectorLineModel
+import com.android.tools.idea.common.property2.impl.model.util.FakeLineType
+import com.android.tools.idea.common.property2.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -44,11 +44,11 @@ class ComboBoxPropertyEditorModelTest {
   val appRule = ApplicationRule()
 
   private fun createModel(): ComboBoxPropertyEditorModel {
-    return createModel(TestEnumSupport("visible", "invisible", "gone"))
+    return createModel(FakeEnumSupport("visible", "invisible", "gone"))
   }
 
   private fun createModel(enumSupport: EnumSupport): ComboBoxPropertyEditorModel {
-    val property = TestPropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
+    val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     property.defaultValue = "defaultNone"
     return ComboBoxPropertyEditorModel(property, enumSupport, true)
   }
@@ -106,7 +106,7 @@ class ComboBoxPropertyEditorModelTest {
   @Test
   fun testEnter() {
     val (model, listener) = createModelWithListener()
-    val line = TestInspectorLineModel(TestLineType.PROPERTY)
+    val line = FakeInspectorLineModel(FakeLineType.PROPERTY)
     model.lineModel = line
     model.text = "gone"
     model.enterKeyPressed()
@@ -150,8 +150,8 @@ class ComboBoxPropertyEditorModelTest {
   @Test
   fun testEnterInPopupOnAction() {
     // setup
-    val action = TestAction("testAction")
-    val enumSupport = TestEnumSupport("visible", "invisible", action = action)
+    val action = FakeAction("testAction")
+    val enumSupport = FakeEnumSupport("visible", "invisible", action = action)
     val model = createModel(enumSupport)
     model.isPopupVisible = true
     model.selectedItem = enumSupport.values.last()
