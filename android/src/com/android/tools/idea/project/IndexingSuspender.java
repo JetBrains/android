@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.project;
 
-import com.android.annotations.VisibleForTesting;
+import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.finishBatchUpdate;
+import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.startBatchUpdate;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.BuildContext;
@@ -27,20 +29,15 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.npw.model.MultiTemplateRenderer;
-import com.intellij.ide.file.BatchFileChangeListener;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.components.impl.stores.BatchUpdateListener;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
 /**
  * The project-level service to prevent IDE indexing from being started until a certain set of conditions is met.
@@ -82,7 +79,7 @@ public class IndexingSuspender {
 
   private void consumeActivationEvent(@NotNull ActivationEvent event) {
     // The switch below represents a state machine, so check very carefully all cases whenever changing one, as there
-    // may be logical dependencies. The two intended workflows to cover are:
+    // may be logical dependencies. The two intended work flows to cover are:
     //
     // 1) Sync -> Build
     // 2) Template Rendering -> Sync -> Build
@@ -253,7 +250,7 @@ public class IndexingSuspender {
     // Allow indexing suspension in case of template rendering regardless of project initialisation state:
     // - if it's triggered during New Project workflow, then suspension will have a wider scope than just gradle sync,
     // so it will not interfere.
-    // - if it's triggered during other NPW workflows, then project is already initialised anyway and there is no concern.
+    // - if it's triggered during other NPW work flows, then project is already initialised anyway and there is no concern.
     if (activationEvent != ActivationEvent.TEMPLATE_RENDERING_STARTED && !myProject.isInitialized()) {
       reportStateError("Attempt to suspend indexing when project is not yet initialised. Ignoring.");
       return;
@@ -261,7 +258,7 @@ public class IndexingSuspender {
 
     myActivated = true;
     myDeactivationEvent = deactivationEvent;
-    startBatchUpdate();
+    startBatchUpdate(myProject);
   }
 
   private void ensureDeactivated() {
@@ -269,7 +266,7 @@ public class IndexingSuspender {
       return;
     }
 
-    finishBatchUpdate();
+    finishBatchUpdate(myProject);
     clearStateConditions();
     myActivated = false;
   }
@@ -301,41 +298,6 @@ public class IndexingSuspender {
 
   private void clearStateConditions() {
     myDeactivationEvent = null;
-  }
-
-  /**
-   * Start batch update, thus ensuring that any VFS/root model changes do not immediately cause associated indexing. This
-   * helps avoid redundant indexing operations and contention during a massive model update (for example,
-   * the one happening during the project setup phase of gradle sync).
-   */
-  private void startBatchUpdate() {
-    LOG.info("Starting batch update for project: " + myProject.toString());
-    TransactionGuard.submitTransaction(
-      myProject,
-      () -> executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
-        @Override
-        public void execute() {
-          myProject.getMessageBus().syncPublisher(BatchUpdateListener.TOPIC).onBatchUpdateStarted();
-          ApplicationManager.getApplication().getMessageBus()
-                            .syncPublisher(BatchFileChangeListener.TOPIC).batchChangeStarted(myProject, "batch update");
-        }
-      }));
-  }
-
-  /**
-   * Finish batch update, thus allowing any model changes which happened along the way to trigger indexing.
-   */
-  private void finishBatchUpdate() {
-    LOG.info("Finishing batch update for project: " + myProject.toString());
-    TransactionGuard.submitTransaction(
-      myProject,
-      () -> executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
-        @Override
-        public void execute() {
-          myProject.getMessageBus().syncPublisher(BatchUpdateListener.TOPIC).onBatchUpdateFinished();
-          ApplicationManager.getApplication().getMessageBus().syncPublisher(BatchFileChangeListener.TOPIC).batchChangeCompleted(myProject);
-        }
-      }));
   }
 
   private enum ActivationEvent {
