@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.property.inspector
 
 import com.android.SdkConstants.CLASS_PARCELABLE
+import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -153,20 +154,42 @@ class AddArgumentDialogTest : NavTestCase() {
         fragment("fragment1")
       }
     }
+
+    val relativePath = "src/mytest/navtest/Containing.java"
+    val fileText = """
+      package mytest.navtest;
+
+      import android.os.Parcelable;
+
+      public abstract class Containing implements Parcelable {
+          public abstract static class Inner implements Parcelable {
+             public abstract static class InnerInner implements Parcelable {
+             }
+          }
+      }
+      """.trimIndent()
+    myFixture.addFileToProject(relativePath, fileText)
+
     val parcelable = ClassUtil.findPsiClass(PsiManager.getInstance(project), CLASS_PARCELABLE)
     val classChooserFactory = mock(TreeClassChooserFactory::class.java)
     val classChooser = mock(TreeClassChooser::class.java)
     `when`(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull())).thenReturn(classChooser)
-    val customParcelable = mock(PsiClass::class.java)
-    `when`(customParcelable.qualifiedName).thenReturn("custom.Parcelable")
-    `when`(classChooser.selected).thenReturn(customParcelable)
     IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
 
+    testParcelable(model, classChooser, "mytest.navtest.Containing")
+    testParcelable(model, classChooser, "mytest.navtest.Containing\$Inner")
+    testParcelable(model, classChooser, "mytest.navtest.Containing\$Inner\$InnerInner")
+  }
+
+  private fun testParcelable(model: SyncNlModel, classChooser: TreeClassChooser, jvmName: String) {
     val fragment1 = model.find("fragment1")!!
+    val psiClass = ClassUtil.findPsiClass(PsiManager.getInstance(project), jvmName)
+
+    `when`(classChooser.selected).thenReturn(psiClass)
 
     AddArgumentDialog(null, fragment1).runAndClose { dialog ->
       dialog.type = "foo"
-      assertEquals("custom.Parcelable", dialog.type)
+      assertEquals(jvmName, dialog.type)
     }
   }
 
