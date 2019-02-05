@@ -45,27 +45,30 @@ class ImageCache(cacheExpirationTime: Long = 5,
 ) : Disposable {
 
 
-  private val pendingFutures = HashMap<DesignAsset, CompletableFuture<*>>()
-
-  @Async.Schedule
-  private fun MergingUpdateQueue.queue(asset: DesignAsset,
-                                       executeImmediately: Boolean = false,
-                                       runnable: () -> Unit) {
-    val update = Update.create(asset.name, runnable)
-    if (executeImmediately) {
-      run(update)
-    }
-    else {
-      queue(update)
-    }
-  }
+  private val pendingFutures = HashMap<DesignAsset, CompletableFuture<*>?>()
 
   private val updateQueue = mergingUpdateQueue ?: MergingUpdateQueue("queue", 3000, true, MergingUpdateQueue.ANY_COMPONENT, this, null,
                                                                      false)
 
+  @Async.Schedule
+  private fun runOrQueue(asset: DesignAsset,
+                         executeImmediately: Boolean = false,
+                         runnable: () -> Unit) {
+    // We map to null to mark that the computation for asset has started and avoid any new computation.
+    // It will then be replaced by the computation future once it is created.
+    pendingFutures[asset] = null
+    if (executeImmediately) {
+      runnable()
+    }
+    else {
+      val update = Update.create(asset.name, runnable)
+      updateQueue.queue(update)
+    }
+  }
+
   override fun dispose() {
     synchronized(pendingFutures) {
-      pendingFutures.values.forEach { it.cancel(true) }
+      pendingFutures.values.forEach { it?.cancel(true) }
     }
   }
 
@@ -98,24 +101,20 @@ class ImageCache(cacheExpirationTime: Long = 5,
     : Image {
 
     val cachedImage = objectToImage.getIfPresent(key)
-    if (cachedImage == null) {
-      // We cache the placeholder to avoid starting another computation while the initial one is running
-      objectToImage.put(key, placeholder)
-    }
-    if ((cachedImage == null || cachedImage == placeholder || forceComputation) && !pendingFutures.containsKey(key)) {
+    if ((cachedImage == null || forceComputation) && !pendingFutures.containsKey(key)) {
       val executeImmediately = cachedImage == null // If we don't have any image, no need to wait.
-      updateQueue.queue(key, executeImmediately) {
-        scheduleFuture(computationFutureProvider, key, onImageCached, executor)
+      runOrQueue(key, executeImmediately) {
+        startComputation(computationFutureProvider, key, onImageCached, executor)
       }
     }
     return cachedImage ?: placeholder
   }
 
 
-  private fun scheduleFuture(computationFutureProvider: () -> CompletableFuture<out Image?>,
-                             @Async.Execute key: DesignAsset,
-                             onImageCached: () -> Unit,
-                             executor: Executor) {
+  private fun startComputation(computationFutureProvider: () -> CompletableFuture<out Image?>,
+                               @Async.Execute key: DesignAsset,
+                               onImageCached: () -> Unit,
+                               executor: Executor) {
     val future = computationFutureProvider()
       .thenAccept { image: Image? ->
         synchronized(pendingFutures) {
