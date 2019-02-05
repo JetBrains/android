@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_URL_HYPERLINK;
+
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import java.util.Collection;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link JavaHeapSpaceErrorHandler}.
@@ -33,11 +37,13 @@ import static com.google.common.truth.Truth.assertThat;
 public class JavaHeapSpaceErrorHandlerTest extends AndroidGradleTestCase {
 
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleErrorWithLongMessage() throws Exception {
@@ -51,14 +57,19 @@ public class JavaHeapSpaceErrorHandlerTest extends AndroidGradleTestCase {
                          "Could not reserve enough space for object heap\n" +
                          "Error: Could not create the Java Virtual Machine.\n" +
                          "Error: A fatal exception has occurred. Program will exit.";
-    assertErrorAndHyperlinksDisplayed(longMessage, "Unable to start the daemon process: could not reserve enough space for object heap.");
+    assertErrorAndHyperlinksDisplayed(longMessage, "Unable to start the daemon process: could not reserve enough space for object heap.",
+                                      ImmutableList.of(OPEN_URL_HYPERLINK, OPEN_URL_HYPERLINK));
   }
 
   public void testHandleErrorWithShortMessage() throws Exception {
-    assertErrorAndHyperlinksDisplayed("Out of memory: Java heap space", "Out of memory: Java heap space");
+    assertErrorAndHyperlinksDisplayed("Out of memory: Java heap space", "Out of memory: Java heap space",
+                                      ImmutableList.of(OPEN_URL_HYPERLINK, OPEN_URL_HYPERLINK));
   }
 
-  private void assertErrorAndHyperlinksDisplayed(@NotNull String errorMessage, @NotNull String expectedMessage) throws Exception {
+  private void assertErrorAndHyperlinksDisplayed(@NotNull String errorMessage,
+                                                 @NotNull String expectedMessage,
+                                                 @NotNull Collection<AndroidStudioEvent.GradleSyncQuickFix> syncQuickFixes)
+    throws Exception {
     registerSyncErrorToSimulate(errorMessage);
 
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
@@ -73,5 +84,8 @@ public class JavaHeapSpaceErrorHandlerTest extends AndroidGradleTestCase {
     assertThat(quickFixes).hasSize(2);
     assertThat(quickFixes.get(0)).isInstanceOf(OpenUrlHyperlink.class);
     assertThat(quickFixes.get(1)).isInstanceOf(OpenUrlHyperlink.class);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(syncQuickFixes, myUsageReporter.getCollectedQuickFixes());
   }
 }

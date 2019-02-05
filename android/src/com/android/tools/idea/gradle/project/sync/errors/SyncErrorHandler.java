@@ -19,7 +19,9 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCate
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE;
 
+import com.android.builder.model.SyncIssue;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.base.Splitter;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -78,20 +80,10 @@ public abstract class SyncErrorHandler {
   protected static void updateUsageTracker(@NotNull Project project,
                                            @Nullable GradleSyncFailure gradleSyncFailure,
                                            @Nullable String gradleMissingSignature) {
-    AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder();
-    if (gradleSyncFailure == null) {
-      gradleSyncFailure = UNKNOWN_GRADLE_FAILURE;
+
+    if (gradleSyncFailure != null) {
+      SyncIssueUsageReporter.Companion.getInstance(project).collect(gradleSyncFailure);
     }
-    // @formatter:off
-    builder.setCategory(GRADLE_SYNC)
-           .setKind(GRADLE_SYNC_FAILURE_DETAILS)
-           .setGradleSyncFailure(gradleSyncFailure);
-    // @formatter:on
-    if (gradleMissingSignature != null) {
-      builder.setGradleMissingSignature(gradleMissingSignature);
-    }
-    UsageTrackerUtils.withProjectId(builder, project);
-    UsageTracker.log(builder);
   }
 
   @NotNull
