@@ -42,7 +42,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import javax.swing.JComponent
 import javax.swing.JLabel
-import kotlin.test.fail
 
 class PropertiesPageTest {
   @JvmField @Rule
@@ -75,7 +74,7 @@ class PropertiesPageTest {
   }
 
   private val pageLines: List<InspectorLineModel>
-    get() = page?.inspectorModel?.lines ?: fail("No lines found")
+    get() = page?.inspectorModel?.lines ?: error("No lines found")
 
   @Test
   fun testSeparatorAddedBeforeFirstEditorComponent() {
@@ -228,7 +227,7 @@ class PropertiesPageTest {
   }
 
   private fun checkLineModels(lines: List<InspectorLineModel>?, vararg classes: Class<*>) {
-    val linesToCheck = lines ?: fail("Expected non null lines")
+    val linesToCheck = lines ?: error("Expected non null lines")
     for ((index, line) in linesToCheck.withIndex()) {
       assertThat(line).isInstanceOf(classes[index])
     }
