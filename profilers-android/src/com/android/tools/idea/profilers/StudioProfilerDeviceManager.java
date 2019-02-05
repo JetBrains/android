@@ -22,12 +22,8 @@ import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.tools.datastore.DataStoreService;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.profilers.perfd.ProfilerServiceProxyManager;
-import com.android.tools.idea.profilers.perfd.TransportServiceProxy;
 import com.android.tools.idea.transport.TransportDeviceManager;
-import com.android.tools.profiler.proto.Common;
-import io.grpc.ManagedChannel;
 import java.io.IOException;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -75,21 +71,6 @@ class StudioProfilerDeviceManager extends TransportDeviceManager {
     @Override
     protected void postProxyCreation() {
       ProfilerServiceProxyManager.registerProxies(myTransportProxy);
-    }
-
-    @Override
-    protected void connectDataStore(@NotNull ManagedChannel channel) {
-      if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
-        myDataStore.connect(Common.Stream.newBuilder()
-                              .setStreamId(myDataStore.getUniqueStreamId())
-                              .setType(Common.Stream.Type.DEVICE)
-                              .setDevice(TransportServiceProxy.transportDeviceFromIDevice(myDevice))
-                              .build(),
-                            channel);
-      }
-      else {
-        myDataStore.connect(channel);
-      }
     }
   }
 }

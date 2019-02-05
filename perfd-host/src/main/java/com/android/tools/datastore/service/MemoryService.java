@@ -19,7 +19,7 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.PERFO
 
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
-import com.android.tools.datastore.DeviceId;
+import com.android.tools.datastore.StreamId;
 import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
@@ -102,20 +102,20 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> observer) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(StreamId.fromSession(request.getSession()));
     if (client != null) {
       observer.onNext(client.startMonitoringApp(request));
       observer.onCompleted();
 
       Common.Session session = request.getSession();
-      DeviceId deviceId = DeviceId.fromSession(session);
+      StreamId streamId = StreamId.fromSession(session);
       long sessionId = session.getSessionId();
 
       myJvmtiRunners.put(sessionId, new MemoryJvmtiDataPoller(session, myAllocationsTable, client));
       myRunners.put(sessionId, new MemoryDataPoller(session, myStatsTable, client, myFetchExecutor));
       mySymbolizationRunners.put(sessionId,
                                  new NativeSymbolsPoller(session, myAllocationsTable, myService.getNativeSymbolizer(),
-                                                         myService.getTransportClient(deviceId), myLogService));
+                                                         myService.getTransportClient(streamId), myLogService));
 
       myFetchExecutor.accept(mySymbolizationRunners.get(sessionId));
       myFetchExecutor.accept(myJvmtiRunners.get(sessionId));
@@ -146,7 +146,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
     MemoryServiceGrpc.MemoryServiceBlockingStub service =
-      myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+      myService.getMemoryClient(StreamId.fromSession(request.getSession()));
     if (service == null) {
       observer.onNext(MemoryStopResponse.getDefaultInstance());
     }
@@ -158,7 +158,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void triggerHeapDump(TriggerHeapDumpRequest request, StreamObserver<TriggerHeapDumpResponse> responseObserver) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(StreamId.fromSession(request.getSession()));
     TriggerHeapDumpResponse response = TriggerHeapDumpResponse.getDefaultInstance();
     if (client != null) {
       response = client.triggerHeapDump(request);
@@ -222,7 +222,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void trackAllocations(TrackAllocationsRequest request,
                                StreamObserver<TrackAllocationsResponse> responseObserver) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(StreamId.fromSession(request.getSession()));
     TrackAllocationsResponse response = TrackAllocationsResponse.getDefaultInstance();
     if (client != null) {
       response = client.trackAllocations(request);
@@ -405,7 +405,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void forceGarbageCollection(ForceGarbageCollectionRequest request, StreamObserver<ForceGarbageCollectionResponse> observer) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(StreamId.fromSession(request.getSession()));
     if (client != null) {
       observer.onNext(client.forceGarbageCollection(request));
     }
@@ -418,7 +418,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void setAllocationSamplingRate(SetAllocationSamplingRateRequest request,
                                         StreamObserver<SetAllocationSamplingRateResponse> observer) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(DeviceId.fromSession(request.getSession()));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(StreamId.fromSession(request.getSession()));
     if (client != null) {
       observer.onNext(client.setAllocationSamplingRate(request));
     }

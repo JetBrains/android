@@ -15,6 +15,9 @@
  */
 package com.android.tools.datastore.poller;
 
+import com.android.tools.datastore.DataStoreService;
+import com.android.tools.datastore.StreamId;
+import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Transport.GetEventsRequest;
@@ -29,21 +32,29 @@ import org.jetbrains.annotations.NotNull;
  * This is a thread safe class to poll events from a grpc service. This class cannot be restarted once
  * stop is called it is guaranteed that run will not be executing.
  */
-public class UnifiedEventsDataPoller implements Runnable {
+public class UnifiedEventsDataPoller implements Runnable, DataStoreTable.DataStoreTableErrorCallback {
   private final long myStreamId;
   @NotNull private final UnifiedEventsTable myTable;
   @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myEventPollingService;
+  @NotNull private final DataStoreService myDataStoreService;
   @NotNull private final CountDownLatch myRunningLatch;
   @NotNull private final AtomicBoolean myIsRunning = new AtomicBoolean(false);
   @NotNull private final AtomicBoolean myIsStopCalled = new AtomicBoolean(false);
 
   public UnifiedEventsDataPoller(long streamId,
                                  @NotNull UnifiedEventsTable unifiedEventsTable,
-                                 @NotNull TransportServiceGrpc.TransportServiceBlockingStub pollingService) {
+                                 @NotNull TransportServiceGrpc.TransportServiceBlockingStub pollingService,
+                                 @NotNull DataStoreService dataStoreService) {
     myEventPollingService = pollingService;
+    myDataStoreService = dataStoreService;
     myStreamId = streamId;
     myTable = unifiedEventsTable;
     myRunningLatch = new CountDownLatch(1);
+  }
+
+  @Override
+  public void onDataStoreError(Throwable t) {
+    myDataStoreService.disconnect(StreamId.of(myStreamId));
   }
 
   public void stop() {
@@ -60,15 +71,21 @@ public class UnifiedEventsDataPoller implements Runnable {
   }
 
   @Override
-  public void run() throws StatusRuntimeException {
+  public void run() {
     myIsRunning.set(true);
-    // The iterator returned will block on next calls, only returning when data is received or the server disconnects.
-    Iterator<Event> events = myEventPollingService.getEvents(GetEventsRequest.getDefaultInstance());
-    while (!myIsStopCalled.get() && events.hasNext()) {
-      Event event = events.next();
-      if (event != null) {
-        myTable.insertUnifiedEvent(myStreamId, event);
+    try {
+      // The iterator returned will block on next calls, only returning when data is received or the server disconnects.
+      Iterator<Event> events = myEventPollingService.getEvents(GetEventsRequest.getDefaultInstance());
+      while (!myIsStopCalled.get() && events.hasNext()) {
+        Event event = events.next();
+        if (event != null) {
+          myTable.insertUnifiedEvent(myStreamId, event);
+        }
       }
+    }
+    catch (StatusRuntimeException exception) {
+      // We expect this to get called when connection to the device is lost.
+      // TODO clean up ongoing streams and processes - mark everything as disconnected or dead.
     }
     // Signal end of run.
     myRunningLatch.countDown();

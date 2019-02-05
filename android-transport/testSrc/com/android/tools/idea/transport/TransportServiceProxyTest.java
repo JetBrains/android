@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.perfd;
+package com.android.tools.idea.transport;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,8 +29,6 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
-import com.android.tools.profiler.proto.Transport.GetDevicesResponse;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
@@ -57,7 +55,9 @@ public class TransportServiceProxyTest {
   @Test
   public void testBindServiceContainsAllMethods() throws Exception {
     IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.BASE, new Client[0]);
-    TransportServiceProxy proxy = new TransportServiceProxy(mockDevice, startNamedChannel("testBindServiceContainsAllMethods"));
+    Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
+    TransportServiceProxy proxy =
+      new TransportServiceProxy(mockDevice, transportMockDevice, startNamedChannel("testBindServiceContainsAllMethods"));
 
     ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = TransportServiceGrpc.getServiceDescriptor().getMethods();
@@ -89,8 +89,10 @@ public class TransportServiceProxyTest {
     Client client1 = createMockClient(1, "test1", "testClientDescription");
     Client client2 = createMockClient(2, "test2", null);
     IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.O, new Client[]{client1, client2});
+    Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
 
-    TransportServiceProxy proxy = new TransportServiceProxy(mockDevice, startNamedChannel("testClientsWithNullDescriptionsNotAdded"));
+    TransportServiceProxy proxy =
+      new TransportServiceProxy(mockDevice, transportMockDevice, startNamedChannel("testClientsWithNullDescriptionsNotAdded"));
     Map<Client, Common.Process> cachedProcesses = proxy.getCachedProcesses();
     assertThat(cachedProcesses.size()).isEqualTo(1);
     Map.Entry<Client, Common.Process> cachedProcess = cachedProcesses.entrySet().iterator().next();

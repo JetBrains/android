@@ -70,7 +70,7 @@ public final class TestGrpcService extends ExternalResource {
   protected void before() throws Throwable {
     myRpcFile = new TestGrpcFile(File.separator + myTestClassName + File.separator + myMethodName.getMethodName());
     myGrpcName = UUID.randomUUID().toString();
-    InProcessServerBuilder builder = InProcessServerBuilder.forName(myGrpcName);
+    InProcessServerBuilder builder = InProcessServerBuilder.forName(myGrpcName).directExecutor();
     TestServerInterceptor interceptor = new TestServerInterceptor(myRpcFile);
     for (BindableService service : myServices) {
       builder.addService(ServerInterceptors.intercept(service, interceptor));
