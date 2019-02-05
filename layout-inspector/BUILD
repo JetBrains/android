@@ -30,5 +30,9 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/property-editor:intellij.android.property-editor[module]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
+        "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
+        "//tools/adt/idea/profilers:intellij.android.profilers[module]",
+        "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid[module]",
     ],
 )
