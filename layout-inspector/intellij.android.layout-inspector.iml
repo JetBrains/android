@@ -17,5 +17,9 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.property-editor" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
+    <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
+    <orderEntry type="module" module-name="intellij.android.profilers" />
+    <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
   </component>
 </module>
