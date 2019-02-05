@@ -20,26 +20,26 @@ import com.android.tools.idea.common.property2.api.PropertiesModelListener
 import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
 import com.google.common.collect.HashBasedTable
 
-class TestPropertyModel : PropertiesModel<TestPropertyItem> {
+class FakePropertyModel : PropertiesModel<FakePropertyItem> {
 
-  private val listeners = mutableListOf<PropertiesModelListener<TestPropertyItem>>()
+  private val listeners = mutableListOf<PropertiesModelListener<FakePropertyItem>>()
 
-  val table = HashBasedTable.create<String, String, TestPropertyItem>()!!
+  val table = HashBasedTable.create<String, String, FakePropertyItem>()!!
 
-  override val properties = PropertiesTableImpl<TestPropertyItem>(table)
+  override val properties = PropertiesTableImpl<FakePropertyItem>(table)
 
-  fun add(property: TestPropertyItem) {
+  fun add(property: FakePropertyItem) {
     table.put(property.namespace, property.name, property)
   }
 
   override fun deactivate() {
   }
 
-  override fun addListener(listener: PropertiesModelListener<TestPropertyItem>) {
+  override fun addListener(listener: PropertiesModelListener<FakePropertyItem>) {
     listeners.add(listener)
   }
 
-  override fun removeListener(listener: PropertiesModelListener<TestPropertyItem>) {
+  override fun removeListener(listener: PropertiesModelListener<FakePropertyItem>) {
     listeners.remove(listener)
   }
 

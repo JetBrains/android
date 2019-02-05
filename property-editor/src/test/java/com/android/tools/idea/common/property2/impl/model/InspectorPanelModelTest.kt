@@ -22,10 +22,10 @@ import com.android.SdkConstants.ATTR_COLOR
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.workbench.PropertiesComponentMock
-import com.android.tools.idea.common.property2.impl.model.util.TestTableLineModel
-import com.android.tools.idea.common.property2.impl.model.util.TestPTableModel
-import com.android.tools.idea.common.property2.impl.model.util.TestPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
+import com.android.tools.idea.common.property2.impl.model.util.FakeTableLineModel
+import com.android.tools.idea.common.property2.impl.model.util.FakePTableModel
+import com.android.tools.idea.common.property2.impl.model.util.FakePropertyEditorModel
+import com.android.tools.idea.common.property2.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -36,19 +36,19 @@ class InspectorPanelModelTest {
   class Inspector {
     val model = InspectorPanelModel()
 
-    private val colorProperty = TestPropertyItem(SdkConstants.ANDROID_URI, ATTR_COLOR, "#00FF00")
-    private val backgroundProperty = TestPropertyItem(SdkConstants.TOOLS_URI, ATTR_BACKGROUND, "#00FF00")
-    private val textProperty = TestPropertyItem(SdkConstants.AUTO_URI, ATTR_TEXT, "hello")
-    private val textAppProperty = TestPropertyItem(SdkConstants.AUTO_URI, "textApp", "")
-    private val someProperty = TestPropertyItem("SomeNamespace", "some", "world")
-    private val otherProperty = TestPropertyItem("OtherNamespace", "other", "cup")
+    private val colorProperty = FakePropertyItem(SdkConstants.ANDROID_URI, ATTR_COLOR, "#00FF00")
+    private val backgroundProperty = FakePropertyItem(SdkConstants.TOOLS_URI, ATTR_BACKGROUND, "#00FF00")
+    private val textProperty = FakePropertyItem(SdkConstants.AUTO_URI, ATTR_TEXT, "hello")
+    private val textAppProperty = FakePropertyItem(SdkConstants.AUTO_URI, "textApp", "")
+    private val someProperty = FakePropertyItem("SomeNamespace", "some", "world")
+    private val otherProperty = FakePropertyItem("OtherNamespace", "other", "cup")
 
-    private val colorEditor = TestPropertyEditorModel(colorProperty)
-    private val backgroundEditor = TestPropertyEditorModel(backgroundProperty)
-    val textEditor = TestPropertyEditorModel(textProperty)
-    val textAppEditor = TestPropertyEditorModel(textAppProperty)
-    val someEditor = TestPropertyEditorModel(someProperty)
-    private val otherEditor = TestPropertyEditorModel(otherProperty)
+    private val colorEditor = FakePropertyEditorModel(colorProperty)
+    private val backgroundEditor = FakePropertyEditorModel(backgroundProperty)
+    val textEditor = FakePropertyEditorModel(textProperty)
+    val textAppEditor = FakePropertyEditorModel(textAppProperty)
+    val someEditor = FakePropertyEditorModel(someProperty)
+    private val otherEditor = FakePropertyEditorModel(otherProperty)
 
     private val properties = PropertiesComponentMock()
 
@@ -60,8 +60,8 @@ class InspectorPanelModelTest {
     val someItem = CollapsibleLabelModel("some", someEditor, true, properties)
     val otherItem = CollapsibleLabelModel("other", otherEditor, false, properties)
     val genericLine = GenericInspectorLineModel()
-    val tableLineModel1 = TestTableLineModel(TestPTableModel(false, emptyMap(), emptyList()), true)
-    val tableLineModel2 = TestTableLineModel(TestPTableModel(false, emptyMap(), emptyList()), false)
+    val tableLineModel1 = FakeTableLineModel(FakePTableModel(false, emptyMap(), emptyList()), true)
+    val tableLineModel2 = FakeTableLineModel(FakePTableModel(false, emptyMap(), emptyList()), false)
 
     init {
       outerGroup.makeExpandable(true)

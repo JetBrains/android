@@ -20,14 +20,14 @@ import com.android.tools.idea.common.property2.api.FlagsPropertyItem
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 
-class TestFlagsPropertyItem(
+class FakeFlagsPropertyItem(
   namespace: String,
   name: String,
   flagNames: List<String>,
   values: List<Int>,
   initialValue: String? = null
-) : TestPropertyItem(namespace, name, initialValue, null, null), FlagsPropertyItem<TestFlagPropertyItem> {
-  override val children = mutableListOf<TestFlagPropertyItem>()
+) : FakePropertyItem(namespace, name, initialValue, null, null), FlagsPropertyItem<FakeFlagPropertyItem> {
+  override val children = mutableListOf<FakeFlagPropertyItem>()
 
   val valueAsSet: HashSet<String>
     get() {
@@ -44,19 +44,19 @@ class TestFlagsPropertyItem(
 
 
   init {
-    flagNames.forEachIndexed { index, flag -> children.add(TestFlagPropertyItem(namespace, flag, this, values[index])) }
+    flagNames.forEachIndexed { index, flag -> children.add(FakeFlagPropertyItem(namespace, flag, this, values[index])) }
   }
 
-  override fun flag(itemName: String): TestFlagPropertyItem? = children.firstOrNull { it.name == itemName }
+  override fun flag(itemName: String): FakeFlagPropertyItem? = children.firstOrNull { it.name == itemName }
 
 }
 
-class TestFlagPropertyItem(
+class FakeFlagPropertyItem(
   namespace: String,
   name: String,
-  override val flags: TestFlagsPropertyItem,
+  override val flags: FakeFlagsPropertyItem,
   override val maskValue: Int
-) : TestPropertyItem(namespace, name, null, null, null), FlagPropertyItem {
+) : FakePropertyItem(namespace, name, null, null, null), FlagPropertyItem {
 
   override var actualValue: Boolean
     get() = flags.valueAsSet.contains(name)

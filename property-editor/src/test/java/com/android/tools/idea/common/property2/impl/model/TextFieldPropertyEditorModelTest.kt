@@ -20,10 +20,10 @@ import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.common.property2.api.PropertyItem
-import com.android.tools.idea.common.property2.impl.model.util.TestInspectorLineModel
-import com.android.tools.idea.common.property2.impl.model.util.TestLineType
-import com.android.tools.idea.common.property2.impl.model.util.TestAsyncPropertyItem
-import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
+import com.android.tools.idea.common.property2.impl.model.util.FakeInspectorLineModel
+import com.android.tools.idea.common.property2.impl.model.util.FakeLineType
+import com.android.tools.idea.common.property2.impl.model.util.FakeAsyncPropertyItem
+import com.android.tools.idea.common.property2.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -33,7 +33,7 @@ import org.mockito.Mockito.verify
 class TextFieldPropertyEditorModelTest {
 
   private fun createModel(): Pair<TextFieldPropertyEditorModel, ValueChangedListener> {
-    val property = TestPropertyItem(ANDROID_URI, "text", "hello")
+    val property = FakePropertyItem(ANDROID_URI, "text", "hello")
     property.defaultValue = "from"
     return createModel(property)
   }
@@ -55,7 +55,7 @@ class TextFieldPropertyEditorModelTest {
   @Test
   fun testEnter() {
     val (model, listener) = createModel()
-    val line = TestInspectorLineModel(TestLineType.PROPERTY)
+    val line = FakeInspectorLineModel(FakeLineType.PROPERTY)
     model.lineModel = line
     model.text = "world"
     model.commit()
@@ -100,9 +100,9 @@ class TextFieldPropertyEditorModelTest {
   @Test
   fun testEnterKeyWithAsyncPropertySetterDoesNotNavigateToNextEditor() {
     // setup
-    val property = TestAsyncPropertyItem(ANDROID_URI, ATTR_ID, "textView")
+    val property = FakeAsyncPropertyItem(ANDROID_URI, ATTR_ID, "textView")
     val (model, listener) = createModel(property)
-    val line = TestInspectorLineModel(TestLineType.PROPERTY)
+    val line = FakeInspectorLineModel(FakeLineType.PROPERTY)
     model.lineModel = line
     model.focusGained()
     model.text = "imageView"
@@ -117,7 +117,7 @@ class TextFieldPropertyEditorModelTest {
   @Test
   fun testFocusLossAfterEnterKeyWithAsyncPropertySetter() {
     // setup
-    val property = TestPropertyItem(ANDROID_URI, ATTR_ID, "textView")
+    val property = FakePropertyItem(ANDROID_URI, ATTR_ID, "textView")
     val (model, listener) = createModel(property)
     model.focusGained()
     model.text = "imageView"
@@ -133,7 +133,7 @@ class TextFieldPropertyEditorModelTest {
   @Test
   fun testUpdateAfterPropertyChange() {
     // setup
-    val property = TestPropertyItem(ANDROID_URI, ATTR_TEXT, "Hello")
+    val property = FakePropertyItem(ANDROID_URI, ATTR_TEXT, "Hello")
     val (model, listener) = createModel(property)
 
     // test

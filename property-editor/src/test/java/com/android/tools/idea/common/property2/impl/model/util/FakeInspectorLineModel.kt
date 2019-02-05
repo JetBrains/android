@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,47 +15,39 @@
  */
 package com.android.tools.idea.common.property2.impl.model.util
 
-import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.adtui.ptable2.PTableModel
 import com.android.tools.idea.common.property2.api.InspectorLineModel
 import com.android.tools.idea.common.property2.api.PropertyEditorModel
-import com.android.tools.idea.common.property2.api.PropertyItem
+import com.intellij.openapi.actionSystem.AnAction
 
-class TestPropertyEditorModel(override var property: PropertyItem): PropertyEditorModel {
-  override var value: String = property.value ?: ""
+enum class FakeLineType {
+  TITLE, PROPERTY, TABLE, PANEL, SEPARATOR
+}
 
+open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
   override var visible = true
+  override var hidden = false
+  override var focusable = true
+  override var parent: InspectorLineModel? = null
+  var actions = listOf<AnAction>()
+  open val tableModel: PTableModel? = null
+  var title: String? = null
+  var editorModel: PropertyEditorModel? = null
+  var expandable = false
+  var expanded = false
+  val children = mutableListOf<InspectorLineModel>()
+  val childProperties: List<String>
+    get() = children.map { it as FakeInspectorLineModel }.map { it.editorModel!!.property.name }
 
   var focusWasRequested = false
     private set
-
-  var toggleCount = 0
-    private set
-
-  override fun cancelEditing(): Boolean {
-    return true
-  }
 
   override fun requestFocus() {
     focusWasRequested = true
   }
 
-  override fun toggleValue() {
-    toggleCount++
-  }
-
-  override val hasFocus = false
-
-  override var lineModel: InspectorLineModel? = null
-
-  override fun refresh() {
-    value = property.value ?: ""
-  }
-
-  override fun addListener(listener: ValueChangedListener) {
-    throw NotImplementedError()
-  }
-
-  override fun removeListener(listener: ValueChangedListener) {
-    throw NotImplementedError()
+  override fun makeExpandable(initiallyExpanded: Boolean) {
+    expandable = true
+    expanded = initiallyExpanded
   }
 }
