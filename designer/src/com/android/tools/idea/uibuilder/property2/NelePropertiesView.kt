@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
-import com.android.tools.idea.common.property2.api.EditorProvider
-import com.android.tools.idea.common.property2.api.PropertiesView
-import com.android.tools.idea.common.property2.api.Watermark
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.PropertiesView
+import com.android.tools.property.panel.api.Watermark
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.property2.inspector.AllAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property2.inspector.BasicAttributesInspectorBuilder

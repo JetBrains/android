@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.FONT_PREFIX
 import com.android.ide.common.resources.ResourceResolver
-import com.android.tools.idea.common.property2.api.EnumSupport
-import com.android.tools.idea.common.property2.api.EnumValue
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.fonts.MoreFontsDialog
 import com.android.tools.idea.fonts.ProjectFonts
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem

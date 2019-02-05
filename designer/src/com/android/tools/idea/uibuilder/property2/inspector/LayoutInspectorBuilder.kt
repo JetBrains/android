@@ -24,10 +24,10 @@ import com.android.SdkConstants.TOOLS_NS_NAME_PREFIX
 import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.VIEW_MERGE
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.EditorProvider
-import com.android.tools.idea.common.property2.api.InspectorBuilder
-import com.android.tools.idea.common.property2.api.InspectorPanel
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.api.CustomPanel
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager

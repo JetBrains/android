@@ -19,8 +19,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceType
-import com.android.tools.idea.common.property2.api.EnumSupport
-import com.android.tools.idea.common.property2.api.EnumValue
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.intellij.openapi.util.text.StringUtil
 

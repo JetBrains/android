@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableModel;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableModel;
 import com.intellij.codeInsight.completion.CompletionProcess;
 import com.intellij.codeInsight.completion.CompletionProgressIndicator;
 import com.intellij.codeInsight.completion.CompletionService;

@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property2
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.PropertiesTable
 
 interface PropertiesProvider {
 

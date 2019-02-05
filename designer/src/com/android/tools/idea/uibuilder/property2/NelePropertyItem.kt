@@ -36,9 +36,9 @@ import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.property2.api.ActionIconButton
-import com.android.tools.idea.common.property2.api.HelpSupport
-import com.android.tools.idea.common.property2.api.PropertyItem
+import com.android.tools.property.panel.api.ActionIconButton
+import com.android.tools.property.panel.api.HelpSupport
+import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.ResourceRepositoryManager

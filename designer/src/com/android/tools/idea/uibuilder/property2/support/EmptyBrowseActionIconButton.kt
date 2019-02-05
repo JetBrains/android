@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
-import com.android.tools.idea.common.property2.api.ActionIconButton
+import com.android.tools.property.panel.api.ActionIconButton
 import com.intellij.openapi.actionSystem.AnAction
 import icons.StudioIcons
 import java.awt.image.BufferedImage

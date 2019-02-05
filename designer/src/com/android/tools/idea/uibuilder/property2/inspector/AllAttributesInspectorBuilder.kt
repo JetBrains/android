@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.property2.inspector
 
-import com.android.tools.adtui.ptable2.PTableModel
-import com.android.tools.idea.common.property2.api.EditorProvider
-import com.android.tools.idea.common.property2.api.FilteredPTableModel
-import com.android.tools.idea.common.property2.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
-import com.android.tools.idea.common.property2.api.GroupSpec
-import com.android.tools.idea.common.property2.api.InspectorBuilder
-import com.android.tools.idea.common.property2.api.InspectorPanel
-import com.android.tools.idea.common.property2.api.PropertiesTable
-import com.android.tools.idea.common.property2.api.TableLineModel
-import com.android.tools.idea.common.property2.api.TableUIProvider
+import com.android.tools.property.ptable2.PTableModel
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.FilteredPTableModel
+import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
+import com.android.tools.property.panel.api.GroupSpec
+import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesTable
+import com.android.tools.property.panel.api.TableLineModel
+import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.inspector.groups.ConstraintGroup

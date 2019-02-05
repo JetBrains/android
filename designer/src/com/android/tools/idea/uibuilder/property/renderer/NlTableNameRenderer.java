@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.adtui.ptable.*;
+import com.android.tools.property.ptable.*;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBLabel;

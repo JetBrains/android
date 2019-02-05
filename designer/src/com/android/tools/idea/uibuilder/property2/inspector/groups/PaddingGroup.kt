@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.property2.inspector.groups
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 
 class PaddingGroup(properties: PropertiesTable<NelePropertyItem>) :
