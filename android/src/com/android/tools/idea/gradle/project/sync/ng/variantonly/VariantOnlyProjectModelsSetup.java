@@ -113,6 +113,7 @@ public class VariantOnlyProjectModelsSetup extends ModuleSetup<VariantOnlyProjec
       IdeNativeVariantAbi ideVariantAbi = new IdeNativeVariantAbi(variantAbi.model);
       ndkModuleModel.addVariantOnlyModuleModel(ideVariantAbi);
       ndkModuleModel.setSelectedVariantName(variantAbi.name);
+      ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT = variantAbi.name;
 
       myNdkModuleSetup.setUpModule(context, ndkModuleModel);
 
