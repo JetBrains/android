@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
+import static com.intellij.ui.TableUtil.scrollSelectionToVisible;
+import static com.intellij.util.ui.JBUI.scale;
+import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
+import static com.intellij.util.ui.UIUtil.getToolTipBackground;
+
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
@@ -25,7 +31,12 @@ import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -43,30 +54,36 @@ import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.text.Collator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
-import static com.intellij.ui.TableUtil.scrollSelectionToVisible;
-import static com.intellij.util.ui.JBUI.scale;
-import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
-import static com.intellij.util.ui.UIUtil.getToolTipBackground;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultCellEditor;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.border.Border;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The contents of the "Build Variants" tool window.
@@ -461,7 +478,10 @@ public class BuildVariantView {
         editor.addItemListener(e -> {
           if (e.getStateChange() == ItemEvent.SELECTED) {
             BuildVariantItem selectedVariant = (BuildVariantItem)e.getItem();
-            myUpdater.updateSelectedVariant(myProject, selectedVariant.myModuleName, selectedVariant.myBuildVariantName);
+            getVariantsTable().setLoading(true /* Show "loading" message in the table*/ );
+            if (!myUpdater.updateSelectedVariant(myProject, selectedVariant.myModuleName, selectedVariant.myBuildVariantName)) {
+              updateContents();
+            }
           }
         });
         DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);

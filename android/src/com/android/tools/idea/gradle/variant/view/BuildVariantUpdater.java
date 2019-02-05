@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.finishBatchUpdate;
+import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.startBatchUpdate;
 import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_FULL_SYNC;
@@ -50,6 +52,10 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import java.util.ArrayList;
@@ -114,14 +120,15 @@ public class BuildVariantUpdater {
 
   /**
    * Updates a module's structure when the user selects a build variant from the tool window.
-   *
    * @param project          the module's project.
    * @param moduleName       the module's name.
    * @param buildVariantName the name of the selected build variant.
+   *
+   * @return true if there are affected facets.
    */
-  void updateSelectedVariant(@NotNull Project project,
-                             @NotNull String moduleName,
-                             @NotNull String buildVariantName) {
+  boolean updateSelectedVariant(@NotNull Project project,
+                                @NotNull String moduleName,
+                                @NotNull String buildVariantName) {
     List<AndroidFacet> affectedAndroidFacets = new ArrayList<>();
     List<NdkFacet> affectedNdkFacets = new ArrayList<>();
     // find all of affected facets, and update the value of selected build variant.
@@ -129,9 +136,8 @@ public class BuildVariantUpdater {
       findAndUpdateAffectedFacets(project, moduleName, buildVariantName, affectedAndroidFacets, affectedNdkFacets);
     // nothing to update.
     if (affectedAndroidFacets.isEmpty() && affectedNdkFacets.isEmpty()) {
-      return;
+      return false;
     }
-
     Runnable invokeVariantSelectionChangeListeners = () -> {
       synchronized (mySelectionChangeListeners) {
         for (BuildVariantView.BuildVariantSelectionChangeListener listener : mySelectionChangeListeners) {
@@ -151,23 +157,9 @@ public class BuildVariantUpdater {
       requestVariantOnlyGradleSync(project, moduleName, buildVariantName, invokeVariantSelectionChangeListeners);
     }
     else {
-      executeProjectChanges(project, () -> {
-        setUpModules(buildVariantName, affectedAndroidFacets, affectedNdkFacets);
-        PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-        setupRequest.generateSourcesAfterSync = false;
-        setupRequest.cleanProjectAfterSync = false;
-        PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, new EmptyProgressIndicator(), null);
-        generateSourcesIfNeeded(project, affectedAndroidFacets);
-      });
-
-      Application application = ApplicationManager.getApplication();
-      if (application.isUnitTestMode()) {
-        invokeVariantSelectionChangeListeners.run();
-      }
-      else {
-        application.invokeLater(invokeVariantSelectionChangeListeners);
-      }
+      setupCachedVariant(project, buildVariantName, affectedAndroidFacets, affectedNdkFacets, invokeVariantSelectionChangeListeners);
     }
+    return true;
   }
 
   /**
@@ -398,21 +390,135 @@ public class BuildVariantUpdater {
     }
   }
 
-  private void setUpModules(@NotNull String variant,
-                            @NotNull List<AndroidFacet> affectedAndroidFacets,
-                            @NotNull List<NdkFacet> affectedNdkFacets) {
-    for (NdkFacet ndkFacet : affectedNdkFacets) {
-      NdkModuleModel ndkModuleModel = getNativeAndroidModel(ndkFacet, variant);
-      if (ndkModuleModel != null) {
-        setUpModule(ndkFacet.getModule(), ndkModuleModel);
-      }
-    }
+  private void setupCachedVariant(@NotNull Project project,
+                                  @NotNull String buildVariantName,
+                                  @NotNull List<AndroidFacet> affectedAndroidFacets,
+                                  @NotNull List<NdkFacet> affectedNdkFacets,
+                                  @NotNull Runnable variantSelectionChangeListeners) {
+    Application application = ApplicationManager.getApplication();
 
-    for (AndroidFacet androidFacet : affectedAndroidFacets) {
-      AndroidModuleModel androidModel = getAndroidModel(androidFacet, variant);
-      if (androidModel != null) {
-        setUpModule(androidFacet.getModule(), androidModel);
+    Task.Backgroundable task = new Task.Backgroundable(project, "Setting up Project", false/* cannot be canceled*/) {
+      // Values to use in indicator
+      private double PROGRESS_SETUP_MODULES_START = 0.0;
+      private double PROGRESS_SETUP_MODULES_SIZE = 0.2;
+      private double PROGRESS_SETUP_PROJECT_START = PROGRESS_SETUP_MODULES_START + PROGRESS_SETUP_MODULES_SIZE;
+      private double PROGRESS_SETUP_PROJECT_SIZE = 0.2;
+      private double PROGRESS_COMMIT_START = PROGRESS_SETUP_PROJECT_START + PROGRESS_SETUP_PROJECT_SIZE;
+      private double PROGRESS_COMMIT_SIZE = 0.4;
+      private double PROGRESS_GENERATE_SOURCES_START = PROGRESS_COMMIT_START + PROGRESS_COMMIT_SIZE;
+
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        getLog().info("Starting setup of cached variant");
+        // Setup modules
+        List<IdeModifiableModelsProvider> modelsProviders = setUpModules(buildVariantName, affectedAndroidFacets, affectedNdkFacets, indicator);
+
+        // Setup Project
+        setUpProject(project, indicator);
+
+        // Commit changes and dispose models providers
+        commitChanges(project, modelsProviders, indicator);
+
+        // Run generate sources if needed
+        generateSourcesIfNeeded(project, affectedAndroidFacets, indicator);
+
+        // Call listeners
+        if (application.isUnitTestMode()) {
+          variantSelectionChangeListeners.run();
+        }
+        else {
+          application.invokeLater(variantSelectionChangeListeners);
+        }
+        getLog().info("Finished setup of cached variant");
       }
+
+      private List<IdeModifiableModelsProvider> setUpModules(@NotNull String variant,
+                                                             @NotNull List<AndroidFacet> affectedAndroidFacets,
+                                                             @NotNull List<NdkFacet> affectedNdkFacets,
+                                                             @NotNull ProgressIndicator indicator) {
+        indicator.setIndeterminate(false);
+        indicator.setText("Setting up modules");
+        indicator.setFraction(PROGRESS_SETUP_MODULES_START);
+        List<IdeModifiableModelsProvider> modelsProviders = new ArrayList<>();
+        for (NdkFacet ndkFacet : affectedNdkFacets) {
+          NdkModuleModel ndkModuleModel = getNativeAndroidModel(ndkFacet, variant);
+          if (ndkModuleModel != null) {
+            modelsProviders.add(setUpModule(ndkFacet.getModule(), ndkModuleModel));
+          }
+        }
+
+        for (AndroidFacet androidFacet : affectedAndroidFacets) {
+          AndroidModuleModel androidModel = getAndroidModel(androidFacet, variant);
+          if (androidModel != null) {
+            modelsProviders.add(setUpModule(androidFacet.getModule(), androidModel));
+          }
+        }
+        return modelsProviders;
+      }
+
+      private void setUpProject(@NotNull Project project, @NotNull ProgressIndicator indicator) {
+        indicator.setText("Setting up project");
+        indicator.setFraction(PROGRESS_SETUP_PROJECT_START);
+        PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+        setupRequest.generateSourcesAfterSync = false;
+        setupRequest.cleanProjectAfterSync = false;
+        PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, indicator, null);
+      }
+
+      private void commitChanges(@NotNull Project project,
+                                 @NotNull List<IdeModifiableModelsProvider> providers,
+                                 @NotNull ProgressIndicator indicator) {
+        startBatchUpdate(project);
+        try {
+          doCommitChanges(project, providers, indicator);
+        }
+        finally {
+          finishBatchUpdate(project);
+        }
+      }
+
+      private void doCommitChanges(@NotNull Project project,
+                                   @NotNull List<IdeModifiableModelsProvider> providers,
+                                   @NotNull ProgressIndicator indicator) {
+        indicator.setText("Committing changes");
+        indicator.setFraction(PROGRESS_COMMIT_START);
+        double step = PROGRESS_COMMIT_SIZE / (providers.size() + 1);
+        double progress = PROGRESS_COMMIT_START;
+        for (IdeModifiableModelsProvider provider : providers) {
+          executeProjectChanges(project, () -> {
+            try {
+              provider.commit();
+            }
+            catch (Throwable t) {
+              provider.dispose();
+              //noinspection ConstantConditions
+              rethrowAllAsUnchecked(t);
+            }
+          });
+          progress += step;
+          indicator.setFraction(progress);
+        }
+      }
+
+      private void generateSourcesIfNeeded(@NotNull Project project,
+                                           @NotNull List<AndroidFacet> affectedAndroidFacets,
+                                           @NotNull ProgressIndicator indicator) {
+        if (!affectedAndroidFacets.isEmpty()) {
+          // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
+          // be there.
+          if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            indicator.setFraction(PROGRESS_GENERATE_SOURCES_START);
+            GradleProjectBuilder.getInstance(project).generateSources();
+          }
+        }
+      }
+    };
+
+    if (application.isUnitTestMode()) {
+      task.run(new EmptyProgressIndicator());
+    }
+    else {
+      ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, new BackgroundableProcessIndicator(task));
     }
   }
 
@@ -422,42 +528,32 @@ public class BuildVariantUpdater {
     return moduleManager.findModuleByName(moduleName);
   }
 
-  private static void generateSourcesIfNeeded(@NotNull Project project, @NotNull List<AndroidFacet> affectedAndroidFacets) {
-    if (!affectedAndroidFacets.isEmpty()) {
-      // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
-      // be there.
-      if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        GradleProjectBuilder.getInstance(project).generateSources();
-      }
-    }
-  }
-
-  private void setUpModule(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
+  private IdeModifiableModelsProvider setUpModule(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     IdeModifiableModelsProvider modelsProvider = myModifiableModelsProviderFactory.create(module.getProject());
     ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
     try {
       myAndroidModuleSetupSteps.setUpModule(context, androidModel);
-      modelsProvider.commit();
     }
     catch (Throwable t) {
       modelsProvider.dispose();
       //noinspection ConstantConditions
       rethrowAllAsUnchecked(t);
     }
+    return modelsProvider;
   }
 
-  private void setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
+  private IdeModifiableModelsProvider setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
     IdeModifiableModelsProvider modelsProvider = myModifiableModelsProviderFactory.create(module.getProject());
     ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
     try {
       myNdkModuleSetupSteps.setUpModule(context, ndkModuleModel);
-      modelsProvider.commit();
     }
     catch (Throwable t) {
       modelsProvider.dispose();
       //noinspection ConstantConditions
       rethrowAllAsUnchecked(t);
     }
+    return modelsProvider;
   }
 
   @Nullable
