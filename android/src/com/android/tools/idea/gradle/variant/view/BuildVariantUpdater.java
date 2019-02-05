@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -53,6 +54,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -199,7 +201,8 @@ public class BuildVariantUpdater {
     if (ndkFacet != null) {
       NdkModuleModel ndkModuleModel = getNativeAndroidModel(ndkFacet, variantToSelect);
       if (ndkModuleModel != null) {
-        ndkVariantExists = updateAffectedFacetsForNdkModule(ndkFacet, ndkModuleModel, variantToSelect, affectedNdkFacets);
+        ndkVariantExists =
+          updateAffectedFacetsForNdkModule(ndkFacet, ndkModuleModel, variantToSelect, affectedAndroidFacets, affectedNdkFacets);
         // The variant name to use for AndroidModuleModel.
         // For example, variantToSelect for ndk module is debug-x86, and for AndroidModuleModel it should be debug.
         variantName = ndkModuleModel.getVariantName(variantToSelect);
@@ -210,7 +213,7 @@ public class BuildVariantUpdater {
       AndroidModuleModel androidModel = getAndroidModel(androidFacet, variantName);
       if (androidModel != null) {
         androidVariantExists =
-          updateAffectedFacetsForAndroidModule(project, androidFacet, androidModel, variantName, affectedAndroidFacets);
+          updateAffectedFacetsForAndroidModule(project, androidFacet, androidModel, variantName, affectedAndroidFacets, affectedNdkFacets);
       }
     }
     return ndkVariantExists && androidVariantExists;
@@ -219,11 +222,12 @@ public class BuildVariantUpdater {
   private static boolean updateAffectedFacetsForNdkModule(@NotNull NdkFacet ndkFacet,
                                                           @NotNull NdkModuleModel ndkModuleModel,
                                                           @NotNull String variantToSelect,
-                                                          @NotNull List<NdkFacet> affectedFacets) {
+                                                          @NotNull List<AndroidFacet> affectedAndroidFacets,
+                                                          @NotNull List<NdkFacet> affectedNdkFacets) {
     if (variantToSelect.equals(ndkModuleModel.getSelectedVariant().getName())) {
       return true;
     }
-    affectedFacets.add(ndkFacet);
+    affectedNdkFacets.add(ndkFacet);
     ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT = variantToSelect;
     boolean variantToSelectExists = ndkModuleModel.variantExists(variantToSelect);
     if (variantToSelectExists) {
@@ -237,29 +241,32 @@ public class BuildVariantUpdater {
                                                               @NotNull AndroidFacet androidFacet,
                                                               @NotNull AndroidModuleModel androidModel,
                                                               @NotNull String variantToSelect,
-                                                              @NotNull List<AndroidFacet> affectedFacets) {
+                                                              @NotNull List<AndroidFacet> affectedAndroidFacets,
+                                                              @NotNull List<NdkFacet> affectedNdkFacets) {
     if (variantToSelect.equals(androidModel.getSelectedVariant().getName())) {
       return true;
     }
-    affectedFacets.add(androidFacet);
+    affectedAndroidFacets.add(androidFacet);
     androidFacet.getProperties().SELECTED_BUILD_VARIANT = variantToSelect;
     boolean variantToSelectExists = androidModel.variantExists(variantToSelect);
     if (variantToSelectExists) {
       androidModel.setSelectedVariantName(variantToSelect);
       androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
       // The variant of dependency modules can be updated only if the target variant exists, otherwise, there's no way to get the dependency modules of target variant.
-      updateSelectedVariantsForDependencyModules(project, androidModel, affectedFacets);
+      updateSelectedVariantsForDependencyModules(project, androidModel, affectedAndroidFacets, affectedNdkFacets);
     }
     return variantToSelectExists;
   }
 
   private static void updateSelectedVariantsForDependencyModules(@NotNull Project project,
                                                                  @NotNull AndroidModuleModel androidModel,
-                                                                 @NotNull List<AndroidFacet> affectedFacets) {
+                                                                 @NotNull List<AndroidFacet> affectedAndroidFacets,
+                                                                 @NotNull List<NdkFacet> affectedNdkFacets) {
     for (Library library : androidModel.getSelectedMainCompileLevel2Dependencies().getModuleDependencies()) {
       if (isNotEmpty(library.getVariant()) && isNotEmpty(library.getProjectPath())) {
         Module dependencyModule = ProjectStructure.getInstance(project).getModuleFinder().findModuleFromLibrary(library);
-        updateDependencyModule(project, library.getProjectPath(), dependencyModule, library.getVariant(), affectedFacets);
+        updateDependencyModule(
+          project, library.getProjectPath(), dependencyModule, library.getVariant(), affectedAndroidFacets, affectedNdkFacets);
       }
     }
 
@@ -268,7 +275,8 @@ public class BuildVariantUpdater {
     for (String gradlePath : androidModel.getAndroidProject().getDynamicFeatures()) {
       if (isNotEmpty(gradlePath)) {
         Module dependencyModule = ProjectStructure.getInstance(project).getModuleFinder().findModuleByGradlePath(gradlePath);
-        updateDependencyModule(project, gradlePath, dependencyModule, androidModel.getSelectedVariant().getName(), affectedFacets);
+        updateDependencyModule(
+          project, gradlePath, dependencyModule, androidModel.getSelectedVariant().getName(), affectedAndroidFacets, affectedNdkFacets);
       }
     }
   }
@@ -277,7 +285,8 @@ public class BuildVariantUpdater {
                                              @NotNull String gradlePath,
                                              @Nullable Module dependencyModule,
                                              @NotNull String projectVariant,
-                                             @NotNull List<AndroidFacet> affectedFacets) {
+                                             @NotNull List<AndroidFacet> affectedAndroidFacets,
+                                             @NotNull List<NdkFacet> affectedNdkFacets) {
     if (dependencyModule == null) {
       logAndShowUpdateFailure(projectVariant, String.format("Cannot find module with Gradle path '%1$s'.", gradlePath));
       return;
@@ -292,8 +301,49 @@ public class BuildVariantUpdater {
 
     AndroidModuleModel dependencyModel = getAndroidModel(dependencyFacet, projectVariant);
     if (dependencyModel != null) {
-      updateAffectedFacetsForAndroidModule(project, dependencyFacet, dependencyModel, projectVariant, affectedFacets);
+      // Update the affected NDK facets, if exists.
+      NdkFacet dependencyNdkFacet = NdkFacet.getInstance(dependencyModule);
+      NdkModuleModel dependencyNdkModel = dependencyNdkFacet == null ? null : getNativeAndroidModel(dependencyNdkFacet, projectVariant);
+      if (dependencyNdkModel != null) {
+        String projectVariantWithAbi = resolveNewNdkVariant(dependencyNdkModel, projectVariant);
+        if (projectVariantWithAbi != null) {
+          updateAffectedFacetsForNdkModule(
+            dependencyNdkFacet, dependencyNdkModel, projectVariantWithAbi, affectedAndroidFacets, affectedNdkFacets);
+        }
+      }
+
+      // Update the Android facets.
+      updateAffectedFacetsForAndroidModule(
+        project, dependencyFacet, dependencyModel, projectVariant, affectedAndroidFacets, affectedNdkFacets);
     }
+  }
+
+  /**
+   * If the user provided projectVariant does not contain ABI information, then we are forced have to select an ABI the
+   * first time we encounter an NDK module. The goal of this method is to preserve the ABI information upon selected variant changes.
+   *
+   * TODO(emrekultursay): Each NDK module in the dependency graph makes its own, independent ABI selection. For users with abi filters, this
+   *    may not be the best solution. We might want to propagate the ABI choice we make downstream, and make sure all dependent NDK modules
+   *    use the same ABI (unless they have filtered out that ABI).
+   *
+   * @param ndkModel The NDK model of the current module, which contains the old variant with ABI. E.g., "debug-x86".
+   * @param newVariant The name of the selected variant (without ABI). E.g., "release".
+   * @return The variant that should be selected, including the ABI. E.g., "release-x86".
+   */
+  @Nullable
+  private static String resolveNewNdkVariant(@NotNull NdkModuleModel ndkModel, @NotNull String newVariant) {
+    String userSelectedAbi = ndkModel.getAbiName(ndkModel.getSelectedVariant().getName());  // e.g., x86
+    String ndkVariant = newVariant + "-" + userSelectedAbi;  // e.g., debug-x86
+
+    if (ndkModel.variantExists(ndkVariant)) {
+      return ndkVariant;
+    }
+
+    // The given newVariant does not have the same ABI available, it is probably filtered out by the user. We fall back to any other
+    // available ABI for that build variant.
+    String expectedPrefix = newVariant + "-";
+    Optional<NdkVariant> variant = ndkModel.getVariants().stream().filter(it -> it.getName().startsWith(expectedPrefix)).findFirst();
+    return variant.map(NdkVariant::getName).orElse(null);
   }
 
   private static boolean hasBuildFilesChanged(@NotNull Project project) {
@@ -337,7 +387,8 @@ public class BuildVariantUpdater {
           }
           boolean isCompoundSyncEnabled = NewGradleSync.isCompoundSync(project);
           request.variantOnlySyncOptions =
-            new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName, isCompoundSyncEnabled);
+            new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName,
+                                       isCompoundSyncEnabled);
           // TODO: It is not necessary to generate source for all modules (when not in compound-sync), only the modules that have variant
           // changes need to be re-generated. Need to change generateSource functions to accept specified modules.
           request.generateSourcesOnSuccess = true;
@@ -371,8 +422,8 @@ public class BuildVariantUpdater {
     return moduleManager.findModuleByName(moduleName);
   }
 
-  private static void generateSourcesIfNeeded(@NotNull Project project, @NotNull List<AndroidFacet> affectedFacets) {
-    if (!affectedFacets.isEmpty()) {
+  private static void generateSourcesIfNeeded(@NotNull Project project, @NotNull List<AndroidFacet> affectedAndroidFacets) {
+    if (!affectedAndroidFacets.isEmpty()) {
       // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
       // be there.
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
