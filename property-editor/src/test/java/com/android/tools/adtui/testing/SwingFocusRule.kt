@@ -45,7 +45,7 @@ import java.awt.peer.ComponentPeer
  * Note that components created dynamically would also have to setup with a peer.
  * Do that by calling [setRootPeer] on the top component again.
  */
-class SwingFocusRule(private val appRule: EdtApplicationRule? = null) : ExternalResource() {
+class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalResource() {
   private var afterCleanUp = false
   private var focusManager: MyKeyboardFocusManager? = null
   private val answer = Answer<Boolean> { invocation ->
@@ -79,8 +79,7 @@ class SwingFocusRule(private val appRule: EdtApplicationRule? = null) : External
   var focusOwner: Component? = null
     private set
 
-  var ideFocusManager: IdeFocusManager? = null
-    private set
+  private var ideFocusManager: IdeFocusManager? = null
 
   /**
    * Make [component] the top component for the test.
@@ -129,7 +128,7 @@ class SwingFocusRule(private val appRule: EdtApplicationRule? = null) : External
     _window = DummyFrame()
     focusManager = MyKeyboardFocusManager()
     ideFocusManager = MyIdeFocusManager(focusManager!!)
-    appRule?.registerApplicationComponentImplementation(IdeFocusManager::class.java, ideFocusManager!!)
+    appRule!!.testApplication.registerService(IdeFocusManager::class.java, ideFocusManager!!)
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
   }
 
@@ -143,6 +142,7 @@ class SwingFocusRule(private val appRule: EdtApplicationRule? = null) : External
     focusOwner = null
     focusManager = null
     ideFocusManager = null
+    appRule = null
     KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
     overrideGraphicsEnvironment(null)
   }

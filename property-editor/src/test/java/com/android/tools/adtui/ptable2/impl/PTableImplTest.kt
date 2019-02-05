@@ -27,17 +27,14 @@ import com.android.tools.adtui.ptable2.item.Item
 import com.android.tools.adtui.ptable2.item.PTableTestModel
 import com.android.tools.adtui.ptable2.item.createModel
 import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.adtui.testing.EdtApplicationRule
+import com.android.tools.adtui.testing.ApplicationRule
 import com.android.tools.adtui.testing.RunWithTestFocusManager
 import com.android.tools.adtui.testing.SwingFocusRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
-import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import java.awt.AWTEvent
@@ -63,15 +60,10 @@ class PTableImplTest {
   private var editorProvider: SimplePTableCellEditorProvider? = null
 
   @JvmField @Rule
-  val edtRule = EdtRule()
+  val appRule = ApplicationRule()
 
   @JvmField @Rule
   val focusRule = SwingFocusRule(appRule)
-
-  companion object {
-    @JvmField @ClassRule
-    val appRule = EdtApplicationRule()
-  }
 
   @Before
   fun setUp() {
@@ -407,7 +399,6 @@ class PTableImplTest {
     assertThat(table!!.isEditing).isFalse()
   }
 
-  @RunsInEdt
   @RunWithTestFocusManager
   @Test
   fun testNavigateForwardsIntoTable() {
@@ -418,7 +409,6 @@ class PTableImplTest {
     assertThat(focusRule.focusOwner?.name).isEqualTo(TEXT_CELL_EDITOR)
   }
 
-  @RunsInEdt
   @RunWithTestFocusManager
   @Test
   fun testNavigateForwardsThroughTable() {
@@ -449,7 +439,6 @@ class PTableImplTest {
     assertThat(focusRule.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
   }
 
-  @RunsInEdt
   @RunWithTestFocusManager
   @Test
   fun testNavigateBackwardsThroughTable() {
@@ -480,7 +469,6 @@ class PTableImplTest {
     assertThat(focusRule.focusOwner?.name).isEqualTo(FIRST_FIELD_EDITOR)
   }
 
-  @RunsInEdt
   @RunWithTestFocusManager
   @Test
   fun testNavigateBackwardsIntoTable() {
