@@ -17,6 +17,7 @@ package com.android.tools.idea.common.model
 
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.templates.TemplateUtils
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Computable
@@ -46,7 +47,8 @@ open class NlComponentBackendXml private constructor(
     }
   }
 
-  internal constructor(model: NlModel, tag: XmlTag, pointer: SmartPsiElementPointer<XmlTag>) : this(model) {
+  @VisibleForTesting
+  constructor(model: NlModel, tag: XmlTag, pointer: SmartPsiElementPointer<XmlTag>) : this(model) {
     myTag = tag
     myTagName = tag.name
     myTagPointer = pointer
