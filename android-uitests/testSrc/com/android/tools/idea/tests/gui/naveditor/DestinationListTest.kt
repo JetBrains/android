@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.intellij.util.ui.UIUtil
+import org.fest.swing.timing.Wait
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -73,7 +74,9 @@ class DestinationListTest {
       UIUtil.dispatchAllInvocationEvents()
     }
     val destinationListFixture = DestinationListFixture.create(guiTest.robot())
-    assertThat(destinationListFixture.components.map { it.id }).containsExactly("new_fragment")
+    Wait.seconds(2).expecting("new navigation to be displayed").until {
+      destinationListFixture.components.map { it.id } == listOf("new_fragment")
+    }
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/110924391
