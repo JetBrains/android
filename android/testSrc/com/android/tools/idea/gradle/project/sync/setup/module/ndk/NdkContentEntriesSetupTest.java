@@ -62,4 +62,23 @@ public class NdkContentEntriesSetupTest {
     File excludePath = new File(myNdkModuleModel.getRootDirPath(), ".externalNativeBuild");
     verify(contentEntry).addExcludeFolder(pathToIdeaUrl(excludePath));
   }
+
+  /**
+   * Verify that folder .cxx is excluded (b/72450552)
+   */
+  @Test
+  public void cxx() {
+    // Prepare mock parameters
+    ContentEntry contentEntry = mock(ContentEntry.class);
+    NdkVariant mockNdkVariant = mock(NdkVariant.class);
+    when (mockNdkVariant.getSourceFolders()).thenReturn(Collections.emptyList());
+    when(myNdkModuleModel.getSelectedVariant()).thenReturn(mockNdkVariant);
+
+    // Execute step
+    myNdkContentEntriesSetup.execute(Collections.singletonList(contentEntry));
+
+    // Verify exclusion
+    File excludePath = new File(myNdkModuleModel.getRootDirPath(), ".cxx");
+    verify(contentEntry).addExcludeFolder(pathToIdeaUrl(excludePath));
+  }
 }
