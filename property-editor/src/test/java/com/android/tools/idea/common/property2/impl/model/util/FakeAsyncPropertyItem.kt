@@ -15,19 +15,27 @@
  */
 package com.android.tools.idea.common.property2.impl.model.util
 
-import com.android.tools.idea.common.property2.api.InspectorBuilder
-import com.android.tools.idea.common.property2.api.InspectorPanel
-import com.android.tools.idea.common.property2.api.PropertiesTable
-import javax.swing.JPanel
+import com.android.tools.idea.common.property2.api.ActionIconButton
 
-class TestInspectorBuilder: InspectorBuilder<TestPropertyItem> {
-  var applicable = true
-  var attachToInspectorCalled = 0
+/**
+ * A variant of [FakePropertyItem] where the value is not immediately set.
+ *
+ * The set is delayed for some reason, e.g. a delay in a transaction etc.
+ */
+class FakeAsyncPropertyItem(
+  namespace: String,
+  name: String,
+  initialValue: String? = null,
+  browseButton: ActionIconButton? = null,
+  colorButton: ActionIconButton? = null
+) : FakePropertyItem(namespace, name, initialValue, browseButton, colorButton) {
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<TestPropertyItem>) {
-    attachToInspectorCalled += 1
-    if (applicable) {
-      inspector.addComponent(JPanel())
+  override var value: String? = initialValue
+    set(value) {
+      lastUpdatedValue = value
+      updateCount++
     }
-  }
+
+  var lastUpdatedValue: String? = null
+    private set
 }

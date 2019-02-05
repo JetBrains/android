@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.common.property2.impl.model.util
 
-import com.android.tools.adtui.ptable2.PTableItem
-import com.android.tools.adtui.ptable2.PTableModelUpdateListener
+import com.android.tools.idea.common.property2.api.InspectorBuilder
+import com.android.tools.idea.common.property2.api.InspectorPanel
+import com.android.tools.idea.common.property2.api.PropertiesTable
+import javax.swing.JPanel
 
-class TestPTableModelUpdateListener : PTableModelUpdateListener {
-  var updateCount = 0
-  var nextEditedItem: PTableItem? = null
-  var modelWasChanged = false
+class FakeInspectorBuilder: InspectorBuilder<FakePropertyItem> {
+  var applicable = true
+  var attachToInspectorCalled = 0
 
-  override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {
-    this.nextEditedItem = nextEditedItem
-    modelWasChanged = modelWasChanged or modelChanged
-    updateCount++
+  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<FakePropertyItem>) {
+    attachToInspectorCalled += 1
+    if (applicable) {
+      inspector.addComponent(JPanel())
+    }
   }
 }

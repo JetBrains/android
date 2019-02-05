@@ -16,10 +16,10 @@
 package com.android.tools.idea.common.property2.api
 
 import com.android.tools.adtui.testing.ApplicationRule
-import com.android.tools.idea.common.property2.impl.model.util.TestInspectorBuilder
-import com.android.tools.idea.common.property2.impl.model.util.TestPropertyItem
-import com.android.tools.idea.common.property2.impl.model.util.TestPropertyModel
-import com.android.tools.idea.common.property2.impl.ui.WatermarkPanel
+import com.android.tools.idea.common.property2.impl.model.util.FakeInspectorBuilder
+import com.android.tools.idea.common.property2.impl.model.util.FakePropertyItem
+import com.android.tools.idea.common.property2.impl.model.util.FakePropertyModel
+import com.android.tools.idea.common.property2.api.PropertiesView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import org.junit.After
@@ -35,28 +35,28 @@ class PropertiesPanelTest {
   @JvmField @Rule
   val appRule = ApplicationRule()
 
-  private var model1: TestPropertyModel? = null
-  private var model2: TestPropertyModel? = null
-  private var view1: PropertiesView<TestPropertyItem>? = null
-  private var view2: PropertiesView<TestPropertyItem>? = null
-  private var tab1a: PropertiesViewTab<TestPropertyItem>? = null
-  private var tab1b: PropertiesViewTab<TestPropertyItem>? = null
-  private var tab2a: PropertiesViewTab<TestPropertyItem>? = null
-  private var tab2b: PropertiesViewTab<TestPropertyItem>? = null
-  private var tab2c: PropertiesViewTab<TestPropertyItem>? = null
-  private var builder1: TestInspectorBuilder? = null
-  private var builder2: TestInspectorBuilder? = null
-  private var builder1a: TestInspectorBuilder? = null
-  private var builder1b: TestInspectorBuilder? = null
-  private var builder2a: TestInspectorBuilder? = null
-  private var builder2b: TestInspectorBuilder? = null
-  private var builder2c: TestInspectorBuilder? = null
+  private var model1: FakePropertyModel? = null
+  private var model2: FakePropertyModel? = null
+  private var view1: PropertiesView<FakePropertyItem>? = null
+  private var view2: PropertiesView<FakePropertyItem>? = null
+  private var tab1a: PropertiesViewTab<FakePropertyItem>? = null
+  private var tab1b: PropertiesViewTab<FakePropertyItem>? = null
+  private var tab2a: PropertiesViewTab<FakePropertyItem>? = null
+  private var tab2b: PropertiesViewTab<FakePropertyItem>? = null
+  private var tab2c: PropertiesViewTab<FakePropertyItem>? = null
+  private var builder1: FakeInspectorBuilder? = null
+  private var builder2: FakeInspectorBuilder? = null
+  private var builder1a: FakeInspectorBuilder? = null
+  private var builder1b: FakeInspectorBuilder? = null
+  private var builder2a: FakeInspectorBuilder? = null
+  private var builder2b: FakeInspectorBuilder? = null
+  private var builder2c: FakeInspectorBuilder? = null
 
   @Suppress("UNCHECKED_CAST")
   @Before
   fun setUp() {
-    model1 = TestPropertyModel()
-    model2 = TestPropertyModel()
+    model1 = FakePropertyModel()
+    model2 = FakePropertyModel()
     view1 = PropertiesView("Layout Editor", model1!!)
     tab1a = view1!!.addTab("Basic")
     tab1b = view1!!.addTab("Advanced")
@@ -64,13 +64,13 @@ class PropertiesPanelTest {
     tab2a = view2!!.addTab("Simple")
     tab2b = view2!!.addTab("Extra")
     tab2c = view2!!.addTab("Last")
-    builder1 = TestInspectorBuilder()
-    builder2 = TestInspectorBuilder()
-    builder1a = TestInspectorBuilder()
-    builder1b = TestInspectorBuilder()
-    builder2a = TestInspectorBuilder()
-    builder2b = TestInspectorBuilder()
-    builder2c = TestInspectorBuilder()
+    builder1 = FakeInspectorBuilder()
+    builder2 = FakeInspectorBuilder()
+    builder1a = FakeInspectorBuilder()
+    builder1b = FakeInspectorBuilder()
+    builder2a = FakeInspectorBuilder()
+    builder2b = FakeInspectorBuilder()
+    builder2c = FakeInspectorBuilder()
     view1!!.main.builders.add(builder1!!)
     view2!!.main.builders.add(builder2!!)
     tab1a!!.builders.add(builder1a!!)
@@ -103,7 +103,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testTwoTabsVisible() {
-    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
+    val panel = PropertiesPanel<FakePropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     model1!!.propertiesGenerated()
@@ -113,7 +113,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testSwitchBetweenViews() {
-    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
+    val panel = PropertiesPanel<FakePropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     model1!!.propertiesGenerated()
@@ -134,7 +134,7 @@ class PropertiesPanelTest {
     properties.setValue("android.last.property.tab.Layout Editor", "Advanced")
     properties.setValue("android.last.property.tab.Navigation Editor", "Last")
 
-    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
+    val panel = PropertiesPanel<FakePropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     model1!!.propertiesGenerated()
@@ -146,7 +146,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testChangingTabsUpdatesThePreferredTab() {
-    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
+    val panel = PropertiesPanel<FakePropertyItem>(appRule.testRootDisposable)
     panel.addView(view2!!)
     model2!!.propertiesGenerated()
     val tabs = panel.component.getComponent(1) as JTabbedPane
@@ -165,7 +165,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testFilterHidesNonSearchableTabs() {
-    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
+    val panel = PropertiesPanel<FakePropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     tab1a!!.searchable = false
@@ -192,7 +192,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testOneTabNotApplicable() {
-    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
+    val panel = PropertiesPanel<FakePropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     builder1a!!.applicable = false
@@ -214,7 +214,7 @@ class PropertiesPanelTest {
 
   @Test
   fun testNothingApplicable() {
-    val panel = PropertiesPanel<TestPropertyItem>(appRule.testRootDisposable)
+    val panel = PropertiesPanel<FakePropertyItem>(appRule.testRootDisposable)
     panel.addView(view1!!)
     panel.addView(view2!!)
     builder1!!.applicable = false
@@ -236,7 +236,7 @@ class PropertiesPanelTest {
     assertThat(hidden.getComponent(3)).isInstanceOf(JTabbedPane::class.java)
   }
 
-  private fun checkBothTabsVisibleInView1(panel: PropertiesPanel<TestPropertyItem>, expectedCallCount: Int = 1) {
+  private fun checkBothTabsVisibleInView1(panel: PropertiesPanel<FakePropertyItem>, expectedCallCount: Int = 1) {
     assertThat(panel.pages.size).isEqualTo(2)
     assertThat(builder1!!.attachToInspectorCalled).isEqualTo(expectedCallCount)
     assertThat(builder1a!!.attachToInspectorCalled).isEqualTo(expectedCallCount)
@@ -255,7 +255,7 @@ class PropertiesPanelTest {
     assertThat(tabs.getTitleAt(1)).isEqualTo("Advanced")
   }
 
-  private fun checkAllThreeTabsVisibleInView2(panel: PropertiesPanel<TestPropertyItem>, expectedCallCount: Int = 1) {
+  private fun checkAllThreeTabsVisibleInView2(panel: PropertiesPanel<FakePropertyItem>, expectedCallCount: Int = 1) {
     assertThat(panel.pages.size).isEqualTo(3)
     assertThat(builder2!!.attachToInspectorCalled).isEqualTo(expectedCallCount)
     assertThat(builder2a!!.attachToInspectorCalled).isEqualTo(expectedCallCount)

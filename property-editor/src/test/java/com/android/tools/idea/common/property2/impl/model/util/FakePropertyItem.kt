@@ -25,7 +25,7 @@ import javax.swing.Icon
 /**
  * [PropertyItem] used in tests.
  */
-open class TestPropertyItem(
+open class FakePropertyItem(
   override var namespace: String,
   override var name: String,
   initialValue: String? = null,
@@ -54,7 +54,7 @@ open class TestPropertyItem(
 
   override fun equals(other: Any?) =
     when (other) {
-      is TestPropertyItem -> namespace == other.namespace && name == other.name
+      is FakePropertyItem -> namespace == other.namespace && name == other.name
       else -> false
     }
 

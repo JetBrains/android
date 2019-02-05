@@ -26,7 +26,7 @@ import com.android.tools.idea.common.property2.impl.model.ComboBoxPropertyEditor
 import com.android.tools.idea.common.property2.impl.model.FlagPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.idea.common.property2.impl.model.ThreeStateBooleanPropertyEditorModel
-import com.android.tools.idea.common.property2.impl.model.util.TestInspectorPanel
+import com.android.tools.idea.common.property2.impl.model.util.FakeInspectorPanel
 import com.android.tools.idea.common.property2.impl.support.PropertiesTableImpl
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
@@ -49,7 +49,7 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
 
   val editorProvider = FakeEditorProviderImpl(model)
 
-  val inspector = TestInspectorPanel()
+  val inspector = FakeInspectorPanel()
 
   init {
     model.setPropertiesInTest(properties)
