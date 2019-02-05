@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.common.surface;
 
+import static com.android.tools.idea.common.model.NlModel.CREATE_COMPONENTS_TIMEOUT_MS;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
@@ -25,7 +28,12 @@ import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
+import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -159,7 +167,19 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
     DragType dragType = transferItem.isCut() ? DragType.MOVE : DragType.PASTE;
     InsertType insertType = model.determineInsertType(dragType, transferItem, checkOnly);
 
-    List<NlComponent> pasted = model.createComponents(transferItem, insertType, mySurface);
+    CountDownLatch latch = new CountDownLatch(1);
+    final List<NlComponent> pasted = new ArrayList();
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      pasted.addAll(model.createComponents(transferItem, insertType, mySurface));
+      latch.countDown();
+    });
+
+    try {
+      latch.await(CREATE_COMPONENTS_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      Logger.getInstance(NlWriteCommandActionUtil.class).error("Unable to create components, write lock timed out.");
+      return false;
+    }
 
     NlComponent before = null;
     if (canHandleChildren(receiver, pasted)) {
