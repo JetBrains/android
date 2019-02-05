@@ -20,11 +20,13 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenPluginBuildFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,6 +39,8 @@ import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.reg
 import static com.android.tools.idea.testing.TestProjectPaths.PLUGIN_IN_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.mockito.Mockito.spy;
@@ -47,6 +51,7 @@ import static org.mockito.Mockito.when;
  */
 public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
   private IdeComponents myIdeComponents;
 
   @Override
@@ -54,6 +59,7 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     super.setUp();
     Project project = getProject();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
     myIdeComponents = new IdeComponents(getProject());
   }
 
@@ -78,6 +84,9 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     File expectedBuildFile = new File(getProjectFolderPath(), FN_BUILD_GRADLE);
     String expectedPath = expectedBuildFile.getCanonicalPath();
     verifyAddAndOpenHyperlinks(quickFixes, expectedPath);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK, OPEN_FILE_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 
   public void testWithGradle2dot2dot1() throws Exception {
@@ -101,6 +110,9 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     File expectedBuildFile = new File(getProjectFolderPath(), FN_BUILD_GRADLE);
     String expectedPath = expectedBuildFile.getCanonicalPath();
     verifyAddAndOpenHyperlinks(quickFixes, expectedPath);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK, OPEN_FILE_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 
   public void testWithPluginSetInAppModule() throws Exception {
@@ -121,6 +133,9 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     File expectedBuildFile = getBuildFilePath("app");
     String expectedPath = expectedBuildFile.getCanonicalPath();
     verifyAddAndOpenHyperlinks(quickFixes, expectedPath);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK, OPEN_FILE_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 
   public void testRepositoryAlreadySet() throws Exception {
@@ -141,6 +156,9 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     File expectedBuildFile = new File(getProjectFolderPath(), FN_BUILD_GRADLE);
     String expectedPath = expectedBuildFile.getCanonicalPath();
     verifyOpenHyperlink(quickFixes.get(0), expectedPath);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(OPEN_FILE_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 
   public void testProjectNotInitialized() throws Exception {
@@ -156,6 +174,9 @@ public class MissingAndroidPluginErrorHandlerTest extends AndroidGradleTestCase 
     AddGoogleMavenRepositoryHyperlink addHyperlink = (AddGoogleMavenRepositoryHyperlink)quickFixes.get(0);
     assertThat(addHyperlink.getBuildFiles()).isNotEmpty();
     assertThat(quickFixes.get(1)).isInstanceOf(OpenPluginBuildFileHyperlink.class);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 
   @NotNull

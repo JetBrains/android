@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 
+import com.google.common.collect.ImmutableList;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.FAILED_TO_PARSE_SDK;
 import static com.intellij.util.SystemProperties.getUserName;
 import static java.io.File.separatorChar;
 import static org.mockito.Mockito.when;
@@ -36,6 +40,7 @@ import static org.mockito.Mockito.when;
  */
 public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
   private AndroidSdks myAndroidSdks;
 
   @Override
@@ -43,6 +48,7 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     super.setUp();
     myAndroidSdks = new IdeComponents(getProject()).mockApplicationService(AndroidSdks.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
   }
 
   @Override
@@ -70,6 +76,9 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
     assertThat(quickFixes).hasSize(0);
+
+    assertEquals(FAILED_TO_PARSE_SDK, myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 
   public void testHandleErrorWithBrokenSdkAndNoWriteAccess() throws Exception {
@@ -95,6 +104,9 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
     assertThat(quickFixes).hasSize(0);
+
+    assertEquals(FAILED_TO_PARSE_SDK, myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 
   public void testHandleErrorWithBrokenSdkAndWithWriteAccess() throws Exception {
@@ -119,5 +131,8 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
     assertThat(quickFixes).hasSize(0);
+
+    assertEquals(FAILED_TO_PARSE_SDK, myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(), myUsageReporter.getCollectedQuickFixes());
   }
 }

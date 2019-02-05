@@ -15,27 +15,32 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
+import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenProjectStructureHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix.OPEN_PROJECT_STRUCTURE_HYPERLINK;
 
 /**
  * Tests for {@link DaemonContextMismatchErrorHandler}.
  */
 public class DaemonContextMismatchErrorHandlerTest extends AndroidGradleTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
+  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
   }
 
   public void testHandleErrorWithErrorFromBugReport() throws Exception {
@@ -61,6 +66,9 @@ public class DaemonContextMismatchErrorHandlerTest extends AndroidGradleTestCase
 
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(OpenProjectStructureHyperlink.class);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(OPEN_PROJECT_STRUCTURE_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 
   public void testHandleErrorWithErrorFromGradleForum() throws Exception {
@@ -87,5 +95,8 @@ public class DaemonContextMismatchErrorHandlerTest extends AndroidGradleTestCase
 
     NotificationHyperlink quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(OpenProjectStructureHyperlink.class);
+
+    assertNull(myUsageReporter.getCollectedFailure());
+    assertEquals(ImmutableList.of(OPEN_PROJECT_STRUCTURE_HYPERLINK), myUsageReporter.getCollectedQuickFixes());
   }
 }
