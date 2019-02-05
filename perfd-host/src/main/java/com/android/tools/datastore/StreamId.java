@@ -16,51 +16,50 @@
 package com.android.tools.datastore;
 
 import com.android.tools.profiler.proto.Common;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * A semantic wrapper for the id of a device (serial + boot_id), which is just a long.
+ * A semantic wrapper for the id of a stream, which is just a long for a device (serial + boot_id).
  */
-public final class DeviceId {
-  private static final Map<Long, DeviceId> ourInstances = new HashMap<>();
-  private long myDeviceId;
+public final class StreamId {
+  private static final Map<Long, StreamId> ourInstances = new HashMap<>();
+  private long myStreamId;
 
   @NotNull
-  public static DeviceId of(long deviceId) {
-    return ourInstances.computeIfAbsent(deviceId, id -> new DeviceId(id));
+  public static StreamId of(long streamId) {
+    return ourInstances.computeIfAbsent(streamId, id -> new StreamId(id));
   }
 
   /**
    * Only used by the legacy pipeline where we use set device ID to Session's streamId field.
    */
   @NotNull
-  public static DeviceId fromSession(@NotNull Common.Session session) {
+  public static StreamId fromSession(@NotNull Common.Session session) {
     return of(session.getStreamId());
   }
 
-  private DeviceId(long deviceId) {
-    myDeviceId = deviceId;
+  private StreamId(long streamId) {
+    myStreamId = streamId;
   }
 
   public long get() {
-    return myDeviceId;
+    return myStreamId;
   }
 
   @Override
   public int hashCode() {
-    return Long.hashCode(myDeviceId);
+    return Long.hashCode(myStreamId);
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (!(obj instanceof DeviceId)) {
+    if (!(obj instanceof StreamId)) {
       return false;
     }
 
-    DeviceId other = (DeviceId)obj;
-    return myDeviceId == other.myDeviceId;
+    StreamId other = (StreamId)obj;
+    return myStreamId == other.myStreamId;
   }
 }

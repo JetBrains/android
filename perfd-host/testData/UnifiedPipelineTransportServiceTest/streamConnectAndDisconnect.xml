@@ -19,22 +19,16 @@ kind: PROCESS
 timestamp: 100
 </message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetEvents" Class="class com.android.tools.profiler.proto.Transport$GetEventsRequest">
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetDevices" Class="class com.android.tools.profiler.proto.Transport$GetDevicesRequest">
         <Message></Message>
-        <clazz>class com.android.tools.profiler.proto.Transport$GetEventsRequest</clazz>
-        <functionCalled>profiler.proto.TransportService/GetEvents</functionCalled>
+        <clazz>class com.android.tools.profiler.proto.Transport$GetDevicesRequest</clazz>
+        <functionCalled>profiler.proto.TransportService/GetDevices</functionCalled>
         <message></message>
     </GrpcCall>
-    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetEvents" Class="class com.android.tools.profiler.proto.Common$Event">
-        <Message>pid: 1
-kind: PROCESS
-timestamp: 100
-</Message>
-        <clazz>class com.android.tools.profiler.proto.Common$Event</clazz>
-        <functionCalled>profiler.proto.TransportService/GetEvents</functionCalled>
-        <message>pid: 1
-kind: PROCESS
-timestamp: 100
-</message>
+    <GrpcCall FunctionCalled="profiler.proto.TransportService/GetDevices" Class="class com.android.tools.profiler.proto.Transport$GetDevicesResponse">
+        <Message></Message>
+        <clazz>class com.android.tools.profiler.proto.Transport$GetDevicesResponse</clazz>
+        <functionCalled>profiler.proto.TransportService/GetDevices</functionCalled>
+        <message></message>
     </GrpcCall>
 </GrpcList>

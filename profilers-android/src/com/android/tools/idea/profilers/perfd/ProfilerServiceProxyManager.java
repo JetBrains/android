@@ -32,7 +32,6 @@ public class ProfilerServiceProxyManager {
     IDevice device = transportProxy.getDevice();
     ManagedChannel transportChannel = transportProxy.getTransportChannel();
 
-    transportProxy.registerProxyService(new TransportServiceProxy(device, transportChannel));
     transportProxy.registerProxyService(new ProfilerServiceProxy(transportChannel));
     transportProxy.registerProxyService(new EventServiceProxy(device, transportChannel));
     transportProxy.registerProxyService(new CpuServiceProxy(device, transportChannel, new StudioLegacyCpuTraceProfiler(device,

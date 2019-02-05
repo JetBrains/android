@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.perfd;
+package com.android.tools.idea.transport;
 
 import static com.android.ddmlib.Client.CHANGE_NAME;
 
@@ -28,8 +28,6 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.transport.TransportProxyService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.ProcessData;
@@ -81,7 +79,7 @@ public class TransportServiceProxy extends TransportProxyService
   implements AndroidDebugBridge.IClientChangeListener, AndroidDebugBridge.IDeviceChangeListener {
 
   private static Logger getLog() {
-    return Logger.getInstance(ProfilerServiceProxy.class);
+    return Logger.getInstance(TransportServiceProxy.class);
   }
 
   private static final String EMULATOR = "Emulator";
@@ -94,12 +92,18 @@ public class TransportServiceProxy extends TransportProxyService
   private final EventQueue myEventQueue = new EventQueue();
   private Thread myEventsListenerThread;
 
-  public TransportServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
+  /**
+   * @param ddmlibDevice    the {@link IDevice} for retrieving process informatino.
+   * @param transportDevice the {@link Common.Device} corresponding to the ddmlibDevice,
+   *                        as generated via {@link #transportDeviceFromIDevice(IDevice)}
+   * @param channel         the channel that is used for communicating with the device daemon.
+   */
+  public TransportServiceProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device transportDevice, @NotNull ManagedChannel channel) {
     super(TransportServiceGrpc.getServiceDescriptor());
-    myIsDeviceApiSupported = device.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
-    myDevice = device;
+    myIsDeviceApiSupported = ddmlibDevice.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
+    myDevice = ddmlibDevice;
+    myProfilerDevice = transportDevice;
     myServiceStub = TransportServiceGrpc.newBlockingStub(channel);
-    myProfilerDevice = transportDeviceFromIDevice(device);
     getLog().info(String.format("ProfilerDevice created: %s", myProfilerDevice));
 
     updateProcesses();
@@ -111,7 +115,7 @@ public class TransportServiceProxy extends TransportProxyService
   /**
    * Converts an {@link IDevice} object into a {@link Common.Device}.
    *
-   * @param device  the IDevice to retrieve information from.
+   * @param device the IDevice to retrieve information from.
    * @return
    */
   @NotNull
@@ -380,30 +384,26 @@ public class TransportServiceProxy extends TransportProxyService
         .setAbiCpuArch(abiCpuArch)
         .build();
       myCachedProcesses.put(client, process);
-      // If we are using the new event pipeline we also want to create a process started entry
-      // for each process.
-      if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
-        myEventQueue.enqueue(Event.newBuilder()
-                               .setGroupId(process.getPid())
-                               .setKind(Event.Kind.PROCESS)
-                               .setProcess(ProcessData.newBuilder()
-                                             .setProcessStarted(ProcessData.ProcessStarted.newBuilder()
-                                                                  .setProcess(process)))
-                               .setTimestamp(times.getTimestampNs())
-                               .build());
-      }
+      // New pipeline event - create a ProcessStarted event for each process.
+      myEventQueue.enqueue(Event.newBuilder()
+                             .setGroupId(process.getPid())
+                             .setKind(Event.Kind.PROCESS)
+                             .setProcess(ProcessData.newBuilder()
+                                           .setProcessStarted(ProcessData.ProcessStarted.newBuilder()
+                                                                .setProcess(process)))
+                             .setTimestamp(times.getTimestampNs())
+                             .build());
     }
 
     for (Client client : removedClients) {
       Common.Process process = myCachedProcesses.remove(client);
-      if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
-        myEventQueue.enqueue(Common.Event.newBuilder()
-                               .setGroupId(process.getPid())
-                               .setKind(Event.Kind.PROCESS)
-                               .setIsEnded(true)
-                               .setTimestamp(times.getTimestampNs())
-                               .build());
-      }
+      // New data pipeline event.
+      myEventQueue.enqueue(Common.Event.newBuilder()
+                             .setGroupId(process.getPid())
+                             .setKind(Event.Kind.PROCESS)
+                             .setIsEnded(true)
+                             .setTimestamp(times.getTimestampNs())
+                             .build());
     }
   }
 

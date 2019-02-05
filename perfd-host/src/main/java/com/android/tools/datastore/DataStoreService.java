@@ -15,31 +15,54 @@
  */
 package com.android.tools.datastore;
 
+import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
+
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
-import com.android.tools.datastore.service.*;
+import com.android.tools.datastore.service.CpuService;
+import com.android.tools.datastore.service.EnergyService;
+import com.android.tools.datastore.service.EventService;
+import com.android.tools.datastore.service.MemoryService;
+import com.android.tools.datastore.service.NetworkService;
+import com.android.tools.datastore.service.ProfilerService;
+import com.android.tools.datastore.service.TransportService;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NopSymbolizer;
-import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.EnergyServiceGrpc;
+import com.android.tools.profiler.proto.EventServiceGrpc;
+import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import io.grpc.*;
+import io.grpc.Channel;
+import io.grpc.ManagedChannel;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptor;
+import io.grpc.ServerInterceptors;
 import io.grpc.inprocess.InProcessServerBuilder;
-import java.util.concurrent.atomic.AtomicLong;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Primary class that initializes the Datastore. This class currently manages connections to perfd and sets up the DataStore service.
@@ -104,14 +127,9 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   @NotNull
   private NativeSymbolizer myNativeSymbolizer = new NopSymbolizer();
   private final ServerInterceptor myInterceptor;
-  private final Map<DeviceId, DataStoreClient> myConnectedClients = new HashMap<>();
+  private final Map<StreamId, DataStoreClient> myConnectedClients = new HashMap<>();
 
   private final Timer myReportTimer;
-
-  /**
-   * The stream id of our next stream. This ID is unique across {@link ProfilerService} sessions and should always increment.
-   */
-  private AtomicLong myNextStreamId = new AtomicLong(1);
 
   /**
    * @param fetchExecutor A callback which is given a {@link Runnable} for each datastore service.
@@ -165,7 +183,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    myTransportService = new TransportService(this, myFetchExecutor, myLogService);
+    myTransportService = new TransportService(this, myFetchExecutor);
     registerService(myTransportService);
     registerService(new ProfilerService(this, myLogService));
     registerService(new EventService(this, myFetchExecutor));
@@ -188,7 +206,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    *
    * @param service The service to register with the datastore. This service will be setup as a listener for studio to talk to.
    */
-  @VisibleForTesting
   void registerService(@NotNull ServicePassThrough service) {
     myServices.add(service);
     List<BackingNamespace> namespaces = service.getBackingNamespaces();
@@ -209,27 +226,17 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   }
 
   /**
-   * When a new device is connected this function tells the DataStore how to connect to that device and creates a channel for the device.
-   *
-   * @param channel communication channel for the datastore to connect to perfd on.
-   */
-  public void connect(@NotNull ManagedChannel channel) {
-    myTransportService.startMonitoring(channel);
-  }
-
-  /**
-   * Connects a channel to the new event pipeline. To make the association between channel and stream, we need to pass some metadata about
-   * the channel as well. The stream passed in this way will get a stream id set on it and an event created for it. As such the caller can
-   * query for the stream information via the
-   * {@link ProfilerServiceGrpc.ProfilerServiceBlockingStub#getEventGroups(Profiler.GetEventGroupsRequest)} call.
+   * Connects the DataStoreService to a channel, associating it with the given Stream. The stream will get an STREAM_CONNECTED event created
+   * once the conneciton is estebablished, and callers can query for the stream information via
+   * {@link TransportServiceGrpc.TransportServiceBlockingStub#getEventGroups(Transport.GetEventGroupsRequest)}.
    */
   public void connect(@NotNull Common.Stream stream, @NotNull ManagedChannel channel) {
     assert stream.getStreamId() != 0;
-    myTransportService.startPolling(stream, channel);
-  }
-
-  public long getUniqueStreamId() {
-    return myNextStreamId.getAndIncrement();
+    StreamId streamId = StreamId.of(stream.getStreamId());
+    if (!myConnectedClients.containsKey(streamId)) {
+      myConnectedClients.put(streamId, new DataStoreClient(channel));
+      myTransportService.connectToChannel(stream, channel);
+    }
   }
 
   /**
@@ -250,11 +257,11 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   /**
    * Disconnect from the specified channel.
    */
-  public void disconnect(@NotNull DeviceId deviceId) {
-    if (myConnectedClients.containsKey(deviceId)) {
-      DataStoreClient client = myConnectedClients.remove(deviceId);
+  public void disconnect(@NotNull StreamId streamId) {
+    if (myConnectedClients.containsKey(streamId)) {
+      DataStoreClient client = myConnectedClients.remove(streamId);
       client.shutdownNow();
-      myTransportService.stopMonitoring(client.getChannel());
+      myTransportService.disconnectFromChannel(client.getChannel());
     }
   }
 
@@ -275,38 +282,32 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     return myServices;
   }
 
-  public void setConnectedClients(@NotNull DeviceId deviceId, @NotNull Channel channel) {
-    if (!myConnectedClients.containsKey(deviceId)) {
-      myConnectedClients.put(deviceId, new DataStoreClient(channel));
-    }
+  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(@NotNull StreamId streamId) {
+    return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getCpuClient() : null;
   }
 
-  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(@NotNull DeviceId deviceId) {
-    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getCpuClient() : null;
+  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient(@NotNull StreamId streamId) {
+    return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getEnergyClient() : null;
   }
 
-  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient(@NotNull DeviceId deviceId) {
-    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getEnergyClient() : null;
+  public EventServiceGrpc.EventServiceBlockingStub getEventClient(@NotNull StreamId streamId) {
+    return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getEventClient() : null;
   }
 
-  public EventServiceGrpc.EventServiceBlockingStub getEventClient(@NotNull DeviceId deviceId) {
-    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getEventClient() : null;
+  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(@NotNull StreamId streamId) {
+    return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getNetworkClient() : null;
   }
 
-  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient(@NotNull DeviceId deviceId) {
-    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getNetworkClient() : null;
+  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(@NotNull StreamId streamId) {
+    return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getMemoryClient() : null;
   }
 
-  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient(@NotNull DeviceId deviceId) {
-    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getMemoryClient() : null;
+  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(@NotNull StreamId streamId) {
+    return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getProfilerClient() : null;
   }
 
-  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient(@NotNull DeviceId deviceId) {
-    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getProfilerClient() : null;
-  }
-
-  public TransportServiceGrpc.TransportServiceBlockingStub getTransportClient(@NotNull DeviceId deviceId) {
-    return myConnectedClients.containsKey(deviceId) ? myConnectedClients.get(deviceId).getTransportClient() : null;
+  public TransportServiceGrpc.TransportServiceBlockingStub getTransportClient(@NotNull StreamId streamId) {
+    return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getTransportClient() : null;
   }
 
   @Override
