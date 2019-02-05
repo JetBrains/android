@@ -18,10 +18,10 @@ package com.android.tools.idea.uibuilder.property2.inspector.groups
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.adtui.ptable2.PTableItem
-import com.android.tools.idea.common.property2.api.FilteredPTableModel
-import com.android.tools.idea.common.property2.api.GroupSpec
-import com.android.tools.idea.common.property2.api.PropertiesTable
+import com.android.tools.property.ptable2.PTableItem
+import com.android.tools.property.panel.api.FilteredPTableModel
+import com.android.tools.property.panel.api.GroupSpec
+import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.facet.AndroidFacet

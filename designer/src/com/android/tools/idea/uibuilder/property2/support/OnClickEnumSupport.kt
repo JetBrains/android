@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.CLASS_ACTIVITY
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.property2.api.EnumSupport
-import com.android.tools.idea.common.property2.api.EnumValue
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.model.MergedManifest
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade

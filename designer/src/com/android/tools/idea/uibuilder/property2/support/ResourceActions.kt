@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.idea.common.property2.api.HelpSupport
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder

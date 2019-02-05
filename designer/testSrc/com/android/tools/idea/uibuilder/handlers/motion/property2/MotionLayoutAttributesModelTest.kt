@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.PropertiesModelListener
+import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener

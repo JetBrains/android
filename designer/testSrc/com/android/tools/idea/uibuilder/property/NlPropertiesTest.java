@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.adtui.ptable.StarState;
+import com.android.tools.property.ptable.StarState;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;

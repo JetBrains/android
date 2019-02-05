@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.property2.api.EnumSupport
-import com.android.tools.idea.common.property2.api.EnumValue
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope.NONE.name
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.intellij.util.containers.notNullize

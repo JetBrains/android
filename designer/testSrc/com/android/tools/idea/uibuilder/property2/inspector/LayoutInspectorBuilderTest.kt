@@ -23,7 +23,7 @@ import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.TOOLS_URI
-import com.android.tools.idea.common.property2.impl.model.util.FakeLineType
+import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.google.common.truth.Truth.assertThat

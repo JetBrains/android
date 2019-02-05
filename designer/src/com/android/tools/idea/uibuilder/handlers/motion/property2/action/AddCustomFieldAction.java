@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 
-import com.android.tools.idea.common.property2.api.FilteredPTableModel;
+import com.android.tools.property.panel.api.FilteredPTableModel;
 import com.android.tools.idea.uibuilder.handlers.motion.attributeEditor.NewCustomAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutPropertyProvider;

@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property2.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.idea.common.property2.api.InspectorLineModel
+import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.idea.uibuilder.property2.model.SelectedComponentModel
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor

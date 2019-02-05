@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.renderers;
 
-import com.android.tools.adtui.ptable.PTable;
-import com.android.tools.adtui.ptable.PTableItem;
-import com.android.tools.adtui.ptable.PTableModel;
-import com.android.tools.adtui.ptable.StarState;
-import com.android.tools.adtui.ptable.simple.SimpleGroupItem;
-import com.android.tools.adtui.ptable.simple.SimpleItem;
+import com.android.tools.property.ptable.PTable;
+import com.android.tools.property.ptable.PTableItem;
+import com.android.tools.property.ptable.PTableModel;
+import com.android.tools.property.ptable.StarState;
+import com.android.tools.property.ptable.simple.SimpleGroupItem;
+import com.android.tools.property.ptable.simple.SimpleItem;
 import com.android.tools.idea.uibuilder.property.renderer.NlTableNameRenderer;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.SimpleColoredComponent;
