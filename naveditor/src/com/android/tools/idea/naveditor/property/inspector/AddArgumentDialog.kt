@@ -35,6 +35,7 @@ import com.android.tools.idea.uibuilder.model.createChild
 import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ide.util.TreeClassChooserFactory
+import com.intellij.lang.jvm.util.JvmClassUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.DialogWrapper
@@ -195,7 +196,7 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
       chooser.showDialog()
       val selection = chooser.selected
       if (selection != null) {
-        customType = selection.qualifiedName
+        customType = ClassUtil.getJVMClassName(selection)
       }
       else {
         dialogUI.myTypeComboBox.setSelectedItem(selectedType)
