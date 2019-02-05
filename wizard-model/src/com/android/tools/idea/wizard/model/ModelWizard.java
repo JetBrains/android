@@ -63,7 +63,7 @@ public final class ModelWizard implements Disposable {
   private final Stack<ModelWizardStep> myPrevSteps = new Stack<>();
 
   private final TitleHeader myTitleHeader = new TitleHeader();
-  private final JPanel myContentPanel = new JPanel(new BorderLayout());
+  private final JPanel myContentPanel = new JPanel(new CardLayout());
 
   private final List<WizardListener> myWizardListeners = new ArrayList<>(1);
 
@@ -220,6 +220,7 @@ public final class ModelWizard implements Disposable {
    * Populates the wizard with an additional step (and any dependent steps it may have).
    */
   private void addStep(@NotNull ModelWizardStep<?> step) {
+    myContentPanel.add(step.getComponent(), Integer.toString(mySteps.size()));
     mySteps.add(step);
 
     for (ModelWizardStep subStep : step.createDependentSteps()) {
@@ -438,13 +439,7 @@ public final class ModelWizard implements Disposable {
     myTitleHeader.stepIcon().setNullableValue(step.getIcon());
 
     myExtraAction.setNullableValue(step.getExtraAction());
-
-    // We remove all and add the next step manually instead of using a CardLayout intentionally here, as this makes
-    // Wizards easier to debug/inspect. When you're walking the element hierarchy of a Wizard, it's nice not to
-    // have to exclude elements from steps that are technically added to the layout but effectively invisible.
-    myContentPanel.removeAll();
-    myContentPanel.add(step.getComponent());
-    myContentPanel.repaint();
+    ((CardLayout)myContentPanel.getLayout()).show(myContentPanel, Integer.toString(myCurrIndex));
 
     JComponent focusedComponent = step.getPreferredFocusComponent();
     if (focusedComponent != null) {
