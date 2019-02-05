@@ -61,8 +61,10 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.google.common.collect.ImmutableSet
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Computable
 import com.intellij.pom.Navigatable
+import com.intellij.psi.PsiInvalidElementAccessException
 import com.intellij.util.PsiNavigateUtil
 
 /*
@@ -395,14 +397,24 @@ fun NlComponent.createChild(editor: ViewEditor,
                             insertType: InsertType
 ): NlComponent? {
   val tagName = NlComponentHelper.viewClassToTag(fqcn)
-  val tag = tag.createChildTag(tagName, null, null, false)
-
-  return model.createComponent(editor.scene.designSurface, tag, this, before, insertType)
+  return createChild(tagName, false, null, null, editor.scene.designSurface, before, insertType)
 }
 
 /**
- * Create a new child component based on tag name, namespace and body text.
- * Temporary API to help remove XmlTag dependencies.
+ * See [createChild]
+ *
+ * @param tagName                 The new tag name of the child. Not the fully qualified name such as 'android.widget.LinearLayout' but
+ * *                                   rather 'LinearLayout'.
+ * *
+ * @param enforceNamespacesDeep   If you pass some xml tags to {@code bodyText} parameter, this flag sets namespace prefixes for them.
+ * *
+ * @param namespace               Namespaces of the tag name.
+ * *
+ * @param surface                 The surface showing the component
+ * *
+ * @param before                  The sibling to insert immediately before, or null to append
+ * *
+ * @param insertType              The type of insertion
  */
 fun NlComponent.createChild(tagName: String,
                             enforceNamespacesDeep: Boolean = false,
@@ -412,8 +424,12 @@ fun NlComponent.createChild(tagName: String,
                             before: NlComponent? = null,
                             insertType: InsertType = InsertType.CREATE
 ): NlComponent? {
+  ApplicationManager.getApplication().assertWriteAccessAllowed()
+  val tag = backend.getTag() ?: return null
+
   val childTag = tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
   return model.createComponent(surface, childTag, this, before, insertType)
+  return null
 }
 
 fun NlComponent.navigateTo(): Boolean {
